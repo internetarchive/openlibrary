@@ -209,139 +209,139 @@ import CONFIGS from '../configs';
 import Multiselect from 'vue-multiselect';
 
 export default {
-    components: {
-        FilterIcon,
-        SortIcon,
-        SettingsIcon,
-        FeedbackIcon,
-        Multiselect,
-    },
+  components: {
+    FilterIcon,
+    SortIcon,
+    SettingsIcon,
+    FeedbackIcon,
+    Multiselect,
+  },
 
-    props: {
-        filterState: Object,
-        settingsState: Object,
-        sortState: Object,
-    },
+  props: {
+    filterState: Object,
+    settingsState: Object,
+    sortState: Object,
+  },
 
-    data() {
-        return {
-            googleForms: {
-                url: 'https://docs.google.com/forms/d/e/1FAIpQLSe3ZypSJXr9omueQrEDI4mGc2M_v6iDNpDtPp9jrHaGn6wgpA/viewform?usp=sf_link',
-            },
-            tweet: {
-                url: `${CONFIGS.OL_BASE_PUBLIC}/explore`,
-                text: 'Browse millions of books in the @openlibrary Explorer',
-                hashtags: 'EmpoweringLibraries,BookLovers',
-            },
+  data() {
+    return {
+      googleForms: {
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSe3ZypSJXr9omueQrEDI4mGc2M_v6iDNpDtPp9jrHaGn6wgpA/viewform?usp=sf_link',
+      },
+      tweet: {
+        url: `${CONFIGS.OL_BASE_PUBLIC}/explore`,
+        text: 'Browse millions of books in the @openlibrary Explorer',
+        hashtags: 'EmpoweringLibraries,BookLovers',
+      },
 
-            langOpts: [],
-            topLanguages: [],
-            quickLanguageSelect: '',
-            fullLanguageSelect: [],
-            langLoading: false,
-            // By default, random is set to the "hourly" random, so that the books stick
-            // around for a while
-            randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
+      langOpts: [],
+      topLanguages: [],
+      quickLanguageSelect: '',
+      fullLanguageSelect: [],
+      langLoading: false,
+      // By default, random is set to the "hourly" random, so that the books stick
+      // around for a while
+      randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
 
-            openTabs: [],
-            maxTabs: screen.width > 600 ? 5 : 1,
-        }
-    },
-
-    async created() {
-        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
-        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
-        this.langOpts = this.topLanguages;
-    },
-
-    watch: {
-        quickLanguageSelect(newVal) {
-            if (newVal === '') this.filterState.languages = [];
-            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
-            else this.filterState.languages = [newVal];
-        },
-
-        fullLanguageSelect(newVal) {
-            this.filterState.languages = newVal;
-        },
-
-        ['sortState.order'](newVal) {
-            const desiredLabel = {
-                editions: 'edition_count',
-                new: 'first_publish_year',
-                old: 'first_publish_year',
-                ddc_sort: 'classification',
-                lcc_sort: 'classification',
-            }[newVal];
-            if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
-                this.settingsState.labels.push(desiredLabel);
-            }
-        }
-    },
-
-    computed: {
-        twitterUrl() {
-            return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
-        },
-        activeFiltersCount() {
-            return Object.values(this.filterState).filter(v => v?.length).length;
-        },
-
-        computedFilters() {
-            const parts = this.filterState.solrQueryParts();
-            const computedParts = parts[0] === this.filterState.filter ? parts.slice(1) : parts;
-            return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
-        },
-
-        top3Languages() {
-            return this.topLanguages.slice(0, 3);
-        },
-
-        parsedFilter() {
-            return lucenerQueryParser.parse(this.filterState.filter);
-        },
-
-        inDebugMode() {
-            return new URLSearchParams(location.search).get('debug') === 'true';
-        },
-
-        styles() {
-            return this.inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
-        }
-    },
-
-    methods: {
-        async findLanguage(query) {
-            this.langLoading = true;
-
-            if (!query) {
-                // fetch top languages
-                this.langOpts = this.topLanguages;
-            } else {
-                const params = new URLSearchParams({q: query, limit: 15});
-                if (CONFIGS.LANG) {
-                    params.set('lang', CONFIGS.LANG);
-                }
-                // Actually search
-                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${params}`)
-                    .then(r => r.json());
-            }
-
-            this.langLoading = false;
-        },
-
-        toggleTab(tabName) {
-            const index = this.openTabs.indexOf(tabName);
-            if (index === -1) {
-                this.openTabs.push(tabName);
-                if (this.openTabs.length > this.maxTabs) {
-                    this.openTabs.shift();
-                }
-            } else {
-                this.openTabs.splice(index, 1);
-            }
-        }
+      openTabs: [],
+      maxTabs: screen.width > 600 ? 5 : 1,
     }
+  },
+
+  async created() {
+    const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
+    this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
+    this.langOpts = this.topLanguages;
+  },
+
+  watch: {
+    quickLanguageSelect(newVal) {
+      if (newVal === '') this.filterState.languages = [];
+      else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
+      else this.filterState.languages = [newVal];
+    },
+
+    fullLanguageSelect(newVal) {
+      this.filterState.languages = newVal;
+    },
+
+    ['sortState.order'](newVal) {
+      const desiredLabel = {
+        editions: 'edition_count',
+        new: 'first_publish_year',
+        old: 'first_publish_year',
+        ddc_sort: 'classification',
+        lcc_sort: 'classification',
+      }[newVal];
+      if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
+        this.settingsState.labels.push(desiredLabel);
+      }
+    }
+  },
+
+  computed: {
+    twitterUrl() {
+      return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
+    },
+    activeFiltersCount() {
+      return Object.values(this.filterState).filter(v => v?.length).length;
+    },
+
+    computedFilters() {
+      const parts = this.filterState.solrQueryParts();
+      const computedParts = parts[0] === this.filterState.filter ? parts.slice(1) : parts;
+      return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
+    },
+
+    top3Languages() {
+      return this.topLanguages.slice(0, 3);
+    },
+
+    parsedFilter() {
+      return lucenerQueryParser.parse(this.filterState.filter);
+    },
+
+    inDebugMode() {
+      return new URLSearchParams(location.search).get('debug') === 'true';
+    },
+
+    styles() {
+      return this.inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
+    }
+  },
+
+  methods: {
+    async findLanguage(query) {
+      this.langLoading = true;
+
+      if (!query) {
+        // fetch top languages
+        this.langOpts = this.topLanguages;
+      } else {
+        const params = new URLSearchParams({q: query, limit: 15});
+        if (CONFIGS.LANG) {
+          params.set('lang', CONFIGS.LANG);
+        }
+        // Actually search
+        this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${params}`)
+          .then(r => r.json());
+      }
+
+      this.langLoading = false;
+    },
+
+    toggleTab(tabName) {
+      const index = this.openTabs.indexOf(tabName);
+      if (index === -1) {
+        this.openTabs.push(tabName);
+        if (this.openTabs.length > this.maxTabs) {
+          this.openTabs.shift();
+        }
+      } else {
+        this.openTabs.splice(index, 1);
+      }
+    }
+  }
 }
 </script>
 

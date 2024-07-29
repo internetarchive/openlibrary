@@ -24,162 +24,162 @@ import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryE
 import maxBy from 'lodash/maxBy';
 
 class FilterState {
-    constructor() {
-        this.filter = '';
-        /** @type { '' | 'true' | 'false' } */
-        this.has_ebook = 'true';
-        /** @type {Array<{name: string, key: string}>} */
-        this.languages = [];
-        this.age = '';
-        this.year = '[1985 TO 9998]';
+  constructor() {
+    this.filter = '';
+    /** @type { '' | 'true' | 'false' } */
+    this.has_ebook = 'true';
+    /** @type {Array<{name: string, key: string}>} */
+    this.languages = [];
+    this.age = '';
+    this.year = '[1985 TO 9998]';
+  }
+
+  solrQueryParts() {
+    const filters = this.filter ? [this.filter] : [];
+    if (this.has_ebook) {
+      filters.push(`has_fulltext:${this.has_ebook}`);
     }
 
-    solrQueryParts() {
-        const filters = this.filter ? [this.filter] : [];
-        if (this.has_ebook) {
-            filters.push(`has_fulltext:${this.has_ebook}`);
-        }
-
-        if (this.languages.length) {
-            const langs = this.languages.map(lang => lang.key.split('/')[2]);
-            filters.push(`language:(${langs.join(' OR ')})`);
-        }
-        if (this.age) {
-            filters.push(`subject:${this.age}`);
-        }
-        if (this.year) {
-            filters.push(`first_publish_year:${this.year}`);
-        }
-        return filters;
+    if (this.languages.length) {
+      const langs = this.languages.map(lang => lang.key.split('/')[2]);
+      filters.push(`language:(${langs.join(' OR ')})`);
     }
-
-    solrQuery() {
-        return this.solrQueryParts().join(' AND ');
+    if (this.age) {
+      filters.push(`subject:${this.age}`);
     }
+    if (this.year) {
+      filters.push(`first_publish_year:${this.year}`);
+    }
+    return filters;
+  }
+
+  solrQuery() {
+    return this.solrQueryParts().join(' AND ');
+  }
 }
 
 export default {
-    components: {
-        BookRoom,
-        LibraryToolbar,
-    },
-    data() {
-        /** @type {import('./LibraryExplorer/utils').ClassificationTree[]} */
-        const classifications = [
-            {
-                name: 'DDC',
-                longName: 'Dewey Decimal Classification',
-                field: 'ddc',
-                fieldTransform: ddc => ddc,
-                toQueryFormat: ddc => ddc,
-                chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
-                root: recurForEach({ children: DDC, query: '*' }, n => {
-                    n.position = 'root';
-                    n.offset = 0;
-                    n.requests = {};
-                })
-            },
-            {
-                name: 'LCC',
-                longName: 'Library of Congress Classification',
-                field: 'lcc',
-                fieldTransform: sortable_lcc_to_short_lcc,
-                toQueryFormat: lcc => {
-                    const normalized = short_lcc_to_sortable_lcc(lcc);
-                    return normalized ? normalized.split(' ')[0] : lcc;
-                },
-                chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
-                root: recurForEach({ children: LCC, query: '*' }, n => {
-                    n.position = 'root';
-                    n.offset = 0;
-                    n.requests = {};
-                })
-            }
-        ];
-
-        const urlParams = new URLSearchParams(location.search);
-        let selectedClassification = classifications[0];
-        let jumpTo = null;
-        if (urlParams.has('jumpTo')) {
-            const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
-            selectedClassification = classifications.find(c => c.field === classificationName);
-            jumpTo = selectedClassification.toQueryFormat(classificationString);
-        }
-        return {
-            filterState: new FilterState(),
-
-            sortState: {
-                order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
-            },
-
-            jumpTo,
-
-            settingsState: {
-                selectedClassification,
-                classifications,
-
-                labels: ['classification'],
-
-                styles: {
-                    book: {
-                        options: [
-                            'default',
-                            '3d',
-                            'spines',
-                            '3d-spines',
-                            '3d-flat'
-                        ],
-                        selected: 'default'
-                    },
-
-                    cover: {
-                        options: [
-                            'image',
-                            'text'
-                        ],
-                        selected: 'image'
-                    },
-
-                    shelfLabel: {
-                        debugModeOnly: true,
-                        options: ['slider', 'expander'],
-                        selected: 'slider'
-                    },
-
-                    aesthetic: {
-                        debugModeOnly: true,
-                        options: ['mockup', 'wip'],
-                        selected: 'wip'
-                    },
-
-                    scrollbar: {
-                        options: ['default', 'thin', 'hidden'],
-                        selected: 'thin',
-                    },
-                },
-            },
-        };
-    },
-
-    computed: {
-        computedFilter() {
-            return this.filterState.solrQuery();
+  components: {
+    BookRoom,
+    LibraryToolbar,
+  },
+  data() {
+    /** @type {import('./LibraryExplorer/utils').ClassificationTree[]} */
+    const classifications = [
+      {
+        name: 'DDC',
+        longName: 'Dewey Decimal Classification',
+        field: 'ddc',
+        fieldTransform: ddc => ddc,
+        toQueryFormat: ddc => ddc,
+        chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
+        root: recurForEach({ children: DDC, query: '*' }, n => {
+          n.position = 'root';
+          n.offset = 0;
+          n.requests = {};
+        })
+      },
+      {
+        name: 'LCC',
+        longName: 'Library of Congress Classification',
+        field: 'lcc',
+        fieldTransform: sortable_lcc_to_short_lcc,
+        toQueryFormat: lcc => {
+          const normalized = short_lcc_to_sortable_lcc(lcc);
+          return normalized ? normalized.split(' ')[0] : lcc;
         },
+        chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
+        root: recurForEach({ children: LCC, query: '*' }, n => {
+          n.position = 'root';
+          n.offset = 0;
+          n.requests = {};
+        })
+      }
+    ];
 
-        bookRoomFeatures() {
-            return {
-                book3d: this.settingsState.styles.book.selected.startsWith('3d'),
-                cover: this.settingsState.styles.cover.selected,
-                shelfLabel: this.settingsState.styles.shelfLabel.selected
-            };
-        },
-
-        bookRoomClass() {
-            return Object.entries(this.settingsState.styles)
-                .map(([key, val]) => `style--${key}--${val.selected}`)
-                .join(' ');
-        }
+    const urlParams = new URLSearchParams(location.search);
+    let selectedClassification = classifications[0];
+    let jumpTo = null;
+    if (urlParams.has('jumpTo')) {
+      const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
+      selectedClassification = classifications.find(c => c.field === classificationName);
+      jumpTo = selectedClassification.toQueryFormat(classificationString);
     }
+    return {
+      filterState: new FilterState(),
+
+      sortState: {
+        order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
+      },
+
+      jumpTo,
+
+      settingsState: {
+        selectedClassification,
+        classifications,
+
+        labels: ['classification'],
+
+        styles: {
+          book: {
+            options: [
+              'default',
+              '3d',
+              'spines',
+              '3d-spines',
+              '3d-flat'
+            ],
+            selected: 'default'
+          },
+
+          cover: {
+            options: [
+              'image',
+              'text'
+            ],
+            selected: 'image'
+          },
+
+          shelfLabel: {
+            debugModeOnly: true,
+            options: ['slider', 'expander'],
+            selected: 'slider'
+          },
+
+          aesthetic: {
+            debugModeOnly: true,
+            options: ['mockup', 'wip'],
+            selected: 'wip'
+          },
+
+          scrollbar: {
+            options: ['default', 'thin', 'hidden'],
+            selected: 'thin',
+          },
+        },
+      },
+    };
+  },
+
+  computed: {
+    computedFilter() {
+      return this.filterState.solrQuery();
+    },
+
+    bookRoomFeatures() {
+      return {
+        book3d: this.settingsState.styles.book.selected.startsWith('3d'),
+        cover: this.settingsState.styles.cover.selected,
+        shelfLabel: this.settingsState.styles.shelfLabel.selected
+      };
+    },
+
+    bookRoomClass() {
+      return Object.entries(this.settingsState.styles)
+        .map(([key, val]) => `style--${key}--${val.selected}`)
+        .join(' ');
+    }
+  }
 };
 </script>
 

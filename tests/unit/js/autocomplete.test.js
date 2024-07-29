@@ -2,65 +2,65 @@ import { highlight, mapApiResultsToAutocompleteSuggestions } from '../../../open
 
 describe('highlight', () => {
 
-    test('Highlights terms with strong tag', () => {
-        [
-            [
-                'Jon Robson',
-                'Jon',
-                '<strong>Jon</strong> Robson'
-            ],
-            [
-                'No match',
-                'abcde',
-                'No match'
-            ]
-        ].forEach((test) => {
-            const highlightedText = highlight(test[0], test[1]);
-            expect(highlightedText).toStrictEqual(test[2]);
-        });
-    })
+  test('Highlights terms with strong tag', () => {
+    [
+      [
+        'Jon Robson',
+        'Jon',
+        '<strong>Jon</strong> Robson'
+      ],
+      [
+        'No match',
+        'abcde',
+        'No match'
+      ]
+    ].forEach((test) => {
+      const highlightedText = highlight(test[0], test[1]);
+      expect(highlightedText).toStrictEqual(test[2]);
+    });
+  })
 });
 
 
 describe('mapApiResultsToAutocompleteSuggestions', () => {
-    test('API results are converted to suggestions using label function', () => {
-        const suggestions = mapApiResultsToAutocompleteSuggestions(
-            [
-                {
-                    key: 1,
-                    name: 'Test'
-                }
-            ],
-            (r) => r.name
-        );
+  test('API results are converted to suggestions using label function', () => {
+    const suggestions = mapApiResultsToAutocompleteSuggestions(
+      [
+        {
+          key: 1,
+          name: 'Test'
+        }
+      ],
+      (r) => r.name
+    );
 
-        expect(suggestions).toStrictEqual([
-            {
-                key: 1,
-                label: 'Test',
-                value: 'Test'
-            }
-        ]);
-    });
+    expect(suggestions).toStrictEqual([
+      {
+        key: 1,
+        label: 'Test',
+        value: 'Test'
+      }
+    ]);
+  });
 
-    test('Add new item field can be added', () => {
-        const suggestions = mapApiResultsToAutocompleteSuggestions(
-            [
-                {
-                    key: 1,
-                    name: 'Test'
-                }
-            ],
-            (r) => r.name,
-            'Add new item'
-        );
+  test('Add new item field can be added', () => {
+    const suggestions = mapApiResultsToAutocompleteSuggestions(
+      [
+        {
+          key: 1,
+          name: 'Test'
+        }
+      ],
+      (r) => r.name,
+      'Add new item'
+    );
 
-        expect(suggestions[1]).toStrictEqual(
-            {
-                key: '__new__',
-                label: 'Add new item',
-                value: 'Add new item'
-            }
-        );
-    })
+    expect(suggestions[1]).toStrictEqual(
+      {
+        key: '__new__',
+        label: 'Add new item',
+        value: 'Add new item'
+      }
+    );
+  })
 });

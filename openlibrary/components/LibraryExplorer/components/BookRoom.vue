@@ -91,176 +91,176 @@ import CONFIGS from '../configs';
  * @param {string} classification (e.g. 658.91500202854)
  */
 function findClassification(classificationNode, classification) {
-    // First we find the closest matching node in the current classification tree
-    const path = hierarchyFind(
-        classificationNode,
-        node => testLuceneSyntax(node.query, classification));
-    if (!path.length) return;
+  // First we find the closest matching node in the current classification tree
+  const path = hierarchyFind(
+    classificationNode,
+    node => testLuceneSyntax(node.query, classification));
+  if (!path.length) return;
 
-    // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
-    while (path.length < 3) path.push(null);
+  // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
+  while (path.length < 3) path.push(null);
 
-    // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
-    // e.g. [658, 65X, 6XX]
-    const [shelf, bookcase, room] = path.reverse();
-    path.reverse();
-    return {
-        classification,
-        room,
-        bookcase,
-        shelf,
-        breadcrumbs: path.slice(0, -3),
-    };
+  // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
+  // e.g. [658, 65X, 6XX]
+  const [shelf, bookcase, room] = path.reverse();
+  path.reverse();
+  return {
+    classification,
+    room,
+    bookcase,
+    shelf,
+    breadcrumbs: path.slice(0, -3),
+  };
 }
 
 export default {
-    components: {
-        Bookshelf,
-        RightArrowIcon,
-        ExpandIcon,
-    },
-    props: {
-        /** @type {import('../utils.js').ClassificationTree} */
-        classification: Object,
-        appSettings: Object,
+  components: {
+    Bookshelf,
+    RightArrowIcon,
+    ExpandIcon,
+  },
+  props: {
+    /** @type {import('../utils.js').ClassificationTree} */
+    classification: Object,
+    appSettings: Object,
 
-        /** The classification to jump to @example 658.91500202854 */
-        jumpTo: String,
-        sort: String,
-        filter: {
-            default: '',
-            type: String
-        },
-        features: {
-            default: () => ({
-                book3d: true,
-                cover: 'image',
-                shelfLabel: 'slider',
-            })
-        }
+    /** The classification to jump to @example 658.91500202854 */
+    jumpTo: String,
+    sort: String,
+    filter: {
+      default: '',
+      type: String
     },
-    watch: {
-        async classification(newVal) {
-            this.activeRoom = newVal.root;
-            this.breadcrumbs = [];
-            await Vue.nextTick();
-            this.updateWidths();
-            this.updateActiveShelfOnScroll();
-        }
-    },
-    data() {
-        const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
+    features: {
+      default: () => ({
+        book3d: true,
+        cover: 'image',
+        shelfLabel: 'slider',
+      })
+    }
+  },
+  watch: {
+    async classification(newVal) {
+      this.activeRoom = newVal.root;
+      this.breadcrumbs = [];
+      await Vue.nextTick();
+      this.updateWidths();
+      this.updateActiveShelfOnScroll();
+    }
+  },
+  data() {
+    const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
 
-        return {
-            activeRoom: jumpToData?.room || this.classification.root,
-            breadcrumbs: jumpToData?.breadcrumbs || [],
-            jumpToData,
+    return {
+      activeRoom: jumpToData?.room || this.classification.root,
+      breadcrumbs: jumpToData?.breadcrumbs || [],
+      jumpToData,
 
-            expandingAnimation: false,
+      expandingAnimation: false,
 
-            roomWidth: 1,
-            viewportWidth: 1,
-            activeBookcaseIndex: 0,
-        };
-    },
+      roomWidth: 1,
+      viewportWidth: 1,
+      activeBookcaseIndex: 0,
+    };
+  },
 
-    async created() {
-        this.debouncedUpdateWidths = debounce(this.updateWidths);
-        window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
-    },
-    async mounted() {
-        this.updateWidths();
-        if (this.jumpToData?.shelf) {
-            this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
-                inline: 'center',
-                block: 'start',
-            });
+  async created() {
+    this.debouncedUpdateWidths = debounce(this.updateWidths);
+    window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
+  },
+  async mounted() {
+    this.updateWidths();
+    if (this.jumpToData?.shelf) {
+      this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
+        inline: 'center',
+        block: 'start',
+      });
 
-            // Find the offset of the predecessor of the requested item in its shelf
-            const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
-            const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
-            /** @type {number} */
-            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
-                q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
-                limit: 0,
-            })}`).then(r => r.json()).then(r => r.numFound);
-            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
-            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
-            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
-                inline: 'center'
-            });
-        }
-    },
-    destroyed() {
-        window.removeEventListener('resize', this.debouncedUpdateWidths);
-    },
+      // Find the offset of the predecessor of the requested item in its shelf
+      const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
+      const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
+      /** @type {number} */
+      const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+        q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
+        limit: 0,
+      })}`).then(r => r.json()).then(r => r.numFound);
+      const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
+      const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
+      olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
+        inline: 'center'
+      });
+    }
+  },
+  destroyed() {
+    window.removeEventListener('resize', this.debouncedUpdateWidths);
+  },
 
-    computed: {
-        signState() {
-            const cases = this.activeRoom.children;
-            const i = this.activeBookcaseIndex;
+  computed: {
+    signState() {
+      const cases = this.activeRoom.children;
+      const i = this.activeBookcaseIndex;
 
-            return {
-                left: cases[i - 1],
-                main: cases[i],
-                right: cases[i + 1],
-                parent: this.breadcrumbs.length && this.activeRoom,
-            };
-        }
-    },
-    methods: {
-        /**
+      return {
+        left: cases[i - 1],
+        main: cases[i],
+        right: cases[i + 1],
+        parent: this.breadcrumbs.length && this.activeRoom,
+      };
+    }
+  },
+  methods: {
+    /**
          * @param {ClassificationNode} bookshelf something that is currently a bookcase, that will be the new room
          * @param {ClassificationNode} [shelf] the shelf (child of bookshelf)
          */
-        async expandBookshelf(bookshelf, shelf=null) {
-            this.expandingAnimation = true;
-            await new Promise(r => setTimeout(r, 200));
-            this.expandingAnimation = false;
-            this.breadcrumbs.push(this.activeRoom);
-            this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf?.position === 'root' ? shelf :
-                shelf?.children && shelf?.position ? shelf.children[shelf.position]
-                    : (shelf || bookshelf);
-            await Vue.nextTick();
-            this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
-        },
+    async expandBookshelf(bookshelf, shelf=null) {
+      this.expandingAnimation = true;
+      await new Promise(r => setTimeout(r, 200));
+      this.expandingAnimation = false;
+      this.breadcrumbs.push(this.activeRoom);
+      this.activeRoom = bookshelf;
+      const nodeToScrollTo = shelf?.position === 'root' ? shelf :
+        shelf?.children && shelf?.position ? shelf.children[shelf.position]
+          : (shelf || bookshelf);
+      await Vue.nextTick();
+      this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
+    },
 
-        async goUpTo(index) {
-            const nodeToScrollTo = this.activeRoom;
-            this.activeRoom = this.breadcrumbs[index];
-            this.breadcrumbs.splice(index, this.breadcrumbs.length - index);
-            await Vue.nextTick();
-            this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
-        },
+    async goUpTo(index) {
+      const nodeToScrollTo = this.activeRoom;
+      this.activeRoom = this.breadcrumbs[index];
+      this.breadcrumbs.splice(index, this.breadcrumbs.length - index);
+      await Vue.nextTick();
+      this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
+    },
 
-        updateWidths() {
-            const { max } = Math;
-            // Avoid dividing by 0 and whatnot
-            this.roomWidth = max(1, this.$el.querySelector('.book-room-shelves').scrollWidth);
-            this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
+    updateWidths() {
+      const { max } = Math;
+      // Avoid dividing by 0 and whatnot
+      this.roomWidth = max(1, this.$el.querySelector('.book-room-shelves').scrollWidth);
+      this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
 
-            if (this.roomWidth === 1 || this.viewportWidth === 1) {
-                setTimeout(this.updateWidths, 100);
-            }
-        },
+      if (this.roomWidth === 1 || this.viewportWidth === 1) {
+        setTimeout(this.updateWidths, 100);
+      }
+    },
 
-        updateActiveShelfOnScroll() {
-            const scrollCenterX = this.$refs.scrollingElement.scrollLeft + this.viewportWidth / 2;
-            const shelves = this.activeRoom.children;
-            const shelvesCount = shelves.length;
-            this.activeBookcaseIndex =  Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
-        },
+    updateActiveShelfOnScroll() {
+      const scrollCenterX = this.$refs.scrollingElement.scrollLeft + this.viewportWidth / 2;
+      const shelves = this.activeRoom.children;
+      const shelvesCount = shelves.length;
+      this.activeBookcaseIndex =  Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
+    },
 
-        moveToShelf(index) {
-            this.$el.querySelector(`.bookshelf-wrapper:nth-child(${index + 1})`)
-                .scrollIntoView({
-                    behavior: 'smooth',
-                    inline: 'center',
-                    block: 'nearest'
-                });
-        },
-    }
+    moveToShelf(index) {
+      this.$el.querySelector(`.bookshelf-wrapper:nth-child(${index + 1})`)
+        .scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
+        });
+    },
+  }
 };
 </script>
 

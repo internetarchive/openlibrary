@@ -50,48 +50,48 @@ import MergeRowEditionField from './MergeRowEditionField.vue';
 import MergeRowReferencesField from './MergeRowReferencesField.vue';
 
 export default {
-    components: {
-        MergeRowField,
-        MergeRowJointField,
-        MergeRowEditionField,
-        MergeRowReferencesField
+  components: {
+    MergeRowField,
+    MergeRowJointField,
+    MergeRowEditionField,
+    MergeRowReferencesField
+  },
+  props: {
+    record: {
+      type: Object,
+      required: true
     },
-    props: {
-        record: {
-            type: Object,
-            required: true
-        },
-        fields: {
-            type: Array,
-            required: true
-        },
-        editions: {
-            type: Array,
-        },
-        lists: {
-            type: Object,
-        },
-        bookshelves: {
-            type: Object,
-        },
-        ratings: {
-            type: Object,
-        },
-        cellSelected: {
-            type: Function
-        },
-        merged: {
-            type: Object,
-            required: false
-        },
-        show_diffs: {
-            type: Boolean
-        }
+    fields: {
+      type: Array,
+      required: true
     },
-    data() {
-        return {
-            master_key: null
-        };
+    editions: {
+      type: Array,
+    },
+    lists: {
+      type: Object,
+    },
+    bookshelves: {
+      type: Object,
+    },
+    ratings: {
+      type: Object,
+    },
+    cellSelected: {
+      type: Function
+    },
+    merged: {
+      type: Object,
+      required: false
+    },
+    show_diffs: {
+      type: Boolean
     }
+  },
+  data() {
+    return {
+      master_key: null
+    };
+  }
 };
 </script>

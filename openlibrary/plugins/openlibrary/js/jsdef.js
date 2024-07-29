@@ -22,18 +22,18 @@ import { truncate, cond } from './utils';
 
 //used in templates/lib/pagination.html
 export function range(begin, end, step) {
-    var r, i;
-    step = step || 1;
-    if (end === undefined) {
-        end = begin;
-        begin = 0;
-    }
+  var r, i;
+  step = step || 1;
+  if (end === undefined) {
+    end = begin;
+    begin = 0;
+  }
 
-    r = [];
-    for (i=begin; i<end; i += step) {
-        r[r.length] = i;
-    }
-    return r;
+  r = [];
+  for (i=begin; i<end; i += step) {
+    r[r.length] = i;
+  }
+  return r;
 }
 
 /**
@@ -43,7 +43,7 @@ export function range(begin, end, step) {
  *      a - b - c
  */
 export function join(items) {
-    return items.join(this);
+  return items.join(this);
 }
 
 /**
@@ -52,82 +52,82 @@ export function join(items) {
 
 // used in templates/admin/loans.html
 export function len(array) {
-    return array.length;
+  return array.length;
 }
 
 // used in templates/type/permission/edit.html
 export function enumerate(a) {
-    var b = new Array(a.length);
-    var i;
-    for (i in a) {
-        b[i] = [i, a[i]];
-    }
-    return b;
+  var b = new Array(a.length);
+  var i;
+  for (i in a) {
+    b[i] = [i, a[i]];
+  }
+  return b;
 }
 
 export function ForLoop(parent, seq) {
-    this.parent = parent;
-    this.seq = seq;
+  this.parent = parent;
+  this.seq = seq;
 
-    this.length = seq.length;
-    this.index0 = -1;
+  this.length = seq.length;
+  this.index0 = -1;
 }
 
 ForLoop.prototype.next = function() {
-    var i = this.index0+1;
+  var i = this.index0+1;
 
-    this.index0 = i;
-    this.index = i+1;
+  this.index0 = i;
+  this.index = i+1;
 
-    this.first = (i === 0);
-    this.last = (i === this.length-1);
+  this.first = (i === 0);
+  this.last = (i === this.length-1);
 
-    this.odd = (this.index % 2 === 1);
-    this.even = (this.index % 2 === 0);
-    this.parity = ['even', 'odd'][this.index % 2];
+  this.odd = (this.index % 2 === 1);
+  this.even = (this.index % 2 === 0);
+  this.parity = ['even', 'odd'][this.index % 2];
 
-    this.revindex0 = this.length - i;
-    this.revindex = this.length - i + 1;
+  this.revindex0 = this.length - i;
+  this.revindex = this.length - i + 1;
 }
 
 // used in plugins/upstream/jsdef.py
 export function foreach(seq, parent_loop, callback) {
-    var loop = new ForLoop(parent_loop, seq);
-    var i, args, j;
+  var loop = new ForLoop(parent_loop, seq);
+  var i, args, j;
 
-    for (i=0; i<seq.length; i++) {
-        loop.next();
+  for (i=0; i<seq.length; i++) {
+    loop.next();
 
-        args = [loop];
+    args = [loop];
 
-        // case of "for a, b in ..."
-        if (callback.length > 2) {
-            for (j in seq[i]) {
-                args.push(seq[i][j]);
-            }
-        }
-        else {
-            args[1] = seq[i];
-        }
-        callback.apply(this, args);
+    // case of "for a, b in ..."
+    if (callback.length > 2) {
+      for (j in seq[i]) {
+        args.push(seq[i][j]);
+      }
     }
+    else {
+      args[1] = seq[i];
+    }
+    callback.apply(this, args);
+  }
 }
 
 // used in templates/lists/widget.html
 export function websafe(value) {
-    // Safari 6 is failing with weird javascript error in this function.
-    // Added try-catch to avoid it.
-    try {
-        if (value === null || value === undefined) {
-            return '';
-        }
-        else {
-            return htmlquote(value.toString());
-        }
+  // Safari 6 is failing with weird javascript error in this function.
+  // Added try-catch to avoid it.
+  try {
+    if (value === null || value === undefined) {
+      return '';
     }
-    catch (e) {
-        return '';
+    else {
+      return htmlquote(value.toString());
     }
+  }
+  catch (e) {
+    return '';
+  }
 }
 
 /**
@@ -136,18 +136,18 @@ export function websafe(value) {
  * @param {string|number} text to quote
  */
 export function htmlquote(text) {
-    // This code exists for compatibility with template.js
-    text = String(text);
-    text = text.replace(/&/g, '&amp;'); // Must be done first!
-    text = text.replace(/</g, '&lt;');
-    text = text.replace(/>/g, '&gt;');
-    text = text.replace(/'/g, '&#39;');
-    text = text.replace(/"/g, '&quot;');
-    return text;
+  // This code exists for compatibility with template.js
+  text = String(text);
+  text = text.replace(/&/g, '&amp;'); // Must be done first!
+  text = text.replace(/</g, '&lt;');
+  text = text.replace(/>/g, '&gt;');
+  text = text.replace(/'/g, '&#39;');
+  text = text.replace(/"/g, '&quot;');
+  return text;
 }
 
 export function is_jsdef() {
-    return true;
+  return true;
 }
 
 
@@ -161,27 +161,27 @@ export function is_jsdef() {
  * @param {any} def - the default value to return if the key isn't found
  */
 export function jsdef_get(obj, key, def=null) {
-    return (key in obj) ? obj[key] : def;
+  return (key in obj) ? obj[key] : def;
 }
 
 export function exposeGlobally() {
-    // Extend existing prototypes
-    String.prototype.join = join;
+  // Extend existing prototypes
+  String.prototype.join = join;
 
-    window.commify = commify;
-    window.cond = cond;
-    window.enumerate = enumerate;
-    window.foreach = foreach;
-    window.htmlquote = htmlquote;
-    window.jsdef_get = jsdef_get;
-    window.len = len;
-    window.range = range;
-    window.slice = slice;
-    window.sprintf = sprintf;
-    window.truncate = truncate;
-    window.urlencode = urlencode;
-    window.websafe = websafe;
-    window._ = ugettext;
-    window.ungettext = ungettext;
-    window.uggettext = ugettext;
+  window.commify = commify;
+  window.cond = cond;
+  window.enumerate = enumerate;
+  window.foreach = foreach;
+  window.htmlquote = htmlquote;
+  window.jsdef_get = jsdef_get;
+  window.len = len;
+  window.range = range;
+  window.slice = slice;
+  window.sprintf = sprintf;
+  window.truncate = truncate;
+  window.urlencode = urlencode;
+  window.websafe = websafe;
+  window._ = ugettext;
+  window.ungettext = ungettext;
+  window.uggettext = ugettext;
 }

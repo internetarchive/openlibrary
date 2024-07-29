@@ -14,19 +14,19 @@ export const closedDropperMarkup = generateDropperMarkup(false)
 export const disabledDropperMarkup = generateDropperMarkup(false, true)
 
 function generateDropperMarkup(isDropperOpen, isDropperDisabled = false) {
-    let wrapperClasses = 'generic-dropper-wrapper'
-    let arrowClasses = 'arrow'
+  let wrapperClasses = 'generic-dropper-wrapper'
+  let arrowClasses = 'arrow'
 
-    if (isDropperOpen) {
-        wrapperClasses += ' generic-dropper-wrapper--active'
-        arrowClasses += ' up'
-    }
+  if (isDropperOpen) {
+    wrapperClasses += ' generic-dropper-wrapper--active'
+    arrowClasses += ' up'
+  }
 
-    if (isDropperDisabled) {
-        wrapperClasses += ' generic-dropper--disabled'
-    }
+  if (isDropperDisabled) {
+    wrapperClasses += ' generic-dropper--disabled'
+  }
 
-    return `
+  return `
       <div class="${wrapperClasses}">
         <div class="generic-dropper">
           <div class="generic-dropper__actions">

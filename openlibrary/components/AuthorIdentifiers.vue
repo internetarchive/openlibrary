@@ -30,107 +30,107 @@
 
 <script>
 const identifierPatterns  = {
-    wikidata: /^Q[1-9]\d*$/i,
-    isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
-    amazon: /^B[0-9A-Za-z]{9}$/,
-    youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
+  wikidata: /^Q[1-9]\d*$/i,
+  isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
+  amazon: /^B[0-9A-Za-z]{9}$/,
+  youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
 }
 export default {
-    // Props are for external options; if a subelement of this is modified,
-    // the view automatically re-renders
-    props: {
-        /** The list of ids currently associated with the entity in the database in string form */
-        assigned_ids_string: {
-            type: String,
-            //default: () =>  "{'wikidata': 'Q10000'}"
-        },
-        /** everything from https://openlibrary.org/config/author
+  // Props are for external options; if a subelement of this is modified,
+  // the view automatically re-renders
+  props: {
+    /** The list of ids currently associated with the entity in the database in string form */
+    assigned_ids_string: {
+      type: String,
+      //default: () =>  "{'wikidata': 'Q10000'}"
+    },
+    /** everything from https://openlibrary.org/config/author
          * Most importantly:
          * {"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, ... ]}
          */
-        author_config_string: {
-            type: String
-        },
-        /** see createHiddenInputs function for usage */
-        output_selector: {
-            type: String
-        }
+    author_config_string: {
+      type: String
     },
+    /** see createHiddenInputs function for usage */
+    output_selector: {
+      type: String
+    }
+  },
 
-    // Data is for internal stuff. This needs to be a function so that we get
-    // a fresh object every time this is initialized.
-    data: () => {
-        return {
-            selectedIdentifier: '', // Which identifier is selected in dropdown
-            inputValue: '', // What user put into input
-            assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'}
-        }
+  // Data is for internal stuff. This needs to be a function so that we get
+  // a fresh object every time this is initialized.
+  data: () => {
+    return {
+      selectedIdentifier: '', // Which identifier is selected in dropdown
+      inputValue: '', // What user put into input
+      assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'}
+    }
+  },
+
+  computed: {
+    identifierConfigsByKey: function(){
+      const parsedConfigs = JSON.parse(decodeURIComponent(this.author_config_string))['identifiers'];
+      return Object.fromEntries(parsedConfigs.map(e => [e.name, e]));
     },
+    setButtonEnabled: function(){
+      return this.selectedIdentifier !== '' && this.inputValue !== '';
+    }
+  },
 
-    computed: {
-        identifierConfigsByKey: function(){
-            const parsedConfigs = JSON.parse(decodeURIComponent(this.author_config_string))['identifiers'];
-            return Object.fromEntries(parsedConfigs.map(e => [e.name, e]));
-        },
-        setButtonEnabled: function(){
-            return this.selectedIdentifier !== '' && this.inputValue !== '';
-        }
+  methods: {
+    setIdentifier: function(){
+      // if no identifier selected don't execute
+      if (!this.setButtonEnabled) return
+
+      if (this.selectedIdentifier === 'isni') {
+        this.inputValue = this.inputValue.replace(/\s/g, '')
+      }
+
+      // We use $set otherwise we wouldn't get the reactivity desired
+      // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+      this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
+      this.inputValue = '';
+      this.selectedIdentifier = '';
     },
-
-    methods: {
-        setIdentifier: function(){
-            // if no identifier selected don't execute
-            if (!this.setButtonEnabled) return
-
-            if (this.selectedIdentifier === 'isni') {
-                this.inputValue = this.inputValue.replace(/\s/g, '')
-            }
-
-            // We use $set otherwise we wouldn't get the reactivity desired
-            // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
-            this.inputValue = '';
-            this.selectedIdentifier = '';
-        },
-        /** Removes an identifier with value from memory and it will be deleted from database on save */
-        removeIdentifier: function(identifierName){
-            this.$set(this.assignedIdentifiers, identifierName, '');
-        },
-        createHiddenInputs: function(){
-            /** Right now, we have a vue component embedded as a small part of a larger form
+    /** Removes an identifier with value from memory and it will be deleted from database on save */
+    removeIdentifier: function(identifierName){
+      this.$set(this.assignedIdentifiers, identifierName, '');
+    },
+    createHiddenInputs: function(){
+      /** Right now, we have a vue component embedded as a small part of a larger form
               * There is no way for that parent form to automatically detect the inputs in a component without JS
               * This is because the vue component is in a shadow dom
               * So for now this just drops the hidden inputs into the the parent form anytime there is a change
               */
-            const html = Object.entries(this.assignedIdentifiers)
-                .map(([name, value]) => `<input type="hidden" name="author--remote_ids--${name}" value="${value}"/>`)
-                .join('');
-            document.querySelector(this.output_selector).innerHTML = html;
-        },
-        selectIdentifierByInputValue: function() {
-            // Selects the dropdown identifier based on the input value when possible
-            for (const idtype in identifierPatterns) {
-                if (this.inputValue.match(identifierPatterns[idtype])){
-                    this.selectedIdentifier = idtype;
-                    break;
-                }
-            }
+      const html = Object.entries(this.assignedIdentifiers)
+        .map(([name, value]) => `<input type="hidden" name="author--remote_ids--${name}" value="${value}"/>`)
+        .join('');
+      document.querySelector(this.output_selector).innerHTML = html;
+    },
+    selectIdentifierByInputValue: function() {
+      // Selects the dropdown identifier based on the input value when possible
+      for (const idtype in identifierPatterns) {
+        if (this.inputValue.match(identifierPatterns[idtype])){
+          this.selectedIdentifier = idtype;
+          break;
         }
-    },
-    created: function(){
-        this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
-    },
-    watch: {
-        assignedIdentifiers:
-            {
-                handler: function(){this.createHiddenInputs()},
-                deep: true
-            },
-        inputValue:
-            {
-                handler: function(){this.selectIdentifierByInputValue()},
-            },
+      }
     }
+  },
+  created: function(){
+    this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
+  },
+  watch: {
+    assignedIdentifiers:
+            {
+              handler: function(){this.createHiddenInputs()},
+              deep: true
+            },
+    inputValue:
+            {
+              handler: function(){this.selectIdentifierByInputValue()},
+            },
+  }
 }
 </script>
 

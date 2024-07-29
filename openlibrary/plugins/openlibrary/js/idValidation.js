@@ -4,7 +4,7 @@
  * @returns {String}  parsed isbn string
  */
 export function parseIsbn(isbn) {
-    return isbn.replace(/[ -]/g, '');
+  return isbn.replace(/[ -]/g, '');
 }
 
 /**
@@ -14,8 +14,8 @@ export function parseIsbn(isbn) {
  * @returns {boolean}  true if the isbn has a valid format
  */
 export function isFormatValidIsbn10(isbn) {
-    const regex = /^[0-9]{9}[0-9X]$/;
-    return regex.test(isbn);
+  const regex = /^[0-9]{9}[0-9X]$/;
+  return regex.test(isbn);
 }
 
 /**
@@ -25,15 +25,15 @@ export function isFormatValidIsbn10(isbn) {
  * @returns {boolean}  true if ISBN string is a valid ISBN 10
  */
 export function isChecksumValidIsbn10(isbn) {
-    const chars = isbn.replace('X', 'A').split('');
+  const chars = isbn.replace('X', 'A').split('');
 
-    chars.reverse();
-    const sum = chars
-        .map((char, idx) => ((idx + 1) * parseInt(char, 16)))
-        .reduce((acc, sum) => acc + sum, 0);
+  chars.reverse();
+  const sum = chars
+    .map((char, idx) => ((idx + 1) * parseInt(char, 16)))
+    .reduce((acc, sum) => acc + sum, 0);
 
-    // The ISBN 10 is valid if the checksum mod 11 is 0.
-    return sum % 11 === 0;
+  // The ISBN 10 is valid if the checksum mod 11 is 0.
+  return sum % 11 === 0;
 }
 
 /**
@@ -43,8 +43,8 @@ export function isChecksumValidIsbn10(isbn) {
  * @returns {boolean}  true if the isbn has a valid format
  */
 export function isFormatValidIsbn13(isbn) {
-    const regex = /^[0-9]{13}$/;
-    return regex.test(isbn);
+  const regex = /^[0-9]{13}$/;
+  return regex.test(isbn);
 }
 
 /**
@@ -54,13 +54,13 @@ export function isFormatValidIsbn13(isbn) {
 * @returns {Boolean}  true if ISBN string is a valid ISBN 13
 */
 export function isChecksumValidIsbn13(isbn) {
-    const chars = isbn.split('');
-    const sum = chars
-        .map((char, idx) => ((idx % 2 * 2 + 1) * parseInt(char, 10)))
-        .reduce((sum, num) => sum + num, 0);
+  const chars = isbn.split('');
+  const sum = chars
+    .map((char, idx) => ((idx % 2 * 2 + 1) * parseInt(char, 10)))
+    .reduce((sum, num) => sum + num, 0);
 
-    // The ISBN 13 is valid if the checksum mod 10 is 0.
-    return sum % 10 === 0;
+  // The ISBN 13 is valid if the checksum mod 10 is 0.
+  return sum % 10 === 0;
 }
 
 /**
@@ -70,25 +70,25 @@ export function isChecksumValidIsbn13(isbn) {
  * @returns {String}  parsed LCCN string
  */
 export function parseLccn(lccn) {
-    // cleaning initial lccn entry
-    const parsed = lccn
-        // any alpha characters need to be lowercase
-        .toLowerCase()
-        // remove any whitespace
-        .replace(/\s/g, '')
-        // remove leading and trailing dashes
-        .replace(/^[-]+/, '').replace(/[-]+$/, '')
-        // remove any revised text
-        .replace(/rev.*/g, '')
-        // remove first forward slash and everything to its right
-        .replace(/[/]+.*$/, '');
+  // cleaning initial lccn entry
+  const parsed = lccn
+  // any alpha characters need to be lowercase
+    .toLowerCase()
+  // remove any whitespace
+    .replace(/\s/g, '')
+  // remove leading and trailing dashes
+    .replace(/^[-]+/, '').replace(/[-]+$/, '')
+  // remove any revised text
+    .replace(/rev.*/g, '')
+  // remove first forward slash and everything to its right
+    .replace(/[/]+.*$/, '');
 
-    // splitting at hyphen and padding the right hand value with zeros up to 6 characters
-    const groups = parsed.match(/(.+)-+([0-9]+)/)
-    if (groups && groups.length === 3) {
-        return groups[1] + groups[2].padStart(6, '0');
-    }
-    return parsed;
+  // splitting at hyphen and padding the right hand value with zeros up to 6 characters
+  const groups = parsed.match(/(.+)-+([0-9]+)/)
+  if (groups && groups.length === 3) {
+    return groups[1] + groups[2].padStart(6, '0');
+  }
+  return parsed;
 }
 
 /**
@@ -98,10 +98,10 @@ export function parseLccn(lccn) {
  * @returns {boolean}  true if given LCCN is valid syntax, false otherwise
  */
 export function isValidLccn(lccn) {
-    // matching parsed entry to regex representing valid lccn
-    // regex taken from /openlibrary/utils/lccn.py
-    const regex = /^([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
-    return regex.test(lccn);
+  // matching parsed entry to regex representing valid lccn
+  // regex taken from /openlibrary/utils/lccn.py
+  const regex = /^([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
+  return regex.test(lccn);
 }
 
 /**
@@ -114,8 +114,8 @@ export function isValidLccn(lccn) {
  * @returns {boolean}  true if the new identifier has already been entered
  */
 export function isIdDupe(idEntries, newId) {
-    // check each current entry value against new identifier
-    return Array.from(idEntries).some(
-        entry => entry['value'] === newId
-    );
+  // check each current entry value against new identifier
+  return Array.from(idEntries).some(
+    entry => entry['value'] === newId
+  );
 }

@@ -24,23 +24,23 @@ import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ShelfIndex from './ShelfIndex.vue';
 
 export default {
-    components: { RightArrowIcon, ShelfIndex },
-    props: {
-        node: Object
-    },
+  components: { RightArrowIcon, ShelfIndex },
+  props: {
+    node: Object
+  },
 
-    computed: {
-        index: {
-            get() {
-                return typeof this.node.position === 'undefined' || !this.node.children
-                    ? 'root'
-                    : this.node.position;
-            },
-            set(newVal) {
-                return this.node.position = newVal;
-            },
-        }
+  computed: {
+    index: {
+      get() {
+        return typeof this.node.position === 'undefined' || !this.node.children
+          ? 'root'
+          : this.node.position;
+      },
+      set(newVal) {
+        return this.node.position = newVal;
+      },
     }
+  }
 };
 </script>
 
