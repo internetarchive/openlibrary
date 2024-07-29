@@ -20,22 +20,22 @@
 import EditionSnippet from './EditionSnippet.vue';
 
 export default {
-    components: {
-        EditionSnippet,
+  components: {
+    EditionSnippet,
+  },
+  props: {
+    record: {
+      type: Object,
+      required: true
     },
-    props: {
-        record: {
-            type: Object,
-            required: true
-        },
-        editions: {
-            type: Array,
-            required: true
-        },
-        merged: {
-            type: Object,
-            required: false
-        }
+    editions: {
+      type: Array,
+      required: true
     },
+    merged: {
+      type: Object,
+      required: false
+    }
+  },
 };
 </script>

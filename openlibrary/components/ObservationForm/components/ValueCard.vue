@@ -20,50 +20,50 @@ import CardBody from './CardBody'
 import CardHeader from './CardHeader';
 
 export default {
-    name: 'ValueCard',
-    components: {
-        CardHeader,
-        CardBody
-    },
-    props: {
-        /**
+  name: 'ValueCard',
+  components: {
+    CardHeader,
+    CardBody
+  },
+  props: {
+    /**
          * A question clarifying the currently selected book tag type.
          */
-        description: {
-            type: String,
-            required: true
-        },
-        /**
+    description: {
+      type: String,
+      required: true
+    },
+    /**
          * The currently selected book tag type.
          */
-        type: {
-            type: String,
-            required: true
-        },
-        /**
+    type: {
+      type: String,
+      required: true
+    },
+    /**
          * Whether or not multiple values can be selected for the current book tag type.
          */
-        multiSelect: {
-            type: Boolean,
-            required: false,
-            default: false
-        },
-        /**
+    multiSelect: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    /**
          * All possible values for the current book tag type.
          */
-        values: {
-            type: Array,
-            required: true,
-            validator: function(arr) {
-                for (const item of arr) {
-                    if (typeof(item) !== 'string') {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        },
-        /**
+    values: {
+      type: Array,
+      required: true,
+      validator: function(arr) {
+        for (const item of arr) {
+          if (typeof(item) !== 'string') {
+            return false;
+          }
+        }
+        return true;
+      }
+    },
+    /**
          * An object containing all of the patron's currently selected book tags.
          *
          * @example
@@ -72,28 +72,28 @@ export default {
          *   "genres": ["sci-fi", "anthology"]
          * }
          */
-        allSelectedValues: {
-            type: Object,
-            required: true
-        },
-        /**
+    allSelectedValues: {
+      type: Object,
+      required: true
+    },
+    /**
          * The work key.
          *
          * @example
          * /works/OL123W
          */
-        workKey: {
-            type: String,
-            required: true
-        },
-        /**
+    workKey: {
+      type: String,
+      required: true
+    },
+    /**
          * The patron's username.
          */
-        username: {
-            type: String,
-            required: true
-        }
-    },
+    username: {
+      type: String,
+      required: true
+    }
+  },
 }
 </script>
 

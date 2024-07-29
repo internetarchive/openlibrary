@@ -34,65 +34,65 @@ import _ from 'lodash';
 import ISBN from 'isbn3';
 
 export default {
-    props: {
-        edition: Object
+  props: {
+    edition: Object
+  },
+  computed: {
+    publish_year() {
+      if (!this.edition.publish_date) return '';
+      const m = this.edition.publish_date.match(/\d{4}/);
+      return m ? m[0] : null;
     },
-    computed: {
-        publish_year() {
-            if (!this.edition.publish_date) return '';
-            const m = this.edition.publish_date.match(/\d{4}/);
-            return m ? m[0] : null;
-        },
 
-        publishers() {
-            return this.edition.publishers || [];
-        },
+    publishers() {
+      return this.edition.publishers || [];
+    },
 
-        number_of_pages() {
-            if (this.edition.number_of_pages) {
-                return this.edition.number_of_pages;
-            } else if (this.edition.pagination) {
-                const m = this.edition.pagination.match(/\d+ ?p/);
-                if (m) return parseFloat(m[0]);
-            }
+    number_of_pages() {
+      if (this.edition.number_of_pages) {
+        return this.edition.number_of_pages;
+      } else if (this.edition.pagination) {
+        const m = this.edition.pagination.match(/\d+ ?p/);
+        if (m) return parseFloat(m[0]);
+      }
 
-            return '?';
-        },
+      return '?';
+    },
 
-        full_title() {
-            let title = this.edition.title;
-            if (this.edition.subtitle) title += `: ${this.edition.subtitle}`;
-            return title;
-        },
+    full_title() {
+      let title = this.edition.title;
+      if (this.edition.subtitle) title += `: ${this.edition.subtitle}`;
+      return title;
+    },
 
-        cover_url() {
-            const id =
+    cover_url() {
+      const id =
         this.edition.covers && this.edition.covers[0]
-            ? this.edition.covers[0]
-            : null;
-            if (id) return `https://covers.openlibrary.org/b/id/${id}-M.jpg`;
+          ? this.edition.covers[0]
+          : null;
+      if (id) return `https://covers.openlibrary.org/b/id/${id}-M.jpg`;
 
-            const ocaid = this.edition.ocaid;
-            if (ocaid)
-                return `https://archive.org/download/${ocaid}/page/cover_w180_h360.jpg`;
+      const ocaid = this.edition.ocaid;
+      if (ocaid)
+        return `https://archive.org/download/${ocaid}/page/cover_w180_h360.jpg`;
 
-            return 'https://covers.openlibrary.org/b/id/-1-M.jpg';
-        },
+      return 'https://covers.openlibrary.org/b/id/-1-M.jpg';
+    },
 
-        languages() {
-            if (!this.edition.languages) return '???';
-            const langs = this.edition.languages.map(lang => lang.key.split('/')[2]);
-            return langs.join(', ');
-        },
+    languages() {
+      if (!this.edition.languages) return '???';
+      const langs = this.edition.languages.map(lang => lang.key.split('/')[2]);
+      return langs.join(', ');
+    },
 
-        asins() {
-            return _.uniq([
-                ...((this.edition.identifiers && this.edition.identifiers.amazon) || []),
-                this.edition.isbn_10 && ISBN.asIsbn10(this.edition.isbn_10),
-                this.edition.isbn_13 && ISBN.asIsbn10(this.edition.isbn_13),
-            ].filter(x => x));
-        }
+    asins() {
+      return _.uniq([
+        ...((this.edition.identifiers && this.edition.identifiers.amazon) || []),
+        this.edition.isbn_10 && ISBN.asIsbn10(this.edition.isbn_10),
+        this.edition.isbn_13 && ISBN.asIsbn10(this.edition.isbn_13),
+      ].filter(x => x));
     }
+  }
 };
 </script>
 

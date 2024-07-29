@@ -27,22 +27,22 @@
 
 <script>
 export default {
-    props: {
-        node: Object,
-    },
+  props: {
+    node: Object,
+  },
 
-    computed: {
-        index: {
-            get() {
-                return typeof this.node.position === 'undefined' || !this.node.children
-                    ? 'root'
-                    : this.node.position;
-            },
-            set(newVal) {
-                return this.node.position = newVal;
-            },
-        },
+  computed: {
+    index: {
+      get() {
+        return typeof this.node.position === 'undefined' || !this.node.children
+          ? 'root'
+          : this.node.position;
+      },
+      set(newVal) {
+        return this.node.position = newVal;
+      },
     },
+  },
 };
 </script>
 

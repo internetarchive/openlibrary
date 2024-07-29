@@ -6,16 +6,16 @@
 
 <script>
 export default {
-    name: 'CardHeader',
-    props: {
-        /**
+  name: 'CardHeader',
+  props: {
+    /**
          * A question clarifying the currently selected book tag type.
          */
-        description: {
-            type: String,
-            required: true
-        }
-    },
+    description: {
+      type: String,
+      required: true
+    }
+  },
 }
 </script>
 

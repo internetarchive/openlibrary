@@ -29,12 +29,12 @@
 import MatchRow from './MatchRow.vue'
 import { BulkSearchState } from '../utils/classes.js'
 export default {
-    components: {
-        MatchRow
-    },
-    props: {
-        bulkSearchState: BulkSearchState,
-    }
+  components: {
+    MatchRow
+  },
+  props: {
+    bulkSearchState: BulkSearchState,
+  }
 }</script>
 
 <style>

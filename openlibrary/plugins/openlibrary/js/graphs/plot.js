@@ -16,226 +16,226 @@ import 'flot/jquery.flot.time.js';
  * - http://localhost:8080/publishers/Barnes_&_Noble
  */
 export function loadEditionsGraph() {
-    var data, options, placeholder,
-        plot, dateFrom, dateTo, previousPoint;
-    data = [{data: JSON.parse(document.getElementById('graph-json-chartPubHistory').textContent)}];
-    options = {
-        series: {
-            bars: {
-                show: true,
-                fill: 0.6,
-                color: '#615132',
-                align: 'center'
-            },
-            points: {
-                show: true
-            },
-            color: '#615132'
-        },
-        grid: {
-            hoverable: true,
-            clickable: true,
-            autoHighlight: true,
-            tickColor: '#d9d9d9',
-            borderWidth: 1,
-            borderColor: '#d9d9d9',
-            backgroundColor: '#fff'
-        },
-        xaxis: { tickDecimals: 0 },
-        yaxis: { tickDecimals: 0 },
-        selection: { mode: 'xy', color: '#00636a' },
-        crosshair: {
-            mode: 'xy',
-            color: 'rgba(000, 099, 106, 0.4)',
-            lineWidth: 1
-        }
-    };
-
-    placeholder = $('#chartPubHistory');
-    function showTooltip(x, y, contents) {
-        $(`<div id="chartLabel">${contents}</div>`).css({
-            position: 'absolute',
-            display: 'none',
-            top: y + 12,
-            left: x + 12,
-            border: '1px solid #615132',
-            padding: '2px',
-            'background-color': '#fffdcd',
-            color: '#615132',
-            'font-size': '11px',
-            opacity: 0.90,
-            'z-index': 100
-        }).appendTo('body').fadeIn(200);
+  var data, options, placeholder,
+    plot, dateFrom, dateTo, previousPoint;
+  data = [{data: JSON.parse(document.getElementById('graph-json-chartPubHistory').textContent)}];
+  options = {
+    series: {
+      bars: {
+        show: true,
+        fill: 0.6,
+        color: '#615132',
+        align: 'center'
+      },
+      points: {
+        show: true
+      },
+      color: '#615132'
+    },
+    grid: {
+      hoverable: true,
+      clickable: true,
+      autoHighlight: true,
+      tickColor: '#d9d9d9',
+      borderWidth: 1,
+      borderColor: '#d9d9d9',
+      backgroundColor: '#fff'
+    },
+    xaxis: { tickDecimals: 0 },
+    yaxis: { tickDecimals: 0 },
+    selection: { mode: 'xy', color: '#00636a' },
+    crosshair: {
+      mode: 'xy',
+      color: 'rgba(000, 099, 106, 0.4)',
+      lineWidth: 1
     }
-    previousPoint = null;
-    placeholder.bind('plothover', function (event, pos, item) {
-        var x, y;
-        $('#x').text(pos.x.toFixed(0));
-        $('#y').text(pos.y.toFixed(0));
-        if (item) {
-            if (previousPoint !== item.datapoint) {
-                previousPoint = item.datapoint;
-                $('#chartLabel').remove();
-                x = item.datapoint[0].toFixed(0);
-                y = item.datapoint[1].toFixed(0);
-                if (y === 1) {
-                    showTooltip(item.pageX, item.pageY,
-                        `${y} edition in ${x}`);
-                } else {
-                    showTooltip(item.pageX, item.pageY,
-                        `${y} editions in ${x}`);
-                }
-            }
+  };
+
+  placeholder = $('#chartPubHistory');
+  function showTooltip(x, y, contents) {
+    $(`<div id="chartLabel">${contents}</div>`).css({
+      position: 'absolute',
+      display: 'none',
+      top: y + 12,
+      left: x + 12,
+      border: '1px solid #615132',
+      padding: '2px',
+      'background-color': '#fffdcd',
+      color: '#615132',
+      'font-size': '11px',
+      opacity: 0.90,
+      'z-index': 100
+    }).appendTo('body').fadeIn(200);
+  }
+  previousPoint = null;
+  placeholder.bind('plothover', function (event, pos, item) {
+    var x, y;
+    $('#x').text(pos.x.toFixed(0));
+    $('#y').text(pos.y.toFixed(0));
+    if (item) {
+      if (previousPoint !== item.datapoint) {
+        previousPoint = item.datapoint;
+        $('#chartLabel').remove();
+        x = item.datapoint[0].toFixed(0);
+        y = item.datapoint[1].toFixed(0);
+        if (y === 1) {
+          showTooltip(item.pageX, item.pageY,
+            `${y} edition in ${x}`);
+        } else {
+          showTooltip(item.pageX, item.pageY,
+            `${y} editions in ${x}`);
         }
-        else {
-            $('#chartLabel').remove();
-            previousPoint = null;
-        }
-    });
-
-    placeholder.bind('plotclick', function (event, pos, item) {
-
-        if (item) {
-            plot.unhighlight();
-            const yearFrom = item.datapoint[0].toFixed(0);
-            applyDateFilter(yearFrom, yearFrom);
-
-            plot.highlight(item.series,item.datapoint);
-        }
-        else {
-            plot.unhighlight();
-        }
-    });
-
-    placeholder.bind('plotselected', function (event, ranges) {
-        plot = $.plot(placeholder, data,
-            $.extend(true, {}, options, {
-                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
-            })
-        );
-
-        const yearFrom = ranges.xaxis.from.toFixed(0);
-        const yearTo = ranges.xaxis.to.toFixed(0);
-        applyDateFilter(yearFrom, yearTo);
-    });
-
-    function applyDateFilter(yearFrom, yearTo, hideSelector='.chartUnzoom', showSelector='.chartZoom') {
-        document.dispatchEvent(new CustomEvent('filter', { detail: { yearFrom: yearFrom, yearTo: yearTo } }));
-        $(hideSelector).hide();
-        $(showSelector).removeClass('hidden').show();
+      }
     }
+    else {
+      $('#chartLabel').remove();
+      previousPoint = null;
+    }
+  });
 
+  placeholder.bind('plotclick', function (event, pos, item) {
+
+    if (item) {
+      plot.unhighlight();
+      const yearFrom = item.datapoint[0].toFixed(0);
+      applyDateFilter(yearFrom, yearFrom);
+
+      plot.highlight(item.series,item.datapoint);
+    }
+    else {
+      plot.unhighlight();
+    }
+  });
+
+  placeholder.bind('plotselected', function (event, ranges) {
+    plot = $.plot(placeholder, data,
+      $.extend(true, {}, options, {
+        xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+        yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+      })
+    );
+
+    const yearFrom = ranges.xaxis.from.toFixed(0);
+    const yearTo = ranges.xaxis.to.toFixed(0);
+    applyDateFilter(yearFrom, yearTo);
+  });
+
+  function applyDateFilter(yearFrom, yearTo, hideSelector='.chartUnzoom', showSelector='.chartZoom') {
+    document.dispatchEvent(new CustomEvent('filter', { detail: { yearFrom: yearFrom, yearTo: yearTo } }));
+    $(hideSelector).hide();
+    $(showSelector).removeClass('hidden').show();
+  }
+
+  plot = $.plot(placeholder, data, options);
+  dateFrom = plot.getAxes().xaxis.min.toFixed(0);
+  dateTo = plot.getAxes().xaxis.max.toFixed(0);
+
+  $('.resetSelection').on('click', function() {
     plot = $.plot(placeholder, data, options);
-    dateFrom = plot.getAxes().xaxis.min.toFixed(0);
-    dateTo = plot.getAxes().xaxis.max.toFixed(0);
 
-    $('.resetSelection').on('click', function() {
-        plot = $.plot(placeholder, data, options);
+    const yearFrom = plot.getAxes().xaxis.min.toFixed(0);
+    const yearTo = plot.getAxes().xaxis.max.toFixed(0);
+    applyDateFilter(yearFrom, yearTo, '.chartZoom', '.chartUnzoom');
+  });
 
-        const yearFrom = plot.getAxes().xaxis.min.toFixed(0);
-        const yearTo = plot.getAxes().xaxis.max.toFixed(0);
-        applyDateFilter(yearFrom, yearTo, '.chartZoom', '.chartUnzoom');
-    });
+  $('.chartYaxis').css({top: '60px', left: '-60px'});
 
-    $('.chartYaxis').css({top: '60px', left: '-60px'});
-
-    if (dateFrom === (dateTo - 1)) {
-        $('.clickdata').text(`Published in ${dateFrom}`);
-    } else {
-        $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
-    }
+  if (dateFrom === (dateTo - 1)) {
+    $('.clickdata').text(`Published in ${dateFrom}`);
+  } else {
+    $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
+  }
 }
 
 export function plot_minigraph(node, data) {
-    var options = {
-        series: {
-            lines: {
-                show: true,
-                fill: 0,
-                color: '#748d36'
-            },
-            points: {
-                show: false
-            },
-            color: '#748d36'
-        },
-        grid: {
-            hoverable: false,
-            show: false
-        }
-    };
-    $.plot(node, [data], options);
+  var options = {
+    series: {
+      lines: {
+        show: true,
+        fill: 0,
+        color: '#748d36'
+      },
+      points: {
+        show: false
+      },
+      color: '#748d36'
+    },
+    grid: {
+      hoverable: false,
+      show: false
+    }
+  };
+  $.plot(node, [data], options);
 }
 
 export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36') {
-    var i, options, graph;
-    // empty set of rows. Escape early.
-    if (!data.length) {
-        return;
+  var i, options, graph;
+  // empty set of rows. Escape early.
+  if (!data.length) {
+    return;
+  }
+  for (i = 0; i < data.length; ++i) {
+    data[i][0] += 60 * 60 * 1000;
+  }
+
+  options = {
+    series: {
+      bars: {
+        show: true,
+        fill: 1,
+        fillColor: color,
+        color,
+        align: 'left',
+        barWidth: 24 * 60 * 60 * 1000
+      },
+      points: {
+        show: false
+      },
+      color
+    },
+    grid: {
+      hoverable: true,
+      show: false
+    },
+    xaxis: {
+      mode: 'time'
     }
-    for (i = 0; i < data.length; ++i) {
-        data[i][0] += 60 * 60 * 1000;
+  };
+
+  graph = $.plot(node, [data], options);
+
+  function showTooltip(x, y, contents) {
+    $(`<div id="chartLabelA">${contents}</div>`).css({
+      position: 'absolute',
+      display: 'none',
+      top: y + 12,
+      left: x + 12,
+      border: '1px solid #ccc',
+      padding: '2px',
+      backgroundColor: '#efefef',
+      color: '#454545',
+      fontSize: '11px',
+
+      mozBoxShadow: '1px 1px 1px #000',
+      boxShadow: '1px 1px 1px #000'
+    }).appendTo('body').fadeIn(200);
+  }
+  node.bind('plothover', function (event, pos, item) {
+    var date, milli, x, y;
+    $('#x').text(pos.x);
+    $('#y').text(pos.y.toFixed(0));
+    if (item) {
+      $('#chartLabelA').remove();
+      milli = item.datapoint[0];
+      date = new Date(milli);
+      x = date.toDateString();
+      y = item.datapoint[1].toFixed(0);
+      showTooltip(item.pageX, item.pageY, `${y} ${tooltip_message} ${x}`);
+    } else {
+      $('#chartLabelA').remove();
     }
-
-    options = {
-        series: {
-            bars: {
-                show: true,
-                fill: 1,
-                fillColor: color,
-                color,
-                align: 'left',
-                barWidth: 24 * 60 * 60 * 1000
-            },
-            points: {
-                show: false
-            },
-            color
-        },
-        grid: {
-            hoverable: true,
-            show: false
-        },
-        xaxis: {
-            mode: 'time'
-        }
-    };
-
-    graph = $.plot(node, [data], options);
-
-    function showTooltip(x, y, contents) {
-        $(`<div id="chartLabelA">${contents}</div>`).css({
-            position: 'absolute',
-            display: 'none',
-            top: y + 12,
-            left: x + 12,
-            border: '1px solid #ccc',
-            padding: '2px',
-            backgroundColor: '#efefef',
-            color: '#454545',
-            fontSize: '11px',
-
-            mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
-        }).appendTo('body').fadeIn(200);
-    }
-    node.bind('plothover', function (event, pos, item) {
-        var date, milli, x, y;
-        $('#x').text(pos.x);
-        $('#y').text(pos.y.toFixed(0));
-        if (item) {
-            $('#chartLabelA').remove();
-            milli = item.datapoint[0];
-            date = new Date(milli);
-            x = date.toDateString();
-            y = item.datapoint[1].toFixed(0);
-            showTooltip(item.pageX, item.pageY, `${y} ${tooltip_message} ${x}`);
-        } else {
-            $('#chartLabelA').remove();
-        }
-    });
-    return graph;
+  });
+  return graph;
 }
 
 /**
@@ -247,31 +247,31 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
  *  Ignored if options and no tooltip_message is passed.
  */
 export function loadGraph(id, options = {}, tooltip_message = '', color = null) {
-    let data;
-    const node = document.getElementById(id);
-    const graphSelector = `graph-json-${id}`;
-    const dataSource = document.getElementById(graphSelector);
-    if (!node) {
-        throw new Error(
-            `No graph associated with ${id} on the page.`
-        );
+  let data;
+  const node = document.getElementById(id);
+  const graphSelector = `graph-json-${id}`;
+  const dataSource = document.getElementById(graphSelector);
+  if (!node) {
+    throw new Error(
+      `No graph associated with ${id} on the page.`
+    );
+  }
+  if (!dataSource) {
+    throw new Error(
+      `No data associated with ${id} - make sure a script tag with type text/json and id "${graphSelector}" is present on the page.`
+    );
+  } else {
+    try {
+      data = JSON.parse(dataSource.textContent);
+    } catch (e) {
+      throw new Error(`Unable to parse JSON in ${graphSelector}`);
     }
-    if (!dataSource) {
-        throw new Error(
-            `No data associated with ${id} - make sure a script tag with type text/json and id "${graphSelector}" is present on the page.`
-        );
+    if (tooltip_message) {
+      return plot_tooltip_graph($(node), data, tooltip_message, color);
     } else {
-        try {
-            data = JSON.parse(dataSource.textContent);
-        } catch (e) {
-            throw new Error(`Unable to parse JSON in ${graphSelector}`);
-        }
-        if (tooltip_message) {
-            return plot_tooltip_graph($(node), data, tooltip_message, color);
-        } else {
-            return $.plot($(node), [{data: data}], options);
-        }
+      return $.plot($(node), [{data: data}], options);
     }
+  }
 }
 
 /**
@@ -283,7 +283,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
  *  Ignored if options and no tooltip_message is passed.
  */
 export function loadGraphIfExists(id, options, tooltip_message, color) {
-    if ($(`#${id}`).length) {
-        loadGraph(id, options, tooltip_message, color);
-    }
+  if ($(`#${id}`).length) {
+    loadGraph(id, options, tooltip_message, color);
+  }
 }

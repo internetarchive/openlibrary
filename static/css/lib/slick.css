@@ -11,7 +11,7 @@
 
     -khtml-user-select: none;
         touch-action: pan-y;
- 
+
 }
 
 .slick-list
@@ -37,7 +37,7 @@
 .slick-slider .slick-track,
 .slick-slider .slick-list
 {
-   
+
        -moz-transform: translate3d(0, 0, 0);
          -o-transform: translate3d(0, 0, 0);
             transform: translate3d(0, 0, 0);

@@ -12,10 +12,10 @@ const navbars = []
  * @param {HTMLCollection<HTMLElement>} navbarWrappers Each navbar found on the book page
  */
 export function initNavbars(navbarWrappers) {
-    for (const wrapper of navbarWrappers) {
-        const navbar = new EdtionNavBar(wrapper)
-        navbars.push(navbar)
-    }
+  for (const wrapper of navbarWrappers) {
+    const navbar = new EdtionNavBar(wrapper)
+    navbars.push(navbar)
+  }
 }
 
 /**
@@ -27,7 +27,7 @@ export function initNavbars(navbarWrappers) {
  * stickied to a new position).
  */
 export function updateSelectedNavItem() {
-    for (const navbar of navbars) {
-        navbar.updateSelected()
-    }
+  for (const navbar of navbars) {
+    navbar.updateSelected()
+  }
 }

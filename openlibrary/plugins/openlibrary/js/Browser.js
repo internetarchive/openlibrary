@@ -6,15 +6,15 @@
  * @returns {UrlParams}
  */
 export function getJsonFromUrl(urlSearch) {
-    const query = urlSearch.substr(1);
-    const result = {};
-    if (query) {
-        query.split('&').forEach(part => {
-            const item = part.split('=');
-            result[item[0]] = decodeURIComponent(item[1]);
-        });
-    }
-    return result;
+  const query = urlSearch.substr(1);
+  const result = {};
+  if (query) {
+    query.split('&').forEach(part => {
+      const item = part.split('=');
+      result[item[0]] = decodeURIComponent(item[1]);
+    });
+  }
+  return result;
 }
 
 /**
@@ -23,25 +23,25 @@ export function getJsonFromUrl(urlSearch) {
  * @returns {String}
  */
 export function removeURLParameter(url, parameter) {
-    var urlparts = url.split('?');
-    var prefix = urlparts[0];
-    var query, paramPrefix, params, i;
-    if (urlparts.length >= 2) {
-        query = urlparts[1];
-        paramPrefix = `${encodeURIComponent(parameter)}=`;
-        params = query.split(/[&;]/g);
+  var urlparts = url.split('?');
+  var prefix = urlparts[0];
+  var query, paramPrefix, params, i;
+  if (urlparts.length >= 2) {
+    query = urlparts[1];
+    paramPrefix = `${encodeURIComponent(parameter)}=`;
+    params = query.split(/[&;]/g);
 
-        //reverse iteration as may be destructive
-        for (i = params.length; i-- > 0;) {
-            //idiom for string.startsWith
-            if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
-                params.splice(i, 1);
-            }
-        }
-
-        url = prefix + (params.length > 0 ? `?${params.join('&')}` : '');
-        return url;
-    } else {
-        return url;
+    //reverse iteration as may be destructive
+    for (i = params.length; i-- > 0;) {
+      //idiom for string.startsWith
+      if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
+        params.splice(i, 1);
+      }
     }
+
+    url = prefix + (params.length > 0 ? `?${params.join('&')}` : '');
+    return url;
+  } else {
+    return url;
+  }
 }

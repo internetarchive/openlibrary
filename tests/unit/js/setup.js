@@ -7,5 +7,5 @@ window.$ = $;
 
 // Improve error reporting for unhandled promise rejections
 process.on('unhandledRejection', (error) => {
-    throw error;
+  throw error;
 });

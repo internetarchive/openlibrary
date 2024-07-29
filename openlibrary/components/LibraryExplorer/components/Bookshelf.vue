@@ -20,19 +20,19 @@ import Shelf from './Shelf';
 
 
 export default {
-    components: {
-        Shelf
-    },
+  components: {
+    Shelf
+  },
 
-    props: {
-        classification: Object,
-        node: Object,
-        expandBookshelf: Function,
-        labels: Array,
-        features: Object,
-        filter: String,
-        sort: String,
-    },
+  props: {
+    classification: Object,
+    node: Object,
+    expandBookshelf: Function,
+    labels: Array,
+    features: Object,
+    filter: String,
+    sort: String,
+  },
 
 };
 </script>

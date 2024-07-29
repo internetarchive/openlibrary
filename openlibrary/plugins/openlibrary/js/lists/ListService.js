@@ -8,20 +8,20 @@
  * @param {object} data Configurations and payload for POST request.
  */
 function post(data) {
-    $.ajax({
-        type: 'POST',
-        url: data.url,
-        contentType: 'application/json',
-        data: JSON.stringify(data.data),
-        dataType: 'json',
+  $.ajax({
+    type: 'POST',
+    url: data.url,
+    contentType: 'application/json',
+    data: JSON.stringify(data.data),
+    dataType: 'json',
 
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Accept', 'application/json');
-        },
-        success: data.success,
-        complete: data.complete
-    });
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Accept', 'application/json');
+    },
+    success: data.success,
+    complete: data.complete
+  });
 }
 
 /**
@@ -33,13 +33,13 @@ function post(data) {
  * @param {function} success Callback to be executed on successful POST.
  */
 export function createNewList(userKey, data, success) {
-    post({
-        url: `${userKey}/lists.json`,
-        data: data,
-        success: function(resp) {
-            success(resp.key, data.name)
-        }
-    });
+  post({
+    url: `${userKey}/lists.json`,
+    data: data,
+    success: function(resp) {
+      success(resp.key, data.name)
+    }
+  });
 }
 
 /**
@@ -50,14 +50,14 @@ export function createNewList(userKey, data, success) {
  * @returns {Promise<Response>} The results of the POST request
  */
 export async function createList(userKey, data) {
-    return await fetch(`${userKey}/lists.json`, {
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
+  return await fetch(`${userKey}/lists.json`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
 }
 
 /**
@@ -69,11 +69,11 @@ export async function createList(userKey, data) {
  * @param {function} success Callback to be executed on successful POST.
  */
 export function addToList(listKey, seed, success) {
-    post({
-        url: `${listKey}/seeds.json`,
-        data: { add: [seed] },
-        success: success
-    });
+  post({
+    url: `${listKey}/seeds.json`,
+    data: { add: [seed] },
+    success: success
+  });
 }
 
 /**
@@ -84,15 +84,15 @@ export function addToList(listKey, seed, success) {
  * @returns {Promise<Response>} The result of the POST request
  */
 export async function addItem(listKey, seed) {
-    const body = { add: [seed] }
-    return await fetch(`${listKey}/seeds.json`, {
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        },
-        body: JSON.stringify(body)
-    })
+  const body = { add: [seed] }
+  return await fetch(`${listKey}/seeds.json`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
 }
 
 /**
@@ -104,11 +104,11 @@ export async function addItem(listKey, seed) {
  * @param {function} success Callback to be executed on successful POST.
  */
 export function removeFromList(listKey, seed, success) {
-    post({
-        url: `${listKey}/seeds.json`,
-        data: { remove: [seed] },
-        success: success
-    });
+  post({
+    url: `${listKey}/seeds.json`,
+    data: { remove: [seed] },
+    success: success
+  });
 }
 
 /**
@@ -119,15 +119,15 @@ export function removeFromList(listKey, seed, success) {
  * @returns {Promise<Response>} The POST response
  */
 export async function removeItem(listKey, seed) {
-    const body = { remove: [seed] }
-    return await fetch(`${listKey}/seeds.json`, {
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        },
-        body: JSON.stringify(body)
-    })
+  const body = { remove: [seed] }
+  return await fetch(`${listKey}/seeds.json`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
 }
 
 /**
@@ -137,16 +137,16 @@ export async function removeItem(listKey, seed) {
  * @param {function} success Callback to be executed on successful POST.
  */
 export function updateReadingLog(formElem, success) {
-    const formData = new FormData(formElem)
+  const formData = new FormData(formElem)
 
-    $.ajax({
-        type: 'POST',
-        url: formElem.getAttribute('action'),
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: success
-    })
+  $.ajax({
+    type: 'POST',
+    url: formElem.getAttribute('action'),
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: success
+  })
 }
 
 /**
@@ -156,20 +156,20 @@ export function updateReadingLog(formElem, success) {
  * @param {function} success Callback to be executed on fetch success
  */
 export function fetchPartials(key, success) {
-    $.ajax({
-        type: 'GET',
-        url: `/lists/partials.json?key=${key}`,
-        success: success
-    })
+  $.ajax({
+    type: 'GET',
+    url: `/lists/partials.json?key=${key}`,
+    success: success
+  })
 }
 
 // XXX : jsdoc
 export async function getListPartials() {
-    return await fetch('/lists/partials.json', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        }
-    })
+  return await fetch('/lists/partials.json', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    }
+  })
 }

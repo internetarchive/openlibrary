@@ -25,21 +25,21 @@ import FlatBookCover from './FlatBookCover';
 import CONFIGS from '../configs';
 
 export default {
-    components: { FlatBookCover },
-    props: {
-        books: Array
-    },
-    data() {
-        return {
-            OL_BASE_BOOKS: CONFIGS.OL_BASE_BOOKS
-        };
-    },
-    methods: {
-        beforeBookLeave(el) {
-            const left = el.getBoundingClientRect().left + this.$el.scrollLeft;
-            el.style.left = `${left}px`;
-        }
+  components: { FlatBookCover },
+  props: {
+    books: Array
+  },
+  data() {
+    return {
+      OL_BASE_BOOKS: CONFIGS.OL_BASE_BOOKS
+    };
+  },
+  methods: {
+    beforeBookLeave(el) {
+      const left = el.getBoundingClientRect().left + this.$el.scrollLeft;
+      el.style.left = `${left}px`;
     }
+  }
 };
 </script>
 

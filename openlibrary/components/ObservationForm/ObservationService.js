@@ -10,23 +10,23 @@
  * @returns A Promise representing the state of the POST request.
  */
 export function updateObservation(action, type, value, workKey, username) {
-    const data = constructDataObject(type, value, username, action)
+  const data = constructDataObject(type, value, username, action)
 
-    return fetch(`${workKey}/observations`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+  return fetch(`${workKey}/observations`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Server response was not ok')
+      }
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server response was not ok')
-            }
-        })
-        .catch(error => {
-            throw error
-        })
+    .catch(error => {
+      throw error
+    })
 }
 
 /**
@@ -48,13 +48,13 @@ export function updateObservation(action, type, value, workKey, username) {
  * @returns An object that represents the observation update that will be made.
  */
 function constructDataObject(type, value, username, action) {
-    const data = {
-        username: username,
-        action: action,
-        observation: {}
-    }
+  const data = {
+    username: username,
+    action: action,
+    observation: {}
+  }
 
-    data.observation[type] = value;
+  data.observation[type] = value;
 
-    return data;
+  return data;
 }

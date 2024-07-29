@@ -21,33 +21,33 @@
 
 <script>
 export default {
-    // Props are for external options; if a subelement of this is modified,
-    // the view automatically re-renders
-    props: {
-        sampleList: {
-            type: Array,
-            default: () => ['A', 'B', 'C'],
-        },
+  // Props are for external options; if a subelement of this is modified,
+  // the view automatically re-renders
+  props: {
+    sampleList: {
+      type: Array,
+      default: () => ['A', 'B', 'C'],
     },
+  },
 
-    // Data is for internal stuff. This needs to be a function so that we get
-    // a fresh object every time this is initialized.
-    data: () => {
-        return {
-            num1: 31,
-            num2: 11,
-        }
-    },
+  // Data is for internal stuff. This needs to be a function so that we get
+  // a fresh object every time this is initialized.
+  data: () => {
+    return {
+      num1: 31,
+      num2: 11,
+    }
+  },
 
-    // Essentially getters
-    computed: {
+  // Essentially getters
+  computed: {
 
-    },
+  },
 
-    // Methods :)
-    methods: {
+  // Methods :)
+  methods: {
 
-    },
+  },
 }
 </script>
 

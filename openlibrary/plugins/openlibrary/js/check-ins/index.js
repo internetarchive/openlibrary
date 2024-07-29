@@ -11,12 +11,12 @@ import { initDialogs } from '../native-dialog'
  * @enum {string}
  */
 export const CheckInEvent = {
-    /** Started reading */
-    START: '1',
-    /** Update to an existing check-in event */
-    UPDATE: '2',
-    /** Completed reading */
-    FINISH: '3'
+  /** Started reading */
+  START: '1',
+  /** Update to an existing check-in event */
+  UPDATE: '2',
+  /** Completed reading */
+  FINISH: '3'
 }
 
 /**
@@ -31,45 +31,45 @@ const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
  * @param {HTMLCollection<HTMLElement>} elems
  */
 export function initCheckInForms(elems) {
-    for (const elem of elems) {
-        const idField = elem.querySelector('input[name=event_id]')
+  for (const elem of elems) {
+    const idField = elem.querySelector('input[name=event_id]')
 
-        const deleteButton = elem.querySelector('.check-in__delete-btn')
-        deleteButton.addEventListener('click', function(event) {
-            event.preventDefault()
-            deleteEvent(elem, elem.dataset.workOlid, idField.value)
-        })
+    const deleteButton = elem.querySelector('.check-in__delete-btn')
+    deleteButton.addEventListener('click', function(event) {
+      event.preventDefault()
+      deleteEvent(elem, elem.dataset.workOlid, idField.value)
+    })
 
-        const submitButton = elem.querySelector('.check-in__submit-btn')
-        submitButton.addEventListener('click', function(event) {
-            event.preventDefault()
-            submitEvent(elem)
-        })
+    const submitButton = elem.querySelector('.check-in__submit-btn')
+    submitButton.addEventListener('click', function(event) {
+      event.preventDefault()
+      submitEvent(elem)
+    })
 
-        const yearSelect = elem.querySelector('select[name=year]')
-        const currentYear = new Date().getFullYear();
-        const hiddenYear = yearSelect.querySelector('.show-if-local-year')
+    const yearSelect = elem.querySelector('select[name=year]')
+    const currentYear = new Date().getFullYear();
+    const hiddenYear = yearSelect.querySelector('.show-if-local-year')
 
-        // The year selector has a hidden option for next year.  This option is
-        // shown on 1 January if the client's local year is different from
-        // the server's local year.
-        if (Number(hiddenYear.value) === currentYear) {
-            hiddenYear.classList.remove('hidden')
-        }
-        yearSelect.addEventListener('change', function(event) {
-            onYearChange(elem, event.target.value)
-        })
-
-        const monthSelect = elem.querySelector('select[name=month]')
-        monthSelect.addEventListener('change', function(event) {
-            onMonthChange(elem, event.target.value)
-        })
-
-        const todayLink = elem.querySelector('.check-in__today')
-        todayLink.addEventListener('click', function() {
-            onTodayClick(elem)
-        })
+    // The year selector has a hidden option for next year.  This option is
+    // shown on 1 January if the client's local year is different from
+    // the server's local year.
+    if (Number(hiddenYear.value) === currentYear) {
+      hiddenYear.classList.remove('hidden')
     }
+    yearSelect.addEventListener('change', function(event) {
+      onYearChange(elem, event.target.value)
+    })
+
+    const monthSelect = elem.querySelector('select[name=month]')
+    monthSelect.addEventListener('change', function(event) {
+      onMonthChange(elem, event.target.value)
+    })
+
+    const todayLink = elem.querySelector('.check-in__today')
+    todayLink.addEventListener('click', function() {
+      onTodayClick(elem)
+    })
+  }
 }
 
 /**
@@ -78,25 +78,25 @@ export function initCheckInForms(elems) {
  * @param {HTMLCollection<HTMLElement>} elems Components that prompt for check-in dates
  */
 export function initCheckInPrompts(elems) {
-    for (const elem of elems) {
-        const workOlid = elem.dataset.workOlid
-        const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+  for (const elem of elems) {
+    const workOlid = elem.dataset.workOlid
+    const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
 
-        const todayLink = elem.querySelector('.prompt-today')
-        todayLink.addEventListener('click', function() {
-            onTodayClick(modal, true)
-        })
+    const todayLink = elem.querySelector('.prompt-today')
+    todayLink.addEventListener('click', function() {
+      onTodayClick(modal, true)
+    })
 
-        const customDateLink = elem.querySelector('.prompt-custom')
-        customDateLink.addEventListener('click', function() {
-            modal.showModal()
-        })
+    const customDateLink = elem.querySelector('.prompt-custom')
+    customDateLink.addEventListener('click', function() {
+      modal.showModal()
+    })
 
-        const yearLink = elem.querySelector('.prompt-current-year')
-        yearLink.addEventListener('click', function() {
-            onYearClick(modal)
-        })
-    }
+    const yearLink = elem.querySelector('.prompt-current-year')
+    yearLink.addEventListener('click', function() {
+      onYearClick(modal)
+    })
+  }
 }
 
 /**
@@ -105,13 +105,13 @@ export function initCheckInPrompts(elems) {
  * @param {HTMLElement} elems Edit date buttons
  */
 export function initCheckInEdits(elems) {
-    for (const elem of elems) {
-        elem.addEventListener('click', function() {
-            const workOlid = elem.dataset.workOlid
-            const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
-            modal.showModal()
-        })
-    }
+  for (const elem of elems) {
+    elem.addEventListener('click', function() {
+      const workOlid = elem.dataset.workOlid
+      const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+      modal.showModal()
+    })
+  }
 }
 
 /**
@@ -123,21 +123,21 @@ export function initCheckInEdits(elems) {
  * @param {boolean} doSubmit Submits form if true
  */
 function onTodayClick(modal, doSubmit=false) {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth() + 1
-    const day = now.getDate()
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
 
-    setDate(modal, year, month, day)
-    if (doSubmit) {
-        submitEvent(modal.querySelector('.check-in'))
-    }
+  setDate(modal, year, month, day)
+  if (doSubmit) {
+    submitEvent(modal.querySelector('.check-in'))
+  }
 }
 
 function onYearClick(modal) {
-    const year = new Date().getFullYear()
-    setDate(modal, year)
-    submitEvent(modal.querySelector('.check-in'))
+  const year = new Date().getFullYear()
+  setDate(modal, year)
+  submitEvent(modal.querySelector('.check-in'))
 }
 
 /**
@@ -149,25 +149,25 @@ function onYearClick(modal) {
  * @param {Number|null} day The day
  */
 export function setDate(parentElement, year, month=null, day=null) {
-    const yearSelect = parentElement.querySelector('select[name=year]')
-    const monthSelect = parentElement.querySelector('select[name=month]')
-    const daySelect = parentElement.querySelector('select[name=day]')
-    const submitButton = parentElement.querySelector('.check-in__submit-btn')
+  const yearSelect = parentElement.querySelector('select[name=year]')
+  const monthSelect = parentElement.querySelector('select[name=month]')
+  const daySelect = parentElement.querySelector('select[name=day]')
+  const submitButton = parentElement.querySelector('.check-in__submit-btn')
 
-    yearSelect.value = year
-    monthSelect.value = month ? month : ''
-    daySelect.value = day ? day : ''
+  yearSelect.value = year
+  monthSelect.value = month ? month : ''
+  daySelect.value = day ? day : ''
 
-    let daysInMonth = DAYS_IN_MONTH[month - 1]
-    if (month === 2 && isLeapYear(year)) {
-        ++daysInMonth
-    }
+  let daysInMonth = DAYS_IN_MONTH[month - 1]
+  if (month === 2 && isLeapYear(year)) {
+    ++daysInMonth
+  }
 
-    toggleDayVisibility(daySelect, daysInMonth)
+  toggleDayVisibility(daySelect, daysInMonth)
 
-    monthSelect.disabled = false
-    daySelect.disabled = day ? false : true
-    submitButton.disabled = false
+  monthSelect.disabled = false
+  daySelect.disabled = day ? false : true
+  submitButton.disabled = false
 }
 
 /**
@@ -183,32 +183,32 @@ export function setDate(parentElement, year, month=null, day=null) {
  * @param {string} value The value of the selected year option
  */
 function onYearChange(parentElement, value) {
-    const monthSelect = parentElement.querySelector('select[name=month]')
-    const daySelect = parentElement.querySelector('select[name=day]')
-    const submitButton = parentElement.querySelector('.check-in__submit-btn')
+  const monthSelect = parentElement.querySelector('select[name=month]')
+  const daySelect = parentElement.querySelector('select[name=day]')
+  const submitButton = parentElement.querySelector('.check-in__submit-btn')
 
-    if (value) {
-        monthSelect.disabled = false
-        submitButton.disabled = false
+  if (value) {
+    monthSelect.disabled = false
+    submitButton.disabled = false
 
-        // Adjust for leap years:
-        if (monthSelect.value === '2') {
-            if (isLeapYear(Number(value))) {
-                daySelect.options[29].classList.remove('hidden')
-            } else {
-                daySelect.options[29].classList.add('hidden')
-                if (daySelect.value === '29') {
-                    daySelect.value = '28'
-                }
-            }
+    // Adjust for leap years:
+    if (monthSelect.value === '2') {
+      if (isLeapYear(Number(value))) {
+        daySelect.options[29].classList.remove('hidden')
+      } else {
+        daySelect.options[29].classList.add('hidden')
+        if (daySelect.value === '29') {
+          daySelect.value = '28'
         }
-    } else {
-        daySelect.value = ''
-        daySelect.disabled = true
-        monthSelect.value = ''
-        monthSelect.disabled = true
-        submitButton.disabled = true
+      }
     }
+  } else {
+    daySelect.value = ''
+    daySelect.disabled = true
+    monthSelect.value = ''
+    monthSelect.disabled = true
+    submitButton.disabled = true
+  }
 }
 
 /**
@@ -222,24 +222,24 @@ function onYearChange(parentElement, value) {
  * @param {string} value The value of the selected option
  */
 function onMonthChange(parentElement, value) {
-    const daySelect = parentElement.querySelector('select[name=day]')
+  const daySelect = parentElement.querySelector('select[name=day]')
 
-    if (value) {
-        const yearSelect = parentElement.querySelector('select[name=year]')
-        const year = Number(yearSelect.value)
-        const month = Number(value)
-        let days = DAYS_IN_MONTH[month - 1]
-        if (month === 2 && isLeapYear(year)) {
-            ++days
-        }
-
-        toggleDayVisibility(daySelect, days)
-
-        daySelect.disabled = false
-    } else {
-        daySelect.value = ''
-        daySelect.disabled = true
+  if (value) {
+    const yearSelect = parentElement.querySelector('select[name=year]')
+    const year = Number(yearSelect.value)
+    const month = Number(value)
+    let days = DAYS_IN_MONTH[month - 1]
+    if (month === 2 && isLeapYear(year)) {
+      ++days
     }
+
+    toggleDayVisibility(daySelect, days)
+
+    daySelect.disabled = false
+  } else {
+    daySelect.value = ''
+    daySelect.disabled = true
+  }
 }
 
 /**
@@ -254,13 +254,13 @@ function onMonthChange(parentElement, value) {
  * @param {Number} daysInMonth Number of days in the selected month
  */
 function toggleDayVisibility(daySelect, daysInMonth) {
-    for (let i = 0; i < daySelect.options.length; ++i) {
-        if (i <= daysInMonth) {
-            daySelect.options[i].classList.remove('hidden')
-        } else {
-            daySelect.options[i].classList.add('hidden')
-        }
+  for (let i = 0; i < daySelect.options.length; ++i) {
+    if (i <= daysInMonth) {
+      daySelect.options[i].classList.remove('hidden')
+    } else {
+      daySelect.options[i].classList.add('hidden')
     }
+  }
 }
 
 /**
@@ -270,7 +270,7 @@ function toggleDayVisibility(daySelect, daysInMonth) {
  * @returns `true` if the given year is a leap year.
  */
 function isLeapYear(year) {
-    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
 }
 
 /**
@@ -279,57 +279,57 @@ function isLeapYear(year) {
  * @param {HTMLElement} elem The root element of the check-in component
  */
 function submitEvent(elem) {
-    const eventType = Number(elem.dataset.eventType)
-    const url = elem.querySelector('form').action
+  const eventType = Number(elem.dataset.eventType)
+  const url = elem.querySelector('form').action
 
-    const idField = elem.querySelector('input[name=event_id]')
-    const id = idField.value
+  const idField = elem.querySelector('input[name=event_id]')
+  const id = idField.value
 
-    const editionField = elem.querySelector('input[name=edition_key]')
-    const editionKey = editionField ? editionField.value : null
+  const editionField = elem.querySelector('input[name=edition_key]')
+  const editionKey = editionField ? editionField.value : null
 
-    const dayField = elem.querySelector('select[name=day]')
-    const day = dayField.value
-    const monthField = elem.querySelector('select[name=month]')
-    const month = monthField.value
-    const yearField = elem.querySelector('select[name=year]')
-    const year = yearField.value
+  const dayField = elem.querySelector('select[name=day]')
+  const day = dayField.value
+  const monthField = elem.querySelector('select[name=month]')
+  const month = monthField.value
+  const yearField = elem.querySelector('select[name=year]')
+  const year = yearField.value
 
-    const data = {
-        event_type: Number(eventType),
-        year: year ? Number(year) : null,
-        month: month ? Number(month) : null,
-        day: day ? Number(day) : null,
-        event_id: id ? Number(id) : null
+  const data = {
+    event_type: Number(eventType),
+    year: year ? Number(year) : null,
+    month: month ? Number(month) : null,
+    day: day ? Number(day) : null,
+    event_id: id ? Number(id) : null
+  }
+
+  if (editionKey) {
+    data.edition_key = editionKey
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: url,
+    contentType: 'application/json',
+    data: JSON.stringify(data),
+    dataType: 'json',
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Accept', 'application/json');
+    },
+    success: function(data) {
+      idField.value = data.id
+      showDateView(elem.dataset.workOlid, year, month, day)
+      const deleteButton = elem.querySelector('.check-in__delete-btn')
+      deleteButton.classList.remove('invisible')
+    },
+    error: function() {
+      new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
+    },
+    complete: function() {
+      closeDialog(elem.dataset.workOlid)
     }
-
-    if (editionKey) {
-        data.edition_key = editionKey
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: url,
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        dataType: 'json',
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Accept', 'application/json');
-        },
-        success: function(data) {
-            idField.value = data.id
-            showDateView(elem.dataset.workOlid, year, month, day)
-            const deleteButton = elem.querySelector('.check-in__delete-btn')
-            deleteButton.classList.remove('invisible')
-        },
-        error: function() {
-            new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
-        },
-        complete: function() {
-            closeDialog(elem.dataset.workOlid)
-        }
-    });
+  });
 }
 
 /**
@@ -338,8 +338,8 @@ function submitEvent(elem) {
  * @param {string} workOlid Uniquely identifies a check-in dialog element.
  */
 function closeDialog(workOlid) {
-    const dialog = document.querySelector(`#check-in-dialog-${workOlid}`)
-    dialog.dispatchEvent(new Event('close-dialog'))
+  const dialog = document.querySelector(`#check-in-dialog-${workOlid}`)
+  dialog.dispatchEvent(new Event('close-dialog'))
 }
 
 /**
@@ -353,21 +353,21 @@ function closeDialog(workOlid) {
  * @param {str|null} day Check-in event day
  */
 function showDateView(workOlid, year, month, day) {
-    let date = year
-    if (month) {
-        date += `-${month.padStart(2, '0')}`
-        if (day) {
-            date += `-${day.padStart(2, '0')}`
-        }
+  let date = year
+  if (month) {
+    date += `-${month.padStart(2, '0')}`
+    if (day) {
+      date += `-${day.padStart(2, '0')}`
     }
-    const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
-    const dateField = displayElement.querySelector('.check-in-date')
-    dateField.textContent = date
+  }
+  const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
+  const dateField = displayElement.querySelector('.check-in-date')
+  dateField.textContent = date
 
-    const promptElem = document.querySelector(`#prompt-${workOlid}`)
-    promptElem.classList.add('hidden')
+  const promptElem = document.querySelector(`#prompt-${workOlid}`)
+  promptElem.classList.add('hidden')
 
-    displayElement.classList.remove('hidden')
+  displayElement.classList.remove('hidden')
 }
 
 /**
@@ -376,10 +376,10 @@ function showDateView(workOlid, year, month, day) {
  * @param {string} workOlid Part of unique identifier for check-in UI components
  */
 function showDatePromptView(workOlid) {
-    const promptElem = document.querySelector(`#prompt-${workOlid}`)
-    const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
-    displayElement.classList.add('hidden')
-    promptElem.classList.remove('hidden')
+  const promptElem = document.querySelector(`#prompt-${workOlid}`)
+  const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
+  displayElement.classList.add('hidden')
+  promptElem.classList.remove('hidden')
 }
 
 /**
@@ -390,23 +390,23 @@ function showDatePromptView(workOlid) {
  * @param {string} eventId ID of event that is being deleted
  */
 function deleteEvent(rootElem, workOlid, eventId) {
-    $.ajax({
-        type: 'DELETE',
-        url: `/check-ins/${eventId}`,
-        success: function() {
-            const idField = rootElem.querySelector('input[name=event_id]')
-            idField.value = ''
-            showDatePromptView(workOlid)
-            const deleteButton = rootElem.querySelector('.check-in__delete-btn')
-            deleteButton.classList.add('invisible')
-        },
-        error: function() {
-            new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
-        },
-        complete: function() {
-            closeDialog(workOlid)
-        }
-    });
+  $.ajax({
+    type: 'DELETE',
+    url: `/check-ins/${eventId}`,
+    success: function() {
+      const idField = rootElem.querySelector('input[name=event_id]')
+      idField.value = ''
+      showDatePromptView(workOlid)
+      const deleteButton = rootElem.querySelector('.check-in__delete-btn')
+      deleteButton.classList.add('invisible')
+    },
+    error: function() {
+      new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
+    },
+    complete: function() {
+      closeDialog(workOlid)
+    }
+  });
 }
 
 /**
@@ -418,13 +418,13 @@ function deleteEvent(rootElem, workOlid, eventId) {
  * @param {HTMLCollection<HTMLElement>} links Prompts for adding a reading goal
  */
 export function initYearlyGoalPrompt(links) {
-    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
+  const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
-    for (const link of links) {
-        link.addEventListener('click', function() {
-            yearlyGoalModal.showModal()
-        })
-    }
+  for (const link of links) {
+    link.addEventListener('click', function() {
+      yearlyGoalModal.showModal()
+    })
+  }
 }
 
 /**
@@ -439,13 +439,13 @@ export function initYearlyGoalPrompt(links) {
  * @param {HTMLCollection<HTMLElement>} elems ELements which display only the current year
  */
 export function displayLocalYear(elems) {
-    const localYear = new Date().getFullYear()
-    for (const elem of elems) {
-        const serverYear = Number(elem.dataset.serverYear)
-        if (localYear !== serverYear) {
-            elem.textContent = localYear
-        }
+  const localYear = new Date().getFullYear()
+  for (const elem of elems) {
+    const serverYear = Number(elem.dataset.serverYear)
+    if (localYear !== serverYear) {
+      elem.textContent = localYear
     }
+  }
 }
 
 /**
@@ -454,11 +454,11 @@ export function displayLocalYear(elems) {
  * @param {HTMLCollection<HTMLElement>} editLinks Edit goal links
  */
 export function initGoalEditLinks(editLinks) {
-    for (const link of editLinks) {
-        const parent = link.closest('.reading-goal-progress')
-        const modal = parent.querySelector('dialog')
-        addGoalEditClickListener(link, modal)
-    }
+  for (const link of editLinks) {
+    const parent = link.closest('.reading-goal-progress')
+    const modal = parent.querySelector('dialog')
+    addGoalEditClickListener(link, modal)
+  }
 }
 
 /**
@@ -470,9 +470,9 @@ export function initGoalEditLinks(editLinks) {
  * @param {HTMLDialogElement} modal The modal that will be shown
  */
 function addGoalEditClickListener(editLink, modal) {
-    editLink.addEventListener('click', function() {
-        modal.showModal()
-    })
+  editLink.addEventListener('click', function() {
+    modal.showModal()
+  })
 }
 
 /**
@@ -482,9 +482,9 @@ function addGoalEditClickListener(editLink, modal) {
  * @param {HTMLCollection<HTMLElement>} submitButtons Submit goal buttons
  */
 export function initGoalSubmitButtons(submitButtons) {
-    for (const button of submitButtons) {
-        addGoalSubmissionListener(button)
-    }
+  for (const button of submitButtons) {
+    addGoalSubmissionListener(button)
+  }
 }
 
 /**
@@ -495,57 +495,57 @@ export function initGoalSubmitButtons(submitButtons) {
  * @param {HTMLELement} submitButton Reading goal form submit button
  */
 function addGoalSubmissionListener(submitButton) {
-    submitButton.addEventListener('click', function(event) {
-        event.preventDefault()
+  submitButton.addEventListener('click', function(event) {
+    event.preventDefault()
 
-        const form = submitButton.closest('form')
+    const form = submitButton.closest('form')
 
-        if (!form.checkValidity()) {
-            form.reportValidity()
-            throw new Error('Form invalid')
-        }
-        const formData = new FormData(form)
+    if (!form.checkValidity()) {
+      form.reportValidity()
+      throw new Error('Form invalid')
+    }
+    const formData = new FormData(form)
 
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(formData)
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to set reading goal')
-                }
-                const modal = form.closest('dialog')
-                if (modal) {
-                    modal.close()
-                }
-
-                const yearlyGoalSection = modal.closest('.yearly-goal-section')
-                if (formData.get('is_update')) {  // Progress component exists on page
-                    const goalInput = form.querySelector('input[name=goal]')
-                    const isDeleted = Number(goalInput.value) === 0
-
-                    if (isDeleted) {
-                        const chipGroup = yearlyGoalSection.querySelector('.chip-group')
-                        const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
-                        goalContainer.remove()
-                        chipGroup.classList.remove('hidden')
-                    } else {
-                        const progressComponent = modal.closest('.reading-goal-progress')
-                        updateProgressComponent(progressComponent, Number(formData.get('goal')))
-                    }
-                } else {
-                    const goalYear = formData.get('year')
-                    fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
-                    const banner = document.querySelector('.page-banner-mybooks')
-                    if (banner) {
-                        banner.remove()
-                    }
-                }
-            })
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams(formData)
     })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to set reading goal')
+        }
+        const modal = form.closest('dialog')
+        if (modal) {
+          modal.close()
+        }
+
+        const yearlyGoalSection = modal.closest('.yearly-goal-section')
+        if (formData.get('is_update')) {  // Progress component exists on page
+          const goalInput = form.querySelector('input[name=goal]')
+          const isDeleted = Number(goalInput.value) === 0
+
+          if (isDeleted) {
+            const chipGroup = yearlyGoalSection.querySelector('.chip-group')
+            const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
+            goalContainer.remove()
+            chipGroup.classList.remove('hidden')
+          } else {
+            const progressComponent = modal.closest('.reading-goal-progress')
+            updateProgressComponent(progressComponent, Number(formData.get('goal')))
+          }
+        } else {
+          const goalYear = formData.get('year')
+          fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
+          const banner = document.querySelector('.page-banner-mybooks')
+          if (banner) {
+            banner.remove()
+          }
+        }
+      })
+  })
 }
 
 /**
@@ -556,18 +556,18 @@ function addGoalSubmissionListener(submitButton) {
  * @param {Number} goal The new reading goal
  */
 function updateProgressComponent(elem, goal) {
-    // Calculate new percentage:
-    const booksReadSpan = elem.querySelector('.reading-goal-progress__books-read')
-    const booksRead = Number(booksReadSpan.textContent)
-    const percentComplete = Math.floor((booksRead / goal) * 100)
+  // Calculate new percentage:
+  const booksReadSpan = elem.querySelector('.reading-goal-progress__books-read')
+  const booksRead = Number(booksReadSpan.textContent)
+  const percentComplete = Math.floor((booksRead / goal) * 100)
 
-    // Update view:
-    const goalSpan = elem.querySelector('.reading-goal-progress__goal')
-    const percentageSpan = elem.querySelector('.reading-goal-progress__percentage')
-    const completedBar = elem.querySelector('.reading-goal-progress__completed')
-    goalSpan.textContent = goal
-    percentageSpan.textContent = `(${percentComplete}%)`
-    completedBar.style.width = `${Math.min(100, percentComplete)}%`
+  // Update view:
+  const goalSpan = elem.querySelector('.reading-goal-progress__goal')
+  const percentageSpan = elem.querySelector('.reading-goal-progress__percentage')
+  const completedBar = elem.querySelector('.reading-goal-progress__completed')
+  goalSpan.textContent = goal
+  percentageSpan.textContent = `(${percentComplete}%)`
+  completedBar.style.width = `${Math.min(100, percentComplete)}%`
 }
 
 /**
@@ -580,28 +580,28 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
-    fetch(`/reading-goal/partials.json?year=${goalYear}`)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch progress element')
-            }
-            return response.json()
-        })
-        .then(function(data) {
-            const html = data['partials']
-            const progress = document.createElement('SPAN')
-            progress.id = 'reading-goal-container'
-            progress.innerHTML = html
-            yearlyGoalElem.appendChild(progress)
+  fetch(`/reading-goal/partials.json?year=${goalYear}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch progress element')
+      }
+      return response.json()
+    })
+    .then(function(data) {
+      const html = data['partials']
+      const progress = document.createElement('SPAN')
+      progress.id = 'reading-goal-container'
+      progress.innerHTML = html
+      yearlyGoalElem.appendChild(progress)
 
-            // Hide the "Set 20XX reading goal" link:
-            yearlyGoalElem.children[0].classList.add('hidden')
+      // Hide the "Set 20XX reading goal" link:
+      yearlyGoalElem.children[0].classList.add('hidden')
 
-            const progressEditLink = progress.querySelector('.edit-reading-goal-link')
-            const updateModal = progress.querySelector('dialog')
-            initDialogs([updateModal])
-            addGoalEditClickListener(progressEditLink, updateModal)
-            const submitButton = updateModal.querySelector('.reading-goal-submit-button')
-            addGoalSubmissionListener(submitButton)
-        })
+      const progressEditLink = progress.querySelector('.edit-reading-goal-link')
+      const updateModal = progress.querySelector('dialog')
+      initDialogs([updateModal])
+      addGoalEditClickListener(progressEditLink, updateModal)
+      const submitButton = updateModal.querySelector('.reading-goal-submit-button')
+      addGoalSubmissionListener(submitButton)
+    })
 }
