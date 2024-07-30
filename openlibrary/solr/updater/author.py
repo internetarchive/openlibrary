@@ -102,39 +102,39 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     @property
     def top_subjects(self) -> list[str]:
         all_subjects = []
-        for counts in self._solr_reply['facets']:
-            if isinstance(counts, dict):
-                buckets = counts.get("buckets") or {}
-                for items in buckets:
-                    all_subjects.append((items.count, items.val))
+        for facet_counts in self._solr_reply['facets']:
+            if isinstance(facet_counts, dict):
+                buckets = facet_counts["buckets"]
+                for facets in buckets:
+                    all_subjects.append((facets.count, facets.val))
         all_subjects.sort(reverse=True)
-        return [s for num, s in all_subjects[:10]]
+        return [top_facets for num, top_facets in all_subjects[:10]]
 
     def build(self) -> SolrDocument:
         doc = cast(dict, super().build())
-        doc |= self.build_ratings() or {}
-        doc |= self.build_reading_log() or {}
+        doc |= self.build_ratings()
+        doc |= self.build_reading_log()
         return cast(SolrDocument, doc)
 
     def build_ratings(self) -> WorkRatingsSummary:
         return Ratings.work_ratings_summary_from_counts(
             [
-                self._solr_reply["facets"].get("ratings_count_%s" % str(index))
+                self._solr_reply["facets"].get(f"ratings_count_{index}")
                 for index in range(1, 6)
             ]
         )
 
     def build_reading_log(self) -> WorkReadingLogSolrSummary:
         reading_log = {
-            "want_to_read_count": self._solr_reply["facets"].get("want_to_read_count")
-            or 0.0,
-            "already_read_count": self._solr_reply["facets"].get("already_read_count")
-            or 0.0,
+            "want_to_read_count": self._solr_reply["facets"].get(
+                "want_to_read_count", 0.0
+            ),
+            "already_read_count": self._solr_reply["facets"].get(
+                "already_read_count", 0.0
+            ),
             "currently_reading_count": self._solr_reply["facets"].get(
-                "currently_reading_count"
-            )
-            or 0.0,
-            "readinglog_count": self._solr_reply["facets"].get("readinglog_count")
-            or 0.0,
+                "currently_reading_count", 0.0
+            ),
+            "readinglog_count": self._solr_reply["facets"].get("readinglog_count", 0.0),
         }
         return cast(WorkReadingLogSolrSummary, reading_log)
