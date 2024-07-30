@@ -44,7 +44,7 @@ $code:
   $if 'log' in doc:
     <div class="feed-item">
       <a class="feed-item--patron" href="/people/$(doc['log']['username'])">
-        <img src="/people/$(doc['log']['username'])/avatar" class="account-avatar account-avatar--sm account-avatar-fix">
+        <img src="/people/$(doc['log']['username'])/avatar" alt="" class="account-avatar account-avatar--sm account-avatar-fix">
         $doc['log']['username']
       </a> $_("added to")
       <a href="/people/$(doc['log']['username'])/books/$(doc['log']['shelf'].replace(' ', '-'))" class="feed-item--shelf">$doc['log']['shelf']</a> $datestr(doc['log']['updated'])

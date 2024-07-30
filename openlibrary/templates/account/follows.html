@@ -7,9 +7,9 @@ $if follows:
       <li class="follow-row">
         <div class="follow-row--name">
           $if follow['publisher'] == username:
-            <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" class="account-avatar">$follow['subscriber']</a>
+            <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" alt="Avatar of $follow['subscriber']" class="account-avatar">$follow['subscriber']</a>
           $else:
-            <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" class="account-avatar">$follow['publisher']</a>
+            <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" alt="Avatar of $follow['publisher']" class="account-avatar">$follow['publisher']</a>
         </div>
         <div>
           $if manage:

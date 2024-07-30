@@ -9,7 +9,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
   $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
   <a href="$href" class="$link_class icon-link" $ga_attr>
-    <img class="icon-link__image" src="$img_src">
+    <img class="icon-link__image" src="$img_src" alt="icon-link">
     <div class="icon-link__text">$link_text</div>
   </a>
 

@@ -69,7 +69,7 @@ export default class SelectionManager {
         // Populate the status bar images for stored selections
         for (const type of SelectionManager.TYPES) {
             this.selectedItems[type.singular].forEach(olid => {
-                this.ile.$statusImages.append(`<li><img title="${olid}" src="${type.image(olid)}" /></li>`);
+                this.ile.$statusImages.append(`<li><img title="${olid}" src="${type.image(olid)}" alt="" /></li>`);
             });
         }
 
@@ -167,7 +167,7 @@ export default class SelectionManager {
             $(img_el).remove();
         } else {
             this.addSelectedItem(olid);
-            this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
+            this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}" alt=""/></li>`);
         }
 
     }

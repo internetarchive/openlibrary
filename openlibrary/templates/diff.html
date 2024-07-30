@@ -47,11 +47,11 @@ $def diff_covers(p, a, b):
             <td class="diff-header-side">$p</td>
             <td class="diff-body">
                 $for img in a[p]:
-                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg"/>
+                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg" alt="Cover image for $p from source A`/>
             </td>
             <td class="diff-body">
                 $for img in b[p]:
-                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg"/>
+                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg" alt="Cover image for $p from source B"/>
             </td>
         </tr>
 

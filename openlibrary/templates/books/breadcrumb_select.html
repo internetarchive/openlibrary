@@ -7,7 +7,7 @@ $def with (selected="", options=None)
                 <span class="crumbicon">
                     <div class="dropdown">
                         <h2 class="breadcrumb-title">$selected</h2>
-                        <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                        <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
                     </div>
                     <select class="disguised-select">
                         <option selected>$selected</option>
@@ -28,7 +28,7 @@ $def with (selected="", options=None)
             <span class="crumbicon">
                 <div class="dropdown">
                     <h2 class="breadcrumb-title">$breadcrumb_title</h2>
-                    <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                    <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
                 </div>
                 <select class="disguised-select">
                     $for (title, url) in options:

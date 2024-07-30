@@ -19,11 +19,10 @@ $if ol_link_track:
     tabindex="0"
     $data_ol_link_track
   >
-    <img src="$img_src"
-      $# Could not set attribution in the same way as data_ol_link_track, because
-      $# every other string in `attribution` became an attribute for this element.
-      $if attribution:
-        data-attribution="$attribution"
+    <img 
+      src="$img_src"
+      alt="$img_alt" 
+      $if attribution: data-attribution="$attribution">
     >
     <div class="card__text">
       <p>$card_title</p>

@@ -1,7 +1,7 @@
 <template>
   <div class="book-card">
     <div class="cover">
-      <img :src="coverImage" loading="lazy">
+      <img :src="coverImage" alt="" loading="lazy">
     </div>
     <div class="info">
       <a class="title" :href="workUrl" target="_blank">{{ doc.title }}</a>

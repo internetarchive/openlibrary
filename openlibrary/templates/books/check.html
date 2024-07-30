@@ -20,7 +20,7 @@ $var title: $_("Add a book")
         $for work in matches:
             <li class="workResult" id="$work.key.split('/')[-1]">
                 <span class="bookcover">
-                    <a href="javascript:;" title="$_('Select this book')"><img src="$work.cover_url" height="70"/></a>
+                    <a href="javascript:;" title="$_('Select this book')"><img src="$work.cover_url" alt="Cover of $work.title" height="70"/></a>
                 </span>
                 <span class="details">
                     <span class="resultTitle">

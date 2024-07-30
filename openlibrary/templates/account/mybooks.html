@@ -91,7 +91,7 @@ $code:
 $def empty_mobile_carousel(data):
     $ key, title, url = data
     <div class="carousel-section-header">
-      <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+      <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon" ></a>
     </div>
 
   $ component_times['Sidebar'] = time()
@@ -147,7 +147,7 @@ $def empty_mobile_carousel(data):
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">
               $_('View All Lists')
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>
@@ -162,7 +162,7 @@ $def empty_mobile_carousel(data):
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">
               $_("My Reading Stats")
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>
@@ -170,7 +170,7 @@ $def empty_mobile_carousel(data):
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|LoanHistory" href="/account/loan-history">
               $_("Loan History")
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>
@@ -179,7 +179,7 @@ $def empty_mobile_carousel(data):
             <a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">
               $_("My Notes")
               ($counts['notes'])
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>
@@ -188,7 +188,7 @@ $def empty_mobile_carousel(data):
             <a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">
               $_("My Reviews")
               ($counts['observations'])
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>
@@ -196,7 +196,7 @@ $def empty_mobile_carousel(data):
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>
               $_("Import & Export Options")
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg" alt="Right chevron icon">
             </a>
           </div>
         </li>

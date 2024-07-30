@@ -47,7 +47,7 @@ class GraphiteGraph:
 
             $:g.render(yLimit=100, width=300, height=400)
         """
-        return f'<img src="{get_graphite_base_url()}/render/?{urllib.parse.urlencode(self.get_queryparams(**options), doseq=True)}"/>'
+        return f'<img src="{get_graphite_base_url()}/render/?{urllib.parse.urlencode(self.get_queryparams(**options), doseq=True)}" alt="Graph"/>'
 
 
 class Series:

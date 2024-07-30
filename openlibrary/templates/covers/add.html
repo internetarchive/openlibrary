@@ -34,7 +34,7 @@ $if doc.type.key == "/type/work":
                             $for cover in doc.get_edition_covers():
                                 <div class="book carousel__item">
                                     <div class="book-cover">
-                                        <img src="$cover.url(size='M')" width="100" class="bookcover"/>
+                                        <img src="$cover.url(size='M')" alt="Cover image of $cover.title" width="100" class="bookcover"/>
                                         <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
                                     </div>
                                 </div>
@@ -72,7 +72,7 @@ $if doc.type.key == "/type/edition" and doc.ocaid:
         </div>
         <div class="input">
             <a href="$img_url" target="_blank">
-                <img class="ol-cover-form--ia_image" src="$img_url" style="height: 200px" />
+                <img class="ol-cover-form--ia_image" src="$img_url" alt="" style="height: 200px" />
             </a>
             <button type="submit" id="coverIA" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Use this image")</button>
         </div>

@@ -41,9 +41,9 @@ $for match in matches:
             <div class="clipIn" id="clipin$par_num" style="position:absolute;clip:rect($(t)px $(r)px $(b)px $(l)px);top:-$(t)px;left:-$(l)px;">
                 <a href="//archive.org/stream/$ia#page/n$(page-1)/search/$q">
                 $if ia.endswith('goog'):
-                    <img src="//archive.org/download/$ia/page/leaf$(page)_s$(scale).jpg" class="clipImg" width="$halfWidth"/></a>
+                    <img src="//archive.org/download/$ia/page/leaf$(page)_s$(scale).jpg" alt="Image from page $(page) of $ia" class="clipImg" width="$halfWidth"/></a>
                 $else:
-                    <img src="//archive.org/download/$ia/page/leaf$(page)_s$(scale).jpg" class="clipImg"/></a>
+                    <img src="//archive.org/download/$ia/page/leaf$(page)_s$(scale).jpg" alt="Image from page $(page) of $ia" class="clipImg"/></a>
                 $for box in par['boxes']:
                     $if 'r' not in box:
                         $continue

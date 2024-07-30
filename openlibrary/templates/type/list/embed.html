@@ -45,7 +45,7 @@ $def render_seed_count(seed_count):
             $ cover = seed.get_cover()
             $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
             <span class="image">
-                <a href="$seed.url"><img src="$cover_url" height="70"/></a>
+                <a href="$seed.url"><img src="$cover_url" alt="$seed.title" height="70"/></a>
             </span>
             <div class="details">
                 <div class="resultTitle">

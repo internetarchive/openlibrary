@@ -22,7 +22,7 @@
       >
         <img
           :src="`https://covers.openlibrary.org/b/id/${id}-M.jpg`"
-          :srcset="`https://covers.openlibrary.org/b/id/${id}-M.jpg, https://covers.openlibrary.org/b/id/${id}-L.jpg 1.5x, https://covers.openlibrary.org/b/id/${id}.jpg 2x`"
+          :srcset="`https://covers.openlibrary.org/b/id/${id}-M.jpg, https://covers.openlibrary.org/b/id/${id}-L.jpg 1.5x, https://covers.openlibrary.org/b/id/${id}.jpg 2x`" alt=""
         />
       </a>
     </div>

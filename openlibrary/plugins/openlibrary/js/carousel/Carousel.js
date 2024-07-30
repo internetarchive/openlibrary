@@ -181,7 +181,7 @@ export class Carousel {
             bookCover = `
                 <img
                     class="bookcover"
-                    src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book.png"
+                    src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book.png" alt=""
                 >`
         } else {
             bookCover = `

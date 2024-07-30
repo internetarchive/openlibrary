@@ -105,7 +105,8 @@ $ sort_facet = input(sort='status').sort
           <td>$loop.index</td>
           <td>
             <img width="50" height="75"
-                 src="https://archive.org/services/img/$book['identifier']">
+                 src="https://archive.org/services/img/$book['identifier']"
+                 alt="Cover image of $book.get('title', 'Unknown title')">
           </td>
           <td>
             $book.get('publicdate', '')
