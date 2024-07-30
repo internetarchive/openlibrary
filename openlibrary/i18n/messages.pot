@@ -7287,6 +7287,19 @@ msgid "Expires"
 msgstr ""
 
 #: FulltextSnippet.html
+msgid "❝"
+msgstr ""
+
+#: FulltextSnippet.html
+msgid "❞"
+msgstr ""
+
+#: FulltextSnippet.html
+#, python-format
+msgid "Page: %(page)s"
+msgstr ""
+
+#: FulltextSnippet.html
 msgid "See All Results"
 msgstr ""
 
