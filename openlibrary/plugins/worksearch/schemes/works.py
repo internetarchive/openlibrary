@@ -187,6 +187,7 @@ class WorkSearchScheme(SearchScheme):
         'id_standard_ebooks',
         'id_openstax',
         'id_cita_press',
+        'id_wikisource',
     }
     facet_rewrites = {
         ('public_scan', 'true'): 'ebook_access:public',

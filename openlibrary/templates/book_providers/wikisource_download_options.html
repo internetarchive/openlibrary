@@ -1,0 +1,12 @@
+$def with(wikisource_id)
+
+$ # TODO: verify if lang code like en: is part of wikisource_id
+$ url = 'https://wikisource.org/wiki/' + wikisource_id
+
+<hr>
+<div class="cta-section">
+  <p class="cta-section-title">$_('Download Options')</p>
+    <ul class="ebook-download-options">
+      <li><a href="$url">$_('Read on Wikisource')</a></li>
+    </ul>
+</div>
