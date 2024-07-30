@@ -89,6 +89,32 @@
   text-overflow: ellipsis;
 }
 
+.cta-btn .listen {
+  background-image: url(/static/images/icons/icon_listen.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.cta-btn .search {
+  background-image: url(/static/images/icons/icon_search.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.cta-btn .download {
+  background-image: url(/static/images/icons/icon_download.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.cta-btn .map {
+  background-image: url(/static/images/icons/icon_map.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+
 .cta-dropper {
   display: flex;
   margin-bottom: 10px;
@@ -150,6 +176,13 @@
     text-align: left;
     padding: 8px 5px 5px 0;
     margin: 0;
+    &:link, &:visited {
+      background: @white;
+      color: @black;
+      text-align: left;
+      padding: 8px 5px 5px 0;
+      margin: 0;
+    }
   }
   &__content-list .cta-btn--w-icon:hover {
     background-color: rgba(0,0,0,0);
@@ -160,6 +193,7 @@
   &__content-list .cta-btn .btn-icon {
     display: inline-block;
     filter: invert(1);
+    margin: 5px 2px -3px;
     width: 1.2em;
     height: 1.2em;
   }
@@ -168,6 +202,7 @@
 .read-options .cta-dropper__button .cta-btn, .Tools .btn-notice .cta-dropper__button .cta-btn {
   margin-bottom: 0;
   border-radius: 5px 2px 2px 5px;
+  text-align: center;
 }
 .read-options .cta-dropper__content-list .cta-btn--w-icon, .Tools .btn-notice .cta-dropper__content-list .cta-btn--w-icon {
   margin: 0;
