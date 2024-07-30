@@ -25,14 +25,6 @@ $else:
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
-    $if False:
-      <a href="$(stream_url)&_autoReadAloud=show"
-         title="$title using Read Aloud"
-         $:analytics_attr(action.capitalize() + 'Listen')
-         class="cta-btn cta-btn--available cta-btn--w-icon">
-        <span class="btn-icon read-aloud"></span>
-        <span class="btn-label">$_("Listen")</span>
-      </a>
   </div>
   <details class="cta-dropper__details">
     <summary class="cta-dropper__summary">
@@ -40,26 +32,29 @@ $else:
     <div class="cta-dropper__content">
       <ul class="cta-dropper__content-list">
         <li>
-          <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon read-aloud"></span>
-            <span class="btn-label">Listen</span>
+          <a href="$(stream_url)&_autoReadAloud=show"
+             title="$title using Read Aloud"
+             $:analytics_attr(action.capitalize() + 'Listen')
+             class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon listen"></span>
+            <span class="btn-label">$_("Listen")</span>
           </a>
         </li>
         <li>
           <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon read-aloud"></span>
+            <span class="btn-icon search"></span>
             <span class="btn-label">Search Inside</span>
           </a>
         </li>
         <li>
           <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon read-aloud"></span>
+            <span class="btn-icon download"></span>
             <span class="btn-label">Download</span>
           </a>
         </li>
         <li>
           <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon read-aloud"></span>
+            <span class="btn-icon map"></span>
             <span class="btn-label">Check Nearby Libraries</span>
           </a>
         </li>
