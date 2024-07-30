@@ -425,8 +425,16 @@ class DirectProvider(AbstractBookProvider):
         return None
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
-        # It's an edition
-        if ed_or_solr.get('providers'):
+        # It's an edition.
+        # `Acquisition` objects have a `provider_name` attribute, and search results are
+        # `Storage` objects with an `providers` being a list of `Acquisition`. Ensure
+        # `provider_name` is `None` so as not to match every web book as a DirectProvider.
+        # See `add_non_solr_fields` in `worksearch/schemes/works.py`.
+        providers = ed_or_solr.get('providers', [])
+        provider_name = (
+            providers[0].get("provider_name") if len(providers) >= 1 else None
+        )
+        if providers and provider_name is None:
             return [
                 provider.url
                 for provider in map(Acquisition.from_json, ed_or_solr['providers'])
