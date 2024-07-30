@@ -119,7 +119,7 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     def build_ratings(self) -> WorkRatingsSummary:
         return Ratings.work_ratings_summary_from_counts(
             [
-                self._solr_reply["facets"].get(f"ratings_count_{index}")
+                self._solr_reply["facets"].get(f"ratings_count_{index}", 0)
                 for index in range(1, 6)
             ]
         )
