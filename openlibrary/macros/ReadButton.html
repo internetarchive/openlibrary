@@ -31,15 +31,16 @@ $else:
     </summary>
     <div class="cta-dropper__content">
       <ul class="cta-dropper__content-list">
-        <li>
-          <a href="$(stream_url)&_autoReadAloud=show"
-             title="$title using Read Aloud"
-             $:analytics_attr(action.capitalize() + 'Listen')
-             class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon listen"></span>
-            <span class="btn-label">$_("Listen")</span>
-          </a>
-        </li>
+        $if listen:
+          <li>
+            <a href="$(stream_url)&_autoReadAloud=show"
+               title="$title using Read Aloud"
+               $:analytics_attr(action.capitalize() + 'Listen')
+               class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon listen"></span>
+              <span class="btn-label">$_("Listen")</span>
+            </a>
+          </li>
         <li>
           <a class="cta-btn cta-btn--available cta-btn--w-icon">
             <span class="btn-icon search"></span>
