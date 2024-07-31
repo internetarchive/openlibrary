@@ -231,6 +231,7 @@ def render_cached_macro(name, args: tuple, **kwargs):
         for k, v in kwargs.items():
             key += f'.{k}:{v}'
         return key
+
     five_minutes = 5 * 60
     key = get_key()
     mc = cache.memcache_memoize(
