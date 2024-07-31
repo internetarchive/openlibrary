@@ -78,6 +78,21 @@ class bestbook(delegate.page):
     def POST(self, key):
         pass
 
+class bestbook_count(delegate.page):
+    """API for award count"""
+    path = "/awards/count"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        filt = web.input(book_id=None, submitter=None, topic=None)
+        result = bestbook_model.Bestbook.get_count(
+            book_id=filt.book_id,
+            submitter=filt.submitter,
+            topic=filt.topic
+            )
+        return json.dumps({'count': result})
+
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
 

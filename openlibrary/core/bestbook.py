@@ -33,7 +33,11 @@ class Bestbook(db.CommonExtras):
                 query += "WHERE "
             query += "topic=$topic "
 
-        result = oldb.query(query)
+        result = oldb.query(query, vars={
+            'book_id': book_id,
+            'submitter': submitter,
+            'topic': topic
+        })
         return result[0]['count'] if result else 0
 
     @classmethod

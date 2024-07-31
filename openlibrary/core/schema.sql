@@ -112,7 +112,7 @@ CREATE TABLE bestbooks (
     award_id serial not null primary key,
     submitter text not null,
     book_id text not null,
-    edition_id text not null,
+    edition_id text default null,
     topic text not null,
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
