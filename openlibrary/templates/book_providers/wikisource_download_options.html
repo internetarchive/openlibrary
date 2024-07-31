@@ -1,12 +1,33 @@
 $def with(wikisource_id)
 
-$ # TODO: verify if lang code like en: is part of wikisource_id
-$ url = 'https://wikisource.org/wiki/' + wikisource_id
+$ # TODO: I'm assuming that the wikisource_id will be formatted like lang:page_title.
+$ # Example: en:The_Annotated_Strange_Case_of_Dr_Jekyll_and_Mr_Hyde
+$ # When I build the import script, this is subject to change.
+
+$ # pardon this stupid way to avoid importing re in a html file
+$ def is_langcode(string):
+$   return all('a' <= char <= 'z' for char in string) and len(string) > 0
+
+$ def split_id(string):
+$   chunks = string.split(":")
+$   if len(chunks) >= 2 and is_langcode(chunks[0]):
+$     return chunks[0], ":".join(chunks[1:])
+$   return 'en', string
+
+$ langcode, title = split_id(wikisource_id)
+
+$ def direct_url(type):
+$   return f'https://ws-export.wmcloud.org/?format={type}&lang={langcode}&page={title}'
+
+$ outbound_url = 'https://wikisource.org/wiki/' + wikisource_id
 
 <hr>
 <div class="cta-section">
-  <p class="cta-section-title">$_('Download Options')</p>
+    <p class="cta-section-title">$_('Download Options')</p>
     <ul class="ebook-download-options">
-      <li><a href="$url">$_('Read on Wikisource')</a></li>
+        <li><a title="$_('Download PDF from Wikisource')" href="$direct_url('pdf')">$_('PDF')</a></li>
+        <li><a title="$_('Download MOBI from Wikisource')" href="$direct_url('mobi')">$_('MOBI (for Kindle)')</a></li>
+        <li><a title="$_('Download EPUB from Wikisource')" href="$direct_url('epub')">$_('EPUB (for most other e-readers)')</a></li>
+        <li><a href="$outbound_url">$_('Read at Wikisource')</a></li>
     </ul>
 </div>
