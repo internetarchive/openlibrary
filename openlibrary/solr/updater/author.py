@@ -106,7 +106,7 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
         for field in SUBJECT_FACETS:
             if facet := self._solr_reply['facets'].get(field):
                 for bucket in facet['buckets']:
-                    all_subjects.append((bucket.count, bucket.val))
+                    all_subjects.append((bucket["count"], bucket["val"]))
         all_subjects.sort(reverse=True)
         return [top_facets for num, top_facets in all_subjects[:10]]
 
