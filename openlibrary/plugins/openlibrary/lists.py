@@ -354,11 +354,14 @@ class lists_edit(delegate.page):
 
 
 class lists_add_account(delegate.page):
-    path = r"/account/lists/add(.*)"
+    path = r"/account/lists/add.*"
 
-    def GET(self, extension: str | None):
+    def GET(self):
         if user := get_current_user():
-            return web.seeother(f'{user.key}/lists/add{extension}')
+            i = web.input(name=None)
+            return web.seeother(
+                f'{user.key}/lists/add{ '?seeds=' + i.seeds if i.seeds else ""}'
+            )
         else:
             return render_template(
                 "permission_denied",
