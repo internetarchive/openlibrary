@@ -7,46 +7,32 @@ class Bestbook(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
-    def get_count_by_book(cls, book_id) -> int:
-        """Returns number of awards a book has got
-        Returns:
-            int: count of awards for a book
-        """
-        oldb = db.get_db()
-        query = "SELECT COUNT(*) FROM bestbooks WHERE book_id=$book_id"
-        result = oldb.query(query, vars={'book_id': book_id})
-        return result[0]['count'] if result else 0
+    def get_count(cls, book_id=None, submitter=None, topic=None) -> int:
+        """Used to get count of awards with different filters
 
-    @classmethod
-    def get_count_by_submitter(cls, submitter) -> int:
-        """Returns number of awards given by a submitter
         Returns:
-            int: count of awards given by a submitter
+            int: count of awards
         """
         oldb = db.get_db()
-        query = "SELECT COUNT(*) FROM bestbooks WHERE submitter=$submitter"
-        result = oldb.query(query, vars={'submitter': submitter})
-        return result[0]['count'] if result else 0
+        query = "SELECT COUNT(*) FROM bestbooks "
 
-    @classmethod
-    def get_count_for_book_by_topic(cls, book_id, topic) -> int:
-        """Returns number of awards given to a book for a specific topic
-        Returns:
-            int: count of awards with book_id & topic
-        """
-        oldb = db.get_db()
-        query = "SELECT COUNT(*) FROM bestbooks WHERE book_id=$book_id AND topic=$topic"
-        result = oldb.query(query, vars={'book_id': book_id, 'topic': topic})
-        return result[0]['count'] if result else 0
+        if book_id:
+            query += "WHERE book_id=$book_id "
 
-    @classmethod
-    def get_total_num_of_awards(cls) -> int:
-        """Returns the total number of awards ever given
-        Returns:
-            int: count of awards given by all pattrons
-        """
-        oldb = db.get_db()
-        query = "SELECT COUNT(*) FROM bestbooks"
+        if submitter:
+            if query.find("WHERE") != -1:
+                query += "AND "
+            else:
+                query += "WHERE "
+            query += "submitter=$submitter "
+
+        if topic:
+            if query.find("WHERE") != -1:
+                query += "AND "
+            else:
+                query += "WHERE "
+            query += "topic=$topic "
+
         result = oldb.query(query)
         return result[0]['count'] if result else 0
 
@@ -92,7 +78,7 @@ class Bestbook(db.CommonExtras):
         """
         oldb = db.get_db()
 
-        if cls.check_if_award_given(submitter, book_id):
+        if cls.check_if_award_given(submitter, book_id, topic):
             return False
 
         oldb.insert(

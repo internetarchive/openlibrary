@@ -29,6 +29,8 @@ from openlibrary.plugins.upstream import checkins
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
+from openlibrary.core import bestbook as bestbook_model
+
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
@@ -63,6 +65,18 @@ class history(delegate.mode):
             history[i].pop("ip")
         return json.dumps(history)
 
+class bestbook(delegate.page):
+    """API for CRUD on bestbook data"""
+    path = r"/works/OL(\d+)W/awards"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, key):
+        return json.dumps({'key': key})
+
+    @jsonapi
+    def POST(self, key):
+        pass
 
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
@@ -92,7 +106,7 @@ class edit(core.edit):
 
 
 class change_cover(delegate.mode):
-    path = r"(/books/OL\d+M)/cover"
+    path = "/books/OL(\d)+M/cover"
 
     def GET(self, key):
         page = web.ctx.site.get(key)
