@@ -353,6 +353,20 @@ class lists_edit(delegate.page):
             return safe_seeother(list_record.key)
 
 
+class lists_add_account(delegate.page):
+    path = r"/account/lists/add(.*)"
+
+    def GET(self, extension: str | None):
+        if user := get_current_user():
+            return web.seeother(f'{user.key}/lists/add{extension}')
+        else:
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {user.user_key}.",
+            )
+
+
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/lists/add"
 
