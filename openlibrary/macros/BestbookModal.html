@@ -17,6 +17,12 @@ $ context = {
 $if reload_id:
   $ context['reloadId'] = reload_id
 
+$ cover_url = work.get_cover_url("M")
+$ src = cover_url or '/images/icons/avatar_book.png'
+
+$if any(work.get_authors()):
+  $ author_names = ", ".join(a.get("name", "Name missing") for a in work.get_authors())
+
 <div class="$classes">
   $:link_markup
 
@@ -27,20 +33,27 @@ $if reload_id:
           <h2>$_("Best Book Award")</h2>
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
-        <form class="bestbook" action="#" method="POST">
-          
-          <label for="genre">Choose a topic</label>
-          <select id="genre" name="genre">
-            <option value="romance">Romance</option>
-            <option value="mathematics">Mathematics</option>
-            <option value="humour">Humour</option>
-          </select>
-          
-          <label for="comment">Comment</label>
-          <input type="text" style="width: 200px;">
-          
-          <button class="bestbook__submit" type="">Submit</button>
-        </form>
+        <div class="bestbook_body">
+          <div class="bestbook_data">
+            <h3>$:work.title</h3>
+            <img src="$src" alt="Cover page of the book">
+            <p>$:author_names</p>
+          </div>
+          <form class="bestbook" action="#" method="POST">
+            
+            <label for="genre">Choose a topic</label>
+            <select id="genre" name="genre">
+              <option value="romance">Romance</option>
+              <option value="mathematics">Mathematics</option>
+              <option value="humour">Humour</option>
+            </select>
+            
+            <label for="comment">Comment</label>
+            <input type="text" style="width: 200px;">
+            
+            <button class="bestbook__submit" type="">Submit</button>
+          </form>
+        </div>
       </div>
     </div>
 </div>

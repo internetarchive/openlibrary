@@ -28,6 +28,7 @@ from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import checkins
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.utils import extract_numeric_id_from_olid
 
 from openlibrary.core import bestbook as bestbook_model
 
@@ -64,19 +65,49 @@ class history(delegate.mode):
         for i, row in enumerate(history):
             history[i].pop("ip")
         return json.dumps(history)
-
 class bestbook(delegate.page):
-    """API for CRUD on bestbook data"""
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
 
-    @jsonapi
-    def GET(self, key):
-        return json.dumps({'key': key})
+    def POST(self, work_id):
+        """Give Award to a book"""
 
-    @jsonapi
-    def POST(self, key):
-        pass
+        user = accounts.get_current_user()
+        i = web.input(edition_id=None, topic=None,
+                      submitter=None, redir=False)
+        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        if i.rating is None:
+            models.Ratings.remove(username, work_id)
+            r = response('removed rating')
+
+        else:
+            try:
+                rating = int(i.rating)
+                if rating not in models.Ratings.VALID_STAR_RATINGS:
+                    raise ValueError
+            except ValueError:
+                return response('invalid rating', status="error")
+
+            models.Ratings.add(
+                username=username, work_id=work_id,
+                rating=rating, edition_id=edition_id)
+            r = response('rating added')
+
+        if i.redir:
+            raise web.seeother(key)
+        return r
 
 class bestbook_count(delegate.page):
     """API for award count"""

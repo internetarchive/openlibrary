@@ -88,11 +88,34 @@
 
 form.bestbook {
   display: flex;
+  height: 100%;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
   gap: 10px;
-  padding: 10px 0px;
+}
+
+.bestbook_body{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.bestbook_data {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+
+  h3 {
+    font-size: 1.2em;
+  }
+}
+
+.bestbook_data > img {
+  height: 200px !important;
+  width: 100px !important;
 }
 
 button.bestbook__submit {
