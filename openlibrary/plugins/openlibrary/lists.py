@@ -363,7 +363,7 @@ class lists_add_account(delegate.page):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
-                f"Permission denied to edit {user.user_key}.",
+                "Permission denied to create a user list. Please log in and try again.",
             )
 
 
