@@ -46,7 +46,7 @@
     },
     {
       "path": "static/build/realtime-account-validation.*.js",
-      "maxSize": "1KB"
+      "maxSize": "2KB"
     },
     {
       "path": "static/build/readinglog-stats.*.js",

@@ -408,7 +408,7 @@ msgstr ""
 msgid "Forgot your Internet Archive email?"
 msgstr ""
 
-#: account/email/forgot-ia.html forms.py login.html
+#: account/email/forgot-ia.html account/email/forgot.html forms.py login.html
 msgid "Password"
 msgstr ""
 
@@ -510,6 +510,18 @@ msgid "Permission denied."
 msgstr ""
 
 #: permission_denied.html
+msgid ""
+"Only logged users are allowed to add records on Open Library. Please <a "
+"href=\"/account/login?redirect=$path\">log in</a> to add a book."
+msgstr ""
+
+#: permission_denied.html
+msgid ""
+"Only logged users are allowed to modify records on Open Library. Please "
+"<a href=\"/account/login?redirect=$path\">log in</a> to edit this page."
+msgstr ""
+
+#: permission_denied.html
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
 msgstr ""
@@ -593,8 +605,9 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: account/loans.html admin/imports_by_date.html admin/loans_table.html
-#: admin/menu.html admin/sponsorship.html status.html
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: admin/sponsorship.html status.html
 msgid "Status"
 msgstr ""
 
@@ -837,7 +850,8 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
+#: book_providers/cita_press_read_button.html
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
@@ -1037,6 +1051,64 @@ msgstr ""
 msgid "The Open Library Team"
 msgstr ""
 
+#: about/index.html
+msgid ""
+"Open Library is made possible because of a dedicated team of staff and "
+"over 100 volunteers from around the globe."
+msgstr ""
+
+#: about/index.html
+msgid "Want to join us?"
+msgstr ""
+
+#: about/index.html
+msgid "Role:"
+msgstr ""
+
+#: about/index.html lib/nav_head.html
+msgid "All"
+msgstr ""
+
+#: about/index.html
+msgid "Staff"
+msgstr ""
+
+#: about/index.html
+msgid "Fellows"
+msgstr ""
+
+#: about/index.html
+msgid "Volunteers"
+msgstr ""
+
+#: about/index.html
+msgid "Department:"
+msgstr ""
+
+#: about/index.html
+msgid "Communications"
+msgstr ""
+
+#: about/index.html
+msgid "Design"
+msgstr ""
+
+#: about/index.html
+msgid "Engineering"
+msgstr ""
+
+#: about/index.html
+msgid "Librarianship"
+msgstr ""
+
+#: about/index.html
+msgid ""
+"If you volunteer with Open Library and would like to be listed as part of"
+" the team, then complete the <a "
+"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
+"information form</a>."
+msgstr ""
+
 #: account/create.html forms.py
 msgid "Must be a valid email address"
 msgstr ""
@@ -1104,6 +1176,13 @@ msgstr ""
 
 #: account/import.html
 msgid "Import from Goodreads"
+msgstr ""
+
+#: account/import.html
+msgid ""
+"For instructions on exporting data refer to: <a "
+"href=\"https://www.goodreads.com/review/import\">Goodreads "
+"Import/Export</a>"
 msgstr ""
 
 #: account/import.html
@@ -1176,6 +1255,22 @@ msgstr ""
 
 #: account/import.html
 msgid "What are star ratings?"
+msgstr ""
+
+#: account/import.html
+msgid "Importing..."
+msgstr ""
+
+#: account/import.html
+msgid "Reason"
+msgstr ""
+
+#: account/import.html admin/imports.html admin/imports_by_date.html
+msgid "Error"
+msgstr ""
+
+#: account/import.html
+msgid "No ISBN"
 msgstr ""
 
 #: account/loan_history.html
@@ -1457,7 +1552,7 @@ msgid "Yes! Please!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html covers/manage.html
+#: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
 msgstr ""
 
@@ -1466,7 +1561,7 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html
+#: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
 msgstr ""
 
@@ -1810,11 +1905,11 @@ msgid ""
 "your Archive.org email."
 msgstr ""
 
-#: account/email/forgot-ia.html
+#: account/email/forgot-ia.html account/email/forgot.html
 msgid "Your email is:"
 msgstr ""
 
-#: account/email/forgot-ia.html
+#: account/email/forgot-ia.html account/email/forgot.html
 msgid "Return to Log In?"
 msgstr ""
 
@@ -1831,7 +1926,34 @@ msgid "Forgot your Archive.org Password?"
 msgstr ""
 
 #: account/email/forgot.html
+msgid ""
+"To look up your Archive.org email, <a href=\"/account/email/forgot-"
+"ia\">click here</a>."
+msgstr ""
+
+#: account/email/forgot.html
 msgid "Forgot Your Open Library Email?"
+msgstr ""
+
+#: account/email/forgot.html
+msgid ""
+"Please enter your Open Library username and password, and we’ll retrieve "
+"your email."
+msgstr ""
+
+#: account/email/forgot.html
+msgid "Open Library Username"
+msgstr ""
+
+#: account/email/forgot.html
+msgid "Need help updating your account email address?"
+msgstr ""
+
+#: account/email/forgot.html
+msgid ""
+"First login with your current email address and then follow <a "
+"href=\"https://openlibrary.org/help/faq/my_account#update-email\">these "
+"instructions</a> to change it to something new."
 msgstr ""
 
 #: account/password/forgot.html account/password/sent.html
@@ -1976,7 +2098,8 @@ msgstr ""
 msgid "Infobase Mean"
 msgstr ""
 
-#: admin/history.html authors/infobox.html type/author/edit.html
+#: admin/history.html admin/imports.html authors/infobox.html
+#: type/author/edit.html
 msgid "Date"
 msgstr ""
 
@@ -1994,7 +2117,7 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: admin/imports-add.html
+#: admin/imports-add.html admin/imports.html
 msgid "Add new books to import queue"
 msgstr ""
 
@@ -2008,8 +2131,69 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: admin/imports_by_date.html site/stats.html
+#: admin/imports.html
+msgid "New Books Imported Per Day"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html site/stats.html
 msgid "Summary"
+msgstr ""
+
+#: admin/imports.html
+msgid "Pending Items:"
+msgstr ""
+
+#: admin/imports.html
+#, python-format
+msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
+msgstr ""
+
+#: admin/imports.html
+msgid "ETA:"
+msgstr ""
+
+#: admin/imports.html
+msgid "Summary By Date"
+msgstr ""
+
+#: admin/imports.html
+msgid "total"
+msgstr ""
+
+#: admin/imports.html
+msgid "#books created"
+msgstr ""
+
+#: admin/imports.html
+msgid "#books already found"
+msgstr ""
+
+#: admin/imports.html
+msgid "#books failed to import"
+msgstr ""
+
+#: admin/imports.html
+msgid "#books pending"
+msgstr ""
+
+#: admin/imports.html
+msgid "Recent Imports"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html
+msgid "Identifier"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html
+msgid "OL Key"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html
+msgid "Added Time"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html
+msgid "Imported Time"
 msgstr ""
 
 #: admin/imports_by_date.html admin/index.html
@@ -2034,26 +2218,6 @@ msgstr ""
 
 #: admin/imports_by_date.html
 msgid "Items"
-msgstr ""
-
-#: admin/imports_by_date.html
-msgid "Identifier"
-msgstr ""
-
-#: admin/imports_by_date.html
-msgid "OL Key"
-msgstr ""
-
-#: admin/imports_by_date.html
-msgid "Error"
-msgstr ""
-
-#: admin/imports_by_date.html
-msgid "Added Time"
-msgstr ""
-
-#: admin/imports_by_date.html
-msgid "Imported Time"
 msgstr ""
 
 #: admin/index.html
@@ -2248,16 +2412,11 @@ msgstr ""
 msgid "Sponsorship"
 msgstr ""
 
-#: account.py admin/menu.html admin/people/view.html
-#: books/mybooks_breadcrumb_select.html type/user/view.html
-msgid "Loans"
-msgstr ""
-
 #: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
-#: admin/menu.html
+#: admin/menu.html admin/spamwords.html
 msgid "Spam Words"
 msgstr ""
 
@@ -2347,6 +2506,37 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
+msgstr ""
+
+#: admin/spamwords.html
+msgid ""
+"Please enter the SPAM regular expressions in the textarea below, one per "
+"line."
+msgstr ""
+
+#: admin/spamwords.html
+msgid ""
+"Be sure to escape any meta characters that are meant to be character "
+"literals."
+msgstr ""
+
+#: admin/spamwords.html
+msgid "If you are adding a domain, prepend the following to the domain:"
+msgstr ""
+
+#: admin/spamwords.html
+msgid ""
+"For example, if you want to prevent edits containing the domain "
+"<code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the "
+"spamwords list."
+msgstr ""
+
+#: admin/spamwords.html
+msgid "Spam Domains"
+msgstr ""
+
+#: admin/spamwords.html
+msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
 
 #: admin/sponsorship.html
@@ -2446,6 +2636,38 @@ msgstr ""
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Inspect Memcache"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid ""
+"Add one memcache key per line in the text area. Each key must include a "
+"'-' as the last character."
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid ""
+"For example, <code>observations-</code> should be entered in the text "
+"area if the key is <code>observations</code>."
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Keys:"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Result"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "No keys selected."
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Not found."
 msgstr ""
 
 #: admin/inspect/store.html
@@ -2770,6 +2992,11 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "Anonymize Account"
+msgstr ""
+
+#: account.py admin/people/view.html books/mybooks_breadcrumb_select.html
+#: type/user/view.html
+msgid "Loans"
 msgstr ""
 
 #: admin/people/view.html
@@ -3098,6 +3325,10 @@ msgid "Please enter a value for the selected identifier"
 msgstr ""
 
 #: books/add.html
+msgid "Are you sure that's the published date?"
+msgstr ""
+
+#: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
 
@@ -3127,7 +3358,7 @@ msgid "Who is the publisher?"
 msgstr ""
 
 #: books/add.html books/edit/edition.html books/edit/excerpts.html
-#: books/edit/web.html type/author/edit.html
+#: type/author/edit.html
 msgid "For example:"
 msgstr ""
 
@@ -3616,7 +3847,7 @@ msgid "Publishing Info"
 msgstr ""
 
 #: books/edit/edition.html
-msgid "For example"
+msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
 msgstr ""
 
 #: books/edit/edition.html
@@ -3677,6 +3908,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "By Statement:"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <em>edited by David Anderson</em>"
 msgstr ""
 
 #: books/edit/edition.html languages/index.html
@@ -3745,7 +3980,9 @@ msgid ""
 msgstr ""
 
 #: books/edit/edition.html
-msgid "is an alternate title for"
+msgid ""
+"For example: <i>Eaters of the Dead</i> is an alternate title for <i><a "
+"href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 msgstr ""
 
 #: books/edit/edition.html
@@ -3759,7 +3996,9 @@ msgid ""
 msgstr ""
 
 #: books/edit/edition.html
-msgid "You can search by title or by Open Library ID (like"
+msgid ""
+"You can search by title or by Open Library ID (like <a "
+"href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
 msgstr ""
 
 #: books/edit/edition.html
@@ -3809,6 +4048,14 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Select one of many..."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Remove this identifier"
+msgstr ""
+
+#: books/edit/edition.html lib/nav_foot.html site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: books/edit/edition.html
@@ -3865,6 +4112,10 @@ msgstr ""
 
 #: books/edit/edition.html lib/nav_foot.html
 msgid "Help"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <em>xii, 346p.</em>"
 msgstr ""
 
 #: books/edit/edition.html
@@ -4013,6 +4264,10 @@ msgstr ""
 
 #: books/edit/web.html
 msgid "Give your link a label"
+msgstr ""
+
+#: books/edit/web.html
+msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: books/edit/web.html
@@ -4808,10 +5063,6 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr ""
@@ -5049,10 +5300,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "All"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5720,7 +5967,8 @@ msgid "Merged duplicate %(record_type)s records."
 msgstr ""
 
 #: recentchanges/merge/comment.html
-msgid "See <a href=\"\">details</a>."
+#, python-format
+msgid "See <a href=\"%s\">details</a>."
 msgstr ""
 
 #: recentchanges/merge/comment.html
@@ -6275,7 +6523,7 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid "Search %(author)s Books"
+msgid "Search %(author)s books"
 msgstr ""
 
 #: Profile.html type/author/view.html
@@ -6284,6 +6532,10 @@ msgstr ""
 
 #: type/author/view.html
 msgid "OLID"
+msgstr ""
+
+#: type/author/view.html
+msgid "Inventaire.io:"
 msgstr ""
 
 #: type/author/view.html
