@@ -8,7 +8,7 @@ $if acquisition.access == 'open-access':
     <a
         href="$(acquisition.url)"
         title="$_('Read free online')"
-        class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct--$(clean_domain)"
+        class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
         target="_blank"
         aria-haspopup="true"
         aria-controls="direct-provider-toast-$(clean_domain)"
@@ -27,7 +27,7 @@ $elif acquisition.access == 'sample':
 $if render_once('direct-provider-toast-' + clean_domain):
   <div
     class="toast toast--book-provider"
-    data-toast-trigger=".cta-btn--direct--$(clean_domain)"
+    data-toast-trigger="[aria-controls=direct-provider-toast-$(clean_domain)]"
     id="direct-provider-toast-$(clean_domain)"
     style="display:none"
   >
