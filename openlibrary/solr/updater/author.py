@@ -8,13 +8,15 @@ from openlibrary.solr.data_provider import WorkReadingLogSolrSummary
 from openlibrary.core.ratings import WorkRatingsSummary, Ratings
 
 
+SUBJECT_FACETS = ['subject_facet', 'time_facet', 'person_facet', 'place_facet']
+
+
 class AuthorSolrUpdater(AbstractSolrUpdater):
     key_prefix = '/authors/'
     thing_type = '/type/author'
 
     async def update_key(self, author: dict) -> tuple[SolrUpdateRequest, list[str]]:
         author_id = author['key'].split("/")[-1]
-        facet_fields = ['subject', 'time', 'person', 'place']
         base_url = get_solr_base_url() + '/query'
 
         json: dict[str, typing.Any] = {
@@ -36,11 +38,10 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 "already_read_count": "sum(already_read_count)",
             },
         }
-        for field in facet_fields:
-            facet_name = "%s_facet" % field
-            json["facet"][facet_name] = {
+        for field in SUBJECT_FACETS:
+            json["facet"][field] = {
                 "type": "terms",
-                "field": "%s_facet" % field,
+                "field": field,
             }
         async with httpx.AsyncClient() as client:
             response = await client.post(base_url, json=json)
@@ -102,11 +103,10 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     @property
     def top_subjects(self) -> list[str]:
         all_subjects = []
-        for facet_counts in self._solr_reply['facets']:
-            if isinstance(facet_counts, dict):
-                buckets = facet_counts["buckets"]
-                for facets in buckets:
-                    all_subjects.append((facets.count, facets.val))
+        for field in SUBJECT_FACETS:
+            if facet := self._solr_reply['facets'].get(field):
+                for bucket in facet['buckets']:
+                    all_subjects.append((bucket.count, bucket.val))
         all_subjects.sort(reverse=True)
         return [top_facets for num, top_facets in all_subjects[:10]]
 
