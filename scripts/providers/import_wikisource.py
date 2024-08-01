@@ -133,11 +133,11 @@ class BookRecord:
         title: str,
         cfg: LangConfig,
         publish_date: str = "",
-        authors: list[str] = [],
+        authors: list[str] = None,
         description: str = "",
-        subjects: list[str] = [],
+        subjects: list[str] = None,
         cover: str = "",
-        categories: list[str] = [],
+        categories: list[str] = None,
         imagename: str = "",
     ):
         self.authors: list[str] = []
@@ -146,11 +146,14 @@ class BookRecord:
         self.title = title
         self.cfg = cfg
         self.set_publish_date(publish_date)
-        self.add_authors(authors)
+        if authors is not None:
+            self.add_authors(authors)
         self.set_description(description)
-        self.add_subjects(subjects)
+        if subjects is not None:
+            self.add_subjects(subjects)
         self.set_cover(cover)
-        self.add_categories(categories)
+        if categories is not None:
+            self.add_categories(categories)
         self.set_imagename(imagename)
 
     def to_dict(self):
@@ -199,8 +202,9 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
         # no infobox
         if templates is None or len(templates) == 0:
             return
-
-        template = templates[0]
+        template = next((template for template in templates if not isinstance(template, str)), None)
+        if template is None:
+            return
 
         # Infobox properties are in try-catches.
         # I didn't see a method for the MW parser that checks if a key exists or not instead of throwing an error if it doesn't.
@@ -209,7 +213,7 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
             match = re.search(r'\d{4}', yr)
             if match:
                 book.set_publish_date(match.group(0))
-        except Exception:
+        except ValueError:
             pass
 
         try:
@@ -218,21 +222,21 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
                 authors = re.split(r'(?:\sand\s|,\s?)', author)
                 if len(authors) > 0:
                     book.add_authors(authors)
-        except Exception:
+        except ValueError:
             pass
 
         try:
             notes = wtp.remove_markup(template.get("notes").value.strip())
             if notes != "":
                 book.set_description(notes)
-        except Exception:
+        except ValueError:
             pass
 
         try:
             subject: str = template.get("portal").value.strip()
             if subject != "":
                 book.add_subjects(subject.split("/"))
-        except Exception:
+        except ValueError:
             pass
 
 
