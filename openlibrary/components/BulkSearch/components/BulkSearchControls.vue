@@ -40,7 +40,7 @@
 <script>
 import {sampleData} from '../utils/samples.js';
 import { BulkSearchState} from '../utils/classes.js';
-import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
+import { buildSearchUrl } from '../utils/searchUtils.js'
 export default {
 
     props: {
@@ -87,8 +87,8 @@ export default {
             this.loadingExtractedBooks = false
         },
         async matchBooks() {
+            this.bulkSearchState.listUrl.resetSeeds()
             const fetchSolrBook = async function (book, matchOptions) {
-
                 try {
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
                     return await data.json()
@@ -98,9 +98,10 @@ export default {
             this.loadingMatchedBooks = true
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
+                if (bookMatch.solrDocs.docs[0]) {
+                    this.bulkSearchState.listUrl.addSeed(bookMatch.solrDocs.docs[0].key.split('/')[2])
+                }
             }
-            this.bulkSearchState.listUrl = buildListUrl(this.bulkSearchState.matchedBooks)
-            this.loadingMatchedBooks = false
         },
 
     }

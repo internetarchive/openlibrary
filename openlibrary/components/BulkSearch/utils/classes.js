@@ -149,6 +149,31 @@ export class BookMatch {
 }
 
 
+/** @type {string} */
+const BASE_URL = 'https://openlibrary.org/lists/add?seeds='
+
+export class ListUrl  {
+
+    constructor(){
+        this.base_url = BASE_URL
+        /** @type {string[]} */
+        this.seeds = []
+    }
+
+    /** @param {string} seed */
+    addSeed(seed) {
+        this.seeds.push(seed)
+    }
+
+    resetSeeds() {
+        this.seeds = []
+    }
+
+    toString() {
+        return this.base_url + this.seeds.join(',')
+    }
+}
+
 
 export class BulkSearchState{
     constructor(){
@@ -160,8 +185,6 @@ export class BulkSearchState{
         this.matchOptions =  new MatchOptions()
         /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
-        /** @type {string} */
-        this.listUrl = ''
         /** @type {AbstractExtractor[]} */
         this.extractors =  [
             new RegexExtractor('e.g. "The Wizard of Oz by L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
@@ -173,6 +196,9 @@ export class BulkSearchState{
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
+        /** @type {ListUrl} */
+        this.listUrl = new ListUrl();
+
     }
 
     /**@type {AbstractExtractor} */
