@@ -98,33 +98,33 @@ ws_languages = [
 ]
 
 class BookRecord:
-    def set_publish_date(self, publish_date: str):
+    def set_publish_date(self, publish_date: str) -> None:
         self.publish_date = publish_date
 
-    def add_authors(self, authors: list[str]):
+    def add_authors(self, authors: list[str]) -> None:
         self.authors.extend([a for a in authors if a not in self.authors])
 
-    def set_description(self, description: str):
+    def set_description(self, description: str) -> None:
         self.description = description
 
-    def add_subjects(self, subjects: list[str]):
+    def add_subjects(self, subjects: list[str]) -> None:
         self.subjects.extend([a for a in subjects if a not in self.subjects])
 
-    def set_cover(self, cover: str):
+    def set_cover(self, cover: str) -> None:
         self.cover = cover
 
-    def add_categories(self, categories: list[str]):
+    def add_categories(self, categories: list[str]) -> None:
         self.categories.extend([a for a in categories if a not in self.categories])
 
-    def set_imagename(self, imagename: str):
+    def set_imagename(self, imagename: str) -> None:
         self.imagename = imagename
 
     @property
-    def wikisource_id(self):
+    def wikisource_id(self) -> str:
         return f'{self.cfg.langcode}:{self.title.replace(" ", "_")}'
     
     @property
-    def source_records(self):
+    def source_records(self) -> list[str]:
         return [f'wikisource:{self.wikisource_id}']
 
     def __init__(
@@ -139,9 +139,9 @@ class BookRecord:
         categories: list[str] = [],
         imagename: str = ""
     ):
-        self.authors = []
-        self.categories = []
-        self.subjects = []
+        self.authors: list[str] = []
+        self.categories: list[str] = []
+        self.subjects: list[str] = []
         self.title = title
         self.cfg = cfg
         self.set_publish_date(publish_date)
@@ -254,7 +254,6 @@ def scrape_api(
 
             for id in results:
                 page = results[id]
-                id: str = page["title"]
 
                 if id not in imports:
                     imports[id] = BookRecord(
