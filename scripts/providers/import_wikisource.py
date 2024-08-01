@@ -10,7 +10,7 @@ import requests
 import time
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from typing import Optional
-from collections.abc import Callable, Optional
+from collections.abc import Callable
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
 # and the latter doesn't have a method to get a template prop by key.
