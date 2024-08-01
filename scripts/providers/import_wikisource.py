@@ -9,8 +9,8 @@ import re
 import requests
 import time
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
-from typing import Any
-from collections.abc import Callable
+from typing import Optional
+from collections.abc import Callable, Optional
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
 # and the latter doesn't have a method to get a template prop by key.
@@ -133,11 +133,11 @@ class BookRecord:
         title: str,
         cfg: LangConfig,
         publish_date: str = "",
-        authors: list[str] = None,
+        authors: Optional[list[str]] = None,
         description: str = "",
-        subjects: list[str] = None,
+        subjects: Optional[list[str]] = None,
         cover: str = "",
-        categories: list[str] = None,
+        categories: Optional[list[str]] = None,
         imagename: str = "",
     ):
         self.authors: list[str] = []
