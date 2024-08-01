@@ -97,6 +97,7 @@ ws_languages = [
     )
 ]
 
+
 class BookRecord:
     def set_publish_date(self, publish_date: str) -> None:
         self.publish_date = publish_date
@@ -122,7 +123,7 @@ class BookRecord:
     @property
     def wikisource_id(self) -> str:
         return f'{self.cfg.langcode}:{self.title.replace(" ", "_")}'
-    
+
     @property
     def source_records(self) -> list[str]:
         return [f'wikisource:{self.wikisource_id}']
@@ -137,7 +138,7 @@ class BookRecord:
         subjects: list[str] = [],
         cover: str = "",
         categories: list[str] = [],
-        imagename: str = ""
+        imagename: str = "",
     ):
         self.authors: list[str] = []
         self.categories: list[str] = []
@@ -165,7 +166,8 @@ class BookRecord:
             "languages": [self.cfg.ol_langcode],
             "cover": self.cover,
         }
-    
+
+
 def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
@@ -197,10 +199,10 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
         # no infobox
         if templates is None or len(templates) == 0:
             return
-        
+
         template = templates[0]
 
-        # Infobox properties are in try-catches. 
+        # Infobox properties are in try-catches.
         # I didn't see a method for the MW parser that checks if a key exists or not instead of throwing an error if it doesn't.
         try:
             yr = template.get("year").value.strip()
@@ -234,9 +236,7 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
             pass
 
 
-def scrape_api(
-    url: str, cfg: LangConfig, output_func: Callable
-):
+def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
     cont_url = url
     imports: dict[str, BookRecord] = {}
     batch: list[BookRecord] = []
@@ -274,7 +274,7 @@ def scrape_api(
                 break
 
     # The page query can't include image URLs, the "imageinfo" prop does nothing unless you're querying image names directly.
-    # Here we'll query as many images as possible in one API request, build a map of the results, 
+    # Here we'll query as many images as possible in one API request, build a map of the results,
     # and then later, each valid book will find its image URL in this map.
     # Get all unique image filenames
     image_titles: list[str] = []
@@ -293,13 +293,16 @@ def scrape_api(
             if end > len(image_titles):
                 end = len(image_titles)
 
-            image_url = update_url_with_params(f"https://{cfg.langcode}.wikisource.org/w/api.php", {
-                "action": "query",
-                "titles": "|".join(image_titles[index:end]),
-                "prop": "imageinfo",
-                "iiprop": "url",
-                "format": "json"
-            })
+            image_url = update_url_with_params(
+                f"https://{cfg.langcode}.wikisource.org/w/api.php",
+                {
+                    "action": "query",
+                    "titles": "|".join(image_titles[index:end]),
+                    "prop": "imageinfo",
+                    "iiprop": "url",
+                    "format": "json",
+                },
+            )
 
             working_url = image_url
 
@@ -364,11 +367,15 @@ def create_batch(records: list[BookRecord]):
     now = time.gmtime(time.time())
     batch_name = f'wikisource-{now.tm_year}{now.tm_mon}'
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records])
+    batch.add_items(
+        [{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records]
+    )
     print(f'{len(records)} entries added to the batch import job.')
+
 
 def print_records(records: list[BookRecord]):
     print([{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records])
+
 
 def main(ol_config: str, dry_run=False):
     """
