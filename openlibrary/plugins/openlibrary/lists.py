@@ -360,7 +360,7 @@ class lists_add_account(delegate.page):
         if user := get_current_user():
             i = web.input(name=None)
             return web.seeother(
-                f'{user.key}/lists/add{ '?seeds=' + i.seeds if i.seeds else ""}'
+                f'{user.key}/lists/add{ "?seeds=" + i.seeds if i.seeds else ""}'
             )
         else:
             return render_template(
