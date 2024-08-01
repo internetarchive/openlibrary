@@ -85,7 +85,8 @@ class LangConfig:
 # Each version of wikisource has different category names and prefixes,
 # so the pool of categories to search within and the categories to filter out
 # will have different names per wikisource version.
-# Add more Wikisource languages here as we expand this script to support them.
+# We need to explicitly exclude irrelevant categories because Wikisource does not have a unique category for books.
+# You can add more Wikisource languages here as desired.
 ws_languages = [
     LangConfig(
         langcode='en',
@@ -96,36 +97,91 @@ ws_languages = [
     )
 ]
 
+class BookRecord:
+    def set_publish_date(self, publish_date: str):
+        self.publish_date = publish_date
 
-def create_batch(records: list[dict[str, str]]) -> None:
-    """Creates Wikisource batch import job.
+    def add_authors(self, authors: list[str]):
+        self.authors.extend([a for a in authors if a not in self.authors])
 
-    Attempts to find existing Wikisource import batch.
-    If nothing is found, a new batch is created.
-    """
-    now = time.gmtime(time.time())
-    batch_name = f'wikisource-{now.tm_year}{now.tm_mon}'
-    batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([{'ia_id': r['source_records'][0], 'data': r} for r in records])
-    print(f'{len(records)} entries added to the batch import job.')
+    def set_description(self, description: str):
+        self.description = description
 
+    def add_subjects(self, subjects: list[str]):
+        self.subjects.extend([a for a in subjects if a not in self.subjects])
 
-def update_map_data(page: dict, new_data: dict, cfg: LangConfig):
-    # Infobox params do not change from language to language as far as I can tell. "year" will always be "year".
+    def set_cover(self, cover: str):
+        self.cover = cover
+
+    def add_categories(self, categories: list[str]):
+        self.categories.extend([a for a in categories if a not in self.categories])
+
+    def set_imagename(self, imagename: str):
+        self.imagename = imagename
+
+    @property
+    def wikisource_id(self):
+        return f'{self.cfg.langcode}:{self.title.replace(" ", "_")}'
+    
+    @property
+    def source_records(self):
+        return [f'wikisource:{self.wikisource_id}']
+
+    def __init__(
+        self,
+        title: str,
+        cfg: LangConfig,
+        publish_date: str = "",
+        authors: list[str] = [],
+        description: str = "",
+        subjects: list[str] = [],
+        cover: str = "",
+        categories: list[str] = [],
+        imagename: str = ""
+    ):
+        self.authors = []
+        self.categories = []
+        self.subjects = []
+        self.title = title
+        self.cfg = cfg
+        self.set_publish_date(publish_date)
+        self.add_authors(authors)
+        self.set_description(description)
+        self.add_subjects(subjects)
+        self.set_cover(cover)
+        self.add_categories(categories)
+        self.set_imagename(imagename)
+
+    def to_dict(self):
+        return {
+            "title": self.title,
+            "source_records": self.source_records,
+            "publishers": 'Wikisource',
+            "publish_date": self.publish_date,
+            "authors": self.authors,
+            "description": self.description,
+            "subjects": self.subjects,
+            "identifiers": {"wikisource": self.wikisource_id},
+            "languages": [self.cfg.ol_langcode],
+            "cover": self.cover,
+        }
+    
+def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
     if "categories" in new_data:
-        for cat in new_data["categories"]:
-            if cat["title"] not in page["categories"]:
-                page["categories"].append(cat["title"])
+        book.add_categories([cat["title"] for cat in new_data["categories"]])
 
-    if page["imagename"] == "" and "images" in new_data:
+    if book.imagename == "" and "images" in new_data:
+        # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
         image_names = [
             i
             for i in new_data['images']
             if not i["title"].endswith(".svg") and i["title"] != ""
         ]
         if len(image_names) > 0:
-            page["imagename"] = image_names[0]["title"]
+            book.set_imagename(image_names[0]["title"])
 
+    # Parse other params from the infobox if it exists.
+    # Infobox params do not change from language to language as far as I can tell. i.e. "year" will always be "year".
     if (
         "revisions" in new_data
         and len(new_data["revisions"]) > 0
@@ -137,18 +193,21 @@ def update_map_data(page: dict, new_data: dict, cfg: LangConfig):
 
         wikicode = mw.parse(infobox)
         templates = wikicode.filter_templates()
-        try:
-            template = templates[0]
-        except:
-            return
 
+        # no infobox
+        if templates is None or len(templates) == 0:
+            return
+        
+        template = templates[0]
+
+        # Infobox properties are in try-catches. 
+        # I didn't see a method for the MW parser that checks if a key exists or not instead of throwing an error if it doesn't.
         try:
-            # maybe regex match a 4 digit string
             yr = template.get("year").value.strip()
             match = re.search(r'\d{4}', yr)
             if match:
-                page["year"] = match.group(0)
-        except:
+                book.set_publish_date(match.group(0))
+        except Exception:
             pass
 
         try:
@@ -156,33 +215,32 @@ def update_map_data(page: dict, new_data: dict, cfg: LangConfig):
             if author != "":
                 authors = re.split(r'(?:\sand\s|,\s?)', author)
                 if len(authors) > 0:
-                    page["authors"] = authors
-        except:
+                    book.add_authors(authors)
+        except Exception:
             pass
 
         try:
             notes = wtp.remove_markup(template.get("notes").value.strip())
             if notes != "":
-                page["notes"] = notes
-        except:
+                book.set_description(notes)
+        except Exception:
             pass
 
         try:
             subject: str = template.get("portal").value.strip()
             if subject != "":
-                subjects = subject.split("/")
-                for sub in subjects:
-                    if sub not in page["subjects"]:
-                        page["subjects"].append(sub)
-        except:
+                book.add_subjects(subject.split("/"))
+        except Exception:
             pass
 
 
 
 def scrape_api(
-    url: str, cfg: LangConfig, imports: dict, batch: list, output_func: Callable
+    url: str, cfg: LangConfig, output_func: Callable
 ):
     cont_url = url
+    imports: dict[str, BookRecord] = {}
+    batch: list[BookRecord] = []
 
     # Paginate through metadata about wikisource pages
     while True:
@@ -197,53 +255,54 @@ def scrape_api(
 
             for id in results:
                 page = results[id]
-                title: str = page["title"]
-                wikisource_id = f'{cfg.langcode}:{title.replace(" ", "_")}'
+                id: str = page["title"]
 
                 if id not in imports:
-                    imports[id] = {
-                        "title": title,
-                        "source_records": [f'wikisource:{wikisource_id}'],
-                        "publishers": 'Wikisource',
-                        "publish_date": "",
-                        "authors": [],
-                        "description": "",
-                        "subjects": [],
-                        "identifiers": {"wikisource": wikisource_id},
-                        "languages": [cfg.ol_langcode],
-                        "cover": "",
-                        "categories": [],  # Not an OL field, used for processing.
-                        "imagename": "",  # Not an OL field, used for processing.
-                    }
+                    imports[id] = BookRecord(
+                        title=id,
+                        cfg=cfg,
+                    )
 
-                update_map_data(imports[id], page, cfg)
+                # MediaWiki's API paginates through pages, page categories, and page images separately.
+                # This means that when you hit this API requesting all 3 of these data types,
+                # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
+                # i.e. Page 1 might give you a book and its categories, Page 2 might give you the same book and its image info.
+                update_record(imports[id], page, cfg)
 
-            # scrape_api next pagination
+            # Proceed to next page of API results
             if 'continue' in data:
                 cont_url = update_url_with_params(url, data["continue"])
             else:
                 break
 
     # The page query can't include image URLs, the "imageinfo" prop does nothing unless you're querying image names directly.
-    # Here we'll query as many images as possible in one API request, build a map of the results, and then later each valid book will find its URL in this map.
+    # Here we'll query as many images as possible in one API request, build a map of the results, 
+    # and then later, each valid book will find its image URL in this map.
     # Get all unique image filenames
-    image_titles = []
-    for title in imports:
-        i = imports[title]
-        if i["imagename"] != "" and i["imagename"] not in image_titles:
-            image_titles.append(i["imagename"])
+    image_titles: list[str] = []
+    for id in imports:
+        book = imports[id]
+        if book.imagename != "" and book.imagename not in image_titles:
+            image_titles.append(book.imagename)
 
     # Build an image filename<->url map
-    image_map = {}
+    image_map: dict[str, str] = {}
 
     if len(image_titles) > 0:
-        # API will only allow up to 50 images at a time to be requested
+        # API will only allow up to 50 images at a time to be requested, so do this in chunks.
         for index in range(0, len(image_titles), 50):
             end = index + 50
             if end > len(image_titles):
                 end = len(image_titles)
 
-            image_url = f'https://en.wikisource.org/w/api.php?action=query&titles={"|".join(image_titles[index:end])}&prop=imageinfo&format=json&iiprop=url'
+            image_url = update_url_with_params(f"https://{cfg.langcode}.wikisource.org/w/api.php", {
+                "action": "query",
+                "titles": "|".join(image_titles[index:end]),
+                "prop": "imageinfo",
+                "iiprop": "url",
+                "format": "json"
+            })
+
             working_url = image_url
 
             # Paginate through results
@@ -275,34 +334,43 @@ def scrape_api(
                         break
 
     # Add all valid books to the batch, and give them their image URLs
-    for title in imports:
-        i = imports[title]
-        # Skip if it belongs to an ignored category
-        if "categories" in i:
-            excluded_categories = [
-                c for c in i["categories"] if c in cfg.excluded_categories
-            ]
-            if len(excluded_categories) > 0:
-                continue
-            # Remove category data, OL importer doesn't use it
-            del i["categories"]
-        if "imagename" in i:
-            if i["imagename"] != "" and i["imagename"] in image_map:
-                i["cover"] = image_map[i["imagename"]]
-            del i["imagename"]
-        batch.append(i)
+    for id in imports:
+        book = imports[id]
+        # Skip if it belongs to an ignored category, such as subpages (chapters)
+        excluded_categories = [
+            c for c in book.categories if c in cfg.excluded_categories
+        ]
+        if len(excluded_categories) > 0:
+            continue
+        if book.imagename != "" and book.imagename in image_map:
+            book.set_cover(image_map[book.imagename])
+        batch.append(book)
 
+    print(batch)
     if len(batch) > 0:
         output_func(batch)
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig, output_func: Callable):
-    imports: dict[str, Any] = {}
-    batch: list[Any] = []
     for url in cfg.api_urls:
-        scrape_api(url, cfg, imports, batch, output_func)
+        scrape_api(url, cfg, output_func)
 
+
+def create_batch(records: list[BookRecord]):
+    """Creates Wikisource batch import job.
+
+    Attempts to find existing Wikisource import batch.
+    If nothing is found, a new batch is created.
+    """
+    now = time.gmtime(time.time())
+    batch_name = f'wikisource-{now.tm_year}{now.tm_mon}'
+    batch = Batch.find(batch_name) or Batch.new(batch_name)
+    batch.add_items([{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records])
+    print(f'{len(records)} entries added to the batch import job.')
+
+def print_records(records: list[BookRecord]):
+    print([{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records])
 
 def main(ol_config: str, dry_run=False):
     """
@@ -315,7 +383,7 @@ def main(ol_config: str, dry_run=False):
         if not dry_run:
             process_all_books(ws_language, create_batch)
         else:
-            process_all_books(ws_language, print)
+            process_all_books(ws_language, print_records)
 
 
 if __name__ == '__main__':
