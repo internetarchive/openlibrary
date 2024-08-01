@@ -7,10 +7,13 @@ PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openl
 import logging
 import re
 import requests
+import time
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
-from typing import Callable, Any
+from typing import Any
+from collections.abc import Callable
 
-# Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper and the latter doesn't have a method to get a template prop by key.
+# Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper 
+# and the latter doesn't have a method to get a template prop by key.
 import mwparserfromhell as mw
 import wikitextparser as wtp
 
@@ -71,7 +74,7 @@ class LangConfig:
         return update_url_with_params(url, params)
 
     @property
-    def api_urls(self) -> str:
+    def api_urls(self) -> list[str]:
         return [self._api_url(c) for c in self._included_categories]
 
     @property
@@ -107,7 +110,7 @@ def create_batch(records: list[dict[str, str]]) -> None:
     print(f'{len(records)} entries added to the batch import job.')
 
 
-def update_map_data(page: dict, new_data: dict, cfg: LangConfig) -> dict[str, Any]:
+def update_map_data(page: dict, new_data: dict, cfg: LangConfig):
     # Infobox params do not change from language to language as far as I can tell. "year" will always be "year".
     if "categories" in new_data:
         for cat in new_data["categories"]:
@@ -174,7 +177,6 @@ def update_map_data(page: dict, new_data: dict, cfg: LangConfig) -> dict[str, An
         except:
             pass
 
-        # TODO: Image
 
 
 def scrape_api(
@@ -296,8 +298,8 @@ def scrape_api(
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig, output_func: Callable):
-    imports = {}
-    batch = []
+    imports: dict[str, Any] = {}
+    batch: list[Any] = []
     for url in cfg.api_urls:
         scrape_api(url, cfg, imports, batch, output_func)
 
