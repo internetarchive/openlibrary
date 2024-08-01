@@ -12,7 +12,7 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from typing import Any
 from collections.abc import Callable
 
-# Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper 
+# Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
 # and the latter doesn't have a method to get a template prop by key.
 import mwparserfromhell as mw
 import wikitextparser as wtp
@@ -232,7 +232,6 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
                 book.add_subjects(subject.split("/"))
         except Exception:
             pass
-
 
 
 def scrape_api(
