@@ -21,6 +21,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
 
+
 def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts = list(urlparse(url))
     query = dict(parse_qsl(url_parts[4]))
@@ -28,8 +29,16 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts[4] = urlencode(query)
     return urlunparse(url_parts)
 
+
 class LangConfig:
-    def __init__(self, langcode: str, ol_langcode: str, category_prefix: str, included_categories: list[str], excluded_categories: list[str]):
+    def __init__(
+        self,
+        langcode: str,
+        ol_langcode: str,
+        category_prefix: str,
+        included_categories: list[str],
+        excluded_categories: list[str],
+    ):
         self.langcode = langcode
         self.ol_langcode = ol_langcode
         self._category_prefix = category_prefix
@@ -38,7 +47,7 @@ class LangConfig:
 
     def _catformat(self, category: str) -> str:
         return f'{self._category_prefix}:{category}'
-    
+
     def _api_url(self, category: str) -> str:
         url = f'https://{self.langcode}.wikisource.org/w/api.php'
         params = {
@@ -46,9 +55,9 @@ class LangConfig:
             # Forces the inclusion of category data
             'generator': 'categorymembers',
             # Restrict to only validated texts
-            'gcmtitle': self._catformat(category), 
+            'gcmtitle': self._catformat(category),
             # Max response size allowed by the API
-            'gcmlimit': 'max', 
+            'gcmlimit': 'max',
             # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
             'prop': 'categories|revisions|images',
             # Includes as many categories per hit as possible
@@ -57,14 +66,14 @@ class LangConfig:
             'rvprop': 'content',
             'rvslots': 'main',
             # Output
-            'format': 'json'
+            'format': 'json',
         }
         return update_url_with_params(url, params)
-    
+
     @property
     def api_urls(self) -> str:
         return [self._api_url(c) for c in self._included_categories]
-    
+
     @property
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self._excluded_categories]
@@ -75,14 +84,21 @@ class LangConfig:
 # will have different names per wikisource version.
 # Add more Wikisource languages here as we expand this script to support them.
 ws_languages = [
-    LangConfig(langcode='en', ol_langcode='eng', category_prefix='Category', included_categories=['Validated_texts'], excluded_categories=['Subpages', 'Posters'])
+    LangConfig(
+        langcode='en',
+        ol_langcode='eng',
+        category_prefix='Category',
+        included_categories=['Validated_texts'],
+        excluded_categories=['Subpages', 'Posters'],
+    )
 ]
+
 
 def create_batch(records: list[dict[str, str]]) -> None:
     """Creates Wikisource batch import job.
 
     Attempts to find existing Wikisource import batch.
-    If nothing is found, a new batch is created. 
+    If nothing is found, a new batch is created.
     """
     now = time.gmtime(time.time())
     batch_name = f'wikisource-{now.tm_year}{now.tm_mon}'
@@ -99,13 +115,23 @@ def update_map_data(page: dict, new_data: dict, cfg: LangConfig) -> dict[str, An
                 page["categories"].append(cat["title"])
 
     if page["imagename"] == "" and "images" in new_data:
-        image_names = [i for i in new_data['images'] if not i["title"].endswith(".svg") and i["title"] != ""]
+        image_names = [
+            i
+            for i in new_data['images']
+            if not i["title"].endswith(".svg") and i["title"] != ""
+        ]
         if len(image_names) > 0:
             page["imagename"] = image_names[0]["title"]
 
-    if "revisions" in new_data and len(new_data["revisions"]) > 0 and "slots" in new_data["revisions"][0] and "main" in new_data["revisions"][0]["slots"] and "*" in new_data["revisions"][0]["slots"]["main"]:
+    if (
+        "revisions" in new_data
+        and len(new_data["revisions"]) > 0
+        and "slots" in new_data["revisions"][0]
+        and "main" in new_data["revisions"][0]["slots"]
+        and "*" in new_data["revisions"][0]["slots"]["main"]
+    ):
         infobox = new_data["revisions"][0]["slots"]["main"]["*"]
-        
+
         wikicode = mw.parse(infobox)
         templates = wikicode.filter_templates()
         try:
@@ -151,7 +177,9 @@ def update_map_data(page: dict, new_data: dict, cfg: LangConfig) -> dict[str, An
         # TODO: Image
 
 
-def scrape_api(url: str, cfg: LangConfig, imports: dict, batch: list, output_func: Callable):
+def scrape_api(
+    url: str, cfg: LangConfig, imports: dict, batch: list, output_func: Callable
+):
     cont_url = url
 
     # Paginate through metadata about wikisource pages
@@ -182,10 +210,10 @@ def scrape_api(url: str, cfg: LangConfig, imports: dict, batch: list, output_fun
                         "identifiers": {"wikisource": wikisource_id},
                         "languages": [cfg.ol_langcode],
                         "cover": "",
-                        "categories": [], # Not an OL field, used for processing.
-                        "imagename": "" # Not an OL field, used for processing.
+                        "categories": [],  # Not an OL field, used for processing.
+                        "imagename": "",  # Not an OL field, used for processing.
                     }
-                
+
                 update_map_data(imports[id], page, cfg)
 
             # scrape_api next pagination
@@ -208,11 +236,11 @@ def scrape_api(url: str, cfg: LangConfig, imports: dict, batch: list, output_fun
 
     if len(image_titles) > 0:
         # API will only allow up to 50 images at a time to be requested
-        for index in range(0,len(image_titles),50):
+        for index in range(0, len(image_titles), 50):
             end = index + 50
             if end > len(image_titles):
                 end = len(image_titles)
-        
+
             image_url = f'https://en.wikisource.org/w/api.php?action=query&titles={"|".join(image_titles[index:end])}&prop=imageinfo&format=json&iiprop=url'
             working_url = image_url
 
@@ -228,12 +256,19 @@ def scrape_api(url: str, cfg: LangConfig, imports: dict, batch: list, output_fun
                     results = data["query"]["pages"]
                     for id in results:
                         img = results[id]
-                        if "imageinfo" in img and img["title"] not in image_map and len(img["imageinfo"]) > 0 and "url" in img["imageinfo"][0]:
+                        if (
+                            "imageinfo" in img
+                            and img["title"] not in image_map
+                            and len(img["imageinfo"]) > 0
+                            and "url" in img["imageinfo"][0]
+                        ):
                             image_map[img["title"]] = img["imageinfo"][0]["url"]
 
                     # scrape_api next pagination
                     if 'continue' in data:
-                        working_url = update_url_with_params(image_url, data["continue"])
+                        working_url = update_url_with_params(
+                            image_url, data["continue"]
+                        )
                     else:
                         break
 
@@ -242,19 +277,22 @@ def scrape_api(url: str, cfg: LangConfig, imports: dict, batch: list, output_fun
         i = imports[title]
         # Skip if it belongs to an ignored category
         if "categories" in i:
-            excluded_categories = [c for c in i["categories"] if c in cfg.excluded_categories]
+            excluded_categories = [
+                c for c in i["categories"] if c in cfg.excluded_categories
+            ]
             if len(excluded_categories) > 0:
                 continue
             # Remove category data, OL importer doesn't use it
-            del(i["categories"])
+            del i["categories"]
         if "imagename" in i:
             if i["imagename"] != "" and i["imagename"] in image_map:
                 i["cover"] = image_map[i["imagename"]]
-            del(i["imagename"])
+            del i["imagename"]
         batch.append(i)
 
     if len(batch) > 0:
         output_func(batch)
+
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig, output_func: Callable):
