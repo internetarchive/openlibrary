@@ -9,7 +9,6 @@ import re
 import requests
 import time
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
-from typing import Optional
 from collections.abc import Callable
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
@@ -133,11 +132,11 @@ class BookRecord:
         title: str,
         cfg: LangConfig,
         publish_date: str = "",
-        authors: Optional[list[str]] = None,
+        authors: list[str] | None = None,
         description: str = "",
-        subjects: Optional[list[str]] = None,
+        subjects: list[str] | None = None,
         cover: str = "",
-        categories: Optional[list[str]] = None,
+        categories: list[str] | None = None,
         imagename: str = "",
     ):
         self.authors: list[str] = []
