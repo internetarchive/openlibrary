@@ -202,7 +202,9 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
         # no infobox
         if templates is None or len(templates) == 0:
             return
-        template = next((template for template in templates if not isinstance(template, str)), None)
+        template = next(
+            (template for template in templates if not isinstance(template, str)), None
+        )
         if template is None:
             return
 
