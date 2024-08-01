@@ -177,6 +177,34 @@
   .cta-button-group.desktop {
     display: flex;
   }
+  // scroll margin and animation when clicking "Check Nearby Libraries" in
+  // read button dropper
+  html {
+    scroll-behavior: smooth;
+  }
+  .book-locate-panel {
+    scroll-margin-top: 100px;
+    -webkit-transition: all 1s linear;
+    position: sticky;
+    top: 0;
+  }
+  @keyframes highlight {
+    0% {
+      border: 1px solid transparent;
+      box-shadow: 0 0 10px transparent;
+    }
+    50% {
+      border: 1px solid @link-blue;
+      box-shadow: 0 0 10px @link-blue;
+    }
+    100% {
+      border: 1px solid transparent;
+      box-shadow: 0 0 10px transparent;
+    }
+  }
+  .book-locate-panel:target {
+    animation: highlight 3s;
+  }
   /* stylelint-enable selector-max-specificity */
 }
 
