@@ -8,6 +8,7 @@ import logging
 import re
 import requests
 import time
+
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from collections.abc import Callable
 
@@ -15,6 +16,8 @@ from collections.abc import Callable
 # and the latter doesn't have a method to get a template prop by key.
 import mwparserfromhell as mw
 import wikitextparser as wtp
+from nameparser import HumanName
+from nameparser.config import CONSTANTS
 
 from infogami import config
 from openlibrary.config import load_config
@@ -22,7 +25,6 @@ from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
-
 
 def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts = list(urlparse(url))
@@ -98,25 +100,30 @@ ws_languages = [
 
 
 class BookRecord:
-    def set_publish_date(self, publish_date: str) -> None:
+    def set_publish_date(self, publish_date: str | None) -> None:
         self.publish_date = publish_date
 
-    def add_authors(self, authors: list[str]) -> None:
-        self.authors.extend([a for a in authors if a not in self.authors])
+    def set_edition(self, edition: str | None) -> None:
+        self.edition = edition
 
-    def set_description(self, description: str) -> None:
+    def add_authors(self, authors: list[str]) -> None:
+        existing_fullnames = [author.full_name for author in self.authors]
+        incoming_names = [HumanName(a) for a in authors]
+        self.authors.extend([a for a in incoming_names if a.full_name not in existing_fullnames])
+
+    def set_description(self, description: str | None) -> None:
         self.description = description
 
     def add_subjects(self, subjects: list[str]) -> None:
         self.subjects.extend([a for a in subjects if a not in self.subjects])
 
-    def set_cover(self, cover: str) -> None:
+    def set_cover(self, cover: str | None) -> None:
         self.cover = cover
 
     def add_categories(self, categories: list[str]) -> None:
         self.categories.extend([a for a in categories if a not in self.categories])
 
-    def set_imagename(self, imagename: str) -> None:
+    def set_imagename(self, imagename: str | None) -> None:
         self.imagename = imagename
 
     @property
@@ -126,25 +133,31 @@ class BookRecord:
     @property
     def source_records(self) -> list[str]:
         return [f'wikisource:{self.wikisource_id}']
+    
+    @staticmethod
+    def _format_author(name: HumanName) -> str:
+        return f"{name.last}{f' {name.suffix}' if name.suffix != "" else ""}, {f'{name.title} ' if name.title != "" else ""}{name.first}{f' {name.middle}' if name.middle != "" else ""}"
 
     def __init__(
         self,
         title: str,
         cfg: LangConfig,
-        publish_date: str = "",
+        publish_date: str | None = None,
+        edition: str | None = None,
         authors: list[str] | None = None,
-        description: str = "",
+        description: str | None = None,
         subjects: list[str] | None = None,
-        cover: str = "",
+        cover: str | None = None,
         categories: list[str] | None = None,
-        imagename: str = "",
+        imagename: str | None = None,
     ):
-        self.authors: list[str] = []
-        self.categories: list[str] = []
-        self.subjects: list[str] = []
+        self.authors: list[HumanName] = []
+        self.categories: list[HumanName] = []
+        self.subjects: list[HumanName] = []
         self.title = title
         self.cfg = cfg
         self.set_publish_date(publish_date)
+        self.set_edition(edition)
         if authors is not None:
             self.add_authors(authors)
         self.set_description(description)
@@ -156,25 +169,36 @@ class BookRecord:
         self.set_imagename(imagename)
 
     def to_dict(self):
-        return {
+        output = {
             "title": self.title,
             "source_records": self.source_records,
             "publishers": 'Wikisource',
-            "publish_date": self.publish_date,
-            "authors": self.authors,
-            "description": self.description,
-            "subjects": self.subjects,
             "identifiers": {"wikisource": self.wikisource_id},
             "languages": [self.cfg.ol_langcode],
-            "cover": self.cover,
         }
+        if self.publish_date is not None:
+            output["publish_date"] = self.publish_date
+        if self.edition is not None:
+            output["edition_name"] = self.edition
+        if len(self.authors) > 0:
+            output["authors"] = [{
+                "name": BookRecord._format_author(author),
+                "personal_name": BookRecord._format_author(author),
+            } for author in self.authors],
+        if self.description is not None:
+            output["description"] = self.description
+        if len(self.subjects) > 0:
+            output["subjects"] = self.subjects
+        if self.cover is not None:
+            output["cover"] = self.cover
+        return output
 
 
-def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
+def update_record(book: BookRecord, new_data: dict):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
-    if book.imagename == "" and "images" in new_data:
+    if book.imagename is None and "images" in new_data:
         # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
         image_names = [
             i
@@ -208,15 +232,29 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
             return
 
         # Infobox properties are in try-catches.
-        # I didn't see a method for the MW parser that checks if a key exists or not instead of throwing an error if it doesn't.
-        try:
-            yr = template.get("year").value.strip()
-            match = re.search(r'\d{4}', yr)
-            if match:
-                book.set_publish_date(match.group(0))
-        except ValueError:
-            pass
-
+        # I didn't see a method for the MW parser that checks if a key exists or not 
+        # instead of throwing an error if it doesn't.
+        
+        if book.publish_date is None:
+            try:
+                yr = template.get("year").value.strip()
+                match = re.search(r'\d{4}', yr)
+                if match:
+                    book.set_publish_date(match.group(0))
+            except ValueError:
+                pass
+        
+        # Commenting this out until I can think of a better way to get edition info.
+        # The infobox, so far, only ever has "edition": "yes".
+        #
+        # if book.edition is None:
+        #     try:
+        #         edition = template.get("edition").value.strip()
+        #         if edition != "":
+        #             book.set_edition(edition)
+        #     except ValueError:
+        #         pass
+        
         try:
             author = template.get("author").value.strip()
             if author != "":
@@ -226,12 +264,13 @@ def update_record(book: BookRecord, new_data: dict, cfg: LangConfig):
         except ValueError:
             pass
 
-        try:
-            notes = wtp.remove_markup(template.get("notes").value.strip())
-            if notes != "":
-                book.set_description(notes)
-        except ValueError:
-            pass
+        if book.description is None:
+            try:
+                notes = wtp.remove_markup(template.get("notes").value.strip())
+                if notes != "":
+                    book.set_description(notes)
+            except ValueError:
+                pass
 
         try:
             subject: str = template.get("portal").value.strip()
@@ -262,7 +301,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
 
                 if id not in imports:
                     imports[id] = BookRecord(
-                        title=id,
+                        title=page["title"],
                         cfg=cfg,
                     )
 
@@ -270,7 +309,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
                 # This means that when you hit this API requesting all 3 of these data types,
                 # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
                 # i.e. Page 1 might give you a book and its categories, Page 2 might give you the same book and its image info.
-                update_record(imports[id], page, cfg)
+                update_record(imports[id], page)
 
             # Proceed to next page of API results
             if 'continue' in data:
@@ -285,7 +324,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
     image_titles: list[str] = []
     for id in imports:
         book = imports[id]
-        if book.imagename != "" and book.imagename not in image_titles:
+        if book.imagename is not None and book.imagename not in image_titles:
             image_titles.append(book.imagename)
 
     # Build an image filename<->url map
@@ -348,7 +387,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
         ]
         if len(excluded_categories) > 0:
             continue
-        if book.imagename != "" and book.imagename in image_map:
+        if book.imagename is not None and book.imagename in image_map:
             book.set_cover(image_map[book.imagename])
         batch.append(book)
 
