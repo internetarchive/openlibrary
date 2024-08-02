@@ -66,8 +66,9 @@ class LangConfig:
             'gcmlimit': 'max',
             # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
             'prop': 'categories|revisions|images',
-            # Includes as many categories per hit as possible
+            # Include as many categories and images per response as possible
             'cllimit': 'max',
+            'imlimit': 'max',
             # Infobox data
             'rvprop': 'content',
             'rvslots': 'main',
