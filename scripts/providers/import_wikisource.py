@@ -182,7 +182,7 @@ class BookRecord:
         output = {
             "title": self.title,
             "source_records": self.source_records,
-            "identifiers": {"wikisource": self.wikisource_id},
+            "identifiers": {"wikisource": [self.wikisource_id]},
             "languages": [self.cfg.ol_langcode],
         }
         if self.publish_date is not None:
