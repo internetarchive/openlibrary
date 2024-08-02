@@ -26,6 +26,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
 
+
 def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts = list(urlparse(url))
     query = dict(parse_qsl(url_parts[4]))
@@ -109,7 +110,9 @@ class BookRecord:
     def add_authors(self, authors: list[str]) -> None:
         existing_fullnames = [author.full_name for author in self.authors]
         incoming_names = [HumanName(a) for a in authors]
-        self.authors.extend([a for a in incoming_names if a.full_name not in existing_fullnames])
+        self.authors.extend(
+            [a for a in incoming_names if a.full_name not in existing_fullnames]
+        )
 
     def set_description(self, description: str | None) -> None:
         self.description = description
@@ -133,7 +136,7 @@ class BookRecord:
     @property
     def source_records(self) -> list[str]:
         return [f'wikisource:{self.wikisource_id}']
-    
+
     @staticmethod
     def _format_author(name: HumanName) -> str:
         return f"{name.last}{f' {name.suffix}' if name.suffix != "" else ""}, {f'{name.title} ' if name.title != "" else ""}{name.first}{f' {name.middle}' if name.middle != "" else ""}"
@@ -181,10 +184,15 @@ class BookRecord:
         if self.edition is not None:
             output["edition_name"] = self.edition
         if len(self.authors) > 0:
-            output["authors"] = [{
-                "name": BookRecord._format_author(author),
-                "personal_name": BookRecord._format_author(author),
-            } for author in self.authors],
+            output["authors"] = (
+                [
+                    {
+                        "name": BookRecord._format_author(author),
+                        "personal_name": BookRecord._format_author(author),
+                    }
+                    for author in self.authors
+                ],
+            )
         if self.description is not None:
             output["description"] = self.description
         if len(self.subjects) > 0:
@@ -232,9 +240,9 @@ def update_record(book: BookRecord, new_data: dict):
             return
 
         # Infobox properties are in try-catches.
-        # I didn't see a method for the MW parser that checks if a key exists or not 
+        # I didn't see a method for the MW parser that checks if a key exists or not
         # instead of throwing an error if it doesn't.
-        
+
         if book.publish_date is None:
             try:
                 yr = template.get("year").value.strip()
@@ -243,7 +251,7 @@ def update_record(book: BookRecord, new_data: dict):
                     book.set_publish_date(match.group(0))
             except ValueError:
                 pass
-        
+
         # Commenting this out until I can think of a better way to get edition info.
         # The infobox, so far, only ever has "edition": "yes".
         #
@@ -254,7 +262,7 @@ def update_record(book: BookRecord, new_data: dict):
         #             book.set_edition(edition)
         #     except ValueError:
         #         pass
-        
+
         try:
             author = template.get("author").value.strip()
             if author != "":
