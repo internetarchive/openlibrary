@@ -25,7 +25,7 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-logger = logging.getLogger("openlibrary.importer.pressbooks")
+logger = logging.getLogger("openlibrary.importer.wikisource")
 
 
 def update_url_with_params(url: str, new_params: dict[str, str]):
