@@ -242,7 +242,7 @@ def update_record(book: BookRecord, new_data: dict):
     if templates is None or len(templates) == 0:
         return
     template = next(
-        (template for template in templates if not isinstance(template, str)), None
+        (template for template in templates if template.name.strip() == "header"), None
     )
     if template is None:
         return
