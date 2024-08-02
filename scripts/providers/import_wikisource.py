@@ -75,7 +75,7 @@ class LangConfig:
             'format': 'json',
         }
         return update_url_with_params(self.api_base_url, params)
-    
+
     @property
     def api_base_url(self) -> str:
         return f'https://{self.langcode}.wikisource.org/w/api.php'
@@ -347,7 +347,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
                 break
 
     if len(image_titles) > 0:
-        # The API calls from earlier that retrieved page data isn't able to return image URLs. 
+        # The API calls from earlier that retrieved page data isn't able to return image URLs.
         # The "imageinfo" prop, which contains URLs, does nothing unless you're querying image names directly.
         # Here we'll query as many images as possible in one API request, build a map of the results,
         # and then later, each valid book will find its image URL in this map to import as its cover.
@@ -394,7 +394,9 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
                             and len(image_hit["imageinfo"]) > 0
                             and "url" in image_hit["imageinfo"][0]
                         ):
-                            image_map[image_hit["title"]] = image_hit["imageinfo"][0]["url"]
+                            image_map[image_hit["title"]] = image_hit["imageinfo"][0][
+                                "url"
+                            ]
 
                     # next page of image hits, if necessary
                     if 'continue' in data:
