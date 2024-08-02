@@ -17,7 +17,7 @@ $var title: $_("Batch Import Status")
     </ul>
 
     <h2>$_('Import Items')</h2>
-    <table class="importItems">
+    <table class="changeHistory">
         <thead>
             <tr>
                 <th><a href="$changequery(page=None, sort='added_time asc')">$_('Added Time')</a></th>
@@ -40,14 +40,17 @@ $var title: $_("Batch Import Status")
                     <td>$row.error</td>
                     <td>$row.ia_id</td>
                     <td>$row.data</td>
-                    <td>$row.ol_key</td>
+                    <td>
+                    $if row.ol_key:
+                        <a href="$row.ol_key">$row.ol_key</a>
+                    $else:
+                        $row.ol_key
+                    </td>
                     <td>$row.comments</td>
                     <td>$row.submitter</td>
                 </tr>
         </tbody>
     </table>
 
-    <div class="pagination">
-        $:macros.Pager(page, total_rows, limit)
-    </div>
+    $:macros.Pager(page, total_rows, limit)
 </div>
