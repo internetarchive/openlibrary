@@ -127,7 +127,7 @@ function fetchPartials(param) {
     const data = {
             param: param,
             path: location.pathname,
-            query: document.location.search
+            query: location.search
         }
     const dataString = JSON.stringify(data)
 

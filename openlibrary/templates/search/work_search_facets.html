@@ -71,8 +71,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
             <span class="small"><a href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
     </div>
 
-$ data_path = 'data-path=%s' % (changequery()) if not path else ''
-<div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})" data-param="$dumps(param)" data-async-load="$dumps(async_load)" $data_path>
+<div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})" data-param="$dumps(param)" data-async-load="$dumps(async_load)">
     <h3 class="collapse">$_("Zoom In")</h3>
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
         $:_('Focus your results using these <a href="/search/howto">filters</a>')
