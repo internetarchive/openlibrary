@@ -19,9 +19,9 @@ import wikitextparser as wtp
 from nameparser import HumanName
 from nameparser.config import CONSTANTS
 
-# from infogami import config
-# from openlibrary.config import load_config
-# from openlibrary.core.imports import Batch
+from infogami import config
+from openlibrary.config import load_config
+from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
@@ -443,7 +443,7 @@ def main(ol_config: str, dry_run=False):
     :param str ol_config: Path to openlibrary.yml file
     :param bool dry_run: If true, only print out records to import
     """
-    # load_config(ol_config)
+    load_config(ol_config)
 
     for ws_language in ws_languages:
         if not dry_run:
