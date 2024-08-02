@@ -8,6 +8,7 @@ import logging
 import re
 import requests
 import time
+# import json
 
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from collections.abc import Callable
@@ -19,9 +20,9 @@ import wikitextparser as wtp
 from nameparser import HumanName
 from nameparser.config import CONSTANTS
 
-from infogami import config
-from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+# from infogami import config
+# from openlibrary.config import load_config
+# from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
@@ -407,7 +408,6 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
             book.set_cover(image_map[book.imagename])
         batch.append(book)
 
-    print(batch)
     if len(batch) > 0:
         output_func(batch)
 
@@ -434,7 +434,12 @@ def create_batch(records: list[BookRecord]):
 
 
 def print_records(records: list[BookRecord]):
-    print([{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records])
+    r = [{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records]
+    print(r)
+    # TODO: remove this before merging
+    # file_path = '/Users/stefaniekischak/Documents/output.json'
+    # with open(file_path, 'w') as file:
+    #     json.dump(r, file, indent=4)
 
 
 def main(ol_config: str, dry_run=False):
