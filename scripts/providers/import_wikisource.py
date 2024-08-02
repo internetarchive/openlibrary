@@ -223,16 +223,15 @@ def update_record(book: BookRecord, new_data: dict):
 
     # Parse other params from the infobox
     # Exit if infobox doesn't exist
-    if not (
-        "revisions" in new_data
-        and len(new_data["revisions"]) > 0
-    ):
+    if not ("revisions" in new_data and len(new_data["revisions"]) > 0):
         return
     infobox = next(
-        (d["slots"]["main"]["*"] for d in new_data["revisions"]
-        if "slots" in d
-        and "main" in d["slots"]
-        and "*" in d["slots"]["main"]), None
+        (
+            d["slots"]["main"]["*"]
+            for d in new_data["revisions"]
+            if "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]
+        ),
+        None,
     )
     if infobox is None:
         return
@@ -249,9 +248,9 @@ def update_record(book: BookRecord, new_data: dict):
     # If inbox DOES exist, extract book data from it. These are in try-catches.
     # I didn't see a method for the MW parser that checks if a key exists or not
     # instead of throwing an error if it doesn't.
-    # Infobox params do not change from language to language as far as I can tell. 
+    # Infobox params do not change from language to language as far as I can tell.
     # i.e. "year" will always be "year".
-    
+
     if book.publish_date is None:
         try:
             yr = template.get("year").value.strip()
