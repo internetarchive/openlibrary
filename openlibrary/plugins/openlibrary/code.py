@@ -525,7 +525,7 @@ class BatchImportView(delegate.page):
         batch = db.select('import_batch', where='id=$batch_id', vars=locals())[0]
         total_rows = db.query(
             'SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id',
-            vars=locals()
+            vars=locals(),
         )[0].count
 
         rows = db.select(
@@ -534,12 +534,12 @@ class BatchImportView(delegate.page):
             order=f'{sort_field} {sort_order}',
             limit=limit,
             offset=offset,
-            vars=locals()
+            vars=locals(),
         )
 
         status_counts = db.query(
             'SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status',
-            vars=locals()
+            vars=locals(),
         )
 
         return render_template(
@@ -550,7 +550,7 @@ class BatchImportView(delegate.page):
             page=page,
             limit=limit,
             sort=sort,
-            status_counts=status_counts
+            status_counts=status_counts,
         )
 
 
@@ -795,8 +795,8 @@ class _yaml_edit(_yaml):
             try:
                 p._save(i._comment)
             except (client.ClientException, ValidationException) as e:
-                    add_flash_message('error', str(e))
-                    return render.edit_yaml(key, i.body)
+                add_flash_message('error', str(e))
+                return render.edit_yaml(key, i.body)
             raise web.seeother(key + '.yml')
         elif '_preview' in i:
             add_flash_message('Preview not supported')
