@@ -19,9 +19,9 @@ import wikitextparser as wtp
 from nameparser import HumanName
 from nameparser.config import CONSTANTS
 
-from infogami import config
-from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+# from infogami import config
+# from openlibrary.config import load_config
+# from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
@@ -221,76 +221,80 @@ def update_record(book: BookRecord, new_data: dict):
         if len(image_names) > 0:
             book.set_imagename(image_names[0]["title"])
 
-    # Parse other params from the infobox if it exists.
-    # Infobox params do not change from language to language as far as I can tell. i.e. "year" will always be "year".
-    if (
+    # Parse other params from the infobox
+    # Exit if infobox doesn't exist
+    if not (
         "revisions" in new_data
         and len(new_data["revisions"]) > 0
-        and "slots" in new_data["revisions"][0]
-        and "main" in new_data["revisions"][0]["slots"]
-        and "*" in new_data["revisions"][0]["slots"]["main"]
     ):
-        infobox = new_data["revisions"][0]["slots"]["main"]["*"]
+        return
+    infobox = next(
+        (d["slots"]["main"]["*"] for d in new_data["revisions"]
+        if "slots" in d
+        and "main" in d["slots"]
+        and "*" in d["slots"]["main"]), None
+    )
+    if infobox is None:
+        return
+    wikicode = mw.parse(infobox)
+    templates = wikicode.filter_templates()
+    if templates is None or len(templates) == 0:
+        return
+    template = next(
+        (template for template in templates if not isinstance(template, str)), None
+    )
+    if template is None:
+        return
 
-        wikicode = mw.parse(infobox)
-        templates = wikicode.filter_templates()
-
-        # no infobox
-        if templates is None or len(templates) == 0:
-            return
-        template = next(
-            (template for template in templates if not isinstance(template, str)), None
-        )
-        if template is None:
-            return
-
-        # Infobox properties are in try-catches.
-        # I didn't see a method for the MW parser that checks if a key exists or not
-        # instead of throwing an error if it doesn't.
-
-        if book.publish_date is None:
-            try:
-                yr = template.get("year").value.strip()
-                match = re.search(r'\d{4}', yr)
-                if match:
-                    book.set_publish_date(match.group(0))
-            except ValueError:
-                pass
-
-        # Commenting this out until I can think of a better way to get edition info.
-        # The infobox, so far, only ever has "edition": "yes".
-        #
-        # if book.edition is None:
-        #     try:
-        #         edition = template.get("edition").value.strip()
-        #         if edition != "":
-        #             book.set_edition(edition)
-        #     except ValueError:
-        #         pass
-
+    # If inbox DOES exist, extract book data from it. These are in try-catches.
+    # I didn't see a method for the MW parser that checks if a key exists or not
+    # instead of throwing an error if it doesn't.
+    # Infobox params do not change from language to language as far as I can tell. 
+    # i.e. "year" will always be "year".
+    
+    if book.publish_date is None:
         try:
-            author = template.get("author").value.strip()
-            if author != "":
-                authors = re.split(r'(?:\sand\s|,\s?)', author)
-                if len(authors) > 0:
-                    book.add_authors(authors)
+            yr = template.get("year").value.strip()
+            match = re.search(r'\d{4}', yr)
+            if match:
+                book.set_publish_date(match.group(0))
         except ValueError:
             pass
 
-        if book.description is None:
-            try:
-                notes = wtp.remove_markup(template.get("notes").value.strip())
-                if notes != "":
-                    book.set_description(notes)
-            except ValueError:
-                pass
+    # Commenting this out until I can think of a better way to get edition info.
+    # The infobox, so far, only ever has "edition": "yes".
+    #
+    # if book.edition is None:
+    #     try:
+    #         edition = template.get("edition").value.strip()
+    #         if edition != "":
+    #             book.set_edition(edition)
+    #     except ValueError:
+    #         pass
 
+    try:
+        author = template.get("author").value.strip()
+        if author != "":
+            authors = re.split(r'(?:\sand\s|,\s?)', author)
+            if len(authors) > 0:
+                book.add_authors(authors)
+    except ValueError:
+        pass
+
+    if book.description is None:
         try:
-            subject: str = template.get("portal").value.strip()
-            if subject != "":
-                book.add_subjects(subject.split("/"))
+            notes = wtp.remove_markup(template.get("notes").value.strip())
+            if notes != "":
+                book.set_description(notes)
         except ValueError:
             pass
+
+    try:
+        subject: str = template.get("portal").value.strip()
+        if subject != "":
+            book.add_subjects(subject.split("/"))
+    except ValueError:
+        pass
 
 
 def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
@@ -439,7 +443,7 @@ def main(ol_config: str, dry_run=False):
     :param str ol_config: Path to openlibrary.yml file
     :param bool dry_run: If true, only print out records to import
     """
-    load_config(ol_config)
+    # load_config(ol_config)
 
     for ws_language in ws_languages:
         if not dry_run:
