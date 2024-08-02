@@ -162,8 +162,8 @@ class BookRecord:
         imagename: str | None = None,
     ):
         self.authors: list[HumanName] = []
-        self.categories: list[HumanName] = []
-        self.subjects: list[HumanName] = []
+        self.categories: list[str] = []
+        self.subjects: list[str] = []
         self.title = title
         self.cfg = cfg
         self.set_publish_date(publish_date)
