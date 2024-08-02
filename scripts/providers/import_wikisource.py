@@ -282,7 +282,7 @@ def update_record(book: BookRecord, new_data: dict):
 
     if book.description is None:
         try:
-            notes = wtp.remove_markup(template.get("notes").value.strip())
+            notes = wtp.plain_text(template.get("notes").value.strip())
             if notes != "":
                 book.set_description(notes)
         except ValueError:
