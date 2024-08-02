@@ -19,7 +19,6 @@ from collections.abc import Callable
 import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
-from nameparser.config import CONSTANTS
 
 from infogami import config
 from openlibrary.config import load_config
