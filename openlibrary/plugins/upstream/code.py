@@ -85,17 +85,17 @@ class bestbook(delegate.page):
         # get the user account
         user = accounts.get_current_user()
         i = web.input(
-            edition_id = None,
+            edition_key = None,
             topic = None,
             comment = None,
             redir = False
             )
-        print('\n' + i.comment + '\n')
+        print('\n' + i.edition_key + '\n')
         key = (
-            i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+            i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
         )
         edition_id = (
-            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+            int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
         )
 
         if not user:
@@ -121,7 +121,7 @@ class bestbook(delegate.page):
                 comment=i.comment,
                 topic=i.topic
             )
-            print("\n \n Debug \n \n")
+            print("\n \n Awarded the book \n \n")
             r = response('Awarded the book')
 
         if i.redir:

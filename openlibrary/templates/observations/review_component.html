@@ -1,4 +1,4 @@
-$def with(work, reader_observations, key)
+$def with(work, reader_observations, key, edition_key=None)
 
 $if reader_observations['total_respondents']:
   $ total_reviews = reader_observations['total_respondents']
@@ -74,7 +74,7 @@ $else:
       $if ctx.user:
         $ link_text = _('+ Give best book award')
         $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-        $:macros.BestbookModal(work, link_markup, '', 'stats-link')
+        $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
       $else:
         <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to award this book')</a>
     </div>

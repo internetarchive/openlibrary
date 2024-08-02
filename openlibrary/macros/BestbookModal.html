@@ -1,4 +1,4 @@
-$def with (work, link_markup, id, classes='', reload_id=None)
+$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None)
 $# :param Work work: The work that is being reviewed
 $# :param str link_markup: arkup for element that triggers observations modal
 $# :param str id: Unique identifier for this modal
@@ -25,7 +25,7 @@ $if any(work.get_authors()):
 
 <div class="$classes">
   $:link_markup
-
+  <!-- $:edition_key -->
   $if ctx.user:
     <div class="hidden">
       <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
@@ -48,6 +48,8 @@ $if any(work.get_authors()):
             </select>
             
             <input type="hidden" value="true" name="redir">
+            <input type="hidden" value="$edition_key" name="edition_key">
+
             <label for="comment">Comment</label>
             <input name="comment" type="text" style="width: 200px;">
             

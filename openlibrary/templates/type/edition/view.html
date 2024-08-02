@@ -201,7 +201,6 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
-
     <!-- (mobile only) -->
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
@@ -504,7 +503,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
       $if show_observations:
         $ component_times['Review component'] = time()
-        $:render_template("observations/review_component", work, reader_observations, page.key)
+        $:render_template("observations/review_component", work, reader_observations, page.key, edition.key)
         $ component_times['Review component'] = time() - component_times['Review component']
       <a id="lists-section" name="lists-section tab-section" class="section-anchor"></a>
       <div class="workFooter tab-section">
