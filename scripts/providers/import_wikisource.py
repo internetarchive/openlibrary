@@ -139,12 +139,12 @@ class BookRecord:
 
     @staticmethod
     def _format_author(name: HumanName) -> str:
-        l = name.last
+        ln = name.last
         suf = f' {name.suffix}' if name.suffix != "" else ""
-        t = f'{name.title} ' if name.title != "" else ""
-        f = name.first
+        ti = f'{name.title} ' if name.title != "" else ""
+        fn = name.first
         mid = f' {name.middle}' if name.middle != "" else ""
-        return f"{l}{suf}, {t}{f}{mid}"
+        return f"{ln}{suf}, {ti}{fn}{mid}"
 
     def __init__(
         self,
