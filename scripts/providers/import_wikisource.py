@@ -55,7 +55,6 @@ class LangConfig:
         return f'{self._category_prefix}:{category}'
 
     def _api_url(self, category: str) -> str:
-        url = f'https://{self.langcode}.wikisource.org/w/api.php'
         params = {
             'action': 'query',
             # Forces the inclusion of category data
@@ -75,10 +74,14 @@ class LangConfig:
             # Output
             'format': 'json',
         }
-        return update_url_with_params(url, params)
+        return update_url_with_params(self.api_base_url, params)
+    
+    @property
+    def api_base_url(self) -> str:
+        return f'https://{self.langcode}.wikisource.org/w/api.php'
 
     @property
-    def api_urls(self) -> list[str]:
+    def all_api_category_urls(self) -> list[str]:
         return [self._api_url(c) for c in self._included_categories]
 
     @property
@@ -133,7 +136,7 @@ class BookRecord:
 
     @property
     def wikisource_id(self) -> str:
-        return f'{self.cfg.langcode}:{self.title.replace(" ", "_")}'
+        return f'{self.language.langcode}:{self.title.replace(" ", "_")}'
 
     @property
     def source_records(self) -> list[str]:
@@ -151,7 +154,7 @@ class BookRecord:
     def __init__(
         self,
         title: str,
-        cfg: LangConfig,
+        language: LangConfig,
         publish_date: str | None = None,
         edition: str | None = None,
         authors: list[str] | None = None,
@@ -165,7 +168,7 @@ class BookRecord:
         self.categories: list[str] = []
         self.subjects: list[str] = []
         self.title = title
-        self.cfg = cfg
+        self.language = language
         self.set_publish_date(publish_date)
         self.set_edition(edition)
         if authors is not None:
@@ -183,7 +186,7 @@ class BookRecord:
             "title": self.title,
             "source_records": self.source_records,
             "identifiers": {"wikisource": [self.wikisource_id]},
-            "languages": [self.cfg.ol_langcode],
+            "languages": [self.language.ol_langcode],
         }
         if self.publish_date is not None:
             output["publish_date"] = self.publish_date
@@ -208,19 +211,24 @@ class BookRecord:
         return output
 
 
-def update_record(book: BookRecord, new_data: dict):
+def update_record(book: BookRecord, new_data: dict, image_titles: list[str]):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
     if book.imagename is None and "images" in new_data:
         # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
-        image_names = [
+        linked_images = [
             i
             for i in new_data['images']
             if not i["title"].endswith(".svg") and i["title"] != ""
         ]
-        if len(image_names) > 0:
-            book.set_imagename(image_names[0]["title"])
+        # Set this as the book's image name, which will be used later use its URL in the import
+        if len(linked_images) > 0:
+            imagename = linked_images[0]["title"]
+            book.set_imagename(imagename)
+            # Add it to image_titles in order to look up its URL later
+            if imagename not in image_titles:
+                image_titles.append(imagename)
 
     # Parse other params from the infobox
     # Exit if infobox doesn't exist
@@ -304,6 +312,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
     cont_url = url
     imports: dict[str, BookRecord] = {}
     batch: list[BookRecord] = []
+    image_titles: list[str] = []
 
     # Paginate through metadata about wikisource pages
     while True:
@@ -322,14 +331,14 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
                 if id not in imports:
                     imports[id] = BookRecord(
                         title=page["title"],
-                        cfg=cfg,
+                        language=cfg,
                     )
 
                 # MediaWiki's API paginates through pages, page categories, and page images separately.
                 # This means that when you hit this API requesting all 3 of these data types,
                 # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
                 # i.e. Page 1 might give you a book and its categories, Page 2 might give you the same book and its image info.
-                update_record(imports[id], page)
+                update_record(imports[id], page, image_titles)
 
             # Proceed to next page of API results
             if 'continue' in data:
@@ -337,40 +346,37 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
             else:
                 break
 
-    # The page query can't include image URLs, the "imageinfo" prop does nothing unless you're querying image names directly.
-    # Here we'll query as many images as possible in one API request, build a map of the results,
-    # and then later, each valid book will find its image URL in this map.
-    # Get all unique image filenames
-    image_titles: list[str] = []
-    for id in imports:
-        book = imports[id]
-        if book.imagename is not None and book.imagename not in image_titles:
-            image_titles.append(book.imagename)
-
-    # Build an image filename<->url map
-    image_map: dict[str, str] = {}
-
     if len(image_titles) > 0:
+        # The API calls from earlier that retrieved page data isn't able to return image URLs. 
+        # The "imageinfo" prop, which contains URLs, does nothing unless you're querying image names directly.
+        # Here we'll query as many images as possible in one API request, build a map of the results,
+        # and then later, each valid book will find its image URL in this map to import as its cover.
+        image_map: dict[str, str] = {}
+
         # API will only allow up to 50 images at a time to be requested, so do this in chunks.
         for index in range(0, len(image_titles), 50):
             end = index + 50
             if end > len(image_titles):
                 end = len(image_titles)
 
-            image_url = update_url_with_params(
-                f"https://{cfg.langcode}.wikisource.org/w/api.php",
+            image_api_url = update_url_with_params(
+                cfg.api_base_url,
                 {
                     "action": "query",
+                    # Query up to 50 specific image filenames
                     "titles": "|".join(image_titles[index:end]),
+                    # Return info about images
                     "prop": "imageinfo",
+                    # Specifically, return URL info about images
                     "iiprop": "url",
+                    # Output format
                     "format": "json",
                 },
             )
 
-            working_url = image_url
+            working_url = image_api_url
 
-            # Paginate through results
+            # Paginate through results and build the image filename <-> url map
             while True:
                 with requests.get(working_url, stream=True) as r:
                     r.raise_for_status()
@@ -381,24 +387,24 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
                         break
                     results = data["query"]["pages"]
                     for id in results:
-                        img = results[id]
+                        image_hit = results[id]
                         if (
-                            "imageinfo" in img
-                            and img["title"] not in image_map
-                            and len(img["imageinfo"]) > 0
-                            and "url" in img["imageinfo"][0]
+                            "imageinfo" in image_hit
+                            and image_hit["title"] not in image_map
+                            and len(image_hit["imageinfo"]) > 0
+                            and "url" in image_hit["imageinfo"][0]
                         ):
-                            image_map[img["title"]] = img["imageinfo"][0]["url"]
+                            image_map[image_hit["title"]] = image_hit["imageinfo"][0]["url"]
 
-                    # scrape_api next pagination
+                    # next page of image hits, if necessary
                     if 'continue' in data:
                         working_url = update_url_with_params(
-                            image_url, data["continue"]
+                            image_api_url, data["continue"]
                         )
                     else:
                         break
 
-    # Add all valid books to the batch, and give them their image URLs
+    # Add all valid books to the batch
     for id in imports:
         book = imports[id]
         # Skip if it belongs to an ignored category, such as subpages (chapters)
@@ -407,6 +413,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
         ]
         if len(excluded_categories) > 0:
             continue
+        # Set the cover image URL, and then add to batch
         if book.imagename is not None and book.imagename in image_map:
             book.set_cover(image_map[book.imagename])
         batch.append(book)
@@ -417,7 +424,7 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig, output_func: Callable):
-    for url in cfg.api_urls:
+    for url in cfg.all_api_category_urls:
         scrape_api(url, cfg, output_func)
 
 
