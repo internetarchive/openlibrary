@@ -3298,9 +3298,7 @@ msgstr "التصنيفات"
 
 #: books/edit/edition.html
 msgid "Do you know any classifications of this edition?"
-msgstr
-
- "هل تعرف أي تصنيفات لهذه النسخة؟"
+msgstr "هل تعرف أي تصنيفات لهذه النسخة؟"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
