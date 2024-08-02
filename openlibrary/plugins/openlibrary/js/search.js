@@ -125,16 +125,16 @@ function hydrateFacets() {
  */
 function fetchPartials(param) {
     const data = {
-            param: param,
-            path: location.pathname,
-            query: location.search
-        }
+        param: param,
+        path: location.pathname,
+        query: location.search
+    }
     const dataString = JSON.stringify(data)
 
     return fetch(`/partials.json?${new URLSearchParams({
-            _component: 'SearchFacets',
-            data: dataString
-        })}`)
+        _component: 'SearchFacets',
+        data: dataString
+    })}`)
         .then((resp) => {
             if (!resp.ok) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
