@@ -68,12 +68,13 @@ class Bestbook(db.CommonExtras):
         return oldb.query(query, vars=data)[0]['count'] > 0
 
     @classmethod
-    def add(cls, submitter, book_id, topic, comment) -> bool:
+    def add(cls, submitter, book_id, topic, comment, edition_id=None) -> bool:
         """This function adds award to database only if award doesn't exist previously
 
         Args:
             submitter (text): submitter identifier
             book_id (text): unique identifier of book
+            edition_id (text): edition for which the award is given to that book
             topic (text): topic for which award is given
             comment (text): comment about award
 
@@ -89,6 +90,7 @@ class Bestbook(db.CommonExtras):
             'bestbooks',
             submitter=submitter,
             book_id=book_id,
+            edition_id=edition_id,
             topic=topic,
             comment=comment
         )

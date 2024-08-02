@@ -74,7 +74,7 @@ $else:
       $if ctx.user:
         $ link_text = _('+ Give best book award')
         $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-        $:macros.BestbookModal(work, link_markup, '', 'stats_link')
+        $:macros.BestbookModal(work, link_markup, '', 'stats-link')
       $else:
         <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to award this book')</a>
     </div>

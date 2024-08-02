@@ -39,19 +39,19 @@ $if any(work.get_authors()):
             <img src="$src" alt="Cover page of the book">
             <p>$:author_names</p>
           </div>
-          <form class="bestbook" action="#" method="POST">
-            
-            <label for="genre">Choose a topic</label>
-            <select id="genre" name="genre">
+          <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
+            <label for="topic">Choose a topic</label>
+            <select id="topic" name="topic">
               <option value="romance">Romance</option>
               <option value="mathematics">Mathematics</option>
               <option value="humour">Humour</option>
             </select>
             
+            <input type="hidden" value="true" name="redir">
             <label for="comment">Comment</label>
-            <input type="text" style="width: 200px;">
+            <input name="comment" type="text" style="width: 200px;">
             
-            <button class="bestbook__submit" type="">Submit</button>
+            <button class="bestbook__submit" type="submit">Submit</button>
           </form>
         </div>
       </div>

@@ -31,6 +31,7 @@ from openlibrary.plugins.upstream.utils import render_component
 from openlibrary.utils import extract_numeric_id_from_olid
 
 from openlibrary.core import bestbook as bestbook_model
+from openlibrary.core import helpers as h
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
@@ -65,18 +66,37 @@ class history(delegate.mode):
         for i, row in enumerate(history):
             history[i].pop("ip")
         return json.dumps(history)
+
 class bestbook(delegate.page):
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
 
-    def POST(self, work_id):
-        """Give Award to a book"""
+    @jsonapi
+    def POST(self, work_id) -> bool:
+        """Store Bestbook award
 
+        Args:
+            work_id (int): unique id for each book
+
+        Returns:
+            bool: returns true if award is stored
+        """
+
+        # get the user account
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, topic=None,
-                      submitter=None, redir=False)
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        i = web.input(
+            edition_id = None,
+            topic = None,
+            comment = None,
+            redir = False
+            )
+        print('\n' + i.comment + '\n')
+        key = (
+            i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        )
+        edition_id = (
+            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        )
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
@@ -88,22 +108,21 @@ class bestbook(delegate.page):
                 status: msg
             }), content_type="application/json")
 
-        if i.rating is None:
-            models.Ratings.remove(username, work_id)
-            r = response('removed rating')
+        print(f"\n \n {i.topic} \n \n")
+        if i.topic is None:
+            bestbook_model.Bestbook.remove(username, work_id)
+            r = response('Removed award')
 
         else:
-            try:
-                rating = int(i.rating)
-                if rating not in models.Ratings.VALID_STAR_RATINGS:
-                    raise ValueError
-            except ValueError:
-                return response('invalid rating', status="error")
-
-            models.Ratings.add(
-                username=username, work_id=work_id,
-                rating=rating, edition_id=edition_id)
-            r = response('rating added')
+            bestbook_model.Bestbook.add(
+                submitter=username,
+                book_id=work_id,
+                edition_id=edition_id,
+                comment=i.comment,
+                topic=i.topic
+            )
+            print("\n \n Debug \n \n")
+            r = response('Awarded the book')
 
         if i.redir:
             raise web.seeother(key)
