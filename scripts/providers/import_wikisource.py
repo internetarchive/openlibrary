@@ -20,9 +20,9 @@ import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
 
-from infogami import config
-from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+# from infogami import config
+# from openlibrary.config import load_config
+# from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.pressbooks")
@@ -283,9 +283,10 @@ def update_record(book: BookRecord, new_data: dict):
 
     if book.description is None:
         try:
-            notes = wtp.remove_markup(
-                template.get("notes").value.strip().replace("\n", " ")
-            )
+            # Replace HTML and markup newlines with \n, because they get stripped otherwise
+            raw = template.get("notes").value.strip()
+            raw_spaced = re.sub(r'(:?<br/>|\{\{rule\}\})', "\n", raw)
+            notes = wtp.remove_markup(raw_spaced)
             if notes != "":
                 book.set_description(notes)
         except ValueError:
