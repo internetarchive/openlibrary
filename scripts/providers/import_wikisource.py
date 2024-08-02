@@ -182,7 +182,6 @@ class BookRecord:
         output = {
             "title": self.title,
             "source_records": self.source_records,
-            "publishers": 'Wikisource',
             "identifiers": {"wikisource": self.wikisource_id},
             "languages": [self.cfg.ol_langcode],
         }
