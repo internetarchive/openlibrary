@@ -5,6 +5,7 @@ $# :param str id: Unique identifier for this modal
 $# :param str classes: HTML classes for this component
 $# :param str reload_id: Reference to UI component that will update when observations are added or removed
 
+$ topics = work.get_subjects()
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 
 $# The following data is accessed via JS:
@@ -25,7 +26,6 @@ $if any(work.get_authors()):
 
 <div class="$classes">
   $:link_markup
-  <!-- $:edition_key -->
   $if ctx.user:
     <div class="hidden">
       <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
@@ -42,9 +42,8 @@ $if any(work.get_authors()):
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">Choose a topic</label>
             <select id="topic" name="topic">
-              <option value="romance">Romance</option>
-              <option value="mathematics">Mathematics</option>
-              <option value="humour">Humour</option>
+              $for topic in topics:
+                <option value="$topic">$:topic</option>
             </select>
             
             <input type="hidden" value="true" name="redir">

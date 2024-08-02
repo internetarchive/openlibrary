@@ -108,7 +108,7 @@ class bestbook(delegate.page):
                 status: msg
             }), content_type="application/json")
 
-        print(f"\n \n {i.topic} \n \n")
+        # print(f"\n \n {i.topic} \n \n")
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
             r = response('Removed award')
