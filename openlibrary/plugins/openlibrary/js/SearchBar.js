@@ -255,11 +255,11 @@ export class SearchBar {
     }
 
     /**
-     * @async
-     * Awkwardly fetches the the results as well as renders them :/
-     * Cleans up and performs the query, then update the autocomplete results
-     * @returns {JQuery.jqXHR}
-     **/
+    * @async
+    * Awkwardly fetches the the results as well as renders them :/
+    * Cleans up and performs the query, then update the autocomplete results
+    * @returns {JQuery.jqXHR}
+    **/
     renderAutocompletionResults() {
         let q = this.$input.val();
         if (q === '' || !(this.facetEndpoint in RENDER_AUTOCOMPLETE_RESULT)) {
@@ -274,11 +274,18 @@ export class SearchBar {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
-            for (const d in data.docs) {
-                this.$results.append(renderer(data.docs[d]));
+
+            if (data.docs.length === 0) {
+            // No results found, display a message
+                this.$results.append('<li class="no-results">No results found for your search.</li>');
+            } else {
+                for (const d in data.docs) {
+                    this.$results.append(renderer(data.docs[d]));
+                }
             }
         });
     }
+
 
     clearAutocompletionResults() {
         this.$results.empty();
