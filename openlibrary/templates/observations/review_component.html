@@ -49,25 +49,11 @@ $else:
 
   <div class="awards-div">
     <h3 class="reviews-subtitle">$_('Awards')</h3>
+    <div class="awards">
+      <span>🏆 Romance</span>
+    </div>
     $if total_reviews > 0:
-      <div class="awards">
-      $for o in reader_observations['observations']:
-        <span class="review__category">
-        $ total_respondents = o['total_respondents_for_type']
-          <span class="reviews__label" title="$o['description']">$o['label'] <span class="reviews__count">$total_respondents</span></span>
-          $ total_responses = o['total_responses']
-          $for v in o['values']:
-            $ percentage = (v['count'] / total_responses) * 100
-            <span class="reviews__pill">
-              <span class="reviews__value">
-                $v['value']
-              </span>
-              <span class="percentage">
-                $int(percentage)%
-              </span>
-            </span>
-        </span>
-      </div>
+      $ pass
     $else:
       <div class="no-stats-message">$_('No bestbook awards have been awarded for this work.')</div>
     <div class="review-cta">

@@ -27,6 +27,7 @@ from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
@@ -576,6 +577,15 @@ class Work(Thing):
                 'avg_rating': round(rating_stats['avg_rating'], 2),
                 'num_ratings': rating_stats['num_ratings'],
             }
+
+    def get_awards(self) -> list:
+        if not self.key:
+            return {'count': 0, 'awards': []}
+
+        work_id = extract_numeric_id_from_olid(self.key)
+        awards = Bestbook.get_awards(work_id)
+
+        return awards if awards else []
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
