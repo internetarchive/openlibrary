@@ -1551,7 +1551,6 @@ msgid "Works by Author Country of Birth"
 msgstr "أعمال حسب بلد ميلاد المؤلفين"
 
 #: account/readinglog_stats.html
-#, fuzzy
 msgid ""
 "Demographic statistics powered by <a "
 "href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-"
@@ -1561,7 +1560,7 @@ msgid ""
 "purpose\">these instructions</a>."
 msgstr ""
 "الإحصاءات السكانية مدعومة من <a "
-"href=\"https://www.wikidata.org/\">Wikidata</a>. إليك <a id=\"wd-query-sample\" href=\"\">عينة</a> من الاستعلام المستخدم. <br />حسن هذه الإحصاءات بإضافة معرّف مؤلف Wikidata باتباع <a "
+"href=\"https://www.wikidata.org/\">ويكي بيانات</a>. إليك <a id=\"wd-query-sample\" href=\"\">عينة</a> من الاستعلام المستخدم. <br />حسن هذه الإحصاءات بإضافة معرّف مؤلف ويكي بيانات واتباع <a "
 "href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">هذه التعليمات</a>."
 
 #: account/readinglog_stats.html
@@ -2679,7 +2678,6 @@ msgstr ""
 "لا شيء من هذه النتائج يتطابق مع الكتاب الذي أريد إضافته."
 
 #: books/check.html
-#, fuzzy
 msgid "Continue"
 msgstr "مواصلة"
 
@@ -2717,7 +2715,6 @@ msgstr ""
 "يمكن فتحها فقط على جهاز متخصص باستخدام مفتاح صادر عن مكتبة الكونغرس."
 
 #: books/daisy.html
-#, fuzzy, python-format
 msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
 " <a href=\"%(url)s\">%(title)s</a>"
@@ -2739,7 +2736,6 @@ msgstr ""
 " مجانًا بصيغة DAISY، المصممة لأولئك منا الذين يجدون صعوبة في استخدام وسائل الطباعة التقليدية."
 
 #: books/daisy.html
-#, fuzzy, python-format
 msgid ""
 "There are two types of DAISYs on Open Library: <i>open</i> and "
 "<i>protected</i>. Open DAIS Ys can be read by anyone in the world on many "
@@ -2752,7 +2748,6 @@ msgstr ""
 "الأجهزة المختلفة. DAISYs المحمية مثل هذه يمكن فتحها فقط باستخدام مفتاح صادر من <a href=\"http://www.loc.gov/nls/\">برنامج مكتبة الكونغرس NLS</a>."
 
 #: books/daisy.html
-#, fuzzy, python-format
 msgid ""
 "There are two types of DAISYs on Open Library: <i>open</i> and "
 "<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
@@ -2991,7 +2986,6 @@ msgid "Please separate with commas."
 msgstr "يرجى الفصل بفواصل."
 
 #: books/edit/about.html
-#, fuzzy
 msgid ""
 "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
 "href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
@@ -3006,7 +3000,6 @@ msgid "A person? Or, people?"
 msgstr "شخص؟ أو أشخاص؟"
 
 #: books/edit/about.html
-#, fuzzy
 msgid ""
 "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
@@ -3021,14 +3014,13 @@ msgid "Note any places mentioned?"
 msgstr "هل تم ذكر أي أماكن؟"
 
 #: books/edit/about.html
-#, fuzzy
 msgid ""
 "For example: <i><a href=\"/subjects/place:London\">London</a>, <a "
 "href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
 "href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
 "على سبيل المثال: <i><a href=\"/subjects/place:London\">لندن</a>, <a "
-"href=\"/subjects/place:Atlantis\">أتلانتس</a>, <a "
+"href=\"/subjects/place:Atlantis\">أطلانتس</a>, <a "
 "href=\"/subjects/place:Omaha\">أوماها</a></i>"
 
 #: books/edit/about.html
@@ -3036,7 +3028,6 @@ msgid "When is it set or about?"
 msgstr "متى تدور أحداثه أو عن ماذا؟"
 
 #: books/edit/about.html
-#, fuzzy
 msgid ""
 "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
 "href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
@@ -6241,12 +6232,11 @@ msgid "Preview Book"
 msgstr "معاينة الكتاب"
 
 #: DonateModal.html
-#, fuzzy
 msgid ""
 "Donate this book to the <a href=\"https://archive.org\">Internet "
 "Archive</a> library."
 msgstr ""
-"تبرع بهذا الكتاب إلى مكتبة <a href=\"https://archive.org\">الأرشيف الإلكتروني</a>."
+"تبرع بهذا الكتاب إلى مكتبة <a href=\"https://archive.org\">أرشيف الإنترنت</a>."
 
 #: DonateModal.html
 msgid ""
@@ -6284,7 +6274,6 @@ msgstr ""
 "عند التبرع بكتاب مادي إلى الأرشيف الإلكتروني، سيستفيد كتابك من:"
 
 #: DonateModal.html
-#, fuzzy
 msgid "Donation info"
 msgstr "معلومات التبرع"
 
@@ -6752,7 +6741,6 @@ msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr "تمت محاولة تسجيل الدخول ببيانات اعتماد غير صالحة لـ Internet Archive s3."
 
 #: account.py
-#, fuzzy
 msgid "A problem occurred and we were unable to log you in"
 msgstr "حدثت مشكلة ولم نتمكن من تسجيل دخولك."
 
