@@ -20,7 +20,7 @@ multipart==0.2.4
 Pillow==10.0.1
 psycopg2==2.9.6
 pydantic==2.1.0
-pymarc==5.1.0
+pymarc==5.2.2
 python-dateutil==2.8.2
 python-memcached==1.59
 PyYAML==6.0.1
