@@ -26,7 +26,7 @@ $ prompt_id = 'prompt-%s' % work_olid
 $ page_url = request.home
 $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
-  $if ctx.path.find("works") != -1:
+  $if ctx.path.find("search") == -1:
     <a href="#" class="award-link">$_("Give Best Book Award")</a>
     <hr>
   <span class="prompt-copy">$_("When did you finish this book?")</span>

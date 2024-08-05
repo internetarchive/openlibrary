@@ -5,6 +5,16 @@ $if reader_observations['total_respondents']:
 $else:
   $ total_reviews = 0
 
+$ d = {}
+$ awards = []
+$if len(work.get_awards()) > 0:
+  $ awards = work.get_awards()
+  $for award in awards:
+    $if award.topic in d:
+      $ d[award.topic] += 1
+    $else:
+      $ d[award.topic] = 1
+
 <a id="reader-observations" name="reader-observations" class="section-anchor"></a>
 
 <div class="tab-section review-component">
@@ -49,11 +59,11 @@ $else:
 
   <div class="awards-div">
     <h3 class="reviews-subtitle">$_('Awards')</h3>
-    <div class="awards">
-      <span>🏆 Romance</span>
-    </div>
-    $if total_reviews > 0:
-      $ pass
+    $if len(d) > 0:
+      <div class="awards">
+      $for topic, count in d.items():
+        <span class="bestbook-award">$:count 🏆 $:topic</span>
+      </div>
     $else:
       <div class="no-stats-message">$_('No bestbook awards have been awarded for this work.')</div>
     <div class="review-cta">
