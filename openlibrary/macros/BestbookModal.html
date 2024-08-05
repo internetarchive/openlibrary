@@ -1,0 +1,60 @@
+$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None)
+$# :param Work work: The work that is being reviewed
+$# :param str link_markup: arkup for element that triggers observations modal
+$# :param str id: Unique identifier for this modal
+$# :param str classes: HTML classes for this component
+$# :param str reload_id: Reference to UI component that will update when observations are added or removed
+
+$ topics = work.get_subjects()
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+
+$# The following data is accessed via JS:
+$ context = {
+  $ "username": username,
+  $ "work": work.key,
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+$ cover_url = work.get_cover_url("M")
+$ src = cover_url or '/images/icons/avatar_book.png'
+
+$if any(work.get_authors()):
+  $ author_names = ", ".join(a.get("name", "Name missing") for a in work.get_authors())
+
+<div class="$classes">
+  $:link_markup
+  $if ctx.user:
+    <div class="hidden">
+      <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
+        <div class="floaterHead">
+          <h2>$_("Best Book Award")</h2>
+          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+        <div class="bestbook_body">
+          <div class="bestbook_data">
+            <h3>$:work.title</h3>
+            <img src="$src" alt="Cover page of the book">
+            <p>$:author_names</p>
+          </div>
+          <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
+            <label for="topic">Choose a topic</label>
+            <select id="topic" name="topic">
+              $for topic in topics:
+                <option value="$topic">$:topic</option>
+            </select>
+            
+            <input type="hidden" value="true" name="redir">
+            <input type="hidden" value="$edition_key" name="edition_key">
+
+            <label for="comment">Comment</label>
+            <input name="comment" type="text" style="width: 200px;">
+            
+            <button class="bestbook__submit" type="submit">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>

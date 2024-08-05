@@ -28,6 +28,10 @@ from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import checkins
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.utils import extract_numeric_id_from_olid
+
+from openlibrary.core import bestbook as bestbook_model
+from openlibrary.core import helpers as h
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
@@ -64,6 +68,81 @@ class history(delegate.mode):
             history[i].pop("ip")
         return json.dumps(history)
 
+class bestbook(delegate.page):
+    path = r"/works/OL(\d+)W/awards"
+    encoding = "json"
+
+    @jsonapi
+    def POST(self, work_id) -> bool:
+        """Store Bestbook award
+
+        Args:
+            work_id (int): unique id for each book
+
+        Returns:
+            bool: returns true if award is stored
+        """
+
+        # get the user account
+        user = accounts.get_current_user()
+        i = web.input(
+            edition_key = None,
+            topic = None,
+            comment = None,
+            redir = False
+            )
+        print('\n' + i.edition_key + '\n')
+        key = (
+            i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
+        )
+        edition_id = (
+            int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
+        )
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        # print(f"\n \n {i.topic} \n \n")
+        if i.topic is None:
+            bestbook_model.Bestbook.remove(username, work_id)
+            r = response('Removed award')
+
+        else:
+            bestbook_model.Bestbook.add(
+                submitter=username,
+                book_id=work_id,
+                edition_id=edition_id,
+                comment=i.comment,
+                topic=i.topic
+            )
+            print("\n \n Awarded the book \n \n")
+            r = response('Awarded the book')
+
+        if i.redir:
+            raise web.seeother(key)
+        return r
+
+class bestbook_count(delegate.page):
+    """API for award count"""
+    path = "/awards/count"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        filt = web.input(book_id=None, submitter=None, topic=None)
+        result = bestbook_model.Bestbook.get_count(
+            book_id=filt.book_id,
+            submitter=filt.submitter,
+            topic=filt.topic
+            )
+        return json.dumps({'count': result})
 
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
@@ -93,7 +172,7 @@ class edit(core.edit):
 
 
 class change_cover(delegate.mode):
-    path = r"(/books/OL\d+M)/cover"
+    path = "/books/OL(\d)+M/cover"
 
     def GET(self, key):
         page = web.ctx.site.get(key)

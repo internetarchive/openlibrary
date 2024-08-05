@@ -107,3 +107,18 @@ CREATE TABLE wikidata (
     data json,
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 )
+
+CREATE TABLE bestbooks (
+    award_id serial not null primary key,
+    submitter text not null,
+    book_id text not null,
+    edition_id text default null,
+    topic text not null,
+    comment text not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+)
+
+CREATE INDEX bestbooks_id ON bestbooks (submitter);
+
+INSERT INTO bestbooks (submitter, book_id, topic, comment) VALUES ('Vaibhav', 'OL5702375W', 'romance', 'a good book for understanding');
