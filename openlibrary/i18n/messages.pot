@@ -3358,7 +3358,6 @@ msgid "Who is the publisher?"
 msgstr ""
 
 #: books/add.html books/edit/edition.html books/edit/excerpts.html
-#: type/author/edit.html
 msgid "For example:"
 msgstr ""
 
@@ -6449,6 +6448,12 @@ msgstr ""
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
+msgstr ""
+
+#: type/author/edit.html
+msgid ""
+"For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
+"Please list one name per line."
 msgstr ""
 
 #: type/author/edit.html
