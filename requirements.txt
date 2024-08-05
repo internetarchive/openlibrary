@@ -18,7 +18,7 @@ luqum==0.11.0
 lxml==4.9.4
 multipart==0.2.4
 Pillow==10.4.0
-psycopg2==2.9.6
+psycopg2==2.9.9
 pydantic==2.1.0
 pymarc==5.1.0
 python-dateutil==2.8.2
