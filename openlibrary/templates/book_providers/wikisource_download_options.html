@@ -14,7 +14,9 @@ $code:
     langcode, title = split_id(wikisource_id)
 
     def direct_url(type):
-        return 'https://ws-export.wmcloud.org/?format=' + type + '&lang=' + langcode + '&page=' + title
+        params = {"format": type, "lang": langcode, "page": title}
+        base_url = "https://ws-export.wmcloud.org/"
+        return "%s?%s" % (base_url, urlencode(params))
 
     outbound_url = 'https://wikisource.org/wiki/' + wikisource_id
     pdf_url = direct_url('pdf')
