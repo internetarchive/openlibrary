@@ -9,7 +9,7 @@ import re
 import requests
 import time
 
-# import json
+import json
 
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from collections.abc import Callable
@@ -20,9 +20,9 @@ import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
 
-from infogami import config
-from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+# from infogami import config
+# from openlibrary.config import load_config
+# from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.wikisource")
@@ -254,7 +254,7 @@ def update_record(book: BookRecord, new_data: dict, image_titles: list[str]):
     if template is None:
         return
 
-    # If inbox DOES exist, extract book data from it. These are in try-catches.
+    # If infobox DOES exist, extract book data from it. These are in try-catches.
     # I didn't see a method for the MW parser that checks if a key exists or not
     # instead of throwing an error if it doesn't.
     # Infobox params do not change from language to language as far as I can tell.
@@ -445,11 +445,11 @@ def create_batch(records: list[BookRecord]):
 
 def print_records(records: list[BookRecord]):
     r = [{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records]
-    print(r)
-    # TODO: remove this before merging
-    # file_path = '/Users/stefaniekischak/Documents/output.json'
-    # with open(file_path, 'w') as file:
-    #     json.dump(r, file, indent=4)
+    file_path = f'scripts/providers/batch_output/wikisource-batch-{time.time()}.jsonl'
+    with open(file_path, 'w') as file:
+        for rec in records:
+            r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
+            file.write(json.dumps(r) + '\n')
 
 
 def main(ol_config: str, dry_run=False):
@@ -457,7 +457,7 @@ def main(ol_config: str, dry_run=False):
     :param str ol_config: Path to openlibrary.yml file
     :param bool dry_run: If true, only print out records to import
     """
-    load_config(ol_config)
+    # load_config(ol_config)
 
     for ws_language in ws_languages:
         if not dry_run:
