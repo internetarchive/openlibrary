@@ -35,3 +35,4 @@ node_modules/
 venv/
 *.c
 *.so
+scripts/providers/batch_output
