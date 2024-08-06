@@ -444,7 +444,6 @@ def create_batch(records: list[BookRecord]):
 
 
 def print_records(records: list[BookRecord]):
-    r = [{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records]
     file_path = f'scripts/providers/batch_output/wikisource-batch-{time.time()}.jsonl'
     with open(file_path, 'w') as file:
         for rec in records:
