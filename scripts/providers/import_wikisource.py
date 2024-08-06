@@ -8,8 +8,8 @@ import logging
 import re
 import requests
 import time
-
 import json
+import os
 
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from collections.abc import Callable
@@ -446,8 +446,10 @@ def create_batch(records: list[BookRecord]):
 
 
 def print_records(records: list[BookRecord]):
-    file_path = f'scripts/providers/batch_output/wikisource-batch-{time.time()}.jsonl'
-    with open(file_path, 'w') as file:
+    folder_path = 'scripts/providers/batch_output/'
+    os.makedirs(os.path.dirname(folder_path), exist_ok=True)
+    file_path = f'{folder_path}/wikisource-batch-{time.time()}.jsonl'
+    with open(file_path, 'w', encoding='utf-8') as file:
         for rec in records:
             r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
             file.write(json.dumps(r) + '\n')
