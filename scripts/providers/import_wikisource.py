@@ -308,7 +308,18 @@ def update_record(book: BookRecord, new_data: dict, image_titles: list[str]):
         pass
 
 
-def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
+def print_records(records: list[BookRecord]):
+    folder_path = 'scripts/providers/batch_output/'
+    now = time.gmtime(time.time())
+    os.makedirs(os.path.dirname(folder_path), exist_ok=True)
+    file_path = f'{folder_path}/wikisource-{now.tm_year}{now.tm_mon}.jsonl'
+    with open(file_path, 'w', encoding='utf-8') as file:
+        for rec in records:
+            r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
+            file.write(json.dumps(r) + '\n')
+
+
+def scrape_api(url: str, cfg: LangConfig):
     cont_url = url
     imports: dict[str, BookRecord] = {}
     batch: list[BookRecord] = []
@@ -421,52 +432,23 @@ def scrape_api(url: str, cfg: LangConfig, output_func: Callable):
         batch.append(book)
 
     if len(batch) > 0:
-        output_func(batch)
+        print_records(batch)
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
-def process_all_books(cfg: LangConfig, output_func: Callable):
+def process_all_books(cfg: LangConfig):
     for url in cfg.all_api_category_urls:
-        scrape_api(url, cfg, output_func)
+        scrape_api(url, cfg)
 
 
-def create_batch(records: list[BookRecord]):
-    """Creates Wikisource batch import job.
-
-    Attempts to find existing Wikisource import batch.
-    If nothing is found, a new batch is created.
-    """
-    now = time.gmtime(time.time())
-    batch_name = f'wikisource-{now.tm_year}{now.tm_mon}'
-    batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items(
-        [{'ia_id': r.source_records[0], 'data': r.to_dict()} for r in records]
-    )
-    print(f'{len(records)} entries added to the batch import job.')
-
-
-def print_records(records: list[BookRecord]):
-    folder_path = 'scripts/providers/batch_output/'
-    os.makedirs(os.path.dirname(folder_path), exist_ok=True)
-    file_path = f'{folder_path}/wikisource-batch-{time.time()}.jsonl'
-    with open(file_path, 'w', encoding='utf-8') as file:
-        for rec in records:
-            r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
-            file.write(json.dumps(r) + '\n')
-
-
-def main(ol_config: str, dry_run=False):
+def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
-    :param bool dry_run: If true, only print out records to import
     """
     load_config(ol_config)
 
     for ws_language in ws_languages:
-        if not dry_run:
-            process_all_books(ws_language, create_batch)
-        else:
-            process_all_books(ws_language, print_records)
+        process_all_books(ws_language)
 
 
 if __name__ == '__main__':
