@@ -9,7 +9,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 class ListSearchScheme(SearchScheme):
     universe = ['type:list']
-    all_fields = { #I have no idea what else to add.
+    all_fields = {  # I have no idea what else to add.
         'key',
         'name',
     }
@@ -24,19 +24,19 @@ class ListSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields = { 
+    default_fetched_fields = {
         'key',
         'name',
     }
     facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
-    def q_to_solr_params( 
+    def q_to_solr_params(
         self,
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
     ) -> list[tuple[str, str]]:
-        return [ 
+        return [
             ('q', q),
             ('q.op', 'AND'),
             ('defType', 'edismax'),

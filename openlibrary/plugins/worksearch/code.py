@@ -26,9 +26,9 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.plugins.worksearch.schemes import SearchScheme 
-from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme 
-from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme 
+from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -573,7 +573,7 @@ class advancedsearch(delegate.page):
 
 
 class list_search(delegate.page):
-    path = '/search/lists' 
+    path = '/search/lists'
 
     def GET(self):
         return render_template('search/lists', self.get_results)
@@ -585,7 +585,7 @@ class list_search(delegate.page):
             offset=offset,
             rows=limit,
         )
-        
+
         return resp
 
 
@@ -594,13 +594,13 @@ class list_search_json(list_search):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=10) 
+        i = web.input(q='', offset=0, limit=10)
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
         limit = min(100, limit)
 
         response = self.get_results(i.q, offset=offset, limit=limit)
-        
+
         # Backward compatibility. Do I need to do this?
         raw_resp = response.raw_resp['response']
 

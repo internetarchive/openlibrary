@@ -17,7 +17,7 @@ $var title: $_('Search results for Lists')
 
 <div id="contentBody">
     $:macros.SearchNavigation()
-  
+
     <div class="section">
         <form class="siteSearch olform" action="">
             $:render_template("search/searchbox", q=q)
@@ -41,13 +41,13 @@ $var title: $_('Search results for Lists')
                     <ul id="listResults" class="list-books">
                         $for list in lists:
                             <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
-                    </ul>   
+                    </ul>
                 $else:
                     <div>
                         <span class="red">$_("No results found.")</span>
                         <a href="/search/inside?$urlencode(dict(q=q))">$_('Search for books containing the phrase "%s"?', q)</a>
-                    </div> 
-            </div>     
+                    </div>
+            </div>
     </div>
-    <div class="clearfix"></div>   
+    <div class="clearfix"></div>
 </div>
