@@ -5,7 +5,7 @@ $def with(wikisource_id, analytics_attr)
 </div>
 
 $if render_once('wikisource-toast'):
-    <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--openstax" id="wikisource-toast" style="display:none">
+    <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--wikisource" id="wikisource-toast" style="display:none">
         <div class="toast__body">
             $:_('This book is available from <a href="https://wikisource.org/">Wikisource</a>. Wikisource, a <a href="https://www.wikimedia.org/">Wikimedia Foundation</a> project, is a trusted book provider of works available under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA</a> open content license, such as essays, historical documents, letters, speeches, and public domain books.')
             <a href="https://wikisource.org/wiki/Wikisource:What_is_Wikisource%3F">$_('Learn more')</a>
