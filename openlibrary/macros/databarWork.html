@@ -59,7 +59,8 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
-          $if book_provider:
+          $ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
+          $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
             $:book_provider.render_download_options(page)
           $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
       </div>
