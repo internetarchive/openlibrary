@@ -4,26 +4,26 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 # {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
-    'No fields': ('query here', 'query here'),
+    'No fields': ('query here', 'query~ here~'),
     'Misc': (
         'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)',
-        'alternative_title:(Holidays are Hell) author_name:(Kim Harrison) OR author_name:(Lynsay Sands)',
+        'alternative_title:(Holidays~ are~ Hell~) author_name:(Kim~ Harrison~) OR author_name:(Lynsay~ Sands~)',
     ),
     'Author field': (
         'food rules author:pollan',
-        'food rules author_name:pollan',
+        'food~ rules~ author_name:pollan~',
     ),
     'Invalid dashes': (
         'foo foo bar -',
-        'foo foo bar \\-',
+        'foo~ foo~ bar~ \\-~',
     ),
     'Field aliases': (
         'title:food rules by:pollan',
-        'alternative_title:(food rules) author_name:pollan',
+        'alternative_title:(food~ rules~) author_name:pollan~',
     ),
     'Fields are case-insensitive aliases': (
         'food rules By:pollan',
-        'food rules author_name:pollan',
+        'food~ rules~ author_name:pollan~',
     ),
     'Spaces after fields': (
         'title: "Harry Potter"',
@@ -31,27 +31,28 @@ QUERY_PARSER_TESTS = {
     ),
     'Quotes': (
         'title:"food rules" author:pollan',
-        'alternative_title:"food rules" author_name:pollan',
+        'alternative_title:"food rules" author_name:pollan~',
     ),
     'Leading text': (
         'query here title:food rules author:pollan',
-        'query here alternative_title:(food rules) author_name:pollan',
+        'query~ here~ alternative_title:(food~ rules~) author_name:pollan~',
     ),
     'Colons in query': (
         'flatland:a romance of many dimensions',
-        'flatland\\:a romance of many dimensions',
+        'flatland\\:a~ romance~ of~ many~ dimensions~',
     ),
     'Spaced colons in query': (
         'flatland : a romance of many dimensions',
-        'flatland\\: a romance of many dimensions',
+        'flatland\\:~ a~ romance~ of~ many~ dimensions~',
     ),
+    'Parentheticals': ('(This is a parenthetical)', '(This~ is~ a~ parenthetical~)'),
     'Colons in field': (
         'title:flatland:a romance of many dimensions',
-        'alternative_title:(flatland\\:a romance of many dimensions)',
+        'alternative_title:(flatland\\:a~ romance~ of~ many~ dimensions~)',
     ),
     'Operators': (
         'authors:Kim Harrison OR authors:Lynsay Sands',
-        'author_name:(Kim Harrison) OR author_name:(Lynsay Sands)',
+        'author_name:(Kim~ Harrison~) OR author_name:(Lynsay~ Sands~)',
     ),
     'ISBN-like': (
         '978-0-06-093546-7',
