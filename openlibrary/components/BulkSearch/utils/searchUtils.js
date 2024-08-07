@@ -34,7 +34,7 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
  */
 export function buildListUrl(bookMatches){
     const seeds = bookMatches.filter(bookMatch => bookMatch.solrDocs.numFound>0).map((bookMatch) => bookMatch.solrDocs.docs[0].key.split('/')[2])
-    const url = `https://openlibrary.org/lists/add?seeds=${seeds.join(',')}`
+    const url = `/account/lists/add?seeds=${seeds.join(',')}`
     return url
 }
 
