@@ -122,10 +122,52 @@ export class AiExtractor extends AbstractExtractor{
     }
 }
 
+export class TableExtractor extends AbstractExtractor{
+    /**
+     *
+     * @param {string} name
+     */
+    constructor(name) {
+        super(name)
+    }
+
+    /**
+     * @param {ExtractionOptions} extractionOptions
+     * @param {string} text
+     * @return {Promise<BookMatch[]>}
+     */
+    async run(extractionOptions, text){
+
+        /** @type {string[]} */
+        const lines = text.split('\n')
+        /** @type {RegExp} */
+        const matcher = /([\w ]*)\t/g
+        /** @type {string[][]} */
+        const cells = lines.map(textLine => [...textLine.matchAll(matcher)].map(entry => entry[1]))
+        try {
+            /** @type {number} */
+            const authorIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase()  === extractionOptions.authorColumn)
+            /** @type {number} */
+            const titleIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase() === extractionOptions.titleColumn)
+            if (titleIndex < 0){
+                throw new Error(`Please have one column named ${extractionOptions.titleColumn} and (optionally) one column named ${extractionOptions.authorColumn}`)
+            }
+
+            return cells.slice(1).filter(row=> row[titleIndex]!== '').map(row => new BookMatch(new ExtractedBook(row[titleIndex], row[authorIndex]), {}))
+        }
+        catch (error){
+            return []
+        }
+    }
+}
 class ExtractionOptions {
     constructor() {
         /** @type {string} */
         this.openaiApiKey = ''
+        /** @type {string} */
+        this.authorColumn = 'author'
+        /** @type {string} */
+        this.titleColumn = 'title'
     }
 }
 class MatchOptions  {
@@ -169,7 +211,8 @@ export class BulkSearchState{
             new RegexExtractor('e.g. "The Wizard of Oz - L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
             new RegexExtractor('e.g. "The Wizard of Oz (L. Frank Baum)"', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
             new RegexExtractor('Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-            new AiExtractor('✨ AI Extraction', 'gpt-4o-mini')
+            new AiExtractor('✨ AI Extraction', 'gpt-4o-mini'),
+            new TableExtractor('Extract from a Table/Spreadsheet')
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
