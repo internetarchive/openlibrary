@@ -12,6 +12,15 @@ class ListSearchScheme(SearchScheme):
     all_fields = {  # I have no idea what else to add.
         'key',
         'name',
+        'seed',
+        'subject',
+        'person',
+        'place',
+        'time',
+        'subject_key',
+        'person_key',
+        'place_key',
+        'time_key',
     }
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
@@ -27,6 +36,15 @@ class ListSearchScheme(SearchScheme):
     default_fetched_fields = {
         'key',
         'name',
+        'seed',
+        'subject',
+        'person',
+        'place',
+        'time',
+        'subject_key',
+        'person_key',
+        'place_key',
+        'time_key',
     }
     facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
