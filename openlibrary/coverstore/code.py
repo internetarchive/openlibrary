@@ -210,7 +210,7 @@ def trim_microsecond(date):
 
 
 # Number of images stored in one archive.org item
-IMAGES_PER_ITEM = 10000
+IMAGES_PER_ITEM = 10_000
 
 
 def zipview_url_from_id(coverid, size):
@@ -221,6 +221,16 @@ def zipview_url_from_id(coverid, size):
     filename = "%d%s.jpg" % (coverid, suffix)
     protocol = web.ctx.protocol  # http or https
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
+
+
+def tarview_url_from_id(coverid: int, size: str | None) -> str:
+    prefix = f"{size.lower()}_" if size else ""
+    pid = "%010d" % coverid
+    item_id = f"{prefix}covers_{pid[:4]}"
+    item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+    item_file = f"{pid}{'-' + size.upper() if size else ''}"
+    protocol = web.ctx.protocol
+    return f"{protocol}://archive.org/download/{item_id}/{item_tar}/{item_file}.jpg"
 
 
 class cover:
@@ -259,28 +269,22 @@ class cover:
         if value is None or value in config.blocked_covers:
             return notfound()
 
-        if 8_820_000 > value >= 8_000_000 and size == "L":
-            # This item is currently offline due to heavy traffic;
-            # Fix incoming in the next ~week; See:
-            # - https://webarchive.jira.com/browse/PBOX-3879
-            # - https://github.com/internetarchive/openlibrary/issues/9560
-            size = "M"
-
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(value, size)
             return web.found(url)
 
+        # This chunk is unique:
+        #   - they are stores as both .zip and .tar files (for now)
+        #   - the naming scheme is the older scheme used by .tar files
+        #     (eg item `l_covers_0008` instead of `olcovers9`
+        #   - the db is not yet updated with their correct URLs
+        if size == "L" and 8_820_000 > value >= 8_000_000:
+            return web.found(tarview_url_from_id(value, size).replace('.tar', '.zip'))
+
         # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
         if 8_820_000 > value >= 8_000_000:
-            prefix = f"{size.lower()}_" if size else ""
-            pid = "%010d" % value
-            item_id = f"{prefix}covers_{pid[:4]}"
-            item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
-            item_file = f"{pid}{'-' + size.upper() if size else ''}"
-            path = f"{item_id}/{item_tar}/{item_file}.jpg"
-            protocol = web.ctx.protocol
-            return web.found(f"{protocol}://archive.org/download/{path}")
+            return web.found(tarview_url_from_id(value, size))
 
         d = self.get_details(value, size.lower())
         if not d:
