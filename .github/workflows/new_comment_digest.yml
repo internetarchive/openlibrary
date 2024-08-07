@@ -30,7 +30,7 @@ permissions:
 
 env:
   HOURS: 24
-  CHANNEL_ARG: '-s #team-abc-plus'
+  CHANNEL_ARG: '-s "#team-abc-plus"'
   VERBOSE_FLAG: ''
   NO_LABELS_FLAG: ''
 
