@@ -129,6 +129,8 @@ export class TableExtractor extends AbstractExtractor{
      */
     constructor(name) {
         super(name)
+        /** @type {boolean} */
+        this.isTable = true
     }
 
     /**
