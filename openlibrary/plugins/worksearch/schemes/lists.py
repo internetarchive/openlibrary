@@ -25,7 +25,6 @@ class ListSearchScheme(SearchScheme):
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
     sorts = {
-        'work_count desc': 'work_count desc',
         # Random
         'random': 'random_1 asc',
         'random asc': 'random_1 asc',
@@ -58,4 +57,6 @@ class ListSearchScheme(SearchScheme):
             ('q', q),
             ('q.op', 'AND'),
             ('defType', 'edismax'),
+            ('qf', 'name'),
+            ('pf', 'name'),
         ]
