@@ -8,8 +8,6 @@ export class ExtractedBook {
     }
 }
 
-
-
 class ExtractionOptions {
     constructor() {
         this.use_gpt = false
@@ -32,6 +30,31 @@ export class BookMatch {
 }
 
 
+/** @type {string} */
+const BASE_URL = 'https://openlibrary.org/lists/add?seeds='
+
+export class ListUrl  {
+
+    constructor(){
+        this.base_url = BASE_URL
+        /** @type {string[]} */
+        this.seeds = []
+    }
+
+    /** @param {string} seed */
+    addSeed(seed) {
+        this.seeds.push(seed)
+    }
+
+    resetSeeds() {
+        this.seeds = []
+    }
+
+    toString() {
+        return this.base_url + this.seeds.join(',')
+    }
+}
+
 
 export class BulkSearchState{
     constructor(){
@@ -43,10 +66,11 @@ export class BulkSearchState{
         this.matchedBooks = [];
         /** @type {MatchOptions} */
         this.matchOptions =  new MatchOptions()
-        /** @type {ExtractedOptions} */
+        /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
         this.errorMessage = []
-        this.listUrl = ''
+        /** @type {ListUrl} */
+        this.listUrl = new ListUrl();
 
     }
 
