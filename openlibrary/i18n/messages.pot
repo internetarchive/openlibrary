@@ -728,8 +728,8 @@ msgstr ""
 msgid "Get more information about this publisher"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html jsdef/LazyWorkPreview.html
-#: merge/authors.html publishers/view.html subjects.html
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html subjects.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -4850,6 +4850,14 @@ msgstr ""
 
 #: jsdef/LazyWorkPreview.html
 msgid "Select this work"
+msgstr ""
+
+#: jsdef/LazyWorkPreview.html
+msgid "1 edition"
+msgstr ""
+
+#: jsdef/LazyWorkPreview.html
+msgid "editions"
 msgstr ""
 
 #: languages/index.html
