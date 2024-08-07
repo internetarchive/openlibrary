@@ -9,7 +9,7 @@ from typing import Literal, cast
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import render_template, public, require_login
 from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
@@ -354,20 +354,11 @@ class lists_edit(delegate.page):
 
 
 class lists_add_account(delegate.page):
-    path = r"/account/lists/add.*"
+    path = r"/account/lists/add"
 
+    @require_login
     def GET(self):
-        if user := get_current_user():
-            i = web.input(name=None)
-            return web.seeother(
-                f'{user.key}/lists/add{ "?seeds=" + i.seeds if i.seeds else ""}'
-            )
-        else:
-            return render_template(
-                "permission_denied",
-                web.ctx.fullpath,
-                "You have to be signed in to create a list. Please log in and try again.",
-            )
+        return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
 
 
 class lists_add(delegate.page):
