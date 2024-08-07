@@ -1,3 +1,5 @@
+//@ts-check
+
 export class ExtractedBook {
     constructor(title = '', author = '') {
         /** @type {string} */
@@ -9,27 +11,42 @@ export class ExtractedBook {
 }
 
 class AbstractExtractor {
+    /**
+     * @param {string} name
+     */
     constructor(name) {
         /** @type {string} */
         this.name = name
     }
-    async run() {
+    /**
+     * @param {ExtractionOptions} _extractOptions
+     * @param {string} _text
+     * @returns {Promise<BookMatch[]>}
+     */
+    async run(_extractOptions, _text) {  //eslint-disable-line no-unused-vars
+        throw new Error('Not Implemented Error')
     }
 }
 
 export class RegexExtractor extends AbstractExtractor {
+
+    /**
+     *
+     * @param {string} name
+     * @param {string} pattern
+     */
     constructor(name, pattern){
         super(name)
-        /** @type {string} */
+        /** @type {RegExp} */
         this.pattern = new RegExp(pattern, 'gmu');
     }
 
     /**
      * @param {ExtractionOptions} _extractOptions
      * @param {string} text
-     * @returns
+     * @returns {Promise<BookMatch[]>}
      */
-    async run(_extractOptions, text = '') {
+    async run(_extractOptions, text) {
         const data = [...text.matchAll(this.pattern)]
         const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author))
         const matchedBooks = extractedBooks.map((entry) => new BookMatch(entry, []))
@@ -37,7 +54,7 @@ export class RegexExtractor extends AbstractExtractor {
     }
 }
 
-export class AIExtractor extends AbstractExtractor{
+export class AiExtractor extends AbstractExtractor{
 
     /**
      * @param {string} name
@@ -53,9 +70,9 @@ export class AIExtractor extends AbstractExtractor{
      *
      * @param {ExtractionOptions} extractOptions
      * @param {string} text
-     * @returns
+     * @returns {Promise<BookMatch[]>}
      */
-    async run(extractOptions, text= '') {
+    async run(extractOptions, text) {
         const request = {
 
             method: 'POST',
@@ -92,13 +109,13 @@ export class AIExtractor extends AbstractExtractor{
                 throw new Error(errorMessage)
             }
             const data = await resp.json()
-            return (JSON.parse(data.choices[0].message.content)['books'].map((entry) =>
-                new ExtractedBook(entry?.title, entry?.author)),
-            JSON.parse(data.choices[0].message.content)['books'].map((entry) =>
-                new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})))
+            return JSON.parse(data.choices[0].message.content)['books']
+                .map((entry) =>
+                    new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})
+                )
         }
         catch (error) {
-
+            return []
         }
 
 
@@ -118,10 +135,15 @@ class MatchOptions  {
     }
 }
 export class BookMatch {
+
+    /**
+     *
+     * @param {ExtractedBook} extractedBook
+     * @param {*} solrDocs
+     */
     constructor(extractedBook, solrDocs){
         /** @type {ExtractedBook} */
         this.extractedBook = extractedBook;
-        /** @type {SolrDoc[]} */
         this.solrDocs = solrDocs
     }
 }
@@ -147,7 +169,7 @@ export class BulkSearchState{
             new RegexExtractor('e.g. "The Wizard of Oz - L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
             new RegexExtractor('e.g. "The Wizard of Oz (L. Frank Baum)"', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
             new RegexExtractor('Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-            new AIExtractor('✨ AI Extraction', 'gpt-4o-mini')
+            new AiExtractor('✨ AI Extraction', 'gpt-4o-mini')
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
