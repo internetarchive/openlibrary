@@ -482,6 +482,11 @@ class DirectProvider(AbstractBookProvider):
         )
 
 
+class WikisourceProvider(AbstractBookProvider):
+    short_name = 'wikisource'
+    identifier_key = 'wikisource'
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -491,6 +496,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     StandardEbooksProvider(),
     OpenStaxProvider(),
     CitaPressProvider(),
+    WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]

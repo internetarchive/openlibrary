@@ -1,0 +1,35 @@
+$def with(wikisource_id)
+
+$code:
+    # pardon this stupid way to avoid importing re in a html file
+    def is_langcode(string):
+        return all('a' <= char <= 'z' for char in string) and len(string) > 0
+
+    def split_id(string):
+        chunks = string.split(":")
+        if len(chunks) >= 2 and is_langcode(chunks[0]):
+            return chunks[0], ":".join(chunks[1:])
+        return 'en', string
+
+    langcode, title = split_id(wikisource_id)
+
+    def direct_url(type):
+        params = {"format": type, "lang": langcode, "page": title}
+        base_url = "https://ws-export.wmcloud.org/"
+        return "%s?%s" % (base_url, urlencode(params))
+
+    outbound_url = 'https://wikisource.org/wiki/' + wikisource_id
+    pdf_url = direct_url('pdf')
+    mobi_url = direct_url('mobi')
+    epub_url = direct_url('epub')
+
+<hr>
+<div class="cta-section">
+    <p class="cta-section-title">$_('Download Options')</p>
+    <ul class="ebook-download-options">
+        <li><a title="$_('Download PDF from Wikisource')" href="$pdf_url">$_('PDF')</a></li>
+        <li><a title="$_('Download MOBI from Wikisource')" href="$mobi_url">$_('MOBI (for Kindle)')</a></li>
+        <li><a title="$_('Download EPUB from Wikisource')" href="$epub_url">$_('EPUB (for most other e-readers)')</a></li>
+        <li><a href="$outbound_url">$_('Read at Wikisource')</a></li>
+    </ul>
+</div>
