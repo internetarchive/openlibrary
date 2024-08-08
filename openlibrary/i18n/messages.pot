@@ -455,7 +455,8 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html covers/author_photo.html
+#: book_providers/standard_ebooks_read_button.html
+#: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
 #: my_books/dropdown_content.html native_dialog.html
@@ -855,7 +856,8 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
+#: book_providers/standard_ebooks_read_button.html
+#: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
 #: type/list/embed.html widget.html
 msgid "Read"
@@ -2362,7 +2364,8 @@ msgstr ""
 
 #: admin/loans_table.html book_providers/cita_press_download_options.html
 #: book_providers/ia_download_options.html
-#: book_providers/openstax_download_options.html books/edit/edition.html
+#: book_providers/openstax_download_options.html
+#: book_providers/wikisource_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr ""
 
@@ -3061,6 +3064,7 @@ msgstr ""
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
 #: book_providers/standard_ebooks_download_options.html
+#: book_providers/wikisource_download_options.html
 msgid "Download Options"
 msgstr ""
 
@@ -3090,6 +3094,7 @@ msgstr ""
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html
+#: book_providers/wikisource_read_button.html
 #: check_ins/reading_goal_progress.html
 msgid "Learn more"
 msgstr ""
@@ -3284,6 +3289,45 @@ msgid ""
 " is a trusted book provider and a volunteer-driven project that produces "
 "new editions of public domain ebooks that are lovingly formatted, open "
 "source, free of copyright restrictions, and free of cost."
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "Download PDF from Wikisource"
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "Download MOBI from Wikisource"
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "MOBI (for Kindle)"
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "Download EPUB from Wikisource"
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "EPUB (for most other e-readers)"
+msgstr ""
+
+#: book_providers/wikisource_download_options.html
+msgid "Read at Wikisource"
+msgstr ""
+
+#: book_providers/wikisource_read_button.html
+msgid "Read eBook on Wikisource"
+msgstr ""
+
+#: book_providers/wikisource_read_button.html
+msgid ""
+"This book is available from <a "
+"href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, a <a "
+"href=\"https://www.wikimedia.org/\">Wikimedia Foundation</a> project, is "
+"a trusted book provider of works available under the <a "
+"href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC-BY-SA</a> "
+"open content license, such as essays, historical documents, letters, "
+"speeches, and public domain books."
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
