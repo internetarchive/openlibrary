@@ -104,9 +104,9 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
         # This is the minimum to achieve a complete record. See:
         # https://github.com/internetarchive/openlibrary/issues/9440
         # import_validator().validate() requires more fields.
-        required_fields = ["title", "authors", "publish_date"]
-        has_all_required_fields = all(obj.get(field) for field in required_fields)
-        if not has_all_required_fields:
+        minimum_complete_fields = ["title", "authors", "publish_date"]
+        is_complete = all(obj.get(field) for field in minimum_complete_fields)
+        if not is_complete:
             isbn_10 = obj.get("isbn_10")
             asin = isbn_10[0] if isbn_10 else None
 
