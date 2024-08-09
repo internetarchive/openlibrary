@@ -4953,11 +4953,12 @@ msgid "Select this work"
 msgstr ""
 
 #: jsdef/LazyWorkPreview.html
-#, python-format
-msgid "%(count)d edition"
-msgid_plural "%(count)d editions"
-msgstr[0] ""
-msgstr[1] ""
+msgid "1 edition"
+msgstr ""
+
+#: jsdef/LazyWorkPreview.html
+msgid "editions"
+msgstr ""
 
 #: languages/index.html
 #, python-format

@@ -21,7 +21,10 @@ $jsdef render_lazy_work_preview(work):
                 $_('by') <span class="authors">${', '.join(work['author_name'])}</span>
         </span>
         &bull;
-        <span class="edition_count">$ungettext('%(count)d edition', '%(count)d editions', work['edition_count'], count=work['edition_count'])</span>
+        $if work['edition_count'] == 1:
+            <span class="edition_count">$_("1 edition")</span>
+        $else:
+            <span class="edition_count">$work['edition_count'] $_("editions")</span>
         <div class="clear"></div>
     </div>
 
