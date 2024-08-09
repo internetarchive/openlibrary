@@ -88,6 +88,8 @@ export default class LazyBookCard {
             link: `/isbn/${isbn}`,
         });
 
+        let book_information = ''
+
         fetch(`${OL_BASE}/isbn/${isbn}.json`).then(r => r.json())
             .then(editionRecord => {
                 cardEl.updateState({
@@ -105,18 +107,35 @@ export default class LazyBookCard {
                     }
                 }
 
-                return fetch(`${OL_BASE}${editionRecord.works[0].key}.json`).then(r => r.json())
-            }).then(workRecord => {
-                return Promise.all(
-                    workRecord.authors
-                        .map(a => fetch(`${OL_BASE}${a.author.key}.json`).then(r => r.json()))
-                );
-            }).then(authorRecords => {
+                book_information = editionRecord;
+
+                // Split up key, for example /book/00000 becomes 00000.
+                const edition_key = book_information.key.split('/').pop()
+
+                return fetch(`${OL_BASE}search.json?q=edition_key:${edition_key}&fields=key,author_name`).then(r => r.json())
+            }).then(searchRecords => {
+                let byline = '';
+
+                // https://github.com/internetarchive/openlibrary/pull/9005/files#r1556459417
+                // Fallback in case new books haven't appeared in /search yet
+                if (!searchRecords.docs.length) {
+                    fetch(`${OL_BASE}${book_information.works[0].key}.json`).then(r => r.json())
+                        .then(workRecord => {
+                            return Promise.all(
+                                workRecord.authors.map(a => fetch(`${OL_BASE}${a.author.key}.json`).then(r => r.json()))
+                            );
+                        })
+                        .then(authorRecords => byline = authorRecords.map(a => a.name).join(', '))
+                } else {
+                    byline = searchRecords.docs[0].author_name.join(', ')
+                }
+
                 cardEl.updateState({
                     loading: false,
-                    byline: authorRecords.map(a => a.name).join(', '),
+                    byline: byline,
                 });
-            })
+            }
+            )
             // eslint-disable-next-line no-unused-vars
             .catch(err => cardEl.updateState({loading: false, errored: true}));
 
