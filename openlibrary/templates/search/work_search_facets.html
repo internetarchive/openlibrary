@@ -1,15 +1,14 @@
-$def with (facet_map, param, facet_counts=None)
+$def with (param, facet_counts=None, async_load=True, path=None, query={})
 
 $code:
-    async_load = facet_counts == None
     start_facet_count = 5
     facet_inc = 10
 
     def add_facet_url(k, v):
         if k != 'has_fulltext':
-            return changequery(page=None,**{k:param.get(k, []) + [v]})
+            return changequery(query=dict(query), page=None, _path=path, **{k:param.get(k, []) + [v]})
         else:
-            return changequery(page=None,**{k:v})
+            return changequery(query=dict(query), page=None, _path=path, **{k:v})
 
     def add_track(key: str) -> str:
         """
@@ -72,12 +71,12 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
             <span class="small"><a href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
     </div>
 
-<div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
+<div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})" data-param="$dumps(param)" data-async-load="$dumps(async_load)">
     <h3 class="collapse">$_("Zoom In")</h3>
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
         $:_('Focus your results using these <a href="/search/howto">filters</a>')
     </div>
-    $for header, label in facet_map:
+    $for header, label in get_facet_map():
         $if header=='has_fulltext' and 'has_fulltext' in param:
             $continue
         $if header=='public_scan_b':
