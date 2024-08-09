@@ -45,7 +45,7 @@ class autocomplete(delegate.page):
     def GET(self):
         return self.direct_get()
 
-    def direct_get(self, fq: list[str] | None = None):
+    def direct_get(self, fq: list[str] | None = None, exclude_subjects=None, exclude_authors=None, exclude_languages=None, exclude_publishers=None):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
@@ -63,6 +63,15 @@ class autocomplete(delegate.page):
             solr_q = self.query.format(q=q)
 
         fq = fq or self.fq
+        if exclude_subjects:
+            fq.append(f'-subject:({" OR ".join(exclude_subjects)})')
+        if exclude_authors:
+            fq.append(f'-author_key:({" OR ".join(exclude_authors)})')
+        if exclude_languages:
+            fq.append(f'-language:({" OR ".join(exclude_languages)})')
+        if exclude_publishers:
+            fq.append(f'-publisher_facet:({" OR ".join(exclude_publishers)})')
+
         params = {
             'q_op': 'AND',
             'rows': i.limit,
@@ -90,70 +99,53 @@ class autocomplete(delegate.page):
         return to_json(result_docs)
 
 
-class languages_autocomplete(delegate.page):
-    path = "/languages/_autocomplete"
+class author_autocomplete(autocomplete):
+    fq = ['+type:author']
+    fl = 'key,name,alternate_names,birth_date,death_date,date,top_work,work_count,top_subjects'
+    olid_suffix = 'OL..A'
+    query = 'name:"{q}"^2 OR name:({q}*) OR alternate_names:({q}*)'
 
-    def GET(self):
-        i = web.input(q="", limit=5)
-        i.limit = safeint(i.limit, 5)
-        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
-        return to_json(
-            list(itertools.islice(utils.autocomplete_languages(i.q), i.limit))
-        )
+    def doc_wrap(self, doc: dict):
+        doc['name'] = doc.get('name', '')
+        doc['top_subjects'] = doc.get('top_subjects', [])
+        doc['birth_date'] = doc.get('birth_date') or doc.get('date')
 
 
-class works_autocomplete(autocomplete):
-    path = "/works/_autocomplete"
-    fq = ['type:work']
-    fl = 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count'
-    olid_suffix = 'W'
+class subject_autocomplete(autocomplete):
+    fq = ['+type:subject']
+    fl = 'key,name,subject_type,work_count'
+    olid_suffix = 'OL..S'
+    query = 'name:"{q}"^2 OR name:({q}*)'
+
+
+class work_autocomplete(autocomplete):
+    fq = ['+type:work']
+    fl = 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count,cover_edition_key'
+    olid_suffix = 'OL..W'
     query = 'title:"{q}"^2 OR title:({q}*)'
 
-    def doc_filter(self, doc: dict) -> bool:
-        # Exclude orphaned editions from autocomplete results
-        # Note: Do this here instead of with an `fq=key:*W` for performance
-        # reasons.
-        return doc['key'][-1] == 'W'
+    def doc_wrap(self, doc: dict):
+        doc['name'] = doc.get('title', '')
+        doc['authors'] = [{'name': n} for n in doc.get('author_name', [])]
+
+
+class edition_autocomplete(autocomplete):
+    fq = ['+type:edition']
+    fl = 'key,title,subtitle,publishers,publish_year,isbn,last_modified_i,cover_i,cover_edition_key,author_name'
+    olid_suffix = 'OL..M'
+    query = 'title:"{q}"^2 OR title:({q}*)'
 
     def doc_wrap(self, doc: dict):
-        doc['full_title'] = doc['title']
-        if 'subtitle' in doc:
-            doc['full_title'] += ": " + doc['subtitle']
-        doc['name'] = doc.get('title')
+        doc['name'] = doc.get('title', '')
+        doc['authors'] = [{'name': n} for n in doc.get('author_name', [])]
 
 
-class authors_autocomplete(autocomplete):
-    path = "/authors/_autocomplete"
-    fq = ['type:author']
-    fl = 'key,name,alternate_names,birth_date,death_date,work_count,top_work,top_subjects'
-    olid_suffix = 'A'
-    query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
-
-    def doc_wrap(self, doc: dict):
-        if 'top_work' in doc:
-            doc['works'] = [doc.pop('top_work')]
-        else:
-            doc['works'] = []
-        doc['subjects'] = doc.pop('top_subjects', [])
-
-
-class subjects_autocomplete(autocomplete):
-    # can't use /subjects/_autocomplete because the subjects endpoint = /subjects/[^/]+
-    path = "/subjects_autocomplete"
-    fq = ['type:subject']
-    fl = 'key,name,work_count'
-    query = 'name:({q}*)'
-    sort = 'work_count desc'
-
-    def GET(self):
-        i = web.input(type="")
-        fq = self.fq
-        if i.type:
-            fq = fq + [f'subject_type:{i.type}']
-
-        return super().direct_get(fq=fq)
+class list_autocomplete(autocomplete):
+    fq = ['+type:list']
+    fl = 'key,name,description,seed_count,last_update'
+    olid_suffix = 'OL..L'
+    query = 'name:"{q}"^2 OR name:({q}*)'
 
 
 def setup():
-    """Do required setup."""
     pass

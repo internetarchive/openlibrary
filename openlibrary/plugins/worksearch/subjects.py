@@ -140,63 +140,13 @@ def get_subject(
     offset=0,
     sort='editions',
     limit=DEFAULT_RESULTS,
+    exclude_subjects=None,
+    exclude_authors=None,
+    exclude_languages=None,
+    exclude_publishers=None,
     **filters,
 ) -> Subject:
-    """Returns data related to a subject.
-
-    By default, it returns a storage object with key, name, work_count and works.
-    The offset and limit arguments are used to get the works.
-
-        >>> get_subject("/subjects/Love") #doctest: +SKIP
-        {
-            "key": "/subjects/Love",
-            "name": "Love",
-            "work_count": 5129,
-            "works": [...]
-        }
-
-    When details=True, facets and ebook_count are additionally added to the result.
-
-    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
-    {
-        "key": "/subjects/Love",
-        "name": "Love",
-        "work_count": 5129,
-        "works": [...],
-        "ebook_count": 94,
-        "authors": [
-            {
-                "count": 11,
-                "name": "Plato.",
-                "key": "/authors/OL12823A"
-            },
-            ...
-        ],
-        "subjects": [
-            {
-                "count": 1168,
-                "name": "Religious aspects",
-                "key": "/subjects/religious aspects"
-            },
-            ...
-        ],
-        "times": [...],
-        "places": [...],
-        "people": [...],
-        "publishing_history": [[1492, 1], [1516, 1], ...],
-        "publishers": [
-            {
-                "count": 57,
-                "name": "Sine nomine"
-            },
-            ...
-        ]
-    }
-
-    Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
-
-    Optional arguments has_fulltext and published_in can be passed to filter the results.
-    """
+    """Returns data related to a subject."""
     EngineClass = next(
         (d.Engine for d in SUBJECTS if key.startswith(d.prefix)), SubjectEngine
     )
@@ -206,6 +156,10 @@ def get_subject(
         offset=offset,
         sort=sort,
         limit=limit,
+        exclude_subjects=exclude_subjects,
+        exclude_authors=exclude_authors,
+        exclude_languages=exclude_languages,
+        exclude_publishers=exclude_publishers,
         **filters,
     )
 
@@ -218,6 +172,10 @@ class SubjectEngine:
         offset=0,
         limit=DEFAULT_RESULTS,
         sort='new',
+        exclude_subjects=None,
+        exclude_authors=None,
+        exclude_languages=None,
+        exclude_publishers=None,
         **filters,
     ):
         # Circular imports are everywhere -_-
@@ -232,6 +190,17 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
+
+        # Add exclusion filters
+        if exclude_subjects:
+            filters['-subject'] = exclude_subjects
+        if exclude_authors:
+            filters['-author_key'] = exclude_authors
+        if exclude_languages:
+            filters['-language'] = exclude_languages
+        if exclude_publishers:
+            filters['-publisher_facet'] = exclude_publishers
+
         result = run_solr_query(
             WorkSearchScheme(),
             {
