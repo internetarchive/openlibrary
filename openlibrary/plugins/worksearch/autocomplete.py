@@ -45,7 +45,14 @@ class autocomplete(delegate.page):
     def GET(self):
         return self.direct_get()
 
-    def direct_get(self, fq: list[str] | None = None, exclude_subjects=None, exclude_authors=None, exclude_languages=None, exclude_publishers=None):
+    def direct_get(
+        self,
+        fq: list[str] | None = None,
+        exclude_subjects=None,
+        exclude_authors=None,
+        exclude_languages=None,
+        exclude_publishers=None,
+    ):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
