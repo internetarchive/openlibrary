@@ -239,6 +239,10 @@ msgstr ""
 msgid "Submitter"
 msgstr ""
 
+#: batch_import_view.html
+msgid "Not yet imported"
+msgstr ""
+
 #: design.html
 msgid "Design Pattern Library"
 msgstr ""
