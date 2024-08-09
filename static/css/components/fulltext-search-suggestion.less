@@ -1,0 +1,83 @@
+/**
+ * Search Result Item
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ */
+
+.fulltext-suggestions{
+  list-style-type: none;
+  line-height: 1.5em;
+  background-color: @grey-fafafa;
+  border-radius: 5px;
+  padding: 5px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid @light-beige;
+  .display-flex();
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    padding: 5px;
+    margin-bottom: 3px;
+  }
+
+  &__icon {
+    margin-top: 5px;
+    min-height: 30px;
+    min-width: 30px;
+    @media (min-width: @width-breakpoint-tablet) {
+      align-items: center;
+    }
+  }
+
+  &__title {
+    display: block;
+    margin: 0;
+    padding: 5px;
+    font-size: medium;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+    @media (min-width: @width-breakpoint-tablet) {
+      font-size: large;
+    }
+    a:link,
+    a:visited {
+      color: @black;
+      text-decoration: none;
+    }
+    a:hover {
+      color: @link-blue;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 5px;
+    font-size: small;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+    @media (min-width: @width-breakpoint-mobile-m) {
+      font-size: medium;
+    }
+    @media (min-width: @width-breakpoint-tablet) {
+      font-size: large;
+      justify-content: end;
+    }
+  }
+
+  &__right-chevron {
+    max-height: 20px;
+    max-width: 20px;
+    display: none;
+    @media (min-width: @width-breakpoint-mobile-m) {
+      display: inline;
+    }
+  }
+
+  &__retry {
+    text-align: center;
+  }
+}

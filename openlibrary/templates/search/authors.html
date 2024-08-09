@@ -48,7 +48,13 @@ $ sort = query_param('sort', None)
                 <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a></div>
             </div>
         $else:
-            <p class="sansserif red collapse">$_('No hits')</p>
+            <center>
+                <div class="red">$:_('No <strong>authors</strong> directly matched your search')</div>
+                <hr>
+              </center>
+              <div id="fulltext-search-suggestion" data-query="$q">
+                  $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+              </div>
 
         <ul class="authorList list-books">
         $for doc in results.docs:
