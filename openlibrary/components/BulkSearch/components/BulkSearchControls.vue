@@ -5,6 +5,7 @@
     <details open class="bulk-search-controls">
         <summary>Input</summary>
         <div>
+            <p v-if="showColumnHint"> Please name your relevant columns "Title", "Author".</p>
             <textarea v-model="bulkSearchState.inputText"></textarea>
             <br />
             <label>Format: <select v-model="bulkSearchState._activeExtractorIndex">
@@ -63,6 +64,10 @@ export default {
     computed: {
         showApiKey(){
             if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
+            return false
+        },
+        showColumnHint(){
+            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.isTable
             return false
         }
     },
