@@ -1,6 +1,7 @@
 $def with(acquisition, domain)
 $# :param Acquisition acquisition:
 $# :param domain str:
+$ clean_domain = domain.replace(".", "")
 
 $if acquisition.access == 'open-access':
   <div class="cta-button-group">
@@ -10,7 +11,7 @@ $if acquisition.access == 'open-access':
         class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
         target="_blank"
         aria-haspopup="true"
-        aria-controls="direct-provider-toast"
+        aria-controls="direct-provider-toast-$(clean_domain)"
     >$_('Read')</a>
   </div>
 
@@ -23,8 +24,13 @@ $elif acquisition.access == 'sample':
     >$_('Preview')</a>
   </div>
 
-$if render_once('direct-provider-toast'):
-  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--direct" id="direct-provider-toast" style="display:none">
+$if render_once('direct-provider-toast-' + clean_domain):
+  <div
+    class="toast toast--book-provider"
+    data-toast-trigger="[aria-controls=direct-provider-toast-$(clean_domain)]"
+    id="direct-provider-toast-$(clean_domain)"
+    style="display:none"
+  >
     <div class="toast__body">
       $:_('This book is freely available from <a href="%s">%s</a>, an external third-party book provider.', acquisition.url, domain)
       <a href="/trusted-book-providers#web-books">$_('Learn more')<a>
