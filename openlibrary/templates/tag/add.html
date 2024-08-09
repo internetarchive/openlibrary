@@ -13,14 +13,14 @@ $var title: $_("Add a tag")
 
 <div id="contentBody">
 
-    <form method="post" action="" id="addtag" class="olform addtag1 validate">
+    <form method="post" action="" id="addtag" class="olform addtag1">
 
         <div class="formElement">
             <div class="label">
                 <label for="tagname">$_("Name of Tag")</label>*<span class="tip">$_("Required field")</span>
             </div>
             <div class="input">
-                <input type="text" name="tag_name" id="tag_name"/>
+                <input type="text" name="tag_name" id="tag_name" required/>
             </div>
         </div>
 
