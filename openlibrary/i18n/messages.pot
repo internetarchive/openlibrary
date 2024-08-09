@@ -168,6 +168,81 @@ msgstr ""
 msgid "Not queued because they are already present in the queue:"
 msgstr ""
 
+#: batch_import.html
+msgid "View Batch Status"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Batch Import Status"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Batch ID:"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Batch Name:"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Submitter:"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Submit Time:"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Status Summary"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Import Items"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_view.html
+msgid "Added Time"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Import Time"
+msgstr ""
+
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: admin/sponsorship.html batch_import_view.html status.html
+msgid "Status"
+msgstr ""
+
+#: account/import.html admin/imports.html admin/imports_by_date.html
+#: batch_import_view.html
+msgid "Error"
+msgstr ""
+
+#: batch_import_view.html
+msgid "IA ID"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Data"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_view.html
+msgid "OL Key"
+msgstr ""
+
+#: RecentChangesAdmin.html batch_import_view.html
+msgid "Comments"
+msgstr ""
+
+#: batch_import_view.html merge_request_table/table_header.html
+msgid "Submitter"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Not yet imported"
+msgstr ""
+
 #: design.html
 msgid "Design Pattern Library"
 msgstr ""
@@ -604,12 +679,6 @@ msgstr ""
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
-
-#: account/import.html account/loans.html admin/imports.html
-#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: admin/sponsorship.html status.html
-msgid "Status"
 msgstr ""
 
 #: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
@@ -1265,10 +1334,6 @@ msgstr ""
 
 #: account/import.html
 msgid "Reason"
-msgstr ""
-
-#: account/import.html admin/imports.html admin/imports_by_date.html
-msgid "Error"
 msgstr ""
 
 #: account/import.html
@@ -2184,14 +2249,6 @@ msgstr ""
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
-
-#: admin/imports.html admin/imports_by_date.html
-msgid "OL Key"
-msgstr ""
-
-#: admin/imports.html admin/imports_by_date.html
-msgid "Added Time"
 msgstr ""
 
 #: admin/imports.html admin/imports_by_date.html
@@ -5735,10 +5792,6 @@ msgid "Submitter ▾"
 msgstr ""
 
 #: merge_request_table/table_header.html
-msgid "Submitter"
-msgstr ""
-
-#: merge_request_table/table_header.html
 msgid "Filter submitters"
 msgstr ""
 
@@ -7463,10 +7516,6 @@ msgstr ""
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
-
-#: RecentChangesAdmin.html
-msgid "Comments"
 msgstr ""
 
 #: RecentChangesAdmin.html

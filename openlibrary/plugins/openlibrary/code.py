@@ -14,6 +14,7 @@ import logging
 from time import time
 import math
 import infogami
+from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
@@ -502,6 +503,55 @@ class batch_imports(delegate.page):
         batch_result = batch_import(form_data['batchImport'].file.read())
 
         return render_template("batch_import.html", batch_result=batch_result)
+
+
+class BatchImportView(delegate.page):
+    path = r'/import/batch/(\d+)'
+
+    def GET(self, batch_id):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        batch = db.select('import_batch', where='id=$batch_id', vars=locals())[0]
+        total_rows = db.query(
+            'SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id',
+            vars=locals(),
+        )[0].count
+
+        rows = db.select(
+            'import_item',
+            where='batch_id=$batch_id',
+            order=f'{sort_field} {sort_order}',
+            limit=limit,
+            offset=offset,
+            vars=locals(),
+        )
+
+        status_counts = db.query(
+            'SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status',
+            vars=locals(),
+        )
+
+        return render_template(
+            'batch_import_view.html',
+            batch=batch,
+            rows=rows,
+            total_rows=total_rows,
+            page=page,
+            limit=limit,
+            sort=sort,
+            status_counts=status_counts,
+        )
 
 
 class isbn_lookup(delegate.page):
