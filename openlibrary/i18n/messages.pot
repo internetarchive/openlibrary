@@ -429,7 +429,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: books/custom_carousel.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html login.html
+#: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -1031,15 +1032,6 @@ msgstr ""
 msgid ""
 "Get your free Open Library card and borrow digital books from the "
 "nonprofit Internet Archive"
-msgstr ""
-
-#: account/create.html
-msgid "Toggle Password Visibility"
-msgstr ""
-
-#: account/create.html books/custom_carousel.html
-#: search/work_search_facets.html
-msgid "Loading..."
 msgstr ""
 
 #: account/create.html
