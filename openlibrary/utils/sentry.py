@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import logging
 import re
+import yaml
 
 import sentry_sdk
 import web
@@ -87,6 +88,50 @@ class Sentry:
         with sentry_sdk.push_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception(ex)
+
+
+class SentryFactory:
+    """
+    Keeps reference to each `Sentry` object in use by Open Library,
+    and provides an easy way to request a `Sentry` instance.
+    """
+
+    def __init__(self, config_path):
+        """
+        Creates new `SentryFactory` object.
+
+        Creates a new `Sentry` instance for each entry in the given config file.
+        """
+        self._instances: dict[str, Sentry] = {}
+
+        with open(config_path) as config_file:
+            sentry_config = yaml.safe_load(config_file)
+            for k in sentry_config:
+                self.create_instance(k, sentry_config[k])
+
+    def get_instance(self, key: str) -> Sentry:
+        """
+        Returns `Sentry` instance that is identified by the given `key`, or `None` if none exists.
+
+        The `key` is expected to match a Sentry configuration entry in `conf/sentry.yml`.
+        """
+        if key in self._instances:
+            return self._instances[key]
+
+        raise ValueError(f'No Sentry object identified by key "{key}" found')
+
+    def create_instance(self, key: str, instance_config: dict[str, str]) -> None:
+        """
+        Creates and initializes a new `Sentry` instance, and adds instance to
+        the factory's `_instances` dictionary.
+        """
+        sentry = Sentry(instance_config)
+        self._instances[key] = sentry
+        if sentry.enabled:
+            sentry.init()
+
+
+sentry_factory = SentryFactory('conf/sentry.yml')
 
 
 @dataclass
