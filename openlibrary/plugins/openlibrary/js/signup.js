@@ -81,7 +81,6 @@ export function initSignupForm() {
             return;
         }
 
-        clearError('#username', '#usernameMessage');
         usernameLoadingIcon.show();
 
         $.ajax({
@@ -94,6 +93,7 @@ export function initSignupForm() {
                 if (errors.username) {
                     renderError('#username', '#usernameMessage', errors.username);
                 } else {
+                    clearError('#username', '#usernameMessage');
                     usernameSuccessIcon.show();
                 }
             }
@@ -115,7 +115,6 @@ export function initSignupForm() {
             return;
         }
 
-        clearError('#emailAddr', '#emailAddrMessage');
         emailLoadingIcon.show();
 
         $.ajax({
@@ -128,6 +127,7 @@ export function initSignupForm() {
                 if (errors.email) {
                     renderError('#emailAddr', '#emailAddrMessage', errors.email);
                 } else {
+                    clearError('#emailAddr', '#emailAddrMessage');
                     emailSuccessIcon.show();
                 }
             }
