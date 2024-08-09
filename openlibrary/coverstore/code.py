@@ -223,11 +223,14 @@ def zipview_url_from_id(coverid, size):
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
-def tarview_url_from_id(coverid: int, size: str | None) -> str:
+def old_zipview_url_from_id(coverid: int, size: str | None) -> str:
+    """
+    The path for images in the old style, e.g. item `l_covers_0008` scheme
+    """
     prefix = f"{size.lower()}_" if size else ""
     pid = "%010d" % coverid
     item_id = f"{prefix}covers_{pid[:4]}"
-    item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+    item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.zip"
     item_file = f"{pid}{'-' + size.upper() if size else ''}"
     protocol = web.ctx.protocol
     return f"{protocol}://archive.org/download/{item_id}/{item_tar}/{item_file}.jpg"
@@ -279,12 +282,8 @@ class cover:
         #   - the naming scheme is the older scheme used by .tar files
         #     (eg item `l_covers_0008` instead of `olcovers9`
         #   - the db is not yet updated with their correct URLs
-        if size == "L" and 8_820_000 > value >= 8_000_000:
-            return web.found(tarview_url_from_id(value, size).replace('.tar', '.zip'))
-
-        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
         if 8_820_000 > value >= 8_000_000:
-            return web.found(tarview_url_from_id(value, size))
+            return web.found(old_zipview_url_from_id(value, size))
 
         d = self.get_details(value, size.lower())
         if not d:
