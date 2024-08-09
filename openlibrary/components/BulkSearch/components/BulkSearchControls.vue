@@ -27,8 +27,8 @@
                 search query
             </label>
             <br>
-            <button @click="extractBooks">Extract Books</button>
-            <button @click="matchBooks">Match Books</button>
+            <button @click="extractBooks" :disabled="loadingExtractedBooks">{{ extractBooksText }}</button>
+            <button @click="matchBooks" :disabled="loadingMatchedBooks">{{ matchBooksText }}</button>
         </div>
         <div v-if="bulkSearchState.errorMessage">
             <p v-for="error in bulkSearchState.errorMessage" :key="error">
@@ -51,6 +51,8 @@ export default {
             selectedValue: '',
             showPassword: true,
             sampleData: sampleData,
+            loadingExtractedBooks: false,
+            loadingMatchedBooks: false,
         }
     },
     watch: {
@@ -64,6 +66,14 @@ export default {
         showApiKey(){
             if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
             return false
+        },
+        extractBooksText(){
+            if (this.loadingExtractedBooks) return 'Loading...'
+            return 'Extract Books'
+        },
+        matchBooksText(){
+            if (this.loadingMatchedBooks) return 'Loading...'
+            return 'Match Books'
         }
     },
     methods: {
@@ -71,8 +81,10 @@ export default {
             this.showPassword= !this.showPassword
         },
         async extractBooks() {
+            this.loadingExtractedBooks = true
             const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText)
             this.bulkSearchState.matchedBooks = extractedData
+            this.loadingExtractedBooks = false
         },
         async matchBooks() {
             const fetchSolrBook = async function (book, matchOptions) {
@@ -83,10 +95,12 @@ export default {
                 }
                 catch (error) {}
             }
+            this.loadingMatchedBooks = true
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
             }
             this.bulkSearchState.listUrl = buildListUrl(this.bulkSearchState.matchedBooks)
+            this.loadingMatchedBooks = false
         },
 
     }
