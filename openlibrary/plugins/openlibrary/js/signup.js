@@ -3,9 +3,9 @@ import { debounce } from './nonjquery_utils.js';
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
-    const emailLoadingIcon = $('.ol-signup-form__input--email .ol-signup-form__icon--loading');
+    const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
-    const emailSuccessIcon = $('.ol-signup-form__input--email .ol-signup-form__icon--success');
+    const emailSuccessIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--success');
     const usernameSuccessIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--success');
 
     // Keep the same with openlibrary/plugins/upstream/forms.py
