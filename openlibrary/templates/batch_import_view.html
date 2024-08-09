@@ -35,7 +35,7 @@ $var title: $_("Batch Import Status")
             $for row in rows:
                 <tr>
                     <td>$datestr(row.added_time)</td>
-                    <td>$datestr(row.import_time)</td>
+                    <td>$(datestr(row.import_time) if row.import_time else _('Not yet imported'))</td>
                     <td>$row.status</td>
                     <td>$row.error</td>
                     <td>$row.ia_id</td>
