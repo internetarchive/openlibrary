@@ -15,20 +15,22 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
+import datetime
 import json
-from typing import Any
 import ijson
-from urllib.parse import urlencode
 import requests
 import logging
+
+from typing import Any
+from urllib.parse import urlencode
 
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
 from openlibrary.config import load_config
+from openlibrary.core import stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import get_amazon_metadata
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-
 
 logger = logging.getLogger("openlibrary.importer.promises")
 
@@ -63,7 +65,11 @@ def map_book_to_olbook(book, promise_id):
         **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
-        'authors': [{"name": clean_null(product_json.get('Author')) or '????'}],
+        'authors': (
+            [{"name": clean_null(product_json.get('Author'))}]
+            if clean_null(product_json.get('Author'))
+            else []
+        ),
         'publishers': [clean_null(product_json.get('Publisher')) or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
@@ -72,7 +78,7 @@ def map_book_to_olbook(book, promise_id):
                 date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
             )
             if publish_date
-            else '????'
+            else ''
         ),
     }
     if not olbook['identifiers']:
@@ -89,29 +95,47 @@ def is_isbn_13(isbn: str):
     return isbn and isbn[0].isdigit()
 
 
-def stage_b_asins_for_import(olbooks: list[dict[str, Any]]) -> None:
+def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
     """
-    Stage B* ASINs for import via BookWorm.
+    Stage incomplete records for import via BookWorm.
 
-    This is so additional metadata may be used during import via load(), which
-    will look for `staged` rows in `import_item` and supplement `????` or otherwise
-    empty values.
+    An incomplete record lacks one or more of: title, authors, or publish_date.
+    See https://github.com/internetarchive/openlibrary/issues/9440.
     """
+    total_records = len(olbooks)
+    incomplete_records = 0
+    timestamp = datetime.datetime.now(datetime.UTC)
+
+    required_fields = ["title", "authors", "publish_date"]
     for book in olbooks:
-        if not (amazon := book.get('identifiers', {}).get('amazon', [])):
+        # Only stage records missing a required field.
+        if all(book.get(field) for field in required_fields):
             continue
 
-        asin = amazon[0]
-        if asin.upper().startswith("B"):
-            try:
-                get_amazon_metadata(
-                    id_=asin,
-                    id_type="asin",
-                )
+        incomplete_records += 1
 
-            except requests.exceptions.ConnectionError:
-                logger.exception("Affiliate Server unreachable")
+        # Skip if the record can't be looked up in Amazon.
+        isbn_10 = book.get("isbn_10")
+        asin = isbn_10[0] if isbn_10 else None
+        # Fall back to B* ASIN as a last resort.
+        if not asin:
+            if not (amazon := book.get('identifiers', {}).get('amazon', [])):
                 continue
+
+            asin = amazon[0]
+        try:
+            get_amazon_metadata(
+                id_=asin,
+                id_type="asin",
+            )
+
+        except requests.exceptions.ConnectionError:
+            logger.exception("Affiliate Server unreachable")
+            continue
+
+    # Record promise item completeness rate over time.
+    stats.gauge(f"ol.imports.bwb.{timestamp}.total_records", total_records)
+    stats.gauge(f"ol.imports.bwb.{timestamp}.incomplete_records", incomplete_records)
 
 
 def batch_import(promise_id, batch_size=1000, dry_run=False):
@@ -130,8 +154,9 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
 
     olbooks = list(olbooks_gen)
 
-    # Stage B* ASINs for import so as to supplement their metadata via `load()`.
-    stage_b_asins_for_import(olbooks)
+    # Stage incomplete records for import so as to supplement their metadata via
+    # `load()`. See https://github.com/internetarchive/openlibrary/issues/9440.
+    stage_incomplete_records_for_import(olbooks)
 
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     # Find just-in-time import candidates:
