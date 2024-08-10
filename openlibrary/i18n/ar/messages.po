@@ -256,7 +256,7 @@ msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
 "email and password to access your Open Library account."
 msgstr ""
-"يرجى إدخال بريدك الإلكتروني وكلمة المرور الخاصة بـ <a href=\"https://archive.org\">Internet Archive</a> للوصول إلى حسابك في المكتبة المفتوحة."
+"يرجى إدخال بريدك الإلكتروني وكلمة المرور الخاصة بـ <a href=\"https://archive.org\">أرشيف الإنترنت</a> للوصول إلى حسابك في المكتبة المفتوحة."
 
 #: account/create.html login.html
 #, python-format
@@ -293,7 +293,7 @@ msgstr "البريد الإلكتروني"
 
 #: login.html
 msgid "Forgot your Internet Archive email?"
-msgstr "نسيت بريدك الإلكتروني في Internet Archive؟"
+msgstr "نسيت بريدك الإلكتروني في أرشيف الإنترنت؟"
 
 #: account/email/forgot-ia.html forms.py login.html
 msgid "Password"
@@ -722,7 +722,7 @@ msgstr "الانضمام إلى قائمة الانتظار"
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr "تعلم المزيد عن \"%(title)s\" في OpenLibrary"
+msgstr "تعلم المزيد عن \"%(title)s\" في المكتبة المفتوحة"
 
 #: widget.html
 msgid "Learn More"
@@ -731,7 +731,7 @@ msgstr "تعلم المزيد"
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr "على <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
+msgstr "على <a target=\"_blank\" href=\"%(link)s\">المكتبة المفتوحة</a>"
 
 #: work_search.html
 msgid "Search Books"
@@ -1401,7 +1401,7 @@ msgid ""
 "OpenLibrary.org and tell the world what you're reading."
 msgstr ""
 "%(username)s يقرأ حاليًا %(total)d كتب. انضم إلى %(username)s على "
-"OpenLibrary.org وشارك العالم بما تقرأه."
+"المكتبة المفتوحة وشارك العالم بما تقرأه."
 
 #: account/reading_log.html
 #, python-format
@@ -1415,7 +1415,7 @@ msgid ""
 "OpenLibrary.org and share the books that you'll soon be reading!"
 msgstr ""
 "%(username)s يرغب في قراءة %(total)d كتب. انضم إلى %(username)s على "
-"OpenLibrary.org وشارك الكتب التي ستقرأها قريبًا!"
+"المكتبة المفتوحة وشارك الكتب التي ستقرأها قريبًا!"
 
 #: account/reading_log.html
 #, python-format
@@ -1429,7 +1429,7 @@ msgid ""
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s قرأ %(total)d كتب في %(year)d. انضم إلى %(username)s على "
-"OpenLibrary.org وشارك العالم بالكتب التي تهمك."
+"المكتبة المفتوحة وشارك العالم بالكتب التي تهمك."
 
 #: account/reading_log.html
 #, python-format
@@ -1443,7 +1443,7 @@ msgid ""
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s قرأ %(total)d كتب. انضم إلى %(username)s على "
-"OpenLibrary.org وشارك العالم بالكتب التي تهمك."
+"المكتبة المفتوحة  وشارك العالم بالكتب التي تهمك."
 
 #: account/reading_log.html
 #, python-format
@@ -1688,14 +1688,14 @@ msgstr "تحديد هدفي"
 
 #: account/email/forgot-ia.html account/email/forgot.html
 msgid "Forgot Your Internet Archive Email?"
-msgstr "هل نسيت بريدك الإلكتروني في الأرشيف الرقمي؟"
+msgstr "هل نسيت بريدك الإلكتروني في أرشيف الإنترنت؟"
 
 #: account/email/forgot-ia.html
 msgid ""
 "Please enter your Open Library email and password, and we’ll retrieve "
 "your Archive.org email."
 msgstr ""
-"يرجى إدخال بريدك الإلكتروني في المكتبة المفتوحة وكلمة المرور، وسنسترجع بريدك الإلكتروني في Archive.org."
+"يرجى إدخال بريدك الإلكتروني في المكتبة المفتوحة وكلمة المرور، وسنسترجع بريدك الإلكتروني في موقع أرشيف الإنترنت."
 
 #: account/email/forgot-ia.html
 msgid "Your email is:"
@@ -1707,19 +1707,19 @@ msgstr "العودة إلى تسجيل الدخول؟"
 
 #: account/email/forgot-ia.html
 msgid "Open Library Email"
-msgstr "بريد Open Library الإلكتروني"
+msgstr "بريد المكتبة المفتوحة الإلكتروني"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
-msgstr "استرجاع بريد Archive.org الإلكتروني"
+msgstr "استرجاع بريدك الإلكتروني في أرشيف الإنترنت"
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
-msgstr "نسيت كلمة مرور Archive.org؟"
+msgstr "نسيت كلمة مرور أرشيف الإنترنت؟"
 
 #: account/email/forgot.html
 msgid "Forgot Your Open Library Email?"
-msgstr "هل نسيت بريدك الإلكتروني في Open Library؟"
+msgstr "هل نسيت بريدك الإلكتروني في المكتبة المفتوحة؟"
 
 #: account/password/forgot.html account/password/sent.html
 msgid "Username/Password Reminder"
@@ -2732,7 +2732,7 @@ msgid ""
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
 msgstr ""
-"الأرشيف الرقمي <a href=\"//archive.org\">Internet Archive</a> فخور بتوزيع أكثر من مليون كتاب"
+"أرشيف الإنترنت  <a href=\"//archive.org\">Internet Archive</a> فخور بتوزيع أكثر من مليون كتاب"
 " مجانًا بصيغة DAISY، المصممة لأولئك منا الذين يجدون صعوبة في استخدام وسائل الطباعة التقليدية."
 
 #: books/daisy.html
@@ -2815,7 +2815,7 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
-"بالإضافة إلى <a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\">الكثير من DAISYs المفتوحة</a>، تسرد المكتبة المفتوحة مجموعة أصغر من <a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\">عناوين DAISY المحمية</a> المتاحة لأولئك الذين لديهم مفتاح مكتبة الكونغرس NLS. هذه العناوين مقدمة لك من <a href=\"//archive.org/\">الأرشيف الرقمي</a>."
+"بالإضافة إلى <a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\">الكثير من DAISYs المفتوحة</a>، تسرد المكتبة المفتوحة مجموعة أصغر من <a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\">عناوين DAISY المحمية</a> المتاحة لأولئك الذين لديهم مفتاح مكتبة الكونغرس NLS. هذه العناوين مقدمة لك من <a href=\"//archive.org/\">أرشيف الإنترنت</a>."
 
 #: books/daisy.html
 msgid ""
@@ -3895,7 +3895,7 @@ msgstr ""
 
 #: home/stats.html
 msgid "See all visitors to OpenLibrary.org"
-msgstr "عرض جميع زوار OpenLibrary.org"
+msgstr "عرض جميع زوار المكتبة المفتوحة"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
@@ -5643,12 +5643,12 @@ msgstr "إضافة إلى اختيارات الموظفين"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr "مزامنة معرف Archive.org"
+msgstr "مزامنة معرف أرشيف الإنترنت "
 
 # | msgid "Full-Text Search on Archive.org"
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr "عرض الكتاب على Archive.org"
+msgstr "عرض الكتاب على أرشيف الإنترنت"
 
 # | msgid "This Edition"
 #: SearchResultsWork.html type/edition/admin_bar.html
@@ -6209,8 +6209,8 @@ msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
-"عند شراء الكتب باستخدام هذه الروابط، قد يكسب الأرشيف الإلكتروني <a class=\"nostyle\" "
-"href=\"/help/faq/about#selling\">عمولة صغيرة</a>."
+"عند شراء الكتب باستخدام هذه الروابط، قد يكسب أرشيف الإنترنت <a class=\"nostyle\" "
+"href=\"/help/faq/about#selling\">عمولة بسيطة</a>."
 
 #: BookByline.html
 #, python-format
@@ -6271,7 +6271,7 @@ msgid ""
 "When you donate a physical book to the Internet Archive, your book will "
 "enjoy:"
 msgstr ""
-"عند التبرع بكتاب مادي إلى الأرشيف الإلكتروني، سيستفيد كتابك من:"
+"عند التبرع بكتاب مادي إلى أرشيف الإنترنت، سيستفيد كتابك من:"
 
 #: DonateModal.html
 msgid "Donation info"
@@ -6307,7 +6307,7 @@ msgid ""
 "href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
 "profit"
 msgstr ""
-"المكتبة المفتوحة هي مشروع تابع لـ <a href=\"https://archive.org/about\">الأرشيف الإلكتروني</a>، وهو منظمة غير ربحية 501(c)(3)"
+"المكتبة المفتوحة هي مشروع تابع لـ <a href=\"https://archive.org/about\">أرشيف الإنترنت</a>، وهو منظمة غير ربحية 501(c)(3)"
 
 #: EditionNavBar.html
 msgid "Overview"
@@ -6346,7 +6346,7 @@ msgstr "تابع"
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr "مستعار من الأرشيف الإلكتروني: %(title)s"
+msgstr "مستعار من أرشيف الإنترنت: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
@@ -6421,15 +6421,15 @@ msgid ""
 "Special ebook access from the Internet Archive for patrons with "
 "qualifying print disabilities"
 msgstr ""
-"وصول خاص للكتب الإلكترونية من الأرشيف الإلكتروني للأشخاص ذوي الإعاقات البصرية المؤهلة"
+"وصول خاص للكتب الإلكترونية من أرشيف الإنترنت للأشخاص ذوي الإعاقات البصرية المؤهلة"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr "استعارة كتاب إلكتروني من الأرشيف الإلكتروني"
+msgstr "استعارة كتاب إلكتروني من أرشيف الإنترنت"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr "قراءة كتاب إلكتروني من الأرشيف الإلكتروني"
+msgstr "قراءة كتاب إلكتروني من أرشيف الإنترنت"
 
 #: ReadMore.html
 msgid "Read more"
@@ -6718,7 +6718,7 @@ msgstr "يرجى التحقق من حسابك في المكتبة المفتوح
 
 #: account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr "يرجى التحقق من حسابك في الأرشيف الإلكتروني قبل تسجيل الدخول"
+msgstr "يرجى التحقق من حسابك في أرشيف الإنترنت قبل تسجيل الدخول"
 
 #: account.py
 msgid "Please fill out all fields and try again"
@@ -6774,7 +6774,7 @@ msgstr "البريد الإلكتروني مسجل بالفعل"
 
 #: account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr "يوجد بالفعل حساب في الأرشيف الإلكتروني بهذا البريد الإلكتروني"
+msgstr "يوجد بالفعل حساب في أرشيف الإنترنت بهذا البريد الإلكتروني"
 
 #: account.py
 msgid "Email address is already used."
@@ -6869,7 +6869,7 @@ msgid ""
 "href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
 "runs Open Library."
 msgstr ""
-"أرغب في تلقي الأخبار والإعلانات والموارد من <a href=\"https://archive.org/\">الأرشيف الإلكتروني</a>، وهي منظمة غير ربحية تدير المكتبة المفتوحة."
+"أرغب في تلقي الأخبار والإعلانات والموارد من <a href=\"https://archive.org/\">أرشيف الإنترنت</a>، وهي منظمة غير ربحية تدير المكتبة المفتوحة."
 
 #: forms.py
 msgid "Invalid password"
