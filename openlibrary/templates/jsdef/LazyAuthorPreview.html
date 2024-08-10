@@ -10,11 +10,12 @@ $jsdef render_lazy_author_preview(item):
                     ($(item['birth_date'] or ' ')&ndash;$(item['death_date'] or ' '))
             </span>
             $if item['work_count'] == 0:
-                <span class="work">$_("No books associated with %(author)s", author=item['name'])</span>
-            $elif item['work_count'] == 1:
-                $:_('<span class="books">One book</span> <span class="work">titled <i>%(title)s</i></span>', title=item['top_work'])
+                $ msg_book = _("No books associated with %s")
+                <span class="work">$sprintf(msg_book, item['name'])</span>
             $else:
-                $:_('<span class="books">%(count)d books</span> <span class="work">including <i>%(title)s</i></span>', count=item['work_count'], title=item['top_work'])
+                $ msg_book = ungettext("%s book", "%s books", item['work_count'])
+                $ msg_title = ungettext("titled <i>%s</i>", "including <i>%s</i>", item['work_count'])
+                <span class="books">$sprintf(msg_book, item['work_count'])</span> <span class="work">$:sprintf(msg_title, item['top_work'])</i></span>
 
             $if item['subjects']:
                 <span class="subject">$_("Subjects:") $(', '.join(item['subjects']))</span>
