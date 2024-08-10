@@ -15,7 +15,7 @@ $jsdef render_lazy_author_preview(item):
             $else:
                 $ msg_book = ungettext("%s book", "%s books", item['work_count'])
                 $ msg_title = ungettext("titled <i>%s</i>", "including <i>%s</i>", item['work_count'])
-                <span class="books">$sprintf(msg_book, item['work_count'])</span> <span class="work">$:sprintf(msg_title, item['top_work'])</i></span>
+                <span class="books">$sprintf(msg_book, item['work_count'])</span> <span class="work">$:sprintf(msg_title, item['works'])</i></span>
 
             $if item['subjects']:
                 <span class="subject">$_("Subjects:") $(', '.join(item['subjects']))</span>
