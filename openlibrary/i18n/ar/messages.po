@@ -256,12 +256,12 @@ msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
 "email and password to access your Open Library account."
 msgstr ""
-"يرجى إدخال بريدك الإلكتروني وكلمة المرور الخاصة بـ <a href=\"https://archive.org\">أرشيف الإنترنت</a> للوصول إلى حسابك في المكتبة المفتوحة."
+"يرجى إدخال بريدك الإلكتروني وكلمة المرور الخاصة بـ <a href=\"https://archive.org\">أرشيف الإنترنت</a> للوصول إلى حسابك في المكتبة الحرة."
 
 #: account/create.html login.html
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "أنت بالفعل مسجل الدخول إلى المكتبة المفتوحة كـ %(user)s."
+msgstr "أنت بالفعل مسجل الدخول إلى المكتبة الحرة كـ %(user)s."
 
 #: account/create.html login.html
 msgid ""
@@ -269,7 +269,7 @@ msgid ""
 "need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
 "logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
-"إذا كنت ترغب في إنشاء حساب جديد في المكتبة المفتوحة، ستحتاج إلى <a "
+"إذا كنت ترغب في إنشاء حساب جديد في المكتبة الحرة، ستحتاج إلى <a "
 "href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()\">تسجيل الخروج</a> وبدء عملية التسجيل من جديد."
 
 #: login.html
@@ -310,7 +310,7 @@ msgstr "نسيت كلمة المرور؟"
 #: login.html
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
-"لست عضوًا في المكتبة المفتوحة؟ <a href=\"/account/create\">سجل الآن</a>."
+"لست عضوًا في المكتبة الحرة؟ <a href=\"/account/create\">سجل الآن</a>."
 
 #: messages.html
 msgid "Created new author record."
@@ -605,7 +605,7 @@ msgid ""
 " our books, please provide the title/author or Open Library ID."
 msgstr ""
 "إذا صادفت رسالة خطأ، يرجى تضمينها. بالنسبة للأسئلة حول كتبنا، يرجى "
-"تقديم العنوان/المؤلف أو معرف المكتبة المفتوحة."
+"تقديم العنوان/المؤلف أو معرف المكتبة الحرة."
 
 #: support.html
 msgid "Send"
@@ -722,7 +722,7 @@ msgstr "الانضمام إلى قائمة الانتظار"
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr "تعلم المزيد عن \"%(title)s\" في المكتبة المفتوحة"
+msgstr "تعلم المزيد عن \"%(title)s\" في المكتبة الحرة"
 
 #: widget.html
 msgid "Learn More"
@@ -731,7 +731,7 @@ msgstr "تعلم المزيد"
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr "على <a target=\"_blank\" href=\"%(link)s\">المكتبة المفتوحة</a>"
+msgstr "على <a target=\"_blank\" href=\"%(link)s\">المكتبة الحرة</a>"
 
 #: work_search.html
 msgid "Search Books"
@@ -844,7 +844,7 @@ msgstr "ابحث عن كتب تحتوي على العبارة \"%s\"؟"
 
 #: work_search.html
 msgid "Add a new book to Open Library?"
-msgstr "هل تريد إضافة كتاب جديد إلى المكتبة المفتوحة؟"
+msgstr "هل تريد إضافة كتاب جديد إلى المكتبة الحرة؟"
 
 #: account/reading_log.html search/authors.html search/subjects.html
 #: work_search.html
@@ -902,7 +902,7 @@ msgstr "أقل"
 # | msgid "Sign Up to Open Library"
 #: about/index.html
 msgid "The Open Library Team"
-msgstr "فريق المكتبة المفتوحة"
+msgstr "فريق المكتبة الحرة"
 
 #: account/create.html forms.py
 msgid "Must be between 3 and 20 characters"
@@ -910,7 +910,7 @@ msgstr "يجب أن يكون بين 3 و20 حرفًا"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
-msgstr "سجل في المكتبة المفتوحة"
+msgstr "سجل في المكتبة الحرة"
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
@@ -1299,7 +1299,7 @@ msgstr "لم يتم العثور على ملاحظات."
 
 #: account/notifications.html
 msgid "Notifications from Open Library"
-msgstr "إشعارات من المكتبة المفتوحة"
+msgstr "إشعارات من المكتبة الحرة"
 
 #: account/notifications.html
 msgid "Notifications"
@@ -1316,7 +1316,7 @@ msgstr ""
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr "هل ترغب في تلقي رسائل بريد إلكتروني نادرة من المكتبة المفتوحة؟"
+msgstr "هل ترغب في تلقي رسائل بريد إلكتروني نادرة من المكتبة الحرة؟"
 
 #: account/notifications.html
 msgid "No, thank you"
@@ -1350,7 +1350,7 @@ msgstr "لم يتم العثور على ملاحظات."
 
 #: account/privacy.html
 msgid "Your Privacy on Open Library"
-msgstr "خصوصيتك في المكتبة المفتوحة"
+msgstr "خصوصيتك في المكتبة الحرة"
 
 #: account/privacy.html
 msgid "Privacy & Content Moderation Settings"
@@ -1401,7 +1401,7 @@ msgid ""
 "OpenLibrary.org and tell the world what you're reading."
 msgstr ""
 "%(username)s يقرأ حاليًا %(total)d كتب. انضم إلى %(username)s على "
-"المكتبة المفتوحة وشارك العالم بما تقرأه."
+"المكتبة الحرة وشارك العالم بما تقرأه."
 
 #: account/reading_log.html
 #, python-format
@@ -1415,7 +1415,7 @@ msgid ""
 "OpenLibrary.org and share the books that you'll soon be reading!"
 msgstr ""
 "%(username)s يرغب في قراءة %(total)d كتب. انضم إلى %(username)s على "
-"المكتبة المفتوحة وشارك الكتب التي ستقرأها قريبًا!"
+"المكتبة الحرة وشارك الكتب التي ستقرأها قريبًا!"
 
 #: account/reading_log.html
 #, python-format
@@ -1429,7 +1429,7 @@ msgid ""
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s قرأ %(total)d كتب في %(year)d. انضم إلى %(username)s على "
-"المكتبة المفتوحة وشارك العالم بالكتب التي تهمك."
+"المكتبة الحرة وشارك العالم بالكتب التي تهمك."
 
 #: account/reading_log.html
 #, python-format
@@ -1443,7 +1443,7 @@ msgid ""
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s قرأ %(total)d كتب. انضم إلى %(username)s على "
-"المكتبة المفتوحة  وشارك العالم بالكتب التي تهمك."
+"المكتبة الحرة  وشارك العالم بالكتب التي تهمك."
 
 #: account/reading_log.html
 #, python-format
@@ -1484,7 +1484,7 @@ msgstr "لم يتم العثور على نتائج في هذا الرف"
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr "ابحث في المكتبة المفتوحة عن \"%s\"؟"
+msgstr "ابحث في المكتبة الحرة عن \"%s\"؟"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
@@ -1695,7 +1695,7 @@ msgid ""
 "Please enter your Open Library email and password, and we’ll retrieve "
 "your Archive.org email."
 msgstr ""
-"يرجى إدخال بريدك الإلكتروني في المكتبة المفتوحة وكلمة المرور، وسنسترجع بريدك الإلكتروني في موقع أرشيف الإنترنت."
+"يرجى إدخال بريدك الإلكتروني في المكتبة الحرة وكلمة المرور، وسنسترجع بريدك الإلكتروني في موقع أرشيف الإنترنت."
 
 #: account/email/forgot-ia.html
 msgid "Your email is:"
@@ -1707,7 +1707,7 @@ msgstr "العودة إلى تسجيل الدخول؟"
 
 #: account/email/forgot-ia.html
 msgid "Open Library Email"
-msgstr "بريد المكتبة المفتوحة الإلكتروني"
+msgstr "بريد المكتبة الحرة الإلكتروني"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
@@ -1719,7 +1719,7 @@ msgstr "نسيت كلمة مرور أرشيف الإنترنت؟"
 
 #: account/email/forgot.html
 msgid "Forgot Your Open Library Email?"
-msgstr "هل نسيت بريدك الإلكتروني في المكتبة المفتوحة؟"
+msgstr "هل نسيت بريدك الإلكتروني في المكتبة الحرة؟"
 
 #: account/password/forgot.html account/password/sent.html
 msgid "Username/Password Reminder"
@@ -2538,7 +2538,7 @@ msgstr "يرجى إدخال قيمة للمعرّف المحدد"
 
 #: books/add.html
 msgid "Add a book to Open Library"
-msgstr "أضف كتابًا إلى المكتبة المفتوحة"
+msgstr "أضف كتابًا إلى المكتبة الحرة"
 
 #: books/add.html tag/add.html
 msgid ""
@@ -2743,7 +2743,7 @@ msgid ""
 "using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
 "Congress NLS program</a>."
 msgstr ""
-"توجد نوعان من DAISYs في المكتبة المفتوحة: <i>مفتوح</i> و"
+"توجد نوعان من DAISYs في المكتبة الحرة: <i>مفتوح</i> و"
 "<i>محمي</i>. يمكن قراءة DAISYs المفتوحة من قبل أي شخص في العالم على العديد من "
 "الأجهزة المختلفة. DAISYs المحمية مثل هذه يمكن فتحها فقط باستخدام مفتاح صادر من <a href=\"http://www.loc.gov/nls/\">برنامج مكتبة الكونغرس NLS</a>."
 
@@ -2755,7 +2755,7 @@ msgid ""
 " by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
 msgstr ""
-"توجد نوعان من DAISYs في المكتبة المفتوحة: <i>مفتوح</i> و"
+"توجد نوعان من DAISYs في المكتبة الحرة: <i>مفتوح</i> و"
 "<i>محمي</i>. يمكن قراءة DAISYs المفتوحة من قبل أي شخص في العالم على العديد من "
 "الأجهزة المختلفة. DAISYs المحمية يمكن فتحها فقط باستخدام مفتاح صادر من <a href=\"http://www.loc.gov/nls/\">برنامج مكتبة الكونغرس NLS</a>."
 
@@ -2804,7 +2804,7 @@ msgstr "هل أنت مؤهل للتسجيل؟"
 
 #: books/daisy.html
 msgid "How do I find DAISYs on Open Library?"
-msgstr "كيف أجد كتب DAISY على المكتبة المفتوحة؟"
+msgstr "كيف أجد كتب DAISY على المكتبة الحرة؟"
 
 #: books/daisy.html
 msgid ""
@@ -2815,7 +2815,7 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
-"بالإضافة إلى <a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\">الكثير من DAISYs المفتوحة</a>، تسرد المكتبة المفتوحة مجموعة أصغر من <a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\">عناوين DAISY المحمية</a> المتاحة لأولئك الذين لديهم مفتاح مكتبة الكونغرس NLS. هذه العناوين مقدمة لك من <a href=\"//archive.org/\">أرشيف الإنترنت</a>."
+"بالإضافة إلى <a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\">الكثير من DAISYs المفتوحة</a>، تسرد المكتبة الحرة مجموعة أصغر من <a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\">عناوين DAISY المحمية</a> المتاحة لأولئك الذين لديهم مفتاح مكتبة الكونغرس NLS. هذه العناوين مقدمة لك من <a href=\"//archive.org/\">أرشيف الإنترنت</a>."
 
 #: books/daisy.html
 msgid ""
@@ -2831,7 +2831,7 @@ msgstr "تحتاج إلى مساعدة؟"
 msgid ""
 " Please read our <a href=\"/help/faq\">FAQ on accessing books through "
 "Open Library</a>."
-msgstr "يرجى قراءة <a href=\"/help/faq\">الأسئلة الشائعة حول الوصول إلى الكتب عبر المكتبة المفتوحة</a>."
+msgstr "يرجى قراءة <a href=\"/help/faq\">الأسئلة الشائعة حول الوصول إلى الكتب عبر المكتبة الحرة</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
@@ -2886,7 +2886,7 @@ msgid ""
 "Library ID (like <a href=\"/authors/OL23919A\" "
 "target=\"_blank\"><em>OL23919A</em></a>)."
 msgstr ""
-"يمكنك البحث حسب اسم المؤلف (مثل <em>j k rowling</em>) أو بواسطة معرف المكتبة المفتوحة (مثل <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
+"يمكنك البحث حسب اسم المؤلف (مثل <em>j k rowling</em>) أو بواسطة معرف المكتبة الحرة (مثل <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -3222,7 +3222,7 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "You can search by title or by Open Library ID (like"
-msgstr "يمكنك البحث حسب العنوان أو بواسطة معرف المكتبة المفتوحة (مثل"
+msgstr "يمكنك البحث حسب العنوان أو بواسطة معرف المكتبة الحرة (مثل"
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -3480,7 +3480,7 @@ msgid ""
 "Please connect Open Library records to <u>good</u><span "
 "class=\"orange\">*</span> online resources."
 msgstr ""
-"يرجى ربط سجلات المكتبة المفتوحة بمصادر <u>جيدة</u><span "
+"يرجى ربط سجلات المكتبة الحرة بمصادر <u>جيدة</u><span "
 "class=\"orange\">*</span> على الإنترنت."
 
 #: books/edit/web.html
@@ -3650,7 +3650,7 @@ msgstr "يرجى اختيار صورة أو تقديم عنوان URL."
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library"
-msgstr "هناك طريقتان لوضع صورة المؤلف على المكتبة المفتوحة"
+msgstr "هناك طريقتان لوضع صورة المؤلف على المكتبة الحرة"
 
 #: covers/add.html
 msgid "Image Guidelines"
@@ -3658,7 +3658,7 @@ msgstr "إرشادات الصورة"
 
 #: covers/add.html
 msgid "There are two ways to put a cover image on Open Library"
-msgstr "هناك طريقتان لوضع صورة الغلاف على المكتبة المفتوحة"
+msgstr "هناك طريقتان لوضع صورة الغلاف على المكتبة الحرة"
 
 #: covers/add.html
 msgid "Cover Guidelines"
@@ -3814,7 +3814,7 @@ msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published."
 msgstr ""
-"المكتبة المفتوحة هي كتالوج مكتبة مفتوح وقابل للتعديل، يهدف إلى إنشاء صفحة ويب"
+"المكتبة الحرة هي كتالوج مكتبة مفتوح وقابل للتعديل، يهدف إلى إنشاء صفحة ويب"
 " لكل كتاب تم نشره."
 
 #: AffiliateLinks.html home/about.html
@@ -3855,7 +3855,7 @@ msgstr[1] "%(count)s كتب"
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr "مرحبًا بكم في المكتبة المفتوحة"
+msgstr "مرحبًا بكم في المكتبة الحرة"
 
 #: home/index.html
 msgid "Classic Books"
@@ -3895,7 +3895,7 @@ msgstr ""
 
 #: home/stats.html
 msgid "See all visitors to OpenLibrary.org"
-msgstr "عرض جميع زوار المكتبة المفتوحة"
+msgstr "عرض جميع زوار المكتبة الحرة"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
@@ -3903,7 +3903,7 @@ msgstr "مخطط المنطقة للزوار الفريدين الحديثين"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
-msgstr "كم عدد أعضاء المكتبة المفتوحة الجدد الذين رحبنا بهم؟"
+msgstr "كم عدد أعضاء المكتبة الحرة الجدد الذين رحبنا بهم؟"
 
 #: home/stats.html
 
@@ -3997,7 +3997,7 @@ msgstr "عشرات الطرق التي يمكنك من خلالها المساع
 
 #: home/welcome.html
 msgid "Volunteer at Open Library"
-msgstr "تطوع في المكتبة المفتوحة"
+msgstr "تطوع في المكتبة الحرة"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
@@ -4288,7 +4288,7 @@ msgstr "تطوير"
 
 #: lib/nav_foot.html
 msgid "Explore Open Library Developer Center"
-msgstr "استكشف مركز مطوري المكتبة المفتوحة"
+msgstr "استكشف مركز مطوري المكتبة الحرة"
 
 #: lib/nav_foot.html lib/nav_head.html
 msgid "Developer Center"
@@ -4340,7 +4340,7 @@ msgstr "اقتراح تعديلات"
 
 #: lib/nav_foot.html
 msgid "Add a new book to Open Library"
-msgstr "إضافة كتاب جديد إلى المكتبة المفتوحة"
+msgstr "إضافة كتاب جديد إلى المكتبة الحرة"
 
 #: lib/nav_foot.html
 msgid "Release Notes"
@@ -4360,7 +4360,7 @@ msgstr "تغيير لغة الموقع"
 
 #: lib/nav_foot.html lib/nav_head.html type/list/embed.html
 msgid "Open Library logo"
-msgstr "شعار المكتبة المفتوحة"
+msgstr "شعار المكتبة الحرة"
 
 #: lib/nav_foot.html
 msgid ""
@@ -4372,7 +4372,7 @@ msgid ""
 "href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 msgstr ""
-"المكتبة المفتوحة هي مبادرة من <a href=\"//archive.org/\">أرشيف الإنترنت</a>، "
+"المكتبة الحرة هي مبادرة من <a href=\"//archive.org/\">أرشيف الإنترنت</a>، "
 "منظمة غير ربحية 501(c)(3)، تبني مكتبة رقمية لمواقع الإنترنت والأشياء الثقافية الأخرى "
 "بشكل رقمي. تشمل المشاريع الأخرى <a href=\"//archive.org/projects/\">المشاريع</a> مثل "
 "<a href=\"//archive.org/web/\">آلة الزمن</a>، <a href=\"//archive.org/\">archive.org</a> و"
@@ -5402,7 +5402,7 @@ msgstr "أضف علامة"
 
 #: tag/add.html
 msgid "Add a tag to Open Library"
-msgstr "أضف علامة إلى المكتبة المفتوحة"
+msgstr "أضف علامة إلى المكتبة الحرة"
 
 #: tag/add.html
 msgid "Name of Tag"
@@ -5524,7 +5524,7 @@ msgstr "الاسم مفقود"
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr "%(page_title)s | المكتبة المفتوحة"
+msgstr "%(page_title)s | المكتبة الحرة"
 
 #: type/author/view.html
 #, python-format
@@ -5598,7 +5598,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
-msgstr "روابط <span class=\"gray small sansserif\">(خارج المكتبة المفتوحة)</span>"
+msgstr "روابط <span class=\"gray small sansserif\">(خارج المكتبة الحرة)</span>"
 
 #: type/author/view.html
 msgid "No links yet."
@@ -5796,7 +5796,7 @@ msgstr "أضيف بشكل مجهول."
 
 #: type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr "روابط <span class=\"gray small sansserif\">خارج المكتبة المفتوحة</span>"
+msgstr "روابط <span class=\"gray small sansserif\">خارج المكتبة الحرة</span>"
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
@@ -5860,7 +5860,7 @@ msgstr "إضافة كتاب آخر"
 # | msgid "Sign Up to Open Library"
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr "زيارة المكتبة المفتوحة"
+msgstr "زيارة المكتبة الحرة"
 
 # | msgid "Explore authors"
 #: type/list/embed.html type/list/view_body.html
@@ -5940,7 +5940,7 @@ msgstr ""
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr "%(name)s | القوائم | المكتبة المفتوحة"
+msgstr "%(name)s | القوائم | المكتبة الحرة"
 
 #: type/list/view_body.html
 #, python-format
@@ -5949,7 +5949,7 @@ msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
-msgstr "عرض القائمة على المكتبة المفتوحة."
+msgstr "عرض القائمة على المكتبة الحرة."
 
 #: type/list/view_body.html
 msgid "Remove this item?"
@@ -6307,7 +6307,7 @@ msgid ""
 "href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
 "profit"
 msgstr ""
-"المكتبة المفتوحة هي مشروع تابع لـ <a href=\"https://archive.org/about\">أرشيف الإنترنت</a>، وهو منظمة غير ربحية 501(c)(3)"
+"المكتبة الحرة هي مشروع تابع لـ <a href=\"https://archive.org/about\">أرشيف الإنترنت</a>، وهو منظمة غير ربحية 501(c)(3)"
 
 #: EditionNavBar.html
 msgid "Overview"
@@ -6586,7 +6586,7 @@ msgstr "مرحبا"
 
 #: Subnavigation.html
 msgid "Searching Open Library"
-msgstr "البحث في المكتبة المفتوحة"
+msgstr "البحث في المكتبة الحرة"
 
 #: Subnavigation.html
 msgid "Reading Books"
@@ -6602,7 +6602,7 @@ msgstr "استخدام المواضيع"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr "الأسئلة الشائعة حول المكتبة المفتوحة"
+msgstr "الأسئلة الشائعة حول المكتبة الحرة"
 
 #: TableOfContents.html
 #, python-format
@@ -6625,7 +6625,7 @@ msgid ""
 "this for an existing page will alter its presentation and the data fields"
 " available for editing its content."
 msgstr ""
-"كل جزء من المكتبة المفتوحة يتم تعريفه بنوع المحتوى الذي يعرضه، عادةً عبر تعريف المحتوى (مثل: المؤلفين، الإصدارات، الأعمال)، ولكن في بعض الأحيان عبر استخدام المحتوى (مثل: الماكرو، القوالب، النصوص الخام). تغيير هذا في صفحة موجودة سيؤثر على عرضها والحقول المتاحة لتعديل محتواها."
+"كل جزء من المكتبة الحرة يتم تعريفه بنوع المحتوى الذي يعرضه، عادةً عبر تعريف المحتوى (مثل: المؤلفين، الإصدارات، الأعمال)، ولكن في بعض الأحيان عبر استخدام المحتوى (مثل: الماكرو، القوالب، النصوص الخام). تغيير هذا في صفحة موجودة سيؤثر على عرضها والحقول المتاحة لتعديل محتواها."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
@@ -6714,7 +6714,7 @@ msgstr "كلمة مرور خاطئة. يرجى المحاولة مرة أخرى"
 
 #: account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr "يرجى التحقق من حسابك في المكتبة المفتوحة قبل تسجيل الدخول"
+msgstr "يرجى التحقق من حسابك في المكتبة الحرة قبل تسجيل الدخول"
 
 #: account.py
 msgid "Please verify your Internet Archive account before logging in"
@@ -6869,7 +6869,7 @@ msgid ""
 "href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
 "runs Open Library."
 msgstr ""
-"أرغب في تلقي الأخبار والإعلانات والموارد من <a href=\"https://archive.org/\">أرشيف الإنترنت</a>، وهي منظمة غير ربحية تدير المكتبة المفتوحة."
+"أرغب في تلقي الأخبار والإعلانات والموارد من <a href=\"https://archive.org/\">أرشيف الإنترنت</a>، وهي منظمة غير ربحية تدير المكتبة الحرة."
 
 #: forms.py
 msgid "Invalid password"
