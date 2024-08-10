@@ -672,6 +672,7 @@ class account_ia_email_forgot(delegate.page):
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
 
+
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 

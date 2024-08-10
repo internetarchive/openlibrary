@@ -649,6 +649,7 @@ def get_admin_stats():
 
 from openlibrary.plugins.upstream import borrow
 
+
 class inspect:
     def GET(self, section):
         if section == "/store":
