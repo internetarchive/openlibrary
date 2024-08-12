@@ -212,6 +212,39 @@ def render_component(
     return html
 
 
+def render_macro(name, args, **kwargs):
+    return dict(web.template.Template.globals['macros'][name](*args, **kwargs))
+
+
+@public
+def render_cached_macro(name, args: tuple, **kwargs):
+    from openlibrary.plugins.openlibrary.home import caching_prethread
+
+    def get_key():
+        lang = web.ctx.lang
+        pd = web.cookies().get('pd', False)
+        key = f'{name}.{lang}'
+        if pd:
+            key += '.pd'
+        for arg in args:
+            key += f'.{arg}'
+        for k, v in kwargs.items():
+            key += f'.{k}:{v}'
+        return key
+
+    five_minutes = 5 * 60
+    key = get_key()
+    mc = cache.memcache_memoize(
+        render_macro, key, timeout=five_minutes, prethread=caching_prethread()
+    )
+
+    try:
+        page = mc(name, args, **kwargs)
+        return web.template.TemplateResult(page)
+    except (ValueError, TypeError) as e:
+        return '<span>Failed to render macro</span>'
+
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
