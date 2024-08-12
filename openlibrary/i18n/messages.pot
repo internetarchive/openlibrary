@@ -6081,7 +6081,7 @@ msgstr ""
 
 #: recentchanges/merge/comment.html
 #, python-format
-msgid "Merged %(page_type)s into primary %(record_type) record."
+msgid "Merged %(page_type)s into primary %(record_type)s record."
 msgstr ""
 
 #: recentchanges/merge/message.html
