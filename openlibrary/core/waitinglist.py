@@ -50,6 +50,7 @@ def on_waitinglist_update(identifier):
         if not checkedout:
             sendmail_book_available(book)
 
+
 def get_waitinglist_size(book_key):
     """Returns size of the waiting list for given book."""
     return len(get_waitinglist_for_book(book_key))
@@ -89,4 +90,3 @@ def sendmail_book_available(book):
             book.key,
             len(wl),
         )
-
