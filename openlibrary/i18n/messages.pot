@@ -1795,11 +1795,6 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: SearchResultsWork.html account/readinglog_stats.html type/work/editions.html
-#, python-format
-msgid "First published in %(year)s"
-msgstr ""
-
 #: account/readinglog_stats.html home/loans.html lib/nav_head.html
 msgid "My Books"
 msgstr ""
@@ -4921,33 +4916,6 @@ msgstr ""
 msgid "Your feedback will help us improve these cards"
 msgstr ""
 
-#: jsdef/LazyAuthorPreview.html
-msgid "Select this author"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html
-#, python-format
-msgid "No books associated with %(author)s"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html
-#, python-format
-msgid ""
-"<span class=\"books\">One book</span> <span class=\"work\">titled "
-"<i>%(title)s</i></span>"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html
-#, python-format
-msgid ""
-"<span class=\"books\">%(count)d books</span> <span "
-"class=\"work\">including <i>%(title)s</i></span>"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html
-msgid "Subjects:"
-msgstr ""
-
 #: jsdef/LazyWorkPreview.html
 msgid "Select this work"
 msgstr ""
@@ -7189,6 +7157,11 @@ msgstr ""
 
 #: type/usergroup/edit.html
 msgid "Members:"
+msgstr ""
+
+#: SearchResultsWork.html type/work/editions.html
+#, python-format
+msgid "First published in %(year)s"
 msgstr ""
 
 #: type/work/editions.html type/work/editions_datatable.html
