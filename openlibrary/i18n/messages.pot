@@ -4921,33 +4921,6 @@ msgstr ""
 msgid "Your feedback will help us improve these cards"
 msgstr ""
 
-#: jsdef/LazyAuthorPreview.html
-msgid "Select this author"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html
-#, python-format
-msgid "No books associated with %s"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html languages/index.html
-#, python-format
-msgid "%s book"
-msgid_plural "%s books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: jsdef/LazyAuthorPreview.html
-#, python-format
-msgid "titled <i>%s</i>"
-msgid_plural "including <i>%s</i>"
-msgstr[0] ""
-msgstr[1] ""
-
-#: jsdef/LazyAuthorPreview.html
-msgid "Subjects:"
-msgstr ""
-
 #: jsdef/LazyWorkPreview.html
 msgid "Select this work"
 msgstr ""
@@ -4959,6 +4932,13 @@ msgstr ""
 #: jsdef/LazyWorkPreview.html
 msgid "editions"
 msgstr ""
+
+#: languages/index.html
+#, python-format
+msgid "%s book"
+msgid_plural "%s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: languages/language_list.html
 msgid "Czech"

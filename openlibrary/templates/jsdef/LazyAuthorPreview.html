@@ -2,7 +2,10 @@ $def with (author)
 
 $jsdef render_lazy_author_preview(item):
     $if item:
-        <div class="ac_author" title="$_('Select this author')">
+        $# The autocomplete plugin moves `top_work` into `works`, but we should support both fields.
+        $ top_work = item['top_work'] or item['works'][0]
+
+        <div class="ac_author" title="Select this author">
             <div class="olid">$item['key']</div>
             <span class="name">
                 $item['name']
@@ -10,15 +13,16 @@ $jsdef render_lazy_author_preview(item):
                     ($(item['birth_date'] or ' ')&ndash;$(item['death_date'] or ' '))
             </span>
             $if item['work_count'] == 0:
-                $ msg_book = _("No books associated with %s")
-                <span class="work">$sprintf(msg_book, item['name'])</span>
+                <span class="work">No books associated with $item['name']</span>
+            $elif item['work_count'] == 1:
+                <span class="books">1 book</span>
+                <span class="work">titled <i>$top_work</i></span>
             $else:
-                $ msg_book = ungettext("%s book", "%s books", item['work_count'])
-                $ msg_title = ungettext("titled <i>%s</i>", "including <i>%s</i>", item['work_count'])
-                <span class="books">$sprintf(msg_book, item['work_count'])</span> <span class="work">$:sprintf(msg_title, item['works'])</i></span>
+                <span class="books">$item['work_count'] books</span>
+                <span class="work">including <i>$top_work</i></span>
 
-            $if item['subjects']:
-                <span class="subject">$_("Subjects:") $(', '.join(item['subjects']))</span>
+            $if item['work_count'] and item['subjects']:
+                <span class="subject">Subjects: $(', '.join(item['subjects']))</span>
         </div>
 
 $if author:

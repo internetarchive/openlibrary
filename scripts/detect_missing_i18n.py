@@ -20,6 +20,8 @@ EXCLUDE_LIST = {
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
+    # Uses jsdef and the current stance is no i18n in JS.
+    "openlibrary/templates/jsdef/LazyAuthorPreview.html",
 }
 
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
