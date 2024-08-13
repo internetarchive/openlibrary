@@ -363,7 +363,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             continue
         except Exception as e:
             raise SystemExit(e)
-        
+
         if "query" not in data:
             break
         if "pages" not in data["query"]:
@@ -434,7 +434,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     continue
                 except Exception as e:
                     raise SystemExit(e)
-                
+
                 if "query" not in data:
                     break
                 if "pages" not in data["query"]:
