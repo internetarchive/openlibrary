@@ -12,7 +12,6 @@ export class ReadMoreComponent {
         this.$readMoreButton = container.querySelector('.read-more__toggle--more');
         this.$readLessButton = container.querySelector('.read-more__toggle--less');
 
-        //this.collapsedHeight = parseFloat(this.$content.style.maxHeight);
         if (!this.$content || !this.$readMoreButton || !this.$readLessButton) {
             return;
         }
@@ -37,7 +36,6 @@ export class ReadMoreComponent {
     readLessClick = () => {
         this.collapse();
         this.manuallyExpanded = false;
-        // scroll top of the read-more container into view if the top is not visible
         if (this.$container.getBoundingClientRect().top < 0) {
             this.$container.scrollIntoView({
                 behavior: 'smooth',
@@ -63,20 +61,19 @@ export class ReadMoreComponent {
     reset() {
         if (!this.$content || !this.$readMoreButton) return;
         this.fullHeight = this.$content.scrollHeight;
-        // Fudge factor to account for non-significant read/more
-        // (e.g missing a bit of padding)
-        if (this.$content.scrollHeight <= (this.collapsedHeight + this.$readMoreButton.offsetHeight + 1)) {
+    
+        // If content is short enough that it doesn't need to be clamped
+        if (this.fullHeight <= this.collapsedHeight + this.$readMoreButton.offsetHeight) {
             this.expand();
             this.$container.classList.add('read-more--unnecessary');
         } else {
-            // Don't collapse if the user has manually expanded. Fixes
-            // issue where user e.g. presses ctrl-f, triggering a resize
             if (!this.manuallyExpanded) {
                 this.collapse();
             }
             this.$container.classList.remove('read-more--unnecessary');
         }
     }
+    
 
     static init() {
         for (const el of document.querySelectorAll('.read-more')) {
