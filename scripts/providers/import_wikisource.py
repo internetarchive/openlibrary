@@ -361,6 +361,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             continue
         except Exception as e:
             raise SystemExit(e)
+        
         if "query" not in data:
             break
         if "pages" not in data["query"]:
@@ -431,11 +432,13 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     continue
                 except Exception as e:
                     raise SystemExit(e)
+                
                 if "query" not in data:
                     break
                 if "pages" not in data["query"]:
                     break
                 results = data["query"]["pages"]
+
                 for id in results:
                     image_hit = results[id]
                     if (
@@ -478,19 +481,24 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             else:
                 raise SystemExit(e)
             continue
-        item_ids = []
+
         if "results" not in data:
             break
         if "bindings" not in data["results"]:
             break
+
+        item_ids = []
+
         for obj in data["results"]["bindings"]:
             if "item" not in obj:
                 continue
             if "value" not in obj["item"]:
                 continue
+
             split_url = obj["item"]["value"].split("/")
             if len(split_url) == 0:
                 continue
+
             item_id = split_url[len(split_url) - 1]
             item_ids.append(item_id)
 
@@ -503,8 +511,10 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
         # Get book metadata from the wikidata API using 50 wikidata book IDs at a time
         start = 0
         end = min(50, len(item_ids))
+
         while start < len(item_ids):
             print(f'processing query results {start} to {end}')
+
             query = (
                 '''SELECT DISTINCT
   ?title
@@ -559,21 +569,27 @@ WHERE {
                 continue
             if "bindings" not in data["results"]:
                 continue
+
             ids_for_wikisource_api = []
+
             for obj in data["results"]["bindings"]:
                 # Create book if not exists
                 if "title" not in obj:
                     continue
                 if "value" not in obj["title"]:
                     continue
+                # Don't include duplicate results that are just the same book but with its title in a different language
                 if obj["title"]["xml:lang"] != cfg.langcode:
                     continue
+
                 id = obj["title"]["value"].replace(" ", "_")
+
                 if id not in imports:
                     imports[id] = BookRecord(
                         title=obj["title"]["value"],
                         language=cfg,
                     )
+
                 impt = imports[id]
                 ids_for_wikisource_api.append(id)
 
@@ -620,7 +636,6 @@ def process_all_books(cfg: LangConfig):
     for url in cfg.all_wikidata_category_urls:
         batch: list[BookRecord] = []
         scrape_wikidata_api(url, cfg, imports)
-    # Add all valid books to batch
     for _, book in imports.items():
         batch.append(book)
     print_records(batch, cfg)
