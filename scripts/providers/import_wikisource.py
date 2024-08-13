@@ -352,10 +352,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
-            if (
-                e.response is None
-                or e.response.status_code in (429, 503)
-            ):
+            if e.response is None or e.response.status_code in (429, 503):
                 time.sleep(10)
             else:
                 raise SystemExit(e)
@@ -418,10 +415,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     data = r2.json()
                 except requests.exceptions.RequestException as e:
                     # If too many requests error, wait 10 seconds and try again
-                    if (
-                        e.response is None
-                        or e.response.status_code in (429, 503)
-                    ):
+                    if e.response is None or e.response.status_code in (429, 503):
                         time.sleep(10)
                     else:
                         raise SystemExit(e)
@@ -461,10 +455,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
-            if (
-                e.response is None
-                or e.response.status_code in (429, 503)
-            ):
+            if e.response is None or e.response.status_code in (429, 503):
                 time.sleep(10)
             else:
                 raise SystemExit(e)
@@ -532,10 +523,7 @@ WHERE {
                 data = r2.json()
             except requests.exceptions.RequestException as e:
                 # If too many requests error, wait 10 seconds and try again
-                if (
-                    e.response is None
-                    or e.response.status_code in (429, 503)
-                ):
+                if e.response is None or e.response.status_code in (429, 503):
                     time.sleep(10)
                     print("retrying...")
                 else:
