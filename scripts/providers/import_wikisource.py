@@ -605,7 +605,7 @@ def process_all_books(cfg: LangConfig):
     imports: dict[str, BookRecord] = {}
     for url in cfg.all_wikidata_category_urls:
         scrape_wikidata_api(url, cfg, imports)
-    batch = imports.values()
+    batch = list(imports.values())
     if len(batch) > 0:
         print_records(batch, cfg)
 
