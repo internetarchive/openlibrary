@@ -361,16 +361,12 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             else:
                 raise SystemExit(e)
             continue
-        except Exception as e:
-            raise SystemExit(e)
 
-        if "query" not in data:
-            break
-        if "pages" not in data["query"]:
+        if "query" not in data or "pages" not in data["query"]:
             break
         results = data["query"]["pages"]
 
-        for _, page in results.items():
+        for page in results.values():
             id = page["title"].replace(" ", "_")
 
             if id in imports:
@@ -432,12 +428,8 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     else:
                         raise SystemExit(e)
                     continue
-                except Exception as e:
-                    raise SystemExit(e)
 
-                if "query" not in data:
-                    break
-                if "pages" not in data["query"]:
+                if "query" not in data or "pages" not in data["query"]:
                     break
                 results = data["query"]["pages"]
 
@@ -484,17 +476,13 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
                 raise SystemExit(e)
             continue
 
-        if "results" not in data:
-            break
-        if "bindings" not in data["results"]:
+        if "results" not in data or "bindings" not in data["results"]:
             break
 
         item_ids = []
 
         for obj in data["results"]["bindings"]:
-            if "item" not in obj:
-                continue
-            if "value" not in obj["item"]:
+            if "item" not in obj or "value" not in obj["item"]:
                 continue
 
             split_url = obj["item"]["value"].split("/")
@@ -560,25 +548,19 @@ WHERE {
                 else:
                     raise SystemExit(e)
                 continue
-            except Exception as e:
-                raise SystemExit(e)
 
             # Increase start and end for the next loop iteration
             start = end
             end = min(start + 50, len(item_ids))
 
-            if "results" not in data:
-                continue
-            if "bindings" not in data["results"]:
+            if "results" not in data or "bindings" not in data["results"]:
                 continue
 
             ids_for_wikisource_api = []
 
             for obj in data["results"]["bindings"]:
                 # Create book if not exists
-                if "title" not in obj:
-                    continue
-                if "value" not in obj["title"]:
+                if "title" not in obj or "value" not in obj["title"]:
                     continue
                 # Don't include duplicate results that are just the same book but with its title in a different language
                 if obj["title"]["xml:lang"] != cfg.langcode:
@@ -638,7 +620,7 @@ def process_all_books(cfg: LangConfig):
     for url in cfg.all_wikidata_category_urls:
         batch: list[BookRecord] = []
         scrape_wikidata_api(url, cfg, imports)
-    for _, book in imports.items():
+    for book in imports.values():
         batch.append(book)
     print_records(batch, cfg)
 
