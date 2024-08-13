@@ -61,7 +61,7 @@ export class ReadMoreComponent {
     reset() {
         if (!this.$content || !this.$readMoreButton) return;
         this.fullHeight = this.$content.scrollHeight;
-    
+
         // If content is short enough that it doesn't need to be clamped
         if (this.fullHeight <= this.collapsedHeight + this.$readMoreButton.offsetHeight) {
             this.expand();
@@ -73,7 +73,7 @@ export class ReadMoreComponent {
             this.$container.classList.remove('read-more--unnecessary');
         }
     }
-    
+
 
     static init() {
         for (const el of document.querySelectorAll('.read-more')) {
