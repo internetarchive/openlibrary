@@ -160,7 +160,7 @@ class BookRecord:
 
     @property
     def wikisource_id(self) -> str:
-        return f"{self.language.langcode}:{self.title.replace(" ", "_")}"
+        return f"{self.language.langcode}:{self.title.replace(' ', '_')}"
 
     @property
     def source_records(self) -> list[str]:
@@ -367,7 +367,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
         results = data["query"]["pages"]
 
         for page in results.values():
-            id = page["title"].replace(" ", "_")
+            id = page["title"].replace(' ', '_')
 
             if id in imports:
                 # MediaWiki"s API paginates through pages, page categories, and page images separately.
@@ -568,7 +568,7 @@ WHERE {
                 ):
                     continue
 
-                id = obj["title"]["value"].replace(" ", "_")
+                id = obj["title"]["value"].replace(' ', '_')
 
                 if id not in imports:
                     imports[id] = BookRecord(
