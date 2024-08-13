@@ -46,6 +46,7 @@ EXCLUDED_WIKIDATA_IDS = [
     "Q2135540",  # legal actions
 ]
 
+
 WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
 
@@ -243,7 +244,7 @@ class BookRecord:
         return output
 
 
-def update_record(book: BookRecord, new_data: dict, image_titles: list[str]):
+def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict, image_titles: list[str]):
     # Find png/jpg filename
     if book.imagename is None and "images" in new_data:
         # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
@@ -342,9 +343,8 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
     cont_url = url
     image_titles: list[str] = []
 
-    # Paginate through metadata about wikisource pages
+    # Continue until you've reached the end of paginated results
     while True:
-
         try:
             r = requests.get(cont_url, stream=True)
             data = r.json()
@@ -372,10 +372,10 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
 
             if id in imports:
                 # MediaWiki's API paginates through pages, page categories, and page images separately.
-                # This means that when you hit this API requesting all 3 of these data types,
+                # This means that when you hit this API requesting both revision (infobox) and image data,
                 # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
-                # i.e. Page 1 might give you a book and its categories, Page 2 might give you the same book and its image info.
-                update_record(imports[id], page, image_titles)
+                # i.e. Page 1 might give you 50 books where only the first 10 have image data, and page 2 might give you the same 50 books but only the last 10 have image data.
+                update_record_with_wikisource_metadata(imports[id], page, image_titles)
 
         # Proceed to next page of API results
         if 'continue' in data:
@@ -384,10 +384,10 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             break
 
     if len(image_titles) > 0:
-        # The API calls from earlier that retrieved page data isn't able to return image URLs.
+        # The API calls from earlier that retrieved page data aren't able to return image URLs.
         # The "imageinfo" prop, which contains URLs, does nothing unless you're querying image names directly.
         # Here we'll query as many images as possible in one API request, build a map of the results,
-        # and then later, each valid book will find its image URL in this map to import as its cover.
+        # and then set the cover URL for any book that is associated to the image filename.
         image_map: dict[str, str] = {}
 
         # API will only allow up to 50 images at a time to be requested, so do this in chunks.
@@ -454,7 +454,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                 else:
                     break
 
-        # Add cover URLs
+        # Set cover URLs to books according to which ones use the given image filenames.
         for id, book in imports.items():
             if book.imagename is not None and book.imagename in image_map:
                 book.set_cover(image_map[book.imagename])
@@ -462,6 +462,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
 
 def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
+    # The "while true" here is simply to retry requests that fail due to API limits.
     while True:
         try:
             r = requests.get(url, stream=True)
@@ -496,9 +497,10 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
         print(f"wikidata query returned {len(item_ids)} matching book IDs")
 
         if len(item_ids) == 0:
+            print("Exiting.")
             break
 
-        # Get wikidata API, 50 IDs at a time
+        # Get book metadata from the wikidata API using 50 wikidata book IDs at a time
         start = 0
         end = min(50, len(item_ids))
         while start < len(item_ids):
