@@ -24,6 +24,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.wikisource")
 
+
 def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts = list(urlparse(url))
     query = dict(parse_qsl(url_parts[4]))
@@ -31,20 +32,22 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
     url_parts[4] = urlencode(query, quote_via=quote)
     return urlunparse(url_parts)
 
+
 EXCLUDED_WIKIDATA_IDS = [
-    "Q191067", # articles
-    "Q49848", # visual artwork
-    "Q4502142", # films
-    "Q1784733", # correspondences
-    "Q35760", # essays
-    "Q6087062", #legal proceedings
-    "Q52943", # interviews
-    "Q814441", # certifications
-    "Q861911", # orations
-    "Q2135540" # legal actions
+    "Q191067",  # articles
+    "Q49848",  # visual artwork
+    "Q4502142",  # films
+    "Q1784733",  # correspondences
+    "Q35760",  # essays
+    "Q6087062",  # legal proceedings
+    "Q52943",  # interviews
+    "Q814441",  # certifications
+    "Q861911",  # orations
+    "Q2135540",  # legal actions
 ]
 
 WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+
 
 class LangConfig:
     def __init__(
@@ -61,29 +64,41 @@ class LangConfig:
 
     def _catformat(self, category: str) -> str:
         return f'{self._category_prefix}:{category}'
-    
-    def _sparql_query(self, category: str)  -> str:
-        return '''SELECT DISTINCT
+
+    def _sparql_query(self, category: str) -> str:
+        return (
+            '''SELECT DISTINCT
   ?item
 WHERE {
   SERVICE wikibase:mwapi {
-    bd:serviceParam wikibase:endpoint "''' + self.langcode + '''.wikisource.org";
+    bd:serviceParam wikibase:endpoint "'''
+            + self.langcode
+            + '''.wikisource.org";
                     wikibase:api "Generator";
                     mwapi:generator "categorymembers";
-                    mwapi:gcmtitle "''' + self._catformat(category) + '''".
+                    mwapi:gcmtitle "'''
+            + self._catformat(category)
+            + '''".
     ?page wikibase:apiOutput mwapi:title.
     ?item wikibase:apiOutputItem mwapi:item .
-    ?item wdt:P31/wdt:P279* ?instanceOf.''' + ''.join([f'FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n    ' for type in EXCLUDED_WIKIDATA_IDS]) + '''FILTER NOT EXISTS { ?item wdt:P31 wd:Q386724. }
+    ?item wdt:P31/wdt:P279* ?instanceOf.'''
+            + ''.join(
+                [
+                    f'FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n    '
+                    for type in EXCLUDED_WIKIDATA_IDS
+                ]
+            )
+            + '''FILTER NOT EXISTS { ?item wdt:P31 wd:Q386724. }
   }
   FILTER (!CONTAINS(STR(?page), "/"))
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,''' + self.langcode + '''". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+            + self.langcode
+            + '''". }
 }'''
+        )
 
     def _sparql_url(self, category: str) -> str:
-        params = {
-            'format': 'json',
-            'query': self._sparql_query(category)
-        }
+        params = {'format': 'json', 'query': self._sparql_query(category)}
         return update_url_with_params(WIKIDATA_API_URL, params)
 
     @property
@@ -108,6 +123,7 @@ ws_languages = [
         included_categories=['Validated_texts'],
     )
 ]
+
 
 class BookRecord:
     def set_publish_date(self, publish_date: str | None) -> None:
@@ -321,19 +337,24 @@ def print_records(records: list[BookRecord], cfg: LangConfig):
             r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
             file.write(json.dumps(r) + '\n')
 
+
 def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
     cont_url = url
     image_titles: list[str] = []
 
     # Paginate through metadata about wikisource pages
     while True:
-        
+
         try:
             r = requests.get(cont_url, stream=True)
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
-            if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+            if (
+                e.response is None
+                or e.response.status_code == 429
+                or e.response.status_code == 503
+            ):
                 time.sleep(10)
             else:
                 raise SystemExit(e)
@@ -399,7 +420,11 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     data = r2.json()
                 except requests.exceptions.RequestException as e:
                     # If too many requests error, wait 10 seconds and try again
-                    if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                    if (
+                        e.response is None
+                        or e.response.status_code == 429
+                        or e.response.status_code == 503
+                    ):
                         time.sleep(10)
                     else:
                         raise SystemExit(e)
@@ -419,9 +444,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                         and len(image_hit["imageinfo"]) > 0
                         and "url" in image_hit["imageinfo"][0]
                     ):
-                        image_map[image_hit["title"]] = image_hit["imageinfo"][0][
-                            "url"
-                        ]
+                        image_map[image_hit["title"]] = image_hit["imageinfo"][0]["url"]
 
                 # next page of image hits, if necessary
                 if 'continue' in data:
@@ -436,6 +459,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             if book.imagename is not None and book.imagename in image_map:
                 book.set_cover(image_map[book.imagename])
 
+
 def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
     while True:
@@ -444,7 +468,11 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
-            if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+            if (
+                e.response is None
+                or e.response.status_code == 429
+                or e.response.status_code == 503
+            ):
                 time.sleep(10)
             else:
                 raise SystemExit(e)
@@ -461,7 +489,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
                 continue
             split_url = obj["item"]["value"].split("/")
             if len(split_url) == 0:
-                continue 
+                continue
             item_id = split_url[len(split_url) - 1]
             item_ids.append(item_id)
 
@@ -475,32 +503,44 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
         end = min(50, len(item_ids))
         while start < len(item_ids):
             print(f'processing query results {start} to {end}')
-            query = '''SELECT DISTINCT
+            query = (
+                '''SELECT DISTINCT
   ?title
   ?authorLabel
   ?publisherLabel
   ?editionLabel
-  ?date 
+  ?date
   ?isbn
 WHERE {
-  VALUES ?item {''' + ''.join([f'wd:{id}\n    ' for id in item_ids[start:end]]) + '''}
+  VALUES ?item {'''
+                + ''.join([f'wd:{id}\n    ' for id in item_ids[start:end]])
+                + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
   OPTIONAL { ?item wdt:P50 ?author. }
   OPTIONAL { ?item wdt:P123 ?publisher. }
   OPTIONAL { ?item wdt:P393 ?edition. }
   OPTIONAL { ?item wdt:P577 ?date. }
   OPTIONAL { ?item wdt:P212 ?isbn. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,''' + cfg.langcode + '''". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+                + cfg.langcode
+                + '''". }
 }'''
+            )
             # Get most metadata from wikidata
-            metadata_url = update_url_with_params(WIKIDATA_API_URL, {'format': 'json', 'query': query})
-            
+            metadata_url = update_url_with_params(
+                WIKIDATA_API_URL, {'format': 'json', 'query': query}
+            )
+
             try:
                 r2 = requests.get(metadata_url, stream=True)
                 data = r2.json()
             except requests.exceptions.RequestException as e:
                 # If too many requests error, wait 10 seconds and try again
-                if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                if (
+                    e.response is None
+                    or e.response.status_code == 429
+                    or e.response.status_code == 503
+                ):
                     time.sleep(10)
                     print("retrying...")
                 else:
@@ -508,10 +548,10 @@ WHERE {
                 continue
             except Exception as e:
                 raise SystemExit(e)
-                
+
             # Increase start and end for the next loop iteration
             start = end
-            end = min(start+50, len(item_ids))
+            end = min(start + 50, len(item_ids))
 
             if "results" not in data:
                 continue
@@ -549,20 +589,25 @@ WHERE {
 
                 # Date
                 if "date" in obj and "value" in obj["date"]:
-                    impt.set_publish_date(obj["date"]["value"]) # does this timestamp need to be formatted?
-            
+                    impt.set_publish_date(
+                        obj["date"]["value"]
+                    )  # does this timestamp need to be formatted?
+
             # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
-            ws_api_url = update_url_with_params(cfg.wikisource_api_url, {
-                'action': 'query',
-                'titles': "|".join(ids_for_wikisource_api), 
-                # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
-                'prop': 'revisions|images',
-                'rvprop': 'content',
-                'rvslots': 'main',
-                # Include as many images per response as possible
-                'imlimit': 'max',
-                'format': 'json'
-            })
+            ws_api_url = update_url_with_params(
+                cfg.wikisource_api_url,
+                {
+                    'action': 'query',
+                    'titles': "|".join(ids_for_wikisource_api),
+                    # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
+                    'prop': 'revisions|images',
+                    'rvprop': 'content',
+                    'rvslots': 'main',
+                    # Include as many images per response as possible
+                    'imlimit': 'max',
+                    'format': 'json',
+                },
+            )
             scrape_wikisource_api(ws_api_url, cfg, imports)
         break
 
