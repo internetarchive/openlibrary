@@ -83,16 +83,21 @@ $ has_tag = 'tag' in page
         $if len(subjects) > 0:
             <span class="subject">
             $for s in subjects:
-                <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+                <a href="$s.key" style="text-decoration: none;">$s.name</a>$cond(loop.last, '', ',')
             </span>
         $else:
             <span class="title"><em>$_("None found.")</em></span>
 
     $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box link-box--with-header">
-          <h6 class="black collapse uppercase">$label</h6>
-          $:renderSubjects(page[category][:limit])
+      <div class="contentQuarter link-box link-box--with-header">
+        <h6 class="black collapse uppercase">$label</h6>
+        <div style="line-height: 20px;">
+          <div style="text-decoration: none;"> <!-- This will target all links inside -->
+            $:renderSubjects(page[category][:limit])
+          </div>
         </div>
+      </div>
+    
 
     <div class="clearfix"></div>
 
