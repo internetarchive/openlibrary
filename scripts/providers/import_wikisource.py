@@ -244,7 +244,9 @@ class BookRecord:
         return output
 
 
-def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict, image_titles: list[str]):
+def update_record_with_wikisource_metadata(
+    book: BookRecord, new_data: dict, image_titles: list[str]
+):
     # Find png/jpg filename
     if book.imagename is None and "images" in new_data:
         # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
