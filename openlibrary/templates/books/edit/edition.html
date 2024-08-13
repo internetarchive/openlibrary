@@ -581,7 +581,7 @@ $ })
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
                     <input name="edition--weight--value" type="number" step="any"
-                           id="edition--weight--value" size="6" value="$weight.value"/>
+                           id="edition--weight--value" min="0.01" size="6" value="$weight.value"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -603,17 +603,17 @@ $ })
                             <tr>
                                 <td rowspan="3"><img src="/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.1"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0.1"
                                            id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0.1"
                                            id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>
