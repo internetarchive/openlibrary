@@ -354,8 +354,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             # If too many requests error, wait 10 seconds and try again
             if (
                 e.response is None
-                or e.response.status_code == 429
-                or e.response.status_code == 503
+                or e.response.status_code in (429, 503)
             ):
                 time.sleep(10)
             else:
@@ -421,8 +420,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                     # If too many requests error, wait 10 seconds and try again
                     if (
                         e.response is None
-                        or e.response.status_code == 429
-                        or e.response.status_code == 503
+                        or e.response.status_code in (429, 503)
                     ):
                         time.sleep(10)
                     else:
@@ -465,8 +463,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             # If too many requests error, wait 10 seconds and try again
             if (
                 e.response is None
-                or e.response.status_code == 429
-                or e.response.status_code == 503
+                or e.response.status_code in (429, 503)
             ):
                 time.sleep(10)
             else:
@@ -537,8 +534,7 @@ WHERE {
                 # If too many requests error, wait 10 seconds and try again
                 if (
                     e.response is None
-                    or e.response.status_code == 429
-                    or e.response.status_code == 503
+                    or e.response.status_code in (429, 503)
                 ):
                     time.sleep(10)
                     print("retrying...")
