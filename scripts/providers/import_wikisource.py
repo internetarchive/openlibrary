@@ -373,7 +373,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                 # MediaWiki"s API paginates through pages, page categories, and page images separately.
                 # This means that when you hit this API requesting both revision (infobox) and image data,
                 # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
-                # i.e. Page 1 might give you 50 books where only the first 10 have image data, 
+                # i.e. Page 1 might give you 50 books where only the first 10 have image data,
                 # and page 2 might give you the same 50 books but only the last 10 have image data.
                 update_record_with_wikisource_metadata(imports[id], page, image_titles)
 
@@ -446,9 +446,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
                 # next page of image hits, if necessary
                 if "continue" not in data:
                     break
-                working_url = update_url_with_params(
-                    image_api_url, data["continue"]
-                )
+                working_url = update_url_with_params(image_api_url, data["continue"])
 
         # Set cover URLs to books according to which ones use the given image filenames.
         for id, book in imports.items():
@@ -563,7 +561,10 @@ WHERE {
                     "title" not in obj
                     or "value" not in obj["title"]
                     # Don't include duplicate results that are just the same book but with its title in a different language
-                    or ("xml:lang" in obj["title"] and obj["title"]["xml:lang"] != cfg.langcode)
+                    or (
+                        "xml:lang" in obj["title"]
+                        and obj["title"]["xml:lang"] != cfg.langcode
+                    )
                 ):
                     continue
 
