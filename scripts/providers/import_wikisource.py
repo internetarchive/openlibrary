@@ -19,7 +19,7 @@ import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
 
-from openlibrary.config import load_config
+# from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.wikisource")
@@ -87,6 +87,10 @@ WHERE {
         return update_url_with_params(WIKIDATA_API_URL, params)
 
     @property
+    def wikisource_api_url(self) -> str:
+        return f'https://{self.langcode}.wikisource.org/w/api.php'
+
+    @property
     def all_wikidata_category_urls(self) -> list[str]:
         return [self._sparql_url(c) for c in self._included_categories]
 
@@ -134,6 +138,9 @@ class BookRecord:
     def set_cover(self, cover: str | None) -> None:
         self.cover = cover
 
+    def set_imagename(self, imagename: str | None) -> None:
+        self.imagename = imagename
+
     @property
     def wikisource_id(self) -> str:
         return f'{self.language.langcode}:{self.title.replace(" ", "_")}'
@@ -163,6 +170,7 @@ class BookRecord:
         cover: str | None = None,
         isbn: str | None = None,
         publishers: list[str] | None = None,
+        imagename: str | None = None,
     ):
         self.authors: list[HumanName] = []
         self.categories: list[str] = []
@@ -181,6 +189,7 @@ class BookRecord:
         self.set_isbn(isbn)
         if publishers is not None:
             self.add_publishers(publishers)
+        self.set_imagename(imagename)
 
     def to_dict(self):
         output = {
@@ -218,7 +227,22 @@ class BookRecord:
         return output
 
 
-def update_record(book: BookRecord, new_data: dict):
+def update_record(book: BookRecord, new_data: dict, image_titles: list[str]):
+    # Find png/jpg filename
+    if book.imagename is None and "images" in new_data:
+        # Ignore svgs, these are wikisource photos and other assets that aren't properties of the book.
+        linked_images = [
+            i
+            for i in new_data['images']
+            if not i["title"].endswith(".svg") and i["title"] != ""
+        ]
+        # Set this as the book's image name, which will be used later use its URL in the import
+        if len(linked_images) > 0:
+            imagename = linked_images[0]["title"]
+            book.set_imagename(imagename)
+            # Add it to image_titles in order to look up its URL later
+            if imagename not in image_titles:
+                image_titles.append(imagename)
 
     # Parse other params from the infobox
     # Exit if infobox doesn't exist
@@ -287,26 +311,149 @@ def update_record(book: BookRecord, new_data: dict):
         pass
 
 
-def print_records(records: list[BookRecord], idx: int, cfg: LangConfig):
+def print_records(records: list[BookRecord], cfg: LangConfig):
     folder_path = 'scripts/providers/batch_output/'
     now = time.gmtime(time.time())
     os.makedirs(os.path.dirname(folder_path), exist_ok=True)
-    file_path = f'{folder_path}/wikisource-{now.tm_year}.{now.tm_mon}.{now.tm_mday}-{now.tm_hour}.{now.tm_min}.{now.tm_sec}-{cfg.langcode}-{idx}.jsonl'
+    file_path = f'{folder_path}/wikisource-{now.tm_year}.{now.tm_mon}.{now.tm_mday}-{now.tm_hour}.{now.tm_min}.{now.tm_sec}-{cfg.langcode}.jsonl'
     with open(file_path, 'w', encoding='utf-8') as file:
         for rec in records:
             r = {'ia_id': rec.source_records[0], 'data': rec.to_dict()}
             file.write(json.dumps(r) + '\n')
 
-def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord], batch: list[BookRecord]):
+def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
+    cont_url = url
+    image_titles: list[str] = []
+
+    # Paginate through metadata about wikisource pages
+    while True:
+        
+        try:
+            r = requests.get(cont_url, stream=True)
+            data = r.json()
+        except requests.exceptions.RequestException as e:
+            # If too many requests error, wait 10 seconds and try again
+            if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                time.sleep(10)
+            else:
+                raise SystemExit(e)
+            continue
+        except Exception as e:
+            raise SystemExit(e)
+        if "query" not in data:
+            break
+        if "pages" not in data["query"]:
+            break
+        results = data["query"]["pages"]
+
+        for _, page in results.items():
+            id = page["title"].replace(" ", "_")
+
+            if id in imports:
+                # MediaWiki's API paginates through pages, page categories, and page images separately.
+                # This means that when you hit this API requesting all 3 of these data types,
+                # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
+                # i.e. Page 1 might give you a book and its categories, Page 2 might give you the same book and its image info.
+                update_record(imports[id], page, image_titles)
+
+        # Proceed to next page of API results
+        if 'continue' in data:
+            cont_url = update_url_with_params(url, data["continue"])
+        else:
+            break
+
+    if len(image_titles) > 0:
+        # The API calls from earlier that retrieved page data isn't able to return image URLs.
+        # The "imageinfo" prop, which contains URLs, does nothing unless you're querying image names directly.
+        # Here we'll query as many images as possible in one API request, build a map of the results,
+        # and then later, each valid book will find its image URL in this map to import as its cover.
+        image_map: dict[str, str] = {}
+
+        # API will only allow up to 50 images at a time to be requested, so do this in chunks.
+        for index in range(0, len(image_titles), 50):
+            end = index + 50
+            if end > len(image_titles):
+                end = len(image_titles)
+
+            image_api_url = update_url_with_params(
+                cfg.wikisource_api_url,
+                {
+                    "action": "query",
+                    # Query up to 50 specific image filenames
+                    "titles": "|".join(image_titles[index:end]),
+                    # Return info about images
+                    "prop": "imageinfo",
+                    # Specifically, return URL info about images
+                    "iiprop": "url",
+                    # Output format
+                    "format": "json",
+                },
+            )
+
+            working_url = image_api_url
+
+            # Paginate through results and build the image filename <-> url map
+            while True:
+                try:
+                    r2 = requests.get(working_url, stream=True)
+                    data = r2.json()
+                except requests.exceptions.RequestException as e:
+                    # If too many requests error, wait 10 seconds and try again
+                    if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                        time.sleep(10)
+                    else:
+                        raise SystemExit(e)
+                    continue
+                except Exception as e:
+                    raise SystemExit(e)
+                if "query" not in data:
+                    break
+                if "pages" not in data["query"]:
+                    break
+                results = data["query"]["pages"]
+                for id in results:
+                    image_hit = results[id]
+                    if (
+                        "imageinfo" in image_hit
+                        and image_hit["title"] not in image_map
+                        and len(image_hit["imageinfo"]) > 0
+                        and "url" in image_hit["imageinfo"][0]
+                    ):
+                        image_map[image_hit["title"]] = image_hit["imageinfo"][0][
+                            "url"
+                        ]
+
+                # next page of image hits, if necessary
+                if 'continue' in data:
+                    working_url = update_url_with_params(
+                        image_api_url, data["continue"]
+                    )
+                else:
+                    break
+
+        # Add cover URLs
+        for id, book in imports.items():
+            if book.imagename is not None and book.imagename in image_map:
+                book.set_cover(image_map[book.imagename])
+
+def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        data = r.json()
+    while True:
+        try:
+            r = requests.get(url, stream=True)
+            data = r.json()
+        except requests.exceptions.RequestException as e:
+            # If too many requests error, wait 10 seconds and try again
+            if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                time.sleep(10)
+            else:
+                raise SystemExit(e)
+            continue
         item_ids = []
         if "results" not in data:
-            return
+            break
         if "bindings" not in data["results"]:
-            return
+            break
         for obj in data["results"]["bindings"]:
             if "item" not in obj:
                 continue
@@ -318,15 +465,16 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             item_id = split_url[len(split_url) - 1]
             item_ids.append(item_id)
 
+        print(f"wikidata query returned {len(item_ids)} matching book IDs")
+
         if len(item_ids) == 0:
-            return
+            break
 
         # Get wikidata API, 50 IDs at a time
-        for index in range(0, len(item_ids), 50):
-            end = index + 50
-            if end > len(item_ids):
-                end = len(item_ids)
-
+        start = 0
+        end = min(50, len(item_ids))
+        while start < len(item_ids):
+            print(f'processing query results {start} to {end}')
             query = '''SELECT DISTINCT
   ?title
   ?authorLabel
@@ -334,114 +482,108 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
   ?editionLabel
   ?date 
   ?isbn
-  ?commonsFile
 WHERE {
-  VALUES ?item {''' + ''.join([f'wd:{id}\n    ' for id in item_ids[index:end]]) + '''}
+  VALUES ?item {''' + ''.join([f'wd:{id}\n    ' for id in item_ids[start:end]]) + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
   OPTIONAL { ?item wdt:P50 ?author. }
   OPTIONAL { ?item wdt:P123 ?publisher. }
   OPTIONAL { ?item wdt:P393 ?edition. }
   OPTIONAL { ?item wdt:P577 ?date. }
   OPTIONAL { ?item wdt:P212 ?isbn. }
-  OPTIONAL { ?item wdt:P996 ?commonsFile. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,''' + cfg.langcode + '''". }
 }'''
             # Get most metadata from wikidata
             metadata_url = update_url_with_params(WIKIDATA_API_URL, {'format': 'json', 'query': query})
-            time.sleep(10)
-            with requests.get(metadata_url, stream=True) as r2:
-                # TODO: retry if error 429 instead of sleep(10)
-                r2.raise_for_status()
+            
+            try:
+                r2 = requests.get(metadata_url, stream=True)
                 data = r2.json()
-                if "results" not in data:
-                    continue
-                if "bindings" not in data["results"]:
-                    continue
-                ids_for_wikisource_api = []
-                for obj in data["results"]["bindings"]:
-                    # Create book if not exists
-                    if "title" not in obj:
-                        continue
-                    if "value" not in obj["title"]:
-                        continue
-                    if obj["title"]["xml:lang"] != cfg.langcode:
-                        continue
-                    id = obj["title"]["value"].replace(" ", "_")
-                    if id not in imports:
-                        imports[id] = BookRecord(
-                            title=obj["title"]["value"],
-                            language=cfg,
-                        )
-                    impt = imports[id]
-                    ids_for_wikisource_api.append(id)
-
-                    # Author
-                    if "authorLabel" in obj and "value" in obj["authorLabel"]:
-                        impt.add_authors([obj["authorLabel"]["value"]])
-
-                    # Publisher
-                    if "publisherLabel" in obj and "value" in obj["publisherLabel"]:
-                        impt.add_publishers([obj["publisherLabel"]["value"]])
-
-                    # Edition
-                    if "editionLabel" in obj and "value" in obj["editionLabel"]:
-                        impt.set_edition(obj["editionLabel"]["value"])
-
-                    # Date
-                    if "date" in obj and "value" in obj["date"]:
-                        impt.set_publish_date(obj["date"]["value"]) # does this timestamp need to be formatted?
-
-                    # Cover
-                    # TODO: pngs instead of pdf or djvu
-                    if "commonsFile" in obj and "value" in obj["commonsFile"]:
-                        filename = obj["commonsFile"]["value"].replace("http://commons.wikimedia.org/wiki/Special:FilePath/", "")
-                        impt.set_cover(f'https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/{filename}')
+            except requests.exceptions.RequestException as e:
+                # If too many requests error, wait 10 seconds and try again
+                if e.response is None or e.response.status_code == 429 or e.response.status_code == 503:
+                    time.sleep(10)
+                    print("retrying...")
+                else:
+                    raise SystemExit(e)
+                continue
+            except Exception as e:
+                raise SystemExit(e)
                 
-                # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
-                ws_api_url = update_url_with_params(f'https://{cfg.langcode}.wikisource.org/w/api.php', {
-                    'action': 'query',
-                    'titles': "|".join(ids_for_wikisource_api), 
-                    'prop': 'revisions',
-                    'rvprop': 'content',
-                    'rvslots': 'main',
-                    'format': 'json'
-                })
-                with requests.get(ws_api_url, stream=True) as r:
-                    r.raise_for_status()
-                    data = r.json()
-                    if "query" not in data:
-                        continue
-                    if "pages" not in data["query"]:
-                        continue
-                    results = data["query"]["pages"]
+            # Increase start and end for the next loop iteration
+            start = end
+            end = min(start+50, len(item_ids))
 
-                    for _, page in results.items():
-                        id = page["title"].replace(" ", "_")
+            if "results" not in data:
+                continue
+            if "bindings" not in data["results"]:
+                continue
+            ids_for_wikisource_api = []
+            for obj in data["results"]["bindings"]:
+                # Create book if not exists
+                if "title" not in obj:
+                    continue
+                if "value" not in obj["title"]:
+                    continue
+                if obj["title"]["xml:lang"] != cfg.langcode:
+                    continue
+                id = obj["title"]["value"].replace(" ", "_")
+                if id not in imports:
+                    imports[id] = BookRecord(
+                        title=obj["title"]["value"],
+                        language=cfg,
+                    )
+                impt = imports[id]
+                ids_for_wikisource_api.append(id)
 
-                        if id not in imports:
-                            continue
+                # Author
+                if "authorLabel" in obj and "value" in obj["authorLabel"]:
+                    impt.add_authors([obj["authorLabel"]["value"]])
 
-                        update_record(imports[id], page)
-        
-        # Add all valid books to the batch
-        for id, book in imports.items():
-            batch.append(book)
+                # Publisher
+                if "publisherLabel" in obj and "value" in obj["publisherLabel"]:
+                    impt.add_publishers([obj["publisherLabel"]["value"]])
+
+                # Edition
+                if "editionLabel" in obj and "value" in obj["editionLabel"]:
+                    impt.set_edition(obj["editionLabel"]["value"])
+
+                # Date
+                if "date" in obj and "value" in obj["date"]:
+                    impt.set_publish_date(obj["date"]["value"]) # does this timestamp need to be formatted?
+            
+            # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
+            ws_api_url = update_url_with_params(cfg.wikisource_api_url, {
+                'action': 'query',
+                'titles': "|".join(ids_for_wikisource_api), 
+                # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
+                'prop': 'revisions|images',
+                'rvprop': 'content',
+                'rvslots': 'main',
+                # Include as many images per response as possible
+                'imlimit': 'max',
+                'format': 'json'
+            })
+            scrape_wikisource_api(ws_api_url, cfg, imports)
+        break
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig):
-    for idx, url in enumerate(cfg.all_wikidata_category_urls):
-        imports: dict[str, BookRecord] = {}
+    imports: dict[str, BookRecord] = {}
+    for url in cfg.all_wikidata_category_urls:
         batch: list[BookRecord] = []
-        scrape_wikidata_api(url, cfg, imports, batch)
-        print_records(batch, idx, cfg)
+        scrape_wikidata_api(url, cfg, imports)
+    # Add all valid books to batch
+    for _, book in imports.items():
+        batch.append(book)
+    print_records(batch, cfg)
 
 
 def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
     """
-    load_config(ol_config)
+    # load_config(ol_config)
 
     for ws_language in ws_languages:
         process_all_books(ws_language)
