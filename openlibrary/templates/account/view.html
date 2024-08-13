@@ -23,9 +23,10 @@ $var title: $header_title
           <a href="$mb.user.key" class="username-avatar"><img src="$(mb.user.key)/avatar" class="account-avatar"></a>
           <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
         </div>
-        $if mb.key == 'list':
+        <!-- $if mb.key == 'list':
           <h1 class="details-title">$header_title</h1>
-        $else:
+        $else: -->
+        $if mb.key != 'list':
           <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
             $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
             $if header_title=="Already Read" and mb.reading_goals:
@@ -55,6 +56,8 @@ $var title: $header_title
       $if page:
         $:macros.databarView(page)
     </header>
+    $if mb.key == 'list':
+      <h1 class="details-title">$header_title</h1>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
     $ mb.component_times['Details content'] = time()
