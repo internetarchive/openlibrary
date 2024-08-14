@@ -473,25 +473,25 @@ jQuery(function () {
     }
 
     // Function to initialize the librarian merge request table
-function initializeLibrarianQueue() {
-    const librarianQueue = document.querySelector('.librarian-queue-wrapper');
+    function initializeLibrarianQueue() {
+        const librarianQueue = document.querySelector('.librarian-queue-wrapper');
 
-    if (!librarianQueue) return;
+        if (!librarianQueue) return;
 
-    // Dynamically import the merge request table module
-    import(/* webpackChunkName: "merge-request-table" */ './merge-request-table')
-        .then(({ initLibrarianQueue }) => {
-            if (typeof initLibrarianQueue === 'function') {
-                initLibrarianQueue(librarianQueue);
-            } else {
-                console.error("initLibrarianQueue is not a function");
-            }
-        })
-        .catch(error => console.error("Failed to load merge-request-table module:", error));
-}
+        // Dynamically import the merge request table module
+        import(/* webpackChunkName: "merge-request-table" */ './merge-request-table')
+            .then(({ initLibrarianQueue }) => {
+                if (typeof initLibrarianQueue === 'function') {
+                    initLibrarianQueue(librarianQueue);
+                } else {
+                    console.error('initLibrarianQueue is not a function');
+                }
+            })
+            .catch(error => console.error('Failed to load merge-request-table module:', error));
+    }
 
-// Call the initialization function
-initializeLibrarianQueue();
+    // Call the initialization function
+    initializeLibrarianQueue();
 
 
     // Add functionality to the team page for filtering members:
