@@ -403,14 +403,14 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
         for page in results.values():
             page_identifier = quote(page["title"].replace(' ', '_'))
 
-            for book in imports.values():
-                if book.label == page_identifier:
-                    # MediaWiki"s API paginates through pages, page categories, and page images separately.
-                    # This means that when you hit this API requesting both revision (infobox) and image data,
-                    # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
-                    # i.e. Page 1 might give you 50 books where only the first 10 have image data,
-                    # and page 2 might give you the same 50 books but only the last 10 have image data.
-                    update_record_with_wikisource_metadata(book, page, image_titles)
+            book = next((book for book in imports.values() if book.label == page_identifier), None)
+            if book:
+                # MediaWiki"s API paginates through pages, page categories, and page images separately.
+                # This means that when you hit this API requesting both revision (infobox) and image data,
+                # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
+                # i.e. Page 1 might give you 50 books where only the first 10 have image data,
+                # and page 2 might give you the same 50 books but only the last 10 have image data.
+                update_record_with_wikisource_metadata(book, page, image_titles)
 
         # Proceed to next page of API results
         if "continue" not in data:
@@ -507,9 +507,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
 
         item_ids = []
 
-        for obj in data["results"]["bindings"]:
-            if "item" not in obj or "value" not in obj["item"]:
-                continue
+        for obj in [d for d in data["results"]["bindings"] if "item" in obj and "value" in obj["item"]]:
 
             item_id = get_wd_item_id(obj["item"]["value"])
             item_ids.append(item_id)
@@ -634,7 +632,8 @@ WHERE {
                         obj["date"]["value"]
                     )  # does this timestamp need to be formatted?
 
-            # For some reason, querying 50 titles can sometimes bring back more than 50 results, so we'll still explicitly do wikisource scraping in chunks of exactly 50.
+            # For some reason, querying 50 titles can sometimes bring back more than 50 results,
+            # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
             for wsstart in range(0, len(ids_for_wikisource_api), 50):
                 wsend = wsstart + 50
                 if wsend > len(ids_for_wikisource_api):
