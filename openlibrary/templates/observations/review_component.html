@@ -62,7 +62,7 @@ $if len(work.get_awards()) > 0:
     $if len(d) > 0:
       <div class="awards">
       $for topic, count in d.items():
-        <span class="bestbook-award">$:count 🏆 $:topic</span>
+        <span class="bestbook-award">🏆 $:count  $:topic</span>
       </div>
     $else:
       <div class="no-stats-message">$_('No bestbook awards have been awarded for this work.')</div>
