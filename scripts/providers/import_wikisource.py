@@ -19,7 +19,7 @@ import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
 
-# from openlibrary.config import load_config
+from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.wikisource")
@@ -677,7 +677,7 @@ def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
     """
-    # load_config(ol_config)
+    load_config(ol_config)
 
     for ws_language in ws_languages:
         process_all_books(ws_language)
