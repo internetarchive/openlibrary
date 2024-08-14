@@ -247,8 +247,7 @@ def fetch_google_book(isbn: str) -> dict | None:
     return None
 
 
-# TODO: See clean_amazon_metadata_for_load(). This function needs modification.
-# See AZ_OL_MAP and do something similar here.
+# TODO: See AZ_OL_MAP and do something similar here.
 def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | None:
     """
     Returns a dict-edition record suitable for import via /api/import
@@ -297,7 +296,9 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
         if book.get("authors")
         else []
     )
-    # TODO: Needs promise time source record also, when applicable?
+    # result["identifiers"] = {
+    #     "google": [isbn_13]
+    # }  # Assuming so far is there is always an ISBN 13.
     result["source_records"] = [f"google_books:{google_books_identifier}"]
     # has publisher: https://www.googleapis.com/books/v1/volumes/YJ1uQwAACAAJ
     # does not have publisher: https://www.googleapis.com/books/v1/volumes?q=isbn:9785699350131
@@ -311,18 +312,15 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
     return result
 
 
-def process_isbn(isbn: str) -> None:
+def import_from_google_books(isbn: str) -> bool:
     """
-    Process ISBNs.
-    TODO: explain/process overview.
+    Import `isbn` from the Google Books API.
+
+    See https://developers.google.com/books.
     """
     if google_book_data := fetch_google_book(isbn):
         if google_book := process_google_book(google_book_data=google_book_data):
-            # TODO: this needs to be a different batch because it's Google.
-            # Also should it go into the cache first and the thing that reads from
-            # the cache handles everything that might be in there, regardless of
-            # source?
-            get_current_amazon_batch().add_items(
+            get_current_batch("google").add_items(
                 [
                     {
                         'ia_id': google_book['source_records'][0],
@@ -331,18 +329,23 @@ def process_isbn(isbn: str) -> None:
                     }
                 ]
             )
-    else:
-        # TODO: Try AMZ if nothing from Google Books? Or make async requests 'everywhere'?
-        pass
+
+            stats.increment("ol.affiliate.google.total_items_fetched")
+            return True
+
+        stats.increment("ol.affiliate.google.total_items_not_found")
+        return False
+
+    return False
 
 
-def get_current_amazon_batch() -> Batch:
+def get_current_batch(name: str) -> Batch:
     """
-    At startup, get the Amazon openlibrary.core.imports.Batch() for global use.
+    At startup, get the `name` (e.g. amz) openlibrary.core.imports.Batch() for global use.
     """
     global batch
     if not batch:
-        batch = Batch.find("amz") or Batch.new("amz")
+        batch = Batch.find(name) or Batch.new(name)
     assert batch
     return batch
 
@@ -489,7 +492,7 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
             "ol.affiliate.amazon.total_items_batched_for_import",
             n=len(books),
         )
-        get_current_amazon_batch().add_items(
+        get_current_batch(name="amz").add_items(
             [
                 {'ia_id': b['source_records'][0], 'status': 'staged', 'data': b}
                 for b in books
@@ -576,7 +579,7 @@ class Submit:
             - high_priority='true' or 'false': whether to wait and return result.
             - stage_import='true' or 'false': whether to stage result for import.
               By default this is 'true'. Setting this to 'false' is useful when you
-              want to return AMZ metadata but don't want to import; therefore it is
+              want to return AMZ metadata but don't want to import; therefore
               high_priority=true must also be 'true', or this returns nothing and
               stages nothing (unless the result is cached).
 
@@ -601,18 +604,26 @@ class Submit:
         if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
-        # TODO: Google Books can take ISBN 10 or ISBN 13.
-
-        b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
-        if not (key := isbn_10 or b_asin):
-            return json.dumps({"error": "rejected_isbn", "identifier": identifier})
-
         # Handle URL query parameters.
         input = web.input(high_priority=False, stage_import=True)
         priority = (
             Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
         )
         stage_import = input.get("stage_import") != "false"
+
+        b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
+        key = isbn_10 or b_asin
+
+        # Go straight to Google Books here if only isbn_13.
+        if not key and isbn_13 and priority == Priority.HIGH and stage_import:
+            return (
+                json.dumps({"status": "success"})
+                if import_from_google_books(isbn=isbn_13)
+                else json.dumps({"status": "not found"})
+            )
+
+        if not (key := isbn_10 or b_asin):
+            return json.dumps({"error": "rejected_isbn", "identifier": identifier})
 
         # Cache lookup by isbn_13 or b_asin. If there's a hit return the product to
         # the caller.
@@ -667,6 +678,12 @@ class Submit:
                         )
 
             stats.increment("ol.affiliate.amazon.total_items_not_found")
+
+            # Fall back to Google Books
+            # TODO: Any point in having option not to stage and just return metadata?
+            if isbn_13 and import_from_google_books(isbn=isbn_13):
+                return json.dumps({"status": "success"})
+
             return json.dumps({"status": "not found"})
 
         else:
