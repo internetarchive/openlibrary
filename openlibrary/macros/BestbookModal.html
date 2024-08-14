@@ -42,18 +42,18 @@ $if any(work.get_authors()):
             <p>$:author_names</p>
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
-            <label for="topic">Choose a topic</label>
+            <label for="topic">On what topic?</label>
             <select id="topic" name="topic">
               $for topic in topics:
                 <option value="$topic">$:topic</option>
             </select>
-            
+
             <input type="hidden" value="true" name="redir">
             <input type="hidden" value="$edition_key" name="edition_key">
 
-            <label for="comment">Comment</label>
-            <input name="comment" type="text" style="width: 200px;">
-            
+            <label for="comment">Why?</label>
+            <input name="comment" placeholder="comment" type="text" style="width: 200px;">
+
             <button class="bestbook__submit" type="submit">Submit</button>
           </form>
         </div>

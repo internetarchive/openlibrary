@@ -58,8 +58,8 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy  # See pyproject.toml for args
-        additional_dependencies:
-          - types-all
+        # additional_dependencies:
+        #   - types-all
 
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.16

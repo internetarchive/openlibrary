@@ -329,8 +329,9 @@ msgstr ""
 msgid "Thank you very much for improving that record!"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
-#: ShareModal.html book_providers/gutenberg_read_button.html
+#: BestbookModal.html BookPreview.html CreateListModal.html NotesModal.html
+#: ObservationsModal.html ShareModal.html
+#: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html covers/author_photo.html
@@ -1301,8 +1302,8 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: account/observations.html books/mybooks_breadcrumb_select.html mybooks.py
+#: observations/review_component.html
 msgid "Reviews"
 msgstr ""
 
@@ -3466,6 +3467,10 @@ msgid "Read:"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
+msgid "Give Best Book Award"
+msgstr ""
+
+#: check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
 msgstr ""
 
@@ -4771,12 +4776,18 @@ msgstr ""
 msgid "Add to List"
 msgstr ""
 
-#: observations/review_component.html
+#: EditionNavBar.html observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
 
+#: StarRatingsStats.html observations/review_component.html
+msgid "Rating"
+msgid_plural "Ratings"
+msgstr[0] ""
+msgstr[1] ""
+
 #: observations/review_component.html
-msgid "No community reviews have been submitted for this work."
+msgid "No reviews have been submitted for this work."
 msgstr ""
 
 #: observations/review_component.html
@@ -4785,6 +4796,22 @@ msgstr ""
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
+msgstr ""
+
+#: observations/review_component.html
+msgid "Awards"
+msgstr ""
+
+#: observations/review_component.html
+msgid "No bestbook awards have been awarded for this work."
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Give best book award"
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Log in to award this book"
 msgstr ""
 
 #: publishers/notfound.html
@@ -5476,15 +5503,15 @@ msgid "Book Details"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Published in"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "First Sentence"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Published in"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -5963,6 +5990,10 @@ msgid ""
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
+#: BestbookModal.html
+msgid "Best Book Award"
+msgstr ""
+
 #: BookByline.html
 #, python-format
 msgid "%(n)s other"
@@ -6235,8 +6266,8 @@ msgid "Clear my rating"
 msgstr ""
 
 #: StarRatingsStats.html
-msgid "Rating"
-msgid_plural "Ratings"
+msgid "Award"
+msgid_plural "Awards"
 msgstr[0] ""
 msgstr[1] ""
 
