@@ -18,6 +18,7 @@ from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 from infogami.utils.view import render_template  # used for its side effects
 from infogami.utils.context import context
+from infogami.utils.view import add_flash_message
 
 from openlibrary import accounts
 
