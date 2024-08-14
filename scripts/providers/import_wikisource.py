@@ -39,8 +39,8 @@ EXCLUDED_WIKIDATA_INSTANCES = [
 
 EXCLUDED_WIKIDATA_IDS = [
     "Q191067",  # articles
-    "Q49848",  # visual artwork
-    "Q4502142",  # films
+    "Q49848",  # documents
+    "Q4502142",  # visual artwork
     "Q1784733",  # correspondences
     "Q35760",  # essays
     "Q6087062",  # legal proceedings
