@@ -48,11 +48,12 @@ EXCLUDED_WIKIDATA_IDS = [
     "Q814441",  # certifications
     "Q861911",  # orations
     "Q2135540",  # legal actions
-    "Q133492", # letters
+    "Q133492",  # letters
 ]
 
 
 WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+
 
 def get_wd_item_id(string: str):
     split_url = string.split("/")
@@ -127,7 +128,7 @@ WHERE {
     @property
     def all_wikidata_category_urls(self) -> list[str]:
         return [self._sparql_url(c) for c in self._included_categories]
-    
+
     @property
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self._excluded_categories]
@@ -144,7 +145,7 @@ ws_languages = [
         ol_langcode="eng",
         category_prefix="Category",
         included_categories=["Validated_texts"],
-        excluded_categories=["Subpages", "Posters", "Memoranda", "PD-USGov"]
+        excluded_categories=["Subpages", "Posters", "Memoranda", "PD-USGov"],
     )
 ]
 
@@ -587,21 +588,24 @@ WHERE {
             for obj in data["results"]["bindings"]:
                 # Create book if not exists
                 if (
-                    (("title" not in obj
-                    or "value" not in obj["title"])
-                    and
-                    ("itemLabel" not in obj
-                    or "value" not in obj["itemLabel"]))
+                    (
+                        ("title" not in obj or "value" not in obj["title"])
+                        and ("itemLabel" not in obj or "value" not in obj["itemLabel"])
+                    )
                     # Don't include duplicate results that are just the same book but with its title in a different language
                     or (
-                        "title" in obj and
-                        "xml:lang" in obj["title"]
+                        "title" in obj
+                        and "xml:lang" in obj["title"]
                         and obj["title"]["xml:lang"] != cfg.langcode
                     )
                 ):
                     continue
 
-                title: str = obj["title"]["value"] if "title" in obj and "value" in obj["title"] else obj["itemLabel"]["value"]
+                title: str = (
+                    obj["title"]["value"]
+                    if "title" in obj and "value" in obj["title"]
+                    else obj["itemLabel"]["value"]
+                )
                 id = get_wd_item_id(obj["item"]["value"])
                 impt = imports[id]
                 impt.set_title(title)
