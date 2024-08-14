@@ -15,6 +15,23 @@ $ context = {
   $ "id": id
   $ }
 
+$# Render the subject input field
+$jsdef render_subject_field(name, data):
+    <div class="input">
+        $code:
+            subjects = []
+            for s in data:
+                subjects.append('"' + s + '"' if ',' in s else s)
+            subject_str = ', '.join(subjects)
+            rows = len(subject_str) // 95 + 1
+        <textarea id="about-$name" name="work--$name" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
+    </div>
+
+$jsdef render_subject_autocomplete_item(item):
+    <div class="ac_subject" title="$_('Select this subject')">
+        <span class="name">$item.name</span>
+    </div>
+
 $if reload_id:
   $ context['reloadId'] = reload_id
 
@@ -43,10 +60,10 @@ $if any(work.get_authors()):
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">On what topic?</label>
-            <select id="topic" name="topic">
-              $for topic in topics:
-                <option value="$topic">$:topic</option>
-            </select>
+            $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else []}
+            <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
+                $:render_subject_field(config['name'], config['data'])
+            </div>
 
             <input type="hidden" value="true" name="redir">
             <input type="hidden" value="$edition_key" name="edition_key">
