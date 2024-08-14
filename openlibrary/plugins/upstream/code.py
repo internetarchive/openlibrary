@@ -111,8 +111,15 @@ class bestbook(delegate.page):
         # print(f"\n \n {i.topic} \n \n")
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
+            add_flash_message("info", "Best book removed")
             r = response('Removed award')
 
+        elif bestbook_model.Bestbook.check_if_award_given(
+                submitter=username,
+                book_id=work_id,
+                topic=i.topic,
+            ):
+            add_flash_message("error", "Error: limit one award per book, and one award per topic.")
         else:
             bestbook_model.Bestbook.add(
                 submitter=username,
@@ -122,6 +129,7 @@ class bestbook(delegate.page):
                 topic=i.topic
             )
             print("\n \n Awarded the book \n \n")
+            add_flash_message("info", "Best book award added")
             r = response('Awarded the book')
 
         if i.redir:
