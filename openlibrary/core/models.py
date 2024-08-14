@@ -587,6 +587,12 @@ class Work(Thing):
 
         return awards if awards else []
 
+    def check_if_user_awarded(self, submitter) -> bool:
+        if not self.key:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        return Bestbook.check_if_award_given(submitter, work_id)
+
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.

@@ -80,7 +80,7 @@ class Bestbook(db.CommonExtras):
         return list(result) if result else []
 
     @classmethod
-    def check_if_award_given(cls, submitter, book_id, topic) -> bool:
+    def check_if_award_given(cls, submitter, book_id, topic=None) -> bool:
         """This function checks if the award is already given to a book or topic by pattron
 
         Args:
@@ -102,8 +102,14 @@ class Bestbook(db.CommonExtras):
             SELECT
                 COUNT(*)
             FROM bestbooks
-            WHERE submitter=$submitter AND (book_id=$book_id OR topic=$topic)
+            WHERE submitter=$submitter AND (book_id=$book_id
         """
+
+        if topic:
+            query += " OR topic=$topic)"
+        else:
+            query += ")"
+
         return oldb.query(query, vars=data)[0]['count'] > 0
 
     @classmethod

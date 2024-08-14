@@ -1,4 +1,4 @@
-$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None)
+$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None, work=None)
 
 $# work_key : str : The work key
 $# read_status : int | None : Number representing which shelf this work is on.
@@ -14,6 +14,12 @@ $# event_id : str | None : ID of record for this event
 $ work_olid = work_key.split('/')[-1]
 $ modal_id = 'check-in-dialog-%s' % work_olid
 $ prompt_id = 'prompt-%s' % work_olid
+$ awarded = False
+$ submitter = ""
+
+$if ctx.user:
+  $ submitter = ctx.user.key.split('/')[-1]
+  $ awarded = work.check_if_user_awarded(submitter)
 
 <div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
   <span class="date-display">
@@ -26,7 +32,7 @@ $ prompt_id = 'prompt-%s' % work_olid
 $ page_url = request.home
 $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
-  $if ctx.path[1:7] != "search":
+  $if ctx.path[1:7] != "search" and not awarded:
     <a href="#" class="award-link">$_("Give Best Book Award")</a>
     <hr>
   <span class="prompt-copy">$_("When did you finish this book?")</span>
