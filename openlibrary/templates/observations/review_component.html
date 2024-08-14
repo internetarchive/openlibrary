@@ -7,7 +7,8 @@ $else:
 
 $ d = {}
 $ awards = []
-$if len(work.get_awards()) > 0:
+$ num_awards = len(work.get_awards())
+$if num_awards > 0:
   $ awards = work.get_awards()
   $for award in awards:
     $if award.topic in d:
@@ -77,7 +78,7 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
   $# awards section here
 
   <div class="awards-div">
-    <h3 class="reviews-subtitle">$_('Awards')</h3>
+    <h3 class="reviews-subtitle">$_('Awards') (🏆 $:num_awards)</h3>
     $if len(d) > 0:
       <div class="awards">
       $for topic, count in d.items():
