@@ -1591,10 +1591,15 @@ class TestNormalizeImportRecord:
                     'title': 'first title',
                     'source_records': ['ia:someid'],
                     'publishers': ['????'],
-                    'authors': [{'name': '????'}],
-                    'publish_date': '????',
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
                 },
-                {'title': 'first title', 'source_records': ['ia:someid']},
+                {
+                    'title': 'first title',
+                    'source_records': ['ia:someid'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
             ),
             (
                 {
