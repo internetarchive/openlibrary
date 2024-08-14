@@ -472,17 +472,27 @@ jQuery(function () {
             })
     }
 
-    // Add functionality for librarian merge request table:
-    const librarianQueue = document.querySelector('.librarian-queue-wrapper')
+    // Function to initialize the librarian merge request table
+function initializeLibrarianQueue() {
+    const librarianQueue = document.querySelector('.librarian-queue-wrapper');
 
-    if (librarianQueue) {
-        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
-            .then(module => {
-                if (librarianQueue) {
-                    module.initLibrarianQueue(librarianQueue)
-                }
-            })
-    }
+    if (!librarianQueue) return;
+
+    // Dynamically import the merge request table module
+    import(/* webpackChunkName: "merge-request-table" */ './merge-request-table')
+        .then(({ initLibrarianQueue }) => {
+            if (typeof initLibrarianQueue === 'function') {
+                initLibrarianQueue(librarianQueue);
+            } else {
+                console.error("initLibrarianQueue is not a function");
+            }
+        })
+        .catch(error => console.error("Failed to load merge-request-table module:", error));
+}
+
+// Call the initialization function
+initializeLibrarianQueue();
+
 
     // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container')
