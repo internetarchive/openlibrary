@@ -507,7 +507,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
 
         item_ids = []
 
-        for obj in [d for d in data["results"]["bindings"] if "item" in obj and "value" in obj["item"]]:
+        for obj in [d for d in data["results"]["bindings"] if "item" in d and "value" in d["item"]]:
 
             item_id = get_wd_item_id(obj["item"]["value"])
             item_ids.append(item_id)
