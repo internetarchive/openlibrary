@@ -403,7 +403,10 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
         for page in results.values():
             page_identifier = quote(page["title"].replace(' ', '_'))
 
-            book = next((book for book in imports.values() if book.label == page_identifier), None)
+            book = next(
+                (book for book in imports.values() if book.label == page_identifier),
+                None,
+            )
             if book:
                 # MediaWiki"s API paginates through pages, page categories, and page images separately.
                 # This means that when you hit this API requesting both revision (infobox) and image data,
@@ -507,7 +510,11 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
 
         item_ids = []
 
-        for obj in [d for d in data["results"]["bindings"] if "item" in d and "value" in d["item"]]:
+        for obj in [
+            d
+            for d in data["results"]["bindings"]
+            if "item" in d and "value" in d["item"]
+        ]:
 
             item_id = get_wd_item_id(obj["item"]["value"])
             item_ids.append(item_id)
