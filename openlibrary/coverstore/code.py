@@ -277,14 +277,6 @@ class cover:
             url = zipview_url_from_id(value, size)
             return web.found(url)
 
-        # This chunk is unique:
-        #   - they are stores as both .zip and .tar files (for now)
-        #   - the naming scheme is the older scheme used by .tar files
-        #     (eg item `l_covers_0008` instead of `olcovers9`
-        #   - the db is not yet updated with their correct URLs
-        if 8_820_000 > value >= 8_000_000:
-            return web.found(old_zipview_url_from_id(value, size))
-
         d = self.get_details(value, size.lower())
         if not d:
             return notfound()
@@ -307,7 +299,7 @@ class cover:
         try:
             from openlibrary.coverstore import archive
 
-            if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
+            if d.id >= 8_000_000 and d.uploaded:
                 return web.found(
                     archive.Cover.get_cover_url(
                         d.id, size=size, protocol=web.ctx.protocol
