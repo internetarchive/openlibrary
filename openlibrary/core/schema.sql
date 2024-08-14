@@ -117,7 +117,7 @@ CREATE TABLE bestbooks (
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
-)
+);
 
 CREATE INDEX bestbooks_id ON bestbooks (submitter);
 
