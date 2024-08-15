@@ -38,7 +38,9 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-        return user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
+        return user and (
+            user.is_librarian() or user.is_super_librarian() or user.is_admin()
+        )
 
     def POST(self):
         i = web.input(
