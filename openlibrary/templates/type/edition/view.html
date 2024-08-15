@@ -457,7 +457,8 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               </div>
           $if work:
             $if not work.excerpts and work.first_sentence:
-              <h4>$_("First Sentence")</h4>
+
+              <h4>$_("First  Sentence")</h4>
               <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
             $if work.description and work.description != overview_desc:
