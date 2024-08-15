@@ -35,16 +35,16 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
 
 EXCLUDED_WIKIDATA_INSTANCES = [
     "Q386724",  # raw works
-    "Q5185279", # poem
-    "Q10870555", # reports
-    "Q49848", # documents
-    "Q47461344", # written work - this is meant to be a parent class of documents, manuscripts, etc, things that aren't books
-    "Q697279", # petitions
-    "Q660651", # memoranda
-    "Q327611", # flyers
-    "Q2085515", # minutes
-    "Q190399", # pamphlets
-    "Q15916459", # pleas
+    "Q5185279",  # poem
+    "Q10870555",  # reports
+    "Q49848",  # documents
+    "Q47461344",  # written work - this is meant to be a parent class of documents, manuscripts, etc, things that aren't books
+    "Q697279",  # petitions
+    "Q660651",  # memoranda
+    "Q327611",  # flyers
+    "Q2085515",  # minutes
+    "Q190399",  # pamphlets
+    "Q15916459",  # pleas
 ]
 
 EXCLUDED_WIKIDATA_SUBCLASSES = [
@@ -58,23 +58,23 @@ EXCLUDED_WIKIDATA_SUBCLASSES = [
     "Q861911",  # orations
     "Q2135540",  # legal actions
     "Q133492",  # letters
-    "Q3150005", # legal instruments
-    "Q18120378", # lab measurements
-    "Q1572600", # proclamations
-    "Q820655", # statutes
-    "Q2571972", # decrees
-    "Q253623", # patents
-    "Q108163", # propositions
-    "Q628523", # messages
-    "Q5962346", # classification scheme
+    "Q3150005",  # legal instruments
+    "Q18120378",  # lab measurements
+    "Q1572600",  # proclamations
+    "Q820655",  # statutes
+    "Q2571972",  # decrees
+    "Q253623",  # patents
+    "Q108163",  # propositions
+    "Q628523",  # messages
+    "Q5962346",  # classification scheme
 ]
 
 EXCLUDED_WIKIDATA_GENRES = [
-    "Q603773", # lectures
-    "Q861911", # orations
-    "Q35760", # essays
-    "Q60797", # sermons
-    "Q133492", # letters
+    "Q603773",  # lectures
+    "Q861911",  # orations
+    "Q35760",  # essays
+    "Q60797",  # sermons
+    "Q133492",  # letters
 ]
 
 WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -178,7 +178,26 @@ ws_languages = [
         ol_langcode="eng",
         category_prefix="Category",
         included_categories=["Validated_texts"],
-        excluded_categories=["Subpages", "Posters", "Memoranda", "Legislation-CAGov", "Constitutional documents", "National constitutions", "Manuscripts", "Political tracts", "Proclamations", "Declarations of independence", "Pamphlets", "Forms of government", "PD-USGov", "PD-CAGov", "PD-UKGov", "Early modern speeches", "Sermons", "PD-EdictGov"],
+        excluded_categories=[
+            "Subpages",
+            "Posters",
+            "Memoranda",
+            "Legislation-CAGov",
+            "Constitutional documents",
+            "National constitutions",
+            "Manuscripts",
+            "Political tracts",
+            "Proclamations",
+            "Declarations of independence",
+            "Pamphlets",
+            "Forms of government",
+            "PD-USGov",
+            "PD-CAGov",
+            "PD-UKGov",
+            "Early modern speeches",
+            "Sermons",
+            "PD-EdictGov",
+        ],
     )
 ]
 
@@ -626,7 +645,12 @@ WHERE {
 
             ids_for_wikisource_api = []
 
-            results = [o for o in data["results"]["bindings"] if "item" in o and "value" in o["item"] and not (
+            results = [
+                o
+                for o in data["results"]["bindings"]
+                if "item" in o
+                and "value" in o["item"]
+                and not (
                     (
                         ("title" not in obj or "value" not in obj["title"])
                         and ("itemLabel" not in obj or "value" not in obj["itemLabel"])
@@ -637,7 +661,8 @@ WHERE {
                         and "xml:lang" in obj["title"]
                         and obj["title"]["xml:lang"] != cfg.langcode
                     )
-                )]
+                )
+            ]
 
             for obj in results:
                 title: str = (
@@ -701,7 +726,11 @@ WHERE {
             for obj in results:
                 id = get_wd_item_id(obj["item"]["value"])
                 impt = imports[id]
-                if impt.imagename is None and "imageUrl" in obj and "value" in obj["imageUrl"]:
+                if (
+                    impt.imagename is None
+                    and "imageUrl" in obj
+                    and "value" in obj["imageUrl"]
+                ):
                     impt.set_imagename(obj["imageUrl"]["value"])
                     impt.set_cover(obj["imageUrl"]["value"])
         break
