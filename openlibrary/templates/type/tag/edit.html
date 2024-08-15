@@ -13,13 +13,13 @@ $putctx("robots", "noindex,nofollow")
 
 <div id="contentBody">
 
-    <form id="edittag" name="edit" method="post" action="" class="olform validate">
+    <form id="edittag" name="edit" method="post" action="" class="olform">
         <div class="formElement">
             <div class="label">
                 <label for="name">$_("Label")</label>*<span class="tip">$_("Required field")</span>
             </div>
             <div class="input">
-                <input type="text" name="name" id="tag_name" value="$page.name" />
+                <input type="text" name="name" id="tag_name" value="$page.name" required />
             </div>
         </div>
 
