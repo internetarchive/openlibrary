@@ -102,15 +102,6 @@ class addtag(delegate.page):
         raise safe_seeother(key)
 
 
-# remove existing definitions of addtag
-delegate.pages.pop('/addtag', None)
-
-
-class addtag(delegate.page):  # type: ignore[no-redef] # noqa: F811
-    def GET(self):
-        raise web.redirect("/tag/add")
-
-
 class tag_edit(delegate.page):
     path = r"(/tags/OL\d+T)/edit"
 
