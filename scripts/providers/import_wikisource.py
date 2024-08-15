@@ -35,11 +35,20 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
 
 EXCLUDED_WIKIDATA_INSTANCES = [
     "Q386724",  # raw works
+    "Q5185279", # poem
+    "Q10870555", # reports
+    "Q49848", # documents
+    "Q47461344", # written work - this is meant to be a parent class of documents, manuscripts, etc, things that aren't books
+    "Q697279", # petitions
+    "Q660651", # memoranda
+    "Q327611", # flyers
+    "Q2085515", # minutes
+    "Q190399", # pamphlets
+    "Q15916459", # pleas
 ]
 
-EXCLUDED_WIKIDATA_IDS = [
+EXCLUDED_WIKIDATA_SUBCLASSES = [
     "Q191067",  # articles
-    "Q49848",  # documents
     "Q4502142",  # visual artwork
     "Q1784733",  # correspondences
     "Q35760",  # essays
@@ -49,8 +58,24 @@ EXCLUDED_WIKIDATA_IDS = [
     "Q861911",  # orations
     "Q2135540",  # legal actions
     "Q133492",  # letters
+    "Q3150005", # legal instruments
+    "Q18120378", # lab measurements
+    "Q1572600", # proclamations
+    "Q820655", # statutes
+    "Q2571972", # decrees
+    "Q253623", # patents
+    "Q108163", # propositions
+    "Q628523", # messages
+    "Q5962346", # classification scheme
 ]
 
+EXCLUDED_WIKIDATA_GENRES = [
+    "Q603773", # lectures
+    "Q861911", # orations
+    "Q35760", # essays
+    "Q60797", # sermons
+    "Q133492", # letters
+]
 
 WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
@@ -95,21 +120,29 @@ WHERE {
             + '''".
     ?page wikibase:apiOutput mwapi:title.
     ?item wikibase:apiOutputItem mwapi:item .
-    ?item wdt:P31/wdt:P279* ?instanceOf.'''
+  }
+
+  ?item wdt:P31/wdt:P279* ?instanceOf.
+  '''
             + ''.join(
                 [
-                    f"FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n    "
-                    for type in EXCLUDED_WIKIDATA_IDS
+                    f"FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n  "
+                    for type in EXCLUDED_WIKIDATA_SUBCLASSES
                 ]
             )
             + ''.join(
                 [
-                    f"FILTER NOT EXISTS {{ ?item wdt:P31 wd:{type}. }}\n    "
+                    f"FILTER NOT EXISTS {{ ?item wdt:P31 wd:{type}. }}\n  "
                     for type in EXCLUDED_WIKIDATA_INSTANCES
                 ]
             )
+            + ''.join(
+                [
+                    f"FILTER NOT EXISTS {{ ?item wdt:P136 wd:{type}. }}\n  "
+                    for type in EXCLUDED_WIKIDATA_GENRES
+                ]
+            )
             + '''
-  }
   FILTER (!CONTAINS(STR(?page), "/"))
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
             + self.langcode
@@ -145,7 +178,7 @@ ws_languages = [
         ol_langcode="eng",
         category_prefix="Category",
         included_categories=["Validated_texts"],
-        excluded_categories=["Subpages", "Posters", "Memoranda", "PD-USGov"],
+        excluded_categories=["Subpages", "Posters", "Memoranda", "Legislation-CAGov", "Constitutional documents", "National constitutions", "Manuscripts", "Political tracts", "Proclamations", "Declarations of independence", "Pamphlets", "Forms of government", "PD-USGov", "PD-CAGov", "PD-UKGov", "Early modern speeches", "Sermons", "PD-EdictGov"],
     )
 ]
 
@@ -340,14 +373,15 @@ def update_record_with_wikisource_metadata(
         except ValueError:
             pass
 
-    try:
-        author = template.get("author").value.strip()
-        if author != "":
-            authors = re.split(r"(?:\sand\s|,\s?)", author)
-            if len(authors) > 0:
-                book.add_authors(authors)
-    except ValueError:
-        pass
+    if len(book.authors) == 0:
+        try:
+            author = template.get("author").value.strip()
+            if author != "":
+                authors = re.split(r"(?:\sand\s|,\s?)", author)
+                if len(authors) > 0:
+                    book.add_authors(authors)
+        except ValueError:
+            pass
 
     if book.description is None:
         try:
@@ -547,6 +581,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
   ?date
   ?isbn
   ?subjectLabel
+  ?imageUrl
 WHERE {
   VALUES ?item {'''
                 + ''.join([f"wd:{id}\n    " for id in item_ids[start:end]])
@@ -558,12 +593,13 @@ WHERE {
   OPTIONAL { ?item wdt:P577 ?date. }
   OPTIONAL { ?item wdt:P212 ?isbn. }
   OPTIONAL { ?item wdt:P921 ?subject. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", REPLACE(STR(?image), "^.*[/#]", "")) AS ?imageUrl)
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
                 + cfg.langcode
                 + '''". }
 }'''
             )
-            # TODO: Get page from original data
             # Get most metadata from wikidata
             metadata_url = update_url_with_params(
                 WIKIDATA_API_URL, {"format": "json", "query": query}
@@ -590,9 +626,7 @@ WHERE {
 
             ids_for_wikisource_api = []
 
-            for obj in data["results"]["bindings"]:
-                # Create book if not exists
-                if (
+            results = [o for o in data["results"]["bindings"] if "item" in o and "value" in o["item"] and not (
                     (
                         ("title" not in obj or "value" not in obj["title"])
                         and ("itemLabel" not in obj or "value" not in obj["itemLabel"])
@@ -603,9 +637,9 @@ WHERE {
                         and "xml:lang" in obj["title"]
                         and obj["title"]["xml:lang"] != cfg.langcode
                     )
-                ):
-                    continue
+                )]
 
+            for obj in results:
                 title: str = (
                     obj["title"]["value"]
                     if "title" in obj and "value" in obj["title"]
@@ -662,6 +696,14 @@ WHERE {
                     },
                 )
                 scrape_wikisource_api(ws_api_url, cfg, imports)
+
+            # Use wikidata image URL if it exists and wikisource didn't return one.
+            for obj in results:
+                id = get_wd_item_id(obj["item"]["value"])
+                impt = imports[id]
+                if impt.imagename is None and "imageUrl" in obj and "value" in obj["imageUrl"]:
+                    impt.set_imagename(obj["imageUrl"]["value"])
+                    impt.set_cover(obj["imageUrl"]["value"])
         break
 
 
