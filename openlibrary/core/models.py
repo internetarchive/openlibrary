@@ -506,9 +506,10 @@ class Work(Thing):
         rating = Ratings.get_users_rating_for_work(username, work_id)
         return rating
 
-    def get_patrons_who_also_read(self):
+    def get_patrons_who_also_read(self, limit: int = 15):
         key = self.key.split('/')[-1][2:-1]
-        return Bookshelves.patrons_who_also_read(key)
+        print("get_patrons_who_also_read firing", flush=True)
+        return Bookshelves.patrons_who_also_read(key, limit)
 
     def get_users_read_status(self, username):
         if not username:
