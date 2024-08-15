@@ -6816,6 +6816,10 @@ msgid "Source records"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "First  Sentence"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Work Description"
 msgstr ""
 
