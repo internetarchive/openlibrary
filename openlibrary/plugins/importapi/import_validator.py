@@ -15,21 +15,21 @@ class Author(BaseModel):
     name: NonEmptyStr
 
 
-class CompleteBookPlus(BaseModel):
+class CompleteBook(BaseModel):
     """
-    The model for a complete book, plus source_records and publishers.
+    The model for a complete book, plus source_records.
 
-    A complete book has title, authors, and publish_date. See #9440.
+    A complete book has title, authors, and publish_date, as well as
+    source_records. See #9440.
     """
 
     title: NonEmptyStr
     source_records: NonEmptyList[NonEmptyStr]
     authors: NonEmptyList[Author]
-    publishers: NonEmptyList[NonEmptyStr]
     publish_date: NonEmptyStr
 
 
-class StrongIdentifierBookPlus(BaseModel):
+class StrongIdentifierBook(BaseModel):
     """
     The model for a book with a title, strong identifier, plus source_records.
 
@@ -68,13 +68,13 @@ class import_validator:
         errors = []
 
         try:
-            CompleteBookPlus.model_validate(data)
+            CompleteBook.model_validate(data)
             return True
         except ValidationError as e:
             errors.append(e)
 
         try:
-            StrongIdentifierBookPlus.model_validate(data)
+            StrongIdentifierBook.model_validate(data)
             return True
         except ValidationError as e:
             errors.append(e)
