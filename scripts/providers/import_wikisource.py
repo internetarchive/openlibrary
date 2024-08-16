@@ -11,7 +11,7 @@ import time
 import json
 import os
 
-from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, quote
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, quote, unquote
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
 # and the latter doesn't have a method to get a template prop by key.
@@ -325,8 +325,7 @@ class BookRecord:
         if len(self.publishers) > 0:
             output["publishers"] = self.publishers
         return output
-
-
+    
 def update_record_with_wikisource_metadata(
     book: BookRecord, new_data: dict, image_titles: list[str]
 ):
@@ -350,17 +349,16 @@ def update_record_with_wikisource_metadata(
                 image_titles.append(imagename)
 
     # Parse other params from the infobox
+    revision_data = [d for d in new_data["revisions"]] if "revisions" in new_data else []
     infobox = next(
         (
             d["slots"]["main"]["*"]
-            for d in new_data["revisions"]
-            if "revisions" in new_data
-            and "slots" in d
+            for d in revision_data
+            if "slots" in d
             and "main" in d["slots"]
             and "*" in d["slots"]["main"]
         ),
-        None,
-    )
+        None)
     # Exit if infobox doesn't exist
     if infobox is None:
         return
@@ -711,7 +709,8 @@ WHERE {
                     cfg.wikisource_api_url,
                     {
                         "action": "query",
-                        "titles": "|".join(ids_for_wikisource_api[wsstart:wsend]),
+                        # these are already urlencoded, decode them before they get urlencoded again
+                        "titles": "|".join([unquote(id) for id in ids_for_wikisource_api[wsstart:wsend]]), 
                         # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page"s infobox.
                         "prop": "categories|revisions|images",
                         "rvprop": "content",
