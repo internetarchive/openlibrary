@@ -33,6 +33,11 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
     return urlunparse(url_parts)
 
 
+def extract_year(date_string: str) -> str | None:
+    match = re.match(r'(\d{4})', date_string)
+    return match.group(1) if match else None
+
+
 EXCLUDED_WIKIDATA_INSTANCES = [
     "Q386724",  # raw works
     "Q5185279",  # poem
@@ -214,9 +219,6 @@ class BookRecord:
     def set_edition(self, edition: str | None) -> None:
         self.edition = edition
 
-    def set_isbn(self, isbn: str | None) -> None:
-        self.isbn = isbn
-
     def add_authors(self, authors: list[str]) -> None:
         existing_fullnames = [author.full_name for author in self.authors]
         incoming_names = [HumanName(a) for a in authors]
@@ -270,7 +272,6 @@ class BookRecord:
         description: str | None = None,
         subjects: list[str] | None = None,
         cover: str | None = None,
-        isbn: str | None = None,
         publishers: list[str] | None = None,
         imagename: str | None = None,
         categories: list[str] | None = None,
@@ -289,7 +290,6 @@ class BookRecord:
         if subjects is not None:
             self.add_subjects(subjects)
         self.set_cover(cover)
-        self.set_isbn(isbn)
         if publishers is not None:
             self.add_publishers(publishers)
         self.set_imagename(imagename)
@@ -309,25 +309,19 @@ class BookRecord:
         if self.edition is not None:
             output["edition_name"] = self.edition
         if len(self.authors) > 0:
-            output["authors"] = (
-                [
-                    {
-                        "name": BookRecord._format_author(author),
-                        "personal_name": BookRecord._format_author(author),
-                    }
-                    for author in self.authors
-                ],
-            )
+            output["authors"] = [
+                {
+                    "name": BookRecord._format_author(author),
+                    "personal_name": BookRecord._format_author(author),
+                }
+                for author in self.authors
+            ]
         if self.description is not None:
             output["description"] = self.description
         if len(self.subjects) > 0:
             output["subjects"] = self.subjects
         if self.cover is not None:
             output["cover"] = self.cover
-        # is this the right property name?
-        # what other properties should we be getting?
-        if self.isbn is not None:
-            output["isbn"] = self.isbn
         if len(self.publishers) > 0:
             output["publishers"] = self.publishers
         return output
@@ -389,9 +383,7 @@ def update_record_with_wikisource_metadata(
     if book.publish_date is None:
         try:
             yr = template.get("year").value.strip()
-            match = re.search(r"\d{4}", yr)
-            if match:
-                book.set_publish_date(match.group(0))
+            book.set_publish_date(extract_year(yr))
         except ValueError:
             pass
 
@@ -594,16 +586,19 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             # "Page" (the wikisource page ID) will sometimes contain extra info like the year of publishing, etc,
             # and is used to hyperlink back to Wikisource.
             # "Title" on the other hand is the actual title of the work that we would call it on OL.
+            # Publisher data is weird. This book https://www.wikidata.org/wiki/Q51423720 for example 
+            # returns a weird URL for publisherLabel if retrieved with wdt:P123 instead of p:P123
+            # but it has a qualifier property, pq:P1932, which contains the raw text (non wikidata item) publisher name if it exists.
             query = (
                 '''SELECT DISTINCT
   ?item
   ?itemLabel
   ?title
   ?authorLabel
-  ?publisherLabel
+  ?publisher
+  ?publisherName
   ?editionLabel
   ?date
-  ?isbn
   ?subjectLabel
   ?imageUrl
 WHERE {
@@ -612,10 +607,13 @@ WHERE {
                 + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
   OPTIONAL { ?item wdt:P50 ?author. }
-  OPTIONAL { ?item wdt:P123 ?publisher. }
+  OPTIONAL {
+    ?item p:P123 ?publisherStatement.
+    ?publisherStatement ps:P123 ?publisher.
+    ?publisherStatement pq:P1932 ?publisherName.
+  }
   OPTIONAL { ?item wdt:P393 ?edition. }
   OPTIONAL { ?item wdt:P577 ?date. }
-  OPTIONAL { ?item wdt:P212 ?isbn. }
   OPTIONAL { ?item wdt:P921 ?subject. }
   OPTIONAL { ?item wdt:P18 ?image. }
   BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", REPLACE(STR(?image), "^.*[/#]", "")) AS ?imageUrl)
@@ -685,8 +683,8 @@ WHERE {
                     impt.add_authors([obj["authorLabel"]["value"]])
 
                 # Publisher
-                if "publisherLabel" in obj and "value" in obj["publisherLabel"]:
-                    impt.add_publishers([obj["publisherLabel"]["value"]])
+                if ("publisher" in obj and "value" in obj["publisher"]) or ("publisherName" in obj and "value" in obj["publisherName"]):
+                    impt.add_publishers([obj["publisherName"]["value"] if "publisherLabel" not in obj else obj["publisherLabel"]["value"]])
 
                 # Edition
                 if "editionLabel" in obj and "value" in obj["editionLabel"]:
@@ -699,8 +697,8 @@ WHERE {
                 # Date
                 if "date" in obj and "value" in obj["date"]:
                     impt.set_publish_date(
-                        obj["date"]["value"]
-                    )  # does this timestamp need to be formatted?
+                        extract_year(obj["date"]["value"])
+                    )
 
             # For some reason, querying 50 titles can sometimes bring back more than 50 results,
             # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
