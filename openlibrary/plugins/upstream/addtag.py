@@ -1,26 +1,19 @@
 """Handlers for adding and editing tags."""
 
 import web
-import json
 
 from typing import NoReturn
 
 from infogami.core.db import ValidationException
-from infogami.infobase import common
 from infogami.utils.view import add_flash_message, public
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.i18n import gettext as _
-import logging
-
+from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
-
-logger = logging.getLogger("openlibrary.tag")
 
 
 @public
@@ -33,18 +26,21 @@ class addtag(delegate.page):
 
     def GET(self):
         """Main user interface for adding a tag to Open Library."""
+        if not (patron := get_current_user()):
+            raise web.seeother(f'/account/login?redirect={self.path}')
 
-        if not self.has_permission():
-            raise common.PermissionDenied(message='Permission denied to add tags')
+        if not self.has_permission(patron):
+            raise web.unauthorized(message='Permission denied to add tags')
 
         return render_template('tag/add', recaptcha=get_recaptcha())
 
-    def has_permission(self) -> bool:
+    def has_permission(self, user) -> bool:
         """
         Can a tag be added?
         """
-        user = web.ctx.site.get_user()
-        return user and (user.is_super_librarian())
+        return user and (
+            user.is_librarian() or user.is_super_librarian() or user.is_admin()
+        )
 
     def POST(self):
         i = web.input(
@@ -59,14 +55,11 @@ class addtag(delegate.page):
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
 
-        if not web.ctx.site.get_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate():
-                return render_template(
-                    'message.html',
-                    'Recaptcha solution was incorrect',
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
+        if not (patron := get_current_user()):
+            raise web.seeother(f'/account/login?redirect={self.path}')
+
+        if not self.has_permission(patron):
+            raise web.unauthorized(message='Permission denied to add tags')
 
         i = utils.unflatten(i)
         match = self.find_match(i)  # returns None or Tag (if match found)
@@ -100,15 +93,6 @@ class addtag(delegate.page):
         """
         key = Tag.create(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
         raise safe_seeother(key)
-
-
-# remove existing definitions of addtag
-delegate.pages.pop('/addtag', None)
-
-
-class addtag(delegate.page):  # type: ignore[no-redef] # noqa: F811
-    def GET(self):
-        raise web.redirect("/tag/add")
 
 
 class tag_edit(delegate.page):
