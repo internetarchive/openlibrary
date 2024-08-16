@@ -7,6 +7,17 @@ $# :param str reload_id: Reference to UI component that will update when observa
 
 $ topics = work.get_subjects()
 $ username = ctx.user and ctx.user.key.split('/')[-1]
+$ awarded = False
+$ award = {}
+
+$ default_topic = ""
+$ default_comment = ""
+
+$if username and work.check_if_user_awarded(username):
+  $ awarded = True
+  $ award = work.get_award_by_submitter(username)
+  $ default_topic = award['topic']
+  $ default_comment = award['comment']
 
 $# The following data is accessed via JS:
 $ context = {
@@ -60,7 +71,7 @@ $if any(work.get_authors()):
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">On what topic?</label>
-            $ config = {'name': 'topic', 'facet': 'subject', 'data': []}
+            $ config = {'name': 'topic', 'facet': 'subject', 'data': [default_topic]}
             <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
                 $:render_subject_field(config['name'], config['data'])
             </div>
@@ -69,7 +80,7 @@ $if any(work.get_authors()):
             <input type="hidden" value="$edition_key" name="edition_key">
 
             <label for="comment">Why?</label>
-            <input name="comment" placeholder="comment" type="text">
+            <input name="comment" placeholder="comment" type="text" value="$default_comment">
             <button class="bestbook__submit" type="submit">Submit</button>
           </form>
         </div>

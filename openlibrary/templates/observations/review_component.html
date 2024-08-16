@@ -96,11 +96,11 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
     <div class="review-cta">
       $if ctx.user:
         $if awarded:
-          <div class="stats-link">
-            <a class="observations-modal-link remove-award" href="/account/login?redirect=$(key)#reader-observations">$_('Update Bestbook Award')</a>
-          </div>
+          $ link_text = _('+ Update Bestbook Award')
+          $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
         $else:
-          $ link_text = _('+ Update bestbook award')
+          $ link_text = _('+ Give Bestbook Award')
           $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
           $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
       $else:
