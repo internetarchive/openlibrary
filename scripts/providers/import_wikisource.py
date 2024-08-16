@@ -351,7 +351,7 @@ def update_record_with_wikisource_metadata(
 
     # Parse other params from the infobox
     revision_data = (
-        [d for d in new_data["revisions"]] if "revisions" in new_data else []
+        new_data["revisions"] if "revisions" in new_data else []
     )
     infobox = next(
         (
