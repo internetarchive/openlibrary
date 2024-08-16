@@ -91,6 +91,11 @@ $code:
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
         </span>
         <span class="resultPublisher">
+          $if doc.get('ratings_count') and doc.get('ratings_average') and doc.get('want_to_read_count'):
+            <span class="publishedYear--ratings">
+              $ ratings_label = _('rating') if doc.ratings_count == 1 else _('ratings')
+              $_('%(ratings_average)s (%(ratings_count)s %(ratings_label)s) — %(want_to_read)s Want to read', ratings_average=doc.ratings_average, ratings_count=doc.ratings_count, ratings_label=ratings_label, want_to_read=doc.want_to_read_count)
+            </span>
           $if doc.get('first_publish_year'):
             <span class="publishedYear">
               $_('First published in %(year)s', year=doc.first_publish_year)
