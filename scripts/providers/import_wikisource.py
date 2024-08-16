@@ -358,7 +358,10 @@ def update_record_with_wikisource_metadata(
         (
             d["slots"]["main"]["*"]
             for d in new_data["revisions"]
-            if "revisions" in new_data and "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]
+            if "revisions" in new_data
+            and "slots" in d
+            and "main" in d["slots"]
+            and "*" in d["slots"]["main"]
         ),
         None,
     )
