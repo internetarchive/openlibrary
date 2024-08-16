@@ -37,6 +37,7 @@ def extract_year(date_string: str) -> str | None:
     match = re.match(r'(\d{4})', date_string)
     return match.group(1) if match else None
 
+
 # Exclude Wikidata results which are direct instances of these things.
 EXCLUDED_WIKIDATA_INSTANCES = [
     "Q386724",  # raw works
@@ -341,7 +342,6 @@ def fetch_until_successful(url: str) -> dict:
                 time.sleep(10)
             else:
                 raise SystemExit(error)
-    
 
 
 def update_record_with_wikisource_metadata(
@@ -549,9 +549,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
     item_ids = []
 
     for obj in [
-        d
-        for d in data["results"]["bindings"]
-        if "item" in d and "value" in d["item"]
+        d for d in data["results"]["bindings"] if "item" in d and "value" in d["item"]
     ]:
 
         item_id = get_wd_item_id(obj["item"]["value"])
@@ -581,7 +579,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
         # returns a weird URL for publisherLabel if retrieved with wdt:P123 instead of p:P123
         # but it has a qualifier property, pq:P1932, which contains the raw text (non wikidata item) publisher name if it exists.
         query = (
-                '''SELECT DISTINCT
+            '''SELECT DISTINCT
   ?item
   ?itemLabel
   ?title
@@ -594,8 +592,8 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
   ?imageUrl
 WHERE {
   VALUES ?item {'''
-                + ''.join([f"wd:{id}\n    " for id in item_ids[start:end]])
-                + '''}
+            + ''.join([f"wd:{id}\n    " for id in item_ids[start:end]])
+            + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
   OPTIONAL { ?item wdt:P50 ?author. }
   OPTIONAL {
@@ -609,8 +607,8 @@ WHERE {
   OPTIONAL { ?item wdt:P18 ?image. }
   BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", REPLACE(STR(?image), "^.*[/#]", "")) AS ?imageUrl)
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
-                + cfg.langcode
-                + '''". }
+            + cfg.langcode
+            + '''". }
 }'''
         )
         # Get most metadata from wikidata
@@ -621,7 +619,7 @@ WHERE {
         data = fetch_until_successful(metadata_url)
 
         print(f"processing query results {start} to {end}")
-        
+
         # Increase start and end for the next loop iteration
         start = end
         end = min(start + 50, len(item_ids))
@@ -705,10 +703,7 @@ WHERE {
                     "action": "query",
                     # these are already urlencoded, decode them before they get urlencoded again
                     "titles": "|".join(
-                        [
-                            unquote(id)
-                            for id in ids_for_wikisource_api[wsstart:wsend]
-                        ]
+                        [unquote(id) for id in ids_for_wikisource_api[wsstart:wsend]]
                     ),
                     # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page"s infobox.
                     "prop": "categories|revisions|images",
