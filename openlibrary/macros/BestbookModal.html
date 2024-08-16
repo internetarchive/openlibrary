@@ -54,9 +54,9 @@ $if any(work.get_authors()):
         </div>
         <div class="bestbook_body">
           <div class="bestbook_data">
-            <h3>$:work.title</h3>
-            <img src="$src" alt="Cover page of the book">
-            <p>$:author_names</p>
+            <h3>$work.title</h3>
+            <img src="$src" class="bestbook-img" alt="Cover page of the book">
+            <p>$author_names</p>
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">On what topic?</label>
@@ -69,7 +69,7 @@ $if any(work.get_authors()):
             <input type="hidden" value="$edition_key" name="edition_key">
 
             <label for="comment">Why?</label>
-            <input name="comment" placeholder="comment" type="text" style="width: 200px;">
+            <input name="comment" placeholder="comment" type="text">
             <button class="bestbook__submit" type="submit">Submit</button>
           </form>
         </div>

@@ -17,7 +17,9 @@ $ prompt_id = 'prompt-%s' % work_olid
 $ awarded = False
 $ submitter = ""
 
-$if ctx.user:
+$ isSearch = ctx.path[1:7] == "search"
+
+$if ctx.user and not isSearch:
   $ submitter = ctx.user.key.split('/')[-1]
   $ awarded = work.check_if_user_awarded(submitter)
 
@@ -32,7 +34,7 @@ $if ctx.user:
 $ page_url = request.home
 $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
-  $if ctx.path[1:7] != "search" and not awarded:
+  $if not isSearch and not awarded:
     <a href="#reviews-section" class="award-link">$_("Give Best Book Award")</a>
     <hr>
   <span class="prompt-copy">$_("When did you finish this book?")</span>
