@@ -47,7 +47,7 @@ $if any(work.get_authors()):
   $:link_markup
   $if ctx.user:
     <div class="hidden">
-      <div id="$id-metadata-form" class="floaterAdd metadata-form bestbook-modal" data-context="$json_encode(context)">
+      <div id="$id-metadata-form" class="metadata-form bestbook-modal" data-context="$json_encode(context)">
         <div class="floaterHead">
           <h2>$_("Best Book Award")</h2>
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
@@ -60,7 +60,7 @@ $if any(work.get_authors()):
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">On what topic?</label>
-            $ config = {'name': 'topic', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else []}
+            $ config = {'name': 'topic', 'facet': 'subject', 'data': []}
             <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
                 $:render_subject_field(config['name'], config['data'])
             </div>
