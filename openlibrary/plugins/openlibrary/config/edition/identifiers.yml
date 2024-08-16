@@ -191,10 +191,6 @@ identifiers:
 -   label: LCCN
     name: lccn
     url: https://lccn.loc.gov/@@@
--   label: LearnAwesome.org
-    name: learnawesome
-    url: https://learnawesome.org/#/item/@@@
-    website: https://learnawesome.org
 -   label: Library Thing
     name: librarything
     url: https://www.librarything.com/work/@@@
