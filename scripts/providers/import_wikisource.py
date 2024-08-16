@@ -545,7 +545,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
     print("Fetching Wikidata IDs...")
     while True:
         try:
-            r = requests.get(url, stream=True) 
+            r = requests.get(url, stream=True)
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
@@ -699,7 +699,7 @@ WHERE {
             # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
             for wsstart in range(0, len(ids_for_wikisource_api), 50):
                 wsend = wsstart + 50
-                
+
                 wsend = min(wsstart + 50, len(ids_for_wikisource_api))
                 # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
                 ws_api_url = update_url_with_params(
