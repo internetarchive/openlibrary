@@ -1,0 +1,17 @@
+$def with(doc)
+
+$ ratings_count = doc.get('ratings_count', None)
+$ ratings_average = doc.get('ratings_average', None)
+$ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
+$ want_to_read_count = doc.get('want_to_read_count', None)
+
+<span class="publishedYear--ratings itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+  $if ratings_count:
+    $ stats_decimal = (float(ratings_average))-(int(ratings_average))
+    $:('<span class="reader-stats__star readers-stats__star--byline">★</span>' * int(ratings_average))
+    $if (stats_decimal >= 0.5) and (stats_decimal < 1):
+      $:('<span class="readers-stats__star--half reader-stats__star--byline">★</span>')
+    <span itemprop="ratingValue">$:_('%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)', ratings_avg=ratings_average, ratings_count=ratings_count, ratings_label=ratings_label)</span>
+    <span class="dot">·</span>
+    <span itemprop="reviewCount">$_('%(want_to_read_count)s Want to read', want_to_read_count=want_to_read_count)</span>
+</span>
