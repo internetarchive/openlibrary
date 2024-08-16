@@ -44,7 +44,7 @@ EXCLUDED_WIKIDATA_INSTANCES = [
     "Q327611",  # flyers
     "Q2085515",  # minutes
     "Q190399",  # pamphlets
-    "Q15916459",  # pleas
+    "Q15916459",  # plea
 ]
 
 EXCLUDED_WIKIDATA_SUBCLASSES = [
