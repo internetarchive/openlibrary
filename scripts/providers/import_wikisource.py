@@ -354,17 +354,15 @@ def update_record_with_wikisource_metadata(
                 image_titles.append(imagename)
 
     # Parse other params from the infobox
-    # Exit if infobox doesn't exist
-    if not ("revisions" in new_data and len(new_data["revisions"]) > 0):
-        return
     infobox = next(
         (
             d["slots"]["main"]["*"]
             for d in new_data["revisions"]
-            if "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]
+            if "revisions" in new_data and "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]
         ),
         None,
     )
+    # Exit if infobox doesn't exist
     if infobox is None:
         return
     wikicode = mw.parse(infobox)
