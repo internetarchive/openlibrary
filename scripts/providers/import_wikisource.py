@@ -335,7 +335,8 @@ def fetch_until_successful(url: str) -> dict:
             r2 = requests.get(url, stream=True)
             return r2.json()
         except requests.exceptions.RequestException as error:
-            # If too many requests error, wait 10 seconds and try again
+            # If too many requests error, or API overloaded, wait 10 seconds and try again
+            # In testing this feature, this could return a 429 error, 503 error, or an empty response body
             if error.response is None or error.response.status_code in (429, 503):
                 time.sleep(10)
             else:
