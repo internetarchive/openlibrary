@@ -104,6 +104,8 @@ class LangConfig:
         return f"{self._category_prefix}:{category}"
 
     def _sparql_query(self, category: str) -> str:
+        # This gets the wikisource page names and wikidata item IDs from a Wikisource generator.
+        # The generator is a pretty heavy lift, so fetching more metadata will be done in a separate query and in batches.
         return (
             '''SELECT DISTINCT
   ?page
@@ -588,6 +590,10 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
         while start < len(item_ids):
             print(f"processing query results {start} to {end}")
 
+            # "Title" and "page" (retrieved from the previous query) are often similar, but sometimes not exactly the same.
+            # "Page" (the wikisource page ID) will sometimes contain extra info like the year of publishing, etc, 
+            # and is used to hyperlink back to Wikisource.
+            # "Title" on the other hand is the actual title of the work that we would call it on OL.
             query = (
                 '''SELECT DISTINCT
   ?item
