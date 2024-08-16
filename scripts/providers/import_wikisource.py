@@ -350,9 +350,7 @@ def update_record_with_wikisource_metadata(
                 image_titles.append(imagename)
 
     # Parse other params from the infobox
-    revision_data = (
-        new_data["revisions"] if "revisions" in new_data else []
-    )
+    revision_data = new_data["revisions"] if "revisions" in new_data else []
     infobox = next(
         (
             d["slots"]["main"]["*"]
