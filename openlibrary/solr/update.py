@@ -1,3 +1,4 @@
+import functools
 import logging
 from pathlib import Path
 from typing import Literal, cast
@@ -35,6 +36,23 @@ logger = logging.getLogger("openlibrary.solr")
 data_provider = cast(DataProvider, None)
 
 
+@functools.cache
+def get_solr_updaters() -> list[AbstractSolrUpdater]:
+    global data_provider
+    assert data_provider is not None
+    return [
+        # ORDER MATTERS
+        EditionSolrUpdater(data_provider),
+        WorkSolrUpdater(data_provider),
+        AuthorSolrUpdater(data_provider),
+        ListSolrUpdater(data_provider),
+    ]
+
+
+def can_update_key(key: str) -> bool:
+    return any(updater.key_test(key) for updater in get_solr_updaters())
+
+
 async def update_keys(
     keys: list[str],
     commit=True,
@@ -69,15 +87,7 @@ async def update_keys(
 
     net_update = SolrUpdateRequest(commit=commit)
 
-    solr_updaters: list[AbstractSolrUpdater] = [
-        # ORDER MATTERS
-        EditionSolrUpdater(data_provider),
-        WorkSolrUpdater(data_provider),
-        AuthorSolrUpdater(data_provider),
-        ListSolrUpdater(data_provider),
-    ]
-
-    for updater in solr_updaters:
+    for updater in get_solr_updaters():
         update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
