@@ -5,6 +5,13 @@ $if reader_observations['total_respondents']:
 $else:
   $ total_reviews = 0
 
+$ awarded = False
+$ submitter = ""
+
+$if ctx.user:
+  $ submitter = ctx.user.key.split('/')[-1]
+  $ awarded = work.check_if_user_awarded(submitter)
+
 $ d = {}
 $ awards = []
 $ num_awards = len(work.get_awards())
@@ -88,9 +95,14 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
       <div class="no-stats-message">$_('No bestbook awards have been awarded for this work.')</div>
     <div class="review-cta">
       $if ctx.user:
-        $ link_text = _('+ Give best book award')
-        $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-        $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
+        $if awarded:
+          <div class="stats-link">
+            <a class="observations-modal-link remove-award" href="/account/login?redirect=$(key)#reader-observations">$_('Update Bestbook Award')</a>
+          </div>
+        $else:
+          $ link_text = _('+ Update bestbook award')
+          $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
       $else:
         <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to award this book')</a>
     </div>

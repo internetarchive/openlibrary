@@ -2856,7 +2856,7 @@ msgstr ""
 msgid "Imports and Exports"
 msgstr ""
 
-#: books/edit/about.html
+#: BestbookModal.html books/edit/about.html
 msgid "Select this subject"
 msgstr ""
 
@@ -4807,7 +4807,11 @@ msgid "No bestbook awards have been awarded for this work."
 msgstr ""
 
 #: observations/review_component.html
-msgid "+ Give best book award"
+msgid "Update Bestbook Award"
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Update bestbook award"
 msgstr ""
 
 #: observations/review_component.html
