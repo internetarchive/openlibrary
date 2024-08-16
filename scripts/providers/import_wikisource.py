@@ -482,9 +482,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
 
         # API will only allow up to 50 images at a time to be requested, so do this in chunks.
         for index in range(0, len(image_titles), 50):
-            end = index + 50
-            if end > len(image_titles):
-                end = len(image_titles)
+            end = min(index + 50, len(image_titles))
 
             image_api_url = update_url_with_params(
                 cfg.wikisource_api_url,
@@ -547,7 +545,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
     print("Fetching Wikidata IDs...")
     while True:
         try:
-            r = requests.get(url, stream=True)
+            r = requests.get(url, stream=True) 
             data = r.json()
         except requests.exceptions.RequestException as e:
             # If too many requests error, wait 10 seconds and try again
@@ -644,12 +642,11 @@ WHERE {
                 continue
 
             ids_for_wikisource_api = []
-
             results = [
-                o
-                for o in data["results"]["bindings"]
-                if "item" in o
-                and "value" in o["item"]
+                obj
+                for obj in data["results"]["bindings"]
+                if "item" in obj
+                and "value" in obj["item"]
                 and not (
                     (
                         ("title" not in obj or "value" not in obj["title"])
@@ -702,8 +699,8 @@ WHERE {
             # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
             for wsstart in range(0, len(ids_for_wikisource_api), 50):
                 wsend = wsstart + 50
-                if wsend > len(ids_for_wikisource_api):
-                    wsend = len(ids_for_wikisource_api)
+                
+                wsend = min(wsstart + 50, len(ids_for_wikisource_api))
                 # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
                 ws_api_url = update_url_with_params(
                     cfg.wikisource_api_url,
