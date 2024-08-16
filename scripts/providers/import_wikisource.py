@@ -584,7 +584,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
             # "Page" (the wikisource page ID) will sometimes contain extra info like the year of publishing, etc,
             # and is used to hyperlink back to Wikisource.
             # "Title" on the other hand is the actual title of the work that we would call it on OL.
-            # Publisher data is weird. This book https://www.wikidata.org/wiki/Q51423720 for example 
+            # Publisher data is weird. This book https://www.wikidata.org/wiki/Q51423720 for example
             # returns a weird URL for publisherLabel if retrieved with wdt:P123 instead of p:P123
             # but it has a qualifier property, pq:P1932, which contains the raw text (non wikidata item) publisher name if it exists.
             query = (
@@ -681,8 +681,18 @@ WHERE {
                     impt.add_authors([obj["authorLabel"]["value"]])
 
                 # Publisher
-                if ("publisher" in obj and "value" in obj["publisher"]) or ("publisherName" in obj and "value" in obj["publisherName"]):
-                    impt.add_publishers([obj["publisherName"]["value"] if "publisherLabel" not in obj else obj["publisherLabel"]["value"]])
+                if ("publisher" in obj and "value" in obj["publisher"]) or (
+                    "publisherName" in obj and "value" in obj["publisherName"]
+                ):
+                    impt.add_publishers(
+                        [
+                            (
+                                obj["publisherName"]["value"]
+                                if "publisherLabel" not in obj
+                                else obj["publisherLabel"]["value"]
+                            )
+                        ]
+                    )
 
                 # Edition
                 if "editionLabel" in obj and "value" in obj["editionLabel"]:
@@ -694,9 +704,7 @@ WHERE {
 
                 # Date
                 if "date" in obj and "value" in obj["date"]:
-                    impt.set_publish_date(
-                        extract_year(obj["date"]["value"])
-                    )
+                    impt.set_publish_date(extract_year(obj["date"]["value"]))
 
             # For some reason, querying 50 titles can sometimes bring back more than 50 results,
             # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
