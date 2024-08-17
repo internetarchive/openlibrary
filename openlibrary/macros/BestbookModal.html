@@ -1,4 +1,4 @@
-$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None)
+$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None, award=None)
 $# :param Work work: The work that is being reviewed
 $# :param str link_markup: arkup for element that triggers observations modal
 $# :param str id: Unique identifier for this modal
@@ -6,19 +6,8 @@ $# :param str classes: HTML classes for this component
 $# :param str reload_id: Reference to UI component that will update when observations are added or removed
 
 $ topics = work.get_subjects()
+
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ awarded = False
-$ award = {}
-
-$ default_topic = ""
-$ default_comment = ""
-
-$if username and work.check_if_user_awarded(username):
-  $ awarded = True
-  $ award = work.get_award_by_submitter(username)
-  $ default_topic = award['topic']
-  $ default_comment = award['comment']
-
 $# The following data is accessed via JS:
 $ context = {
   $ "username": username,
@@ -60,6 +49,9 @@ $elif work_key:
 $if any(work.get_authors()):
   $ author_names = ", ".join(a.get("name", "Name missing") for a in work.get_authors())
 
+$ default_comment = award['comment'] if award else ""
+$ default_topic = award['topic'] if award else ""
+
 <div class="$classes">
   $:link_markup
   $if ctx.user:
@@ -92,7 +84,7 @@ $if any(work.get_authors()):
         </div>
         <div>
           <form action="$(work.key)/awards/remove" method="GET">
-            <input type="hidden" value="$(username)" name="submitter">
+            <input type="hidden" value="$(context['username'])" name="submitter">
             <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
           </form>
         </div>

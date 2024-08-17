@@ -5,12 +5,12 @@ $if reader_observations['total_respondents']:
 $else:
   $ total_reviews = 0
 
-$ awarded = False
-$ submitter = ""
+$ user_award = None
+$ submitter = None
 
 $if ctx.user:
   $ submitter = ctx.user.key.split('/')[-1]
-  $ awarded = work.check_if_user_awarded(submitter)
+  $ user_award = work.get_award_by_submitter(submitter)
 
 $ d = {}
 $ awards = []
@@ -89,20 +89,23 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
     $if len(d) > 0:
       <div class="awards">
       $for topic, count in d.items():
-        <span class="chip category-chip">🏆 $:count  $:topic</span>
+        $ chip_classes = "chip category-chip"
+        $if user_award and user_award['topic'] == topic:
+          $ chip_classes += " chip--selected"
+        <span class="$chip_classes">🏆 $:count  $:topic</span>
       </div>
     $else:
       <div class="no-stats-message">$_('No bestbook awards have been awarded for this work.')</div>
     <div class="review-cta">
       $if ctx.user:
-        $if awarded:
+        $if user_award:
           $ link_text = _('+ Update Bestbook Award')
           $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
+          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
         $else:
           $ link_text = _('+ Give Bestbook Award')
           $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key)
+          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
       $else:
         <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to award this book')</a>
     </div>
