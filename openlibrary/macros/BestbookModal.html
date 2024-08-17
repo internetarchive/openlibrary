@@ -71,7 +71,7 @@ $if any(work.get_authors()):
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
             <label for="topic">On what topic?</label>
-            $ config = {'name': 'topic', 'facet': 'subject', 'data': [default_topic]}
+            $ config = {'name': 'topic', 'facet': 'subject', 'data': []}
             <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
                 $:render_subject_field(config['name'], config['data'])
             </div>
@@ -85,7 +85,10 @@ $if any(work.get_authors()):
           </form>
         </div>
         <div>
-          <button class="delete-note-button cta-btn cta-btn--delete bestbook-remove-button" type="button">Remove award</button>
+          <form action="$(work.key)/awards/remove" method="GET">
+            <input type="hidden" value="$(username)" name="submitter">
+            <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
+          </form>
         </div>
       </div>
     </div>
