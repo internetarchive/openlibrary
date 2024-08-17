@@ -46,10 +46,16 @@ $jsdef render_subject_autocomplete_item(item):
 $if reload_id:
   $ context['reloadId'] = reload_id
 
-$ work_id = work.key.split('/')[2]
-$ cover_url = "https://covers.openlibrary.org/b/id/{}-M.jpg".format(work_id[2:-1])
+$# show edition cover if edition, else if work cover for work
+$ work_key = work.key
+$ src = '/images/icons/avatar_book.png'
 
-$ src = cover_url if work_id else '/images/icons/avatar_book.png'
+$if edition_key:
+  $ edition_id = edition_key.split('/')[-1]
+  $ src = "https://covers.openlibrary.org/b/id/{}-M.jpg".format(edition_id)
+$elif work_key:
+  $ work_id = work_key.split('/')[-1]
+  $ src = "https://covers.openlibrary.org/w/id/{}-M.jpg".format(work_id)
 
 $if any(work.get_authors()):
   $ author_names = ", ".join(a.get("name", "Name missing") for a in work.get_authors())
@@ -66,7 +72,7 @@ $if any(work.get_authors()):
         <div class="bestbook_body">
           <div class="bestbook_data">
             <h3>$work.title</h3>
-            <img src="$src" class="bestbook-img" alt="Cover page of the book">
+            <img src="$src" class="bestbook-img" alt="Cover of: $(work.title)">
             <p>$author_names</p>
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
