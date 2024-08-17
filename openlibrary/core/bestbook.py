@@ -1,7 +1,9 @@
 from . import db
 
+
 class Bestbook(db.CommonExtras):
     """Best book award operations"""
+
     TABLENAME = "bestbooks"
     PRIMARY_KEY = "nomination_id"
     ALLOW_DELETE_ON_CONFLICT = False
@@ -33,11 +35,9 @@ class Bestbook(db.CommonExtras):
                 query += "WHERE "
             query += "topic=$topic "
 
-        result = oldb.query(query, vars={
-            'book_id': book_id,
-            'submitter': submitter,
-            'topic': topic
-        })
+        result = oldb.query(
+            query, vars={'book_id': book_id, 'submitter': submitter, 'topic': topic}
+        )
         return result[0]['count'] if result else 0
 
     @classmethod
@@ -72,15 +72,13 @@ class Bestbook(db.CommonExtras):
                 query += "WHERE "
             query += "topic=$topic "
 
-        result = oldb.query(query, vars={
-            'book_id': book_id,
-            'submitter': submitter,
-            'topic': topic
-        })
+        result = oldb.query(
+            query, vars={'book_id': book_id, 'submitter': submitter, 'topic': topic}
+        )
         return list(result) if result else []
 
     @classmethod
-    def check_if_award_given(cls, submitter, book_id, topic=None) -> bool:
+    def check_if_award_given(cls, submitter, book_id=None, topic=None) -> bool:
         """This function checks if the award is already given to a book or topic by pattron
 
         Args:
@@ -92,23 +90,21 @@ class Bestbook(db.CommonExtras):
             bool: returns true if award already given
         """
         oldb = db.get_db()
-        data = {
-            'submitter': submitter,
-            'book_id': book_id,
-            'topic': topic
-        }
+        data = {'submitter': submitter, 'book_id': book_id, 'topic': topic}
 
         query = """
             SELECT
                 COUNT(*)
             FROM bestbooks
-            WHERE submitter=$submitter AND (book_id=$book_id
+            WHERE submitter=$submitter
         """
 
-        if topic:
-            query += " OR topic=$topic)"
-        else:
-            query += ")"
+        if topic and book_id:
+            query += " AND (book_id=$book_id AND topic=$topic)"
+        elif book_id:
+            query += " AND book_id=$book_id"
+        elif topic:
+            query += " AND topic=$topic"
 
         return oldb.query(query, vars=data)[0]['count'] > 0
 
@@ -137,7 +133,7 @@ class Bestbook(db.CommonExtras):
             book_id=book_id,
             edition_id=edition_id,
             topic=topic,
-            comment=comment
+            comment=comment,
         )
         return True
 
@@ -153,16 +149,11 @@ class Bestbook(db.CommonExtras):
             bool: return True if award is removed
         """
         oldb = db.get_db()
-        where = {
-            'submitter': submitter,
-            'book_id': book_id
-        }
+        where = {'submitter': submitter, 'book_id': book_id}
         try:
             oldb.delete(
                 'bestbooks',
-                where=(
-                    'submitter=$submitter AND book_id=$book_id'
-                ),
+                where=('submitter=$submitter AND book_id=$book_id'),
                 vars=where,
             )
         except:  # we want to catch no entry exists

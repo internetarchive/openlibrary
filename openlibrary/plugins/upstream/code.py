@@ -87,7 +87,6 @@ class bestbook(delegate.page):
         # get the user account
         user = accounts.get_current_user()
         i = web.input(edition_key=None, topic=None, comment=None, redir=False)
-        # print('\n' + i.edition_key + '\n')
         key = i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
@@ -97,6 +96,10 @@ class bestbook(delegate.page):
             raise web.seeother('/account/login?redirect=%s' % key)
 
         username = user.key.split('/')[2]
+        existing = (
+            len(bestbook_model.Bestbook.get_awards(book_id=work_id, submitter=username))
+            > 0
+        )
 
         def response(msg, status="success"):
             return delegate.RawText(
@@ -118,6 +121,8 @@ class bestbook(delegate.page):
                 "error", "Error: limit one award per book, and one award per topic."
             )
         else:
+            if existing:
+                bestbook_model.Bestbook.remove(submitter=username, book_id=work_id)
             bestbook_model.Bestbook.add(
                 submitter=username,
                 book_id=work_id,
@@ -126,7 +131,10 @@ class bestbook(delegate.page):
                 topic=i.topic,
             )
             print("\n \n Awarded the book \n \n")
-            add_flash_message("info", "Best book award added")
+            if not existing:
+                add_flash_message("info", "Best book award added")
+            else:
+                add_flash_message("info", "Updated best book award")
             r = response('Awarded the book')
 
         if i.redir:
