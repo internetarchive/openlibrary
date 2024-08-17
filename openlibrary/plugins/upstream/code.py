@@ -68,6 +68,7 @@ class history(delegate.mode):
             history[i].pop("ip")
         return json.dumps(history)
 
+
 class bestbook(delegate.page):
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
@@ -85,16 +86,9 @@ class bestbook(delegate.page):
 
         # get the user account
         user = accounts.get_current_user()
-        i = web.input(
-            edition_key = None,
-            topic = None,
-            comment = None,
-            redir = False
-            )
-        print('\n' + i.edition_key + '\n')
-        key = (
-            i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
-        )
+        i = web.input(edition_key=None, topic=None, comment=None, redir=False)
+        # print('\n' + i.edition_key + '\n')
+        key = i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
         )
@@ -105,9 +99,9 @@ class bestbook(delegate.page):
         username = user.key.split('/')[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(json.dumps({
-                status: msg
-            }), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
 
         # print(f"\n \n {i.topic} \n \n")
         if i.topic is None:
@@ -116,18 +110,20 @@ class bestbook(delegate.page):
             r = response('Removed award')
 
         elif bestbook_model.Bestbook.check_if_award_given(
-                submitter=username,
-                book_id=work_id,
-                topic=i.topic,
-            ):
-            add_flash_message("error", "Error: limit one award per book, and one award per topic.")
+            submitter=username,
+            book_id=work_id,
+            topic=i.topic,
+        ):
+            add_flash_message(
+                "error", "Error: limit one award per book, and one award per topic."
+            )
         else:
             bestbook_model.Bestbook.add(
                 submitter=username,
                 book_id=work_id,
                 edition_id=edition_id,
                 comment=i.comment,
-                topic=i.topic
+                topic=i.topic,
             )
             print("\n \n Awarded the book \n \n")
             add_flash_message("info", "Best book award added")
@@ -137,8 +133,10 @@ class bestbook(delegate.page):
             raise web.seeother(key)
         return r
 
+
 class bestbook_count(delegate.page):
     """API for award count"""
+
     path = "/awards/count"
     encoding = "json"
 
@@ -146,11 +144,10 @@ class bestbook_count(delegate.page):
     def GET(self):
         filt = web.input(book_id=None, submitter=None, topic=None)
         result = bestbook_model.Bestbook.get_count(
-            book_id=filt.book_id,
-            submitter=filt.submitter,
-            topic=filt.topic
-            )
+            book_id=filt.book_id, submitter=filt.submitter, topic=filt.topic
+        )
         return json.dumps({'count': result})
+
 
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""

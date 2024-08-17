@@ -80,8 +80,8 @@ $jsdef render_subject_autocomplete_item(item):
           </form>
         </div>
         <div>
-          <form action="$(work.key)/awards/remove" method="GET">
-            <input type="hidden" value="$(context['username'])" name="submitter">
+          <form action="$(work.key)/awards.json" method="POST">
+            <input type="hidden" value="true" name="redir">
             <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
           </form>
         </div>
