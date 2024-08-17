@@ -79,12 +79,13 @@ $jsdef render_subject_autocomplete_item(item):
             <button class="bestbook__submit" type="submit">Submit</button>
           </form>
         </div>
-        <div>
-          <form action="$(work.key)/awards.json" method="POST">
-            <input type="hidden" value="true" name="redir">
-            <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
-          </form>
-        </div>
+        $if award:
+          <div>
+            <form action="$(work.key)/awards.json" method="POST">
+              <input type="hidden" value="true" name="redir">
+              <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
+            </form>
+          </div>
       </div>
     </div>
 </div>
