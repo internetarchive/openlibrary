@@ -15,23 +15,6 @@ $ context = {
   $ "id": id
   $ }
 
-$# Render the subject input field
-$jsdef render_subject_field(name, data):
-    <div class="input">
-        $code:
-            subjects = []
-            for s in data:
-                subjects.append('"' + s + '"' if ',' in s else s)
-            subject_str = ', '.join(subjects)
-            rows = len(subject_str) // 95 + 1
-        <textarea id="about-$name" name="work--$name" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
-    </div>
-
-$jsdef render_subject_autocomplete_item(item):
-    <div class="ac_subject" title="$_('Select this subject')">
-        <span class="name">$item.name</span>
-    </div>
-
 $if reload_id:
   $ context['reloadId'] = reload_id
 
@@ -52,6 +35,20 @@ $if any(work.get_authors()):
 $ default_comment = award['comment'] if award else ""
 $ default_topic = award['topic'] if award else ""
 
+$# Render the subject input field
+$jsdef render_subject_field_bestbook(name, data):
+    <div class="input">
+        $code:
+            subject_str = data[-1] if len(data) else ""
+            rows = len(subject_str) // 95 + 1
+        <textarea name="topic" rows="$rows" placeholder="$default_topic" wrap="soft" tabindex="0"></textarea>
+    </div>
+
+$jsdef render_subject_autocomplete_item(item):
+    <div class="ac_subject" title="$_('Select this subject')">
+        <span class="name">$item.name</span>
+    </div>
+
 <div class="$classes">
   $:link_markup
   $if ctx.user:
@@ -71,7 +68,7 @@ $ default_topic = award['topic'] if award else ""
             <label for="topic">On what topic?</label>
             $ config = {'name': 'topic', 'facet': 'subject', 'data': []}
             <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
-                $:render_subject_field(config['name'], config['data'])
+                $:render_subject_field_bestbook(config['name'], config['data'])
             </div>
 
             <input type="hidden" value="true" name="redir">
