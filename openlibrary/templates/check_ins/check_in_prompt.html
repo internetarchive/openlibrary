@@ -1,6 +1,6 @@
-$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None, work=None)
+$def with (work, read_status, edition_key=None, last_read_date=None, event_id=None)
 
-$# work_key : str : The work key
+$# work : work
 $# read_status : int | None : Number representing which shelf this work is on.
 $#    Possible Values:
 $#    1 : Want to Read
@@ -11,6 +11,7 @@ $# edition_key : str | None : The edition key
 $# last_read_date : str | None : Date that the patron last read the book
 $# event_id : str | None : ID of record for this event
 
+$ work_key = work.key
 $ work_olid = work_key.split('/')[-1]
 $ modal_id = 'check-in-dialog-%s' % work_olid
 $ prompt_id = 'prompt-%s' % work_olid
