@@ -9,7 +9,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 class ListSearchScheme(SearchScheme):
     universe = ['type:list']
-    all_fields = { 
+    all_fields = {
         'key',
         'name',
         'seed',
