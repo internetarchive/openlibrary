@@ -578,7 +578,7 @@ class list_search(delegate.page):
     def GET(self):
         return render_template('search/lists', self.get_results)
 
-    def get_results(self, q, offset=0, limit=10):
+    def get_results(self, q, offset=0, limit=100):
         resp = run_solr_query(
             ListSearchScheme(),
             {'q': q},
@@ -601,8 +601,10 @@ class list_search_json(list_search):
 
         response = self.get_results(i.q, offset=offset, limit=limit)
 
-        # Backward compatibility. Do I need to do this?
+        # Backward compatibility.
         raw_resp = response.raw_resp['response']
+
+        response['docs'] = [doc.preview() for doc in raw_resp['docs']]
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
