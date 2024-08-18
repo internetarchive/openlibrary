@@ -39,7 +39,7 @@ $var title: $_('Search results for Lists')
             <div class="mybooks-list">
                 $if results.num_found:
                     <ul id="listResults" class="list-books">
-                        $for list in lists:
+                        $for list in results:
                             <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
                     </ul>
                 $else:
