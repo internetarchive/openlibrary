@@ -22,7 +22,7 @@ from infogami.utils.view import add_flash_message
 
 from openlibrary import accounts
 
-from openlibrary.plugins.upstream import addbook, addtag, covers, models, utils
+from openlibrary.plugins.upstream import addbook, addtag, covers, models, utils, mybooks
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import merge_authors
 from openlibrary.plugins.upstream import edits
@@ -31,7 +31,7 @@ from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused i
 from openlibrary.plugins.upstream.utils import render_component
 from openlibrary.utils import extract_numeric_id_from_olid
 
-from openlibrary.core import bestbook as bestbook_model
+from openlibrary.core import bestbook as bestbook_model, bookshelves
 from openlibrary.core import helpers as h
 
 if not config.get('coverstore_url'):
@@ -87,7 +87,10 @@ class bestbook(delegate.page):
         # get the user account
         user = accounts.get_current_user()
         i = web.input(edition_key=None, topic=None, comment=None, redir=False)
-        key = i.edition_key if i.edition_key else ('/works/OL%sW' % work_id)
+
+        work_key = '/works/OL%sW' % work_id
+        key = i.edition_key if i.edition_key else work_key
+
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
         )
@@ -96,6 +99,10 @@ class bestbook(delegate.page):
             raise web.seeother('/account/login?redirect=%s' % key)
 
         username = user.key.split('/')[2]
+        read_status = bookshelves.Bookshelves.get_users_read_status_of_work(
+            username=username, work_id=work_id
+        )
+
         existing = (
             len(bestbook_model.Bestbook.get_awards(book_id=work_id, submitter=username))
             > 0
@@ -106,7 +113,18 @@ class bestbook(delegate.page):
                 json.dumps({status: msg}), content_type="application/json"
             )
 
-        # print(f"\n \n {i.topic} \n \n")
+        if read_status != 3:
+            add_flash_message(
+                "error",
+                "You can award only if you have read the book"
+                + str(read_status)
+                + str(username),
+            )
+            r = response('Only readers can award')
+            if i.redir:
+                raise web.seeother(key)
+            return r
+
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
             add_flash_message("info", "Best book removed")
