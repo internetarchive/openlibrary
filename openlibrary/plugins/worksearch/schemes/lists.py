@@ -22,6 +22,7 @@ class ListSearchScheme(SearchScheme):
         'place_key',
         'time_key',
     }
+    non_solr_fields: set[str] = set()
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
     sorts = {
