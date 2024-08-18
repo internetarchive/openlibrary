@@ -606,7 +606,7 @@ class list_search_json(list_search):
 
         response['docs'] = [
             doc.preview() for doc in raw_resp['docs']
-        ]  # Is this part correct?
+        ] 
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
