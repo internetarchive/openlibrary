@@ -185,7 +185,7 @@ class edit(core.edit):
 
 
 class change_cover(delegate.mode):
-    path = "/books/OL(\d)+M/cover"
+    path = r"(/books/OL\d+M)/cover"
 
     def GET(self, key):
         page = web.ctx.site.get(key)
