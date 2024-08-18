@@ -604,7 +604,9 @@ class list_search_json(list_search):
         # Backward compatibility.
         raw_resp = response.raw_resp['response']
 
-        response['docs'] = [doc.preview() for doc in raw_resp['docs']] #Is this part correct?
+        response['docs'] = [
+            doc.preview() for doc in raw_resp['docs']
+        ]  # Is this part correct?
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
