@@ -12,6 +12,8 @@ $if ctx.user:
   $ submitter = ctx.user.key.split('/')[-1]
   $ user_award = work.get_award_by_submitter(submitter)
 
+$ users_work_read_status = get_patrons_work_read_status(submitter, work.key) if work and submitter else None
+
 $ d = {}
 $ awards = []
 $ num_awards = len(work.get_awards())
@@ -102,10 +104,14 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
           $ link_text = _('+ Update Bestbook Award')
           $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
           $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
-        $else:
+        $elif users_work_read_status == 3:
           $ link_text = _('+ Give Bestbook Award')
           $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
           $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
+        $elif users_work_read_status == 1 or users_work_read_status == 2:
+          <div class="status-awardable">$_('Complete reading book to award bestbook')</div>
+        $else:
+          <div class="status-awardable">$_('You can award bestbook only if you have read the book')</div>
       $else:
         <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to award this book')</a>
     </div>

@@ -4815,6 +4815,14 @@ msgid "+ Give Bestbook Award"
 msgstr ""
 
 #: observations/review_component.html
+msgid "Complete reading book to award bestbook"
+msgstr ""
+
+#: observations/review_component.html
+msgid "You can award bestbook only if you have read the book"
+msgstr ""
+
+#: observations/review_component.html
 msgid "+ Log in to award this book"
 msgstr ""
 
