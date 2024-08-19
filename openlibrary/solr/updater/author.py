@@ -17,6 +17,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
 
     async def update_key(self, author: dict) -> tuple[SolrUpdateRequest, list[str]]:
         author_id = author['key'].split("/")[-1]
+        facet_fields = ['subject', 'time', 'person', 'place']
         base_url = get_solr_base_url() + '/query'
 
         json: dict[str, typing.Any] = {
