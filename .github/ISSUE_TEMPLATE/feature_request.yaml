@@ -6,16 +6,15 @@ body:
     attributes:
       label: Proposal
       description: Provide a brief summary of the proposed feature and any details, designs, or screenshots that may be relevant.
-      value:
 
   - type: textarea
     attributes:
       label: Justification
       description: Help us understand, what problem(s) the proposal addresses, what is the predicted impact and how might it be measured, which audiences are served, are there precedents for the feature, and any other context we might consider.
       value: |
-      <!-- Problem: What problem does this proposal address and for what audience(s)? -->
-      <!-- Impact: What is the predicted impact, how will we measure impact, and what does success look like? -->
-      <!-- Research: Are there any precedents or findings from other projects or studies that support this feature? (link or screenshot if possible) -->
+        <!-- Problem: What problem does this proposal address and for what audience(s)? -->
+        <!-- Impact: What is the predicted impact, how will we measure impact, and what does success look like? -->
+        <!-- Research: Are there any precedents or findings from other projects or studies that support this feature? (link or screenshot if possible) -->
 
   - type: textarea
     attributes:
