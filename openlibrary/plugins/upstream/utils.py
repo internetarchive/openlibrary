@@ -1,6 +1,6 @@
 import functools
 from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 import unicodedata
 
 import web
@@ -715,26 +715,10 @@ def get_languages(limit: int = 1000) -> dict:
     return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
-def _normalize(s: str) -> str:
-    return strip_accents(s).lower()
-
-
-def _matches_lang_name(
-    word_prefix: str, language: dict, prefix_language: str | None = None
-) -> Storage | None:
-    lang_name = language['name']
-    if prefix_language is not None:
-        lang_name = safeget(lambda: language['name_translated'][prefix_language][0])
-    # Compare to each inner word of language name for more accurate matching
-    # Eg. for prefix 'greek' will match with 'Ancient Greek' as well as 'Greek'
-    for inner in lang_name.split(' '):
-        if inner and _normalize(inner).startswith(word_prefix):
-            return Storage(
-                key=language['key'],
-                code=language['code'],
-                name=lang_name,
-            )
-    return None
+def word_prefix_match(prefix: str, text: str) -> bool:
+    # Compare to each word of `text` for more accurate matching
+    # Eg. the prefix 'greek' will match with 'ancient greek' as well as 'greek'
+    return any(piece.startswith(prefix) for piece in text.split())
 
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
@@ -746,21 +730,31 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
     """
 
-    prefix = _normalize(prefix)
-    user_lang = web.ctx.lang or 'en'
-    for language in get_languages().values():
-        # ISO code used to translate the current languages name into its native name
-        lang_iso_code = safeget(lambda: language['identifiers']['iso_639_1'][0])
+    def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
+        # For each language attempt to match based on:
+        # The language's name translated into the current user's chosen language (user_lang)
+        user_lang = web.ctx.lang or 'en'
+        yield safeget(lambda: lang['name_translated'][user_lang][0])
 
-        # For each returned language attempt to match based on:
-        #     The language's name translated into the current user's chosen language (user_lang)
-        #     The language's name translated into its native name (lang_iso_code)
-        #     The language's name as it was fetched from get_languages() (None)
-        # First matching result is yielded to the autocomplete iterator results
-        for translation in [user_lang, lang_iso_code, None]:
-            match = _matches_lang_name(prefix, language, prefix_language=translation)
-            if match is not None:
-                yield match
+        # The language's name translated into its native name (lang_iso_code)
+        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        yield safeget(lambda: lang['name_translated'][lang_iso_code][0])
+
+        # The language's name as it was fetched from get_languages() (None)
+        yield lang['name']
+
+    def normalize_for_search(s: str) -> str:
+        return strip_accents(s).lower()
+
+    prefix = normalize_for_search(prefix)
+    for lang in get_languages().values():
+        for lang_name in get_names_to_try(lang):
+            if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
+                yield Storage(
+                    key=lang.key,
+                    code=lang.code,
+                    name=lang_name,
+                )
                 break
 
 
