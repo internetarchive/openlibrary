@@ -20,7 +20,7 @@ body:
       description: Being as specific as possible, what steps result in triggering this bug?
       value: |
         <!-- e.g. Login... Go to... click...  -->
-        1. 
+        1.
 
   - type: textarea
     attributes:
@@ -29,9 +29,9 @@ body:
       value: |
         - Browser (Chrome, Safari, Firefox, etc):
         - OS (Windows, Mac, etc):
-        - Logged in (Y/N): 
+        - Logged in (Y/N):
         - Environment (prod, dev, local): prod
- 
+
   - type: textarea
     attributes:
       label: Breakdown
@@ -42,7 +42,7 @@ body:
 
         #### Requirements Checklist
         - [ ]
-        
+
         #### Related files
         <!-- Files related to this issue; this is super useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them. -->
 
