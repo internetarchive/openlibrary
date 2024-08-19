@@ -697,22 +697,22 @@ msgstr ""
 
 #: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
 #: subjects.html subjects/notfound.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
 #: SubjectTags.html subjects.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: type/list/view_body.html
 msgid "Places"
 msgstr ""
 
 #: SubjectTags.html admin/menu.html admin/people/index.html
 #: admin/people/view.html subjects.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: type/list/view_body.html
 msgid "People"
 msgstr ""
 
-#: SubjectTags.html subjects.html type/list/view_body.html work_search.html
+#: SubjectTags.html subjects.html type/list/view_body.html
 msgid "Times"
 msgstr ""
 
@@ -1007,32 +1007,6 @@ msgid "Search Books"
 msgstr ""
 
 #: work_search.html
-msgid "eBook?"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html work_search.html
-msgid "Language"
-msgstr ""
-
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html work_search.html
-msgid "Author"
-msgstr ""
-
-#: work_search.html
-msgid "First published"
-msgstr ""
-
-#: publishers/view.html search/advancedsearch.html type/edition/view.html
-#: type/work/view.html work_search.html
-msgid "Publisher"
-msgstr ""
-
-#: work_search.html
-msgid "Classic eBooks"
-msgstr ""
-
-#: work_search.html
 msgid "Keywords"
 msgstr ""
 
@@ -1054,52 +1028,6 @@ msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
-msgstr ""
-
-#: work_search.html
-msgid "eBook"
-msgstr ""
-
-#: work_search.html
-msgid "Classic eBook"
-msgstr ""
-
-#: work_search.html
-msgid "Search facets"
-msgstr ""
-
-#: work_search.html
-msgid "Explore Classic eBooks"
-msgstr ""
-
-#: work_search.html
-msgid "Only Classic eBooks"
-msgstr ""
-
-#: work_search.html
-#, python-format
-msgid "Explore books about %(subject)s"
-msgstr ""
-
-#: merge/authors.html work_search.html
-msgid "First published in"
-msgstr ""
-
-#: work_search.html
-msgid "Written in"
-msgstr ""
-
-#: work_search.html
-msgid "Published by"
-msgstr ""
-
-#: work_search.html
-msgid "Click to remove this facet"
-msgstr ""
-
-#: work_search.html
-#, python-format
-msgid "%(title)s - search"
 msgstr ""
 
 #: admin/inspect/store.html search/lists.html work_search.html
@@ -3422,6 +3350,11 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html search/work_search_selected_facets.html
+msgid "Author"
+msgstr ""
+
 #: books/add.html
 msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
@@ -5650,6 +5583,10 @@ msgstr ""
 msgid "Open in a new window"
 msgstr ""
 
+#: merge/authors.html search/work_search_selected_facets.html
+msgid "First published in"
+msgstr ""
+
 #: merge/authors.html
 msgid "Visit this author's page in a new window"
 msgstr ""
@@ -5899,6 +5836,11 @@ msgstr ""
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
+msgstr ""
+
+#: publishers/view.html search/advancedsearch.html type/edition/view.html
+#: type/work/view.html
+msgid "Publisher"
 msgstr ""
 
 #: publishers/view.html
@@ -6280,6 +6222,48 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "eBook"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Classic eBook"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Search facets"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Explore Classic eBooks"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Only Classic eBooks"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+#, python-format
+msgid "Explore books about %(subject)s"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Written in"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Published by"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Click to remove this facet"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+#, python-format
+msgid "%(title)s - search"
 msgstr ""
 
 #: site/alert.html
@@ -6676,6 +6660,10 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Language"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

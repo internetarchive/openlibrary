@@ -45,6 +45,7 @@ import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.worksearch.code import do_search
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -926,7 +927,7 @@ api and api.add_hook('new', new)
 
 
 @public
-def changequery(query=None, **kw):
+def changequery(query=None, _path=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
     for k, v in kw.items():
@@ -939,7 +940,7 @@ def changequery(query=None, **kw):
         k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
-    out = web.ctx.get('readable_path', web.ctx.path)
+    out = _path or web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
@@ -1113,6 +1114,41 @@ class Partials(delegate.page):
                 args[0], args[1]
             )
             partial = {"partials": str(macro)}
+        elif component == 'SearchFacets':
+            data = json.loads(i.data)
+            path = data.get('path')
+            query = data.get('query', '')
+            parsed_qs = parse_qs(query.replace('?', ''))
+            param = data.get('param', {})
+
+            sort = None
+            search_response = do_search(
+                param, sort, rows=0, spellcheck_count=3, facet=True
+            )
+
+            sidebar = render_template(
+                'search/work_search_facets',
+                param,
+                facet_counts=search_response.facet_counts,
+                async_load=False,
+                path=path,
+                query=parsed_qs,
+            )
+
+            active_facets = render_template(
+                'search/work_search_selected_facets',
+                param,
+                search_response,
+                param.get('q', ''),
+                path=path,
+                query=parsed_qs,
+            )
+
+            partial = {
+                "sidebar": str(sidebar),
+                "title": active_facets.title,
+                "activeFacets": str(active_facets).strip(),
+            }
 
         return delegate.RawText(json.dumps(partial))
 
