@@ -497,7 +497,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: account/email/forgot.html login.html
+#: login.html
 msgid "Forgot your Password?"
 msgstr ""
 
