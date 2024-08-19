@@ -493,11 +493,11 @@ msgstr ""
 msgid "Forgot your Internet Archive email?"
 msgstr ""
 
-#: account/email/forgot-ia.html account/email/forgot.html forms.py login.html
+#: account/email/forgot-ia.html forms.py login.html
 msgid "Password"
 msgstr ""
 
-#: account/email/forgot.html login.html
+#: login.html
 msgid "Forgot your Password?"
 msgstr ""
 
@@ -1967,7 +1967,7 @@ msgstr ""
 msgid "Set my goal"
 msgstr ""
 
-#: account/email/forgot-ia.html account/email/forgot.html
+#: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
 msgstr ""
 
@@ -1977,11 +1977,11 @@ msgid ""
 "your Archive.org email."
 msgstr ""
 
-#: account/email/forgot-ia.html account/email/forgot.html
+#: account/email/forgot-ia.html
 msgid "Your email is:"
 msgstr ""
 
-#: account/email/forgot-ia.html account/email/forgot.html
+#: account/email/forgot-ia.html
 msgid "Return to Log In?"
 msgstr ""
 
@@ -1995,37 +1995,6 @@ msgstr ""
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
-msgstr ""
-
-#: account/email/forgot.html
-msgid ""
-"To look up your Archive.org email, <a href=\"/account/email/forgot-"
-"ia\">click here</a>."
-msgstr ""
-
-#: account/email/forgot.html
-msgid "Forgot Your Open Library Email?"
-msgstr ""
-
-#: account/email/forgot.html
-msgid ""
-"Please enter your Open Library username and password, and we’ll retrieve "
-"your email."
-msgstr ""
-
-#: account/email/forgot.html
-msgid "Open Library Username"
-msgstr ""
-
-#: account/email/forgot.html
-msgid "Need help updating your account email address?"
-msgstr ""
-
-#: account/email/forgot.html
-msgid ""
-"First login with your current email address and then follow <a "
-"href=\"https://openlibrary.org/help/faq/my_account#update-email\">these "
-"instructions</a> to change it to something new."
 msgstr ""
 
 #: account/password/forgot.html account/password/sent.html

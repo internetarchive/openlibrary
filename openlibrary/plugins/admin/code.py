@@ -650,68 +650,6 @@ def get_admin_stats():
 from openlibrary.plugins.upstream import borrow
 
 
-class loans_admin:
-    def GET(self):
-        i = web.input(page=1, pagesize=200)
-
-        total_loans = len(web.ctx.site.store.keys(type="/type/loan", limit=100000))
-        pdf_loans = len(
-            web.ctx.site.store.keys(
-                type="/type/loan", name="resource_type", value="pdf", limit=100000
-            )
-        )
-        epub_loans = len(
-            web.ctx.site.store.keys(
-                type="/type/loan", name="resource_type", value="epub", limit=100000
-            )
-        )
-
-        pagesize = h.safeint(i.pagesize, 200)
-        pagecount = 1 + (total_loans - 1) // pagesize
-        pageindex = max(h.safeint(i.page, 1), 1)
-
-        begin = (pageindex - 1) * pagesize  # pagecount starts from 1
-        end = min(begin + pagesize, total_loans)
-
-        loans = web.ctx.site.store.values(
-            type="/type/loan", offset=begin, limit=pagesize
-        )
-
-        stats = {
-            "total_loans": total_loans,
-            "pdf_loans": pdf_loans,
-            "epub_loans": epub_loans,
-            "bookreader_loans": total_loans - pdf_loans - epub_loans,
-            "begin": begin + 1,  # We count from 1, not 0.
-            "end": end,
-        }
-
-        # Preload books
-        web.ctx.site.get_many([loan['book'] for loan in loans])
-
-        return render_template(
-            "admin/loans",
-            loans,
-            None,
-            pagecount=pagecount,
-            pageindex=pageindex,
-            stats=stats,
-        )
-
-    def POST(self):
-        i = web.input(action=None)
-
-        # Sanitize
-        action = None
-        actions = ['updateall']
-        if i.action in actions:
-            action = i.action
-
-        if action == 'updateall':
-            borrow.update_all_loan_status()
-        raise web.seeother(web.ctx.path)  # Redirect to avoid form re-post on re-load
-
-
 class inspect:
     def GET(self, section):
         if section == "/store":
@@ -925,7 +863,6 @@ def setup():
     register_admin_page(
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'
     )
-    register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")
