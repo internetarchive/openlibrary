@@ -35,16 +35,16 @@ body:
       value: |
         #### Requirements Checklist
         <!-- What steps, functional pieces, or requirements need to be met to satisfy the proposal? -->
-        * [ ] 
+        * [ ]
 
         #### Related files
         <!-- Files related to the implementation of feature; useful for good first issues -->
-        * 
-        
+        *
+
         #### Stakeholders
         <!-- @ tag stakeholders of this feature w/ questions or context as necessary -->
-        * 
-        
+        *
+
         <hr>
 
         #### Instructions for Contributors
