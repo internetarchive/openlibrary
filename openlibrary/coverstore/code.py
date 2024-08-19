@@ -223,19 +223,6 @@ def zipview_url_from_id(coverid, size):
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
-def old_zipview_url_from_id(coverid: int, size: str | None) -> str:
-    """
-    The path for images in the old style, e.g. item `l_covers_0008` scheme
-    """
-    prefix = f"{size.lower()}_" if size else ""
-    pid = "%010d" % coverid
-    item_id = f"{prefix}covers_{pid[:4]}"
-    item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.zip"
-    item_file = f"{pid}{'-' + size.upper() if size else ''}"
-    protocol = web.ctx.protocol
-    return f"{protocol}://archive.org/download/{item_id}/{item_tar}/{item_file}.jpg"
-
-
 class cover:
     def GET(self, category, key, value, size):
         i = web.input(default="true")
@@ -277,14 +264,6 @@ class cover:
             url = zipview_url_from_id(value, size)
             return web.found(url)
 
-        # This chunk is unique:
-        #   - they are stores as both .zip and .tar files (for now)
-        #   - the naming scheme is the older scheme used by .tar files
-        #     (eg item `l_covers_0008` instead of `olcovers9`
-        #   - the db is not yet updated with their correct URLs
-        if 8_820_000 > value >= 8_000_000:
-            return web.found(old_zipview_url_from_id(value, size))
-
         d = self.get_details(value, size.lower())
         if not d:
             return notfound()
@@ -307,7 +286,7 @@ class cover:
         try:
             from openlibrary.coverstore import archive
 
-            if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
+            if d.id >= 8_000_000 and d.uploaded:
                 return web.found(
                     archive.Cover.get_cover_url(
                         d.id, size=size, protocol=web.ctx.protocol
