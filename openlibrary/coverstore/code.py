@@ -223,19 +223,6 @@ def zipview_url_from_id(coverid, size):
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
-def old_zipview_url_from_id(coverid: int, size: str | None) -> str:
-    """
-    The path for images in the old style, e.g. item `l_covers_0008` scheme
-    """
-    prefix = f"{size.lower()}_" if size else ""
-    pid = "%010d" % coverid
-    item_id = f"{prefix}covers_{pid[:4]}"
-    item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.zip"
-    item_file = f"{pid}{'-' + size.upper() if size else ''}"
-    protocol = web.ctx.protocol
-    return f"{protocol}://archive.org/download/{item_id}/{item_tar}/{item_file}.jpg"
-
-
 class cover:
     def GET(self, category, key, value, size):
         i = web.input(default="true")
