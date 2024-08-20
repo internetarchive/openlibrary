@@ -19,8 +19,9 @@ from openlibrary.plugins.upstream.utils import (
     get_abbrev_from_full_lang_name,
     LanguageMultipleMatchError,
     get_location_and_publisher,
+    safeget,
 )
-from openlibrary.utils.isbn import get_isbn_10s_and_13s
+from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 import web
 
@@ -110,14 +111,15 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
         minimum_complete_fields = ["title", "authors", "publish_date"]
         is_complete = all(obj.get(field) for field in minimum_complete_fields)
         if not is_complete:
-            isbn_10 = obj.get("isbn_10")
-            asin = isbn_10[0] if isbn_10 else None
+            isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
+            isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
+            identifier = to_isbn_13(isbn_13 or isbn_10 or "")
 
-            if not asin:
-                asin = get_non_isbn_asin(rec=obj)
+            if not identifier:
+                identifier = get_non_isbn_asin(rec=obj)
 
-            if asin:
-                supplement_rec_with_import_item_metadata(rec=obj, identifier=asin)
+            if identifier:
+                supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
 
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
@@ -158,11 +160,14 @@ def supplement_rec_with_import_item_metadata(
         'publish_date',
         'publishers',
         'title',
+        'source_records',
     ]
 
     if import_item := ImportItem.find_staged_or_pending([identifier]).first():
         import_item_metadata = json.loads(import_item.get("data", '{}'))
         for field in import_fields:
+            if field == "source_records":
+                rec[field].extend(import_item_metadata.get(field))
             if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
                 rec[field] = staged_field
 

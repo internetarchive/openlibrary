@@ -275,7 +275,7 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
         return None
 
     # Permanent URL: https://www.googleapis.com/books/v1/volumes/{id}
-    google_books_identifier = data[0].get("id")
+    # google_books_identifier = data[0].get("id")
     if not (book := data[0].get("volumeInfo", {})):
         return None
 
@@ -299,6 +299,7 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
     # result["identifiers"] = {
     #     "google": [isbn_13]
     # }  # Assuming so far is there is always an ISBN 13.
+    google_books_identifier = isbn_13[0] if isbn_13 else isbn_10[0]
     result["source_records"] = [f"google_books:{google_books_identifier}"]
     # has publisher: https://www.googleapis.com/books/v1/volumes/YJ1uQwAACAAJ
     # does not have publisher: https://www.googleapis.com/books/v1/volumes?q=isbn:9785699350131
