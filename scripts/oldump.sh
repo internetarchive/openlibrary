@@ -120,9 +120,9 @@ then
       log "generating coverstore dump: ol_dump_covers_metadata_$yyyymmdd.txt.gz"
       # Note: this throws a psql warning since a db is already specified in PSQL_PARAMS, but the
       # -d param takes precedence like we want it to!
-      time psql $PSQL_PARAMS -d coverstore --set=upto="$yyyymmdd" -f $SCRIPTS/dump-covers-metadata.sql | gzip -c > ol_dump_covers_metadata$yyyymmdd.txt.gz
+      time psql $PSQL_PARAMS -d coverstore --set=upto="$yyyymmdd" -f $SCRIPTS/dump-covers-metadata.sql | gzip -c > ol_dump_covers_metadata_$yyyymmdd.txt.gz
   else
-      log "Skipping: $(compgen -G "ol_dump_reading-log_$yyyymm*.txt.gz")"
+      log "Skipping: $(compgen -G "ol_dump_covers_metadata_$yyyymmdd*.txt.gz")"
   fi
 
   log "=== Step 3 ==="

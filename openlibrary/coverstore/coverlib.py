@@ -72,7 +72,7 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
 
         img = Image.open(BytesIO(data))
         if img.mode != 'RGB':
-            img = img.convert('RGB')
+            img = img.convert('RGB')  # type: ignore[assignment]
 
         for name, size in config.image_sizes.items():
             path = f"{path_prefix}-{name}.jpg"

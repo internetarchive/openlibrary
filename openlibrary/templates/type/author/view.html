@@ -135,8 +135,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <input type="hidden" name="sort" value="$query_param('sort')"/>
                   $if (query_param('mode')):
                     <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  <input type="text" placeholder="$_('Search %(author)s Books', author=title)" name="q" value="$(query_param('q', ''))"/>
-                  <input type="submit"/>
+                  $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
                 </form>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
@@ -187,7 +186,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
                             $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
-                              <li>$('Inventaire.io:') <a
+                              <li>$_("Inventaire.io:") <a
                                   itemprop="sameAs"
                                   href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
                               >wd:$page.remote_ids[id.name]</a></li>

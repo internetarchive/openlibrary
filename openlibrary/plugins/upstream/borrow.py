@@ -31,6 +31,7 @@ from openlibrary.utils import dateutil
 from lxml import etree
 
 import urllib
+import lxml.etree
 
 
 logger = logging.getLogger("openlibrary.borrow")
@@ -111,7 +112,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):
+    def POST(self, key):  # noqa: PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -128,6 +129,19 @@ class borrow(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
+
+        from openlibrary.book_providers import get_book_provider
+
+        # Direct to the first web book if at least one is available.
+        if (
+            action in ["borrow", "read"]
+            and (provider := get_book_provider(edition))
+            and provider.short_name != "ia"
+            and (acquisitions := provider.get_acquisitions(edition))
+            and acquisitions[0].access == "open-access"
+        ):
+            stats.increment('ol.loans.webbook')
+            raise web.seeother(acquisitions[0].url)
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:
@@ -373,7 +387,7 @@ class borrow_receive_notification(delegate.page):
     def POST(self):
         data = web.data()
         try:
-            etree.fromstring(data)
+            etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
             output = json.dumps({'success': True})
         except Exception as e:
             output = json.dumps({'success': False, 'error': str(e)})

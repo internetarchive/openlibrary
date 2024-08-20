@@ -13,7 +13,7 @@ $else:
         $ details = ''
     $else:
         $ context = page.key
-        $ details = $:_('See <a href="' + change.url() + '">details</a>.')
+        $ details = _('See <a href="%s">details</a>.', change.url())
 
     $if context == primary:
         $# comment in the primary record
@@ -24,4 +24,4 @@ $else:
         $_("Marked as duplicate.") $:details
     $else:
         $# comment in the affected records
-        $_('Merged %(page_type)s into primary %(record_type) record.', page_type=pagetype, record_type=type) $:details
+        $_('Merged %(page_type)s into primary %(record_type)s record.', page_type=pagetype, record_type=type) $:details

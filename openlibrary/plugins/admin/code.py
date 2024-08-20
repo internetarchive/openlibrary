@@ -325,77 +325,6 @@ class sync_ol_ia:
         return delegate.RawText(json.dumps(data), content_type="application/json")
 
 
-class sync_ia_ol(delegate.page):
-    path = '/ia/sync'
-    encoding = 'json'
-
-    def POST(self):
-        # Authenticate request:
-        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
-        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
-
-        if not self.is_authorized(s3_access_key, s3_secret_key):
-            raise web.unauthorized()
-
-        # Validate input
-        i = json.loads(web.data())
-
-        if not self.validate_input(i):
-            raise web.badrequest('Missing required fields')
-
-        # Find record using OLID (raise 404 if not found)
-        edition_key = f'/books/{i.get("olid")}'
-        edition = web.ctx.site.get(edition_key)
-
-        if not edition:
-            raise web.notfound()
-
-        # Update record
-        match i.get('action', ''):
-            case 'remove':
-                self.remove_ocaid(edition)
-            case 'modify':
-                self.modify_ocaid(edition, i.get('ocaid'))
-            case '_':
-                raise web.badrequest('Unknown action')
-
-        return delegate.RawText(json.dumps({"status": "ok"}))
-
-    def is_authorized(self, access_key, secret_key):
-        """Returns True if account is authorized to make changes to records."""
-        auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
-
-        if not auth.get('username', ''):
-            return False
-
-        acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
-        user = acct.get_user() if acct else None
-
-        return user and user.is_usergroup_member('/usergroup/ia')
-
-    def validate_input(self, i):
-        """Returns True if the request is valid.
-        All requests must have an olid and an action.  If the action is
-        'modify', the request must also include 'ocaid'.
-        """
-        action = i.get('action', '')
-        return 'olid' in i and (
-            action == 'remove' or (action == 'modify' and 'ocaid' in i)
-        )
-
-    def remove_ocaid(self, edition):
-        """Deletes OCAID from given edition"""
-        data = edition.dict()
-        del data['ocaid']
-        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
-
-    def modify_ocaid(self, edition, new_ocaid):
-        """Adds the given new_ocaid to an edition."""
-        data = edition.dict()
-        data['ocaid'] = new_ocaid
-        web.ctx.site.save(data, 'Update OCAID')
-
-
 class people_view:
     def GET(self, key):
         account = accounts.find(username=key) or accounts.find(email=key)
@@ -721,68 +650,6 @@ def get_admin_stats():
 from openlibrary.plugins.upstream import borrow
 
 
-class loans_admin:
-    def GET(self):
-        i = web.input(page=1, pagesize=200)
-
-        total_loans = len(web.ctx.site.store.keys(type="/type/loan", limit=100000))
-        pdf_loans = len(
-            web.ctx.site.store.keys(
-                type="/type/loan", name="resource_type", value="pdf", limit=100000
-            )
-        )
-        epub_loans = len(
-            web.ctx.site.store.keys(
-                type="/type/loan", name="resource_type", value="epub", limit=100000
-            )
-        )
-
-        pagesize = h.safeint(i.pagesize, 200)
-        pagecount = 1 + (total_loans - 1) // pagesize
-        pageindex = max(h.safeint(i.page, 1), 1)
-
-        begin = (pageindex - 1) * pagesize  # pagecount starts from 1
-        end = min(begin + pagesize, total_loans)
-
-        loans = web.ctx.site.store.values(
-            type="/type/loan", offset=begin, limit=pagesize
-        )
-
-        stats = {
-            "total_loans": total_loans,
-            "pdf_loans": pdf_loans,
-            "epub_loans": epub_loans,
-            "bookreader_loans": total_loans - pdf_loans - epub_loans,
-            "begin": begin + 1,  # We count from 1, not 0.
-            "end": end,
-        }
-
-        # Preload books
-        web.ctx.site.get_many([loan['book'] for loan in loans])
-
-        return render_template(
-            "admin/loans",
-            loans,
-            None,
-            pagecount=pagecount,
-            pageindex=pageindex,
-            stats=stats,
-        )
-
-    def POST(self):
-        i = web.input(action=None)
-
-        # Sanitize
-        action = None
-        actions = ['updateall']
-        if i.action in actions:
-            action = i.action
-
-        if action == 'updateall':
-            borrow.update_all_loan_status()
-        raise web.seeother(web.ctx.path)  # Redirect to avoid form re-post on re-load
-
-
 class inspect:
     def GET(self, section):
         if section == "/store":
@@ -900,13 +767,12 @@ class attach_debugger:
     def POST(self):
         import debugpy  # noqa: T100
 
-        i = web.input()
         # Allow other computers to attach to ptvsd at this IP address and port.
-        logger.info("Enabling debugger attachment")
-        debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100
-        logger.info("Waiting for debugger to attach...")
+        web.debug("Enabling debugger attachment")
+        debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
+        web.debug("Waiting for debugger to attach...")
         debugpy.wait_for_client()  # noqa: T100
-        logger.info("Debugger attached to port 3000")
+        web.debug("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 
         return self.GET()
@@ -997,7 +863,6 @@ def setup():
     register_admin_page(
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'
     )
-    register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")

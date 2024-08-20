@@ -4,34 +4,34 @@ $var title: $_("[Admin Center] Spam Words")
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Spam Words</h1>
+    <h1>$_("Spam Words")</h1>
 </div>
 
 <div id="contentBody">
-    <h2>Spam Words</h2>
+    <h2>$_("Spam Words")</h2>
     <p>
-        Please enter the SPAM regular expressions in the textarea below, one per line.<br>
-        Be sure to escape any meta characters that are meant to be character literals.<br>
-        If you are adding a domain, prepend the following to the domain: <code>(\b|https://|http://)</code><br>
-        For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\b|https://|http://)t\.co</code> to the spamwords list.
+        $_("Please enter the SPAM regular expressions in the textarea below, one per line.")<br>
+        $_("Be sure to escape any meta characters that are meant to be character literals.")<br>
+        $_("If you are adding a domain, prepend the following to the domain:") <code>(\b|https://|http://)</code><br>
+        $:_('For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\b|https://|http://)t\\.co</code> to the spamwords list.')
     </p>
 
     <div>
         <form name="spamform" class="olform" method="POST">
             <textarea name="spamwords" rows="10">$"\n".join(spamwords)</textarea>
             <br/>
-            <button type="submit" name="action" value="save-spamwords">Save</button>
+            <button type="submit" name="action" value="save-spamwords">$_("Save")</button>
         </form>
     </div>
 
-    <h2>Spam Domains</h2>
-    <p>Please enter domains to blacklist in the textarea below, one per line.</p>
+    <h2>$_("Spam Domains")</h2>
+    <p>$_("Please enter domains to blacklist in the textarea below, one per line.")</p>
 
     <div>
         <form name="domains" class="olform" method="POST">
             <textarea name="domains" rows="10">$"\n".join(domains)</textarea>
             <br/>
-            <button type="submit" name="action" value="save-domains">Save</button>
+            <button type="submit" name="action" value="save-domains">$_("Save")</button>
         </form>
     </div>
 
