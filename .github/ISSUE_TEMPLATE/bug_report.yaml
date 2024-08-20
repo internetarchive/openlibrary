@@ -2,32 +2,37 @@ name: Bug Report
 description:  Create a report to help us improve
 labels: ["Type: Bug", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
   - type: textarea
     attributes:
       label: Problem
-      description: A short description of the issue, expected v. actual behavior, why it may be happening, and its predicted impact.
+      description: A short description of the issue, why or how often it may be happening, and its predicted impact.
       value: |
-
-        <!-- IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
-
-        #### Evidence / Screenshot
-
-        #### Relevant URL(s)
+        %cursor%
+        
+        #### Evidence, Screenshots, & Relevant URL(s)
 
   - type: textarea
     attributes:
       label: Reproducing the bug
       description: Being as specific as possible, what steps result in triggering this bug?
       value: |
-        <!-- e.g. Login... Go to... click...  -->
-        1.
+        1. Go to ... %cursor%
+        2. Do ...
+
+        * Expected behavior:
+        * Actual behavior:
 
   - type: textarea
     attributes:
       label: Context
       description: Additional information to help with debugging.
       value: |
-        - Browser (Chrome, Safari, Firefox, etc):
+        - Browser (Chrome, Safari, Firefox, etc): %cursor%
         - OS (Windows, Mac, etc):
         - Logged in (Y/N):
         - Environment (prod, dev, local): prod
@@ -36,18 +41,21 @@ body:
     attributes:
       label: Breakdown
       description: |
-        Instructions and details for resolving this issue. Please leave these sections blank for maintainers if you are unsure what to enter
+        Detailed instructions for resolving this issue. Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
-        <!-- What is the proposed solution / implementation? -->
+        <!-- Overview of the proposed solution / implementation? -->
+        %cursor%
 
         #### Requirements Checklist
-        - [ ]
+        * [ ]
 
         #### Related files
         <!-- Files related to this issue; this is super useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them. -->
+        * 
 
         #### Stakeholders
         <!-- @ tag stakeholders of this feature w/ questions or context as necessary -->
+        * 
         <hr>
 
         #### Instructions for Contributors

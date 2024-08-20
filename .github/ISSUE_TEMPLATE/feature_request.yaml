@@ -5,7 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        **IMPORTANT**: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
+        > [!IMPORTANT]
+        > Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
 
   - type: textarea
     attributes:
@@ -22,7 +23,7 @@ body:
       description: Help us understand, what problem(s) the proposal addresses, what is the predicted impact and how might it be measured, which audiences are served, are there precedents for the feature, and any other context we might consider.
       value: |
         <!-- Problem: What problem does this proposal address & for what audience(s)? -->
-
+        %cursor%
         <!-- Impact: What's the predicted impact, how do we measure, & what does success look like? -->
 
         <!-- Research: Are there any precedents or findings from other projects or studies that support this feature? (link or screenshot if possible) -->
@@ -33,6 +34,8 @@ body:
       description: |
         Instructions for completing this feature. Please leave this section blank for leads/maintainers if you are unsure what to enter
       value: |
+        %cursor%
+        
         #### Requirements Checklist
         <!-- What steps, functional pieces, or requirements need to be met to satisfy the proposal? -->
         * [ ]
