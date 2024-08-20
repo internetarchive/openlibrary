@@ -35,7 +35,7 @@ body:
         Instructions for completing this feature. Please leave this section blank for leads/maintainers if you are unsure what to enter
       value: |
         %cursor%
-        
+
         #### Requirements Checklist
         <!-- What steps, functional pieces, or requirements need to be met to satisfy the proposal? -->
         * [ ]
