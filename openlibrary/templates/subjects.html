@@ -16,7 +16,7 @@ $ has_tag = 'tag' in page
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">
-        $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
+        $ edit_tag_url = page.tag.get('id') + '/-/edit' if 'tag' in page else '/tag/add'
         <a
           class="editTagButton"
           href="$edit_tag_url"
