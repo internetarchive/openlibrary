@@ -12,7 +12,6 @@ body:
       label: Problem
       description: A short description of the issue, why or how often it may be happening, and its predicted impact.
       value: |
-        %cursor%
 
         #### Evidence, Screenshots, & Relevant URL(s)
 
@@ -21,7 +20,7 @@ body:
       label: Reproducing the bug
       description: Being as specific as possible, what steps result in triggering this bug?
       value: |
-        1. Go to ... %cursor%
+        1. Go to ...
         2. Do ...
 
         * Expected behavior:
@@ -32,7 +31,7 @@ body:
       label: Context
       description: Additional information to help with debugging.
       value: |
-        - Browser (Chrome, Safari, Firefox, etc): %cursor%
+        - Browser (Chrome, Safari, Firefox, etc):
         - OS (Windows, Mac, etc):
         - Logged in (Y/N):
         - Environment (prod, dev, local): prod
@@ -44,7 +43,6 @@ body:
         Detailed instructions for resolving this issue. Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
         <!-- Overview of the proposed solution / implementation? -->
-        %cursor%
 
         #### Requirements Checklist
         * [ ]
