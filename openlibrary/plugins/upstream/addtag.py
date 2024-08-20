@@ -12,7 +12,7 @@ from infogami.utils import delegate
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
-from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_doc
+from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
 
 
@@ -32,7 +32,7 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        return render_template('tag/add', recaptcha=get_recaptcha())
+        return render_template('tag/add')
 
     def has_permission(self, user) -> bool:
         """

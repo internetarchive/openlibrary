@@ -1,4 +1,4 @@
-$def with (tag=None, name=None, recaptcha=None)
+$def with ()
 
 $var title: $_("Add a tag")
 
@@ -47,9 +47,6 @@ $var title: $_("Add a tag")
                 </select>
             </div>
         </div>
-
-        $if recaptcha and not ctx.user:
-            $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         <div class="formElement bottom">
             <br/>
