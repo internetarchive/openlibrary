@@ -163,7 +163,7 @@
     border-color: @lighter-grey;
   }
   &__content ul {
-    margin-right: 8px;
+    margin-right: 5px;
   }
   &__content li+li {
     border-top: 1px solid;
@@ -172,14 +172,15 @@
   &__content-list .cta-btn--w-icon {
     background: @white;
     color: @black;
+    user-select: none;
     text-align: left;
-    padding: 8px 5px 5px 0;
+    padding: 5px;
     margin: 0;
     &:link, &:visited {
       background: @white;
       color: @black;
       text-align: left;
-      padding: 8px 5px 5px 0;
+      padding: 5px;
       margin: 0;
     }
   }
@@ -208,6 +209,9 @@
 }
 .read-options .cta-dropper__summary, .Tools .btn-notice .cta-dropper__summary {
   margin: 0;
+}
+.read-options .cta-dropper__content ul, .Tools .btn-notice .cta-dropper__content ul {
+  margin-left: 5px;
 }
 .read-options .cta-dropper__content-list li, .Tools .btn-notice .cta-dropper__content-list li {
   list-style: none;
