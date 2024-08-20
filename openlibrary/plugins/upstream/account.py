@@ -326,7 +326,7 @@ class account_create(delegate.page):
                     web.setcookie(
                         'fa',
                         followup_action,
-                        expires=(3600 * 24 * 365), # good for one year
+                        expires=(3600 * 24 * 365),  # good for one year
                     )
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
