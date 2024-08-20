@@ -118,6 +118,7 @@ class RegisterForm(Form):
                 'that runs Open Library.'
             ),
         ),
+        Hidden('redirect'),
     ]
 
     def __init__(self):

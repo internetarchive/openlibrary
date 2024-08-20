@@ -321,6 +321,13 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
+                followup_action = web.input().get('redirect')
+                if followup_action:
+                    web.setcookie(
+                        'fa',
+                        followup_action,
+                        expires=(3600 * 24 * 365), # good for one year
+                    )
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
