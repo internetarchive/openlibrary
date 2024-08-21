@@ -153,6 +153,7 @@ def supplement_rec_with_import_item_metadata(
 
     import_fields = [
         'authors',
+        'description',
         'isbn_10',
         'isbn_13',
         'number_of_pages',
