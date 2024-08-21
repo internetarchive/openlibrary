@@ -1,6 +1,3 @@
-created:
-    type: /type/datetime
-    value: '2021-05-06T22:11:18.795025'
 identifiers:
 -   label: Amazon ID
     name: amazon
