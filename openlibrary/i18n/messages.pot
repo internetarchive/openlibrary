@@ -7358,21 +7358,21 @@ msgstr ""
 msgid "right chevron"
 msgstr ""
 
-#: FulltextSnippet.html
-msgid "See All Results"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
+msgstr ""
+
+#: FulltextSnippet.html
+msgid "See All Results"
 msgstr ""
 
 #: IABook.html
