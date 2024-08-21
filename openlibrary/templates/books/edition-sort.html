@@ -89,7 +89,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="links">
         <ul class="read">
           $# render_first is only true on the book page for an edition.
-          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first, edition=book)</li>
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
         </ul>
         $if oclc_numbers or isbn:
           <div class="editions-table__links">
