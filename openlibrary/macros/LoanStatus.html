@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, edition=None)
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -46,13 +46,10 @@ $def analytics_attr(action):
     data-ol-link-track="CTAClick|$action"
 
 $# Get ISBN and/or OCLC to for WorldCat url in read button dropdown
-$ oclc_numbers = ""
-$ isbn_13 = None
-$ isbn_10 = None
-$if edition:
-  $ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-  $ isbn_13 = edition.get_isbn13() or None
-  $ isbn_10 = edition.get_isbn10() or None
+$if is_edition:
+  $ oclc_numbers = (doc.oclc_numbers and doc.oclc_numbers[0]) or ""
+  $ isbn_13 = doc.get_isbn13() or None
+  $ isbn_10 = doc.get_isbn10() or None
 
 $if user_loan:
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, oclc_numbers=oclc_numbers, isbn=isbn_13 or isbn_10)
