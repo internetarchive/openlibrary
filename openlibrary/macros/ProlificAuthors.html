@@ -1,0 +1,16 @@
+$def with (authors)
+
+<div id="resultsAuthors" class="widget-box">
+  <div class="head">
+    <h3>$_("Prolific Authors")</h3>
+    <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
+  </div>
+  <div class="unordered">
+    $for author in authors:
+      <span class="tag">
+        <a href="$author.key" title="$_('See more books by, and learn about, this author')">$author.name</a>,
+      </span>
+      <span class="count">$ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)</span>
+      <br/>
+  </div>
+</div>

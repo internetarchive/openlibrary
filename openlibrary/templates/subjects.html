@@ -96,22 +96,7 @@ $ has_tag = 'tag' in page
 
     <div class="clearfix"></div>
 
-$jsdef renderAuthors(authors):
-    $for a in page.authors:
-        <span class="tag">
-            <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
-        </span>
-        <span class="count">$ungettext("%(count)d book", "%(count)d books", a.count, count=a.count)</span>
-        <br/>
-<div id="resultsAuthors" class="widget-box">
-  <div class="head">
-    <h3>$_("Prolific Authors")</h3>
-    <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
-  </div>
-  <div class="unordered">
-    $:renderAuthors(page.authors)
-  </div>
-</div>
+    $:macros.ProlificAuthors(page.authors)
     <div class="spacer"></div>
     <div class="section clearfix"></div>
 </div>
