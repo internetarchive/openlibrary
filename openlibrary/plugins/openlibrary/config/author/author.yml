@@ -60,11 +60,3 @@ identifiers:
     notes: Link to the author's official YouTube channel
     url: https://www.youtube.com/@@@
     website: https://www.youtube.com
-key: /config/author
-last_modified:
-    type: /type/datetime
-    value: '2024-06-17T20:50:26.249752'
-latest_revision: 14
-revision: 14
-type:
-    key: /type/object
