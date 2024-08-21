@@ -1224,7 +1224,9 @@ def _get_author_config():
     Any changes to /config/author page require restarting the app.
     """
     # Load the author config from the author.yml file in the author directory
-    with open('openlibrary/plugins/openlibrary/config/author/identifiers.yml') as in_file:
+    with open(
+        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
+    ) as in_file:
         id_config = yaml.safe_load(in_file)
         identifiers = [
             Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
