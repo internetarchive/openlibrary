@@ -242,6 +242,7 @@ def fetch_google_book(isbn: str) -> dict | None:
 
     except Exception as e:
         logger.exception(f"Error processing ISBN {isbn} on Google Books: {e!s}")
+        stats.increment("ol.affiliate.google.total_fetch_exceptions")
         return None
 
     return None
@@ -258,7 +259,7 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
      'title': 'Бал моей мечты',
      'subtitle': '[для сред. шк. возраста]',
      'authors': [{'name': 'Светлана Лубенец'}],
-     'source_records': ['google_books:YJ1uQwAACAAJ'],
+     'source_records': ['google_books:9785699350131'],
      'publishers': [],
      'publish_date': '2009',
      'number_of_pages': 153}
@@ -313,9 +314,9 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
     return result
 
 
-def import_from_google_books(isbn: str) -> bool:
+def stage_from_google_books(isbn: str) -> bool:
     """
-    Import `isbn` from the Google Books API.
+    Stage `isbn` from the Google Books API. Can be ISBN 10 or 13.
 
     See https://developers.google.com/books.
     """
@@ -431,9 +432,6 @@ def make_cache_key(product: dict[str, Any]) -> str:
     ):
         return cache_key
 
-    # TODO: throw Google Books responses in here too and have everything read
-    # from this cache? (e.g. do an `or` with the record.startswith("google_books:"))
-    # and update the split.
     if (source_records := product.get("source_records")) and (
         amazon_record := next(
             (record for record in source_records if record.startswith("amazon:")), ""
@@ -487,7 +485,6 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
         if product.get("source_records")[0].split(":")[1] not in no_import_identifiers
     ]
 
-    print(f"these would be queued for import: {books}", flush=True)
     if books:
         stats.increment(
             "ol.affiliate.amazon.total_items_batched_for_import",
@@ -615,11 +612,11 @@ class Submit:
         b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
         key = isbn_10 or b_asin
 
-        # Go straight to Google Books here if only isbn_13.
+        # For ISBN 13, conditionally go straight to Google Books.
         if not key and isbn_13 and priority == Priority.HIGH and stage_import:
             return (
                 json.dumps({"status": "success"})
-                if import_from_google_books(isbn=isbn_13)
+                if stage_from_google_books(isbn=isbn_13)
                 else json.dumps({"status": "not found"})
             )
 
@@ -656,9 +653,6 @@ class Submit:
         if priority == Priority.HIGH:
             for _ in range(RETRIES):
                 time.sleep(1)
-                # TODO: We'd possibly want to look for Google Books here too.
-                # So maybe the logic here should go in a separate function that's
-                # called here so the logic is more contained.
                 if product := cache.memcache_cache.get(
                     f'amazon_product_{isbn_13 or b_asin}'
                 ):
@@ -682,7 +676,7 @@ class Submit:
 
             # Fall back to Google Books
             # TODO: Any point in having option not to stage and just return metadata?
-            if isbn_13 and import_from_google_books(isbn=isbn_13):
+            if isbn_13 and stage_from_google_books(isbn=isbn_13):
                 return json.dumps({"status": "success"})
 
             return json.dumps({"status": "not found"})
