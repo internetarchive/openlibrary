@@ -1,5 +1,5 @@
 import { initClampers, ReadMoreComponent } from '../../../openlibrary/plugins/openlibrary/js/readmore';
-import {clamperSample} from './html-test-data'
+import { clamperSample } from './html-test-data';
 
 describe('ReadMoreComponent', () => {
     /** @type {ReadMoreComponent} */
@@ -11,9 +11,10 @@ describe('ReadMoreComponent', () => {
                 <div class="read-more">
                     <div class="read-more__content" style="max-height:40px">
                     </div>
+                    <button class="read-more__toggle--more">More</button>
+                    <button class="read-more__toggle--less">Less</button>
                 </div>
-            `)
-                .appendTo(document.body)[0]
+            `).appendTo(document.body)[0]
         );
     });
 
@@ -50,10 +51,9 @@ describe('initClampers', () => {
             .mockImplementation(() => 100);
         initClampers([clamper]);
         expect(clamper.classList.contains('clamp')).toBe(false);
-
     });
 
-    test('clamp not removed if  needed', () => {
+    test('clamp not removed if needed', () => {
         const clamper = document.createElement('div');
         clamper.classList.add('clamp');
         jest
@@ -64,7 +64,6 @@ describe('initClampers', () => {
             .mockImplementation(() => 10);
         initClampers([clamper]);
         expect(clamper.classList.contains('clamp')).toBe(true);
-
     });
 
     test('Clicking anchor tag does not expand', () => {
@@ -79,6 +78,7 @@ describe('initClampers', () => {
         $($clamper).find('a').first().trigger('click');
         expect($clamper.css('display')).toBe('unset');
     });
+
     test('Clicking non-anchor tag does clamp', () => {
         const $clamper = $(clamperSample);
         jest
@@ -91,5 +91,4 @@ describe('initClampers', () => {
         $($clamper).find('h6').first().trigger('click');
         expect($clamper.css('display')).not.toBe('unset');
     });
-
 });
