@@ -112,21 +112,6 @@ $jsdef renderAuthors(authors):
     $:renderAuthors(page.authors)
   </div>
 </div>
-<div class="spacer"></div>
-
-$ publishers_feature_enabled = "publishers" in ctx.features
-
-$jsdef renderPublishers(publishers):
-    $for p in publishers:
-        <span class="tag">
-            $if publishers_feature_enabled:
-                <a href="$p.key">$p.name</a>,
-            $else:
-                <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
-        </span>
-        <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
-        <br/>
-
-<div class="section clearfix"></div>
-
+    <div class="spacer"></div>
+    <div class="section clearfix"></div>
 </div>
