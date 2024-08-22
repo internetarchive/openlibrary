@@ -6104,10 +6104,6 @@ msgid "Relevance"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Count"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -6137,6 +6133,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Work Count"
 msgstr ""
 
 #: search/sort_options.html
