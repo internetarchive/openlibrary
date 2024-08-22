@@ -1030,17 +1030,13 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: admin/inspect/store.html search/lists.html work_search.html
-msgid "No results found."
-msgstr ""
-
-#: search/lists.html work_search.html
-#, python-format
-msgid "Search for books containing the phrase \"%s\"?"
-msgstr ""
-
 #: work_search.html
-msgid "Add a new book to Open Library?"
+#, python-format
+msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgstr ""
+
+#: search/authors.html search/lists.html search/subjects.html work_search.html
+msgid "Checking Search Inside matches"
 msgstr ""
 
 #: account/reading_log.html search/authors.html search/subjects.html
@@ -1490,8 +1486,8 @@ msgstr ""
 msgid "Thanks!"
 msgstr ""
 
-#: BookByline.html SearchResultsWork.html account/notes.html
-#: account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
+#: account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -2668,6 +2664,10 @@ msgstr ""
 msgid "Json"
 msgstr ""
 
+#: admin/inspect/store.html
+msgid "No results found."
+msgstr ""
+
 #: admin/ip/index.html
 msgid "[Admin Center] IP Addresses"
 msgstr ""
@@ -3688,10 +3688,10 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: IABook.html SearchResultsWork.html books/edition-sort.html
-#: jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html
-#: lists/snippet.html lists/widget.html my_books/dropdown_content.html
-#: type/work/editions.html
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -6050,7 +6050,7 @@ msgid "Merge authors"
 msgstr ""
 
 #: search/authors.html
-msgid "No hits"
+msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
 #: search/inside.html
@@ -6058,14 +6058,13 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html SearchNavigation.html search/inside.html
-#: search/snippets.html
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html search/snippets.html
 msgid "Search Inside"
 msgstr ""
 
 #: search/inside.html
-#, python-format
-msgid "No hits for: %(query)s"
+msgid "No <strong>Search Inside</strong> text matched your search"
 msgstr ""
 
 #: search/inside.html
@@ -6088,6 +6087,10 @@ msgstr ""
 
 #: search/lists.html
 msgid "Search Lists"
+msgstr ""
+
+#: search/lists.html
+msgid "No <strong>lists</strong> directly matched your search"
 msgstr ""
 
 #: search/publishers.html
@@ -6149,6 +6152,10 @@ msgstr ""
 
 #: search/subjects.html
 msgid "Search Subjects"
+msgstr ""
+
+#: search/subjects.html
+msgid "No <strong>subjects</strong> directly matched your search"
 msgstr ""
 
 #: search/subjects.html
@@ -7321,8 +7328,47 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
+#: FulltextSearchSuggestion.html
+msgid "Checking for Search Inside matches"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "Search Inside Icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "search inside icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "%(book_count)s books found with matching passages"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "See all %(results_count)s Search Inside Matches"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "right chevron"
+msgstr ""
+
 #: FulltextSnippet.html
 msgid "See All Results"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+msgid "❝"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+msgid "❞"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+#, python-format
+msgid "Page: %(page)s"
 msgstr ""
 
 #: IABook.html

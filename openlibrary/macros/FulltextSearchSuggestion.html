@@ -1,0 +1,35 @@
+$def with(query, results, page=1)
+
+$def render_snippet(query, doc):
+    $:macros.FulltextSuggestionSnippet(query, doc=doc)
+
+$if results and results.get('hits'):
+  $ hits = results['hits'].get('hits', [])[:4]
+  $ num_found = commify(results['hits'].get('total', 0))
+  $ ia_base_url = "https://archive.org"
+
+  $:macros.LoadingIndicator(_("Checking for Search Inside matches"))
+    <div id="fulltextSuggestions" class="fulltext-suggestions">
+      <div class="fulltext-suggestions__header">
+        <a class="fulltext-suggestions__icon" data-ol-link-track="SearchInsideSuggestion|SeeAllClick" href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
+            <img src="/static/images/icons/icon_search-inside.svg"
+              width="30" height="30"
+              alt="$_('search inside icon')"/>
+        </a>
+        <h3 class="fulltext-suggestions__title">
+          <a data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
+          href="/search/inside?$urlencode(dict(q=query))">$_("Search Inside")</a> &mdash; $_('%(book_count)s books found with matching passages', book_count=num_found)
+        </h3>
+      </div>
+      $for doc in hits:
+        $if doc.get('edition'):
+          $:macros.FulltextSearchSuggestionItem(doc['edition'], snippet=render_snippet(query, doc))
+      <h3 class="fulltext-suggestions__footer">
+        <a class="fulltext-suggestions__footer-link" data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
+        href="/search/inside?$urlencode(dict(q=query))">$_('See all %(results_count)s Search Inside Matches', results_count=num_found)
+        <span class="fulltext-suggestions__right-chevron">
+          <img  src="/static/images/icons/right-chevron.svg" alt="$_('right chevron')"/>
+        </span>
+        </a>
+      </h3>
+    </div>

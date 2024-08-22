@@ -555,4 +555,12 @@ jQuery(function () {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
+
+    // Fulltext search box:
+    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    if (fulltextSearchSuggestion) {
+        import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
+            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
+    }
 });
+

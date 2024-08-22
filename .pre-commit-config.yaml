@@ -59,7 +59,11 @@ repos:
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
-          - types-all
+          - types-PyYAML
+          - types-aiofiles
+          - types-python-dateutil
+          - types-requests
+          - types-simplejson
 
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.18
