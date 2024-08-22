@@ -2,7 +2,6 @@ $def with (page)
 
 $var title: $page.name
 
-$ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
 $ can_add_tag = ctx.user and (ctx.user.is_super_librarian())
 $ has_tag = 'tag' in page
 
@@ -72,31 +71,11 @@ $ has_tag = 'tag' in page
     </div>
 
     <div class="clearfix"></div>
-
-    <div class="head" id="subjectRelated">
-      <h2>$_("Related...")
-        <!-- <span class="count"><a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span> -->
-      </h2>
-    </div>
-
-    $jsdef renderSubjects(subjects):
-        $if len(subjects) > 0:
-            <span class="subject">
-            $for s in subjects:
-                <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
-            </span>
-        $else:
-            <span class="title"><em>$_("None found.")</em></span>
-
-    $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box link-box--with-header">
-          <h6 class="black collapse uppercase">$label</h6>
-          $:renderSubjects(page[category][:limit])
-        </div>
+    $:macros.RelatedSubjects(page)
 
     <div class="clearfix"></div>
-
     $:macros.ProlificAuthors(page.authors)
+
     <div class="spacer"></div>
     <div class="section clearfix"></div>
 </div>
