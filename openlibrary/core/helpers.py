@@ -8,16 +8,14 @@ from urllib.parse import urlsplit
 
 import web
 
-from typing import TYPE_CHECKING
-
 import babel
 import babel.core
 import babel.dates
 import babel.numbers
 
 from babel.core import Locale
-from typing import Optional
 from collections.abc import Callable, Iterable
+from typing import Any
 
 try:
     import genshi
@@ -37,8 +35,6 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
-if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Author
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -212,7 +208,7 @@ def sprintf(s, *a, **kw):
         return s
 
 
-def cond(pred, true_value, false_value):
+def cond(pred: Any, true_value: Any, false_value: Any = "") -> Any:
     """Lisp style cond function.
 
     Hanly to use instead of if-else expression.
