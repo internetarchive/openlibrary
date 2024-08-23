@@ -9,7 +9,7 @@ import hashlib
 import hmac
 import random
 import string
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import uuid
 import logging
 import requests
@@ -215,7 +215,7 @@ class Account(web.storage):
         """Unblocks this account."""
         web.ctx.site.update_account(self.username, status="active")
 
-    def is_blocked(self):
+    def is_blocked(self) -> bool:
         """Tests if this account is blocked."""
         return getattr(self, 'status', '') == "blocked"
 
@@ -308,11 +308,11 @@ class Account(web.storage):
             type="account-link", name="username", value=self.username
         )
 
-    def get_tags(self):
+    def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
         return self.get("tags", [])
 
-    def has_tag(self, tag):
+    def has_tag(self, tag: str) -> bool:
         return tag in self.get_tags()
 
     def add_tag(self, tag):
@@ -483,7 +483,14 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
-    def get(cls, link=None, email=None, username=None, key=None, test=False):
+    def get(
+        cls,
+        link: str | None = None,
+        email: str | None = None,
+        username: str | None = None,
+        key: str | None = None,
+        test: bool = False,
+    ) -> 'OpenLibraryAccount | None':
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -503,7 +510,9 @@ class OpenLibraryAccount(Account):
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(cls, username, test=False):
+    def get_by_username(
+        cls, username: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1
@@ -522,7 +531,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link, test=False):
+    def get_by_link(cls, link: str, test: bool = False) -> 'OpenLibraryAccount | None':
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -532,7 +541,9 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(cls, email, test=False):
+    def get_by_email(
+        cls, email: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
@@ -932,6 +943,7 @@ def audit_accounts(
 
 
 @public
-def get_internet_archive_id(key):
+def get_internet_archive_id(key: str) -> str | None:
     username = key.split('/')[-1]
-    return OpenLibraryAccount.get(username=username).itemname
+    ol_account = OpenLibraryAccount.get(username=username)
+    return ol_account.itemname if ol_account else None
