@@ -390,9 +390,8 @@ msgstr ""
 msgid "Thank you very much for improving that record!"
 msgstr ""
 
-#: BestbookModal.html DonateModal.html
-#: ObservationsModal.html ShareModal.html
-#: BookPreview.html CreateListModal.html NotesModal.html
+#: BestbookModal.html BookPreview.html CreateListModal.html DonateModal.html
+#: NotesModal.html ObservationsModal.html ShareModal.html
 #: book_providers/cita_press_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
