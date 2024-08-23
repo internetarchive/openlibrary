@@ -5800,6 +5800,10 @@ msgstr ""
 msgid "Community Reviews"
 msgstr ""
 
+#: observations/review_component.html
+msgid "Feedback?"
+msgstr ""
+
 #: StarRatingsStats.html observations/review_component.html
 msgid "Rating"
 msgid_plural "Ratings"
@@ -5808,12 +5812,6 @@ msgstr[1] ""
 
 #: observations/review_component.html
 msgid "No reviews have been submitted for this work."
-msgstr ""
-
-msgid "Feedback?"
-msgstr ""
-
-msgid "No community reviews have been submitted for this work."
 msgstr ""
 
 #: observations/review_component.html
@@ -5852,7 +5850,7 @@ msgstr ""
 msgid "+ Log in to award this book"
 msgstr ""
 
-#: publishers/notfound.html
+#: publishers/index.html publishers/notfound.html
 msgid "Publishers"
 msgstr ""
 
