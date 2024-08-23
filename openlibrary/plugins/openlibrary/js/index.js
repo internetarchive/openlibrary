@@ -562,5 +562,12 @@ jQuery(function () {
         import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
             .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
     }
+
+    // Go back redirect:
+    const goback = document.querySelector('#go-back')
+    if (goback) {
+        import (/* webpackChunkName: "delete-redirect" */ './delete-redirect')
+            .then(module => module.initGoBackRedirect(goback))
+    }
 });
 
