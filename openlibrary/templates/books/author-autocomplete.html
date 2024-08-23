@@ -24,7 +24,7 @@ $jsdef render_author(name_path, dict_path, readonly, i, author):
     </div>
 
 $ config = {'name_path': name_path, 'dict_path': dict_path}
-<div class="multi-input-autocomplete--author" data-config="$dumps(config)">
+<div class="multi-input-autocomplete multi-input-autocomplete--author" data-config="$dumps(config)">
     $for author in (authors or [storage(name="", key="")]):
         $:render_author(name_path, dict_path, readonly, loop.index0, author)
     <a href="javascript:;" class="mia__add">$_("Add another author?")</a>

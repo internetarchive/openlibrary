@@ -1,17 +1,12 @@
-// http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
-$.fn.focusNextInputField = function() {
-    return this.each(function() {
-        var fields = $(this).parents('form').eq(0).add('body').find(':input:visible');
-        var index = fields.index(this);
-        if (index > -1 && (index + 1) < fields.length) {
-            fields.eq(index + 1).focus();
-        }
-        return false;
-    });
-};
+/*
+These functions are used by jsdef.py
+They must be available in the global JS namespace
+See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
+*/
 
 // closes active popup
 export function closePopup() {
+    // Note we don't import colorbox here, since it's on the parent
     parent.jQuery.fn.colorbox.close();
 }
 
@@ -47,4 +42,20 @@ export function removeChildren(...elements) {
             }
         }
     }
+}
+
+// Function to add or update multiple query parameters
+export function updateURLParameters(params) {
+    // Get the current URL
+    const url = new URL(window.location.href);
+
+    // Iterate over the params object and update/add each parameter
+    for (const key in params) {
+        if (params.hasOwnProperty(key)) {
+            url.searchParams.set(key, params[key]);
+        }
+    }
+
+    // Use history.pushState to update the URL without reloading
+    window.history.pushState({ path: url.href }, '', url.href);
 }

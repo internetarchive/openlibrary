@@ -1,5 +1,5 @@
 $def with (page)
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 
 <header id="header-bar" class="header-bar">
 

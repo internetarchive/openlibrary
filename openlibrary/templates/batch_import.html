@@ -1,0 +1,39 @@
+$def with (batch_result=None)
+$# type: (BatchResult)
+$var title: $_("Batch Imports")
+
+<div id="contentHead">
+ <h1>$_("Batch Imports")</h1>
+</div>
+<div id="contentBody" class="batchImport">
+    <p>$_('Attach a JSONL formatted document with import records.')</p>
+    <p>$:_('See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more.')</p>
+    <form method="POST" enctype="multipart/form-data" action="">
+      <input type="file" name="batchImport" required>
+      <hr/>
+      <button type="submit">$_('Import')</button>
+    </form>
+
+    $if batch_result and batch_result.errors:
+      <p>$_('Import failed.')</p>
+      <p>$_('No import will be queued until *every* record validates successfully.')</p>
+      <p>$_('Please update the JSONL file and reload this page (there should be no need to reattach the file).')</p>
+      <p>$_('Validation errors:')</p>
+      $for error in batch_result.errors:
+        <li><strong>$_('Line %d:', error.line_number)</strong> $error.error_message</li>
+
+    $if batch_result and batch_result.batch:
+      <p>$_('Import results for batch:') Batch #$batch_result.batch.id ($batch_result.batch.name)</p>
+      <p>$_('Records submitted:') $batch_result.batch.total_submitted</p>
+      <p>$_('Total queued:') $batch_result.batch.total_queued</p>
+      <p>$_('Total skipped:') $batch_result.batch.total_skipped</p>
+      $if batch_result.batch.total_skipped > 0:
+        <details>
+          <summary>$_('Not queued because they are already present in the queue:')</summary>
+          <ol>
+            $for item in batch_result.batch.items_skipped:
+              <li>$item</li>
+          </ol>
+        </details>
+  </div>
+</div>

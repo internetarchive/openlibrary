@@ -97,6 +97,17 @@ class Password(Input):
         return "password"
 
 
+class Email(Input):
+    """Email input.
+
+    >>> Email("email", value='joe@archive.org').render()
+    '<input type="email" id="email" value="joe@archive.org" name="email" />'
+    """
+
+    def get_type(self):
+        return "email"
+
+
 class Checkbox(Input):
     """Checkbox input."""
 

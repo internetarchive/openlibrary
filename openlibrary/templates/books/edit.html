@@ -35,7 +35,7 @@ $:macros.HiddenSaveButton("addWork")
             title = _("Editing...")
             note = ""
     $:macros.databarEdit(edition if edition is not None else work)
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
                 <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
@@ -61,7 +61,7 @@ $:macros.HiddenSaveButton("addWork")
                 $ is_librarian = ctx.user and ctx.user.is_librarian()
                 $:macros.BookByline([{'name': a.name, 'url': a.url(), 'birth_date': a.birth_date, 'death_date': a.death_date} for a in authors], show_years=is_librarian)
             </h3>
-        <div id="tabsAddbook">
+        <div class="ol-tabs">
             <ul>
                 <li><a href="#about" id="link_about">$_("Work Details")</a></li>
                 $if edition:

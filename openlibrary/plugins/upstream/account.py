@@ -2,9 +2,11 @@ from datetime import datetime
 import json
 import logging
 import re
+import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
+from math import ceil
 
 import web
 
@@ -31,7 +33,6 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.plugins.openlibrary.sentry import sentry
 from openlibrary.core.follows import PubSub
 
 from openlibrary.plugins.recaptcha import recaptcha
@@ -325,6 +326,8 @@ class account_create(delegate.page):
                 )
             except OLAuthenticationError as e:
                 f.note = get_login_error(e.__str__())
+                from openlibrary.plugins.openlibrary.sentry import sentry
+
                 if sentry.enabled:
                     sentry.capture_exception(e)
 
@@ -558,13 +561,26 @@ class account_validation(delegate.page):
     path = '/account/validate'
 
     @staticmethod
+    def ia_username_exists(username):
+        url = "https://archive.org/metadata/@%s" % username
+        try:
+            return bool(requests.get(url).json())
+        except (OSError, ValueError):
+            return
+
+    @staticmethod
     def validate_username(username):
         if not 3 <= len(username) <= 20:
             return _('Username must be between 3-20 characters')
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
-            return _('Username may only contain numbers and letters')
+            return _('Username may only contain numbers, letters, - or _')
+
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
+            return _("Username unavailable")
+
+        ia_account = account_validation.ia_username_exists(username)
+        if ia_account:
             return _("Username unavailable")
 
     @staticmethod
@@ -575,6 +591,10 @@ class account_validation(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
+
+        ia_account = InternetArchiveAccount.get(email=email)
+        if ia_account:
+            return _('An Internet Archive account already exists with this email')
 
     def GET(self):
         i = web.input()
@@ -983,7 +1003,7 @@ class export_books(delegate.page):
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
         work_key = f"/works/{work_id}"
-        work: "Work" = web.ctx.site.get(work_key)
+        work: Work = web.ctx.site.get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':
@@ -1111,18 +1131,44 @@ class export_books(delegate.page):
         return csv_string(Ratings.select_all_by_username(username), format_rating)
 
 
+def _validate_follows_page(page, per_page, hits):
+    min_page = 1
+    max_page = max(min_page, ceil(hits / per_page))
+    if isinstance(page, int):
+        return min(max_page, max(min_page, page))
+    if isinstance(page, str) and page.isdigit():
+        return min(max_page, max(min_page, int(page)))
+    return min_page
+
+
 class my_follows(delegate.page):
     path = r"/people/([^/]+)/(followers|following)"
 
     def GET(self, username, key=""):
-        mb = MyBooksTemplate(username, 'following')
-        follows = (
-            PubSub.get_followers(username)
+        page_size = 25
+        i = web.input(page=1)
+
+        # Validate page ID, force between 1 and max allowed by size and total count
+        follow_count = (
+            PubSub.count_followers(username)
             if key == 'followers'
-            else PubSub.get_following(username)
+            else PubSub.count_following(username)
         )
+        page = _validate_follows_page(i.page, page_size, follow_count)
+
+        # Get slice of follows belonging to this page
+        offset = max(0, (page - 1) * page_size)
+        follows = (
+            PubSub.get_followers(username, page_size, offset)
+            if key == 'followers'
+            else PubSub.get_following(username, page_size, offset)
+        )
+
+        mb = MyBooksTemplate(username, 'following')
         manage = key == 'following' and mb.is_my_page
-        template = render['account/follows'](mb.user, follows, manage=manage)
+        template = render['account/follows'](
+            mb.user, follow_count, page, page_size, follows, manage=manage
+        )
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 

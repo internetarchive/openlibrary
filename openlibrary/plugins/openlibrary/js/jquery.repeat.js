@@ -6,9 +6,7 @@ import { isbnOverride } from '../../openlibrary/js/isbnOverride'
  *
  * Used in addbook process.
  */
-export default function($){
-    // For v2 and v1 page support. Can be removed when no v1 support needed
-    var isOldJQuery = $('body').on === undefined;
+export function init() {
     // used in books/edit/exercpt, books/edit/web and books/edit/edition
     $.fn.repeat = function(options) {
         var addSelector, removeSelector, id, elems, t, code,
@@ -30,7 +28,6 @@ export default function($){
                 .replace(/%7D%7D/gi, '%>')
                 .replace(/{{/g, '<%=')
                 .replace(/}}/g, '%>');
-            // Template is defined in openlibrary\plugins\openlibrary\js\template.js
             return Template(code);
         }
 
@@ -111,12 +108,7 @@ export default function($){
         addSelector = `${id} .repeat-add`;
         removeSelector = `${id} .repeat-remove`;
         // Click handlers should apply to newly created add/remove selectors
-        if (isOldJQuery) {
-            $(addSelector).on('click', addSelector, onAdd);
-            $(removeSelector).on('click', removeSelector, onRemove);
-        } else {
-            $(document).on('click', addSelector, onAdd);
-            $(document).on('click', removeSelector, onRemove);
-        }
+        $(document).on('click', addSelector, onAdd);
+        $(document).on('click', removeSelector, onRemove);
     }
 }

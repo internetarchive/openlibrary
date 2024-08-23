@@ -7,6 +7,8 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import json
+import qrcode
+import io
 from collections import defaultdict
 from openlibrary.views.loanstats import get_trending_books
 from infogami import config
@@ -699,3 +701,17 @@ class hide_banner(delegate.page):
         return delegate.RawText(
             json.dumps({'success': 'Preference saved'}), content_type="application/json"
         )
+
+
+class create_qrcode(delegate.page):
+    path = '/qrcode'
+
+    def GET(self):
+        i = web.input(path='/')
+        page_path = i.path
+        qr_url = f'{web.ctx.home}{page_path}'
+        img = qrcode.make(qr_url)
+        with io.BytesIO() as buf:
+            img.save(buf, format='PNG')
+            web.header("Content-Type", "image/png")
+            return delegate.RawText(buf.getvalue())

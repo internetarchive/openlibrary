@@ -31,10 +31,14 @@ class TestBiblio:
             'publishers': ['BDK America'],
             'weight': '0.545',
             'authors': [{'name': 'Heng-ching, Shih'}],
-            'pagination': '226',
+            'number_of_pages': 226,
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 
@@ -48,10 +52,14 @@ class TestBiblio:
             'publishers': ['BDK America'],
             'weight': '0.545',
             'authors': [{'name': 'Heng-ching, Shih'}],
-            'pagination': '226',
+            'number_of_pages': 226,
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 

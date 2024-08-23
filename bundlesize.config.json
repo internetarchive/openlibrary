@@ -10,7 +10,7 @@
     },
     {
       "path": "static/build/markdown-editor.*.js",
-      "maxSize": "11KB"
+      "maxSize": "13KB"
     },
     {
       "path": "static/build/carousel.*.js",
@@ -34,11 +34,11 @@
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/user-website.*.js",
-      "maxSize": "4KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/page-barcodescanner.*.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "27KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-book.css",
@@ -82,11 +82,11 @@
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "26KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "26KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -94,15 +94,15 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "26KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "10KB"
+      "maxSize": "9KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "30KB"
+      "maxSize": "27KB"
     }
   ]
 }

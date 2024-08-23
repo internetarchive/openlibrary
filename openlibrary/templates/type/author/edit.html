@@ -8,7 +8,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
         </span>
@@ -36,15 +36,6 @@ $:macros.HiddenSaveButton("addAuthor")
             </div>
         </div>
     </div>
-
-        <div>
-
-            <div id="tabsAddauthor">
-
-                <ul>
-                    <li><a href="#about">$_("About")</a></li>
-                    <li><a href="#web">$_("Links")</a></li>
-                </ul>
 
                 <div id="about">
 
@@ -117,16 +108,16 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
-
+                        <br>
+                        <fieldset class="major">
+                            <legend>$_("Links")</legend>
+                            <div class="formBack">
+                                $:render_template("books/edit/web", page, prefix="author--")
+                            </div>
+                        </fieldset>
+                    </fieldset>
 
                 </div>
-<!-- /ABOUT -->
-                <div id="web">
-                    $:render_template("books/edit/web", page, prefix="author--")
-                </div>
-            </div>
-
-        </div>
 
 
         $:render_template("authors/infobox", page, edit_view=True)

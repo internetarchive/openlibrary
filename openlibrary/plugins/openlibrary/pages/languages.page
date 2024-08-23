@@ -48,6 +48,12 @@
     "key": "/languages/afr"
   },
   {
+    "code": "ain",
+    "type": "/type/language",
+    "name": "Ainu",
+    "key": "/languages/ain"
+  },
+  {
     "code": "aka",
     "type": "/type/language",
     "name": "Akan",
@@ -95,6 +101,12 @@
     "type": "/type/language",
     "name": "English, Old (ca. 450-1100)",
     "key": "/languages/ang"
+  },
+  {
+    "code": "anp",
+    "type": "/type/language",
+    "name": "Angika",
+    "key": "/languages/anp"
   },
   {
     "code": "apa",
@@ -211,6 +223,12 @@
     "type": "/type/language",
     "name": "Azerbaijani",
     "key": "/languages/aze"
+  },
+  {
+    "code": "bad",
+    "type": "/type/language",
+    "name": "Banda languages",
+    "key": "/languages/bad"
   },
   {
     "code": "bai",
@@ -367,6 +385,12 @@
     "type": "/type/language",
     "name": "Burmese",
     "key": "/languages/bur"
+  },
+  {
+    "code": "byn",
+    "type": "/type/language",
+    "name": "Bilin",
+    "key": "/languages/byn"
   },
   {
     "code": "cai",
@@ -543,6 +567,12 @@
     "key": "/languages/crp"
   },
   {
+    "code": "csb",
+    "type": "/type/language",
+    "name": "Kashubian",
+    "key": "/languages/csb"
+  },
+  {
     "code": "cus",
     "type": "/type/language",
     "name": "Cushitic (Other)",
@@ -609,6 +639,12 @@
     "type": "/type/language",
     "name": "Dravidian (Other)",
     "key": "/languages/dra"
+  },
+  {
+    "code": "dsb",
+    "type": "/type/language",
+    "name": "Lower Sorbian",
+    "key": "/languages/dsb"
   },
   {
     "code": "dua",
@@ -795,6 +831,12 @@
     "type": "/type/language",
     "name": "French, Old (ca. 842-1300)",
     "key": "/languages/fro"
+  },
+  {
+    "code": "frr",
+    "type": "/type/language",
+    "name": "North Frisian",
+    "key": "/languages/frr"
   },
   {
     "code": "frs",
@@ -1035,7 +1077,7 @@
   {
     "code": "him",
     "type": "/type/language",
-    "name": "Himachali",
+    "name": "Western Pahari languages",
     "key": "/languages/him"
   },
   {
@@ -1062,6 +1104,12 @@
     "name": "Croatian",
     "key": "/languages/hrv",
     "title": "Croatian"
+  },
+  {
+    "code": "hsb",
+    "type": "/type/language",
+    "name": "Upper Sorbian",
+    "key": "/languages/hsb"
   },
   {
     "code": "hun",
@@ -1182,6 +1230,12 @@
     "type": "/type/language",
     "name": "Javanese",
     "key": "/languages/jav"
+  },
+  {
+    "code": "jbo",
+    "type": "/type/language",
+    "name": "Lojban (Artificial language)",
+    "key": "/languages/jbo"
   },
   {
     "code": "jpn",
@@ -1399,6 +1453,12 @@
     "type": "/type/language",
     "name": "Kurdish",
     "key": "/languages/kur"
+  },
+  {
+    "code": "kut",
+    "type": "/type/language",
+    "name": "Kootenai",
+    "key": "/languages/kut"
   },
   {
     "code": "lad",
@@ -1845,6 +1905,12 @@
     "key": "/languages/nor"
   },
   {
+    "code": "nqo",
+    "type": "/type/language",
+    "name": "N'Ko",
+    "key": "/languages/nqo"
+  },
+  {
     "code": "nso",
     "type": "/type/language",
     "name": "Northern Sotho",
@@ -1855,6 +1921,12 @@
     "type": "/type/language",
     "name": "Nubian languages",
     "key": "/languages/nub"
+  },
+  {
+    "code": "nwc",
+    "type": "/type/language",
+    "name": "Newari, Old",
+    "key": "/languages/nwc"
   },
   {
     "code": "nya",
@@ -2080,6 +2152,12 @@
     "key": "/languages/run"
   },
   {
+    "code": "rup",
+    "type": "/type/language",
+    "name": "Aromanian",
+    "key": "/languages/rup"
+  },
+  {
     "code": "rus",
     "type": "/type/language",
     "name": "Russian",
@@ -2144,6 +2222,12 @@
     "type": "/type/language",
     "name": "Serbian",
     "key": "/languages/scc"
+  },
+  {
+    "code": "scn",
+    "type": "/type/language",
+    "name": "Sicilian Italian",
+    "key": "/languages/scn"
   },
   {
     "code": "sco",
@@ -2510,6 +2594,12 @@
     "key": "/languages/tkl"
   },
   {
+    "code": "tlh",
+    "type": "/type/language",
+    "name": "Klingon (Artificial language)",
+    "key": "/languages/tlh"
+  },
+  {
     "code": "tli",
     "type": "/type/language",
     "name": "Tlingit",
@@ -2766,6 +2856,12 @@
     "type": "/type/language",
     "name": "Zapotec",
     "key": "/languages/zap"
+  },
+  {
+    "code": "zbl",
+    "type": "/type/language",
+    "name": "Blissymbolics",
+    "key": "/languages/zbl"
   },
   {
     "code": "znd",

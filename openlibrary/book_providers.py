@@ -1,5 +1,5 @@
 from typing import TypedDict, Literal, cast, TypeVar, Generic
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 
 import web
 from web import uniq
@@ -81,9 +81,13 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
         return f"book_providers/{self.short_name}_{typ}.html"
 
-    def render_read_button(self, ed_or_solr: Edition | dict):
+    def render_read_button(
+        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+    ):
         return render_template(
-            self.get_template_path('read_button'), self.get_best_identifier(ed_or_solr)
+            self.get_template_path('read_button'),
+            self.get_best_identifier(ed_or_solr),
+            analytics_attr,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
@@ -217,6 +221,14 @@ class OpenStaxProvider(AbstractBookProvider):
         return False
 
 
+class CitaPressProvider(AbstractBookProvider):
+    short_name = 'cita_press'
+    identifier_key = 'cita_press'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -224,6 +236,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
     OpenStaxProvider(),
+    CitaPressProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]

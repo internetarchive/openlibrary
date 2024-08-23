@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - run: pip install requests
-      - run: scripts/gh_scripts/issue_comment_bot.py 24 -c "$SLACK_CHANNEL" -t "$SLACK_TOKEN"
+      - run: scripts/gh_scripts/issue_comment_bot.py 24 -c .github/workflows/config/new_comment_digest.json -s "$SLACK_CHANNEL" -t "$SLACK_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}

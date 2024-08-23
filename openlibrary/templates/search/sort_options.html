@@ -36,7 +36,7 @@ $code:
           },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
-       if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians')):
+       if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
          sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:

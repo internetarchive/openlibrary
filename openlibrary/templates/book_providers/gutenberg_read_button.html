@@ -1,4 +1,4 @@
-$def with(gutenberg_id)
+$def with(gutenberg_id, analytics_attr)
 
 <div class="cta-button-group">
   <a
@@ -6,8 +6,9 @@ $def with(gutenberg_id)
       title="$_('Read eBook from Project Gutenberg')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--gutenberg"
       target="_blank"
-       aria-haspopup="true"
-       aria-controls="gutenberg-toast"
+      $:analytics_attr('Read')
+      aria-haspopup="true"
+      aria-controls="gutenberg-toast"
   >$_('Read')</a>
 </div>
 

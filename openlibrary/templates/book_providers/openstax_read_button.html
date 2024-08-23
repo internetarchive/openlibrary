@@ -1,4 +1,4 @@
-$def with(openstax_id)
+$def with(openstax_id, analytics_attr)
 
 <div class="cta-button-group">
   <a
@@ -6,8 +6,9 @@ $def with(openstax_id)
       title="$_('Read eBook from OpenStax')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--openstax"
       target="_blank"
-       aria-haspopup="true"
-       aria-controls="openstax-toast"
+      $:analytics_attr('Read')
+      aria-haspopup="true"
+      aria-controls="openstax-toast"
   >$_('Read')</a>
 </div>
 
