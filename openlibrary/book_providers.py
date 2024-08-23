@@ -6,6 +6,7 @@ from urllib import parse
 
 import web
 from web import uniq
+from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
@@ -147,7 +148,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     """
     identifier_key: str | None
 
-    def get_olids(self, identifier):
+    def get_olids(self, identifier: str) -> list[str]:
         return web.ctx.site.things(
             {"type": "/type/edition", self.db_selector: identifier}
         )
@@ -157,7 +158,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         return {f"{self.db_selector}~": "*"}
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return f"identifiers.{self.identifier_key}"
 
     @property
@@ -190,14 +191,16 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
 
     def render_read_button(
         self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
-    ):
+    ) -> TemplateResult:
         return render_template(
             self.get_template_path('read_button'),
             self.get_best_identifier(ed_or_solr),
             analytics_attr,
         )
 
-    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+    def render_download_options(
+        self, edition: Edition, extra_args: list | None = None
+    ) -> TemplateResult:
         return render_template(
             self.get_template_path('download_options'),
             self.get_best_identifier(edition),
@@ -234,11 +237,11 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     identifier_key = 'ocaid'
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return self.identifier_key
 
     @property
-    def solr_key(self):
+    def solr_key(self) -> str:
         return "ia"
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
@@ -258,7 +261,9 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
 
-    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+    def render_download_options(
+        self, edition: Edition, extra_args: list | None = None
+    ) -> TemplateResult | str:
         if edition.is_access_restricted():
             return ''
 
@@ -430,11 +435,11 @@ class DirectProvider(AbstractBookProvider):
     identifier_key = None
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return "providers.url"
 
     @property
-    def solr_key(self):
+    def solr_key(self) -> None:
         # TODO: Not implemented yet
         return None
 
@@ -469,7 +474,7 @@ class DirectProvider(AbstractBookProvider):
 
     def render_read_button(
         self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
-    ):
+    ) -> TemplateResult | str:
         acq_sorted = sorted(
             (
                 p
@@ -595,7 +600,7 @@ ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
 prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
 
-def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
+def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
@@ -679,7 +684,7 @@ def get_best_edition(
     return best if best else (None, None)
 
 
-def get_solr_keys():
+def get_solr_keys() -> list[str]:
     return [p.solr_key for p in PROVIDER_ORDER if p.solr_key]
 
 
