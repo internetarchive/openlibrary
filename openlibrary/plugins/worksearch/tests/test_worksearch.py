@@ -62,6 +62,7 @@ def test_get_doc():
             'id_standard_ebooks': [],
             'id_openstax': [],
             'id_cita_press': [],
+            'id_wikisource': [],
             'editions': [],
         }
     )

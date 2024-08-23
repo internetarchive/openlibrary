@@ -1,15 +1,15 @@
 
 <div class="hidden"  id="debug-stats">
-<h2>Debug Stats</h2>
+<h2>$_("Debug Stats")</h2>
 
-<h3>SUMMARY</h3>
+<h3>$_("Summary")</h3>
 <pre>
 $ stats = stats_summary()
 $for k in stats:
     $k: $dict(stats[k])
 </pre>
 
-<h3>Details</h3>
+<h3>$_("Details")</h3>
 <pre>
 $for s in ctx.get("stats", []):
     $s.name $s.time

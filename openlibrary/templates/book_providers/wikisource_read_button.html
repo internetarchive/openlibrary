@@ -1,0 +1,14 @@
+$def with(wikisource_id, analytics_attr)
+
+<div class="cta-button-group">
+    <a href="https://wikisource.org/wiki/$wikisource_id" title="$_('Read eBook on Wikisource')" class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--wikisource" target="_blank" aria-haspopup="true" aria-controls="wikisource-toast">$_('Read')</a>
+</div>
+
+$if render_once('wikisource-toast'):
+    <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--wikisource" id="wikisource-toast" style="display:none">
+        <div class="toast__body">
+            $:_('This book is available from <a href="https://wikisource.org/">Wikisource</a>. Wikisource, a <a href="https://www.wikimedia.org/">Wikimedia Foundation</a> project, is a trusted book provider of works available under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA</a> open content license, such as essays, historical documents, letters, speeches, and public domain books.')
+            <a href="https://wikisource.org/wiki/Wikisource:What_is_Wikisource%3F">$_('Learn more')</a>
+        </div>
+        <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
+    </div>

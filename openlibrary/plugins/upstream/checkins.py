@@ -40,15 +40,14 @@ def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """Validates dates.
 
     Dates are considered valid if there is:
-    1. A year
-    2. A year and a month
-    3. A year, month, and day
+    1. A year only.
+    2. A year and a month only.
+    3. A year, month, and day.
     """
     if not year:
         return False
-    if day and not month:
-        return False
-    return True
+
+    return not day or bool(month)
 
 
 @public
@@ -140,14 +139,11 @@ class patron_check_ins(delegate.page):
             return False
 
         # Date must be valid:
-        if not is_valid_date(
+        return is_valid_date(
             data.get('year', None),
             data.get('month', None),
             data.get('day', None),
-        ):
-            return False
-
-        return True
+        )
 
 
 class patron_check_in(delegate.page):

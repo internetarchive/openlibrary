@@ -65,8 +65,8 @@ class history(delegate.mode):
         history = json.loads(
             infogami_request('/versions', data={'query': json.dumps(query)})
         )
-        for i, row in enumerate(history):
-            history[i].pop("ip")
+        for _, row in enumerate(history):
+            row.pop("ip")
         return json.dumps(history)
 
 

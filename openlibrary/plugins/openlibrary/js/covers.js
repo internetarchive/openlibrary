@@ -20,21 +20,21 @@ export function initCoversChange() {
     $('.coverPop')
         .on('click', function () {
             // clear the content of #imagesAdd and #imagesManage before adding new
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
-                $('#imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
             }
             setTimeout(function () {
                 // add iframe to add images
-                add_iframe('#imagesAdd', add_url);
+                add_iframe('.imagesAdd', add_url);
                 // add iframe to manage images
-                add_iframe('#imagesManage', manage_url);
+                add_iframe('.imagesManage', manage_url);
             }, 0);
         })
         .on('cbox_cleanup', function () {
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
         });
 }
 

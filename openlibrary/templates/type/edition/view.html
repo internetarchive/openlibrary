@@ -287,7 +287,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if is_librarian:
               $if ocaid:
                 <div class="edition-omniline-item">
-                 <div>Internet Archive</div>
+                 <div>$_("Internet Archive")</div>
                   <span><a href="https://archive.org/details/$ocaid">$ocaid</a></span>
                 </div>
 
@@ -299,7 +299,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                     $isbns.append(value['value'])
               $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBNs</div>
+                  <div>$_("ISBNs")</div>
                   $for isbn in isbns:
                     <span>$isbn</span>
                 </div>

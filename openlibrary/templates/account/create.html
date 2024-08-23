@@ -3,6 +3,9 @@ $def with (form)
 $putctx("cssfile", "signup")
 
 $ i18n_strings = {
+    $ "invalid_email_format": _("Must be a valid email address"),
+    $ "username_length_err": _("Must be between 3 and 20 characters"),
+    $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
     $ "password_length_err": _("Must be between 3 and 20 characters")
     $ }
 
@@ -36,11 +39,9 @@ $var title: $_("Sign Up to Open Library")
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
-                    $ i18n_strings = {
-                    $    "show_password": _('Show password'),
-                    $    "hide_password": _('Hide password')
-                    $  }
-                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__link" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
+                    <a href="javascript:;" class="password-visibility-toggle">
+                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                    </a>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
         </div>
@@ -61,7 +62,7 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.username, suffix=str(screenname_url()))
             $:field(form.password)
 
-            <div class="ol-signup-form__newsletter">
+            <div class="ol-signup-form__checkbox">
                 $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
             </div>
 
