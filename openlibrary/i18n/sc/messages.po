@@ -3174,7 +3174,7 @@ msgstr "includende <i>%(topwork)s</i>"
 
 #: authors/infobox.html
 msgid "Born"
-msgstr "Naschimentu"
+msgstr "Nàschida"
 
 #: authors/infobox.html
 msgid "Died"
