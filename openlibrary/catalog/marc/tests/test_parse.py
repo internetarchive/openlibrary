@@ -74,6 +74,7 @@ bin_samples = [
     'thewilliamsrecord_vol29b_meta.mrc',
     '13dipolarcycload00burk_meta.mrc',
     '710_org_name_in_direct_order.mrc',
+    '830_series.mrc',
     '880_alternate_script.mrc',
     '880_table_of_contents.mrc',
     '880_Nihon_no_chasho.mrc',
