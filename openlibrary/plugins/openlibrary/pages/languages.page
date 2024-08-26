@@ -1741,7 +1741,9 @@
     "code": "mol",
     "type": "/type/language",
     "name": "Moldavian",
-    "key": "/languages/mol"
+    "key": "/languages/mol",
+    "deprecated": true,
+    "current": "/languages/rum"
   },
   {
     "code": "mon",
@@ -2221,7 +2223,9 @@
     "code": "scc",
     "type": "/type/language",
     "name": "Serbian",
-    "key": "/languages/scc"
+    "key": "/languages/scc",
+    "deprecated: true,
+    "current": "/languages/srp"
   },
   {
     "code": "scn",
@@ -2239,7 +2243,9 @@
     "code": "scr",
     "type": "/type/language",
     "name": "Croatian",
-    "key": "/languages/scr"
+    "key": "/languages/scr",
+    "deprecated": true,
+    "current": "/languages/hrv"
   },
   {
     "code": "sel",
