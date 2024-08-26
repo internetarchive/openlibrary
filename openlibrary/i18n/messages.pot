@@ -695,27 +695,6 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
-#: subjects.html subjects/notfound.html type/author/view.html
-#: type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
-#: SubjectTags.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "Places"
-msgstr ""
-
-#: SubjectTags.html admin/menu.html admin/people/index.html
-#: admin/people/view.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "People"
-msgstr ""
-
-#: SubjectTags.html subjects.html type/list/view_body.html
-msgid "Times"
-msgstr ""
-
 #: subjects.html
 msgid "Edit Subject Tag"
 msgstr ""
@@ -742,83 +721,6 @@ msgstr ""
 #: subjects/notfound.html type/local_id/view.html
 msgid "Search"
 msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Publishing History"
-msgstr ""
-
-#: subjects.html
-msgid ""
-"This is a chart to show the publishing history of editions of works about"
-" this subject. Along the X axis is time, and on the y axis is the count "
-"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
-" chart</a>."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Reset chart"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "or continue zooming in."
-msgstr ""
-
-#: subjects.html
-msgid "This graph charts editions published on this subject."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Editions Published"
-msgstr ""
-
-#: admin/imports.html publishers/view.html subjects.html
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Year of Publication"
-msgstr ""
-
-#: subjects.html
-msgid "Related..."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "None found."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "See more books by, and learn about, this author"
-msgstr ""
-
-#: account/loans.html authors/index.html lists/showcase.html
-#: publishers/view.html search/authors.html search/publishers.html
-#: search/subjects.html subjects.html
-#, python-format
-msgid "%(count)d book"
-msgid_plural "%(count)d books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: subjects.html
-msgid "Prolific Authors"
-msgstr ""
-
-#: subjects.html
-msgid "who have written the most books on this subject"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Get more information about this publisher"
-msgstr ""
-
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html subjects.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
 
 #: support.html
 msgid "How can we help?"
@@ -1337,6 +1239,15 @@ msgid ""
 "Are you sure you want to leave the waiting list "
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
+
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/showcase.html publishers/view.html search/authors.html
+#: search/publishers.html search/subjects.html
+#, python-format
+msgid "%(count)d book"
+msgid_plural "%(count)d books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
@@ -2100,6 +2011,10 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
+#: PublishingHistory.html admin/imports.html publishers/view.html
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr ""
+
 #: admin/imports.html admin/imports_by_date.html site/stats.html
 msgid "Summary"
 msgstr ""
@@ -2364,6 +2279,12 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Admin Center"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html type/author/view.html
+#: type/list/view_body.html
+msgid "People"
 msgstr ""
 
 #: admin/menu.html
@@ -3476,6 +3397,14 @@ msgstr ""
 #: books/check.html
 msgid "Select this book"
 msgstr ""
+
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: books/check.html
 #, python-format
@@ -5096,6 +5025,12 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
 #: lib/nav_foot.html
 msgid "Explore collections"
 msgstr ""
@@ -5854,6 +5789,10 @@ msgstr[1] ""
 msgid "0 ebooks"
 msgstr ""
 
+#: PublishingHistory.html publishers/view.html
+msgid "Publishing History"
+msgstr ""
+
 #: publishers/view.html
 msgid ""
 "This is a chart to show the when this publisher published books. Along "
@@ -5861,10 +5800,26 @@ msgid ""
 " <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
+#: PublishingHistory.html publishers/view.html
+msgid "Reset chart"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "or continue zooming in."
+msgstr ""
+
 #: publishers/view.html
 msgid ""
 "This graph charts editions from this publisher over time. Click to view a"
 " single year, or drag across a range."
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Editions Published"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Year of Publication"
 msgstr ""
 
 #: publishers/view.html
@@ -5876,8 +5831,20 @@ msgstr ""
 msgid "Search for books published by %(publisher)s"
 msgstr ""
 
+#: RelatedSubjects.html publishers/view.html
+msgid "None found."
+msgstr ""
+
+#: ProlificAuthors.html publishers/view.html
+msgid "See more books by, and learn about, this author"
+msgstr ""
+
 #: publishers/view.html
 msgid "published most by this publisher"
+msgstr ""
+
+#: publishers/view.html
+msgid "Get more information about this publisher"
 msgstr ""
 
 #: recentchanges/header.html
@@ -6563,6 +6530,11 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
+#: RelatedSubjects.html SubjectTags.html type/author/view.html
+#: type/list/view_body.html
+msgid "Places"
+msgstr ""
+
 #: Profile.html type/author/view.html
 msgid "Time"
 msgstr ""
@@ -6971,6 +6943,10 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
+msgid "Times"
 msgstr ""
 
 #: type/local_id/view.html
@@ -7455,6 +7431,26 @@ msgstr ""
 msgid "Component"
 msgstr ""
 
+#: ProlificAuthors.html
+msgid "Prolific Authors"
+msgstr ""
+
+#: ProlificAuthors.html
+msgid "who have written the most books on this subject"
+msgstr ""
+
+#: PublishingHistory.html
+msgid ""
+"This is a chart to show the publishing history of editions of works about"
+" this subject. Along the X axis is time, and on the y axis is the count "
+"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
+" chart</a>."
+msgstr ""
+
+#: PublishingHistory.html
+msgid "This graph charts editions published on this subject."
+msgstr ""
+
 #: QueryCarousel.html
 msgid "Search collection"
 msgstr ""
@@ -7507,6 +7503,10 @@ msgstr ""
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
+msgstr ""
+
+#: RelatedSubjects.html
+msgid "Related..."
 msgstr ""
 
 #: ReturnForm.html
