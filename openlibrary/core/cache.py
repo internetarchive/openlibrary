@@ -177,20 +177,21 @@ class memcache_memoize:
             thread.join()
 
     def encode_args(self, args, kw=None):
-        kw = kw or {}
         """Encodes arguments to construct the memcache key.
         """
+        kw = kw or {}
+
         # strip [ and ] from key
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return a + "-" + self.json_encode(kw)
+            return f"{hash(a)}${hash(self.json_encode(kw))}"
         else:
-            return a
+            return f"{hash(a)}"
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "-" + self.encode_args(args, kw)
+        key = self.key_prefix + "$" + self.encode_args(args, kw)
         return key.replace(
             " ", "_"
         )  # XXX: temporary fix to handle spaces in the arguments
