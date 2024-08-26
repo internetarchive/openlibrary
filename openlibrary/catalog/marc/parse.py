@@ -701,6 +701,10 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     update_edition(rec, edition, read_url, 'links')
     update_edition(rec, edition, read_original_languages, 'translated_from')
 
+<<<<<<< HEAD
+=======
+    edition.update(read_contributions(rec, edition.get('authors', [])))
+>>>>>>> b0e2875bb (consolidate contributer name fn and refactor)
     edition.update(subjects_for_work(rec))
 
     for func in (read_publisher, read_isbn, read_pagination):
