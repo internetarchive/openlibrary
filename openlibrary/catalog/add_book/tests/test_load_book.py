@@ -37,7 +37,7 @@ unchanged_names = [
     {'entity_type': 'org', 'name': 'Organisation, Place'},
     {
         'entity_type': 'org',
-        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin'
+        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin',
     },
 ]
 
