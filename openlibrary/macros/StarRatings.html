@@ -6,7 +6,7 @@ $if rating is None and work and username:
 $ edition_key = edition.key if edition else ""
 $ form_id = "ratingsForm%s" % id
 
-<form class="star-rating-form" id="$form_id" method="POST" action="$(work.key)/ratings.json"
+<form class="star-rating-form $('mobile' if id == '--mobile' else 'desktop')" id="$form_id" method="POST" action="$(work.key)/ratings.json"
       property="reviewRating" typeof="Rating" vocab="http://schema.org/" data-work-key="$work.key">
   <meta property="worstRating" content="1"/>
   <meta property="bestRating" content="5"/>
