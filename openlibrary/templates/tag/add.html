@@ -1,4 +1,4 @@
-$def with (tag=None, name=None, recaptcha=None)
+$def with (name, type, subject_type=None)
 
 $var title: $_("Add a tag")
 
@@ -20,7 +20,7 @@ $var title: $_("Add a tag")
                 <label for="tagname">$_("Name of Tag")</label>*<span class="tip">$_("Required field")</span>
             </div>
             <div class="input">
-                <input type="text" name="tag_name" id="tag_name" required/>
+                <input type="text" name="tag_name" id="tag_name" value="$name" required/>
             </div>
         </div>
 
@@ -43,13 +43,13 @@ $var title: $_("Add a tag")
                     <option value="">$_("Select")</option>
                     $ tag_types = get_tag_types()
                     $for tag_type in tag_types:
-                        <option value="$tag_type">$tag_type</option>
+                        $if tag_type == type:
+                            <option value="$tag_type" selected>$tag_type</option>
+                        $else:
+                            <option value="$tag_type">$tag_type</option>
                 </select>
             </div>
         </div>
-
-        $if recaptcha and not ctx.user:
-            $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         <div class="formElement bottom">
             <br/>
