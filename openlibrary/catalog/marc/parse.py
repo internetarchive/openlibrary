@@ -572,7 +572,7 @@ def read_location(rec: MarcBase) -> list[str] | None:
     return remove_duplicates(found) if fields else None
 
 
-def read_contributions(rec: MarcBase) -> dict[str, Any]:
+def read_contributions(rec: MarcBase, authors: list=[]) -> dict[str, Any]:
     """
     Reads contributors from a MARC record
     and use values in 7xx fields to set 'authors'
@@ -582,19 +582,22 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
     :param (MarcBinary | MarcXml) rec:
     :rtype: dict
     """
+    def form_name(values: list) -> str:
+        name = [v.strip(' /,;:') for v in values]
+        return remove_trailing_dot(' '.join(name))
 
-    want = {
-        '700': 'abcdeq',
-        '710': 'ab',
-        '711': 'acdn',
-        '720': 'a',
+    want = {  # Added Entries --
+        '700': 'abcdeq',  # Personal Name
+        '710': 'ab',      # Corporate Name
+        '711': 'acdn',    # Meeting Name
+        '720': 'a',       # Uncontrolled Name
     }
     ret: dict[str, Any] = {}
     skip_authors = set()
-    for tag in ('100', '110', '111'):
-        fields = rec.get_fields(tag)
-        for f in fields:
-            skip_authors.add(tuple(f.get_all_subfields()))
+    for author in authors:
+        skip_authors.add(author['name'])
+        if 'alternate_names' in author:
+            skip_authors.update(author.get('alternate_names', []))
 
     if not skip_authors:
         for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
@@ -603,37 +606,43 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
             if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
-                    skip_authors.add(tuple(f.get_subfields(want[tag])))
                 continue
             elif 'authors' in ret:
                 break
+            name = form_name(f.get_subfield_values(want[tag]))
             if tag == '710':
-                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
                 ret['authors'] = [
-                    {'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))}
+                    {'entity_type': 'org', 'name': name}
                 ]
-                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                skip_authors.add(name)
                 break
             if tag == '711':
-                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
                 ret['authors'] = [
                     {
                         'entity_type': 'event',
-                        'name': remove_trailing_dot(' '.join(name)),
+                        'name': name,
                     }
                 ]
-                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                skip_authors.add(name)
                 break
+
+    for author in ret.get('authors', []):
+        skip_authors.add(author['name'])
+        if 'alternate_names' in author:
+            skip_authors.update(author.get('alternate_names', []))
 
     for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
         assert isinstance(marc_field_base, MarcFieldBase)
         f = marc_field_base
-        sub = want[tag]
-        cur = tuple(f.get_subfields(sub))
-        if tuple(cur) in skip_authors:
+        links = f.get_contents('6')
+        if '6' in links:
+            f = f.rec.get_linkage(tag, links['6'][0])
+        name = form_name(f.get_subfield_values(want[tag]))
+        if name in skip_authors:
             continue
-        name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
-        ret.setdefault('contributions', []).append(name)  # need to add flip_name
+        cur = tuple(f.get_subfields(want[tag]))
+        contributer_name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
+        ret.setdefault('contributions', []).append(contributer_name)
     return ret
 
 
@@ -747,7 +756,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     update_edition(rec, edition, read_url, 'links')
     update_edition(rec, edition, read_original_languages, 'translated_from')
 
-    edition.update(read_contributions(rec))
+    edition.update(read_contributions(rec, edition.get('authors', [])))
     edition.update(subjects_for_work(rec))
 
     for func in (read_publisher, read_isbn, read_pagination):
