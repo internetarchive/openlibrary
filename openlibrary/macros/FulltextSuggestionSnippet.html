@@ -1,0 +1,26 @@
+$def with (q, doc=None)
+
+$ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ ia_base_url = "https://archive.org"
+$ availability = doc.get('availability', {})
+$ snippet = doc.get('highlight', {}).get('text', [''])[0]
+$ page_nums = doc.get('fields', {}).get('page_num', [])
+$if len(page_nums) == 1 and isinstance(page_nums[0], list):
+    $ page_nums = page_nums[0]
+$ page = ', '.join(str(num) for num in page_nums)
+
+$if snippet:
+  <div class="fsi-snippet">
+      $if snippet:
+        <div class="fsi-snippet__main">
+          <div class="fsi-snippet__quotation-mark">$_('❝')</div>
+          <a class="fsi-snippet__link" href="$ia_base_url/details/$ia" data-ol-link-track="SearchInsideSuggestion|QuoteClick">
+            &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+          </a>&nbsp;
+          <div class="fsi-snippet__quotation-mark">$_('❞')</div>
+          $if page:
+          <div class="fsi-snippet__page-num" href="$ia_base_url/details/$ia">
+            <a data-ol-link-track="SearchInsideSuggestion|QuoteClick">$_('Page: %(page)s', page=page)</a>
+          </div>
+        </div>
+  </div>
