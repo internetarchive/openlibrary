@@ -217,12 +217,12 @@ def render_macro(name, args, **kwargs):
 
 
 @public
-def render_cached_macro(name, args: tuple, **kwargs):
+def render_cached_macro(name: str, args: tuple, **kwargs):
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
         lang = web.ctx.lang
-        key_prefix = f'macro.{lang}'
+        key_prefix = f'{name}.{lang}'
         if web.cookies().get('pd', False):
             key_prefix += '.pd'
         if web.cookies().get('sfw', ''):
