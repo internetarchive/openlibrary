@@ -21,6 +21,10 @@ def get_tag_types():
     return ["subject", "work", "collection"]
 
 
+def validate_tag(tag):
+    return tag.get('name', '') and tag.get('tag_type', '')
+
+
 class addtag(delegate.page):
     path = '/tag/add'
 
@@ -68,6 +72,10 @@ class addtag(delegate.page):
             raise web.unauthorized(message='Permission denied to add tags')
 
         i = utils.unflatten(i)
+
+        if not i.tag_name or not i.tag_type:
+            raise web.badrequest()
+
         match = self.find_match(i)  # returns None or Tag (if match found)
 
         if match:
@@ -126,7 +134,7 @@ class tag_edit(delegate.page):
         i = web.input(_comment=None)
         formdata = self.process_input(i)
         try:
-            if not formdata:
+            if not formdata or not validate_tag(formdata):
                 raise web.badrequest()
             elif "_delete" in i:
                 tag = web.ctx.site.new(

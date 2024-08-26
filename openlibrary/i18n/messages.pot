@@ -3395,7 +3395,7 @@ msgstr ""
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
 msgstr ""
 
-#: books/add.html tag/add.html
+#: books/add.html tag/add.html type/tag/edit.html
 msgid "Select"
 msgstr ""
 

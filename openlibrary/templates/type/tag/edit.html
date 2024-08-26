@@ -35,11 +35,13 @@ $putctx("robots", "noindex,nofollow")
         <div class="formElement">
             <div class="label"><label for="id_value">$_("Tag type")</label></div>
             <div class="input">
-                <select name="tag_type" id="tag_type">
-                    <option value="$page.tag_type">$page.tag_type</option>
+                <select name="tag_type" id="tag_type" required>
+                    <option value="">$_("Select")</option>
                     $ tag_types = get_tag_types()
                     $for tag_type in tag_types:
-                        $if tag_type != page.tag_type:
+                        $if tag_type == page.tag_type:
+                            <option value="$tag_type" selected>$tag_type</option>
+                        $else:
                             <option value="$tag_type">$tag_type</option>
                 </select>
             </div>

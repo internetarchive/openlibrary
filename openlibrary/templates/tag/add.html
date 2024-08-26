@@ -39,7 +39,7 @@ $var title: $_("Add a tag")
         <div class="formElement">
             <div class="label"><label for="id_value">$_("Tag type")</label></div>
             <div class="input">
-                <select name="tag_type" id="tag_type">
+                <select name="tag_type" id="tag_type" required>
                     <option value="">$_("Select")</option>
                     $ tag_types = get_tag_types()
                     $for tag_type in tag_types:
