@@ -388,6 +388,17 @@ $jsdef render_work_autocomplete_item(item):
                 $else:
                     $:render_work_field(0, storage(title="", key=""))
             </div>
+            <div class="new-work-options" style="display:none">
+                <label>
+                    <input type="checkbox" name="new_work_options--copy_authors" value="yes">
+                    $_("Copy authors to new work")
+                </label>
+                &ensp;
+                <label>
+                    <input type="checkbox" name="new_work_options--copy_subjects" value="yes">
+                    $_("Copy subjects to new work")
+                </label>
+            </div>
         </div>
 
     </div>

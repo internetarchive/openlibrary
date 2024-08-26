@@ -3938,6 +3938,14 @@ msgid "WARNING: Any edits made to the work from this page will be ignored."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "Copy authors to new work"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Copy subjects to new work"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Please select an identifier."
 msgstr ""
 
