@@ -616,7 +616,7 @@ def read_contributions(rec: MarcBase, authors: list=[]) -> dict[str, Any]:
                 ]
                 skip_authors.add(name)
                 break
-            if tag == '711':
+            elif tag == '711':
                 ret['authors'] = [
                     {
                         'entity_type': 'event',
@@ -628,8 +628,8 @@ def read_contributions(rec: MarcBase, authors: list=[]) -> dict[str, Any]:
 
     for author in ret.get('authors', []):
         skip_authors.add(author['name'])
-        if 'alternate_names' in author:
-            skip_authors.update(author.get('alternate_names', []))
+        skip_authors.add(author.get('personal_name'))
+        skip_authors.update(author.get('alternate_names', []))
 
     for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
         assert isinstance(marc_field_base, MarcFieldBase)
@@ -638,7 +638,8 @@ def read_contributions(rec: MarcBase, authors: list=[]) -> dict[str, Any]:
         if '6' in links:
             f = f.rec.get_linkage(tag, links['6'][0])
         name = form_name(f.get_subfield_values(want[tag]))
-        if name in skip_authors:
+        basicname = form_name(f.get_subfield_values('a'))
+        if basicname in skip_authors or name in skip_authors:
             continue
         cur = tuple(f.get_subfields(want[tag]))
         contributer_name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
