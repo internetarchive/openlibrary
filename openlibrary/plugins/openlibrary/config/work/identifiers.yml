@@ -1,0 +1,22 @@
+identifiers:
+-   label: BookBrainz
+    name: bookbrainz
+    url: https://bookbrainz.org/work/@@@
+    website: https://bookbrainz.org
+-   label: Книга Файнфиков
+    name: ficbook
+    notes: ''
+    url: https://ficbook.net/readfic/@@@
+-   label: MusicBrainz
+    name: musicbrainz
+    url: https://musicbrainz.org/work/@@@
+    website: https://musicbrainz.org
+-   label: MyAnimeList
+    name: myanimelist
+    notes: ''
+    url: https://myanimelist.net/manga/@@@
+-   label: Wikidata
+    name: wikidata
+    notes: ''
+    url: https://www.wikidata.org/wiki/@@@
+    website: https://wikidata.org

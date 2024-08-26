@@ -1264,6 +1264,32 @@ def _get_edition_config():
     )
 
 
+@public
+def get_work_config() -> Storage:
+    """Returns the work config.
+
+    This just calls _get_work_config(). See that
+    function's documentation for further details.
+    """
+    return _get_work_config()
+
+
+@web.memoize
+def _get_work_config() -> Storage:
+    """Returns the work config.
+
+    The results are cached on the first invocation.
+    The /config/work page currently has no unique options so we
+    don't load/fetch it here currently.
+    """
+    with open('openlibrary/plugins/openlibrary/config/work/identifiers.yml') as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
+    return Storage(identifiers=identifiers)
+
+
 from openlibrary.core.olmarkdown import OLMarkdown
 
 
