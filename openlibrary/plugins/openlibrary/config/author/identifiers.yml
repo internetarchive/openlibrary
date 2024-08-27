@@ -22,6 +22,11 @@ identifiers:
     notes: two formats depending on if the author exists in wikidata, wd:Q42 or inv:914ad8068b8711ead0cc2efbed56e53c
     url: https://inventaire.io/entity/@@@
     website: https://inventaire.io/
+-   label: Library of Congress
+    name: loc_naf
+    notes: Should be something like nr92001540, no97027235, etc. (/^n[a-z]?[0-9]+$/)
+    url: https://id.loc.gov/authorities/names/@@@
+    website: https://id.loc.gov/authorities/names.html
 -   label: LibraryThing
     name: librarything
     notes: Should be something like kingstephen-1
