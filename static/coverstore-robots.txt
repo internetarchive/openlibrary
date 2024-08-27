@@ -2,3 +2,5 @@
 User-Agent: *
 Crawl-delay: 5
 
+User-agent: GPTBot
+Disallow: /

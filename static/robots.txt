@@ -12,3 +12,6 @@ Crawl-delay: 0.5
 
 User-agent: Googlebot
 Disallow: /*.rdf$
+
+User-agent: GPTBot
+Disallow: /
