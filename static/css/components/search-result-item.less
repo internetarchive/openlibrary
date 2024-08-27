@@ -40,9 +40,10 @@
     margin: 0;
     padding: 0;
     color: @dark-grey;
-    font-size: 1.0em;
+    font-size: 1.1em;
     font-weight: 700;
-    font-family: @lucida_sans_serif-6;
+    font-family: @georgia_serif-1;
+    overflow: auto;
   }
   .details {
     overflow: auto;
@@ -51,13 +52,8 @@
     padding: 5px;
     margin: 0;
   }
-  .resultTitle {
-    overflow: auto;
-    margin: 0 !important;
-    font-family: @lucida_sans_serif-1;
-    color: @grey;
-  }
-  span.resultPublisher {
+
+  span.resultStats {
     font-size: .75em;
     color: @grey;
     font-family: @lucida_sans_serif-6;
@@ -66,16 +62,18 @@
   span.resultType {
     font-size: .6875em;
   }
-  .publishedYear {
+  .resultDetails {
     display: block;
   }
-  .publishedYear--ratings {
+  .ratingsByline {
     color: @black;
   }
   .preview-covers {
     display: block;
     height: 45px;
     overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 5px;
   }
   .preview-covers img {
     border-radius: 4px;

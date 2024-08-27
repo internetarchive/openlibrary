@@ -4,11 +4,13 @@ $ rating_stats = work and work.get_rating_stats() or {}
 $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 $ avg = rating_stats.get('avg_rating')
 $ ratings_count = rating_stats.get('num_ratings', 0)
-$ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0 else ''
+$ want_to_read_count = "{:,}".format(stats_by_bookshelf.get('want-to-read', 0))
+$ currently_reading_count = "{:,}".format(stats_by_bookshelf.get('currently-reading', 0))
+$ already_read_count = "{:,}".format(stats_by_bookshelf.get('already-read', 0))
 $ id = '--mobile' if mobile else ''
 
 <ul class="readers-stats  $review_count_class" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
-  <li class="avg-ratings" onclick="location.href='#starRatingSection$id';" data-ol-link-track="StarRating|StatsComponentClick">
+  <li class="avg-ratings" onclick="location.href='#starRatingSection';" data-ol-link-track="StarRating|StatsComponentClick">
     $if avg:
       $ stats_decimal = (float(avg))-(int(avg))
       $:('<span class="readers-stats__star">★</span>' * int(avg))
@@ -17,11 +19,10 @@ $ id = '--mobile' if mobile else ''
       <span itemprop="ratingValue">$avg</span>
       <span class="dot">·</span>
   </li>
-
-  <li class="readers-stats__review-count">
-    <span itemprop="reviewCount">$ratings_count</span> $ungettext("Rating", "Ratings", ratings_count, count=ratings_count)
-  </li>
-  <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('want-to-read', 0)</span> <span class="readers-stats__label">$_("Want to read")</span></li>
-  <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('currently-reading', 0)</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
-  <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('already-read', 0)</span> <span class="readers-stats__label">$_("Have read")</span></li>
+  $if want_to_read_count > 0:
+    <li class="reading-log-stat"><span class="readers-stats__stat">$want_to_read_count</span> <span class="readers-stats__label">$_("Want to read")</span></li>
+  $if currently_reading_count > 0:
+    <li class="reading-log-stat"><span class="readers-stats__stat">$currently_reading_count</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
+  $if already_read_count > 0:
+    <li class="reading-log-stat"><span class="readers-stats__stat">$already_read_count</span> <span class="readers-stats__label">$_("Have read")</span></li>
 </ul>

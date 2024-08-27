@@ -61,12 +61,10 @@ $code:
     </span>
 
     <div class="details">
-        <div class="resultTitle">
-          <h3 itemprop="name" class="booktitle">
-            <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
-          </h3>
-        </div>
-        <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
+        <h3 itemprop="name">
+          <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
+        </h3>
+        <span class="resultAuthor" itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
           $ authors = None
           $if doc_type == 'infogami_work':
             $ authors = doc.get_authors()
@@ -88,23 +86,14 @@ $code:
                 }
                 for a in authors
               ]
-            $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
+            $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
-        <span class="resultPublisher">
-          $if doc.get('ratings_count') and doc.get('ratings_average') and doc.get('want_to_read_count'):
-            $:macros.StarRatingsByline(doc)
-          $if doc.get('first_publish_year'):
-            <span class="publishedYear">
-              $_('First published in %(year)s', year=doc.first_publish_year)
-            </span>
-          $if doc.get('edition_count'):
-            <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
-          $if doc.get('languages'):
-            <span class="languages">
-              $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
-            </span>
+        <span class="resultStats">
+          $ ratings_count = doc.get('ratings_count', None)
+          $ ratings_avg = doc.get('ratings_average', None)
+          $ want_to_read_count = doc.get('want_to_read_count', None)
+          $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if doc.get('ia'):
-            &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
               $ blur_preview = "preview-covers--blur" if blur else ""
               <span class="preview-covers $blur_preview">
@@ -113,6 +102,20 @@ $code:
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
                   </a>
               </span>
+          <span class="resultDetails">
+            $if doc.get('first_publish_year'):
+              <span>
+                $_('First published in %(year)s', year=doc.first_publish_year)
+              </span>&mdash;
+            $if doc.get('edition_count'):
+              <span>
+                <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+              </span>
+            $if doc.get('languages'):
+              <span class="languages">
+                $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
+              </span>
+          </span>
         </span>
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
