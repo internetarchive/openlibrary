@@ -40,6 +40,11 @@ identifiers:
     notes: Should be a number
     url: https://www.gutenberg.org/ebooks/author/@@@
     website: https://www.gutenberg.org
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    notes: format is /^\D{2}[A-Z0-3]V\d{6}$/
+    url: https://opac.sbn.it/risultati-autori/-/opac-autori/detail/@@@
+    website: https://opac.sbn.it/
 -   label: Storygraph
     name: storygraph
     notes: eg 50b7fbd9-84ac-450d-b2ed-78c861d4ef00
