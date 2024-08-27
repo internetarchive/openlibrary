@@ -564,10 +564,10 @@ jQuery(function () {
     }
 
     // Go back redirect:
-    const goback = document.querySelector('#go-back')
-    if (goback) {
-        import (/* webpackChunkName: "delete-redirect" */ './delete-redirect')
-            .then(module => module.initGoBackRedirect(goback))
+    const backLinks = document.querySelectorAll('.go-back-link')
+    if (backLinks.length) {
+        import (/* webpackChunkName: "go-back-links" */ './go-back-links')
+            .then(module => module.initGoBackLinks(backLinks))
     }
 });
 
