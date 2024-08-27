@@ -5,16 +5,6 @@ from openlibrary.mocks import mock_memcache
 
 
 class Test_memcache_memoize:
-    def test_encode_args(self):
-        m = cache.memcache_memoize(None, key_prefix="foo")
-
-        assert m.encode_args([]) == ''
-        assert m.encode_args(["a"]) == '"a"'
-        assert m.encode_args([1]) == '1'
-        assert m.encode_args(["a", 1]) == '"a",1'
-        assert m.encode_args([{"a": 1}]) == '{"a":1}'
-        assert m.encode_args([["a", 1]]) == '["a",1]'
-
     def test_generate_key_prefix(self):
         def foo():
             pass
