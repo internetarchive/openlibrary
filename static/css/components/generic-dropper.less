@@ -174,14 +174,8 @@
     list-style: none;
     margin: 0;
   }
-  &__content-list .cta-btn.cta-btn--w-icon {
-    background: @white;
-    color: @black;
-    user-select: none;
-    text-align: left;
-    padding: 5px;
-    margin: 0;
-    &:link, &:visited {
+  &__content-list .cta-btn {
+    &.cta-btn--w-icon, &:link, &:visited {
       background: @white;
       color: @black;
       text-align: left;
@@ -189,6 +183,7 @@
       margin: 0;
     }
   }
+  &__content-list .cta-btn
   &__content-list .cta-btn--w-icon:hover {
     background-color: rgba(0,0,0,0);
   }
