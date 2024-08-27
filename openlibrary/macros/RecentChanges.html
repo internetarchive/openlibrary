@@ -60,7 +60,7 @@ $def render_changes(bot, hash=""):
 $if ip or author:
     $:render_changes(bot=None)
 $else:
-    <div id="tabsHistory" class="tabs autohash">
+    <div class="ol-tabs autohash">
         <ul>
             <li><a href="#humans">$_("By Humans")</a></li>
             <li><a href="#bots">$_("By Bots")</a></li>

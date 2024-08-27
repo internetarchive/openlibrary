@@ -250,11 +250,11 @@ class DataProvider:
 
         missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
         missing_ocaid_batches = list(batch(missing_ocaids, 6))
-        for ocaids in missing_ocaid_batches:
+        for missing_batch in missing_ocaid_batches:
             # Start them all async
             tasks = [
                 asyncio.create_task(self._get_lite_metadata_direct(ocaid))
-                for ocaid in ocaids
+                for ocaid in missing_batch
             ]
             for task in tasks:
                 lite_metadata = await task

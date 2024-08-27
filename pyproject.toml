@@ -13,7 +13,7 @@ skip-string-normalization = true
 target-version = ["py311"]
 
 [tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
+ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
 skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
@@ -187,4 +187,5 @@ max-statements = 70
 "scripts/manage-imports.py" = ["BLE001"]
 "scripts/sitemaps/sitemap.py" = ["BLE001"]
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
+"scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]

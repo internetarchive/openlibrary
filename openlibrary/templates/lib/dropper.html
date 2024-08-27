@@ -1,6 +1,11 @@
-$def with(primary_button, dropdown_content, classes='')
+$def with(primary_button, dropdown_content, classes='', data={})
 
-<div class="generic-dropper-wrapper $(classes)">
+$ data_str = ''
+$for k, v in data.items():
+  $if v:
+    $ data_str += "data-%s=%s " % (k, v)
+
+<div class="generic-dropper-wrapper $(classes)"  $data_str>
   <div class="generic-dropper">
     <div class="generic-dropper__actions">
       <div class="generic-dropper__primary">

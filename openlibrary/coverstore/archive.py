@@ -14,6 +14,7 @@ from infogami.infobase import utils
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
 ITEM_SIZE = 1_000_000
@@ -509,3 +510,16 @@ class ZipManager:
             file_list = zip_file.namelist()
             if file_list:
                 return max(file_list)
+
+
+def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):
+    from openlibrary.coverstore.server import load_config
+
+    load_config(openlibrary_yml)
+    load_config(coverstore_yml)
+    archive()
+    Batch.process_pending(upload=True, finalize=True, test=dry_run)
+
+
+if __name__ == '__main__':
+    FnToCLI(main).run()

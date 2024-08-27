@@ -3,21 +3,107 @@ on:
   schedule:  # 08:30 daily
     - cron: '30 8 * * *'
   workflow_dispatch:
+    inputs:
+      slack_channel:
+        description: 'Digest is published to this channel. Include leading `#` symbol in channel name.  Entering an empty string will skip publishing to Slack.'
+        type: string
+      hours:
+        description: 'Search for issues that have new comments within this number of hours.'
+        type: number
+        required: true
+        default: 24
+      verbose_mode:
+        description: 'Display detailed information about the issues that need responses? (Verbose mode)'
+        type: choice
+        default: 'No'
+        options:
+        - 'Yes'
+        - 'No'
+      label_issues:
+        description: 'Add `Needs: Response` labels to issues?'
+        type: boolean
+        default: false
+
 permissions:
   contents: read
   issues: write
 
+env:
+  HOURS: 24
+  CHANNEL_ARG: '-s "#team-abc-plus"'
+  VERBOSE_FLAG: ''
+  NO_LABELS_FLAG: ''
+
 jobs:
   new_comment_digest:
+    # Continue only if this executed on the main repo
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
     runs-on: ubuntu-latest
+    outputs:
+      exit_code: ${{ steps.run_bot.outputs.exit_code }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - run: pip install requests
-      - run: scripts/gh_scripts/issue_comment_bot.py 24 -c "$SLACK_CHANNEL" -t "$SLACK_TOKEN"
+      - name: Override environment variables with inputs when workflow is manually triggered
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          HOURS: ${{ inputs.hours }}
+          CHANNEL: ${{ inputs.slack_channel }}
+          VERBOSE: ${{ inputs.verbose_mode }}
+          USE_LABELS: ${{ inputs.label_issues }}
+        run: |
+          # Set hours:
+          echo "HOURS=$HOURS" >> $GITHUB_ENV
+          # Set Slack channel:
+          CHANNEL_ARG=""
+          if [[ -n $CHANNEL ]]; then
+            CHANNEL_ARG="-s \"$CHANNEL\""
+          fi
+          echo "CHANNEL_ARG=$CHANNEL_ARG" >> $GITHUB_ENV
+          # Set verbose flag:
+          VERBOSE_FLAG=''
+          if [[ $VERBOSE == "Yes" ]]; then
+            VERBOSE_FLAG="-v"
+          fi
+          echo "VERBOSE_FLAG=$VERBOSE_FLAG" >> $GITHUB_ENV
+          # Set no_labels flag:
+          NO_LABELS_FLAG=""
+          if [[ $USE_LABELS == false ]]; then
+            NO_LABELS_FLAG="--no-labels"
+          fi
+          echo "NO_LABELS_FLAG=$NO_LABELS_FLAG" >> $GITHUB_ENV
+      - id: run_bot
+        run: |
+          trap 'echo "exit_code=$?" >> "$GITHUB_OUTPUT"' EXIT
+          scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+        continue-on-error: true
+  publish_error_to_slack:
+    needs: new_comment_digest
+    if: ${{ needs.new_comment_digest.outputs.exit_code == 30 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: pip install slack-sdk
+      - name: Publish message to Slack after failing to fetch GitHub issues
+        shell: python
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ABC_TEAM_PLUS: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+        run: |
+          import datetime, os, sys, slack_sdk
+          if os.getenv("SLACK_TOKEN") and os.getenv("SLACK_CHANNEL_ABC_TEAM_PLUS"):
+            now = datetime.datetime.now()
+            since = now - datetime.timedelta(hours=${{ env.HOURS }})
+            time_str = since.strftime('%Y-%m-%dT%H:%M:%S')
+            slack_sdk.WebClient(token=os.getenv("SLACK_TOKEN")).chat_postMessage(channel=os.getenv("SLACK_CHANNEL_ABC_TEAM_PLUS"),
+              text=f"Failed to fetch issues for Slack digest. <https://github.com/internetarchive/openlibrary/issues?q=is:issue+is:open+comments:%3E0+updated:%3E{time_str}|These issues> should be manually checked and labeled"
+            )
+          sys.exit(1)

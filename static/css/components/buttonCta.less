@@ -72,6 +72,11 @@ a.cta-btn {
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
+
+  &--shell&--external {
+    background-blend-mode: difference;
+  }
+
   &--shell, &--shell:link, &--shell:visited {
     .shell-btn--active();
   }
@@ -136,6 +141,15 @@ a.cta-btn {
 .cta-btn--small {
   font-size: 12px;
   padding: 5px 10px;
+}
+
+.cta-btn--search {
+  width: auto;
+  display: inline-block;
+  margin: 0;
+  border: 1px solid @dark-beige;
+  background-color: @light-beige;
+  color: @grey;
 }
 
 .waitinglist-message {

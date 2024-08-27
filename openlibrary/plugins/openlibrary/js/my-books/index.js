@@ -29,11 +29,11 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
         myBooksDropper.initialize()
 
         droppers.push(myBooksDropper)
-        seedKeys.push(myBooksDropper.getSeedKeys())
+        seedKeys.push(...myBooksDropper.getSeedKeys())
     }
 
     // Remove duplicate keys:
-    const seedKeySet = new Set(...seedKeys)
+    const seedKeySet = new Set(seedKeys)
 
     // Get user key from first Dropper and add to store:
     const userKey = droppers[0].readingLists.userKey
@@ -83,4 +83,16 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
                 dropper.updateReadingLists(data['dropper'])
             }
         })
+}
+
+/**
+ * Finds and returns the `MyBooksDropper` that is associated with the given work key,
+ * or `undefined` if none were found.
+ * @param workKey {string}
+ * @returns {MyBooksDropper|undefined}
+ */
+export function findDropperForWork(workKey) {
+    return myBooksStore.getDroppers().find(dropper => {
+        return workKey === dropper.workKey
+    })
 }

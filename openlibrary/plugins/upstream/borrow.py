@@ -31,6 +31,7 @@ from openlibrary.utils import dateutil
 from lxml import etree
 
 import urllib
+import lxml.etree
 
 
 logger = logging.getLogger("openlibrary.borrow")
@@ -111,7 +112,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):
+    def POST(self, key):  # noqa: PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -128,6 +129,19 @@ class borrow(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
+
+        from openlibrary.book_providers import get_book_provider
+
+        # Direct to the first web book if at least one is available.
+        if (
+            action in ["borrow", "read"]
+            and (provider := get_book_provider(edition))
+            and provider.short_name != "ia"
+            and (acquisitions := provider.get_acquisitions(edition))
+            and acquisitions[0].access == "open-access"
+        ):
+            stats.increment('ol.loans.webbook')
+            raise web.seeother(acquisitions[0].url)
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:
@@ -373,7 +387,7 @@ class borrow_receive_notification(delegate.page):
     def POST(self):
         data = web.data()
         try:
-            etree.fromstring(data)
+            etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
             output = json.dumps({'success': True})
         except Exception as e:
             output = json.dumps({'success': False, 'error': str(e)})
@@ -427,17 +441,13 @@ def datetime_from_utc_timestamp(seconds):
 @public
 def can_return_resource_type(resource_type: str) -> bool:
     """Returns true if this resource can be returned from the OL site."""
-    if resource_type.startswith('bookreader'):
-        return True
-    return False
+    return resource_type.startswith('bookreader')
 
 
 @public
 def ia_identifier_is_valid(item_id: str) -> bool:
     """Returns false if the item id is obviously malformed. Not currently checking length."""
-    if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
-        return True
-    return False
+    return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id))
 
 
 @public
@@ -597,12 +607,7 @@ def is_loaned_out(resource_id: str) -> bool | None:
 
 
 def is_loaned_out_from_status(status) -> bool:
-    if not status or status['returned'] == 'T':
-        # Current loan has been returned
-        return False
-
-    # Has status and not returned
-    return True
+    return status and status['returned'] != 'T'
 
 
 def update_loan_status(resource_id: str) -> None:
@@ -916,10 +921,7 @@ def ia_token_is_current(item_id: str, access_token: str) -> bool:
     expected_data = f'{item_id}-{token_timestamp}'
     expected_hmac = ia_hash(expected_data)
 
-    if token_hmac == expected_hmac:
-        return True
-
-    return False
+    return token_hmac == expected_hmac
 
 
 def make_bookreader_auth_link(

@@ -17,6 +17,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
 
+MAX_READING_GOAL = 10_000
+
 
 def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
@@ -38,15 +40,14 @@ def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """Validates dates.
 
     Dates are considered valid if there is:
-    1. A year
-    2. A year and a month
-    3. A year, month, and day
+    1. A year only.
+    2. A year and a month only.
+    3. A year, month, and day.
     """
     if not year:
         return False
-    if day and not month:
-        return False
-    return True
+
+    return not day or bool(month)
 
 
 @public
@@ -138,14 +139,11 @@ class patron_check_ins(delegate.page):
             return False
 
         # Date must be valid:
-        if not is_valid_date(
+        return is_valid_date(
             data.get('year', None),
             data.get('month', None),
             data.get('day', None),
-        ):
-            return False
-
-        return True
+        )
 
 
 class patron_check_in(delegate.page):
@@ -199,7 +197,7 @@ class yearly_reading_goal_json(delegate.page):
     def POST(self):
         i = web.input(goal=0, year=None, is_update=None)
 
-        goal = int(i.goal)
+        goal = min(int(i.goal), MAX_READING_GOAL)
 
         if i.is_update:
             if goal < 0:

@@ -1,6 +1,7 @@
 /**
  * Functionality for templates/covers
  */
+import 'jquery-ui/ui/disable-selection';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
@@ -19,71 +20,43 @@ export function initCoversChange() {
     $('.coverPop')
         .on('click', function () {
             // clear the content of #imagesAdd and #imagesManage before adding new
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
-                $('#imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
             }
             setTimeout(function () {
                 // add iframe to add images
-                add_iframe('#imagesAdd', add_url);
+                add_iframe('.imagesAdd', add_url);
                 // add iframe to manage images
-                add_iframe('#imagesManage', manage_url);
+                add_iframe('.imagesManage', manage_url);
             }, 0);
         })
         .on('cbox_cleanup', function () {
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
         });
-}
-
-function val(selector) {
-    const val = $(selector).val();
-    if (val) {
-        return val.trim();
-    } else {
-        return val;
-    }
-}
-
-function error(message, event) {
-    $('#errors').show().html(message);
-    event.preventDefault();
 }
 
 function add_iframe(selector, src) {
     $(selector)
-        .append('<iframe frameborder="0" height="450" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+        .append('<iframe frameborder="0" height="580" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
         .find('iframe')
         .attr('src', src);
 }
 
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
-    $('#addcover-form').on('submit', function (event) {
-        const i18nStrings = JSON.parse(document.querySelector('#errors').dataset.i18n);
-        var file = val('#coverFile');
-        var url = val('#imageUrl');
-        var coverid = val('#coverid');
+    $('.ol-cover-form').on('submit', function () {
+        const loadingIndicator = document.querySelector('.loadingIndicator');
+        const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
 
-        if (!file && !url && !coverid) {
-            return error(i18nStrings['empty_cover_inputs'], event);
+        if (loadingIndicator) {
+            loadingIndicator.classList.remove('hidden');
+            formDivs.forEach(div => div.classList.add('hidden'));
         }
+    })
 
-        const btn = $('#imageUpload');
-        btn.prop('disabled', true).html(btn.data('loading-text'));
-    });
-
-    // Clicking a cover should set the form value to the data-id of that cover
-    $('#popcovers .book').on('click', function () {
-        var coverid;
-        $(this).toggleClass('selected').siblings().removeClass('selected');
-        coverid = '';
-        if ($(this).hasClass('selected')) {
-            coverid = $(this).data('id');
-        }
-        $('#coverid').val(coverid);
-    });
 
     $('.column').sortable({
         connectWith: '.trash'
@@ -107,7 +80,7 @@ export function initCoversSaved() {
     const image = $('.imageSaved').data('imageId');
     var cover_url;
 
-    $('.formButtons button').on('click', closePopup);
+    $('.popClose').on('click', closePopup);
 
     // Update the image for the cover
     if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {

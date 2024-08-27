@@ -1,4 +1,4 @@
-import * as Browser from './Browser';
+import { getJsonFromUrl } from './Browser';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
@@ -11,7 +11,7 @@ function setValueInCookie(key, value) {
 }
 
 export default function init() {
-    const urlParams = Browser.getJsonFromUrl(location.search);
+    const urlParams = getJsonFromUrl(location.search);
     if (urlParams.mode) {
         searchMode.write(urlParams.mode);
     }
@@ -23,7 +23,6 @@ export default function init() {
     }
 
     initBorrowAndReadLinks();
-    initPreviewButton();
     initWebsiteTranslationOptions();
 }
 
@@ -43,31 +42,6 @@ export function initBorrowAndReadLinks() {
     });
 
     /* eslint-enable no-unused-vars */
-}
-
-export function initPreviewButton() {
-    // Colorbox modal + iframe for Book Preview Button
-    const $buttons = $('.cta-btn--preview');
-    $buttons.each((i, button) => {
-        const $button = $(button);
-        $button.colorbox({
-            width: '100%',
-            maxWidth: '640px',
-            inline: true,
-            opacity: '0.5',
-            href: '#bookPreview',
-            onOpen() {
-                const $iframe = $('#bookPreview iframe');
-                $iframe.prop('src', $button.data('iframe-src'));
-
-                const $link = $('#bookPreview .learn-more a');
-                $link[0].href = $button.data('iframe-link');
-            },
-            onCleanup() {
-                $('#bookPreview iframe').prop('src', '');
-            },
-        });
-    });
 }
 
 export function initWebsiteTranslationOptions() {

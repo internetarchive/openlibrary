@@ -9,7 +9,7 @@ from typing import Literal, cast
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import render_template, public, require_login
 from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
@@ -353,6 +353,14 @@ class lists_edit(delegate.page):
             return safe_seeother(list_record.key)
 
 
+class lists_add_account(delegate.page):
+    path = r"/account/lists/add"
+
+    @require_login
+    def GET(self):
+        return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
+
+
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/lists/add"
 
@@ -382,6 +390,10 @@ class lists_delete(delegate.page):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
+
+        # Deletes list preview from memcache, if it exists
+        cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
+        cache.memcache_cache.delete(cache_key)
 
         doc = {"key": key, "type": {"key": "/type/delete"}}
         try:

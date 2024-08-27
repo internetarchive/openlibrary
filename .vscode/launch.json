@@ -6,10 +6,12 @@
   "configurations": [
     {
       "name": "Python: Attach",
-      "type": "python",
+      "type": "debugpy",
       "request": "attach",
-      "port": 3000,
-      "host": "localhost",
+      "connect": {
+        "host": "localhost",
+        "port": 3000
+      },
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",

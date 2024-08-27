@@ -40,7 +40,7 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
-$ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
+$ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
     $:macros.databarView(page)
@@ -110,7 +110,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
                 $page.location
             </div>
         <span class="mobile-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="mobile")
         </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
@@ -135,8 +135,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
                     <input type="hidden" name="sort" value="$query_param('sort')"/>
                   $if (query_param('mode')):
                     <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
-                  <input type="submit"/>
+                  $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
                 </form>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
@@ -153,7 +152,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
     </div>
     <div class="contentOnethird">
         <span class="desktop-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="desktop")
         </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
@@ -173,7 +172,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
 
         $if "lists" in ctx.features:
             <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True, show_active_lists=True)
+                $:render_template("lists/widget", page, include_rating=False, async_load=True, show_active_lists=True, include_showcase=False)
             </div>
 
         <div class="section">
@@ -187,7 +186,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
                             $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
-                              <li>Inventaire.io: <a
+                              <li>$_("Inventaire.io:") <a
                                   itemprop="sameAs"
                                   href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
                               >wd:$page.remote_ids[id.name]</a></li>
@@ -200,7 +199,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
                 $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
+                    <li><a itemprop="sameAs" href="$page.wikipedia">$_("Wikipedia")</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>

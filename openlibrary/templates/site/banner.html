@@ -8,7 +8,7 @@ $# announcement (str) -- Rendered content that will be displayed in the banner
 $# cookie_name (str) -- identifier for the banner. If the user dismisses the banner, a cookie with this name is set
 $# cookie_duration_days (int) -- TTL before cookie expires in days
 
-$ hide_banner = ctx.user and ctx.user.has_cookie(cookie_name)
+$ hide_banner = cookies().get(cookie_name)
 
 $if not hide_banner:
     <div data-cookie-name="$cookie_name" data-cookie-duration-days="$cookie_duration_days" class="page-banner--dismissable">

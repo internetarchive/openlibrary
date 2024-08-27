@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 import luqum.tree
 import web
+import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -15,6 +16,7 @@ from openlibrary.solr.query_utils import (
     fully_escape_query,
     luqum_parser,
     luqum_remove_child,
+    luqum_remove_field,
     luqum_replace_child,
     luqum_traverse,
     luqum_replace_field,
@@ -91,6 +93,10 @@ class WorkSearchScheme(SearchScheme):
         "lcc_sort",
         "ddc_sort",
         "osp_count",
+    }
+    non_solr_fields = {
+        'description',
+        'providers',
     }
     facet_fields = {
         "has_fulltext",
@@ -181,6 +187,8 @@ class WorkSearchScheme(SearchScheme):
         'id_librivox',
         'id_standard_ebooks',
         'id_openstax',
+        'id_cita_press',
+        'id_wikisource',
     }
     facet_rewrites = {
         ('public_scan', 'true'): 'ebook_access:public',
@@ -199,7 +207,7 @@ class WorkSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
-        if field.startswith("work."):
+        if field.startswith(('work.', 'edition.')):
             return self.is_search_field(field.partition(".")[2])
         return super().is_search_field(field) or field.startswith('id_')
 
@@ -267,7 +275,7 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(
+    def q_to_solr_params(  # noqa: C901, PLR0915
         self,
         q: str,
         solr_fields: set[str],
@@ -285,12 +293,16 @@ class WorkSearchScheme(SearchScheme):
             return field.partition('.')[2] if field.startswith('work.') else field
 
         # Removes the indicator prefix from queries with the 'work field' before appending them to parameters.
-        new_params.append(
-            (
-                'workQuery',
-                str(luqum_replace_field(deepcopy(work_q_tree), remove_work_prefix)),
-            )
-        )
+        final_work_query = deepcopy(work_q_tree)
+        luqum_replace_field(final_work_query, remove_work_prefix)
+        try:
+            luqum_remove_field(final_work_query, lambda f: f.startswith('edition.'))
+        except EmptyTreeError:
+            # If the whole tree is removed, we should just search for everything
+            final_work_query = luqum_parser('*:*')
+
+        new_params.append(('workQuery', str(final_work_query)))
+
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
         # See https://solr.apache.org/guide/8_11/the-extended-dismax-query-parser.html
@@ -376,7 +388,12 @@ class WorkSearchScheme(SearchScheme):
                 q_tree = luqum_parser(work_query)
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != '*':
-                        new_name = convert_work_field_to_edition_field(node.name)
+                        if node.name.startswith('edition.'):
+                            ed_field = node.name.partition('.')[2]
+                        else:
+                            ed_field = node.name
+
+                        new_name = convert_work_field_to_edition_field(ed_field)
                         if new_name is None:
                             try:
                                 luqum_remove_child(node, parents)
@@ -507,6 +524,40 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
         return new_params
+
+    def add_non_solr_fields(self, non_solr_fields: set[str], solr_result: dict) -> None:
+        from openlibrary.plugins.upstream.models import Edition
+
+        # Augment with data from db
+        edition_keys = [
+            ed_doc['key']
+            for doc in solr_result['response']['docs']
+            for ed_doc in doc.get('editions', {}).get('docs', [])
+        ]
+        editions = cast(list[Edition], web.ctx.site.get_many(edition_keys))
+        ed_key_to_record = {ed.key: ed for ed in editions if ed.key in edition_keys}
+
+        from openlibrary.book_providers import get_book_provider
+
+        for doc in solr_result['response']['docs']:
+            for ed_doc in doc.get('editions', {}).get('docs', []):
+                # `ed` could be `None` if the record has been deleted and Solr not yet updated.
+                if not (ed := ed_key_to_record.get(ed_doc['key'])):
+                    continue
+
+                for field in non_solr_fields:
+                    val = getattr(ed, field)
+                    if field == 'providers':
+                        provider = get_book_provider(ed)
+                        if not provider:
+                            continue
+                        ed_doc[field] = [
+                            p.__dict__ for p in provider.get_acquisitions(ed)
+                        ]
+                    elif isinstance(val, infogami.infobase.client.Nothing):
+                        continue
+                    elif field == 'description':
+                        ed_doc[field] = val if isinstance(val, str) else val.value
 
 
 def lcc_transform(sf: luqum.tree.SearchField):

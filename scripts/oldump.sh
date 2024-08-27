@@ -113,8 +113,19 @@ then
       log "Skipping: $(compgen -G "ol_dump_reading-log_$yyyymm*.txt.gz")"
   fi
 
-
   log "=== Step 2 ==="
+  #generate cover metadata dumps
+  if [[ ! -f $(compgen -G "ol_dump_covers_metadata_$yyyymm*.txt.gz") ]]
+  then
+      log "generating coverstore dump: ol_dump_covers_metadata_$yyyymmdd.txt.gz"
+      # Note: this throws a psql warning since a db is already specified in PSQL_PARAMS, but the
+      # -d param takes precedence like we want it to!
+      time psql $PSQL_PARAMS -d coverstore --set=upto="$yyyymmdd" -f $SCRIPTS/dump-covers-metadata.sql | gzip -c > ol_dump_covers_metadata_$yyyymmdd.txt.gz
+  else
+      log "Skipping: $(compgen -G "ol_dump_covers_metadata_$yyyymmdd*.txt.gz")"
+  fi
+
+  log "=== Step 3 ==="
   if [[ ! -f $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz") ]]
   then
       log "generating ratings table: ol_dump_ratings_$yyyymmdd.txt.gz"
@@ -124,7 +135,7 @@ then
   fi
 
 
-  log "=== Step 3 ==="
+  log "=== Step 4 ==="
   if [[ ! -f "data.txt.gz" ]]
   then
       log "generating the data table: data.txt.gz -- takes approx. 110 minutes..."
@@ -138,7 +149,7 @@ then
   fi
 
 
-  log "=== Step 4 ==="
+  log "=== Step 5 ==="
   if [[ ! -f $(compgen -G "ol_cdump_$yyyymm*.txt.gz") ]]
   then
       # generate cdump, sort and generate dump
@@ -151,7 +162,7 @@ then
   fi
 
 
-  log "=== Step 5 ==="
+  log "=== Step 6 ==="
   if [[ ! -f $(compgen -G "ol_dump_*.txt.gz") ]]
   then
       log "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
@@ -162,7 +173,7 @@ then
   fi
 
 
-  log "=== Step 6 ==="
+  log "=== Step 7 ==="
   if [[ ! -f $(compgen -G "ol_dump_*_$yyyymm*.txt.gz") ]]
   then
       mkdir -p $TMPDIR/oldumpsort

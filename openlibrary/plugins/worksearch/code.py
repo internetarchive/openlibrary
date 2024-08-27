@@ -19,6 +19,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
@@ -54,6 +55,22 @@ if hasattr(config, 'plugin_worksearch'):
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+
+@public
+def get_facet_map() -> tuple[tuple[str, str]]:
+    return (
+        ('has_fulltext', _('eBook?')),
+        ('language', _('Language')),
+        ('author_key', _('Author')),
+        ('subject_facet', _('Subjects')),
+        ('first_publish_year', _('First published')),
+        ('publisher_facet', _('Publisher')),
+        ('person_facet', _('People')),
+        ('place_facet', _('Places')),
+        ('time_facet', _('Times')),
+        ('public_scan_b', _('Classic eBooks')),
+    )
 
 
 @public
@@ -130,7 +147,7 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
-def run_solr_query(
+def run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -174,7 +191,7 @@ def run_solr_query(
     facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
     if facet and facet_fields:
         params.append(('facet', 'true'))
-        for facet in facet_fields:
+        for facet in facet_fields:  # noqa: PLR1704
             if isinstance(facet, str):
                 params.append(('facet.field', facet))
             elif isinstance(facet, dict):
@@ -216,7 +233,9 @@ def run_solr_query(
         q = f'{q} {params_q}' if q else params_q
 
     if q:
-        solr_fields = set(fields or scheme.default_fetched_fields)
+        solr_fields = (
+            set(fields or scheme.default_fetched_fields) - scheme.non_solr_fields
+        )
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
@@ -236,6 +255,12 @@ def run_solr_query(
     solr_result = response.json() if response else None
     end_time = time.time()
     duration = end_time - start_time
+
+    if solr_result is not None:
+        non_solr_fields = set(fields) & scheme.non_solr_fields
+        if non_solr_fields:
+            scheme.add_non_solr_fields(non_solr_fields, solr_result)
+
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
@@ -293,6 +318,7 @@ def do_search(
     sort: str | None,
     page=1,
     rows=100,
+    facet=False,
     spellcheck_count=None,
 ):
     """
@@ -301,14 +327,19 @@ def do_search(
     :param spellcheck_count: Not really used; should probably drop
     """
 
+    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
-        fields = list(
-            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject'}
-        )
-    else:
-        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
+        fields |= {'subject'}
+
     return run_solr_query(
-        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
+        WorkSearchScheme(),
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(fields),
+        facet=facet,
     )
 
 
@@ -352,6 +383,8 @@ def get_doc(doc: SolrDocument):
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
+        id_cita_press=doc.get('id_cita_press', []),
+        id_wikisource=doc.get('id_wikisource', []),
         editions=[
             web.storage(
                 {
@@ -846,8 +879,10 @@ def setup():
         subjects,
         languages,
         publishers,
+        bulk_search,
     )
 
+    bulk_search.setup()
     autocomplete.setup()
     subjects.setup()
     publishers.setup()

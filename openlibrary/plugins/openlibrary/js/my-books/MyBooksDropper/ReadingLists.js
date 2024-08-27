@@ -2,6 +2,7 @@
  * Defines functionality related to the My Books dropper's list affordances.
  * @module my-books/MyBooksDropper/ReadingLists
  */
+import 'jquery-colorbox';
 import myBooksStore from '../store'
 
 import { addItem, removeItem } from '../../lists/ListService'

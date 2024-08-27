@@ -1,7 +1,7 @@
 import logging
-import web
-from typing import cast, Any
+from typing import cast
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
 
@@ -38,17 +38,21 @@ class PubSub:
         return len(subscription)
 
     @classmethod
-    def get_followers(cls, publisher):
+    def get_followers(cls, publisher, limit=None, offset=0):
         """Get publishers subscribers"""
         oldb = db.get_db()
         where = 'publisher=$publisher'
         subscribers = oldb.select(
-            cls.TABLENAME, where=where, vars={'publisher': publisher}
+            cls.TABLENAME,
+            where=where,
+            vars={'publisher': publisher},
+            limit=limit,
+            offset=offset,
         )
         return subscribers
 
     @classmethod
-    def get_following(cls, subscriber, exclude_disabled=False):
+    def get_following(cls, subscriber, limit=None, offset=0, exclude_disabled=False):
         """Get subscriber's subscriptions"""
         oldb = db.get_db()
         where = 'subscriber=$subscriber'
@@ -58,6 +62,8 @@ class PubSub:
             cls.TABLENAME,
             where=where,
             vars={'subscriber': subscriber},
+            limit=limit,
+            offset=offset,
         )
         return [dict(s) for s in subscriptions]
 
@@ -99,7 +105,7 @@ class PubSub:
 
         # Add keys
         for i, rb in enumerate(recent_books):
-            recent_books[i].key = f'/works/OL{recent_books[i].work_id}W'
+            recent_books[i].key = f'/works/OL{rb.work_id}W'
 
         return Bookshelves.fetch(recent_books)
 
@@ -124,6 +130,25 @@ class PubSub:
             vars={'publisher': publisher},
         )
         return cast(tuple[int], count)[0].get('count', 0)
+
+    @classmethod
+    def total_followers(cls, since=None) -> int:
+        oldb = db.get_db()
+        query = f"SELECT count(DISTINCT subscriber) from {cls.TABLENAME}"
+        if since:
+            query += " WHERE created >= $since"
+        results = oldb.query(query, vars={'since': since})
+        return results[0]['count'] if results else 0
+
+    @classmethod
+    def summary(cls):
+        return {
+            "total_following_count": {
+                "total": cls.total_followers(),
+                "month": cls.total_followers(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_followers(since=DATE_ONE_WEEK_AGO),
+            }
+        }
 
     @classmethod
     def count_total_subscribers(cls):

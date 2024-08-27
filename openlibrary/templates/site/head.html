@@ -1,7 +1,7 @@
 $def with (page)
 
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="$get_lang()">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$(get_lang() or 'en')">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="title" content="" />
@@ -79,9 +79,6 @@ $def with (page)
  */
 
   </script>
-
-    <!-- JavaScript execution queue that will be emptied at the bottom of the page -->
-    <script type="text/javascript">window.q = [];</script>
     $if "dev" in ctx.features:
         <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
 

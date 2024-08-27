@@ -32,7 +32,7 @@ $jsdef render_seed_field(i, seed):
     <li class="mia__input ac-input">
         <div class="seed--controls">
             <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
-            <button class="mia__remove" type="button">Remove</button>
+            <button class="mia__remove" type="button">$_("Remove")</button>
         </div>
         <main>
             <input class="ac-input__value" name="seeds--$i--thing--key" type="hidden" value="$key" />
@@ -124,7 +124,7 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 
         <hr />
 
-        <ol class="list-edit__items multi-input-autocomplete--seeds">
+        <ol class="list-edit__items multi-input-autocomplete multi-input-autocomplete--seeds">
             $if lst.seeds:
                 $for i, seed in enumerate(lst.seeds):
                     $if isinstance(seed, str):

@@ -551,7 +551,7 @@ def is_loaned_out(identifier: str) -> bool:
     return (
         is_loaned_out_on_ol(identifier)
         or is_loaned_out_on_acs4(identifier)
-        or is_loaned_out_on_ia(identifier)
+        or (is_loaned_out_on_ia(identifier) is True)
     )
 
 
@@ -561,7 +561,7 @@ def is_loaned_out_on_acs4(identifier: str) -> bool:
     return item.has_loan()
 
 
-def is_loaned_out_on_ia(identifier: str):
+def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
