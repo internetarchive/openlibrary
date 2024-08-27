@@ -38,10 +38,6 @@ class addtag(delegate.page):
 
         i = web.input(name=None, type=None, sub_type=None)
 
-        # Validate input:
-        if not i.name or not i.type:
-            raise web.badrequest('Tag name and type must be specified')
-
         return render_template('tag/add', i.name, i.type, subject_type=i.sub_type)
 
     def has_permission(self, user) -> bool:
