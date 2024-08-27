@@ -101,7 +101,7 @@ export default {
                     const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                     if (r.status === 403)
                     {
-                        throw new Error('Merge failed, you may not have the correct permissions to perform a merge');
+                        throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
                     }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {
