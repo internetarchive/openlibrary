@@ -745,7 +745,9 @@ def strip_accents(s: str) -> str:
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
     keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
-    return {lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated}
+    return {
+        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
+    }
 
 
 def word_prefix_match(prefix: str, text: str) -> bool:

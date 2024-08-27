@@ -6764,11 +6764,19 @@ msgid "Loading Related Books"
 msgstr ""
 
 #: type/language/view.html
+msgid "deprecated"
+msgstr ""
+
+#: type/language/view.html
 msgid "languages"
 msgstr ""
 
 #: type/language/view.html
 msgid "Code"
+msgstr ""
+
+#: type/language/view.html
+msgid "Current"
 msgstr ""
 
 #: type/language/view.html
