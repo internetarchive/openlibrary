@@ -3266,8 +3266,8 @@ msgstr ""
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
-#: books/add.html books/edit.html tag/add.html type/author/edit.html
-#: type/tag/edit.html
+#: books/add.html books/edit.html type/author/edit.html
+#: type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr ""
 
@@ -3316,7 +3316,7 @@ msgstr ""
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
 msgstr ""
 
-#: books/add.html tag/add.html type/tag/edit.html
+#: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
 msgstr ""
 
@@ -3690,7 +3690,7 @@ msgstr ""
 msgid "How would you describe this book?"
 msgstr ""
 
-#: books/edit/about.html tag/add.html
+#: books/edit/about.html
 msgid "There's no wrong answer here."
 msgstr ""
 
@@ -6353,18 +6353,6 @@ msgid "Add a tag to Open Library"
 msgstr ""
 
 #: tag/add.html
-msgid "Name of Tag"
-msgstr ""
-
-#: tag/add.html
-msgid "How would you describe this tag?"
-msgstr ""
-
-#: tag/add.html type/tag/edit.html
-msgid "Tag type"
-msgstr ""
-
-#: tag/add.html
 msgid "Add this tag now"
 msgstr ""
 
@@ -7001,12 +6989,16 @@ msgstr ""
 msgid "Edit Tag"
 msgstr ""
 
-#: type/tag/edit.html
-msgid "Label"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Name"
 msgstr ""
 
-#: type/tag/edit.html type/user/edit.html
-msgid "Description"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Description"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag type"
 msgstr ""
 
 #: type/tag/view.html
@@ -7057,6 +7049,10 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Display Name"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Description"
 msgstr ""
 
 #: type/user/view.html

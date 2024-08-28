@@ -14,39 +14,7 @@ $putctx("robots", "noindex,nofollow")
 <div id="contentBody">
 
     <form id="edittag" name="edit" method="post" action="" class="olform">
-        <div class="formElement">
-            <div class="label">
-                <label for="name">$_("Label")</label>*<span class="tip">$_("Required field")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="name" id="tag_name" value="$page.name" required />
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="tag_description">$_("Description")</label>
-            </div>
-            <div class="input">
-                <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80" style="width: 100%">$page.tag_description</textarea>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label"><label for="id_value">$_("Tag type")</label></div>
-            <div class="input">
-                <select name="tag_type" id="tag_type" required>
-                    <option value="">$_("Select")</option>
-                    $ tag_types = get_tag_types()
-                    $for tag_type in tag_types:
-                        $if tag_type == page.tag_type:
-                            <option value="$tag_type" selected>$tag_type</option>
-                        $else:
-                            <option value="$tag_type">$tag_type</option>
-                </select>
-            </div>
-        </div>
-
+        $:render_template("type/tag/tag_form_inputs", tag_name=page.name, tag_type=page.tag_type, tag_description=page.tag_description)
         <div class="clearfix"></div>
 
         <div class="formElement bottom">
