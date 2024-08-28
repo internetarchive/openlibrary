@@ -626,11 +626,11 @@ msgstr ""
 msgid "Incorrect. Please try again."
 msgstr ""
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
 msgstr ""
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
 msgstr ""
 
