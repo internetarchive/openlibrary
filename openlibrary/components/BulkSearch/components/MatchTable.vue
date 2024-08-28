@@ -18,7 +18,7 @@
           <td></td>
           <td></td>
           <td></td>
-          <td><a :href="bulkSearchState.listUrl.toString()" target="_blank" id="listMakerLink">Create list of first matches</a></td>
+          <td><a :href="bulkSearchState.listUrl" target="_blank" id="listMakerLink">Create list of first matches</a></td>
         </tr>
       </tfoot>
     </table>

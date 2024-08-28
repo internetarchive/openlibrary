@@ -87,7 +87,6 @@ export default {
             this.loadingExtractedBooks = false
         },
         async matchBooks() {
-            this.bulkSearchState.listUrl.resetSeeds()
             const fetchSolrBook = async function (book, matchOptions) {
                 try {
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
@@ -98,10 +97,8 @@ export default {
             this.loadingMatchedBooks = true
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
-                if (bookMatch.solrDocs.docs[0]) {
-                    this.bulkSearchState.listUrl.addSeed(bookMatch.solrDocs.docs[0].key.split('/')[2])
-                }
             }
+            this.loadingMatchedBooks = false
         },
 
     }

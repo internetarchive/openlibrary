@@ -149,31 +149,7 @@ export class BookMatch {
 }
 
 
-/** @type {string} */
-const BASE_URL = 'https://openlibrary.org/lists/add?seeds='
-
-export class ListUrl  {
-
-    constructor(){
-        this.base_url = BASE_URL
-        /** @type {string[]} */
-        this.seeds = []
-    }
-
-    /** @param {string} seed */
-    addSeed(seed) {
-        this.seeds.push(seed)
-    }
-
-    resetSeeds() {
-        this.seeds = []
-    }
-
-    toString() {
-        return this.base_url + this.seeds.join(',')
-    }
-}
-
+const BASE_LIST_URL = 'https://openlibrary.org/account/lists/add?seeds='
 
 export class BulkSearchState{
     constructor(){
@@ -196,14 +172,17 @@ export class BulkSearchState{
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
-        /** @type {ListUrl} */
-        this.listUrl = new ListUrl();
-
     }
 
     /**@type {AbstractExtractor} */
     get activeExtractor() {
         return this.extractors[this._activeExtractorIndex]
+    }
+    /**@type {String} */
+    get listUrl() {
+        return BASE_LIST_URL + this.matchedBooks
+            .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
+            .filter(key => key);
     }
 }
 
