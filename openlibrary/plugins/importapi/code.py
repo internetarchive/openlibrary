@@ -185,7 +185,7 @@ class importapi:
         try:
             edition, _ = parse_data(data)
 
-        except DataError as e:
+        except (DataError, json.JSONDecodeError) as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
             return self.error('invalid-value', str(e).replace('\n', ': '))
