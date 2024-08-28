@@ -11,12 +11,13 @@ export class ExtractedBook {
 }
 
 class AbstractExtractor {
+
     /**
-     * @param {string} name
+     * @param {string} label
      */
-    constructor(name) {
+    constructor(label) {
         /** @type {string} */
-        this.name = name
+        this.label = label
     }
     /**
      * @param {ExtractionOptions} _extractOptions
@@ -32,11 +33,11 @@ export class RegexExtractor extends AbstractExtractor {
 
     /**
      *
-     * @param {string} name
+     * @param {string} label
      * @param {string} pattern
      */
-    constructor(name, pattern){
-        super(name)
+    constructor(label, pattern){
+        super(label)
         /** @type {RegExp} */
         this.pattern = new RegExp(pattern, 'gmu');
     }
@@ -57,11 +58,11 @@ export class RegexExtractor extends AbstractExtractor {
 export class AiExtractor extends AbstractExtractor{
 
     /**
-     * @param {string} name
+     * @param {string} label
      * @param {string} model
      */
-    constructor(name, model) {
-        super(name)
+    constructor(label, model) {
+        super(label)
         /** @type {string} */
         this.model = model
     }
@@ -123,14 +124,18 @@ export class AiExtractor extends AbstractExtractor{
 }
 
 export class TableExtractor extends AbstractExtractor{
+
+    name = 'table_extractor'
     /**
      *
-     * @param {string} name
+     * @param {string} label
      */
-    constructor(name) {
-        super(name)
-        /** @type {boolean} */
-        this.isTable = true
+    constructor(label) {
+        super(label)
+        /** @type {string} */
+        this.authorColumn = 'author'
+        /** @type {string} */
+        this.titleColumn = 'title'
     }
 
     /**
@@ -142,17 +147,15 @@ export class TableExtractor extends AbstractExtractor{
 
         /** @type {string[]} */
         const lines = text.split('\n')
-        /** @type {RegExp} */
-        const matcher = /([\w ]*)\t/g
         /** @type {string[][]} */
-        const cells = lines.map(textLine => [...textLine.matchAll(matcher)].map(entry => entry[1]))
+        const cells = lines.map(line => line.split('\t'))
         try {
             /** @type {number} */
-            const authorIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase()  === extractionOptions.authorColumn)
+            const authorIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase()  === this.authorColumn)
             /** @type {number} */
-            const titleIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase() === extractionOptions.titleColumn)
+            const titleIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase() === this.titleColumn)
             if (titleIndex < 0){
-                throw new Error(`Please have one column named ${extractionOptions.titleColumn} and (optionally) one column named ${extractionOptions.authorColumn}`)
+                throw new Error(`Please have one column named ${this.titleColumn} and (optionally) one column named ${this.authorColumn}`)
             }
 
             return cells.slice(1).filter(row=> row[titleIndex]!== '').map(row => new BookMatch(new ExtractedBook(row[titleIndex], row[authorIndex]), {}))
@@ -166,10 +169,6 @@ class ExtractionOptions {
     constructor() {
         /** @type {string} */
         this.openaiApiKey = ''
-        /** @type {string} */
-        this.authorColumn = 'author'
-        /** @type {string} */
-        this.titleColumn = 'title'
     }
 }
 class MatchOptions  {
