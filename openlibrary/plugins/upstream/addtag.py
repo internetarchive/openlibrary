@@ -50,7 +50,7 @@ class addtag(delegate.page):
 
     def POST(self):
         i = web.input(
-            tag_name="",
+            name="",
             tag_type="",
             tag_description="",
             tag_plugins="",
@@ -69,7 +69,7 @@ class addtag(delegate.page):
 
         i = utils.unflatten(i)
 
-        if not i.tag_name or not i.tag_type:
+        if not validate_tag(i):
             raise web.badrequest()
 
         match = self.find_match(i)  # returns None or Tag (if match found)
@@ -85,7 +85,7 @@ class addtag(delegate.page):
         """
         Tries to find an existing tag that matches the data provided by the user.
         """
-        return Tag.find(i.tag_name, i.tag_type)
+        return Tag.find(i.name, i.tag_type)
 
     def tag_match(self, match: list) -> NoReturn:
         """
@@ -101,7 +101,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
+        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins)
         raise safe_seeother(key)
 
 
