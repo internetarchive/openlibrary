@@ -1,6 +1,7 @@
 """Caching utilities.
 """
 
+import hashlib
 import random
 import string
 import time
@@ -185,9 +186,9 @@ class memcache_memoize:
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return f"{hash(a)}${hash(self.json_encode(kw))}"
+            return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}${hashlib.md5(self.json_encode(kw).encode('utf-8')).hexdigest()}"
         else:
-            return f"{hash(a)}"
+            return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
