@@ -10,7 +10,7 @@
             <br />
             <label>Format: <select v-model="bulkSearchState._activeExtractorIndex">
                     <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
-                        {{ extractor["label"] }}
+                        {{ extractor.label }}
                     </option>
                 </select></label>
             <label v-if="this.showApiKey">OpenAI API Key:

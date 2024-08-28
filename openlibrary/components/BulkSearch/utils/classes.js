@@ -31,6 +31,7 @@ class AbstractExtractor {
 
 export class RegexExtractor extends AbstractExtractor {
 
+    name = 'regex_extractor'
     /**
      *
      * @param {string} label
@@ -57,6 +58,7 @@ export class RegexExtractor extends AbstractExtractor {
 
 export class AiExtractor extends AbstractExtractor{
 
+    name = 'ai_extractor'
     /**
      * @param {string} label
      * @param {string} model
@@ -149,22 +151,28 @@ export class TableExtractor extends AbstractExtractor{
         const lines = text.split('\n')
         /** @type {string[][]} */
         const cells = lines.map(line => line.split('\t'))
-        try {
-            /** @type {number} */
-            const authorIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase()  === this.authorColumn)
-            /** @type {number} */
-            const titleIndex = cells[0].findIndex(columnName => columnName.trim().toLowerCase() === this.titleColumn)
-            if (titleIndex < 0){
-                throw new Error(`Please have one column named ${this.titleColumn} and (optionally) one column named ${this.authorColumn}`)
+        /** @type {{columns: String[], rows: {columnName: string}[]}} */
+        const tableData = {
+            columns: cells[0],
+            rows: []
+        }
+        for (let i=1; i< cells.length; i++){
+            const row = {}
+            for (let j = 0; j < tableData.columns.length; j++){
+                row[tableData.columns[j].trim().toLowerCase()] = cells[i][j]
             }
-
-            return cells.slice(1).filter(row=> row[titleIndex]!== '').map(row => new BookMatch(new ExtractedBook(row[titleIndex], row[authorIndex]), {}))
+            // @ts-ignore
+            tableData.rows.push(row)
         }
-        catch (error){
-            return []
-        }
+        return tableData.rows.map(
+            row => new BookMatch(
+                new ExtractedBook(
+                    row[this.authorColumn] || '', row[this.titleColumn] || ''),
+                {})
+        )
     }
 }
+
 class ExtractionOptions {
     constructor() {
         /** @type {string} */
