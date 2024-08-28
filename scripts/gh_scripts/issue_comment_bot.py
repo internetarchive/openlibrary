@@ -168,6 +168,8 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
 
         # Get last comment
         comments = resp.json()
+        if not comments:
+            continue
         last_comment = comments[-1]
 
         # Determine if last comment meets our criteria for Slack notifications
