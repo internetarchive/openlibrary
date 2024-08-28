@@ -2252,7 +2252,7 @@
     "type": "/type/language",
     "name": "Serbian",
     "key": "/languages/scc",
-    "deprecated: true,
+    "deprecated": true,
     "current": "/languages/srp"
   },
   {
