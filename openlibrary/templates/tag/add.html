@@ -6,9 +6,7 @@ $var title: $_("Add a tag")
     <div class="head">
         <h1>$_("Add a tag to Open Library")</h1>
     </div>
-        <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
-    $if not ctx.user:
-        $:render_template("lib/not_logged")
+    <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
 </div>
 
 <div id="contentBody">
