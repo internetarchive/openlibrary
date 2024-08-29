@@ -17,7 +17,7 @@ $ prompt_id = 'prompt-%s' % work_olid
 
 <div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
   <span class="date-display">
-    $:_("Read <timestamp class="check-in-date">%(date)s</timestamp>", date=last_read_date)
+    $:_("Read <time class="check-in-date">%(date)s</time>", date=last_read_date)
     <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit")</a>
   </span>
 </div>
