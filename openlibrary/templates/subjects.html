@@ -4,7 +4,7 @@ $var title: $page.name
 
 $ can_add_tag = ctx.user and (ctx.user.is_super_librarian())
 $ has_tag = 'tag' in page
-
+$ q = query_param('q')
 
 <div id="scrollHere"></div>
 
@@ -42,10 +42,8 @@ $ has_tag = 'tag' in page
     <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
-      <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
-      <label for="searchSubjects" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</label>
-      <input type="text" name="q" aria-label="Search" id="searchSubjects" size="100" class="larger" value="" />
-      <button type="submit" class="larger">$_("Search")</button>
+      $:render_template("search/searchbox", q=q)
+      <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
 </div>
 
