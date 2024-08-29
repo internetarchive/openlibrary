@@ -4320,7 +4320,8 @@ msgid "Delete Event"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
-msgid "Read:"
+#, python-format
+msgid "Read %(date)s"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
