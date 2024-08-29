@@ -4321,7 +4321,7 @@ msgstr ""
 
 #: check_ins/check_in_prompt.html
 #, python-format
-msgid "Read <time class=>%(date)s</time>"
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
