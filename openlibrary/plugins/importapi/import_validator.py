@@ -1,7 +1,9 @@
 from typing import Annotated, Any, Final, TypeVar
 
 from annotated_types import MinLen
-from pydantic import BaseModel, ValidationError, model_validator
+from pydantic import BaseModel, ValidationError, model_validator, root_validator
+
+from openlibrary.catalog.add_book import SUSPECT_AUTHOR_NAMES, SUSPECT_PUBLICATION_DATES
 
 T = TypeVar("T")
 
@@ -26,7 +28,33 @@ class CompleteBook(BaseModel):
     title: NonEmptyStr
     source_records: NonEmptyList[NonEmptyStr]
     authors: NonEmptyList[Author]
+    publishers: NonEmptyList[NonEmptyStr]
     publish_date: NonEmptyStr
+
+    @root_validator(pre=True)
+    def remove_invalid_dates(cls, values):
+        """Remove known bad dates prior to validation."""
+        if values.get("publish_date") in SUSPECT_PUBLICATION_DATES:
+            values.pop("publish_date")
+
+        return values
+
+    @root_validator(pre=True)
+    def remove_invalid_authors(cls, values):
+        """Remove known bad authors (e.g. an author of "N/A") prior to validation."""
+        authors = values.get("authors", [])
+
+        # Only examine facially valid records. Other rules will handle validating the schema.
+        maybe_valid_authors = [
+            author
+            for author in authors
+            if isinstance(author, dict)
+            and isinstance(author.get("name"), str)
+            and author["name"].lower() not in SUSPECT_AUTHOR_NAMES
+        ]
+        values["authors"] = maybe_valid_authors
+
+        return values
 
 
 class StrongIdentifierBook(BaseModel):

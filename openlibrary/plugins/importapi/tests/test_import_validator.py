@@ -3,12 +3,15 @@ from pydantic import ValidationError
 
 from openlibrary.plugins.importapi.import_validator import import_validator
 
+# To import, records must be complete, or they must have a title and strong identifier.
+# They must also have a source_records field.
 
 # The required fields for a import with a complete record.
 complete_values = {
     "title": "Beowulf",
     "source_records": ["key:value"],
     "authors": [{"name": "Tom Robbins"}, {"name": "Dean Koontz"}],
+    "publishers": ["Harper Collins", "OpenStax"],
     "publish_date": "December 2018",
 }
 
@@ -22,16 +25,6 @@ valid_values_strong_identifier = {
 validator = import_validator()
 
 
-def test_validate_complete_record():
-    """A complete records should validate."""
-    assert validator.validate(complete_values) is True
-
-
-def test_validate_strong_identifier():
-    """A record with a title + strong identifier should validate."""
-    assert validator.validate(valid_values_strong_identifier) is True
-
-
 def test_validate_both_complete_and_strong():
     """
     A record that is both complete and that has a strong identifier should
@@ -42,7 +35,7 @@ def test_validate_both_complete_and_strong():
 
 
 @pytest.mark.parametrize(
-    'field', ["title", "source_records", "authors", "publish_date"]
+    'field', ["title", "source_records", "authors", "publishers", "publish_date"]
 )
 def test_validate_record_with_missing_required_fields(field):
     """Ensure a record will not validate as complete without each required field."""
@@ -99,26 +92,232 @@ def test_validate_not_complete_no_strong_identifier(field):
         validator.validate(invalid_values)
 
 
-def test_can_import_a_valid_author() -> None:
+class TestMinimalDifferentiableStrongIdRecord:
     """
-    Valid authors, e.g. [{"name": "Hilary Putnam"}, {"name": "Willard V. O. Quine"}],
-    will validate.
+    A minimal differentiable record has a:
+        1. title;
+        2. ISBN 10 or ISBN 13 or LCCN; and
+        3. source_records entry.
     """
-    record_with_valid_author = complete_values.copy()
-    assert validator.validate(record_with_valid_author) is True
+
+    @pytest.mark.parametrize(
+        ("isbn", "differentiable"),
+        [
+            # ISBN 10 is a dictionary with a non-empty string.
+            ({"isbn_10": ["0262670011"]}, True),
+            # ISBN 13 is a dictionary with a non-empty string.
+            ({"isbn_13": ["9780262670012"]}, True),
+            # ISBN 10 is an empty string.
+            ({"isbn_10": [""]}, False),
+            # ISBN 13 is an empty string.
+            ({"isbn_13": [""]}, False),
+            # ISBN 10 is None.
+            ({"isbn_10": [None]}, False),
+            # ISBN 13 is None.
+            ({"isbn_13": [None]}, False),
+            # ISBN 10 is None.
+            ({"isbn_10": None}, False),
+            # ISBN 13 is None.
+            ({"isbn_13": None}, False),
+            # ISBN 10 is an empty list.
+            ({"isbn_10": []}, False),
+            # ISBN 13 is an empty list.
+            ({"isbn_13": []}, False),
+            # ISBN 10 is a string.
+            ({"isbn_10": "0262670011"}, False),
+            # ISBN 13 is a string.
+            ({"isbn_13": "9780262670012"}, False),
+            # There is no ISBN key.
+            ({}, False),
+        ],
+    )
+    def test_isbn_case(self, isbn: dict, differentiable: bool) -> None:
+        """Test different ISBN values with the specified record."""
+        record = {
+            "title": "Word and Object",
+            "source_records": ["bwb:0123456789012"],
+        }
+        record = record | isbn
+
+        if differentiable:
+            assert validator.validate(record) is True
+        else:
+            with pytest.raises(ValidationError):
+                validator.validate(record)
+
+    @pytest.mark.parametrize(
+        ("lccn", "differentiable"),
+        [
+            # LCCN is a dictionary with a non-empty string.
+            ({"lccn": ["60009621"]}, True),
+            # LCCN is an empty string.
+            ({"lccn": [""]}, False),
+            # LCCN is None.
+            ({"lccn": [None]}, False),
+            # LCCN is None.
+            ({"lccn": None}, False),
+            # LCCN is an empty list.
+            ({"lccn": []}, False),
+            # LCCN is a string.
+            ({"lccn": "60009621"}, False),
+            # There is no ISBN key.
+            ({}, False),
+        ],
+    )
+    def test_lccn_case(self, lccn: dict, differentiable: bool) -> None:
+        """Test different LCCN values with the specified record."""
+        record = {
+            "title": "Word and Object",
+            "source_records": ["bwb:0123456789012"],
+        }
+        record = record | lccn
+
+        if differentiable:
+            assert validator.validate(record) is True
+        else:
+            with pytest.raises(ValidationError):
+                validator.validate(record)
+
+
+def test_minimal_complete_record() -> None:
+    """
+    A minimal complete record has a:
+        1. title;
+        2. authors;
+        3. publishers;
+        4. publish_date; and
+        5. source_records entry.
+    """
+    record = {
+        "title": "Word and Object",
+        "authors": [{"name": "Williard Van Orman Quine"}],
+        "publishers": ["MIT Press"],
+        "publish_date": "1960",
+        "source_records": ["bwb:0123456789012"],
+    }
+
+    assert validator.validate(record) is True
+
+
+class TestRecordTooMinimal:
+    """
+    These records are incomplete because they lack one or more required fields.
+    """
+
+    @pytest.mark.parametrize(
+        "authors",
+        [
+            # No `name` key.
+            ({"authors": [{"not_name": "Willard Van Orman Quine"}]}),
+            # Not a list.
+            ({"authors": {"name": "Williard Van Orman Quine"}}),
+            # `name` value isn't a string.
+            ({"authors": [{"name": 1}]}),
+            # Name is None.
+            ({"authors": {"name": None}}),
+            # No authors key.
+            ({}),
+        ],
+    )
+    def test_record_must_have_valid_author(self, authors) -> None:
+        """Only authors of the shape [{"name": "Williard Van Orman Quine"}] will validate."""
+        record = {
+            "title": "Word and Object",
+            "publishers": ["MIT Press"],
+            "publish_date": "1960",
+            "source_records": ["bwb:0123456789012"],
+        }
+
+        record = record | authors
+
+        with pytest.raises(ValidationError):
+            validator.validate(record)
+
+    @pytest.mark.parametrize(
+        ("publish_date"),
+        [
+            # publish_date is an int.
+            ({"publish_date": 1960}),
+            # publish_date is None.
+            ({"publish_date": None}),
+            # no publish_date.
+            ({}),
+        ],
+    )
+    def test_must_have_valid_publish_date_type(self, publish_date) -> None:
+        """Only records with string publish_date fields are valid."""
+        record = {
+            "title": "Word and Object",
+            "authors": [{"name": "Willard Van Orman Quine"}],
+            "publishers": ["MIT Press"],
+            "source_records": ["bwb:0123456789012"],
+        }
+
+        record = record | publish_date
+
+        with pytest.raises(ValidationError):
+            validator.validate(record)
 
 
 @pytest.mark.parametrize(
-    "authors",
+    ("publish_date"),
     [
-        ([{"not_name": "Hilary Putnam"}]),  # No `name` key.
-        ({"name": "Hilary Putnam"}),  # Not a list
-        ([{"name": 1}]),  # `name` value isn't a string.
+        ({"publish_date": "1900"}),
+        ({"publish_date": "January 1, 1900"}),
+        ({"publish_date": "1900-01-01"}),
+        ({"publish_date": "01-01-1900"}),
+        ({"publish_date": "????"}),
     ],
 )
-def test_cannot_import_an_invalid_author(authors) -> None:
-    """Authors of the shape [{"name": "Hilary Putnam"}] will validate."""
-    record_with_invalid_author = complete_values.copy()
-    record_with_invalid_author["authors"] = authors
+def test_records_with_substantively_bad_dates_should_not_validate(
+    publish_date: dict,
+) -> None:
+    """
+    Certain publish_dates are known to be suspect, so remove them prior to
+    attempting validation. If a date is removed, the record will fail to validate
+    as a complete record (but could still validate with title + ISBN).
+    """
+    record = {
+        "title": "Word and Object",
+        "authors": [{"name": "Williard Van Orman Quine"}],
+        "publishers": ["MIT Press"],
+        "source_records": ["bwb:0123456789012"],
+    }
+
+    record = record | publish_date
+
     with pytest.raises(ValidationError):
-        validator.validate(record_with_invalid_author)
+        validator.validate(record)
+
+
+@pytest.mark.parametrize(
+    ("authors", "should_error"),
+    [
+        ({"authors": [{"name": "N/A"}, {"name": "Willard Van Orman Quine"}]}, False),
+        ({"authors": [{"name": "Unknown"}]}, True),
+        ({"authors": [{"name": "unknown"}]}, True),
+        ({"authors": [{"name": "n/a"}]}, True),
+    ],
+)
+def test_records_with_substantively_bad_authors_should_not_validate(
+    authors: dict, should_error: bool
+) -> None:
+    """
+    Certain author names are known to be bad and should be removed prior to
+    validation. If all author names are removed the record will not validate
+    as complete.
+    """
+    record = {
+        "title": "Word and Object",
+        "publishers": ["MIT Press"],
+        "publish_date": "1960",
+        "source_records": ["bwb:0123456789012"],
+    }
+
+    record = record | authors
+
+    if should_error:
+        with pytest.raises(ValidationError):
+            validator.validate(record)
+    else:
+        assert validator.validate(record) is True
