@@ -2,7 +2,6 @@ $def with (page)
 
 $var title: $page.name
 
-$ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
 $ can_add_tag = ctx.user and (ctx.user.is_super_librarian())
 $ has_tag = 'tag' in page
 
@@ -16,7 +15,9 @@ $ has_tag = 'tag' in page
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">
-        $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
+        $ edit_tag_url = page.tag.get('id') + '/-/edit' if 'tag' in page else '/tag/add'
+        $if not has_tag:
+          $ edit_tag_url += '?name=%s&type=subject&sub_type=%s' % (page.name, page.subject_type)
         <a
           class="editTagButton"
           href="$edit_tag_url"
@@ -50,83 +51,15 @@ $ has_tag = 'tag' in page
 
 <div class="contentBody">
 
-  $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
-
-  <div class="head">
-    <h2 class="inline">
-      $_("Publishing History")
-    </h2>
-      <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
-      <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-      <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject.")</span>
-  </div>
-
-    <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(page.publishing_history)</script>
-
-    <div class="chart">
-        <div class="chartYaxis">$_("Editions Published")</div>
-        <div id="chartPubHistory" class="thisChart">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-        <div class="chartXaxis">$_("Year of Publication")</div>
-    </div>
+    $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
+    $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
-
-    <div class="head" id="subjectRelated">
-      <h2>$_("Related...")
-        <!-- <span class="count"><a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span> -->
-      </h2>
-    </div>
-
-    $jsdef renderSubjects(subjects):
-        $if len(subjects) > 0:
-            <span class="subject">
-            $for s in subjects:
-                <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
-            </span>
-        $else:
-            <span class="title"><em>$_("None found.")</em></span>
-
-    $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box link-box--with-header">
-          <h6 class="black collapse uppercase">$label</h6>
-          $:renderSubjects(page[category][:limit])
-        </div>
+    $:macros.RelatedSubjects(page)
 
     <div class="clearfix"></div>
+    $:macros.ProlificAuthors(page.authors)
 
-$jsdef renderAuthors(authors):
-    $for a in page.authors:
-        <span class="tag">
-            <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
-        </span>
-        <span class="count">$ungettext("%(count)d book", "%(count)d books", a.count, count=a.count)</span>
-        <br/>
-<div id="resultsAuthors" class="widget-box">
-  <div class="head">
-    <h3>$_("Prolific Authors")</h3>
-    <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
-  </div>
-  <div class="unordered">
-    $:renderAuthors(page.authors)
-  </div>
-</div>
-<div class="spacer"></div>
-
-$ publishers_feature_enabled = "publishers" in ctx.features
-
-$jsdef renderPublishers(publishers):
-    $for p in publishers:
-        <span class="tag">
-            $if publishers_feature_enabled:
-                <a href="$p.key">$p.name</a>,
-            $else:
-                <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
-        </span>
-        <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
-        <br/>
-
-<div class="section clearfix"></div>
-
+    <div class="spacer"></div>
+    <div class="section clearfix"></div>
 </div>

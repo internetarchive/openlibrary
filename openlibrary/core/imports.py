@@ -23,7 +23,7 @@ from openlibrary.core import cache
 
 logger = logging.getLogger("openlibrary.imports")
 
-STAGED_SOURCES: Final = ('amazon', 'idb')
+STAGED_SOURCES: Final = ('amazon', 'idb', 'google_books')
 
 if TYPE_CHECKING:
     from openlibrary.core.models import Edition

@@ -245,6 +245,11 @@ identifiers:
     name: scribd
     url: https://www.scribd.com/doc/@@@/
     website: https://www.scribd.com/
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    note: pattern is /^\D{2}[A-Z0-3][E\d]\d{6}$/
+    url: http://id.sbn.it/bid/@@@
+    website: https://opac.sbn.it/
 -   label: Shelfari
     name: shelfari
     notes: merged with goodreads.com
