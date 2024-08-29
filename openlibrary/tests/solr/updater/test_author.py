@@ -23,7 +23,7 @@ class TestAuthorUpdater:
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 pass
 
-            async def post(self, url, json):
+            async def post(self, *a, **kw):
                 return MockResponse(
                     {
                         "facets": {

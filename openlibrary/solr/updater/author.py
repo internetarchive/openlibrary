@@ -44,7 +44,11 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 "field": field,
             }
         async with httpx.AsyncClient() as client:
-            response = await client.post(base_url, json=json)
+            response = await client.post(
+                base_url,
+                timeout=30,
+                json=json,
+            )
             reply = response.json()
 
         doc = AuthorSolrBuilder(author, reply).build()

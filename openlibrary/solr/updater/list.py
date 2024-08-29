@@ -53,6 +53,7 @@ async def fetch_seeds_facets(seeds: list[str]):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             base_url,
+            timeout=30,
             params=[  # type: ignore
                 ('wt', 'json'),
                 ('json.nl', 'arrarr'),
