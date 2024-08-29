@@ -1182,6 +1182,7 @@ class Tag(Thing):
         tag_description,
         tag_type,
         tag_plugins,
+        fkey=None,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1201,6 +1202,7 @@ class Tag(Thing):
                     'tag_type': tag_type,
                     'tag_plugins': json.loads(tag_plugins or "[]"),
                     'type': {"key": '/type/tag'},
+                    'fkey': fkey,
                 },
                 comment=comment,
             )

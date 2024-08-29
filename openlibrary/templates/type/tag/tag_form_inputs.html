@@ -1,4 +1,4 @@
-$def with (tag_name='', tag_type='', tag_description='')
+$def with (tag_name='', tag_type='', tag_description='', fkey=None)
 
 <div class="formElement">
     <div class="label">
@@ -19,6 +19,15 @@ $def with (tag_name='', tag_type='', tag_description='')
         </div>
     </div>
 </fieldset>
+
+<div class="formElement">
+    <div class="label">
+        <label for="fkey">$_("Subject Key")</label>
+    </div>
+    <div class="input">
+        <input type="text" value="$fkey" disabled>
+    </div>
+</div>
 
 <div class="formElement">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>

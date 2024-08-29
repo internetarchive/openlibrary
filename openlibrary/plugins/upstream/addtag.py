@@ -36,9 +36,9 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        i = web.input(name=None, type=None, sub_type=None)
+        i = web.input(name=None, type=None, sub_type=None, fkey=None)
 
-        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type)
+        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type, fkey=i.fkey)
 
     def has_permission(self, user) -> bool:
         """
@@ -54,6 +54,7 @@ class addtag(delegate.page):
             tag_type="",
             tag_description="",
             tag_plugins="",
+            fkey=None,
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -101,7 +102,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins)
+        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins, i.fkey)
         raise safe_seeother(key)
 
 

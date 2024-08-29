@@ -17,7 +17,7 @@ $ q = query_param('q')
       <div class="subjectTagEdit">
         $ edit_tag_url = page.tag.get('id') + '/-/edit' if 'tag' in page else '/tag/add'
         $if not has_tag:
-          $ edit_tag_url += '?name=%s&type=subject&sub_type=%s' % (page.name, page.subject_type)
+          $ edit_tag_url += '?name=%s&type=subject&sub_type=%s&fkey=%s' % (page.name, page.subject_type, page.key)
         <a
           class="editTagButton"
           href="$edit_tag_url"
