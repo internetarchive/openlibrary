@@ -31,6 +31,12 @@ class subjects(delegate.page):
         if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
+        q = {"type": "/type/tag", "fkey": key, "tag_type": "subject"}
+        match = web.ctx.site.things(q)
+        if match:
+            tag = web.ctx.site.get(match[0])
+            raise web.redirect(tag.key)
+
         # this needs to be updated to include:
         # q=public_scan_b:true+OR+lending_edition_s:*
         subj = get_subject(
@@ -337,17 +343,11 @@ class SubjectEngine:
                     subject[meta.key].pop(i)
                     break
 
-            q = {"type": "/type/tag", "name": subject.name, "tag_type": "subject"}
+            q = {"type": "/type/tag", "fkey": subject.key, "tag_type": "subject"}
             match = web.ctx.site.things(q)
             if match:
                 tag = web.ctx.site.get(match[0])
-                match = {
-                    'name': tag.name,
-                    'id': tag.key,
-                    'description': tag.tag_description,
-                    'plugins': tag.tag_plugins,
-                }
-                subject.tag = match
+                subject.tag = tag
 
         return subject
 

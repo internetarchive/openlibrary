@@ -14,6 +14,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
+from openlibrary.plugins.worksearch.subjects import get_subject
 
 
 @public
@@ -53,7 +54,6 @@ class addtag(delegate.page):
             name="",
             tag_type="",
             tag_description="",
-            tag_plugins="",
             fkey=None,
         )
 
@@ -102,8 +102,18 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins, i.fkey)
-        raise safe_seeother(key)
+        tag = Tag.create(i.name, i.tag_description, i.tag_type, fkey=i.fkey)
+        if i.fkey:
+            subject = get_subject(
+                i.fkey,
+                details=True,
+                filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
+                sort=web.input(sort='readinglog').sort
+            )
+            if subject and subject.work_count > 0:
+                tag.body = str(render_template('subjects', page=subject))
+                tag._save()
+        raise safe_seeother(tag.key)
 
 
 class tag_edit(delegate.page):
