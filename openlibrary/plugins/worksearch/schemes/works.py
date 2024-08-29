@@ -21,7 +21,6 @@ from openlibrary.solr.query_utils import (
     luqum_traverse,
     luqum_replace_field,
 )
-from openlibrary.solr.utils import get_solr_next
 from openlibrary.utils.ddc import (
     normalize_ddc,
     normalize_ddc_prefix,
@@ -345,16 +344,10 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Duplicate author fields
-                **(
-                    {
-                        'author_name': 'author_name',
-                        'author_key': 'author_key',
-                        'author_alternative_name': 'author_alternative_name',
-                        'author_facet': 'author_facet',
-                    }
-                    if get_solr_next()
-                    else {}
-                ),
+                'author_name': 'author_name',
+                'author_key': 'author_key',
+                'author_alternative_name': 'author_alternative_name',
+                'author_facet': 'author_facet',
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
@@ -479,8 +472,7 @@ class WorkSearchScheme(SearchScheme):
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text alternative_title^4'
-                + (' author_name^4' if get_solr_next() else ''),
+                qf='text alternative_title^4 author_name^4',
                 # Because we include the edition query inside the v="..." part,
                 # we need to escape quotes. Also note that if there is no
                 # edition query (because no fields in the user's work query apply),
