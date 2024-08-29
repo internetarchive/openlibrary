@@ -47,12 +47,12 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ render_times['databarWork: Modal Links - Desktop'] = time() - render_times['databarWork: Modal Links - Desktop']
 
         <div class="readers-stats__wrapper mobile">
-          $ star_ratings_stats = macros.StarRatingsStats(work)
+          $ star_ratings_stats = macros.StarRatingsStats(work, mobile=True)
           $:star_ratings_stats
 
           <hr>
           $ render_times['databarWork: Modal Links - Mobile'] = time()
-          $:render_template("type/edition/modal_links", work, edition, share_url)
+          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True)
           $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
         </div>
 
