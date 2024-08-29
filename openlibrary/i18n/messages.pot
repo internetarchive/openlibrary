@@ -4320,7 +4320,8 @@ msgid "Delete Event"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
-msgid "Read:"
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
