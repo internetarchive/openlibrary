@@ -723,7 +723,7 @@
   {
     "code": "esk",
     "type": "/type/language",
-    "name": "Eskimo languages",
+    "name": "Inuit-Yupik-Unangan languages",
     "key": "/languages/esk"
   },
   {
@@ -746,7 +746,7 @@
     "name": "Ethiopic",
     "key": "/languages/eth",
     "deprecated": true,
-    "current": "gez"
+    "current": "/languages/gez"
   },
   {
     "code": "ewe",
@@ -1023,9 +1023,9 @@
     "key": "/languages/grn"
   },
   {
-    "code": "Swiss German",
+    "code": "gsw",
     "type": "/type/language",
-    "name": "gsw",
+    "name": "Swiss German",
     "key": "/languages/gsw"
   },
   {
@@ -1655,7 +1655,7 @@
   {
     "code": "mao",
     "type": "/type/language",
-    "name": "Maori",
+    "name": "Māori",
     "key": "/languages/mao"
   },
   {
