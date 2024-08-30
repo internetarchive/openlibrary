@@ -2915,8 +2915,7 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html subjects/notfound.html
-#: type/local_id/view.html
+#: search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
