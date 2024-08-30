@@ -88,7 +88,7 @@ class Change:
         self.value = value
         self.list_type = list_type
 
-    def apply(self, doc: dict):
+    def apply(self, doc: dict, overwrite: bool = False):
         pass
 
     def invert(self):
@@ -106,7 +106,7 @@ class Add(Change):
     ):
         super().__init__(path, value, list_type, index)
 
-    def apply(self, document: dict) -> dict:
+    def apply(self, document: dict, overwrite: bool = False) -> dict:
         doc = deepcopy(document)
         entry = doc
         key_list = self.path.split("/")
@@ -127,7 +127,11 @@ class Add(Change):
             else:
                 print("failed to add to list")
         else:
+            if overwrite:
+                entry[key_list[-1]] = self.value
+
             entry.setdefault(key_list[-1], self.value)
+
         return doc
 
     def invert(self):
@@ -152,7 +156,7 @@ class Delete(Change):
     ):
         super().__init__(path, value, list_type, index)
 
-    def apply(self, document: dict | list):
+    def apply(self, document: dict, overwrite: bool = False):
         doc = deepcopy(document)
         entry = doc
         key_list = self.path.split("/")
@@ -166,15 +170,15 @@ class Delete(Change):
         add_point = entry.get(key_list[-1], None)
         if add_point is None:
             return doc
-        if add_point == self.value:
+        if overwrite or add_point == self.value:
             entry.pop(key_list[-1])
         else:
 
             if isinstance(add_point, list):
                 if (
-                    self.list_type == "ol"
-                    and self.index
-                    and add_point[self.index] == self.value
+                    self.index
+                    and self.list_type == "ol"
+                    and (overwrite or add_point[self.index] == self.value)
                 ):
                     add_point.pop(self.index)
                 elif self.list_type == "ul":
@@ -205,10 +209,10 @@ class Patch:
         else:
             self.change_list.extend(changes.change_list)
 
-    def apply(self, doc):
+    def apply(self, doc: dict, overwrite: bool = False):
         changed_doc = deepcopy(doc)
         for change in self.change_list:
-            changed_doc = change.apply(changed_doc)
+            changed_doc = change.apply(changed_doc, overwrite)
         return changed_doc
 
     # out of place operation, returns a new Patch object.
