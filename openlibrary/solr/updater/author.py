@@ -23,6 +23,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
             "params": {
                 "json.nl": "arrarr",
                 "q": "author_key:%s " % author_id,
+                "fq": "type:work",
                 "fl": "title, subtitle",
                 "sort": "edition_count desc",
             },
