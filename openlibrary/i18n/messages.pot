@@ -111,7 +111,9 @@ msgid "Batch Imports"
 msgstr ""
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records."
+msgid ""
+"Attach a JSONL formatted document with import records or paste JSONL data"
+" below."
 msgstr ""
 
 #: batch_import.html
@@ -119,10 +121,6 @@ msgid ""
 "See the <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
-msgstr ""
-
-#: batch_import.html
-msgid "Import"
 msgstr ""
 
 #: batch_import.html
@@ -135,8 +133,8 @@ msgstr ""
 
 #: batch_import.html
 msgid ""
-"Please update the JSONL file and reload this page (there should be no "
-"need to reattach the file)."
+"Please update the JSONL file or the pasted data and reload this page "
+"(there should be no need to reattach the file)."
 msgstr ""
 
 #: batch_import.html
@@ -166,10 +164,6 @@ msgstr ""
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
-
-#: batch_import.html
-msgid "View Batch Status"
 msgstr ""
 
 #: batch_import_view.html

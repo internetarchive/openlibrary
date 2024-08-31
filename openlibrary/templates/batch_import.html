@@ -8,18 +8,18 @@ $var title: $_("Batch Imports")
 <div id="contentBody" class="batchImport">
   <p>$_('Attach a JSONL formatted document with import records or paste JSONL data below.')</p>
   <p>$:_('See the <a href="https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata">olclient import schemata</a> for more.')</p>
-  
+
   <form method="POST" enctype="multipart/form-data" action="/import/batch/new">
     <label for="batchImport">Upload JSONL File:</label>
     <input type="file" name="batchImport" id="batchImport">
-    
+
     <label for="jsonlData">Or Paste Raw JSONL Data:</label>
     <textarea name="jsonlData" id="jsonlData" rows="10" cols="50" placeholder="Paste raw JSONL data here"></textarea>
-    
+
     <button type="submit">Import</button>
   </form>
-  
-  
+
+
 
 
   $if batch_result and batch_result.errors:
