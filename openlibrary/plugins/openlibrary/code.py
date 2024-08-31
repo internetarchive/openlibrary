@@ -502,25 +502,21 @@ class batch_imports(delegate.page):
         raw_data = None
 
         if form_data.batchImport:
-        # Handle file upload
+            # Handle file upload
             if hasattr(form_data.batchImport, 'file'):
                 raw_data = form_data.batchImport.file.read()
             else:
                 raise ValueError("Expected file object in 'batchImport'.")
         elif form_data.jsonlData:
-        # Handle raw JSONL input
+            # Handle raw JSONL input
             raw_data = form_data.jsonlData.encode('utf-8')  # Ensure it's in bytes
         else:
             raise ValueError("No file or raw data provided")
 
-    # Process the raw data using the batch_import function
+        # Process the raw data using the batch_import function
         batch_result = batch_import(raw_data)
 
         return render_template("batch_import.html", batch_result=batch_result)
-
-
-
-
 
 
 class isbn_lookup(delegate.page):
