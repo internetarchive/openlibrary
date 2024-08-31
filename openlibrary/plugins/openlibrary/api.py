@@ -358,8 +358,7 @@ class work_editions(delegate.page):
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_editions_data(self, work, limit, offset):
-        if limit > 1000:
-            limit = 1000
+        limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
             {
@@ -403,8 +402,7 @@ class author_works(delegate.page):
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_works_data(self, author, limit, offset):
-        if limit > 1000:
-            limit = 1000
+        limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
             {

@@ -34,7 +34,7 @@ def open_test_data(filename):
     return open(fullpath, mode='rb')
 
 
-@pytest.fixture()
+@pytest.fixture
 def ia_writeback(monkeypatch):
     """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
@@ -1481,7 +1481,7 @@ def test_overwrite_if_rev1_promise_item(name, edition, marc, expected) -> None:
     ), f"Test {name} failed. Expected {expected}, but got {result}"
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_load_data(mock_site):
     existing_author = {
         'key': '/authors/OL1A',

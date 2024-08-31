@@ -12,7 +12,7 @@ from babel.lists import format_list
 from collections import defaultdict
 import re
 import random
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 import datetime
 import logging
 from html.parser import HTMLParser
@@ -1449,7 +1449,7 @@ def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.fromstring(requests.get(url).text)
+        tree = ET.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error(

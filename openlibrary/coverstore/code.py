@@ -433,8 +433,7 @@ class query:
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
 
-        if limit > 100:
-            limit = 100
+        limit = min(limit, 100)
 
         if i.olid and ',' in i.olid:
             i.olid = i.olid.split(',')
