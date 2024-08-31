@@ -1,0 +1,72 @@
+identifiers:
+-   label: Amazon ID
+    name: amazon
+    notes: Should be something like B000AQ0842
+    url: https://www.amazon.com/-/e/@@@
+    website: https://www.amazon.com
+-   label: BookBrainz
+    name: bookbrainz
+    url: https://bookbrainz.org/author/@@@
+    website: https://bookbrainz.org
+-   label: GoodReads
+    name: goodreads
+    notes: Should be a number
+    url: https://www.goodreads.com/author/show/@@@
+-   label: ISNI
+    name: isni
+    notes: ''
+    url: https://isni.org/isni/@@@
+    website: https://isni.org/
+-   label: Inventaire
+    name: inventaire
+    notes: two formats depending on if the author exists in wikidata, wd:Q42 or inv:914ad8068b8711ead0cc2efbed56e53c
+    url: https://inventaire.io/entity/@@@
+    website: https://inventaire.io/
+-   label: Library of Congress Names
+    name: lc_naf
+    notes: Should be something like nr92001540, no97027235, etc. (/^n[a-z]?[0-9]+$/)
+    url: https://id.loc.gov/authorities/names/@@@
+    website: https://id.loc.gov/authorities/names.html
+-   label: LibraryThing
+    name: librarything
+    notes: Should be something like kingstephen-1
+    url: https://www.librarything.com/author/@@@
+-   label: LibriVox
+    name: librivox
+    notes: Should be a number
+    url: https://librivox.org/author/@@@
+    website: https://librivox.org
+-   label: MusicBrainz
+    name: musicbrainz
+    url: https://musicbrainz.org/artist/@@@
+    website: https://musicbrainz.org
+-   label: Project Gutenberg
+    name: project_gutenberg
+    notes: Should be a number
+    url: https://www.gutenberg.org/ebooks/author/@@@
+    website: https://www.gutenberg.org
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    notes: format is /^\D{2}[A-Z0-3]V\d{6}$/
+    url: https://opac.sbn.it/risultati-autori/-/opac-autori/detail/@@@
+    website: https://opac.sbn.it/
+-   label: Storygraph
+    name: storygraph
+    notes: eg 50b7fbd9-84ac-450d-b2ed-78c861d4ef00
+    url: https://app.thestorygraph.com/authors/@@@
+    website: https://www.thestorygraph.com/
+-   label: VIAF
+    name: viaf
+    notes: ''
+    url: https://viaf.org/viaf/@@@
+    website: https://viaf.org
+-   label: Wikidata
+    name: wikidata
+    notes: ''
+    url: https://www.wikidata.org/wiki/@@@
+    website: https://wikidata.org
+-   label: YouTube
+    name: youtube
+    notes: Link to the author's official YouTube channel
+    url: https://www.youtube.com/@@@
+    website: https://www.youtube.com

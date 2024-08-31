@@ -6,6 +6,7 @@
  *
  * Used on pages:
  * - /account/create
+ * - /account/login
  */
 
 @import (less) "less/index.less";
@@ -103,6 +104,15 @@
     transform: translateY(-50%);
   }
 
+  .ol-signup-form__info-box {
+    font-size: 14px;
+  }
+
+  .ol-signup-form__info {
+    font-size: 14px;
+    padding-top: 10px;
+  }
+
   .ol-signup-form__link {
     color: inherit;
   }
@@ -153,12 +163,22 @@
     color: @grey;
   }
 
-  .password-visibility-toggle {
-    float: right;
-    color: @grey;
+  .input {
+    position: relative;
   }
 
-  .ol-signup-form__newsletter {
+  .password-visibility-toggle {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+  }
+
+  .password-visibility-toggle > img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .ol-signup-form__checkbox {
     display: flex;
     flex-direction: row;
     gap: 5px;
@@ -182,12 +202,13 @@
     color: @grey;
     display: block;
     margin-top: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
   }
 
   .ol-signup-form__login-hint {
     text-align: center;
+    padding-top: 10px;
 
     a {
       color: @link-blue;

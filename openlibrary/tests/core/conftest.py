@@ -2,7 +2,7 @@ import os
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def dummy_crontabfile(request):
     "Creates a dummy crontab file that can be used for to try things"
     cronfile = os.tmpnam()
@@ -15,7 +15,7 @@ def dummy_crontabfile(request):
     return cronfile
 
 
-@pytest.fixture()
+@pytest.fixture
 def crontabfile(request):
     """Creates a file with an actual command that we can use to test
     running of cron lines"""
@@ -30,7 +30,7 @@ def crontabfile(request):
     return cronfile
 
 
-@pytest.fixture()
+@pytest.fixture
 def counter(request):
     """Returns a decorator that will create a 'counted' version of the
     functions. The number of times it's been called is kept in the
@@ -47,7 +47,7 @@ def counter(request):
     return counter
 
 
-@pytest.fixture()
+@pytest.fixture
 def sequence(request):
     """Returns a function that can be called for sequence numbers
     similar to web.ctx.site.sequence.get_next"""

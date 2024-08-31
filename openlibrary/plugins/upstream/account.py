@@ -570,11 +570,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        if not 3 <= len(username) <= 20:
-            return _('Username must be between 3-20 characters')
-        if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
-            return _('Username may only contain numbers, letters, - or _')
-
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
             return _("Username unavailable")
@@ -585,9 +580,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        if not (email and re.match(r'.*@.*\..*', email)):
-            return _('Must be a valid email address')
-
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
@@ -679,32 +671,6 @@ class account_ia_email_forgot(delegate.page):
         else:
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
-
-
-class account_ol_email_forgot(delegate.page):
-    path = "/account/email/forgot"
-
-    def GET(self):
-        return render_template('account/email/forgot')
-
-    def POST(self):
-        i = web.input(username='', password='')
-        err = ""
-        act = OpenLibraryAccount.get(username=i.username)
-
-        if act:
-            if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
-                return render_template('account/email/forgot', email=act.email)
-            else:
-                err = "Incorrect password"
-
-        elif valid_email(i.username):
-            err = "Please enter a username, not an email"
-
-        else:
-            err = "Sorry, this user does not exist"
-
-        return render_template('account/email/forgot', err=err)
 
 
 class account_password_forgot(delegate.page):

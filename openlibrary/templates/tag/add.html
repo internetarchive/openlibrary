@@ -1,4 +1,4 @@
-$def with (tag=None, name=None, recaptcha=None)
+$def with (name, type, subject_type=None)
 
 $var title: $_("Add a tag")
 
@@ -6,51 +6,12 @@ $var title: $_("Add a tag")
     <div class="head">
         <h1>$_("Add a tag to Open Library")</h1>
     </div>
-        <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
-    $if not ctx.user:
-        $:render_template("lib/not_logged")
+    <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
 </div>
 
 <div id="contentBody">
-
-    <form method="post" action="" id="addtag" class="olform addtag1 validate">
-
-        <div class="formElement">
-            <div class="label">
-                <label for="tagname">$_("Name of Tag")</label>*<span class="tip">$_("Required field")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="tag_name" id="tag_name"/>
-            </div>
-        </div>
-
-        <fieldset class="major">
-            <div class="formElement">
-                <div class="label">
-                    <label for="tag-description">$_("How would you describe this tag?")</label>
-                    <span class="tip">$_("There's no wrong answer here.")</span>
-                </div>
-                <div class="input">
-                    <textarea name="tag_description" id="tag_description" class="markdown" cols="55" rows="5" tabindex="0"></textarea>
-                </div>
-            </div>
-        </fieldset>
-
-        <div class="formElement">
-            <div class="label"><label for="id_value">$_("Tag type")</label></div>
-            <div class="input">
-                <select name="tag_type" id="tag_type">
-                    <option value="">$_("Select")</option>
-                    $ tag_types = get_tag_types()
-                    $for tag_type in tag_types:
-                        <option value="$tag_type">$tag_type</option>
-                </select>
-            </div>
-        </div>
-
-        $if recaptcha and not ctx.user:
-            $:render_template("recaptcha", recaptcha.public_key, error=None)
-
+    <form method="post" action="" id="addtag" class="olform addtag1">
+        $:render_template("type/tag/tag_form_inputs", tag_name=name, tag_type=type)
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">

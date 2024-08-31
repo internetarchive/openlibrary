@@ -12,6 +12,7 @@ from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 from pathlib import Path
 from collections.abc import Iterable
+import lxml.etree
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
@@ -94,7 +95,9 @@ class TestParseMARCXML:
     def test_xml(self, i):
         expect_filepath = (TEST_DATA / 'xml_expect' / i).with_suffix('.json')
         filepath = TEST_DATA / 'xml_input' / f'{i}_marc.xml'
-        element = etree.parse(filepath).getroot()
+        element = etree.parse(
+            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
             element = element[0]
@@ -172,7 +175,12 @@ class TestParse:
           <subfield code="a">Rein, Wilhelm,</subfield>
           <subfield code="d">1809-1865.</subfield>
         </datafield>"""
-        test_field = DataField(None, etree.fromstring(xml_author))
+        test_field = DataField(
+            None,
+            etree.fromstring(
+                xml_author, parser=lxml.etree.XMLParser(resolve_entities=False)
+            ),
+        )
         result = read_author_person(test_field)
 
         # Name order remains unchanged from MARC order

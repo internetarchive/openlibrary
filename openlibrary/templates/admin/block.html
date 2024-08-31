@@ -4,12 +4,12 @@ $var title: [Admin Center] Block IP
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Block IP address</h1>
+    <h1>$_("Block IP address")</h1>
 </div>
 
 <div id="contentBody">
     $if query_param("ip") != None:
-        <div>IP address $query_param("ip") has been added to the textarea. Please click Save to block that IP.
+        <div>$_('IP address %(address)s has been added to the textarea. Please click Save to block that IP.', address=query_param("ip"))
             <br/>
             <br/>
         </div>
@@ -26,7 +26,7 @@ $var title: [Admin Center] Block IP
         $:query_param("ip")
     </textarea>
     </div>
-    <input type="submit" name="_submit" value="Save"/>
+    <input type="submit" name="_submit" value="$_('Save')"/>
     </form>
 
 

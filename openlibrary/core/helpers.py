@@ -13,6 +13,10 @@ import babel.core
 import babel.dates
 import babel.numbers
 
+from babel.core import Locale
+from collections.abc import Callable, Iterable
+from typing import Any
+
 try:
     import genshi
     import genshi.filters
@@ -30,6 +34,7 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -60,7 +65,7 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html, encoding='utf8'):
+def sanitize(html: str, encoding: str = 'utf8') -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
@@ -121,7 +126,7 @@ class NothingEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def json_encode(d, **kw):
+def json_encode(d, **kw) -> str:
     """Calls json.dumps on the given data d.
     If d is a Nothing object, passes an empty list to json.dumps.
 
@@ -130,7 +135,9 @@ def json_encode(d, **kw):
     return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
-def safesort(iterable, key=None, reverse=False):
+def safesort(
+    iterable: Iterable, key: Callable | None = None, reverse: bool = False
+) -> list:
     """Sorts heterogeneous of objects without raising errors.
 
     Sorting heterogeneous objects sometimes causes error. For example,
@@ -146,12 +153,17 @@ def safesort(iterable, key=None, reverse=False):
     return sorted(iterable, key=safekey, reverse=reverse)
 
 
-def days_since(then, now=None):
+def days_since(then: datetime, now: datetime | None = None) -> int:
     delta = then - (now or datetime.now())
     return abs(delta.days)
 
 
-def datestr(then, now=None, lang=None, relative=True):
+def datestr(
+    then: datetime,
+    now: datetime | None = None,
+    lang: str | None = None,
+    relative: bool = True,
+) -> str:
     """Internationalized version of web.datestr."""
     lang = lang or web.ctx.lang
     if relative:
@@ -169,13 +181,13 @@ def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def format_date(date, lang=None):
+def format_date(date: datetime | None, lang: str | None = None) -> str:
     lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
 
 
-def _get_babel_locale(lang):
+def _get_babel_locale(lang: str) -> Locale:
     try:
         return babel.Locale(lang)
     except babel.core.UnknownLocaleError:
@@ -196,7 +208,7 @@ def sprintf(s, *a, **kw):
         return s
 
 
-def cond(pred, true_value, false_value=""):
+def cond(pred: Any, true_value: Any, false_value: Any = "") -> Any:
     """Lisp style cond function.
 
     Hanly to use instead of if-else expression.
@@ -213,7 +225,7 @@ def commify(number, lang=None):
         return str(number)
 
 
-def truncate(text, limit):
+def truncate(text: str, limit: int) -> str:
     """Truncate text and add ellipses if it longer than specified limit."""
     if not text:
         return ''
@@ -313,17 +325,17 @@ def affiliate_id(affiliate):
     return config.get('affiliate_ids', {}).get(affiliate, '')
 
 
-def bookreader_host():
+def bookreader_host() -> str:
     return config.get('bookreader_host', '')
 
 
-def private_collections():
+def private_collections() -> list[str]:
     """Collections which are lendable but should not be linked from OL
     TODO: Remove when we can handle institutional books"""
     return ['georgetown-university-law-library-rr']
 
 
-def private_collection_in(collections):
+def private_collection_in(collections: list[str]) -> bool:
     return any(x in private_collections() for x in collections)
 
 

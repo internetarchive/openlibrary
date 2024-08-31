@@ -57,13 +57,23 @@
 .last-read-date,
 .check-in-prompt {
   border-radius: 0 0 5px 5px;
-  padding: 4px 9px;
+  padding: 5px 0;
   margin-top: -15px;
-  padding-top: 9px;
+  margin-bottom: 5px;
   border: 1px solid @light-grey;
-  font-size: .8em;
+  font-size: @font-size-label-medium;
   text-align: center;
   background: linear-gradient(to bottom, transparent 80%, @lightest-grey);
+
+  a {
+    display: inline-block;
+    padding: 8px 7px;
+    transition: background-color .2s;
+    border-radius: 4px;
+  }
+  a:hover {
+    background-color: @icon-link-grey;
+  }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
@@ -106,28 +116,14 @@
 }
 
 /* Styles for check-in prompt, located below reading log dropper */
-.last-read-date {
-  margin-bottom: 5px;
-
-  .date-display {
-    display: flex;
-    justify-content: space-between;
-
-    .read-label {
-      font-weight: 700;
-    }
-  }
-}
-
 .check-in-prompt {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 5px;
-
   .prompt-options {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
+    white-space: nowrap;
+  }
+
+  .prompt-copy {
+    display: inline-block;
+    padding-top: 8px;
   }
 }
 

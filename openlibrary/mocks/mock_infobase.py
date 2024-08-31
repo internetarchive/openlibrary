@@ -411,7 +411,7 @@ class MockStore(dict):
         return [(doc["_key"], doc) for doc in self._query(**kw)]
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_site(request):
     """mock_site funcarg.
 

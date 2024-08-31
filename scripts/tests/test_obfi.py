@@ -29,7 +29,7 @@ def mock_urlopen(*args, **kwargs):
     return MockRead()
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_patched_hide(monkeypatch) -> hide.HashIP:
     """
     Patch hide's call to urllib so we can use the same key and not rely
@@ -43,7 +43,7 @@ def get_patched_hide(monkeypatch) -> hide.HashIP:
     return hash_ip
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_patched_mktable(monkeypatch, tmp_path) -> mktable.HashIP:
     """
     Patch mktable's call to url so we can use the same key and not rely

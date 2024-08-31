@@ -1,80 +1,82 @@
 $def with (form)
 
-$var title: $("Log In")
+$ i18n_strings = {
+    $ "loading_text": _("Loading...")
+    $ }
 
-<div id="contentHead">
-    <h1>$_("Log In")</h1>
-</div>
+$putctx("cssfile", "signup")
 
-<div id="contentBody">
-  $if not ctx.user:
-      $:render_template("account/ia_thirdparty_logins")
-      <div class="login-big-or">$_('OR')</div>
+$var title: $_("Log In")
 
-      <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
+$if "dev" in ctx.features:
+    <div class="flash-messages" id="autofill-dev-credentials">
+        <div class="info ol-signup-form__info-box">
+            <span>
+                $_("This is a development instance, the default credentials are automatically filled.")
+                <br>
+                $_("email:") openlibrary@example.com $_("password:") admin123
+            </span>
+        </div>
+    </div>
 
-  $if ctx.user:
-      <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
-      <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
+<div class="ol-page-signup">
+    <div id="contentHead" class="ol-signup-hero">
+        <h1 class="ol-signup-hero__title">$_("Log In")</h1>
+        <p class="ol-signup-hero__subtitle">$_("Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive")</p>
+    </div>
 
-  $else:
-      <form id="register" class="login olform" name="register" method="post">
-          $if "dev" in ctx.features:
-              <div class="flash-messages" id="autofill-dev-credentials">
-                  <div class="info">
-                      <span>
-                          $_("This is a development instance, the default credentials are automatically filled.")
-                          <br>
-                          $_("email:") openlibrary@example.com $_("password:") admin123
-                      </span>
-                  </div>
-              </div>
+    <div id="contentBody" class="ol-signup-form">
+    $if not ctx.user:
+        $:render_template("account/ia_thirdparty_logins")
+        <div class="ol-signup-form__big-or">$_('OR')</div>
+        <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
 
-        $if form.note:
-            <div class="note">$form.note</div>
+    $if ctx.user:
+        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+        <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 
-        <div class="formElement">
-            <div class="label">
-              <label for="username">$_("Email")</label>
-              <span class="smaller lighter"></span>
-              &mdash; <a class="forgot-email" href="/account/email/forgot-ia">$_("Forgot your Internet Archive email?")</a>
+    $else:
+        <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
+            $if form.note:
+                <div class="note">$form.note</div>
+
+            <div class="formElement ol-signup-form__input">
+                <div class="label">
+                <label for="username">$_("Email")</label>
+                <a class="ol-signup-form__note" href="/account/email/forgot-ia">$_("Forgot your Internet Archive email?")</a>
+                </div>
+
+                <div class="input">
+                <input type="email" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
+                </div>
             </div>
 
-            <div class="input">
-              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="Email" autocapitalize="off" autocorrect="off"/>
-              <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+            <div class="formElement ol-signup-form__input">
+                <div class="label">
+                    <label for="password">$_("Password")</label>
+                    <a class="ol-signup-form__note" href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
+                </div>
+                <div class="input">
+                    <input type="password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
+                    <a href="javascript:;" class="password-visibility-toggle">
+                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div class="formElement">
-            <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
-            <div class="input">
-                <input type="password" class="required" placeholder="Password" id="password" name="password" value="$form.password.value" />
-                <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
+            <div class="formElement ol-signup-form__checkbox">
+                    <input name="remember" type="checkbox" id="remember" />
+                    <label for="remember" class="small">$_("Remember me")</label>
             </div>
-        </div>
 
-        <div class="formElement">
-            <div class="input">
-                <input name="remember" type="checkbox" id="remember" />
-                <label for="remember" class="small">$_("Remember me")</label>
+            <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
+            <input type="hidden" id="debug_token" value="" name="debug_token"/>
+
+            <div class="formElement bottom">
+                <br/>
+                <button value="$_('Log In')" type="submit" class="cta-btn cta-btn--primary" name="login" title="$_('Log In')">$_("Log In")</button>
             </div>
-        </div>
-
-        <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
-        <input type="hidden" id="debug_token" value="" name="debug_token"/>
-
-        <div class="clearfix"></div>
-
-        <div class="formElement bottom">
-            <br/>
-            <button value="$_('Log In')" type="submit" class="login-submit larger" name="login" title="$_('Log In')">$_("Log In")</button>
-        </div>
-        <div class="formElement">
-            <div class="label"></div>
-            <div class="input smaller"><a href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
-            <br/><br/>
-            $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
-        </div>
-    </form>
+            <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
+        </form>
+    </div>
 </div>

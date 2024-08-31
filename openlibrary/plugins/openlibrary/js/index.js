@@ -175,11 +175,18 @@ jQuery(function () {
             .then(module => module.initTypeChanger(typeChanger));
     }
 
-    // conditionally load real time signup functionality based on class in the page
+    // conditionally load validation and submission js for registration form
     if (document.querySelector('form[name=signup]')) {
-        import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
-            .then(module => module.initRealTimeValidation());
+        import(/* webpackChunkName: "signup" */'./signup.js')
+            .then(module => module.initSignupForm());
     }
+
+    // conditionally load submission js for login form
+    if (document.querySelector('form[name=login]')) {
+        import(/* webpackChunkName: "signup" */'./signup.js')
+            .then(module => module.initLoginForm());
+    }
+
     // conditionally load clamping components
     const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
@@ -328,9 +335,10 @@ jQuery(function () {
             .then((module) => module.initOfflineBanner());
     }
 
-    if (document.getElementById('searchFacets')) {
+    const searchFacets = document.getElementById('searchFacets')
+    if (searchFacets) {
         import(/* webpackChunkName: "search" */ './search')
-            .then((module) => module.initSearchFacets());
+            .then((module) => module.initSearchFacets(searchFacets));
     }
 
     // Conditionally load Integrated Librarian Environment
@@ -451,7 +459,7 @@ jQuery(function () {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
-        import(/* webpackChunkName: "star-ratings" */'./handlers')
+        import(/* webpackChunkName: "star-ratings" */'./star-ratings')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
@@ -547,4 +555,12 @@ jQuery(function () {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
+
+    // Fulltext search box:
+    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    if (fulltextSearchSuggestion) {
+        import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
+            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
+    }
 });
+

@@ -60,8 +60,8 @@ class history(delegate.mode):
         history = json.loads(
             infogami_request('/versions', data={'query': json.dumps(query)})
         )
-        for i, row in enumerate(history):
-            history[i].pop("ip")
+        for _, row in enumerate(history):
+            row.pop("ip")
         return json.dumps(history)
 
 
@@ -71,7 +71,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:

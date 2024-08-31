@@ -19,7 +19,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentBody">
 
-    <form id="addAuthor" name="edit" method="post" action="" class="olform books validate">
+    <form id="addAuthor" name="edit" method="post" action="" class="olform books">
 
 
     <div class="formElement title">
@@ -32,7 +32,7 @@ $:macros.HiddenSaveButton("addAuthor")
                 </span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
+                <input type="text" name="author--name" id="name" value="$page.name" required/>
             </div>
         </div>
     </div>
@@ -97,7 +97,7 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div class="formElement">
                             <div class="label">
                                 <label for="alternate_names">$_("Does this author go by any other names?")</label>
-                                <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
+                                <span class="tip">$_("For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line.")</span>
                             </div>
                             <div class="input">
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>

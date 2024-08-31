@@ -3,8 +3,8 @@ $def with (component_times)
 <table>
   <thead>
     <tr>
-      <th>Component</th>
-      <th>Time</th>
+      <th>$_("Component")</th>
+      <th>$_("Time")</th>
       <th>%</th>
     </tr>
   </thead>
@@ -12,7 +12,9 @@ $def with (component_times)
     $for component in sorted(component_times.items(), key=lambda x: x[1]):
       <tr>
         <td>$component[0]</td>
+        $# detect-missing-i18n-skip-line
         <td>$("%.2f" % component[1])</td>
+        $# detect-missing-i18n-skip-line
         <td>$("%.2f" % (component[1] / component_times['TotalTime'] * 100.))</td>
       </tr>
   </tbody>
