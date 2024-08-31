@@ -99,7 +99,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
             edition_builder = import_edition_builder(init_dict=raw_record)
             validate_record(edition_builder.get_dict())
 
-            # Add the raw_record for later processing; it still must go througd load() independently.
+            # Add the raw_record for later processing; it still must go through load() independently.
             raw_import_records.append(raw_record)
         except (
             JSONDecodeError,
