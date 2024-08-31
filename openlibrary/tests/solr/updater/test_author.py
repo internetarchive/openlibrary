@@ -14,7 +14,7 @@ class MockResponse:
 
 
 class TestAuthorUpdater:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_workless_author(self, monkeypatch):
         class MockAsyncClient:
             async def __aenter__(self):

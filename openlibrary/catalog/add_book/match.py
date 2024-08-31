@@ -299,8 +299,7 @@ def compare_author_keywords(e1_authors, e2_authors):
                 score = percent * 80
                 if ordered:
                     score += 10
-                if score > max_score:
-                    max_score = score
+                max_score = max(score, max_score)
     if max_score:
         return ('authors', 'keyword match', max_score)
     else:
