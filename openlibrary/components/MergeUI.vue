@@ -99,6 +99,10 @@ export default {
                         throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
                     }
                     const r = await do_merge(master, dupes, editions_to_move, this.mrid);
+                    if (r.status === 403)
+                    {
+                        throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
+                    }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {
                         await update_merge_request(this.mrid, 'approve', this.comment)
