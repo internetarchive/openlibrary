@@ -94,3 +94,7 @@ class TestModels:
         assert user.get_safe_mode() == "no"
         user.save_preferences({'safe_mode': 'yes'})
         assert user.get_safe_mode() == 'yes'
+
+    def test_olid_link(self):
+        edition = models.Edition(web.ctx.site, '/books/OL42679M', web.Storage())
+        assert edition.key == '/books/OL42679M'

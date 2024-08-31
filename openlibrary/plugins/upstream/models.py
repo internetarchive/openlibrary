@@ -492,6 +492,11 @@ class Edition(models.Edition):
     def set_providers(self, providers):
         self.providers = providers
 
+    def olid_link(olid):
+        key = f"/books/{olid}"
+        edition_key = web.ctx.site.get(key)
+        return edition_key
+
 
 class Author(models.Author):
     def get_photos(self):
