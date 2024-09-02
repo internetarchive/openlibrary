@@ -1774,5 +1774,5 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
     }
     mock_site.save(existing_edition)
     result = find_match(marc_import, {'title': [existing_edition['key']]})
-    assert result is not '/books/OL113M'
+    assert result != '/books/OL113M'
     assert result is None
