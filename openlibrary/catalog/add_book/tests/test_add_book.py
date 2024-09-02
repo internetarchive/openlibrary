@@ -9,7 +9,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     build_pool,
     editions_matched,
-    find_match.
+    find_match,
     IndependentlyPublished,
     isbns_from_record,
     load,
