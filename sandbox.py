@@ -74,6 +74,34 @@ from typing import Literal
 #                                generate and compare/add the diffs together of the next function.)
 #                   - If the value's not in a list, then just check if it matches the old value. if it does, then delete it.
 #
+
+
+class HashableDict(dict):
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
+
+
+def convert_to_hashable(
+    doc: dict[any, any] | list[any]
+) -> HashableDict[any, any] | tuple[any]:
+    if type(doc) is doc:
+        hashable_dict = HashableDict()
+        for key in doc.keys():
+            if type(doc[key]) is dict:
+                hashable_dict[key] = convert_to_hashable(dict[key])
+            elif type(doc[key]) is list:
+                hashable_dict[key] = tuple(
+                    [convert_to_hashable(elem) for elem in doc[key]]
+                )
+            else:
+                hashable_dict[key] = doc[key]
+        return hashable_dict
+    elif type(doc) is list:
+        return tuple([convert_to_hashable(elem) for elem in doc])
+    else:
+        return doc
+
+
 @dataclass
 class Change:
     def __init__(
@@ -231,31 +259,31 @@ def find_key_by_value(find_value, index: dict):
 
 
 def diff_unordered_list(list1: list, list2: list, path: str = "") -> Patch:
-    item_id_to_count: dict = {}
-    item_id_to_item: dict = {}
-    item_id: int = 0
+    item_to_count: dict = {}
+    hash_to_original: dict = {}
     change_list = Patch([])
     for elem in list2:
-        if elem not in item_id_to_item.values():
-            item_id_to_item[item_id] = elem
-            item_id += 1
-        if item_id := find_key_by_value(elem, item_id_to_item):
-            item_id_to_count[item_id] = item_id_to_count.get(item_id, 0) + 1
+        elem_hash = convert_to_hashable(elem)
+        hash_to_original.set_default(elem_hash, elem)
+        hash_to_original[elem]
+        item_to_count.setdefault(elem_hash, 0)
+        item_to_count[elem_hash] += 1
     for elem in list1:
-        if elem not in item_id_to_item.values():
-            item_id_to_item[item_id] = elem
-            item_id += 1
-        if item_id := find_key_by_value(elem, item_id_to_item):
-            item_id_to_count[item_id] = item_id_to_count.get(item_id, 0) - 1
+        elem_hash = convert_to_hashable(elem)
+        hash_to_original.set_default(elem_hash, elem)
+        item_to_count.setdefault(elem_hash, 0)
+        item_to_count[elem_hash] -= 1
 
-    for key, value in item_id_to_count.items():
+    for key, value in item_to_count.items():
         if value > 0:
             for i in range(value):
-                change_list.append(Add(f'{path}', item_id_to_item[key], list_type="ul"))
+                change_list.append(
+                    Add(f'{path}', hash_to_original[key], list_type="ul")
+                )
         elif value < 0:
             for i in range(abs(value)):
                 change_list.append(
-                    Delete(f'{path}', item_id_to_item[key], list_type="ul")
+                    Delete(f'{path}', hash_to_original[key], list_type="ul")
                 )
     return change_list
 
@@ -288,15 +316,36 @@ def diff_ordered_list(input1: list, input2: list, path: str = "") -> Patch:
 # So my current issue has to do with figuring out a way to efficiently diff sections of a list.
 # step 1, match if the same, adding the index object to the shared_values array.
 # step 2, if not the same, increment the right until they are the same, and continue. If right goes over the
-# step 3: To handle duplicates;  do I need to run  this multiple times, for each possible configuration? That feels like the best way, but also like it could get
-# expensive to manage.
+# step 3: To handle duplicates;  do I need to run  this multiple times, for each possible configuration? That feels like
+# the best way, but also like it could get expensive to manage.
 # Alright, let's think of it this way.   There's a, per repetition of a^x b^y c^z, etc, it'll be a total of x*y*z combinations.  How often  will this occur?
 # Probably not often. However, this will lead to issues in situations of......  Alright, let's consider the possibility of
+
+
+# [TODO: Implement that idea of running this function once for each permutation of duplicates being what it skips to. Then, after doing this, take the shortest
+# Patch path. Additional note: Consider improving performance of this by, rather than having to iterate through the list to find the next occcurence, save the
+# ids of the values in a way thtat will let you automatically O(1) access the next one. ]
 def find_shared_sequences(input1: list, input2: list):
     right_pointer = 0
     left_pointer = 0
-    shared_doc1_indices = []
-    shared_doc2_indices = []
+    shared_doc1_indices: list[int] = []
+    shared_doc2_indices: list[int] = []
+    # Alright, I now have the ability to check indices for specific elements in O(1) time. That's helpful.
+    # Now what I need is to generate different ways of pairing up the lists, so that's going to be...
+    # Lists of lists? Yeah, because each time I do, I copy and extend with the new value?
+    # And then I can quickly check each index to see if they're in order. If not, it can get removed.
+    # How to calculate different pairs... It's easy if the element appears once in either list. [1], [1,2,3] becomes [(1,1), (1,2), (1,3)]
+    # Now, it becomes slightly harder if both pairs have two or more occurrences. [1,2], [1,2,3] becomes [[(1,1), (2,2)],
+    # [(1,1), (2,3)], [(1,2), (2,3)], [(2,1)], [(1,3)]]
+    # Invalid are [(1,2), (2,1)]... No, I don't need full iteration, because I already know I want to match where possible. So, the 3 options become:
+    # [(1,1),(2,2)], [(1,1), (2,3)], [(1,2), (2,3)], which is...choose 2 from 3, alright.  This makes sense, combinations don't care about order.
+    # Now, how to generate this lists of tuples in terms of a function....
+    # The problem is that I cannot do in blindly based on the matching indexes for a singular element. I will need partial matches, because the ways in which other sequences
+    # work will be interfered with by this proccess.
+
+    # Belay this: I don't yet know if it's necessary, let's wait on that.
+
+    # Building this index takes care of counting duplicates, which is needed in order to properly get the most efficient version of differences.
     while left_pointer < len(input1):
         if (
             right_pointer < len(input2)
@@ -316,6 +365,15 @@ def find_shared_sequences(input1: list, input2: list):
                 left_pointer += 1
                 right_pointer = pointer_buffer
     return (shared_doc1_indices, shared_doc2_indices)
+
+
+def generate_possible_index_matches(
+    index1: list[int], index2: list[int]
+) -> list[list[tuple[int, int]]]:
+    if len(index1) == len(index2):
+        return list(index1, index2)
+    min_list = deepcopy(index1) if len(index1) <= len(index2) else deepcopy(index2)
+    max_list = index2 if min_list == index1 else index1
 
 
 def diff_dicts(
@@ -387,6 +445,14 @@ def diff_dicts(
 
 
 # [start here]
+
+
+# Permutations to test:
+#    1: Insertion, Deletion
+#    2: As normal, into an ordered list, unordered list.
+#    3: Forced, Non-Forced
+#    4: Successful, Failing
+#    5: iinversion
 def test_diff_ordered_list():
 
     assert diff_ordered_list([1, 2, 3, 4], [1, 2, 4, 5]) == Patch(
