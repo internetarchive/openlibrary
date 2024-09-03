@@ -119,8 +119,6 @@ CREATE TABLE bestbooks (
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
     UNIQUE (submitter, book_id),
     UNIQUE (submitter, topic)
-    UNIQUE (submitter, book_id),
-    UNIQUE (submitter, topic)
 );
 
 CREATE INDEX bestbooks_submitter ON bestbooks (submitter);
