@@ -30,7 +30,7 @@ class Client:
         self.cache.pop(key, None)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_memcache(request, monkeypatch):
     """This patches all the existing memcache connections to use mock memcache instance."""
     m = monkeypatch

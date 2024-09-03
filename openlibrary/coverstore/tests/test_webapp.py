@@ -28,7 +28,7 @@ def setup_db():
     db.insert('category', name='b')
 
 
-@pytest.fixture()
+@pytest.fixture
 def image_dir(tmpdir):
     tmpdir.mkdir('localdisk')
     tmpdir.mkdir('items')

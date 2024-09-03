@@ -10,7 +10,7 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.core.models import Author
 
 
-@pytest.fixture()
+@pytest.fixture
 def new_import(monkeypatch):
     monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
 

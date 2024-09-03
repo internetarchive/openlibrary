@@ -343,6 +343,11 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_title': 'alternative_title',
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
+                # Duplicate author fields
+                'author_name': 'author_name',
+                'author_key': 'author_key',
+                'author_alternative_name': 'author_alternative_name',
+                'author_facet': 'author_facet',
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
@@ -467,7 +472,7 @@ class WorkSearchScheme(SearchScheme):
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text title^4',
+                qf='text alternative_title^4 author_name^4',
                 # Because we include the edition query inside the v="..." part,
                 # we need to escape quotes. Also note that if there is no
                 # edition query (because no fields in the user's work query apply),
@@ -510,7 +515,16 @@ class WorkSearchScheme(SearchScheme):
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
             }
             if not edition_fields:
-                edition_fields = solr_fields - {'editions:[subquery]'}
+                edition_fields = solr_fields - {
+                    # Default to same fields as for the work...
+                    'editions:[subquery]',
+                    # but exclude the author fields since they're primarily work data;
+                    # they only exist on editions to improve search matches.
+                    'author_name',
+                    'author_key',
+                    'author_alternative_name',
+                    'author_facet',
+                }
             # The elements in _this_ edition query will match but not affect
             # whether the work appears in search results
             new_params.append(

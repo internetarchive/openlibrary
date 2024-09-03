@@ -1,13 +1,14 @@
-$def with(work)
+$def with(work, mobile=False)
 
 $ rating_stats = work and work.get_rating_stats() or {}
 $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 $ avg = rating_stats.get('avg_rating')
 $ ratings_count = rating_stats.get('num_ratings', 0)
 $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0 else ''
+$ id = '--mobile' if mobile else ''
 
 <ul class="readers-stats  $review_count_class" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
-  <li class="avg-ratings" onclick="location.href='#starRatingSection';" data-ol-link-track="StarRating|StatsComponentClick">
+  <li class="avg-ratings" onclick="location.href='#starRatingSection$id';" data-ol-link-track="StarRating|StatsComponentClick">
     $if avg:
       $ stats_decimal = (float(avg))-(int(avg))
       $:('<span class="readers-stats__star">★</span>' * int(avg))

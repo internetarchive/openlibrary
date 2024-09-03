@@ -149,6 +149,7 @@ export class BookMatch {
 }
 
 
+const BASE_LIST_URL = 'https://openlibrary.org/account/lists/add?seeds='
 
 export class BulkSearchState{
     constructor(){
@@ -160,8 +161,6 @@ export class BulkSearchState{
         this.matchOptions =  new MatchOptions()
         /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
-        /** @type {string} */
-        this.listUrl = ''
         /** @type {AbstractExtractor[]} */
         this.extractors =  [
             new RegexExtractor('e.g. "The Wizard of Oz by L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
@@ -178,6 +177,12 @@ export class BulkSearchState{
     /**@type {AbstractExtractor} */
     get activeExtractor() {
         return this.extractors[this._activeExtractorIndex]
+    }
+    /**@type {String} */
+    get listUrl() {
+        return BASE_LIST_URL + this.matchedBooks
+            .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
+            .filter(key => key);
     }
 }
 
