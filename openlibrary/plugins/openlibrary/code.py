@@ -986,6 +986,16 @@ def get_cover_id(key):
         return None
 
 
+@public
+def get_tocky_librarian_key():
+    return infogami.config.get('tocky_librarian_key')
+
+
+@public
+def get_tocky_url():
+    return infogami.config.get('tocky_url')
+
+
 local_ip = None
 
 
