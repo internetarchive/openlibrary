@@ -116,7 +116,7 @@ CREATE TABLE bestbooks (
     topic text not null,
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     UNIQUE (submitter, book_id),
     UNIQUE (submitter, topic)
 );
