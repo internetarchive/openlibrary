@@ -54,6 +54,7 @@ class addtag(delegate.page):
             name="",
             tag_type="",
             tag_description="",
+            body="",
             fkey=None,
         )
 
@@ -102,8 +103,8 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        tag = Tag.create(i.name, i.tag_description, i.tag_type, fkey=i.fkey)
-        if i.fkey:
+        tag = Tag.create(i.name, i.tag_description, i.tag_type, fkey=i.fkey, body=i.body)
+        if i.fkey and not i.body:
             subject = get_subject(
                 i.fkey,
                 details=True,
