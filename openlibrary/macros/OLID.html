@@ -1,11 +1,11 @@
-$def with (q="#")
+$def with (q="")
 
 $ edition = query_param('edition', q)
 $ result = edition.olid_link(q)
 $ olid = edition.key.split("/")[-1]
 
 $if(olid == q):
-    <a href="edition.key">edition.title</a>
+    <a href="$edition.key">$edition.title</a>
 $else:
-    <a href="result">olid</a>
+    <a href="$result">$olid</a>
 
