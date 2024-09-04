@@ -167,7 +167,7 @@ export class TableExtractor extends AbstractExtractor{
         return tableData.rows.map(
             row => new BookMatch(
                 new ExtractedBook(
-                    row[this.authorColumn] || '', row[this.titleColumn] || ''),
+                    row[this.titleColumn] || '', row[this.authorColumn] || ''),
                 {})
         )
     }
