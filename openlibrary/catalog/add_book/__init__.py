@@ -536,20 +536,14 @@ def find_enriched_match(rec: dict, edition_pool: dict) -> str | None:
             if edition_key in seen:
                 continue
             thing = None
-            found = True
             while not thing or is_redirect(thing):
                 seen.add(edition_key)
                 thing = web.ctx.site.get(edition_key)
                 if thing is None:
-                    found = False
                     break
                 if is_redirect(thing):
                     edition_key = thing['location']
-                    # FIXME: this updates edition_key, but leaves thing as redirect,
-                    # which will raise an exception in editions_match()
-            if not found:
-                continue
-            if editions_match(rec, thing):
+            if thing and editions_match(rec, thing):
                 return edition_key
     return None
 
@@ -788,10 +782,7 @@ def validate_record(rec: dict) -> None:
 
 def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
-    return (
-        find_quick_match(rec)
-        or find_enriched_match(rec, edition_pool)
-    )
+    return find_quick_match(rec) or find_enriched_match(rec, edition_pool)
 
 
 def update_edition_with_rec_data(
@@ -929,7 +920,7 @@ def should_overwrite_promise_item(
     return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
-def load(rec: dict, account_key=None, from_marc_record: bool = False):
+def load(rec: dict, account_key=None, from_marc_record: bool = False) -> dict:
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
