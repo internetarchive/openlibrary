@@ -1,6 +1,6 @@
 $def with (work, edition, page_url, mobile=False)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None, alt=""):
   $ href = 'javascript:;'
   $if not ctx.user and login_redirect:
     $# Change classname to avoid adding click listeners and redirect to login page:
