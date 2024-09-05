@@ -599,6 +599,7 @@ def find_enriched_match(rec: dict, edition_pool: dict) -> str | None:
                 continue
             if editions_match(rec, thing):
                 return edition_key
+    return None
 
 
 def load_data(
