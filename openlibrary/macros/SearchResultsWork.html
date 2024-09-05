@@ -91,25 +91,23 @@ $code:
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
         </span>
         <span class="resultPublisher">
-          $if doc.get('first_publish_year'):
-            <span class="publishedYear">
-              $_('First published in %(year)s', year=doc.first_publish_year)
-            </span>
           $if doc.get('edition_count'):
-            <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
-            $if doc.get('languages'):
-              <span class="languages">
-                $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
-              </span>
             $if doc.get('ia'):
-              &mdash; $_('%s previewable', len(doc.get('ia')))
               $if len(doc.get('ia')) > 1:
                 $ blur_preview = "preview-covers--blur" if blur else ""
-                <span class="preview-covers $blur_preview">
-                  $for x, i in enumerate(doc.get('ia')[1:10]):
+                <br><span class="preview-covers $blur_preview">
+                  $for x, i in enumerate(doc.get('ia')[1:5]):
                     <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                      <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+                     <img class="preview-covers-img-$x" width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
                     </a>
+                </span>
+                <span class="publishingInformation">
+                  $if doc.get('first_publish_year'):
+                    $_('First published in %(year)s', year=doc.first_publish_year)<br>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count),</a>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s ebook', '%(count)s ebooks', len(doc.get('ia')), count=len(doc.get('ia'))),</a>
+                  $if doc.get('languages'):
+                    in <a href="$work_edition_all_url#editions-list">$:ungettext('%(count)d language', '%(count)d languages', len(doc.languages), count=len(doc.languages))</a>
                 </span>
         </span>
         $if show_librarian_extras:
