@@ -27,7 +27,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
     ['/search'](work) {
         const author_name = work.author_name ? work.author_name[0] : '';
         return `
-            <li>
+            <li tabindex=0>
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
@@ -82,6 +82,51 @@ export class SearchBar {
         this.facet.sync(this.handleFacetValueChange.bind(this));
         this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
+
+        // Shift + Tabbing out of the search facet to clear results list
+        this.$facetSelect.on('keydown', (e) => {
+            if (e.key === 'Tab' && e.shiftKey) {
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$input.on('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                this.$results.children().last().trigger('focus');
+                return false;
+            } else if (e.key === 'ArrowDown') {
+                this.$results.children().first().trigger('focus');
+                return false;
+            } else if (e.key === 'Escape') {
+                this.$input.trigger('blur');
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$results.on('keydown', (e) => {
+            if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+                if (!e.target.previousElementSibling) {
+                    this.$input.trigger('focus');
+                    return false;
+                } else {
+                    $(e.target.previousElementSibling).trigger('focus');
+                    return false;
+                }
+            } else if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+                if (!e.target.nextElementSibling) {
+                    this.$input.trigger('focus');
+                    return false;
+                } else {
+                    $(e.target.nextElementSibling).trigger('focus');
+                    return false;
+                }
+            } else if (e.key === 'Enter') {
+                e.target.firstElementChild.click();
+            } else if (e.key === 'Escape') {
+                this.$input.trigger('blur');
+                this.clearAutocompletionResults();
+            }
+        })
 
         this.initAutocompletionLogic();
     }
