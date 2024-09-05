@@ -1,6 +1,6 @@
 $def with (work, edition, page_url, mobile=False)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None, alt=""):
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
   $ href = 'javascript:;'
   $if not ctx.user and login_redirect:
     $# Change classname to avoid adding click listeners and redirect to login page:
@@ -25,7 +25,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if ctx.get('share_links'):
-    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon", alt="")
+    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
 </div>
