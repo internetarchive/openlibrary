@@ -7308,6 +7308,10 @@ msgstr[1] ""
 msgid "Related Books"
 msgstr ""
 
+#: EditionNavBar.html
+msgid "Go to next section"
+msgstr ""
+
 #: Follow.html
 msgid "UnfollowFollow"
 msgstr ""
