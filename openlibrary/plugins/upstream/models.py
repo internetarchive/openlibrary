@@ -103,6 +103,15 @@ class Edition(models.Edition):
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
 
+    def get_worldcat_url(self):
+        url = 'https://search.worldcat.org/'
+        if self.get('oclc_numbers'):
+            return f'{url}/title/{self.oclc_numbers[0]}'
+        elif self.get_isbn13():
+            # Handles both isbn13 & 10
+            return f'{url}/isbn/{self.get_isbn13()}'
+        return f'{url}/search?q={self.title}'
+
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
