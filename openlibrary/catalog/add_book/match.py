@@ -43,18 +43,15 @@ def editions_match(rec: dict, existing) -> bool:
     ):
         if existing.get(f):
             rec2[f] = existing[f]
-    # Transfer authors as Dicts str: str
     rec2['authors'] = []
+    # Transfer authors as Dicts str: str
     for a in existing.get_authors():
-        while a.type.key == '/type/redirect':
-            a = web.ctx.site.get(a.location)
-        if a.type.key == '/type/author':
-            author = {'name': a['name']}
-            if birth := a.get('birth_date'):
-                author['birth_date'] = birth
-            if death := a.get('death_date'):
-                author['death_date'] = death
-            rec2['authors'].append(author)
+        author = {'name': a['name']}
+        if birth := a.get('birth_date'):
+            author['birth_date'] = birth
+        if death := a.get('death_date'):
+            author['death_date'] = death
+        rec2['authors'].append(author)
     return threshold_match(rec, rec2, THRESHOLD)
 
 

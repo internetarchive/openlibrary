@@ -972,11 +972,9 @@ def test_title_with_trailing_period_is_stripped() -> None:
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
     This tests the case where there is an edition_pool, but `find_quick_match()`
-    finds no matches, so this should return a
-    match from `find_enriched_match()`.
+    finds no matches. This should return a match from `find_threshold_match()`.
 
-    This also indirectly tests `merge_marc.editions_match()` (even though it's
-    not a MARC record.
+    This also indirectly tests `add_book.match.editions_match()`
     """
     author = {
         'type': {'key': '/type/author'},

@@ -523,7 +523,7 @@ def editions_matched(rec, key, value=None):
     return ekeys
 
 
-def find_enriched_match(rec: dict, edition_pool: dict) -> str | None:
+def find_threshold_match(rec: dict, edition_pool: dict) -> str | None:
     """
     Find the best match for rec in edition_pool and return its key.
     :param dict rec: the new edition we are trying to match.
@@ -782,7 +782,7 @@ def validate_record(rec: dict) -> None:
 
 def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
-    return find_quick_match(rec) or find_enriched_match(rec, edition_pool)
+    return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
 
 
 def update_edition_with_rec_data(
