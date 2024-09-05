@@ -13,7 +13,7 @@ ISBN_MATCH = 85
 THRESHOLD = 875
 
 
-def editions_match(rec: dict, existing):
+def editions_match(rec: dict, existing) -> bool:
     """
     Converts the existing edition into a comparable dict and performs a
     thresholded comparison to decide whether they are the same.

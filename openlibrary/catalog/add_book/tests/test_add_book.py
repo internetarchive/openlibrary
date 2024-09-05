@@ -1048,9 +1048,12 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
     }
 
     existing_edition = {
+        'authors': [{'key': '/authors/OL20A'}],  # TODO: only matches if author is on the edition!
         'key': '/books/OL16M',
         'title': 'Covers',
         'publishers': ['Black Spot'],
+        #'publish_date': '2011',
+        'publish_date': 'Jan 09, 2011',  # TODO: only matches if the date is exact. 2011 != Jan 09, 2011
         'type': {'key': '/type/edition'},
         'source_records': ['non-marc:test'],
     }
@@ -1753,7 +1756,6 @@ class TestNormalizeImportRecord:
         assert rec == expected
 
 
-@pytest.mark.xfail(reason="Issue #9808")
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
     # An existing light title + ISBN only record
     existing_edition = {

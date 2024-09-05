@@ -523,54 +523,6 @@ def editions_matched(rec, key, value=None):
     return ekeys
 
 
-def find_exact_match(rec: dict, edition_pool: dict) -> str | None:
-    """
-    Returns an edition key match for rec from edition_pool
-    Only returns a key if all values in the existing record
-    are present and match the values in rec.
-
-    :param dict rec: Edition import record
-    :param dict edition_pool: example {'title': ['/books/OL16M', '/books/OL17M']}
-    :return: edition key
-    """
-    seen = set()
-    for editions in edition_pool.values():
-        for ekey in editions:  # ekey is an edition key, e.g. '/books/OL17M'
-            if ekey in seen:
-                continue
-            seen.add(ekey)
-            existing = web.ctx.site.get(ekey)
-
-            match = True
-            for k, v in rec.items():
-                if k == 'source_records':
-                    continue
-                existing_value = existing.get(k)
-                if not existing_value:
-                    continue
-                if k == 'languages':
-                    existing_value = [
-                        str(re_lang.match(lang.key).group(1)) for lang in existing_value
-                    ]
-                if k == 'authors':
-                    existing_value = [dict(a) for a in existing_value]
-                    for a in existing_value:
-                        del a['type']
-                        del a['key']
-                    for a in v:
-                        if 'entity_type' in a:
-                            del a['entity_type']
-                        if 'db_name' in a:
-                            del a['db_name']
-
-                if existing_value != v:
-                    match = False
-                    break
-            if match:
-                return ekey
-    return None
-
-
 def find_enriched_match(rec: dict, edition_pool: dict) -> str | None:
     """
     Find the best match for rec in edition_pool and return its key.
@@ -838,7 +790,6 @@ def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     return (
         find_quick_match(rec)
-        or find_exact_match(rec, edition_pool)
         or find_enriched_match(rec, edition_pool)
     )
 
