@@ -28,7 +28,6 @@ def editions_match(rec: dict, existing) -> bool:
     thing_type = existing.type.key
     if thing_type == '/type/delete':
         return False
-    # FIXME: will fail if existing is a redirect.
     assert thing_type == '/type/edition'
     rec2 = {}
     for f in (
@@ -45,9 +44,8 @@ def editions_match(rec: dict, existing) -> bool:
         if existing.get(f):
             rec2[f] = existing[f]
     # Transfer authors as Dicts str: str
-    if existing.authors:
-        rec2['authors'] = []
-    for a in existing.authors:
+    rec2['authors'] = []
+    for a in existing.get_authors():
         while a.type.key == '/type/redirect':
             a = web.ctx.site.get(a.location)
         if a.type.key == '/type/author':

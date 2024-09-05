@@ -972,21 +972,19 @@ def test_title_with_trailing_period_is_stripped() -> None:
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
     This tests the case where there is an edition_pool, but `find_quick_match()`
-    and `find_exact_match()` find no matches, so this should return a
+    finds no matches, so this should return a
     match from `find_enriched_match()`.
 
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
     """
-    # Unfortunately this Work level author is totally irrelevant to the matching
-    # The code apparently only checks for authors on Editions, not Works
     author = {
         'type': {'key': '/type/author'},
-        'name': 'IRRELEVANT WORK AUTHOR',
+        'name': 'John Smith',
         'key': '/authors/OL20A',
     }
     existing_work = {
-        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'authors': [{'author': {'key':'/authors/OL20A'}, 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL16W',
         'title': 'Finding Existing',
         'subtitle': 'sub',
@@ -1000,6 +998,7 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
         'publishers': ['Black Spot'],
         'type': {'key': '/type/edition'},
         'source_records': ['non-marc:test'],
+        'works': [{'key': '/works/OL16W'}],
     }
 
     existing_edition_2 = {
@@ -1011,6 +1010,7 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
         'type': {'key': '/type/edition'},
         'publish_country': 'usa',
         'publish_date': 'Jan 09, 2011',
+        'works': [{'key': '/works/OL16W'}],
     }
     mock_site.save(author)
     mock_site.save(existing_work)
@@ -1041,15 +1041,13 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
     }
 
     existing_work = {
-        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'authors': [{'author': {'key':'/authors/OL20A'}, 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL16W',
         'title': 'Covers',
         'type': {'key': '/type/work'},
     }
 
     existing_edition = {
-        # TODO: only matches if author is on the edition!
-        'authors': [{'key': '/authors/OL20A'}],
         'key': '/books/OL16M',
         'title': 'Covers',
         'publishers': ['Black Spot'],
@@ -1058,6 +1056,7 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
         'publish_date': 'Jan 09, 2011',
         'type': {'key': '/type/edition'},
         'source_records': ['non-marc:test'],
+        'works': [{'key': '/works/OL16W'}],
     }
 
     mock_site.save(author)
