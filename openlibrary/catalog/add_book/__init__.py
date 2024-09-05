@@ -467,13 +467,12 @@ def build_pool(rec):
     return {k: list(v) for k, v in pool.items() if v}
 
 
-def find_quick_match(rec):
+def find_quick_match(rec: dict) -> str | None:
     """
     Attempts to quickly find an existing item match using bibliographic keys.
 
     :param dict rec: Edition record
-    :rtype: str|bool
-    :return: First key matched of format "/books/OL..M" or False if no match found.
+    :return: First key matched of format "/books/OL..M" or None if no match found.
     """
 
     if 'openlibrary' in rec:
@@ -501,7 +500,7 @@ def find_quick_match(rec):
                 continue
             if ekeys := editions_matched(rec, f, rec[f][0]):
                 return ekeys[0]
-    return False
+    return None
 
 
 def editions_matched(rec, key, value=None):
@@ -524,19 +523,19 @@ def editions_matched(rec, key, value=None):
     return ekeys
 
 
-def find_exact_match(rec, edition_pool):
+def find_exact_match(rec: dict, edition_pool: dict) -> str | None:
     """
     Returns an edition key match for rec from edition_pool
-    Only returns a key if all values match?
+    Only returns a key if all values in the existing record
+    are present and match the values in rec.
 
     :param dict rec: Edition import record
-    :param dict edition_pool:
-    :rtype: str|bool
+    :param dict edition_pool: example {'title': ['/books/OL16M', '/books/OL17M']}
     :return: edition key
     """
     seen = set()
     for editions in edition_pool.values():
-        for ekey in editions:
+        for ekey in editions:  # ekey is an edition key, e.g. '/books/OL17M'
             if ekey in seen:
                 continue
             seen.add(ekey)
@@ -569,15 +568,14 @@ def find_exact_match(rec, edition_pool):
                     break
             if match:
                 return ekey
-    return False
+    return None
 
 
-def find_enriched_match(rec, edition_pool):
+def find_enriched_match(rec: dict, edition_pool: dict) -> str | None:
     """
     Find the best match for rec in edition_pool and return its key.
     :param dict rec: the new edition we are trying to match.
     :param list edition_pool: list of possible edition key matches, output of build_pool(import record)
-    :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
     seen = set()
@@ -835,7 +833,7 @@ def validate_record(rec: dict) -> None:
         raise SourceNeedsISBN
 
 
-def find_match(rec, edition_pool) -> str | None:
+def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     match = find_quick_match(rec)
     if not match:
