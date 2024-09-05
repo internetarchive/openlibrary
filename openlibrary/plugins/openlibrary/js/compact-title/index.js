@@ -6,12 +6,6 @@
 import { updateSelectedNavItem } from '../edition-nav-bar';
 
 /**
- * True if compact title component is visible on screen.
- * @type {boolean}
- */
-let isTitleVisible = false
-
-/**
  * Reference to the book page's main work title.
  * @type {HTMLElement}
  */
@@ -54,9 +48,8 @@ function onScroll(navbar, title) {
     const compactTitleBounds = title.getBoundingClientRect()
     const navbarBounds = navbar.getBoundingClientRect()
     const mainTitleBounds = mainTitleElem.getBoundingClientRect()
-
     if (mainTitleBounds.bottom < navbarBounds.bottom) {  // The main title is off-screen
-        if (!isTitleVisible && !navbar.classList.contains('sticky--lowest')) {  // Compact title not displayed
+        if (!navbar.classList.contains('sticky--lowest')) {  // Compact title not displayed
             // Display compact title
             title.classList.remove('hidden')
             // Animate navbar
@@ -64,7 +57,6 @@ function onScroll(navbar, title) {
                 .one('animationend', () => {
                     $(navbar).addClass('sticky--lowest')
                     $(navbar).removeClass('nav-bar-wrapper--slidedown')
-                    isTitleVisible = true
                     // Ensure correct nav item is selected after compact title slides in:
                     updateSelectedNavItem()
                 })
@@ -76,9 +68,8 @@ function onScroll(navbar, title) {
             }
         }
     } else {  // At least some of the main title is below the navbar
-        if (isTitleVisible) {
+        if (!title.classList.contains('hidden')) {
             title.classList.add('hidden')
-            isTitleVisible = false
             $(navbar).addClass('nav-bar-wrapper--slideup')
                 .one('animationend', () => {
                     $(navbar).removeClass('sticky--lowest')
