@@ -199,14 +199,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'locate':
-            redirect_url = 'https://search.worldcat.org/'
-            if edition.get('oclc_numbers', None):
-                redirect_url += f'title/{edition.oclc_numbers[0]}'
-            elif edition.get('isbn_13', edition.get('isbn_10', None)):
-                redirect_url += f'isbn/{edition.isbn_13[0] or edition.isbn_10[0]}'
-            else:
-                redirect_url += f'search?q={edition.title}'
-            raise web.seeother(redirect_url)
+            raise web.seeother(edition.get_worldcat_url())
 
         elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
             borrow_access = user_can_borrow_edition(user, edition)
