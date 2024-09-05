@@ -132,6 +132,9 @@ class borrow(delegate.page):
 
         from openlibrary.book_providers import get_book_provider
 
+        if action == 'locate':
+            raise web.seeother(edition.get_worldcat_url())
+
         # Direct to the first web book if at least one is available.
         if (
             action in ["borrow", "read"]
@@ -198,8 +201,6 @@ class borrow(delegate.page):
             lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
-        elif action == 'locate':
-            raise web.seeother(edition.get_worldcat_url())
 
         elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
             borrow_access = user_can_borrow_edition(user, edition)
