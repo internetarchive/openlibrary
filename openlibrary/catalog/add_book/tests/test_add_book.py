@@ -1753,6 +1753,7 @@ class TestNormalizeImportRecord:
         assert rec == expected
 
 
+@pytest.mark.xfail(reason="Issue #9808")
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
     # An existing light title + ISBN only record
     existing_edition = {

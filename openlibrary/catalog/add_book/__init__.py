@@ -835,14 +835,9 @@ def validate_record(rec: dict) -> None:
 
 def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
-    match = find_quick_match(rec)
-    if not match:
-        match = find_exact_match(rec, edition_pool)
-
-    if not match:
-        match = find_enriched_match(rec, edition_pool)
-
-    return match
+    return find_quick_match(rec) or \
+           find_exact_match(rec, edition_pool) or \
+           find_enriched_match(rec, edition_pool)
 
 
 def update_edition_with_rec_data(
