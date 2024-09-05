@@ -375,7 +375,13 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
         return name
 
     def publish_place(s: str) -> str:
-        place = s.strip(' /.,;:[')
+        place = s.strip(' /.,;:')
+        # remove encompassing []
+        if (place[0], place[-1]) == ('[', ']'):
+            place = place[1:-1]
+        # clear unbalanced []
+        if place.count('[') != place.count(']'):
+            place = place.strip('[]')
         if place.lower().startswith('s.l'):  # Sine loco
             place = '[s.l.]'
         return place

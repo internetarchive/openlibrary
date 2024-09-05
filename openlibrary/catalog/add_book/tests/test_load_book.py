@@ -35,6 +35,10 @@ unchanged_names = [
     {'name': 'Smith, John III, King of Coats, and Bottles'},
     {'name': 'Harper, John Murdoch, 1845-'},
     {'entity_type': 'org', 'name': 'Organisation, Place'},
+    {
+        'entity_type': 'org',
+        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin',
+    },
 ]
 
 

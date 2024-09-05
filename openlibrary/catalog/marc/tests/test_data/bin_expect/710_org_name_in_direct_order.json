@@ -1,0 +1,41 @@
+{
+  "publish_date": "2004",
+  "publish_country": "cc",
+  "languages": [
+    "chi"
+  ],
+  "title": "中国诗歌研究动态",
+  "other_titles": [
+    "Zhongguo shi ge yan jiu dong tai",
+    "Newsletter of the Chinese poetry studies"
+  ],
+  "subtitle": "Newsletter of the Chinese poetry studies",
+  "lccn": [
+    "2007255728"
+  ],
+  "oclc_numbers": [
+    "71247531"
+  ],
+  "lc_classifications": [
+    "PL2307 .Z4754"
+  ],
+  "notes": "Latest issue consulted: di 3 ji, published in 2007.",
+  "authors": [
+    {
+      "entity_type": "org",
+      "name": "Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin"
+    }
+  ],
+  "subjects": [
+    "Chinese poetry",
+    "History and criticism",
+    "Periodicals"
+  ],
+  "publishers": [
+    "Xue yuan chu ban she"
+  ],
+  "publish_places": [
+    "Beijing"
+  ],
+  "pagination": "v."
+}
