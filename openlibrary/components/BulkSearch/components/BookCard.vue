@@ -75,6 +75,7 @@ export default {
   border-radius: 4px;
   display: flex;
   overflow: hidden;
+  font-family: Inter, "Regular";
   color: inherit;
   text-decoration: inherit;
   position: relative;
