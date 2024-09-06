@@ -120,10 +120,7 @@ class Biblio:
     def __init__(self, data):
         self.primary_format = data[6]
         self.product_type = data[121]
-        assert (
-            self.primary_format not in self.NONBOOK
-            and 'OTH' not in self.product_type
-        ), f"{self.primary_format}/{self.product_type} is NONBOOK"
+        assert not self.isnonbook(), f"{self.primary_format}/{self.product_type} is NONBOOK"
 
         self.isbn = data[124]
         self.source_id = f'bwb:{self.isbn}'
@@ -187,6 +184,9 @@ class Biblio:
         # form list of author dicts
         authors = [make_author(*c) for c in contributors if c[0]]
         return authors
+
+    def isnonbook(self):
+        return self.primary_format in self.NONBOOK or 'OTH' in self.product_type
 
     def json(self):
         return {
