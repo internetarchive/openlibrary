@@ -54,7 +54,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from contextlib import suppress
 from typing import Literal
-
+import pytest
 
 # When should an Add be inverted?  And what does it mean, what's the desired behavior?
 # The desired behavior is split into three sections.
@@ -461,8 +461,10 @@ def diff_dicts(
     return change_list
 
 
-def undo_arbitrary_version_changes():
-    pass
+def undo_arbitrary_version_changes(prior_version:dict, version_to_undo:dict, latest_version:dict):
+    changeset_to_undo = diff_dicts(prior_version, version_to_undo).invert()
+    return changeset_to_undo.apply(latest_version)
+
 
 
 # [start here]
@@ -477,66 +479,52 @@ def undo_arbitrary_version_changes():
 
 
 # TODO: Look into Pytest shorthand for applying tests to different values in an array, rather than manually entering each one. ([inputs], failure message) for example, as each cell.
-def test_diff_ordered_list():
 
-    assert diff_ordered_list([1, 2, 3, 4], [1, 2, 4, 5]) == Patch(
-        [Delete([], 3, "ol", 2), Add([], 5, "ol", 3)]
-    ), "testing diff with a replacement of a value"
-    assert diff_ordered_list([], [1, 2, 3, 4]) == Patch(
+
+DIFF_ORDERED_LISTS_TESTS =  [
+    ([1, 2, 3, 4], [1, 2, 4, 5], Patch([Delete([], 3, "ol", 2), Add([], 5, "ol", 3)]),"testing diff with a replacement of a value"),
+    ([], [1, 2, 3, 4], Patch(
         [
             Add([], 1, "ol", 0),
             Add([], 2, "ol", 1),
             Add([], 3, "ol", 2),
             Add([], 4, "ol", 3),
-        ]
-    ), "testing diff adding to an empty dict"
-    assert diff_ordered_list([1, 2, 3], []) == Patch(
-        [Delete([], 1, "ol", 0), Delete([], 2, "ol", 0), Delete([], 3, "ol", 0)]
-    ), "Testing deleting all elements from a list."
-    assert diff_ordered_list([0, 1, 2], [2, 1, 0]) == Patch(
+        ]), "testing diff adding to an empty dict"),
+    ([1, 2, 3], [],Patch(
+        [Delete([], 1, "ol", 0), Delete([], 2, "ol", 0), Delete([], 3, "ol", 0)]), "Testing deleting all elements from a list."),
+    ([0, 1, 2], [2, 1, 0], Patch(
         [
             Delete([], 1, "ol", 1),
             Delete([], 2, "ol", 1),
             Add([], 2, "ol", 0),
             Add([], 1, "ol", 1),
         ]
-    ), "testing rearrangement of elements"
-    assert diff_ordered_list([{"1": "2"}], [{"2": "1"}]) == Patch(
+    ), "testing rearrangement of elements" ),
+    ([{"1": "2"}], [{"2": "1"}], Patch(
         [Delete([], {"1": "2"}, "ol", 0), Add([], {"2": "1"}, "ol", 0)]
-    ), "testing replacement with dict elements"
+    ), "testing replacement with dict elements")
+    ]
+
+@pytest.mark.parametrize("before,after,expected,failure_message", DIFF_ORDERED_LISTS_TESTS)
+def test_diff_ordered_list(before, after, expected, failure_message:str):
+    assert diff_ordered_list(before, after) == expected, failure_message
 
 
-def test_apply_add():
+APPLY_ADD_TESTS = [
+    (Add(["foo"], "bar"), ({}, "keep-old"), {"foo": "bar"},"testing simple application of Add on an empty dict"),
+    (Add(["foo", "foo"], "bar"),  ({}, "keep-old"), {"foo": {"foo": "bar"}}, "testing simple adding of a dict-based value to an empty dict."),
+    (Add(["foo"], 1, "ol", 3), ({"foo": [5, 6, 2, 3, 4]}, "keep-old"), {"foo": [5, 6, 2, 1, 3, 4]},"Testing inserting a value into a list."),
+    (Add(["foo"], 1, "ul"),({"foo": [5, 6, 2, 3, 4]}, "keep-old"), {"foo": [5, 6, 2, 3, 4, 1]}, "Testing appending a value to a list."),
+    (Add(["foo"], [1, 2, 3, 4]), ({}, "keep-old"), {"foo":[1,2,3,4]}, "testing adding a key with a list value."),
+    (Add(["foo"], 6, "ol", 6), ({"foo": [5, 6, 6, 1]},"keep-old" ), {"foo": [5, 6, 6, 1 ,6]}, "testing insert past the index of the list's length"),
+    (Add(["foo"], "bar"), ({"foo": "not bar"}, "overwrite"), {"foo": "bar"}, "testing that overwrite alters a dict when the key already exists."),
+    ( Add(["foo", 1, "foo"], "bar"), ({"foo": [0, {}]}, "keep-old"),   {"foo": [0, {"foo": "bar"}]}, "testing adding to a dictionary within a list.")
+]
+@pytest.mark.parametrize("change_data,args,expected,failure_message",  APPLY_ADD_TESTS)
+def test_apply_add(change_data: Change, args: tuple[dict, str], expected: dict, failure_message: str):
+    assert change_data.apply(*args) == expected, failure_message
 
-    assert Add(["foo"], "bar").apply({}) == {
-        "foo": "bar"
-    }, "testing simple application of Add on an empty dict"
-    assert Add(["foo", "foo"], "bar").apply({}) == {
-        "foo": {"foo": "bar"}
-    }, "testing simple adding of a dict-based value to an empty dict."
-    assert Add(["foo"], 1, "ol", 3).apply({"foo": [5, 6, 2, 3, 4]}) == {
-        "foo": [5, 6, 2, 1, 3, 4]
-    }, "Testing inserting a value into a list."
-    assert Add(["foo"], 1, "ul").apply({"foo": [5, 6, 2, 3, 4]}) == {
-        "foo": [5, 6, 2, 3, 4, 1]
-    }, "Testing appending a value to a list."
-    assert Add(["foo"], [1, 2, 3, 4]).apply({}) == {
-        "foo": [1, 2, 3, 4]
-    }, "testing adding a new key with a list value."
-    assert Add(["foo"], 6, "ol", 6).apply({"foo": [5, 6, 6, 1]}) == {
-        "foo": [5, 6, 6, 1, 6]
-    }, "Testing inserting past the list length."
-    assert Add(["foo"], "bar").apply({"foo": "not bar"}) == {
-        "foo": "not bar"
-    }, "testing adding to a dict where the value already exists."
-    assert Add(["foo"], "bar").apply(
-        {"foo": "not bar"}, conflict_options="overwrite"
-    ) == {
-        "foo": "bar"
-    }, "testing  an overwrite add to a dict where the value already exists."
-    assert Add(["foo", 1, "foo"], "bar").apply({"foo": [0, {}]}) == {
-        "foo": [0, {"foo": "bar"}]
-    }
+
 
 
 def test_apply_delete():
@@ -621,3 +609,17 @@ def test_inverts():
     assert diff_dicts({"foo": "bar"}, {"foo": "foo"}).invert().apply(
         {"foo": "foo"}
     ) == {"foo": "bar"}, "Simple invert test."
+
+
+#Alright, let's consider what total tests we might need. Here are the things that can go wrong: 
+# Let's define the different error possibilities. 
+#       Error 1: The type is no longer applicable (relevant key has changed type. 
+#       Error 2: Item no longer exists in the unordered list.
+#       Error 3: Item no longer has the right index in the ordered list. (DIFFICULT TO MANAGE, THIS WILL BE THE PROBLEM)
+#               HOW TO SOLVE THIS: keep track of the index shifting that occurs between version_to_undo and latest_version. 
+#                  What this means: I need a list of edits that map one number to another. So how am I going to do this? Does 'find shared sequences' work? It might. 
+#       This error is also going to show up with complex nested lists/dicts, so how am I going to do this? I need a new stage in 'invert' that generates mappings: 
+#       Mappings will be a way of mapping old indexes to new indexes. The new index can be null, so None can be an option. For example. 
+#   [1,2, 3, 4] [2, 3, 4] is a mapping of {1: None, 2:0, 3:1, 4:2}. However, it'd be better if I find a way to describe it using ranges, for better performance. 
+#  The mapping is not actually going to be a tool for matching the same item, but a way of describing to the list the shifts that have been made to other item's locations. 
+# This means that I will need a new object type, because lists won't actually cut it here. 
