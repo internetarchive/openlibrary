@@ -876,8 +876,8 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: FulltextSnippet.html ReadButton.html books/custom_carousel.html
-#: books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html books/custom_carousel.html books/edit/edition.html
+#: type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -7354,13 +7354,9 @@ msgstr ""
 msgid "❞"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
-
-#: FulltextSnippet.html
-msgid "See All Results"
 msgstr ""
 
 #: IABook.html
