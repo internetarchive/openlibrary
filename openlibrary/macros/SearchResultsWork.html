@@ -61,10 +61,12 @@ $code:
     </span>
 
     <div class="details">
-        <h3 itemprop="name">
+      <div class="resultTitle">
+        <h3 itemprop="name" class="booktitle">
           <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
         </h3>
-        <span class="resultAuthor" itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
+      </div>
+        <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
           $ authors = None
           $if doc_type == 'infogami_work':
             $ authors = doc.get_authors()

@@ -1,7 +1,7 @@
 $def with(ratings_count, ratings_average, page_type)
 
 $ rounded_avg = "%.1f" % ratings_average
-$ formatted_ratings_count = "{:,}".format(ratings_count)
+$ formatted_ratings_count = "{:,}".format(ratings_count) if ratings_count else ""
 $ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
 $ star_class = 'readers-stats__star' if page_type == 'book_page' else 'readers-stats__star--byline'
 $ half_star_class = 'readers-stats__star--half' if page_type == 'book_page' else 'readers-stats__star--byline-half'
