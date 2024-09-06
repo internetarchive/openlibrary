@@ -120,7 +120,9 @@ class Biblio:
     def __init__(self, data):
         self.primary_format = data[6]
         self.product_type = data[121]
-        assert not self.isnonbook(), f"{self.primary_format}/{self.product_type} is NONBOOK"
+        assert (
+            not self.isnonbook()
+        ), f"{self.primary_format}/{self.product_type} is NONBOOK"
 
         self.isbn = data[124]
         self.source_id = f'bwb:{self.isbn}'
