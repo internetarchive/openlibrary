@@ -7,8 +7,6 @@ import xml.etree.ElementTree as ET
 from openlibrary.i18n import get_locales
 
 root = os.path.dirname(__file__)
-# Fix these and then remove them from this list
-ALLOW_FAILURES = {'pl'}
 
 
 def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
@@ -72,13 +70,7 @@ def gen_html_entries():
     for locale, msgid, msgstr in gen_po_msg_pairs():
         if '</' not in msgid:
             continue
-
-        if locale in ALLOW_FAILURES:
-            yield pytest.param(
-                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
-            )
-        else:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
+        yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
 @pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())

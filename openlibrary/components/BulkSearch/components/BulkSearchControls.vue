@@ -5,11 +5,12 @@
     <details open class="bulk-search-controls">
         <summary>Input</summary>
         <div>
+            <p v-if="showColumnHint">Please include a header row. Supported columns include: "Title", "Author".</p>
             <textarea v-model="bulkSearchState.inputText"></textarea>
             <br />
             <label>Format: <select v-model="bulkSearchState._activeExtractorIndex">
                     <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
-                        {{ extractor["name"] }}
+                        {{ extractor.label }}
                     </option>
                 </select></label>
             <label v-if="this.showApiKey">OpenAI API Key:
@@ -74,7 +75,11 @@ export default {
         matchBooksText(){
             if (this.loadingMatchedBooks) return 'Loading...'
             return 'Match Books'
-        }
+        },
+        showColumnHint(){
+            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor'
+            return false
+        },
     },
     methods: {
         togglePasswordVisibility(){

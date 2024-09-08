@@ -715,13 +715,6 @@ msgstr[1] ""
 msgid "Search for books with subject %(name)s."
 msgstr ""
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
-#: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html subjects.html
-#: subjects/notfound.html type/local_id/view.html
-msgid "Search"
-msgstr ""
-
 #: support.html
 msgid "How can we help?"
 msgstr ""
@@ -2918,6 +2911,12 @@ msgstr ""
 
 #: authors/index.html
 msgid "Search for an Author"
+msgstr ""
+
+#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: publishers/notfound.html publishers/view.html search/advancedsearch.html
+#: search/publishers.html search/searchbox.html type/local_id/view.html
+msgid "Search"
 msgstr ""
 
 #: authors/index.html search/authors.html
@@ -6540,8 +6539,8 @@ msgstr ""
 msgid "Inventaire.io:"
 msgstr ""
 
-#: type/author/view.html
-msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
+#: type/author/view.html type/edition/view.html type/work/view.html
+msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
@@ -6742,10 +6741,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7303,6 +7298,10 @@ msgstr[1] ""
 
 #: EditionNavBar.html
 msgid "Related Books"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Go to next section"
 msgstr ""
 
 #: Follow.html

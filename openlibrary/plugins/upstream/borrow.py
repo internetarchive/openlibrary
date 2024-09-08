@@ -132,6 +132,9 @@ class borrow(delegate.page):
 
         from openlibrary.book_providers import get_book_provider
 
+        if action == 'locate':
+            raise web.seeother(edition.get_worldcat_url())
+
         # Direct to the first web book if at least one is available.
         if (
             action in ["borrow", "read"]
