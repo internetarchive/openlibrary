@@ -116,9 +116,13 @@ CREATE TABLE bestbooks (
     topic text not null,
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (submitter, book_id),
+    UNIQUE (submitter, topic)
 );
 
-CREATE INDEX bestbooks_id ON bestbooks (submitter);
+CREATE INDEX bestbooks_submitter ON bestbooks (submitter);
+CREATE INDEX bestbooks_work ON bestbooks (book_id);
+CREATE INDEX bestbooks_topic ON bestbooks (topic);
 
-INSERT INTO bestbooks (submitter, book_id, topic, comment) VALUES ('Vaibhav', 'OL5702375W', 'romance', 'a good book for understanding');
+
