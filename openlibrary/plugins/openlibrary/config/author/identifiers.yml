@@ -17,6 +17,11 @@ identifiers:
     notes: ''
     url: https://isni.org/isni/@@@
     website: https://isni.org/
+-   label: IMDb
+    name: imdb
+    notes: Should be something like nm0393654
+    url: https://www.imdb.com/name/@@@
+    website: https://www.imdb.com/
 -   label: Inventaire
     name: inventaire
     notes: two formats depending on if the author exists in wikidata, wd:Q42 or inv:914ad8068b8711ead0cc2efbed56e53c
