@@ -24,6 +24,12 @@ npm run serve --component=HelloWorld
 
 Changing `HelloWorld` to be the name of the main component you want to work on.
 
+For apps that are configured for it (like `LibraryExplorer` and `MergeUI`), when run
+in this mode, the vue server will make requests to production openlibrary.org
+for data like books, search results, covers, etc. You can configure where it fetches data
+from by setting url parameters on the running app, eg `?ol_base=http://localhost:8080`. See
+`openlibrary/components/configs.js` for all the available url parameters.
+
 ## Caveats
 
 - Currently does not support IE11 because it's using web components (See https://caniuse.com/custom-elementsv1 )
