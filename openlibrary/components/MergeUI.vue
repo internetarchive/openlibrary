@@ -47,7 +47,8 @@ export default {
         },
         canmerge: {
             type: String,
-            required: true
+            required: false,
+            default: 'true',
         }
     },
     data() {
