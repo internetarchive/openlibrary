@@ -81,7 +81,7 @@ import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
-import CONFIGS from '../configs';
+import CONFIGS from '../../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
 
 /**
