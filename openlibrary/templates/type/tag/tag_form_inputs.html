@@ -1,4 +1,4 @@
-$def with (tag_name='', tag_type='', tag_description='', fkey=None, body='')
+$def with (tag_name='', tag_type='', tag_description='', fkey=None, body='', show_type_picker=True)
 
 <div class="formElement">
     <div class="label">
@@ -40,17 +40,18 @@ $def with (tag_name='', tag_type='', tag_description='', fkey=None, body='')
     </div>
 </div>
 
-<div class="formElement">
-    <div class="label"><label for="tag_type">$_("Tag type")</label></div>
-    <div class="input">
-        <select name="tag_type" id="tag_type" required>
-            <option value="">$_("Select")</option>
-            $ tag_types = get_tag_types()
-            $for t_type in tag_types:
-                $if t_type == tag_type:
-                    <option value="$t_type" selected>$t_type</option>
-                $else:
-                    <option value="$t_type">$t_type</option>
-        </select>
+$if show_type_picker:
+    <div class="formElement">
+        <div class="label"><label for="tag_type">$_("Tag type")</label></div>
+        <div class="input">
+            <select name="tag_type" id="tag_type" required>
+                <option value="">$_("Select")</option>
+                $ tag_types = get_tag_types()
+                $for t_type in tag_types:
+                    $if t_type == tag_type:
+                        <option value="$t_type" selected>$t_type</option>
+                    $else:
+                        <option value="$t_type">$t_type</option>
+            </select>
+        </div>
     </div>
-</div>
