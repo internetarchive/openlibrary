@@ -32,8 +32,7 @@ class subjects(delegate.page):
             raise web.redirect(nkey)
 
         q = {"type": "/type/tag", "fkey": key, "tag_type": "subject"}
-        match = web.ctx.site.things(q)
-        if match:
+        if match := web.ctx.site.things(q):
             tag = web.ctx.site.get(match[0])
             raise web.redirect(tag.key)
 

@@ -691,7 +691,15 @@ msgid "Name"
 msgstr ""
 
 #: subjects.html
+msgid "Promote to Tag"
+msgstr ""
+
+#: subjects.html
 msgid "Edit Subject Tag"
+msgstr ""
+
+#: subjects.html
+msgid "Create Tag from this subject"
 msgstr ""
 
 #: subjects.html
@@ -7007,12 +7015,15 @@ msgid "Tag Description"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
-msgid "Tag type"
+msgid "Page Body"
 msgstr ""
 
-#: type/tag/view.html
-#, python-format
-msgid "View subject page for %(name)s."
+#: type/tag/tag_form_inputs.html
+msgid "Subject Key"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag type"
 msgstr ""
 
 #: type/template/edit.html

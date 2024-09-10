@@ -21,8 +21,14 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 def get_tag_types():
     return ["subject", "work", "collection"]
 
+
 def validate_tag(tag, for_promotion=False):
-    return (tag.get('name', '') and tag.get('fkey', None)) if for_promotion else (tag.get('name', '') and tag.get('tag_type', ''))
+    return (
+        (tag.get('name', '') and tag.get('fkey', None))
+        if for_promotion
+        else (tag.get('name', '') and tag.get('tag_type', ''))
+    )
+
 
 def has_permission(user) -> bool:
     """
@@ -32,14 +38,17 @@ def has_permission(user) -> bool:
         user.is_librarian() or user.is_super_librarian() or user.is_admin()
     )
 
-def create_subject_tag(name: str, description: str, fkey: str | None = None, body: str = '') -> Tag:
+
+def create_subject_tag(
+    name: str, description: str, fkey: str | None = None, body: str = ''
+) -> Tag:
     tag = Tag.create(name, description, 'subject', fkey=fkey, body=body)
     if fkey and not body:
         subject = get_subject(
             fkey,
             details=True,
             filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
-            sort='readinglog'
+            sort='readinglog',
         )
         if subject and subject.work_count > 0:
             tag.body = str(render_template('subjects', page=subject))
@@ -54,7 +63,9 @@ class promotetag(delegate.page):
         if not (patron := get_current_user()):
             raise web.seeother(f'/account/login?redirect={self.path}')
         if not has_permission(patron):
-            raise web.unauthorized(message='Permission denied to promote subject to tags')
+            raise web.unauthorized(
+                message='Permission denied to promote subject to tags'
+            )
 
         i = web.input(name="", fkey=None, description="")
 
@@ -78,7 +89,9 @@ class addtag(delegate.page):
 
         i = web.input(name=None, type=None, sub_type=None, fkey=None)
 
-        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type, fkey=i.fkey)
+        return render_template(
+            'tag/add', i.name, i.type, subject_type=i.sub_type, fkey=i.fkey
+        )
 
     def POST(self):
         i = web.input(
