@@ -10,7 +10,7 @@ $ q = query_param('q')
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">
-        $ edit_tag_url = page.tag.get('key') + '/-/edit' if has_tag else '/tag/add?name=%s&type=subject&sub_type=%s&fkey=%s' % (page.name, page.subject_type, page.key)
+        $ edit_tag_url = page.tag.get('key') + '/-/edit' if has_tag else '/tag/promote?name=%s&type=subject&sub_type=%s&fkey=%s' % (page.name, page.subject_type, page.key)
         $ btn_cta = _("Edit") if has_tag else _("Promote to Tag")
         $ elem_title = _("Edit Subject Tag") if has_tag else _("Create Tag from this subject")
         $ link_track = "CTAClick|SubjectTagEdit" if has_tag else "CTAClick|SubjectTagAdd"
