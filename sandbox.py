@@ -99,7 +99,7 @@ def convert_to_hashable(
 class Change:
 
     path: list[str | int]
-    value: str | list | int = ""
+    value: str | list | int | tuple = ""
     list_type: Literal["ol", "ul", None] = None
     index: None | int = None
 
@@ -136,8 +136,17 @@ def traverse_nested_dicts_and_lists(
     return (entry, path[-1])
 
 
+class Swap(Change):
+
+    def __init__(self, path:list[int, str], values:tuple[int|list|dict|str, int|list|dict|str], indices: tuple[int, int]):
+        self.path = path, 
+        self.values = values
+        self.indices = indices
+        super(self, path)
 # Inverting an Add means that it deletes.
 # Consider if In-Place/Out-Of-Place should be an input option.
+
+
 class Add(Change):
 
     # TODO: Create a tripartite set of options to replace overwrite. Error with conflict, keep old, or overwrite.
@@ -255,11 +264,14 @@ class Delete(Change):
         return Add(self.path, self.value, self.list_type, self.index)
 
 
+
+
+
 @dataclass
 class Patch:
 
     change_list: list[Change] = field(default_factory=list)
-
+    
     # DONE THIS: Consider implementing Dataclass properly; look into how their constructors are defined.
     def __post_init__(self):
         self.change_list = [] if type(self.change_list) is None else self.change_list
@@ -397,7 +409,7 @@ def diff_dicts(
     doc1: dict,
     doc2: dict,
     path: list[str | int] = [],
-    default_list_handler: Literal["ordered", "unordered"] = "unordered",
+    default_list_handler: Literal["ordered", "unordered"] = "ordered",
     overrides: dict[str, Literal['ordered', 'unordered']] | None = None,
 ):
     if not overrides:
@@ -569,12 +581,11 @@ def test_diff_adds():
         [Add(["foo", "foo"], "bar")]
     ), "Error in adding a key to a nested dict"
     assert diff_dicts({"foo": [1, 2, 3, 4]}, {"foo": [1, 2, 3, 4, 5, 6]}) == Patch(
-        [Add(["foo"], 5, "ul"), Add(["foo"], 6, "ul")]
+        [Add(["foo"], 5, "ol",4 ), Add(["foo"], 6, "ol", 5)]
     ), "Error in adding values to an array."
     assert diff_dicts(
         {"foo": [1, 2, 3, 4]},
         {"foo": [1, 1, 1, 1, 2, 3, 4]},
-        overrides={"foo": "ordered"},
     ) == Patch(
         [Add(["foo"], 1, "ol", 1), Add(["foo"], 1, "ol", 2), Add(["foo"], 1, "ol", 3)]
     ), "Error in tracking the number of duplicate values added."
@@ -599,17 +610,27 @@ def test_diff_deletes():
         [Delete(["foo"], 2, "ul"), Delete(["foo"], 4, "ul")]
     ), "error in deleting a non-final element in a list."
 
+INVERT_TESTS = [
+    ({"foo": "foo"}, {"foo": "bar"}, "basic case"),
+    ({"foo":"bar"}, {"foo":["bar"]}, "change of type"),
+    ({"foo": [1,2,3,4]}, {"foo": [4, 3, 2, 1]}, "checking reorder of a list ")
 
-def test_inverts():
+]
+@pytest.mark.parametrize("before, after,failure_message",  INVERT_TESTS)
+def test_inverts(before:dict, after:dict, failure_message:str):
 
-    def invert_test(doc1: dict, doc2: dict):
-        diff = diff_dicts(doc1, doc2)
-        return diff.invert().apply(doc2) == doc1
+    assert diff_dicts(before, after).invert().apply(
+        after
+    ) == before, failure_message
 
-    assert diff_dicts({"foo": "bar"}, {"foo": "foo"}).invert().apply(
-        {"foo": "foo"}
-    ) == {"foo": "bar"}, "Simple invert test."
+FINAL_TESTS = [
+    ({"foo":"bar"}, {"foo": "not bar"}, {"ana": "kata", "foo": "not_bar"}, {"ana": "kata", "foo":"bar"},"basic case"),
+    ({"foo": [1, 2, 3, 4]}, {"foo": [1, 2, 3, 5]}, {"foo": [4, 9, 10, 5]}, {"foo": [4, 9, 10, 4]}, "testing  case of list edits w/o adjusting size"),
 
+]
+@pytest.mark.parametrize("before, after,latest, expected, failure_message",  FINAL_TESTS)
+def test_final(before:dict, after:dict, latest:dict, expected:dict, failure_message:str):
+    assert diff_dicts(before, after).invert().apply(latest) == expected, failure_message
 
 #Alright, let's consider what total tests we might need. Here are the things that can go wrong: 
 # Let's define the different error possibilities. 
