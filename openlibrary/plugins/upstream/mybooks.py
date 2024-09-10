@@ -654,7 +654,7 @@ class PatronBooknotes:
             entry['observations'] = convert_observation_ids(ids)
         return observations
 
-    def _get_work(self, work_key: str) -> "Work":
+    def _get_work(self, work_key: str) -> "Work | None":
         return web.ctx.site.get(work_key)
 
     def _get_work_details(
