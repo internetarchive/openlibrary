@@ -83,7 +83,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
     The line numbers errors use 1-based counting because they are line numbers in a file.
     """
     user = accounts.get_current_user()
-    username = user.get_username()
+    username = user.get_username() if user else None
     batch_name = f"batch-{generate_hash(raw_data)}"
     errors: list[BatchImportError] = []
     raw_import_records: list[dict] = []
