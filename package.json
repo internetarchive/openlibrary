@@ -28,6 +28,7 @@
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
     "lint-fix:js": "eslint --fix --ext js,vue .",
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
+    "serve": "node openlibrary/components/serve-component.js && npx @vue/cli-service serve openlibrary/components/_dev.js",
     "test": "npm run test:js && bundlesize",
     "test:js": "jest",
     "storybook": "storybook dev -p 6006",
