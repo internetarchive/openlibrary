@@ -67,9 +67,7 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
         'version',
         # Not a book
         'calendar',
-        'copy bin',
         'diary',
-        'dumpbin',
         'journal',
         'logbook',
         'notebook',
