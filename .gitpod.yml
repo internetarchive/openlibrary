@@ -26,6 +26,9 @@ tasks:
     sudo chmod g+w -R $GITPOD_REPO_ROOT
     # because: https://github.com/gitpod-io/gitpod/issues/9311
     chmod o+rx $GITPOD_REPO_ROOT
+    # set coverstore url
+    mkdir -p env
+    echo "OL_COVERSTORE_PUBLIC_URL=https://7075-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}" > env/web.env
   # init runs once for each commit to the default branch
   init: docker compose up --no-start && gp sync-done docker-up
   # command runs each time a user starts their workspace

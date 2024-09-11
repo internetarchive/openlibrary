@@ -1,4 +1,5 @@
 import functools
+import os
 from typing import Any, Protocol, TYPE_CHECKING, TypeVar
 from collections.abc import Callable, Generator, Iterable, Iterator
 import unicodedata
@@ -388,7 +389,10 @@ def get_coverstore_url() -> str:
 
 @public
 def get_coverstore_public_url() -> str:
-    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
+    if OL_COVERSTORE_PUBLIC_URL := os.environ.get('OL_COVERSTORE_PUBLIC_URL'):
+        return OL_COVERSTORE_PUBLIC_URL.rstrip('/')
+    else:
+        return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
 def _get_changes_v1_raw(
