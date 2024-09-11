@@ -36,3 +36,4 @@ node_modules/
 venv/
 *.c
 *.so
+conf/.env

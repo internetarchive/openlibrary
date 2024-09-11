@@ -5,6 +5,7 @@ services:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
     command: docker/ol-web-start.sh
+    env_file: "conf/.env"
     ports:
       - ${WEB_PORT:-8080}:8080
     networks:
