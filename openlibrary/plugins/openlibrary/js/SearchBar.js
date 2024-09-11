@@ -62,6 +62,7 @@ export class SearchBar {
         this.$input = this.$form.find('input[type="text"]');
         this.$results = this.$component.find('ul.search-results');
         this.$facetSelect = this.$component.find('.search-facet-selector select');
+        this.$barcodeScanner = this.$component.find('#barcode_scanner_link');
 
         /** State */
         /** Whether the bar is in collapsible mode */
@@ -76,6 +77,8 @@ export class SearchBar {
 
         this.initFromUrlParams(urlParams);
         this.initCollapsibleMode();
+        // Stop renderAutoCompletionResults from firing when ESC is pressed in results list
+        this.escapeInput = false;
 
         // Bind to changes in the search state
         SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
@@ -98,7 +101,12 @@ export class SearchBar {
                 this.$results.children().first().trigger('focus');
                 return false;
             } else if (e.key === 'Escape') {
-                this.$input.trigger('blur');
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$barcodeScanner.on('keydown', (e) => {
+            if (e.key === 'Tab') {
                 this.clearAutocompletionResults();
             }
         })
@@ -123,7 +131,8 @@ export class SearchBar {
             } else if (e.key === 'Enter') {
                 e.target.firstElementChild.click();
             } else if (e.key === 'Escape') {
-                this.$input.trigger('blur');
+                this.$input.trigger('focus');
+                this.escapeInput = true;
                 this.clearAutocompletionResults();
             }
         })
@@ -287,14 +296,17 @@ export class SearchBar {
         this.$input.on('click', false);
 
         this.$input.on('keyup', debounce(event => {
-            // ignore directional keys and enter for callback
-            if (![13,37,38,39,40].includes(event.keyCode)) {
+            // ignore directional keys, enter, escape, and shift for callback
+            if (![13,16,27,37,38,39,40].includes(event.keyCode)) {
                 this.renderAutocompletionResults();
             }
         }, 500, false));
 
         this.$input.on('focus', debounce(event => {
             event.stopPropagation();
+            if (this.escapeInput) {
+                return;
+            }
             this.renderAutocompletionResults();
         }, 300, false));
     }
