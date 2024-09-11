@@ -1,6 +1,9 @@
-export function initRealTimeValidation() {
+import { debounce } from './nonjquery_utils.js';
+
+export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+
     // Keep the same with openlibrary/plugins/upstream/forms.py
     const VALID_EMAIL_RE = /^.*@.*\..*$/;
     const VALID_USERNAME_RE = /^[a-z0-9-_]{3,20}$/i;
@@ -25,7 +28,7 @@ export function initRealTimeValidation() {
     }
 
     $('#username').on('keyup', function(){
-        var value = $(this).val();
+        const value = $(this).val();
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
@@ -55,7 +58,7 @@ export function initRealTimeValidation() {
     }
 
     function validateUsername() {
-        const value_username = $(this).val();
+        const value_username = $('#username').val();
 
         if (value_username === '') {
             clearError('#username', '#usernameMessage');
@@ -87,7 +90,7 @@ export function initRealTimeValidation() {
     }
 
     function validateEmail() {
-        const value_email = $(this).val();
+        const value_email = $('#emailAddr').val();
 
         if (value_email === '') {
             clearError('#emailAddr', '#emailAddrMessage');
@@ -114,7 +117,7 @@ export function initRealTimeValidation() {
     }
 
     function validatePassword() {
-        const value_password = $(this).val();
+        const value_password = $('#password').val();
 
         if (value_password === '') {
             clearError('#password', '#passwordMessage');
@@ -129,7 +132,40 @@ export function initRealTimeValidation() {
         clearError('#password', '#passwordMessage');
     }
 
-    $('#username').on('blur', validateUsername);
-    $('#emailAddr').on('blur', validateEmail);
-    $('#password').on('blur', validatePassword);
+    // Maps input ID attribute to corresponding validation function
+    function validateInput(input) {
+        const id = $(input).attr('id');
+        if (id === 'emailAddr') {
+            validateEmail();
+        } else if (id === 'username') {
+            validateUsername();
+        } else if (id === 'password') {
+            validatePassword();
+        } else {
+            throw new Error('Input validation function not found');
+        }
+    }
+
+    // Validates inputs already marked as invalid on value change
+    $('form[name=signup] input').on('input', debounce(function(){
+        if ($(this).hasClass('invalid')) {
+            validateInput(this);
+        }
+    }, 50));
+
+    // Validates all other inputs (i.e. not already marked as invalid) on blur
+    $('form[name=signup] input').on('blur', function() {
+        if (!$(this).hasClass('invalid')) {
+            validateInput(this);
+        }
+    });
+}
+
+export function initLoginForm() {
+    const loginForm = $('form[name=login]');
+    const loadingText = loginForm.data('i18n')['loading_text'];
+
+    loginForm.on('submit', () => {
+        $('button[type=submit]').prop('disabled', true).text(loadingText);
+    })
 }

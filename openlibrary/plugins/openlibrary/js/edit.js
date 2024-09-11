@@ -301,6 +301,11 @@ export function initWorksMultiInputAutocomplete() {
                 });
         });
     });
+
+    // Show the new work options checkboxes only if "New work" selected
+    $('input[name="works--0"]').on('autocompleteselect', function(_event, ui) {
+        $('.new-work-options').toggle(ui.item.key === '__new__');
+    });
 }
 
 export function initSeedsMultiInputAutocomplete() {

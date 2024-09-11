@@ -171,6 +171,7 @@ $if is_privileged_user:
 
 $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
+$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
@@ -205,7 +206,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <!-- (mobile only) -->
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
-    $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
+    $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
       $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
     </div>
@@ -288,7 +289,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if is_librarian:
               $if ocaid:
                 <div class="edition-omniline-item">
-                 <div>Internet Archive</div>
+                 <div>$_("Internet Archive")</div>
                   <span><a href="https://archive.org/details/$ocaid">$ocaid</a></span>
                 </div>
 
@@ -300,7 +301,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                     $isbns.append(value['value'])
               $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBNs</div>
+                  <div>$_("ISBNs")</div>
                   $for isbn in isbns:
                     <span>$isbn</span>
                 </div>

@@ -45,8 +45,8 @@
       "maxSize": "30KB"
     },
     {
-      "path": "static/build/realtime-account-validation.*.js",
-      "maxSize": "1KB"
+      "path": "static/build/signup.*.js",
+      "maxSize": "2KB"
     },
     {
       "path": "static/build/readinglog-stats.*.js",
@@ -62,7 +62,7 @@
     },
     {
       "path": "static/build/search.*.js",
-      "maxSize": "1KB"
+      "maxSize": "1.2KB"
     },
     {
       "path": "static/build/tabs.*.js",
@@ -102,7 +102,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "27KB"
+      "maxSize": "27.05KB"
     }
   ]
 }

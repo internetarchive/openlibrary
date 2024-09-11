@@ -38,7 +38,7 @@
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
-import CONFIGS from '../configs';
+import CONFIGS from '../../configs';
 // import * as Vibrant from "node-vibrant";
 
 // window.Vibrant = Vibrant;

@@ -1,6 +1,9 @@
-$def with (q)
+$def with (q, placeholder="")
+
+$ placeholder = placeholder or _('Search')
+
 <div class="searchbox">
-    <input type="text" class="searchbox__input" name="q" size="100" placeholder="$_('Search')" aria-label="$_('Search')" value="$q">
+    <input type="text" class="searchbox__input" name="q" size="100" placeholder="$placeholder" aria-label="$_('Search')" value="$q">
     <div>
         <input type="submit" value="" class="searchbox__btn-icon" aria-label="$_('Search')">
     </div>

@@ -57,9 +57,10 @@ class Edition(models.Edition):
 
     def get_authors(self):
         """Added to provide same interface for work and edition"""
+        work_authors = self.works[0].get_authors() if self.works else []
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return authors
+        return work_authors + authors
 
     def get_covers(self):
         """
@@ -102,6 +103,15 @@ class Edition(models.Edition):
             isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
+
+    def get_worldcat_url(self):
+        url = 'https://search.worldcat.org/'
+        if self.get('oclc_numbers'):
+            return f'{url}/title/{self.oclc_numbers[0]}'
+        elif self.get_isbn13():
+            # Handles both isbn13 & 10
+            return f'{url}/isbn/{self.get_isbn13()}'
+        return f'{url}/search?q={self.title}'
 
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""

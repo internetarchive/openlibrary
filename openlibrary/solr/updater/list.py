@@ -21,8 +21,7 @@ class ListSolrUpdater(AbstractSolrUpdater):
         return bool(re.match(r'^(/people/[^/]+)?/lists/[^/]+$', key))
 
     async def update_key(self, list: dict) -> tuple[SolrUpdateRequest, list[str]]:
-        lst = ListSolrBuilder(list)
-        seeds = lst.seed
+        seeds = ListSolrBuilder(list).seed
         lst = ListSolrBuilder(list, await fetch_seeds_facets(seeds))
         doc = lst.build()
         return SolrUpdateRequest(adds=[doc]), []
@@ -37,13 +36,13 @@ async def fetch_seeds_facets(seeds: list[str]):
         seeds_by_type[seed_key_to_seed_type(seed)].append(seed)
 
     query: list[str] = []
-    for seed_type, seeds in seeds_by_type.items():
+    for seed_type, seed_values in seeds_by_type.items():
         match seed_type:
             case 'edition' | 'author':
-                edition_olids = " OR ".join(key.split('/')[-1] for key in seeds)
+                edition_olids = " OR ".join(key.split('/')[-1] for key in seed_values)
                 query.append(f'edition_key:( {edition_olids} )')
             case 'work':
-                seed_keys = " OR ".join(f'"{key}"' for key in seeds)
+                seed_keys = " OR ".join(f'"{key}"' for key in seed_values)
                 query.append(f'key:( {seed_keys} )')
             case 'subject':
                 pass
@@ -51,19 +50,20 @@ async def fetch_seeds_facets(seeds: list[str]):
                 raise NotImplementedError(f'Unknown seed type {seed_type}')
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
+        response = await client.post(
             base_url,
-            params=[  # type: ignore
-                ('wt', 'json'),
-                ('json.nl', 'arrarr'),
-                ('q', ' OR '.join(query)),
-                ('fq', 'type: work'),
-                ('rows', '0'),
-                ('facet', 'true'),
-                ('facet.mincount', '1'),
-                ('facet.limit', '50'),
-            ]
-            + [('facet.field', f"{field}_facet") for field in facet_fields],
+            timeout=30,
+            data={
+                'wt': 'json',
+                'json.nl': 'arrarr',
+                'q': ' OR '.join(query),
+                'fq': 'type:work',
+                'rows': 0,
+                'facet': 'true',
+                'facet.mincount': 1,
+                'facet.limit': 50,
+                'facet.field': [f"{field}_facet" for field in facet_fields],
+            },
         )
         return response.json()
 

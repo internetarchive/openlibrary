@@ -1,4 +1,4 @@
-$def with (page, edit_view: bool = False)
+$def with (page, edit_view: bool = False, imagesId=0)
 
 $ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
 
@@ -17,7 +17,7 @@ $def render_infobox_row(label, itemprop, value):
 <div class="infobox">
     <div class="illustration">
         $:render_template("covers/author_photo", page)
-        $:render_template("covers/change", page, ".bookCover img")
+        $:render_template("covers/change", page, ".bookCover img", imagesId)
     </div>
     <p class="short-description">
         $if wikidata:

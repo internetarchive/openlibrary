@@ -1,4 +1,4 @@
-$def with (work, edition, page_url)
+$def with (work, edition, page_url, mobile=False)
 
 $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
   $ href = 'javascript:;'
@@ -9,16 +9,17 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
   $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
   <a href="$href" class="$link_class icon-link" $ga_attr>
-    <img class="icon-link__image" src="$img_src">
+    <img class="icon-link__image" src="$img_src" alt="">
     <div class="icon-link__text">$link_text</div>
   </a>
 
-<div class="modal-links">
+<div class="modal-links $('mobile' if mobile else 'desktop')">
   $if work and work.get('key', ''):
     $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
-    $:macros.StarRatings(work, edition)
+    $if mobile:
+      $:macros.StarRatings(work, edition, id="--mobile")
 
     $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')

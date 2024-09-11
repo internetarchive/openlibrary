@@ -4,17 +4,13 @@ $def with(formats, daisy)
 <div class="cta-section">
   <p class="cta-section-title">$_("Download Options")</p>
   <ul class="ebook-download-options">
-    $if formats.get('lcp_pdf'):
-      <li><a href="$formats['lcp_pdf']" title="$_('Download an LCP encrypted PDF from Internet Archive')">$_("Encrypted PDF")</a></li>
-    $if formats.get('lcp_epub'):
-      <li><a href="$formats['lcp_epub']" title="$_('Download an LCP encrypted ePub from Internet Archive')">$_("Encrypted ePub")</a></li>
     $if formats.get('pdf'):
       <li><a href="$formats['pdf']" title="$_('Download a PDF from Internet Archive')">$_("PDF")</a></li>
-    $if formats.get('txt'):
+    $if formats['txt']:
       <li><a href="$formats['txt']" title="$_('Download a text version from Internet Archive')">$_("Plain text")</a></li>
-    $if formats.get('epub'):
+    $if formats['epub']:
       <li><a href="$formats['epub']" title="$_('Download an ePub from Internet Archive')">$_("ePub")</a></li>
-    $if formats.get('mobi'):
+    $if formats['mobi']:
       <li><a href="$formats['mobi']" title="$_('Download a MOBI file from Internet Archive')">$_("MOBI")</a></li>
     <li><a href="$daisy" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_("DAISY")</a></li>
   </ul>

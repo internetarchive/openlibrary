@@ -1,0 +1,56 @@
+{
+  "publish_date": "2017",
+  "publish_country": "fr",
+  "languages": [
+    "fre"
+  ],
+  "work_titles": [
+    "Legge dell'odio"
+  ],
+  "title": "Les noirs et les rouges",
+  "by_statement": "Alberto Garlini ; traduit de l'italien par Vincent Raynaud",
+  "authors": [
+    {
+      "birth_date": "1969",
+      "name": "Garlini, Alberto",
+      "entity_type": "person",
+      "personal_name": "Garlini, Alberto"
+    }
+  ],
+  "oclc_numbers": [
+    "981947280"
+  ],
+  "dewey_decimal_class": [
+    "853.92"
+  ],
+  "series": [
+    "Folio, Policier : roman noir -- 820"
+  ],
+  "description": "Stefano Guerra, étudiant d'extrême droite, naît à la politique en 1968. Alors qu'il participe aux affrontements à Rome, il commet l'irréparable : il tue par accident un jeune homme qu'il voulait seulement menacer. Ce crime marque le début d'une longue dérive, du militantisme à la clandestinité, de la politique à la violence, dans un monde où hommes d'État, criminels et agents des services secrets se mêlent. Au bout du compte, qui est Stefano Guerra? Un tueur psychopathe, un terroriste? Un Pinocchio moderne, un exalté? Ou un dangereux idéaliste, engagé dans une cavale qui pourrait bien se révéler sans issue?",
+  "links": [
+    {
+      "url": "http://catalogue.bnf.fr/ark:/12148/cb45224769s",
+      "title": "Notice et cote du catalogue de la Biblioth\u00e8que nationale de France"
+    }
+  ],
+  "translated_from": [
+    "ita"
+  ],
+  "contributions": [
+    "Raynaud, Vincent, 1971- ..."
+  ],
+  "publishers": [
+    "Gallimard"
+  ],
+  "publish_places": [
+    "Paris"
+  ],
+  "isbn_10": [
+    "2072702216"
+  ],
+  "isbn_13": [
+    "9782072702211"
+  ],
+  "pagination": "1 v. (920 p.)",
+  "number_of_pages": 920
+}

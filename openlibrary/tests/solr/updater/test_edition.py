@@ -5,7 +5,7 @@ from openlibrary.tests.solr.test_update import FakeDataProvider
 
 
 class TestEditionSolrUpdater:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_deletes_old_orphans(self):
         req, new_keys = await EditionSolrUpdater(FakeDataProvider()).update_key(
             {
@@ -19,7 +19,7 @@ class TestEditionSolrUpdater:
         assert req.adds == []
         assert new_keys == ['/works/OL1W']
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_enqueues_orphans_as_works(self):
         req, new_keys = await EditionSolrUpdater(FakeDataProvider()).update_key(
             {'key': '/books/OL1M', 'type': {'key': '/type/edition'}}

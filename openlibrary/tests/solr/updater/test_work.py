@@ -23,7 +23,7 @@ sss = sorted_split_semicolon
 
 
 class TestWorkSolrUpdater:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_no_title(self):
         req, _ = await WorkSolrUpdater(FakeDataProvider()).update_key(
             {'key': '/books/OL1M', 'type': {'key': '/type/edition'}}
@@ -39,7 +39,7 @@ class TestWorkSolrUpdater:
         assert len(req.adds) == 1
         assert req.adds[0]['title'] == "__None__"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_work_no_title(self):
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
         ed = make_edition(work)
@@ -49,7 +49,7 @@ class TestWorkSolrUpdater:
         assert len(req.adds) == 1
         assert req.adds[0]['title'] == "Some Title!"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_edition_count_when_editions_in_data_provider(self):
         work = make_work()
         req, _ = await WorkSolrUpdater(FakeDataProvider()).update_key(work)
@@ -424,7 +424,7 @@ class TestWorkSolrBuilder:
         'Skips 092s': (['092', '123.5'], ['123.5'], 0),
     }
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "doc_ddcs,solr_ddcs,sort_ddc_index", DDC_TESTS.values(), ids=DDC_TESTS.keys()
     )
