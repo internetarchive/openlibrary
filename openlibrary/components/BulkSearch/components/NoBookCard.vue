@@ -16,7 +16,7 @@ export default {
     width: 80vw;
     max-width: 300px;
     height: 120px;
-    border: 1px solid #000;
+    border: 1px solid #999;
     border-radius: 4px;
     display: flex;
     overflow: hidden;

@@ -16,16 +16,17 @@
                 <div class="progressCard">
                     <div class = "numeral">1</div>
                     <div class = "info">
-                        <h3 class="heading"> Extract Books</h3>
-                        <p class="heading"><i>How to convert your books above into structured information, like title and author.</i></p>
-
-                        <label><strong> Extractor:</strong> <br> <select v-model="bulkSearchState._activeExtractorIndex">
+                        <div class = "heading">
+                            <h3> Extract Books</h3>
+                            <p><i>How to convert your books above into structured information, like title and author.</i></p>
+                        </div>
+                        <label><strong> Extractor</strong> <br> <select v-model="bulkSearchState._activeExtractorIndex">
                             <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
                                 {{ extractor.label }}
                             </option>
                         </select></label>
                         <div v-if="this.showApiKey">
-                        <label ><strong>OpenAI API Key:</strong> <br>
+                        <label ><strong>OpenAI API Key</strong> <br>
                             <input v-if="showPassword" placeholder= "Enter your OpenAI API key to use this feature." type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
 
                             <input v-else type="text" placeholder= "OpenAI API key here...." @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
@@ -38,11 +39,11 @@
                 <div class = "progressCard" :class="{ progressCardDisabled: matchBooksDisabled}">
                     <div class = "numeral">2</div>
                     <div class="info">
-
-                        <h3 class="heading">Match Books</h3>
-                        <p class="heading"><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
-
-                        <label><strong>Options:</strong> <br>
+                        <div class="heading">
+                            <h3>Match Books</h3>
+                            <p><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
+                        </div>
+                        <label><strong>Options</strong> <br>
                             <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
                             search query
                         </label>
@@ -52,10 +53,10 @@
                 <div class = "progressCard" :class="{ progressCardDisabled: createListDisabled }">
                     <div class = "numeral">3</div>
                     <div class="info">
-
-                            <h3 class="heading">Save your Matches</h3>
-                            <p class="heading"><i> Now that you've found your books, why not save them to your reading log? Or a list?</i></p>
-
+                            <div class="heading">
+                                <h3 class="heading">Save your Matches</h3>
+                                <p class="heading"><i> Now that you've found your books, why not save them to your reading log? Or a list?</i></p>
+                            </div>
                         <a :href="bulkSearchState.listUrl" target="_blank" id="listMakerLink"><button :disabled="createListDisabled">Add to list</button></a>
                     </div>
                 </div>
@@ -174,9 +175,10 @@ textarea {
     column-gap:10px;
 }
 .progressCard{
+    font-family:sans-serif;
     background-color:#C7E3FC;
     padding: 16px 12px;
-    width: 525px;
+    width: min(450px, 66vw);
     height:fit-content;
     border-radius:1rem;
     display:flex;
@@ -185,13 +187,15 @@ textarea {
     .info{
         display:flex;
         flex-direction:column;
-        align-items:center;
-        justify-content: space-evenly;
         height:auto;
         width:auto;
         row-gap:10px;
         .heading{
             color:#0376B8;
+            margin:0px;
+        }
+        select{
+            width: 100%;
         }
         button{
             background-color:#0376B8;
@@ -200,25 +204,32 @@ textarea {
             box-shadow: none;
             border:none;
             padding: 0.5rem;
-            transition-duration: 0.5s;
+            transition-duration: 0.2s;
+            min-width:115px;
+            align-self:center;
+            font:inherit;
         }
         button:hover{
-            background-color: white;
-            color: #0376B8;
-            transition-duration: 0.5s;
+            background-color:#014c78;
+
+            transition-duration: 0.2s;
             cursor:pointer;
         }
     }
     .numeral{
         border-radius: 50%;
-        height:1rem;
-        width:1rem;;
-        padding:1rem;
+        height:48px;
+        width:48px;
         background-color:white;
         color:#0376B8;
         display:flex;
         font-weight:bold;
         justify-content:center;
+        font-size: 10px;
+        flex-shrink: 0;
+        display:flex;
+        align-items:center;
+        font-size:24px;
     }
 }
 
@@ -228,6 +239,7 @@ textarea {
         button:hover{
             background-color: #0376B8;
             color: white;
+            cursor:default;
         }
     }
 }

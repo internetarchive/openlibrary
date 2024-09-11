@@ -3,10 +3,13 @@
     <table>
       <thead class="tableHead">
         <tr>
-          <th style="min-width:75px">i</th>
-          <th style="min-width: 200px">Title</th>
-          <th style="min-width: 200px">Extracted Books Author</th>
-          <th style="width: 100%">Matches</th>
+          <th rowspan ="2" style="width:75px">#</th>
+          <th colspan = "2" style="width:400px;"> Extracted Books</th>
+          <th rowspan = "2" style="">Matched Books</th>
+        </tr>
+        <tr>
+          <th>Title</th>
+          <th style="min-width: 200px; margin-top:0px;"> Author</th>
         </tr>
       </thead>
       <tbody>
@@ -32,18 +35,21 @@ export default {
 <style>
 table {
   border-collapse: separate;
+  width:100%;
+  max-width:100vw;
+  table-layout:fixed;
   border-spacing:0px 2px;
 }
 .tableHead{
-  background-color:#C4C4C4
+  background-color:#C4C4C4;
 }
 
 .matchRow{
   background-color: #EEEEEE;
-  margin:2px 2px;
 }
 .matchRow>td{
-  padding: 2rem 0rem;
+  padding: 0.5rem 0.5rem;
+  text-align:left;
 }
 .matchRow:nth-child(odd){
   background-color: #E4E4E4;
