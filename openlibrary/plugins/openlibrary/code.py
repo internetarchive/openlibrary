@@ -501,8 +501,17 @@ class batch_imports(delegate.page):
             raise Forbidden('Permission Denied.')
 
         # Get the upload from web.py. See the template for the <form> used.
-        form_data = web.input(batchImport={})
-        batch_result = batch_import(form_data['batchImport'].file.read())
+        batch_result = None
+        form_data = web.input()
+        if form_data.get("batchImportFile"):
+            batch_result = batch_import(form_data['batchImportFile'])
+        elif form_data.get("batchImportText"):
+            batch_result = batch_import(form_data['batchImportText'].encode("utf-8"))
+        else:
+            add_flash_message(
+                'error',
+                'Either attach a JSONL file or copy/paste JSONL into the text area.',
+            )
 
         return render_template("batch_import.html", batch_result=batch_result)
 

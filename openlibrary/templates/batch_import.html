@@ -6,10 +6,14 @@ $var title: $_("Batch Imports")
  <h1>$_("Batch Imports")</h1>
 </div>
 <div id="contentBody" class="batchImport">
-    <p>$_('Attach a JSONL formatted document with import records.')</p>
+    <p>$_('Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea.')</p>
     <p>$:_('See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more.')</p>
     <form method="POST" enctype="multipart/form-data" action="">
-      <input type="file" name="batchImport" required>
+      <p>$_('Attach a file:')</p>
+      <input type="file" name="batchImportFile">
+      <hr/>
+      <p>$_('Or copy/paste JSONL text:')</p>
+      <textarea name="batchImportText" rows="10" cols="70"></textarea>
       <hr/>
       <button type="submit">$_('Import')</button>
     </form>

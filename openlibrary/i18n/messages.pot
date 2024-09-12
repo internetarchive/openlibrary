@@ -111,7 +111,9 @@ msgid "Batch Imports"
 msgstr ""
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records."
+msgid ""
+"Attach a JSONL formatted document with import records or copy/paste the "
+"JSONL text into the textarea."
 msgstr ""
 
 #: batch_import.html
@@ -119,6 +121,14 @@ msgid ""
 "See the <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
+msgstr ""
+
+#: batch_import.html
+msgid "Attach a file:"
+msgstr ""
+
+#: batch_import.html
+msgid "Or copy/paste JSONL text:"
 msgstr ""
 
 #: batch_import.html
