@@ -76,7 +76,7 @@
     "npm-watch": "0.11.0",
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
-    "sinon": "14.0.2",
+    "sinon": "18.0.1",
     "slick-carousel": "1.6.0",
     "storybook": "^7.0.0",
     "style-loader": "^4.0.0",
