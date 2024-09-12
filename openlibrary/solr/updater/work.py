@@ -275,7 +275,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         doc |= self.build_legacy_ia_fields()
         doc |= self.build_ratings() or {}
         doc |= self.build_reading_log() or {}
-
+        doc |= self.build_trending_scores() or {}
         return cast(SolrDocument, doc)
 
     @property
@@ -654,7 +654,11 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 identifiers[k] += v
         return dict(identifiers)
 
-    def build_subjects(self) -> dict:
+    @property
+    def trending_z_score(self) -> float:
+        return self._work.get("trending_z_score", 0)
+
+    def build_subjects(self) -> dict[str, int]:
         doc: dict = {}
         field_map = {
             'subjects': 'subject',
@@ -671,6 +675,21 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 f'{subject_type}_facet': self._work[work_field],
                 f'{subject_type}_key': [str_to_key(s) for s in self._work[work_field]],
             }
+        return doc
+
+    def build_trending_scores(self) -> dict:
+        doc: dict = {
+            f'trending_score_hourly_{index}': self._work.get(
+                f'trending_score_hourly_{index}', 0
+            )
+            for index in range(24)
+        }
+        doc |= {
+            f'trending_score_daily_{index}': self._work.get(
+                f'trending_score_daily_{index}', 0
+            )
+            for index in range(7)
+        }
         return doc
 
 
