@@ -241,11 +241,11 @@ jQuery(function () {
             .then(module => module.init(readingLogConfig));
     }
 
-    const pageEl = $('#page-barcodescanner');
-    if (pageEl.length) {
-        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
-            .then((module) => module.init());
-    }
+    // const pageEl = $('#page-barcodescanner');
+    // if (pageEl.length) {
+    //     import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+    //         .then((module) => module.init());
+    // }
 
     if (document.getElementsByClassName('toast').length) {
         import(/* webpackChunkName: "Toast" */ './Toast')
