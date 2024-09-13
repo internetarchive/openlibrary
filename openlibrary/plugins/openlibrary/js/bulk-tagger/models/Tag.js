@@ -86,7 +86,7 @@ export class Tag {
      * @param {String} tagType This tag's technical type
      * @param {String} displayType This tag's type, in UI-ready form.
      *
-     * @throws Will throw an error if at least one type is passed to the constructor
+     * @throws Will throw an error if both `tagType` and `displayType` are falsey
      */
     constructor(tagName, tagType = null, displayType = null) {
         if (!(tagType || displayType)) {
