@@ -685,6 +685,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             for index in range(24)
         }
         doc |= {
+            "trending_score_hourly_sum": self._work.get("trending_score_hourly_sum", 0)
+        }
+        doc |= {
             f'trending_score_daily_{index}': self._work.get(
                 f'trending_score_daily_{index}', 0
             )

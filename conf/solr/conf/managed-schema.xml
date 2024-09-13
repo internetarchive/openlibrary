@@ -200,6 +200,44 @@
     <field name="ratings_count_4" type="pint"/>
     <field name="ratings_count_5" type="pint"/>
 
+
+    <!-- Trending related values-->
+    <field name = "trending_score_hourly_0" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_1" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_2" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_3" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_4" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_5" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_6" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_7" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_8" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_9" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_10" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_11" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_12" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_13" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_14" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_15" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_16" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_17" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_18" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_19" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_20" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_21" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_22" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_23" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_hourly_sum" type="pint" indexed = "false" stored = "false" />
+    <field name = "trending_score_daily_0" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_1" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_2" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_3" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_4" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_5" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_score_daily_6" type="pint" indexed="false" stored ="false"/>
+    <field name = "trending_z_score" type="pfloat" indexed="false" stored ="false"/>
+
+
+
     <!-- Reading Log -->
     <field name="readinglog_count" type="pint"/>
     <field name="want_to_read_count" type="pint"/>
