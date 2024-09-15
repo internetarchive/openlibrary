@@ -4,12 +4,12 @@
       <thead class="tableHead">
         <tr>
           <th rowspan ="2" style="width:75px">#</th>
-          <th colspan = "2" style="width:400px;"> Extracted Books</th>
+          <th colspan = "2" style="width:400px; border-bottom:0px;"> Extracted Books</th>
           <th rowspan = "2" style="">Matched Books</th>
         </tr>
         <tr>
-          <th>Title</th>
-          <th style="min-width: 200px; margin-top:0px;"> Author</th>
+          <th style="border-top: 0px;">Title</th>
+          <th style="min-width: 200px;"> Author</th>
         </tr>
       </thead>
       <tbody>
@@ -34,15 +34,24 @@ export default {
 
 <style>
 table {
-  border-collapse: separate;
+  border-collapse:separate;
   width:100%;
   max-width:100vw;
   table-layout:fixed;
   border-spacing:0px 2px;
 }
-.tableHead{
+tr:first-child>th:first-child, td:first-child{
+  border-radius: 5px 0px 0px 5px;
+}
+
+tr:first-child>th:last-child, td:last-child{
+  border-radius: 0px 5px 5px 0px
+}
+
+th{
   background-color:#C4C4C4;
 }
+
 
 .matchRow{
   background-color: #EEEEEE;
