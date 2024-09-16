@@ -1,5 +1,5 @@
 <template>
-  <a class="lazy-book-card" :href="link">
+  <a class="lazy-book-card" :href="link" :class="{ 'loading' : loading, 'errored' : errored}">
     <div class="cover">
       <img :src="coverSrc">
     </div>
@@ -17,25 +17,26 @@ import Promise from 'promise-polyfill';
 export default {
     props: {
         isbn: {
-            type: String || null,
+            type: String,
         },
         tentativeCover: {
-            type: String || null,
+            type: String,
+            default: null,
         },
     },
     data() {
         return {
             link: null,
             coverSrc: this.tentativeCover,
-            title: null,
+            title: this.isbn,
             byline: null,
             identifier: null,
-            errored: null,
-            loading: null,
+            errored: false,
+            loading: true,
         }
     },
     methods: {
-        fromISBN(isbn) {
+        async fromISBN(isbn) {
             fetch(`https://${CONFIGS.OL_BASE_PUBLIC}/isbn/${isbn}.json`).then(r => r.json())
                 .then(editionRecord => {
                     this.title = editionRecord.title;
@@ -48,7 +49,6 @@ export default {
                             this.coverSrc = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
                         }
                     }
-
                     return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${editionRecord.works[0].key}.json`).then(r => r.json())
                 }).then(workRecord => {
                     return Promise.all(
@@ -73,6 +73,11 @@ export default {
 </script>
 
 <style lang="less">
+  @keyframes pulse {
+    0% { opacity: 0; }
+    100% { opacity: .95; }
+  }
+
   a.lazy-book-card {
     background: hsl(0, 0%, 100%);
     flex-shrink: 0;

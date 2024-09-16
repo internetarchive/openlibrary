@@ -1,6 +1,6 @@
 <template>
   <div id="page-barcodescanner">
-    <div id="interactive" class="viewport"></div>
+    <div class="viewport" ref="viewport" :class="{'loading': loading}"></div>
     <div class="barcodescanner__toolbar">
       <details class="barcodescanner__advanced">
         <summary class="glass-button icon-button">
@@ -12,11 +12,6 @@
             Read Text ISBN
             <br>
             <small>For books that print the ISBN without a barcode</small>
-          </button>
-          <button class="barcodescanner__scan-multiple glass-button" @click="handleMultiISBN">
-            {{ readMultiISBN ? 'Read one ISBN' : 'Read multiple ISBNs'}}
-            <br>
-            <small>{{ readMultiISBN ? 'Switch to read one ISBN' : 'Switch to read multiple ISBNs'}}</small>
           </button>
         </div>
       </details>
@@ -43,8 +38,6 @@ export default {
     data() {
         return {
             disableISBNTextButton: false,
-            targetInteractive: null,
-            readMultiISBN: location.href.includes('returnTo') ? false : true,
             canvasInactive: true,
             lastISBN: null,
             isbnList: [],
@@ -75,51 +68,56 @@ export default {
     },
     methods: {
         start() {
-            Quagga.init({
-                locator: {
-                    halfSample: true,
-                },
-                inputStream: {
-                    name: 'Live',
-                    type: 'LiveStream',
-                    target: this.targetInteractive,
-                    constraints: {
-                    // Vertical - This is *essential* for iPhone/iPad
-                        aspectRatio: {ideal: 720/1280},
+            return new Promise((res, rej) => {
+                Quagga.init({
+                    locator: {
+                        halfSample: true,
                     },
-                },
-                decoder: {
-                    readers: ['ean_reader']
-                },
-            }, async (err) => {
-                if (err) throw err;
-                const track = Quagga.CameraAccess.getActiveTrack();
-                if (track && typeof track.getCapabilities === 'function') {
-                    const capabilities = track.getCapabilities();
-                    // Use a higher resolution
-                    if (capabilities.width.max >= 1280 && capabilities.height.max >= 720) {
-                        await track.applyConstraints({advanced: [{width: 1280, height: 720}]});
+                    inputStream: {
+                        name: 'Live',
+                        type: 'LiveStream',
+                        target: this.$refs.viewport,
+                        constraints: {
+                            // Vertical - This is *essential* for iPhone/iPad
+                            aspectRatio: {ideal: 720/1280},
+                        },
+                    },
+                    decoder: {
+                        readers: ['ean_reader']
+                    },
+                }, async (err) => {
+                    if (err) {
+                        rej(err);
+                        return;
                     }
-                }
-                const quaggaVideo = this.targetInteractive.getElementsByTagName('video')[0];
+                    const track = Quagga.CameraAccess.getActiveTrack();
+                    if (track && typeof track.getCapabilities === 'function') {
+                        const capabilities = track.getCapabilities();
+                        // Use a higher resolution
+                        if (capabilities.width.max >= 1280 && capabilities.height.max >= 720) {
+                            await track.applyConstraints({advanced: [{width: 1280, height: 720}]});
+                        }
+                    }
+                    const quaggaVideo = this.$refs.viewport.getElementsByTagName('video')[0];
+                    const ocrScanner = new OCRScanner();
+                    // document.body.append(s.userCanvas);
+                    ocrScanner.onISBNDetected((isbn) => {
+                        this.submitISBNThrottled(isbn, '/static/images/openlibrary-logo-tighter.svg');
+                    });
+                    ocrScanner.init();
 
-                const ocrScanner = new OCRScanner();
-                // document.body.append(s.userCanvas);
-                ocrScanner.onISBNDetected((isbn) => {
-                    this.submitISBNThrottled(isbn, '/static/images/openlibrary-logo-tighter.svg');
+                    this.quaggaVideo = quaggaVideo;
+                    this.ocrScanner = ocrScanner;
+                    Quagga.start();
+                    if (quaggaVideo.paused) {
+                        quaggaVideo.setAttribute('controls', 'true');
+                        quaggaVideo.addEventListener('play', () => quaggaVideo.removeAttribute('controls'));
+                    }
+                    res();
                 });
-                ocrScanner.init();
-
-                this.quaggaVideo = quaggaVideo;
-                this.ocrScanner = ocrScanner;
-                Quagga.start();
-                if (quaggaVideo.paused) {
-                    quaggaVideo.setAttribute('controls', 'true');
-                    quaggaVideo.addEventListener('play', () => quaggaVideo.removeAttribute('controls'));
-                }
+                Quagga.onProcessed(this.handleQuaggaProcessed);
+                Quagga.onDetected(this.handleQuaggaDetected);
             });
-            Quagga.onProcessed(this.handleQuaggaProcessed.bind(this));
-            Quagga.onDetected(this.handleQuaggaDetected.bind(this));
         },
 
         async handleISBNDetected() {
@@ -207,62 +205,15 @@ export default {
             return code.startsWith('97');
         },
 
-        handleMultiISBN() {
-            if (location.href.includes('returnTo')) {
-                window.history.replaceState('', '', 'barcodescanner');
-                this.readMultiISBN = true;
-                this.returnTo = '';
-            } else {
-                window.history.replaceState('', '', 'barcodescanner?returnTo=/isbn/$$$');
-                this.readMultiISBN = false;
-                this.returnTo = new URLSearchParams(location.search).get('returnTo');
-            }
-        },
-
-        waitForShadowDOM() {
-            return new Promise(resolve => {
-                if (document.querySelector('#interactive')) {
-                    return resolve(document.querySelector('#interactive'));
-                }
-                if (document.querySelector('ol-barcode-scanner').shadowRoot.getElementById('interactive')) {
-                    return resolve(document.querySelector('ol-barcode-scanner').shadowRoot.getElementById('interactive'))
-                }
-                const observer = new MutationObserver(_mutations => {
-                    if (document.querySelector('ol-barcode-scanner').shadowRoot.getElementById('interactive')) {
-                        observer.disconnect();
-                        resolve(document.querySelector('ol-barcode-scanner').shadowRoot.getElementById('interactive'));
-                    }
-                })
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true,
-                })
-            })
-        },
     },
     async mounted() {
-        this.targetInteractive = await this.waitForShadowDOM();
-        this.start();
-        // Disable Read Text ISBN button until camera permissions are granted
-        const observer = new MutationObserver(_mutations => {
-            if (document.querySelector('ol-barcode-scanner').shadowRoot.querySelector('.drawingBuffer')) {
-                this.canvasInactive = false;
-                observer.disconnect();
-            }
-        });
-        observer.observe(document.querySelector('ol-barcode-scanner').shadowRoot, {
-            childList: true,
-            subtree: true
-        });
+        await this.start();
+        this.canvasInactive = false;
     }
 }
 </script>
 
 <style lang="less">
-  @keyframes pulse {
-    0% { filter: brightness(1.3); }
-    100% { filter: brightness(1.2); }
-  }
   @keyframes camera-flash {
   0% { filter: brightness(1.3); }
   100% { filter: brightness(1.2); }
