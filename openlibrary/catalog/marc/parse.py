@@ -443,16 +443,10 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
-<<<<<<< HEAD
             strip_trailing_dot = field_name != 'role'
             author[field_name] = name_from_list(contents[subfield], strip_trailing_dot)
     if author['name'] == author.get('personal_name'):
         del author['personal_name']  # DRY names
-=======
-            author[field_name] = name_from_list(contents[subfield])
-    if author['name'] == author.get('personal_name'):
-        del author['personal_name']  # DRY naming
->>>>>>> 9fa4e500a (don't duplicate name + personal_name if identical)
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     if '6' in contents:  # noqa: SIM102 - alternate script name exists
