@@ -579,7 +579,7 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
     """
     Reads contributors from a MARC record
     and use values in 7xx fields to set 'authors'
-    if they are not already present. Otherwise set
+    if they are not already present, and set
     additional 'contributions'
     """
 
@@ -600,36 +600,37 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
         '720': 'a',       # Uncontrolled Name
     }
     ret: dict[str, Any] = {}
-    seen_names: set[str] = set()
-    update_seen_names(seen_names, authors)
-
-    if not seen_names:
-        for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
-            assert isinstance(marc_field_base, MarcFieldBase)
-            f = marc_field_base
-            if tag in ('700', '720'):
-                if 'authors' not in ret or last_name_in_245c(rec, f):
-                    ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
-                continue
-            elif 'authors' in ret:
-                break
-            if links := f.get_contents('6'):
-                f = f.rec.get_linkage(tag, links['6'][0]) or f
-            if type_ := {'710': 'org', '711': 'event'}.get(tag):
-                name = form_name(f.get_subfield_values(want[tag]))
-                ret['authors'] = [
-                    {
-                        'entity_type': type_,
-                        'name': name,
-                    }
-                ]
-                seen_names.add(name)
-                break
-
-    update_seen_names(seen_names, ret.get('authors', []))
+    #seen_names: set[str] = set()  # TODO: is seen_names used/useful?
+    #update_seen_names(seen_names, authors)
 
     for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
         assert isinstance(marc_field_base, MarcFieldBase)
+        f = marc_field_base
+        if tag in ('700', '720'):
+            #if 'authors' not in ret or last_name_in_245c(rec, f):
+            ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
+            #continue
+        #elif 'authors' in ret:
+        #    break
+        alt_name = ''
+        if links := f.get_contents('6'):
+            alt_name = form_name(f.get_subfield_values(want[tag]))
+            f = f.rec.get_linkage(tag, links['6'][0]) or f
+        if type_ := {'710': 'org', '711': 'event'}.get(tag):
+            name = form_name(f.get_subfield_values(want[tag]))
+            author =  {
+                'entity_type': type_,
+                'name': name,
+            }
+            if alt_name:
+                author['alternate_names'] = [alt_name]
+            ret.setdefault('authors', []).append(author)
+        #update_seen_names(seen_names, ret.get('authors'))
+
+    """
+    update_seen_names(seen_names, ret.get('authors', []))
+
+    for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
         f = marc_field_base
         if links := f.get_contents('6'):
             f = f.rec.get_linkage(tag, links['6'][0]) or f
@@ -640,6 +641,7 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
         cur = tuple(f.get_subfields(want[tag]))
         contributer_name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
         ret.setdefault('contributions', []).append(contributer_name)
+    """
     return ret
 
 
