@@ -105,7 +105,7 @@ class bestbook(delegate.page):
         )
 
         existing = (
-            len(bestbook_model.Bestbook.get_awards(book_id=work_id, submitter=username))
+            len(bestbook_model.Bestbook.get_awards(work_id=work_id, submitter=username))
             > 0
         )
 
@@ -133,7 +133,7 @@ class bestbook(delegate.page):
 
         elif bestbook_model.Bestbook.check_if_award_given(
             submitter=username,
-            book_id=work_id,
+            work_id=work_id,
             topic=i.topic,
         ):
             add_flash_message(
@@ -141,10 +141,10 @@ class bestbook(delegate.page):
             )
         else:
             if existing:
-                bestbook_model.Bestbook.remove(submitter=username, book_id=work_id)
+                bestbook_model.Bestbook.remove(submitter=username, work_id=work_id)
             bestbook_model.Bestbook.add(
                 submitter=username,
-                book_id=work_id,
+                work_id=work_id,
                 edition_id=edition_id,
                 comment=i.comment,
                 topic=i.topic,
@@ -169,9 +169,9 @@ class bestbook_count(delegate.page):
 
     @jsonapi
     def GET(self):
-        filt = web.input(book_id=None, submitter=None, topic=None)
+        filt = web.input(work_id=None, submitter=None, topic=None)
         result = bestbook_model.Bestbook.get_count(
-            book_id=filt.book_id, submitter=filt.submitter, topic=filt.topic
+            work_id=filt.work_id, submitter=filt.submitter, topic=filt.topic
         )
         return json.dumps({'count': result})
 

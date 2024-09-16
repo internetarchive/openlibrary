@@ -580,7 +580,7 @@ class Work(Thing):
 
     def get_awards(self) -> list:
         if not self.key:
-            return {'count': 0, 'awards': []}
+            return []
 
         work_id = extract_numeric_id_from_olid(self.key)
         awards = Bestbook.get_awards(work_id)

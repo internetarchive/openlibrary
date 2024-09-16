@@ -111,18 +111,18 @@ CREATE TABLE wikidata (
 CREATE TABLE bestbooks (
     award_id serial not null primary key,
     submitter text not null,
-    book_id text not null,
+    work_id text not null,
     edition_id text default null,
     topic text not null,
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    UNIQUE (submitter, book_id),
+    UNIQUE (submitter, work_id),
     UNIQUE (submitter, topic)
 );
 
 CREATE INDEX bestbooks_submitter ON bestbooks (submitter);
-CREATE INDEX bestbooks_work ON bestbooks (book_id);
+CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
 
 
