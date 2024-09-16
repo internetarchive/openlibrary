@@ -42,7 +42,7 @@ input#ia-id {
         <td>$_("IA ID:")</td>
         <td>
             <form method="GET" name="form-ia-id">
-                <input type="text" name="ia_id" id="ia-id" pattern="^@.*$" placeholder="$_('e.g. @foobar')">
+                <input type="text" name="ia_id" id="ia-id" pattern="^@.*\$" placeholder="$_('e.g. @foobar')">
                 <button type="submit">$_("Find")</button>
                 <span class="invalid">
                     $if ia_id:
