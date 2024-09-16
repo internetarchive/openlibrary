@@ -604,15 +604,15 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
         for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
             assert isinstance(marc_field_base, MarcFieldBase)
             f = marc_field_base
-            links = f.get_contents('6')
-            if '6' in links:
-                f = f.rec.get_linkage(tag, links['6'][0])
             if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
                 continue
             elif 'authors' in ret:
                 break
+            links = f.get_contents('6')
+            if '6' in links:
+                f = f.rec.get_linkage(tag, links['6'][0])
             if type_ := {'710': 'org', '711': 'event'}.get(tag):
                 name = form_name(f.get_subfield_values(want[tag]))
                 ret['authors'] = [
