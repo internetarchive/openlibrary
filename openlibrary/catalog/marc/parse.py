@@ -600,7 +600,7 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
         '720': 'a',       # Uncontrolled Name
     }
     ret: dict[str, Any] = {}
-    seen_names = set()
+    seen_names: set[str] = set()
     update_seen_names(seen_names, authors)
 
     if not seen_names:
@@ -613,9 +613,8 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
                 continue
             elif 'authors' in ret:
                 break
-            links = f.get_contents('6')
-            if '6' in links:
-                f = f.rec.get_linkage(tag, links['6'][0])
+            if links := f.get_contents('6'):
+                f = f.rec.get_linkage(tag, links['6'][0]) or f
             if type_ := {'710': 'org', '711': 'event'}.get(tag):
                 name = form_name(f.get_subfield_values(want[tag]))
                 ret['authors'] = [
@@ -632,9 +631,8 @@ def read_contributions(rec: MarcBase, authors: list[str]) -> dict[str, Any]:
     for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
         assert isinstance(marc_field_base, MarcFieldBase)
         f = marc_field_base
-        links = f.get_contents('6')
-        if '6' in links:
-            f = f.rec.get_linkage(tag, links['6'][0])
+        if links := f.get_contents('6'):
+            f = f.rec.get_linkage(tag, links['6'][0]) or f
         name = form_name(f.get_subfield_values(want[tag]))
         basicname = form_name(f.get_subfield_values('a'))
         if basicname in seen_names or name in seen_names:
