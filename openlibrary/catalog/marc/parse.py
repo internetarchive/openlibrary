@@ -443,10 +443,16 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
+<<<<<<< HEAD
             strip_trailing_dot = field_name != 'role'
             author[field_name] = name_from_list(contents[subfield], strip_trailing_dot)
     if author['name'] == author.get('personal_name'):
         del author['personal_name']  # DRY names
+=======
+            author[field_name] = name_from_list(contents[subfield])
+    if author['name'] == author.get('personal_name'):
+        del author['personal_name']  # DRY naming
+>>>>>>> 9fa4e500a (don't duplicate name + personal_name if identical)
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     if '6' in contents:  # noqa: SIM102 - alternate script name exists
@@ -701,10 +707,6 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     update_edition(rec, edition, read_url, 'links')
     update_edition(rec, edition, read_original_languages, 'translated_from')
 
-<<<<<<< HEAD
-=======
-    edition.update(read_contributions(rec, edition.get('authors', [])))
->>>>>>> b0e2875bb (consolidate contributer name fn and refactor)
     edition.update(subjects_for_work(rec))
 
     for func in (read_publisher, read_isbn, read_pagination):
