@@ -1442,9 +1442,9 @@ def get_random_recent_changes(n):
         changes = _get_recent_changes()
 
     _changes = random.sample(changes, n) if len(changes) > n else changes
-    for i, change in enumerate(_changes):
-        _changes[i]['__body__'] = (
-            _changes[i]['__body__'].replace('<script>', '').replace('</script>', '')
+    for _, change in enumerate(_changes):
+        change['__body__'] = (
+            change['__body__'].replace('<script>', '').replace('</script>', '')
         )
     return _changes
 
