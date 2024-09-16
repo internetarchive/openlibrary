@@ -20,16 +20,14 @@
       "birth_date": "1914",
       "death_date": "1998",
       "name": "Hayashiya, Tatsusaburō",
-      "entity_type": "person",
-      "personal_name": "Hayashiya, Tatsusaburō"
+      "entity_type": "person"
     },
     {
       "alternate_names": [
         "横井 清."
       ],
       "name": "Yokoi, Kiyoshi",
-      "entity_type": "person",
-      "personal_name": "Yokoi, Kiyoshi"
+      "entity_type": "person"
     },
     {
       "alternate_names": [
@@ -38,8 +36,7 @@
       "birth_date": "1940",
       "death_date": "1960",
       "name": "Narabayashi, Tadao",
-      "entity_type": "person",
-      "personal_name": "Narabayashi, Tadao"
+      "entity_type": "person"
     }
   ],
   "subjects": [
