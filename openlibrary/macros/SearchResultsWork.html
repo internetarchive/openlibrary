@@ -113,9 +113,10 @@ $code:
               <span>
                 <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
               </span>
-            $if doc.get('languages'):
+            $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
               <span class="languages">
-                $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
+                $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
+                $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
               </span>
           </span>
         </span>

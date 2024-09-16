@@ -3,6 +3,21 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readerstats
  */
 
+.star {
+  color: @gold;
+  font-size: 1.5em;
+  &__small {
+    font-size: 1em;
+  }
+  &--half {
+    color: @gold;
+    margin: 0 0 0 -5px;
+    background: linear-gradient(90deg, @gold 50%, @light-grey 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
 .readers-stats {
   color: @grey;
   font-size: @font-size-label-large;
@@ -12,7 +27,7 @@
     display: inline-block;
     padding-bottom: 10px;
 
-    &:not(:last-child):after {
+    &:not(:first-child,:last-child):after {
       content: "·";
       margin: 0 4px;
     }
@@ -21,25 +36,5 @@
     list-style-type: none;
     display: inline-block;
     margin: 0 4px;
-  }
-
-  &__star {
-    color: @gold;
-    font-size: 1.5em;
-  }
-  &__star--half {
-    color: @gold;
-    margin: 0 0 0 -5px;
-    background: linear-gradient(90deg, @gold 50%, @light-grey 50%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  &__star--byline {
-    color: @gold;
-    font-size: 1em;
-  }
-  &__star--byline-half {
-    color: @gold;
-    font-size: 1em;
   }
 }

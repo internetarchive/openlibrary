@@ -3,12 +3,11 @@ $def with(ratings_count, ratings_average, page_type)
 $ rounded_avg = "%.1f" % ratings_average
 $ formatted_ratings_count = "{:,}".format(ratings_count) if ratings_count else ""
 $ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
-$ star_class = 'readers-stats__star' if page_type == 'book_page' else 'readers-stats__star--byline'
-$ half_star_class = 'readers-stats__star--half' if page_type == 'book_page' else 'readers-stats__star--byline-half'
+$ small = "star--small" if page_type != 'book_page' else ''
 
 $if ratings_average:
   $ stats_decimal = (float(ratings_average) - int(ratings_average))
-    $:('<span class="{}">★</span>'.format(star_class) * int(ratings_average))
+    $:('<span class="star {}">★</span>'.format(small) * int(ratings_average))
     $if (stats_decimal >= 0.5) and (stats_decimal < 1):
-      $:('<span class="{}">★</span>'.format(half_star_class))
+      <span class="star star--half $small">★</span>
     <span itemprop="ratingValue">$:_('%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)', ratings_avg=rounded_avg, ratings_count=formatted_ratings_count, ratings_label=ratings_label)</span>
