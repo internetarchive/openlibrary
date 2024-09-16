@@ -82,7 +82,8 @@ module.exports = {
                 // https://webpack.js.org/plugins/split-chunks-plugin/#optimization-splitchunks
                 vendors: false,
 
-            }
+            },
+            chunks: 'all'
         },
         // Don't produce production output when a build error occurs.
         emitOnErrors: !prod
@@ -113,7 +114,6 @@ module.exports = {
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
     mode: prod ? 'production' : 'development',
-
     performance: {
         maxAssetSize: 703 * 1024,
         maxEntrypointSize: 703 * 1024,
