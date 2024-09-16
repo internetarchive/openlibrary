@@ -90,22 +90,6 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr ""
 
-#: barcodescanner.html lib/nav_head.html
-msgid "Advanced"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Read Text ISBN"
-msgstr ""
-
-#: barcodescanner.html
-msgid "For books that print the ISBN without a barcode"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Point your camera at a barcode! 📷"
-msgstr ""
-
 #: batch_import.html
 msgid "Batch Imports"
 msgstr ""
@@ -5224,6 +5208,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Advanced"
 msgstr ""
 
 #: lib/nav_head.html
