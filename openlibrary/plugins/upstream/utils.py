@@ -232,7 +232,10 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
     five_minutes = 5 * 60
     key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
-        render_macro, key_prefix=key_prefix, timeout=five_minutes, prethread=caching_prethread()
+        render_macro,
+        key_prefix=key_prefix,
+        timeout=five_minutes,
+        prethread=caching_prethread(),
     )
 
     try:

@@ -178,8 +178,7 @@ class memcache_memoize:
             thread.join()
 
     def encode_args(self, args, kw=None):
-        """Encodes arguments to construct the memcache key.
-        """
+        """Encodes arguments to construct the memcache key."""
         kw = kw or {}
 
         # strip [ and ] from key
