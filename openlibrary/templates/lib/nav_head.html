@@ -29,7 +29,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   $     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library" },
   $     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks" },
   $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
-  $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
+  $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" },
+  $     { "href": "/search/bulk", "text": _("Bulk Search"), "track": "BulkSearch"}
   $ ]
   $ contributeLinks = [
   $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
@@ -92,6 +93,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
               <option value="subject">$_("Subject")</option>
               <option value="lists">$_("Lists")</option>
               <option value="advanced">$_("Advanced")</option>
+              <option value="bulk">$_("Bulk")</option>
             </select>
           </label>
         </div>
