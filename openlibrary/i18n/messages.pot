@@ -7545,20 +7545,15 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
+msgid "Cover of edition %(id)s"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] ""
 msgstr[1] ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "%s previewable"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
 
 #: SearchResultsWork.html
 msgid "This is only visible to librarians."
@@ -7617,11 +7612,23 @@ msgstr ""
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsStats.html
-msgid "Rating"
-msgid_plural "Ratings"
-msgstr[0] ""
-msgstr[1] ""
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "ratings"
+msgstr ""
+
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr ""
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+msgstr ""
 
 #: StarRatingsStats.html
 msgid "Want to read"

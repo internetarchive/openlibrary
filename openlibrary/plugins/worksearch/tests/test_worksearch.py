@@ -69,6 +69,6 @@ def test_get_doc():
             'editions': [],
             'ratings_average': None,
             'ratings_count': None,
-            'want_to_read_count': None
+            'want_to_read_count': None,
         }
     )
