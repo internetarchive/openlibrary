@@ -23,6 +23,12 @@ table#editions,
 
     tr {
       background: linear-gradient(0deg, @lightest-grey, transparent);
+      th.read:focus {
+        outline: revert
+      }
+      th.title:focus {
+        outline: revert
+      }
     }
   }
 
@@ -237,4 +243,14 @@ tbody {
 
 .editions-table__links {
   text-align: center;
+}
+
+a.paginate_button.current {
+  background-color: @lightest-grey;
+  border: 1px solid @lighter-grey;
+  color: @black;
+}
+
+#editions_paginate a.paginate_button {
+  border: none;
 }

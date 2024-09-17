@@ -41,6 +41,37 @@ export function initEditionsTable() {
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
+    $('#editions thead tr th').attr('tabindex', '0');
+    $('#editions thead tr th a').attr('tabindex', '-1');
+
+    $('#editions th').on('keydown', function(e) {
+        if (e.key === 'Tab' && !e.shiftKey) {
+            if (e.target.nextElementSibling) {
+                e.preventDefault();
+                $(e.target.nextElementSibling).trigger('focus');
+            }
+        }
+        if (e.key === 'ArrowLeft') {
+            if (e.target.previousElementSibling) {
+                $(e.target.previousElementSibling).trigger('focus');
+            }
+        }
+        if (e.key === 'ArrowRight') {
+            if (e.target.nextElementSibling) {
+                $(e.target.nextElementSibling).trigger('focus');
+            }
+        }
+        if (e.key === 'Enter') {
+            $('#editions th span').html('');
+            $(this).find('span').html('&nbsp;&uarr;');
+            if ($(this).hasClass('sorting_asc')) {
+                $(this).find('span').html('&nbsp;&darr;');
+            } else if ($(this).hasClass('sorting_desc')) {
+                $(this).find('span').html('&nbsp;&uarr;');
+            }
+        }
+    })
+
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
         $('#editions').DataTable({
@@ -54,7 +85,6 @@ export function initEditionsTable() {
         });
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
-
         $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
             order: [ [1,'asc'] ],
