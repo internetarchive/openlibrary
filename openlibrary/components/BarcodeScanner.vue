@@ -239,7 +239,7 @@ export default {
     // stylelint-enable declaration-block-no-duplicate-properties
   }
 
-  #interactive.viewport {
+  .viewport {
     position: relative;
     flex: 1;
     min-height: 0;
