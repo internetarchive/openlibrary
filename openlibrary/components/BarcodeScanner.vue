@@ -325,6 +325,7 @@ export default {
         width: 32px;
         height: 32px;
         padding: 6px;
+        box-sizing: border-box;
 
         transition: transform .2s;
       }
