@@ -3,7 +3,7 @@ $def with(ratings_count, ratings_average, want_to_read_count)
 $ formatted_want_to_read_count = "{:,}".format(want_to_read_count) if want_to_read_count else ""
 $ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
 
-<span class="ratingsByline itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+<span class="ratingsByline" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
   $if ratings_count:
     $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page')
 </span>
