@@ -78,7 +78,9 @@ export function initSearchFacets(facetsElem) {
                 facetsElem.replaceWith(newFacetsElem)
                 hydrateFacets()
 
-                document.title = data.title
+                // Replace HTML entities with plaintext equivalent
+                const titleElem = new DOMParser().parseFromString(data.title, 'text/html').documentElement;
+                document.title = titleElem.textContent;
             })
             .catch(() => {
                 // XXX : Handle case where `/partials` response is not `2XX` here
