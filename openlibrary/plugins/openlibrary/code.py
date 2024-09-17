@@ -1244,58 +1244,19 @@ def setup_template_globals():
     )
 
     SUPPORTED_LANGUAGES = {
-        "cs": {
-            "localized": 'Czech',
-            "native": "Čeština"
-        },
-        "de": {
-            "localized": 'German',
-            "native": "Deutsch"
-        },
-        "en": {
-            "localized": 'English',
-            "native": "English"
-        },
-        "es": {
-            "localized": 'Spanish',
-            "native": "Español"
-        },
-        "fr": {
-            "localized": 'French',
-            "native": "Français"
-        },
-        "hr": {
-            "localized": 'Croatian',
-            "native": "Hrvatski"
-        },
-        "it": {
-            "localized": 'Italian',
-            "native": "Italiano"
-        },
-        "pt": {
-            "localized": 'Portuguese',
-            "native": "Português"
-        },
-        "hi": {
-            "localized": 'Hindi',
-            "native": "हिंदी"
-        },
-        "sc": {
-            "localized": 'Sardinian',
-            "native": "Sardu"
-        },
-        "te": {
-            "localized": 'Telugu',
-            "native": "తెలుగు"
-        },
-        "uk": {
-            "localized": 'Ukrainian',
-            "native": "Українська"
-        },
-        "zh": {
-            "localized": 'Chinese',
-            "native": "中文"
-        }
+        "cs": {"localized": 'Czech', "native": "Čeština"},
+        "de": {"localized": 'German', "native": "Deutsch"},
+        "en": {"localized": 'English', "native": "English"},
+        "es": {"localized": 'Spanish', "native": "Español"},
+        "fr": {"localized": 'French', "native": "Français"},
+        "hr": {"localized": 'Croatian', "native": "Hrvatski"},
+        "it": {"localized": 'Italian', "native": "Italiano"},
+        "pt": {"localized": 'Portuguese', "native": "Português"},
+        "hi": {"localized": 'Hindi', "native": "हिंदी"},
+        "sc": {"localized": 'Sardinian', "native": "Sardu"},
+        "te": {"localized": 'Telugu', "native": "తెలుగు"},
+        "uk": {"localized": 'Ukrainian', "native": "Українська"},
+        "zh": {"localized": 'Chinese', "native": "中文"},
     }
 
     web.template.Template.globals.update(
