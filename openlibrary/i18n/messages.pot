@@ -4334,6 +4334,10 @@ msgid "Read <time class=\"check-in-date\">%(date)s</time>"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
+msgid "Give Best Book Award"
+msgstr ""
+
+#: check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
 msgstr ""
 
