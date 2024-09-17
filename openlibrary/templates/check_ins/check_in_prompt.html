@@ -1,6 +1,6 @@
-$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None)
+$def with (work, read_status, edition_key=None, last_read_date=None, event_id=None)
 
-$# work_key : str : The work key
+$# work : work
 $# read_status : int | None : Number representing which shelf this work is on.
 $#    Possible Values:
 $#    1 : Want to Read
@@ -11,9 +11,18 @@ $# edition_key : str | None : The edition key
 $# last_read_date : str | None : Date that the patron last read the book
 $# event_id : str | None : ID of record for this event
 
+$ work_key = work.key
 $ work_olid = work_key.split('/')[-1]
 $ modal_id = 'check-in-dialog-%s' % work_olid
 $ prompt_id = 'prompt-%s' % work_olid
+$ awarded = False
+$ submitter = ""
+
+$ isSearch = ctx.path[1:7] == "search"
+
+$if ctx.user and not isSearch:
+  $ submitter = ctx.user.key.split('/')[-1]
+  $ awarded = work.check_if_user_awarded(submitter)
 
 <div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
   <span class="date-display">
@@ -22,8 +31,12 @@ $ prompt_id = 'prompt-%s' % work_olid
   </span>
 </div>
 
+$ page_url = request.home
 $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
+  $if not isSearch and not awarded:
+    <a href="#reviews-section" class="award-link">$_("Give Best Book Award")</a>
+    <hr>
   <span class="prompt-copy">$_("When did you finish this book?")</span>
   <span class="prompt-options">
     $ year = current_year()

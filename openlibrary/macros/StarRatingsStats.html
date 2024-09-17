@@ -21,6 +21,11 @@ $ id = '--mobile' if mobile else ''
   <li class="readers-stats__review-count">
     <span itemprop="reviewCount">$ratings_count</span> $ungettext("Rating", "Ratings", ratings_count, count=ratings_count)
   </li>
+
+  <li class="readers-stats__award-count">
+    <span itemprop="awardCount">$ratings_count</span> $ungettext("Award", "Awards", ratings_count, count=ratings_count)
+  </li>
+
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('want-to-read', 0)</span> <span class="readers-stats__label">$_("Want to read")</span></li>
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('currently-reading', 0)</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('already-read', 0)</span> <span class="readers-stats__label">$_("Have read")</span></li>
