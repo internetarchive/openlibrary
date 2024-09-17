@@ -23,12 +23,14 @@ table#editions,
 
     tr {
       background: linear-gradient(0deg, @lightest-grey, transparent);
+      // stylelint-disable max-nesting-depth
       th.read:focus {
         outline: revert
       }
       th.title:focus {
         outline: revert
       }
+      // stylelint-enable max-nesting-depth
     }
   }
 
@@ -143,7 +145,7 @@ table#editions,
           max-width: 40px;
         }
       }
-      // stylelintenable max-nesting-depth
+      // stylelint-enable max-nesting-depth
     }
   }
 }
@@ -210,10 +212,12 @@ table#editions,
       .read {
         display: flex;
         flex-direction: column;
+        // stylelint-disable max-nesting-depth
         ul {
           order: -1;
           padding: 10px 0;
         }
+        // stylelint-enable max-nesting-depth
       }
     }
 
