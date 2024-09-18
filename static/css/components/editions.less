@@ -48,7 +48,7 @@ table#editions,
 
   td.book {
     vertical-align: top;
-    display: inline-flex;
+    display: table-cell;
   }
 
   div.cover {
@@ -164,6 +164,15 @@ table#editions,
       float: left;
     }
 
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-desktop) {
+  table#editions {
+    td.book {
+      width: 100%;
+      display: inline-flex;
+    }
   }
 }
 
