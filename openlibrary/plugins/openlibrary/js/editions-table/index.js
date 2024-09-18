@@ -8,6 +8,10 @@ export function initEditionsTable() {
     var rowCount;
     let currentLength;
 
+    // Prevent reinitialization of the editions datatable
+    if ($.fn.DataTable.isDataTable($('#editions'))) {
+        return;
+    }
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -54,7 +58,6 @@ export function initEditionsTable() {
         });
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
-
         $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
             order: [ [1,'asc'] ],
@@ -65,7 +68,14 @@ export function initEditionsTable() {
             bFilter: true,
             bStateSave: false,
             bAutoWidth: false,
-            pageLength: currentLength ? currentLength : DEFAULT_LENGTH
-        });
+            pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
+            drawCallback: function() {
+                if ($('#ile-toolbar').css('display') === 'none') {
+                    for (const elem of $('.ile-selected')) {
+                        elem.classList.remove('ile-selected');
+                    }
+                }
+            }
+        })
     }
 }
