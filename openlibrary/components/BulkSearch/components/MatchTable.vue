@@ -39,6 +39,7 @@ table {
   max-width:100vw;
   table-layout:fixed;
   border-spacing:0px 2px;
+  padding-top:2px;
 }
 tr:first-child>th:first-child, td:first-child{
   border-radius: 5px 0px 0px 5px;
@@ -50,8 +51,12 @@ tr:first-child>th:last-child, td:last-child{
 
 th{
   background-color:#C4C4C4;
+  outline:2px solid #C4C4C4;
 }
 
+thead{
+    transform: translate(0px,-2px);
+}
 
 .matchRow{
   background-color: #EEEEEE;
