@@ -236,6 +236,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         key_prefix=key_prefix,
         timeout=five_minutes,
         prethread=caching_prethread(),
+        hash_args=True,  # this avoids cache key length overflow
     )
 
     try:
