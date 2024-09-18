@@ -60,6 +60,7 @@ class memcache_memoize:
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
         prethread: Callable | None = None,
+        hash_args: boolean = False,
     ):
         """Creates a new memoized function for ``f``."""
         self.f = f
@@ -71,6 +72,7 @@ class memcache_memoize:
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads: dict = {}
         self.prethread = prethread
+        self.hash_args = hash_args
 
     def _get_memcache(self):
         if self._memcache is None:
@@ -185,8 +187,10 @@ class memcache_memoize:
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            a += self.json_encode(kw)
-        return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
+            a = a + "-" + self.json_encode(kw)
+        if self.hash_args:
+            return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
+        return a
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
