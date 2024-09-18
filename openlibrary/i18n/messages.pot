@@ -863,8 +863,8 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: FulltextSnippet.html ReadButton.html books/custom_carousel.html
-#: books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html books/custom_carousel.html books/edit/edition.html
+#: type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -7344,15 +7344,11 @@ msgstr ""
 msgid "right chevron"
 msgstr ""
 
-#: FulltextSnippet.html
-msgid "See All Results"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
 msgstr ""
 
