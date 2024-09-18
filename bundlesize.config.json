@@ -10,7 +10,7 @@
     },
     {
       "path": "static/build/markdown-editor.*.js",
-      "maxSize": "12KB"
+      "maxSize": "13KB"
     },
     {
       "path": "static/build/carousel.*.js",
@@ -34,19 +34,15 @@
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/user-website.*.js",
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/page-barcodescanner.*.js",
-      "maxSize": "30KB"
-    },
-    {
-      "path": "static/build/realtime-account-validation.*.js",
-      "maxSize": "1KB"
+      "path": "static/build/signup.*.js",
+      "maxSize": "2KB"
     },
     {
       "path": "static/build/readinglog-stats.*.js",
@@ -62,7 +58,7 @@
     },
     {
       "path": "static/build/search.*.js",
-      "maxSize": "1KB"
+      "maxSize": "1.2KB"
     },
     {
       "path": "static/build/tabs.*.js",
@@ -74,7 +70,7 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "25KB"
+      "maxSize": "25.05KB"
     },
     {
       "path": "static/build/page-book.css",
@@ -102,7 +98,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "27KB"
+      "maxSize": "27.06KB"
     }
   ]
 }

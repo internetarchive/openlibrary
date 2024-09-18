@@ -38,12 +38,12 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ opds = page.key + ".opds" + hist_addition
             <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
                 $_('Download catalog record:')
-                <a rel="nofollow" href="$rdf">RDF</a>
+                <a rel="nofollow" href="$rdf">$_("RDF")</a>
                 /
-                <a rel="nofollow" href="$json">JSON</a>
+                <a rel="nofollow" href="$json">$_("JSON")</a>
                 $if page.key.startswith("/books"):
                     /
-                    <a rel="nofollow" href="$opds">OPDS</a>
+                    <a rel="nofollow" href="$opds">$_("OPDS")</a>
                 $if show_wikipedia_citation_link:
                     | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
             </span>

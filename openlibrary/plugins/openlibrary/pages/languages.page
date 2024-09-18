@@ -48,6 +48,12 @@
     "key": "/languages/afr"
   },
   {
+    "code": "ain",
+    "type": "/type/language",
+    "name": "Ainu",
+    "key": "/languages/ain"
+  },
+  {
     "code": "aka",
     "type": "/type/language",
     "name": "Akan",
@@ -95,6 +101,12 @@
     "type": "/type/language",
     "name": "English, Old (ca. 450-1100)",
     "key": "/languages/ang"
+  },
+  {
+    "code": "anp",
+    "type": "/type/language",
+    "name": "Angika",
+    "key": "/languages/anp"
   },
   {
     "code": "apa",
@@ -211,6 +223,12 @@
     "type": "/type/language",
     "name": "Azerbaijani",
     "key": "/languages/aze"
+  },
+  {
+    "code": "bad",
+    "type": "/type/language",
+    "name": "Banda languages",
+    "key": "/languages/bad"
   },
   {
     "code": "bai",
@@ -369,6 +387,12 @@
     "key": "/languages/bur"
   },
   {
+    "code": "byn",
+    "type": "/type/language",
+    "name": "Bilin",
+    "key": "/languages/byn"
+  },
+  {
     "code": "cai",
     "type": "/type/language",
     "name": "Central American Indian (Other)",
@@ -378,7 +402,9 @@
     "code": "cam",
     "type": "/type/language",
     "name": "Khmer",
-    "key": "/languages/cam"
+    "key": "/languages/cam",
+    "deprecated": true,
+    "current": "/languages/khm"
   },
   {
     "code": "car",
@@ -543,6 +569,12 @@
     "key": "/languages/crp"
   },
   {
+    "code": "csb",
+    "type": "/type/language",
+    "name": "Kashubian",
+    "key": "/languages/csb"
+  },
+  {
     "code": "cus",
     "type": "/type/language",
     "name": "Cushitic (Other)",
@@ -585,6 +617,12 @@
     "key": "/languages/del"
   },
   {
+    "code": "den",
+    "type": "/type/language",
+    "name": "Slavey",
+    "key": "/languages/den"
+  },
+  {
     "code": "din",
     "type": "/type/language",
     "name": "Dinka",
@@ -609,6 +647,12 @@
     "type": "/type/language",
     "name": "Dravidian (Other)",
     "key": "/languages/dra"
+  },
+  {
+    "code": "dsb",
+    "type": "/type/language",
+    "name": "Lower Sorbian",
+    "key": "/languages/dsb"
   },
   {
     "code": "dua",
@@ -685,14 +729,16 @@
   {
     "code": "esk",
     "type": "/type/language",
-    "name": "Eskimo languages",
+    "name": "Inuit-Yupik-Unangan languages",
     "key": "/languages/esk"
   },
   {
     "code": "esp",
     "type": "/type/language",
     "name": "Esperanto",
-    "key": "/languages/esp"
+    "key": "/languages/esp",
+    "deprecated": true,
+    "current": "/languages/epo"
   },
   {
     "code": "est",
@@ -704,7 +750,9 @@
     "code": "eth",
     "type": "/type/language",
     "name": "Ethiopic",
-    "key": "/languages/eth"
+    "key": "/languages/eth",
+    "deprecated": true,
+    "current": "/languages/gez"
   },
   {
     "code": "ewe",
@@ -734,7 +782,9 @@
     "code": "far",
     "type": "/type/language",
     "name": "Faroese",
-    "key": "/languages/far"
+    "key": "/languages/far",
+    "deprecated": true,
+    "current": "/languages/fao"
   },
   {
     "code": "fat",
@@ -782,7 +832,9 @@
     "code": "fri",
     "type": "/type/language",
     "name": "Frisian",
-    "key": "/languages/fri"
+    "key": "/languages/fri",
+    "deprecated": true,
+    "current": "/languages/fry"
   },
   {
     "code": "frm",
@@ -795,6 +847,12 @@
     "type": "/type/language",
     "name": "French, Old (ca. 842-1300)",
     "key": "/languages/fro"
+  },
+  {
+    "code": "frr",
+    "type": "/type/language",
+    "name": "North Frisian",
+    "key": "/languages/frr"
   },
   {
     "code": "frs",
@@ -837,13 +895,17 @@
     "code": "gag",
     "type": "/type/language",
     "name": "Galician",
-    "key": "/languages/gag"
+    "key": "/languages/gag",
+    "deprecated": true,
+    "current": "/languages/glg"
   },
   {
     "code": "gal",
     "type": "/type/language",
     "name": "Oromo",
-    "key": "/languages/gal"
+    "key": "/languages/gal",
+    "deprecated": true,
+    "current": "/languages/orm"
   },
   {
     "code": "gay",
@@ -967,16 +1029,18 @@
     "key": "/languages/grn"
   },
   {
-    "code": "Swiss German",
+    "code": "gsw",
     "type": "/type/language",
-    "name": "gsw",
+    "name": "Swiss German",
     "key": "/languages/gsw"
   },
   {
     "code": "gua",
     "type": "/type/language",
     "name": "Guarani",
-    "key": "/languages/gua"
+    "key": "/languages/gua",
+    "deprecated": true,
+    "current": "/languages/grn"
   },
   {
     "code": "guj",
@@ -1035,7 +1099,7 @@
   {
     "code": "him",
     "type": "/type/language",
-    "name": "Himachali",
+    "name": "Western Pahari languages",
     "key": "/languages/him"
   },
   {
@@ -1062,6 +1126,12 @@
     "name": "Croatian",
     "key": "/languages/hrv",
     "title": "Croatian"
+  },
+  {
+    "code": "hsb",
+    "type": "/type/language",
+    "name": "Upper Sorbian",
+    "key": "/languages/hsb"
   },
   {
     "code": "hun",
@@ -1145,7 +1215,9 @@
     "code": "int",
     "type": "/type/language",
     "name": "Interlingua (International Auxiliary Language Association)",
-    "key": "/languages/int"
+    "key": "/languages/int",
+    "deprecated": true,
+    "current": "/languages/ina"
   },
   {
     "code": "ipk",
@@ -1163,7 +1235,9 @@
     "code": "iri",
     "type": "/type/language",
     "name": "Irish",
-    "key": "/languages/iri"
+    "key": "/languages/iri",
+    "deprecated": true,
+    "current": "/languages/gle"
   },
   {
     "code": "iro",
@@ -1182,6 +1256,12 @@
     "type": "/type/language",
     "name": "Javanese",
     "key": "/languages/jav"
+  },
+  {
+    "code": "jbo",
+    "type": "/type/language",
+    "name": "Lojban (Artificial language)",
+    "key": "/languages/jbo"
   },
   {
     "code": "jpn",
@@ -1401,6 +1481,12 @@
     "key": "/languages/kur"
   },
   {
+    "code": "kut",
+    "type": "/type/language",
+    "name": "Kootenai",
+    "key": "/languages/kut"
+  },
+  {
     "code": "lad",
     "type": "/type/language",
     "name": "Ladino",
@@ -1422,7 +1508,9 @@
     "code": "lan",
     "type": "/type/language",
     "name": "Occitan (post 1500)",
-    "key": "/languages/lan"
+    "key": "/languages/lan",
+    "deprecated": true,
+    "current": "/languages/oci"
   },
   {
     "code": "lao",
@@ -1434,7 +1522,9 @@
     "code": "lap",
     "type": "/type/language",
     "name": "Sami",
-    "key": "/languages/lap"
+    "key": "/languages/lap",
+    "deprecated": true,
+    "current": "/languages/smi"
   },
   {
     "code": "lat",
@@ -1571,7 +1661,7 @@
   {
     "code": "mao",
     "type": "/type/language",
-    "name": "Maori",
+    "name": "Māori",
     "key": "/languages/mao"
   },
   {
@@ -1612,6 +1702,12 @@
     "key": "/languages/men"
   },
   {
+    "code": "mga",
+    "type": "/type/language",
+    "name": "Irish, Middle (ca. 1100-1550)",
+    "key": "/languages/mga"
+  },
+  {
     "code": "mic",
     "type": "/type/language",
     "name": "Micmac",
@@ -1639,7 +1735,9 @@
     "code": "mla",
     "type": "/type/language",
     "name": "Malagasy",
-    "key": "/languages/mla"
+    "key": "/languages/mla",
+    "deprecated": true,
+    "current": "/languages/mlg"
   },
   {
     "code": "mlg",
@@ -1681,7 +1779,9 @@
     "code": "mol",
     "type": "/type/language",
     "name": "Moldavian",
-    "key": "/languages/mol"
+    "key": "/languages/mol",
+    "deprecated": true,
+    "current": "/languages/rum"
   },
   {
     "code": "mon",
@@ -1845,6 +1945,12 @@
     "key": "/languages/nor"
   },
   {
+    "code": "nqo",
+    "type": "/type/language",
+    "name": "N'Ko",
+    "key": "/languages/nqo"
+  },
+  {
     "code": "nso",
     "type": "/type/language",
     "name": "Northern Sotho",
@@ -1855,6 +1961,12 @@
     "type": "/type/language",
     "name": "Nubian languages",
     "key": "/languages/nub"
+  },
+  {
+    "code": "nwc",
+    "type": "/type/language",
+    "name": "Newari, Old",
+    "key": "/languages/nwc"
   },
   {
     "code": "nya",
@@ -2080,6 +2192,12 @@
     "key": "/languages/run"
   },
   {
+    "code": "rup",
+    "type": "/type/language",
+    "name": "Aromanian",
+    "key": "/languages/rup"
+  },
+  {
     "code": "rus",
     "type": "/type/language",
     "name": "Russian",
@@ -2125,7 +2243,9 @@
     "code": "sao",
     "type": "/type/language",
     "name": "Samoan",
-    "key": "/languages/sao"
+    "key": "/languages/sao",
+    "deprecated": true,
+    "current": "/languages/smo"
   },
   {
     "code": "sas",
@@ -2143,7 +2263,15 @@
     "code": "scc",
     "type": "/type/language",
     "name": "Serbian",
-    "key": "/languages/scc"
+    "key": "/languages/scc",
+    "deprecated": true,
+    "current": "/languages/srp"
+  },
+  {
+    "code": "scn",
+    "type": "/type/language",
+    "name": "Sicilian Italian",
+    "key": "/languages/scn"
   },
   {
     "code": "sco",
@@ -2155,7 +2283,9 @@
     "code": "scr",
     "type": "/type/language",
     "name": "Croatian",
-    "key": "/languages/scr"
+    "key": "/languages/scr",
+    "deprecated": true,
+    "current": "/languages/hrv"
   },
   {
     "code": "sel",
@@ -2179,7 +2309,9 @@
     "code": "sho",
     "type": "/type/language",
     "name": "Shona",
-    "key": "/languages/sho"
+    "key": "/languages/sho",
+    "deprecated": true,
+    "current": "/languages/sna"
   },
   {
     "code": "sid",
@@ -2258,7 +2390,9 @@
     "code": "snh",
     "type": "/type/language",
     "name": "Sinhalese",
-    "key": "/languages/snh"
+    "key": "/languages/snh",
+    "deprecated": true,
+    "current": "/languages/sin"
   },
   {
     "code": "snk",
@@ -2332,7 +2466,9 @@
     "code": "sso",
     "type": "/type/language",
     "name": "Sotho",
-    "key": "/languages/sso"
+    "key": "/languages/sso",
+    "deprecated": true,
+    "current": "/languages/sot"
   },
   {
     "code": "ssw",
@@ -2380,7 +2516,9 @@
     "code": "swz",
     "type": "/type/language",
     "name": "Swazi",
-    "key": "/languages/swz"
+    "key": "/languages/swz",
+    "deprecated": true,
+    "current": "/languages/ssw"
   },
   {
     "code": "syc",
@@ -2398,7 +2536,9 @@
     "code": "tag",
     "type": "/type/language",
     "name": "Tagalog",
-    "key": "/languages/tag"
+    "key": "/languages/tag",
+    "deprecated": true,
+    "current": "/languages/tgl"
   },
   {
     "code": "tah",
@@ -2417,7 +2557,9 @@
     "code": "taj",
     "type": "/type/language",
     "name": "Tajik",
-    "key": "/languages/taj"
+    "key": "/languages/taj",
+    "deprecated": true,
+    "current": "/languages/tgk"
   },
   {
     "code": "tam",
@@ -2429,7 +2571,9 @@
     "code": "tar",
     "type": "/type/language",
     "name": "Tatar",
-    "key": "/languages/tar"
+    "key": "/languages/tar",
+    "deprecated": true,
+    "current": "/languages/tat"
   },
   {
     "code": "tat",
@@ -2510,6 +2654,12 @@
     "key": "/languages/tkl"
   },
   {
+    "code": "tlh",
+    "type": "/type/language",
+    "name": "Klingon (Artificial language)",
+    "key": "/languages/tlh"
+  },
+  {
     "code": "tli",
     "type": "/type/language",
     "name": "Tlingit",
@@ -2561,7 +2711,9 @@
     "code": "tsw",
     "type": "/type/language",
     "name": "Tswana",
-    "key": "/languages/tsw"
+    "key": "/languages/tsw",
+    "deprecated": true,
+    "current": "/languages/tsn"
   },
   {
     "code": "tuk",
@@ -2766,6 +2918,12 @@
     "type": "/type/language",
     "name": "Zapotec",
     "key": "/languages/zap"
+  },
+  {
+    "code": "zbl",
+    "type": "/type/language",
+    "name": "Blissymbolics",
+    "key": "/languages/zbl"
   },
   {
     "code": "znd",

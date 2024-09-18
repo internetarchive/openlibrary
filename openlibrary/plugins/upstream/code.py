@@ -37,12 +37,13 @@ import logging
 logger = logging.getLogger('openlibrary.plugins.upstream.code')
 
 
+# Note: This is done in web_nginx.conf on production ; this endpoint is
+# only used in development/gitpod.
 class static(delegate.page):
     path = "/images/.*"
 
     def GET(self):
-        host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
-        raise web.seeother(host + '/static' + web.ctx.path)
+        return web.seeother(f'/static{web.ctx.path}')
 
 
 class history(delegate.mode):
@@ -59,8 +60,8 @@ class history(delegate.mode):
         history = json.loads(
             infogami_request('/versions', data={'query': json.dumps(query)})
         )
-        for i, row in enumerate(history):
-            history[i].pop("ip")
+        for _, row in enumerate(history):
+            row.pop("ip")
         return json.dumps(history)
 
 
@@ -70,7 +71,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:

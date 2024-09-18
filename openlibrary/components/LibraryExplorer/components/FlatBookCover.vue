@@ -17,7 +17,7 @@
 
 
 <script>
-import CONFIGS from '../configs';
+import CONFIGS from '../../configs';
 import { hashCode } from '../utils.js';
 
 export default {

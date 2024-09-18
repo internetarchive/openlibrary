@@ -16,7 +16,6 @@
 
 .read-options,
 .Tools .btn-notice {
-  line-height: 1.5em;
   font-size: 1em;
   padding: 15px;
   margin-bottom: 10px;
@@ -35,7 +34,7 @@
     text-decoration: none;
     position: relative;
     margin-top: -15px; // offsets Illustration margin-bottom: 10px
-    margin-bottom: 0;
+    margin-bottom: 5px;
     padding: 5px 20px 10px; // Increasing click area for mobile text link
     background-color: transparent;
 
@@ -65,11 +64,6 @@
       -webkit-mask-size: cover;
       mask-size: cover;
       background-color: @primary-blue;
-    }
-
-    // Hide "Only" in preview link
-    span {
-      display: none;
     }
     /* stylelint-enable selector-max-specificity */
   }
@@ -171,8 +165,6 @@
   /* stylelint-disable selector-max-specificity */
   .mobile-vendor,
   .cta-button-group.mobile,
-  #read-options > .modal-links > .star-rating-form,
-  .lists-widget-container > #ratingsForm > .star-rating__not-rated,
   .readers-stats__wrapper.mobile {
     display: none;
   }
@@ -197,16 +189,16 @@
   .Tools .btn-notice,
   .read-options {
     border: none;
-    // Hide desktop version of modal links and ratings form on mobile
-    /* stylelint-disable selector-max-specificity */
+    // Hide border for desktop version of modal links and ratings form on mobile
     /* stylelint-disable no-descending-specificity */
-    &> hr,
-    &> .lists-widget-container > #ratingsForm,
-    &> .modal-links {
+    &> hr {
       display: none;
     }
     /* stylelint-enable no-descending-specificity */
-    /* stylelint-enable selector-max-specificity */
+  }
+
+  .star-rating-form.desktop, .modal-links.desktop {
+    display: none;
   }
 
   .cta-button-group.mobile {

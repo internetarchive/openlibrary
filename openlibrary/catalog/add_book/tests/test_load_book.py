@@ -7,9 +7,10 @@ from openlibrary.catalog.add_book.load_book import (
     InvalidLanguage,
     remove_author_honorifics,
 )
+from openlibrary.core.models import Author
 
 
-@pytest.fixture()
+@pytest.fixture
 def new_import(monkeypatch):
     monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
 
@@ -34,12 +35,17 @@ unchanged_names = [
     {'name': 'Smith, John III, King of Coats, and Bottles'},
     {'name': 'Harper, John Murdoch, 1845-'},
     {'entity_type': 'org', 'name': 'Organisation, Place'},
+    {
+        'entity_type': 'org',
+        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin',
+    },
 ]
 
 
 @pytest.mark.parametrize('author', natural_names)
 def test_import_author_name_natural_order(author, new_import):
     result = import_author(author)
+    assert isinstance(result, dict)
     assert result['name'] == 'Forename Surname'
 
 
@@ -47,13 +53,14 @@ def test_import_author_name_natural_order(author, new_import):
 def test_import_author_name_unchanged(author, new_import):
     expect = author['name']
     result = import_author(author)
+    assert isinstance(result, dict)
     assert result['name'] == expect
 
 
 def test_build_query(add_languages):
     rec = {
         'title': 'magic',
-        'languages': ['eng', 'fre'],
+        'languages': ['ENG', 'fre'],
         'translated_from': ['yid'],
         'authors': [{'name': 'Surname, Forename'}],
         'description': 'test',
@@ -235,6 +242,7 @@ class TestImportAuthor:
             "death_date": "1881",
         }
         found = import_author(searched_author)
+        assert isinstance(found, Author)
         assert found.key == author_alternate_name_with_dates["key"]
 
     def test_last_match_on_surname_and_dates(self, mock_site):

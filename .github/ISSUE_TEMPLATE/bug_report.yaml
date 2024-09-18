@@ -1,35 +1,30 @@
 name: Bug Report
 description:  Create a report to help us improve
-labels: ["Type: Bug", "Needs: Triage", "Needs: Lead"]
+labels: ["Type: Bug", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
 body:
   - type: markdown
     attributes:
       value: |
-        **IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.**
-
-        Thanks for taking the time to fill out this bug report! 👍
+        > [!IMPORTANT]
+        > Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
   - type: textarea
     attributes:
       label: Problem
-      description: A short description of the issue you're facing.
+      description: A short description of the issue, why or how often it may be happening, and its predicted impact.
       value: |
+        <!-- Brief description of issue -->
 
-
-        #### Evidence / Screenshot
-
-        #### Relevant URL(s)
-
+        <!-- Evidence, Screenshots, & Relevant URL(s) -->
   - type: textarea
     attributes:
       label: Reproducing the bug
-      description: What steps caused you to find the bug?
+      description: Being as specific as possible, what steps result in triggering this bug?
       value: |
         1. Go to ...
         2. Do ...
 
         * Expected behavior:
         * Actual behavior:
-
   - type: textarea
     attributes:
       label: Context
@@ -37,22 +32,33 @@ body:
       value: |
         - Browser (Chrome, Safari, Firefox, etc):
         - OS (Windows, Mac, etc):
-        - Logged in (Y/N): Y
+        - Logged in (Y/N):
         - Environment (prod, dev, local): prod
   - type: textarea
     attributes:
-      label: Notes from this Issue's Lead
+      label: Breakdown
       description: |
-        Please leave these sections blank for maintainers if you are unsure what to enter
+        Detailed instructions for resolving this issue. Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
-        #### Proposal & constraints
-        <!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
+        <!-- Overview of the proposed solution / implementation? -->
+
+        #### Requirements Checklist
+        * [ ]
 
         #### Related files
         <!-- Files related to this issue; this is super useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them. -->
+        *
 
         #### Stakeholders
-        <!-- @ tag stakeholders of this bug -->
+        <!-- @ tag stakeholders of this feature w/ questions or context as necessary -->
+        *
+        <hr>
 
-        <!-- Please leave the following reminder section as is to help new contributors -->
-        **Note:** Before [making a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) _or_ updating an existing one, please [ensure your branch is up to date](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch).
+        #### Instructions for Contributors
+        <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
+
+        - Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to Github, because the pre-commit bot may add commits to your PRs upstream.
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 👍

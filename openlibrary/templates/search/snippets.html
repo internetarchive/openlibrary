@@ -4,7 +4,7 @@ $ q = query_param('q')
 
 <div id="contentHead">
     <div class="small sansserif grey" style="margin-bottom:5px;">
-        <a href="/search/inside">Search Inside</a> /
+        <a href="/search/inside">$_("Search Inside")</a> /
         <a href="/search/inside?q=$q">$q</a>
     </div>
     <h1>
@@ -28,7 +28,7 @@ $for match in matches:
     $for par in match['par']:
         $ par_num = par_num + 1
         $ page = par['page']
-        <p class="lightgreen small sansserif">On leaf number $page:</p>
+        <p class="lightgreen small sansserif">$_('On leaf number %(page_num)d:', page_num=page)</p>
 
         $ t = (par['t'] / scale) - ypadding
         $ r = (par['r'] / scale) + xpadding

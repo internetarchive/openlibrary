@@ -9,16 +9,13 @@ $# * limit (int) -- initial number of books to pull
 $# * search (bool) -- whether to include search within collection
 $# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
 
-$# Set default for key
-$ key = key or str(abs(hash(query)))
-
 $# Enable search within this query
 $if search:
   <form action="/search" class="olform pagesearchbox">
     <input type="hidden" name="q" value="$query"/>
     $if has_fulltext_only:
       <input type="hidden" name="has_fulltext" value="true"/>
-    <input type="text" placeholder="Search collection" name="q2"/>
+    <input type="text" placeholder="$_('Search collection')" name="q2"/>
     <input type="submit"/>
   </form>
 

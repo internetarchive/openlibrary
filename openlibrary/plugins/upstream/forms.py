@@ -58,7 +58,10 @@ vlogin = RegexpValidator(
     r"^[A-Za-z0-9\-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
 )
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
-vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
+vemail = RegexpValidator(
+    r".*@.*\..*",
+    _("Must be a valid email address"),
+)
 
 
 class EqualToValidator(Validator):
@@ -76,7 +79,7 @@ class RegisterForm(Form):
     INPUTS = [
         Email(
             'email',
-            description=_('Your email address'),
+            description=_('Email'),
             klass='required',
             id='emailAddr',
             required="true",
@@ -89,12 +92,9 @@ class RegisterForm(Form):
         ),
         Textbox(
             'username',
-            description=_(
-                "Choose a screen name. Screen names are public and cannot be changed "
-                "later."
-            ),
+            description=_("Screen Name"),
             klass='required',
-            help=_("Letters and numbers only please, and at least 3 characters."),
+            help=_("Public and cannot be changed later."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
             pattern=vlogin.rexp.pattern,
@@ -103,7 +103,7 @@ class RegisterForm(Form):
         ),
         Password(
             'password',
-            description=_('Choose a password'),
+            description=_('Password'),
             klass='required',
             validators=[vpass],
             minlength="3",

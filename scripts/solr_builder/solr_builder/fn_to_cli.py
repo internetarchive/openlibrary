@@ -101,14 +101,14 @@ class FnToCLI:
             return FnToCLI.type_to_argparse(
                 next(t for t in typing.get_args(typ) if not isinstance(t, type(None)))
             )
-        if typ == bool:
+        if typ is bool:
             return {'type': typ, 'action': BooleanOptionalAction}
 
         simple_types = (int, str, float, Path)
         if typ in simple_types:
             return {'type': typ}
 
-        if typing.get_origin(typ) == list:
+        if typing.get_origin(typ) is list:
             subtype = typing.get_args(typ)[0]
             if subtype in simple_types:
                 return {'nargs': '*', 'type': subtype}

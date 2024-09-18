@@ -22,7 +22,7 @@
 
 <script>
 import FlatBookCover from './FlatBookCover';
-import CONFIGS from '../configs';
+import CONFIGS from '../../configs';
 
 export default {
     components: { FlatBookCover },

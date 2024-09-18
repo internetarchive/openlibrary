@@ -9,7 +9,7 @@ from typing import Literal, cast
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import render_template, public, require_login
 from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
@@ -351,6 +351,14 @@ class lists_edit(delegate.page):
             return delegate.RawText(json.dumps({'key': list_record.key}))
         else:
             return safe_seeother(list_record.key)
+
+
+class lists_add_account(delegate.page):
+    path = r"/account/lists/add"
+
+    @require_login
+    def GET(self):
+        return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
 
 
 class lists_add(delegate.page):

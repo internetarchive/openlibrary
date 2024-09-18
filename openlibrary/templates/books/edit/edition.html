@@ -1,7 +1,9 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
+$ is_librarian = ctx.user and ctx.user.is_librarian()
+$ is_admin = ctx.user and ctx.user.is_admin()
+$ is_privileged_user = is_librarian or is_admin
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -96,7 +98,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publishers">$_("Who is the publisher?")</label>
-                        <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+                        <span class="tip">$:_('For example <em>Oxford University Press; Penguin; W.W. Norton</em>')</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
@@ -242,7 +244,7 @@ $jsdef render_work_autocomplete_item(item):
             <div class="formElement">
                 <div class="label">
                     <label for="edition-by_statement">$_("By Statement:")</label>
-                    <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
+                    <span class="tip">$:_('For example: <em>edited by David Anderson</em>')</span>
                 </div>
                 <div class="input">
                     <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" />
@@ -331,6 +333,7 @@ $jsdef render_work_autocomplete_item(item):
             <div class="label">
                 <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
+        $# detect-missing-i18n-skip-line
         <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
         ** Chapter 1 | Of the Nature of Flatland | 3
         ** Chapter 2 | Of the Climate and Houses in Flatland | 5
@@ -359,7 +362,7 @@ $jsdef render_work_autocomplete_item(item):
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
+                <div class="tip">$:_('For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.')</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
@@ -372,19 +375,29 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
                     $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID (like")
-                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
+                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).')
                     <br/>
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
+            $ config = {'addnew': is_librarian, 'new_name': _('-- Move to a new work')}
             <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
                 $else:
                     $:render_work_field(0, storage(title="", key=""))
+            </div>
+            <div class="new-work-options" style="display:none">
+                <label>
+                    <input type="checkbox" name="new_work_options--copy_authors" value="yes">
+                    $_("Copy authors to new work")
+                </label>
+                &ensp;
+                <label>
+                    <input type="checkbox" name="new_work_options--copy_subjects" value="yes">
+                    $_("Copy subjects to new work")
+                </label>
             </div>
         </div>
 
@@ -451,10 +464,10 @@ $ })
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
                             </td>
-                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
                         </tr>
                         <tr>
-                            <td align="right">Open Library</td>
+                            <td align="right">$_("Open Library")</td>
                             <td>$book.key.split("/")[-1]</td>
                             <td></td>
                         </tr>
@@ -469,7 +482,7 @@ $ })
                             $if id.name == "ocaid" and not is_privileged_user:
                                 <td></td>
                             $else:
-                                <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -567,7 +580,7 @@ $ })
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
-                    <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
+                    <div class="tip">$:_('For example: <em>xii, 346p.</em>')</div>
                 </div>
             </div>
 
@@ -579,7 +592,7 @@ $ })
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
                     <input name="edition--weight--value" type="number" step="any"
-                           id="edition--weight--value" size="6" value="$weight.value"/>
+                           id="edition--weight--value" min="0.01" size="6" value="$weight.value"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -601,17 +614,17 @@ $ })
                             <tr>
                                 <td rowspan="3"><img src="/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.1"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0.1"
                                            id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" step="any"
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0.1"
                                            id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>
@@ -629,7 +642,7 @@ $code:
             return True
         return False
 
-$if is_privileged_user:
+$if is_admin:
     $ extra_class = ' hidden' if len(book.providers) == 0 else ''
     $ provider_index = 0
     <fieldset class="major">
@@ -651,7 +664,6 @@ $if is_privileged_user:
                             <select name="edition--providers--${i}--access" id="edition--providers--${i}--access" autocomplete="off">
                                 <option value=""></option>
                                 <option value="read" $cond(is_selected(d.access, 'read'), 'selected')>$_("Read")</option>
-                                <option value="listen" $cond(is_selected(d.access, 'listen'), 'selected')>$_("Listen")</option>
                                 <option value="buy" $cond(is_selected(d.access, 'buy'), 'selected')>$_("Buy")</option>
                                 <option value="borrow" $cond(is_selected(d.access, 'borrow'), 'selected')>$_("Borrow")</option>
                                 <option value="preview" $cond(is_selected(d.access, 'preview'), 'selected')>$_("Preview")</option>
@@ -686,7 +698,7 @@ $if ctx.user:
         </div>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
+$if is_admin:
     <fieldset class="major adminOnly">
         <legend>$_("Admin Only")</legend>
         <div class="formElement">
@@ -695,7 +707,7 @@ $if ctx.user and ctx.user.is_admin():
                 <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
-                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea>
+                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea> $# detect-missing-i18n-skip-line
             </div>
         </div>
     </fieldset>

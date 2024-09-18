@@ -27,6 +27,9 @@ def test_get_doc():
             'lending_edition_s': 'OL1111795M',
             'public_scan_b': False,
             'title': 'The computer glossary',
+            'ratings_average': None,
+            'ratings_count': None,
+            'want_to_read_count': None,
         }
     )
     assert doc == web.storage(
@@ -62,6 +65,10 @@ def test_get_doc():
             'id_standard_ebooks': [],
             'id_openstax': [],
             'id_cita_press': [],
+            'id_wikisource': [],
             'editions': [],
+            'ratings_average': None,
+            'ratings_count': None,
+            'want_to_read_count': None,
         }
     )

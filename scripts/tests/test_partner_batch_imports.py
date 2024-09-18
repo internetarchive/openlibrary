@@ -31,10 +31,14 @@ class TestBiblio:
             'publishers': ['BDK America'],
             'weight': '0.545',
             'authors': [{'name': 'Heng-ching, Shih'}],
-            'pagination': '226',
+            'number_of_pages': 226,
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 
@@ -48,10 +52,14 @@ class TestBiblio:
             'publishers': ['BDK America'],
             'weight': '0.545',
             'authors': [{'name': 'Heng-ching, Shih'}],
-            'pagination': '226',
+            'number_of_pages': 226,
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 
@@ -59,7 +67,8 @@ class TestBiblio:
     def test_non_books_rejected(self, input_):
         data = input_.strip().split('|')
         code = data[6]
-        with pytest.raises(AssertionError, match=f'{code} is NONBOOK'):
+        pclass = data[121]
+        with pytest.raises(AssertionError, match=f'{code}/{pclass} is NONBOOK'):
             _ = Biblio(data)
 
 

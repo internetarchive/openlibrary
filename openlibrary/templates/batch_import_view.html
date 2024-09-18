@@ -1,0 +1,56 @@
+$def with (batch, rows, total_rows, page, limit, sort, status_counts)
+$var title: $_("Batch Import Status")
+
+<div id="contentHead">
+    <h1>$_("Batch Import Status")</h1>
+</div>
+<div id="contentBody" class="batchImportStatus">
+    <p>$_('Batch ID:') $batch.id</p>
+    <p>$_('Batch Name:') $batch.name</p>
+    <p>$_('Submitter:') $batch.submitter</p>
+    <p>$_('Submit Time:') $datestr(batch.submit_time)</p>
+
+    <h2>$_('Status Summary')</h2>
+    <ul>
+        $for status_count in status_counts:
+            <li>$status_count.status: $status_count.count</li>
+    </ul>
+
+    <h2>$_('Import Items')</h2>
+    <table class="changeHistory">
+        <thead>
+            <tr>
+                <th><a href="$changequery(page=None, sort='added_time asc')">$_('Added Time')</a></th>
+                <th><a href="$changequery(page=None, sort='import_time asc')">$_('Import Time')</a></th>
+                <th><a href="$changequery(page=None, sort='status asc')">$_('Status')</a></th>
+                <th>$_('Error')</th>
+                <th>$_('IA ID')</th>
+                <th>$_('Data')</th>
+                <th>$_('OL Key')</th>
+                <th>$_('Comments')</th>
+                <th>$_('Submitter')</th>
+            </tr>
+        </thead>
+        <tbody>
+            $for row in rows:
+                <tr>
+                    <td>$datestr(row.added_time)</td>
+                    <td>$(datestr(row.import_time) if row.import_time else _('Not yet imported'))</td>
+                    <td>$row.status</td>
+                    <td>$row.error</td>
+                    <td>$row.ia_id</td>
+                    <td>$row.data</td>
+                    <td>
+                    $if row.ol_key:
+                        <a href="$row.ol_key">$row.ol_key</a>
+                    $else:
+                        $row.ol_key
+                    </td>
+                    <td>$row.comments</td>
+                    <td>$row.submitter</td>
+                </tr>
+        </tbody>
+    </table>
+
+    $:macros.Pager(page, total_rows, limit)
+</div>

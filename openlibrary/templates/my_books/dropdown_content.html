@@ -55,7 +55,7 @@ $def list_selections(user_lists, work_key, edition_key, async_load):
           $# XXX : Change edition key to seed key for author pages
           $ ed_attr = 'data-edition-key=%s' % edition_key if edition_key else ''
           $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
-          <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>
+          <div class="list-loading-indicator" $ed_attr $work_attr>$_("Loading")<span class="loading-ellipsis">...</span></div>
       $else:
         $:render_template('lists/dropper_lists', user_lists)
     </div>

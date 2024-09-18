@@ -5,6 +5,11 @@ import web
 from .model import *  # noqa: F403
 from .model import Account, Link
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import User
+
 
 # Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
@@ -20,7 +25,7 @@ class RunAs:
     and then de-escalates to original user.
     """
 
-    def __init__(self, username):
+    def __init__(self, username: str) -> None:
         """
         :param str username: Username e.g. /people/mekBot of user to run action as
         """
@@ -45,14 +50,16 @@ class RunAs:
 
 
 # Confirmed functions (these have to be here)
-def get_current_user():
+def get_current_user() -> "User | None":
     """
     Returns the currently logged in user. None if not logged in.
     """
     return web.ctx.site.get_user()
 
 
-def find(username=None, lusername=None, email=None):
+def find(
+    username: str | None = None, lusername: str | None = None, email: str | None = None
+) -> Account | None:
     """Finds an account by username, email or lowercase username."""
 
     def query(name, value):
@@ -99,7 +106,7 @@ def update_account(username, **kargs):
     web.ctx.site.update_account(username, **kargs)
 
 
-def get_link(code):
+def get_link(code: str) -> Link | bool:
     docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
     if docs:
         doc = docs[0]

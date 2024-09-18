@@ -1,5 +1,6 @@
 $code:
     names = {
+        "marc_baclac": "Library and Archives Canada",
         "marc_dnb_202006": "Deutsche Nationalbibliothek",
         "marc_loc_updates": "Library of Congress",
         "marc_loc_2016": "Library of Congress",
@@ -20,6 +21,7 @@ $code:
         "marc_ithaca_college": "Ithaca College Library",
         "marc_binghamton_univ": "Binghamton University",
         "marc_upei": "University of Prince Edward Island",
+        "marc_marygrove": "Marygrove College",
     }
     for i in range(1, 17):
         names["SanFranPL%02d" % i] = "San Francisco Public Library"
@@ -42,6 +44,9 @@ $code:
         elif item.startswith("bwb:"):
             source_name = "Better World Books"
             source_url = "https://www.betterworldbooks.com/"
+        elif item.startswith("google_books:"):
+            source_name = "Google Books"
+            source_url = "https://books.google.com/"
         elif item.startswith("idb:") or item.startswith("osp:"):
             source_name = "ISBNdb"
             source_url = "https://isbndb.com/"
@@ -53,4 +58,22 @@ $code:
             source_url = "//archive.org/details/" + item
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
+    def link(url, label):
+        return '<a href="' + url + '">' + label + '</a>' if url else label
+
+    def get_source_html(record_id):
+        record_type = _('record')
+        if record_id.startswith('marc:'):
+	    record_id = record_id[5:]
+        if record_id.startswith('marc'):
+	    record_type = _('MARC record')
+        record = get_source_record(record_id)
+	if record.source_name == 'Internet Archive':
+	    record_type = _('item record')
+	if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex'):
+            return link(record.source_url, record.source_name)
+	else:
+            return link(record.source_url, record.source_name) + ' ' + link(record.url, record_type)
+
 $var get_source_record = get_source_record
+$var get_source_html = get_source_html

@@ -1,6 +1,7 @@
 import functools
+import os
 from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 import unicodedata
 
 import web
@@ -12,11 +13,12 @@ from babel.lists import format_list
 from collections import defaultdict
 import re
 import random
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 import datetime
 import logging
 from html.parser import HTMLParser
 from pathlib import Path
+import yaml
 
 import requests
 
@@ -211,6 +213,39 @@ def render_component(
     return html
 
 
+def render_macro(name, args, **kwargs):
+    return dict(web.template.Template.globals['macros'][name](*args, **kwargs))
+
+
+@public
+def render_cached_macro(name, args: tuple, **kwargs):
+    from openlibrary.plugins.openlibrary.home import caching_prethread
+
+    def get_key():
+        lang = web.ctx.lang
+        pd = web.cookies().get('pd', False)
+        key = f'{name}.{lang}'
+        if pd:
+            key += '.pd'
+        for arg in args:
+            key += f'.{arg}'
+        for k, v in kwargs.items():
+            key += f'.{k}:{v}'
+        return key
+
+    five_minutes = 5 * 60
+    key = get_key()
+    mc = cache.memcache_memoize(
+        render_macro, key, timeout=five_minutes, prethread=caching_prethread()
+    )
+
+    try:
+        page = mc(name, args, **kwargs)
+        return web.template.TemplateResult(page)
+    except (ValueError, TypeError) as e:
+        return '<span>Failed to render macro</span>'
+
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
@@ -354,7 +389,10 @@ def get_coverstore_url() -> str:
 
 @public
 def get_coverstore_public_url() -> str:
-    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
+    if OL_COVERSTORE_PUBLIC_URL := os.environ.get('OL_COVERSTORE_PUBLIC_URL'):
+        return OL_COVERSTORE_PUBLIC_URL.rstrip('/')
+    else:
+        return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
 def _get_changes_v1_raw(
@@ -709,51 +747,54 @@ def strip_accents(s: str) -> str:
 
 
 @functools.cache
-def get_languages() -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": 1000})
-    return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
+def get_languages(limit: int = 1000) -> dict:
+    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
+    return {
+        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
+    }
+
+
+def word_prefix_match(prefix: str, text: str) -> bool:
+    # Compare to each word of `text` for more accurate matching
+    # Eg. the prefix 'greek' will match with 'ancient greek' as well as 'greek'
+    return any(piece.startswith(prefix) for piece in text.split())
 
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of:
+    Given, e.g., "English", this returns an iterator of the following:
         <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
     """
 
-    def normalize(s: str) -> str:
+    def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
+        # For each language attempt to match based on:
+        # The language's name translated into the current user's chosen language (user_lang)
+        user_lang = web.ctx.lang or 'en'
+        yield safeget(lambda: lang['name_translated'][user_lang][0])
+
+        # The language's name translated into its native name (lang_iso_code)
+        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        yield safeget(lambda: lang['name_translated'][lang_iso_code][0])
+
+        # The language's name as it was fetched from get_languages() (None)
+        yield lang['name']
+
+    def normalize_for_search(s: str) -> str:
         return strip_accents(s).lower()
 
-    prefix = normalize(prefix)
-    user_lang = web.ctx.lang or 'en'
+    prefix = normalize_for_search(prefix)
     for lang in get_languages().values():
-        user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
-        if user_lang_name and normalize(user_lang_name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=user_lang_name,
-            )
-            continue
-
-        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
-        native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
-        if native_lang_name and normalize(native_lang_name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=native_lang_name,
-            )
-            continue
-
-        if normalize(lang.name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=lang.name,
-            )
-            continue
+        for lang_name in get_names_to_try(lang):
+            if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
+                yield Storage(
+                    key=lang.key,
+                    code=lang.code,
+                    name=lang_name,
+                )
+                break
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
@@ -1188,13 +1229,16 @@ def _get_author_config():
 
     The results are cached on the first invocation.
     Any changes to /config/author page require restarting the app.
-
     """
-    thing = web.ctx.site.get('/config/author')
-    if hasattr(thing, "identifiers"):
-        identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
-    else:
-        identifiers = {}
+    # Load the author config from the author.yml file in the author directory
+    with open(
+        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
+    ) as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
+
     return Storage(identifiers=identifiers)
 
 
@@ -1209,12 +1253,18 @@ def _get_edition_config():
 
     The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
 
-    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    This is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     thing = web.ctx.site.get('/config/edition')
     classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
+    with open(
+        'openlibrary/plugins/openlibrary/config/edition/identifiers.yml'
+    ) as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
     return Storage(
         classifications=classifications, identifiers=identifiers, roles=roles
     )
@@ -1403,7 +1453,7 @@ def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.fromstring(requests.get(url).text)
+        tree = ET.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error(

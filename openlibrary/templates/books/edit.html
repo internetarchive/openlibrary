@@ -51,7 +51,7 @@ $:macros.HiddenSaveButton("addWork")
 <div id="contentBody">
     $ work_key = query_param('work_key', None)
     $ action = '?work_key=%s' % work_key if work_key else ''
-    <form method="post" id="addWork" class="olform books validate" name="edit" action="$action">
+    <form method="post" id="addWork" class="olform books" name="edit" action="$action">
 
         <input type="hidden" name="work--key" value="$work.key">
         $ authors = work.authors and [a.author for a in work.authors]
@@ -87,7 +87,7 @@ $:macros.HiddenSaveButton("addWork")
                                         <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
                                     </div>
                                     <div class="input">
-                                        <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
+                                        <input name="work--title" type="text" id="work-title" value="$this_title" required/>
                                     </div>
                                     <div class="label">
                                         <label for="author-$0">$_("Author")</label>

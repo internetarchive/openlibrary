@@ -4,6 +4,7 @@ from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
 from lxml import etree
 from pathlib import Path
 import pytest
+import lxml.etree
 
 xml_samples = [
     ('bijouorannualofl1828cole', {}),
@@ -241,7 +242,9 @@ class TestSubjects:
     @pytest.mark.parametrize('item,expected', xml_samples)
     def test_subjects_xml(self, item, expected):
         filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
-        element = etree.parse(filepath).getroot()
+        element = etree.parse(
+            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         if element.tag != record_tag and element[0].tag == record_tag:
             element = element[0]
         rec = MarcXml(element)
