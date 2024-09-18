@@ -5,10 +5,9 @@
 ## docker compose up -d
 ##
 
-version: "3.8"
 services:
   web:
-    profiles: ["ol-web1", "ol-web2"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
@@ -30,7 +29,7 @@ services:
 
   solr_haproxy:
     profiles: ["ol-solr0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.9.7
     restart: unless-stopped
     networks:
       - webnet
@@ -82,7 +81,8 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/certbot
+      - NGINX_DOMAIN=covers.openlibrary.org
     restart: unless-stopped
     hostname: "$HOSTNAME"
     depends_on:
@@ -90,8 +90,9 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
+      # letsencrypt
+      - letsencrypt-data:/etc/letsencrypt
+      - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps:/sitemaps
@@ -111,10 +112,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    secrets:
-      # Needed by public_nginx.conf
-      - ssl_certificate
-      - ssl_certificate_key
 
   memcached:
     # The memcached cluster is currently managed manually on production
@@ -136,8 +133,6 @@ services:
     networks:
       - webnet
       - dbnet
-    secrets:
-      - ia_db_pw_file
 
   infobase:
     profiles: ["ol-home0"]
@@ -152,7 +147,7 @@ services:
       - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
   web_haproxy:
     profiles: ["ol-www0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.9.7
     restart: unless-stopped
     hostname: "$HOSTNAME"
     networks:
@@ -173,13 +168,15 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0"
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot
+      - NGINX_DOMAIN=openlibrary.org www.openlibrary.org
     volumes:
+      # letsencrypt
+      - letsencrypt-data:/etc/letsencrypt
+      - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # archive web log uploads
       - ../olsystem:/olsystem
       # web log rotation
@@ -191,6 +188,8 @@ services:
       # Archive nginx logs regularly
       - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
       - archive-webserver-logs-data:/archive-webserver-logs-data
+      # Sitemaps
+      - ../olsystem/etc/cron.d/pull-sitemaps-from-ol-home0:/etc/cron.d/pull-sitemaps-from-ol-home0
     ports:
       - 80:80
       - 443:443
@@ -200,9 +199,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    secrets:
-      - ssl_certificate
-      - ssl_certificate_key
 
   infobase_nginx:
     profiles: ["ol-home0"]
@@ -299,16 +295,6 @@ services:
       - webnet
       - dbnet
 
-# secrets mounted to /run/secrets/
-# e.g. /run/secrets/ia_db_pw_file
-secrets:
-    ia_db_pw_file:
-      file: /opt/.petabox/dbserver
-
-    # SSL-related secrets
-    ssl_certificate:
-      file: /opt/.petabox/openlibrary.org.combined.crt
-    ssl_certificate_key:
-      file: /opt/.petabox/openlibrary.org.nopassword.key
 volumes:
     archive-webserver-logs-data:
+    letsencrypt-data:

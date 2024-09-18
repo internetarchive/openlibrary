@@ -90,7 +90,7 @@ Our login process on Open Library's dev instance is a bit funky. You need to cor
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
 ### Our Roadmap(s)
 You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
@@ -154,10 +154,11 @@ Once you've finished making your changes, submit a pull request (PR). Please tak
 
 Follow these rules when creating a PR:
 
-1. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
-2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
-3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
-4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+1. **Test your code before opening a PR**: Maintainers may close your PR if it has clearly not been tested.
+2. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
+3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
+4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
+5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
 
 ## QA Testing
 

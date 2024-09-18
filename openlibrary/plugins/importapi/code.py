@@ -1,8 +1,11 @@
 """Open Library Import API
 """
+
+from typing import Any
 from infogami.plugins.api.code import add_hook
 from infogami.infobase.client import ClientException
 
+from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
@@ -16,8 +19,9 @@ from openlibrary.plugins.upstream.utils import (
     get_abbrev_from_full_lang_name,
     LanguageMultipleMatchError,
     get_location_and_publisher,
+    safeget,
 )
-from openlibrary.utils.isbn import get_isbn_10_and_13
+from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 import web
 
@@ -36,6 +40,8 @@ from lxml import etree
 import logging
 
 import urllib
+import lxml.etree
+
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
@@ -75,7 +81,9 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     """
     data = data.strip()
     if b'<?xml' in data[:10]:
-        root = etree.fromstring(data)
+        root = etree.fromstring(
+            data, parser=lxml.etree.XMLParser(resolve_entities=False)
+        )
         if root.tag == '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF':
             edition_builder = import_rdf.parse(root)
             format = 'rdf'
@@ -95,6 +103,24 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
             raise DataError('unrecognized-XML-format')
     elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
+
+        # Only look to the import_item table if a record is incomplete.
+        # This is the minimum to achieve a complete record. See:
+        # https://github.com/internetarchive/openlibrary/issues/9440
+        # import_validator().validate() requires more fields.
+        minimum_complete_fields = ["title", "authors", "publish_date"]
+        is_complete = all(obj.get(field) for field in minimum_complete_fields)
+        if not is_complete:
+            isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
+            isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
+            identifier = to_isbn_13(isbn_13 or isbn_10 or "")
+
+            if not identifier:
+                identifier = get_non_isbn_asin(rec=obj)
+
+            if identifier:
+                supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
+
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
@@ -112,6 +138,39 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
+
+
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found,
+    uses select metadata to supplement empty fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'description',
+        'isbn_10',
+        'isbn_13',
+        'number_of_pages',
+        'physical_format',
+        'publish_date',
+        'publishers',
+        'title',
+        'source_records',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if field == "source_records":
+                rec[field].extend(import_item_metadata.get(field))
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
 
 
 class importapi:
@@ -132,7 +191,7 @@ class importapi:
         try:
             edition, _ = parse_data(data)
 
-        except DataError as e:
+        except (DataError, json.JSONDecodeError) as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
             return self.error('invalid-value', str(e).replace('\n', ': '))
@@ -197,30 +256,17 @@ class ia_importapi(importapi):
         """
         from_marc_record = False
 
-        # Case 1 - Is this a valid Archive.org item?
+        # Check 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
-            raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
+            raise BookImportError('invalid-ia-identifier', f'{identifier} not found')
 
-        # Case 2 - Does the item have an openlibrary field specified?
-        # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them and attach the item
-        # to that edition.
-        edition_olid = metadata.get('openlibrary_edition') or metadata.get(
-            'openlibrary'
-        )
-        if metadata.get('mediatype') == 'texts' and edition_olid:
-            edition_data = cls.get_ia_record(metadata)
-            edition_data['openlibrary'] = edition_olid
-            edition_data = cls.populate_edition_data(edition_data, identifier)
-            return cls.load_book(edition_data)
-
-        # Case 3 - Can the item be loaded into Open Library?
+        # Check 2 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
         if status != 'ok' and not force_import:
-            raise BookImportError(status, 'Prohibited Item %s' % identifier)
+            raise BookImportError(status, f'Prohibited Item {identifier}')
 
-        # Case 4 - Does this item have a marc record?
+        # Check 3 - Does this item have a MARC record?
         marc_record = get_marc_record_from_ia(
             identifier=identifier, ia_metadata=metadata
         )
@@ -234,9 +280,7 @@ class ia_importapi(importapi):
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error(
-                    'failed to read from MARC record %s: %s', identifier, str(e)
-                )
+                logger.error(f'failed to read from MARC record {identifier}: {e}')
                 raise BookImportError('invalid-marc-record')
         else:
             try:
@@ -280,8 +324,8 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f"{identifier}: {e}"
-                logger.error("failed to read from bulk MARC record %s", details)
+                details = f'{identifier}: {e}'
+                logger.error(f'failed to read from bulk MARC record {details}')
                 return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
@@ -358,7 +402,7 @@ class ia_importapi(importapi):
         if description:
             d['description'] = description
         if unparsed_isbns:
-            isbn_10, isbn_13 = get_isbn_10_and_13(unparsed_isbns)
+            isbn_10, isbn_13 = get_isbn_10s_and_13s(unparsed_isbns)
             if isbn_10:
                 d['isbn_10'] = isbn_10
             if isbn_13:

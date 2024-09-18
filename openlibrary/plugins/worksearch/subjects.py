@@ -1,6 +1,8 @@
 """Subject pages.
 """
+
 from dataclasses import dataclass
+from typing import Literal
 import web
 import json
 import datetime
@@ -121,6 +123,8 @@ class subjects_json(delegate.page):
     def process_key(self, key):
         return key
 
+
+SubjectType = Literal["subject", "place", "person", "time"]
 
 SubjectPseudoKey = str
 """

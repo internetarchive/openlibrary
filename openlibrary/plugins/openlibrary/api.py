@@ -7,6 +7,8 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import json
+import qrcode
+import io
 from collections import defaultdict
 from openlibrary.views.loanstats import get_trending_books
 from infogami import config
@@ -25,11 +27,13 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
+from openlibrary.core.follows import PubSub
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
+from openlibrary.core.helpers import NothingEncoder
 
 
 class book_availability(delegate.page):
@@ -51,15 +55,10 @@ class book_availability(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
     def get_book_availability(self, id_type, ids):
-        return (
-            lending.get_availability_of_works(ids)
-            if id_type == "openlibrary_work"
-            else lending.get_availability_of_editions(ids)
-            if id_type == "openlibrary_edition"
-            else lending.get_availability_of_ocaids(ids)
-            if id_type == "identifier"
-            else []
-        )
+        if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
+            return lending.get_availability(id_type, ids)
+        else:
+            return []
 
 
 class trending_books_api(delegate.page):
@@ -173,9 +172,7 @@ class ratings(delegate.page):
         key = (
             i.redir_url
             if i.redir_url
-            else i.edition_id
-            if i.edition_id
-            else ('/works/OL%sW' % work_id)
+            else i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
         )
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
@@ -234,13 +231,13 @@ class booknotes(delegate.page):
         :return: the note
         """
         user = accounts.get_current_user()
+        if not user:
+            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
+
         i = web.input(notes=None, edition_id=None, redir=None)
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
         )
-
-        if not user:
-            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
 
         username = user.key.split('/')[2]
 
@@ -361,8 +358,7 @@ class work_editions(delegate.page):
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_editions_data(self, work, limit, offset):
-        if limit > 1000:
-            limit = 1000
+        limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
             {
@@ -406,8 +402,7 @@ class author_works(delegate.page):
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_works_data(self, author, limit, offset):
-        if limit > 1000:
-            limit = 1000
+        limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
             {
@@ -465,9 +460,11 @@ class price_api(delegate.page):
 
         metadata = {
             'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            'betterworldbooks': get_betterworldbooks_metadata(id_)
-            if id_type.startswith('isbn_')
-            else {},
+            'betterworldbooks': (
+                get_betterworldbooks_metadata(id_)
+                if id_type.startswith('isbn_')
+                else {}
+            ),
         }
         # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
 
@@ -502,6 +499,34 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
+
+
+class patrons_follows_json(delegate.page):
+    path = r"(/people/[^/]+)/follows"
+    encoding = "json"
+
+    def GET(self, key):
+        i = web.input(publisher='', redir_url='', state='')
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+
+        username = user.key.split('/')[2]
+        return delegate.RawText(
+            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            content_type="application/json",
+        )
+
+    def POST(self, key):
+        i = web.input(publisher='', redir_url='', state='')
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+
+        username = user.key.split('/')[2]
+        action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
+        action(username, i.publisher)
+        raise web.seeother(i.redir_url)
 
 
 class patrons_observations(delegate.page):
@@ -657,11 +682,16 @@ class hide_banner(delegate.page):
     path = '/hide_banner'
 
     def POST(self):
+        user = accounts.get_current_user()
         data = json.loads(web.data())
 
         # Set truthy cookie that expires in 30 days:
         DAY_SECONDS = 60 * 60 * 24
         cookie_duration_days = int(data.get('cookie-duration-days', 30))
+
+        if user and data['cookie-name'].startswith('yrg'):
+            user.save_preferences({'yrg_banner_pref': data['cookie-name']})
+
         web.setcookie(
             data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
         )
@@ -669,3 +699,17 @@ class hide_banner(delegate.page):
         return delegate.RawText(
             json.dumps({'success': 'Preference saved'}), content_type="application/json"
         )
+
+
+class create_qrcode(delegate.page):
+    path = '/qrcode'
+
+    def GET(self):
+        i = web.input(path='/')
+        page_path = i.path
+        qr_url = f'{web.ctx.home}{page_path}'
+        img = qrcode.make(qr_url)
+        with io.BytesIO() as buf:
+            img.save(buf, format='PNG')
+            web.header("Content-Type", "image/png")
+            return delegate.RawText(buf.getvalue())

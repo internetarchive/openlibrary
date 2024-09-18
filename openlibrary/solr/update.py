@@ -1,4 +1,6 @@
+import functools
 import logging
+from pathlib import Path
 from typing import Literal, cast
 
 import aiofiles
@@ -15,6 +17,7 @@ from openlibrary.solr.data_provider import (
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
+from openlibrary.solr.updater.list import ListSolrUpdater
 from openlibrary.solr.updater.work import WorkSolrUpdater
 from openlibrary.solr.utils import (
     SolrUpdateRequest,
@@ -24,12 +27,30 @@ from openlibrary.solr.utils import (
     solr_update,
 )
 from openlibrary.utils import uniq
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr")
 
 
 # This will be set to a data provider; have faith, mypy!
 data_provider = cast(DataProvider, None)
+
+
+@functools.cache
+def get_solr_updaters() -> list[AbstractSolrUpdater]:
+    global data_provider
+    assert data_provider is not None
+    return [
+        # ORDER MATTERS
+        EditionSolrUpdater(data_provider),
+        WorkSolrUpdater(data_provider),
+        AuthorSolrUpdater(data_provider),
+        ListSolrUpdater(data_provider),
+    ]
+
+
+def can_update_key(key: str) -> bool:
+    return any(updater.key_test(key) for updater in get_solr_updaters())
 
 
 async def update_keys(
@@ -66,14 +87,7 @@ async def update_keys(
 
     net_update = SolrUpdateRequest(commit=commit)
 
-    solr_updaters: list[AbstractSolrUpdater] = [
-        # ORDER MATTERS
-        EditionSolrUpdater(data_provider),
-        WorkSolrUpdater(data_provider),
-        AuthorSolrUpdater(data_provider),
-    ]
-
-    for updater in solr_updaters:
+    for updater in get_solr_updaters():
         update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
@@ -151,6 +165,7 @@ def load_configs(
 
 async def main(
     keys: list[str],
+    osp_dump: Path | None = None,
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
     output_file: str | None = None,
@@ -186,6 +201,7 @@ async def main(
         set_solr_base_url(solr_base)
 
     set_solr_next(solr_next)
+    set_osp_dump_location(osp_dump)
 
     await update_keys(keys, commit=commit, output_file=output_file, update=update)
 

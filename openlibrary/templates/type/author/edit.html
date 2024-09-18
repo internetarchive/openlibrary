@@ -8,7 +8,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
         </span>
@@ -19,7 +19,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentBody">
 
-    <form id="addAuthor" name="edit" method="post" action="" class="olform books validate">
+    <form id="addAuthor" name="edit" method="post" action="" class="olform books">
 
 
     <div class="formElement title">
@@ -32,19 +32,10 @@ $:macros.HiddenSaveButton("addAuthor")
                 </span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
+                <input type="text" name="author--name" id="name" value="$page.name" required/>
             </div>
         </div>
     </div>
-
-        <div>
-
-            <div id="tabsAddauthor">
-
-                <ul>
-                    <li><a href="#about">$_("About")</a></li>
-                    <li><a href="#web">$_("Links")</a></li>
-                </ul>
 
                 <div id="about">
 
@@ -106,44 +97,30 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div class="formElement">
                             <div class="label">
                                 <label for="alternate_names">$_("Does this author go by any other names?")</label>
-                                <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
+                                <span class="tip">$_("For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line.")</span>
                             </div>
                             <div class="input">
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-                        <div class="label">Identifiers <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
+                        <div class="label">$_("Identifiers") <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
                         <div id="hiddenIdentifierInputs"></div>
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
-
-                        $if page.website:
-                            $if ctx.user and ctx.user.is_admin():
-                                <div class="formElement adminOnly">
-                                    <div class="label">
-                                        <label for="uris">$_("Websites")</label>
-                                        <span class="tip">$_("Deprecated")</span>
-                                    </div>
-                                    <div class="input">
-                                        <input type="text" name="author--website" id="website" value="$page.website"/>
-                                    </div>
-                                </div>
-
+                        <br>
+                        <fieldset class="major">
+                            <legend>$_("Links")</legend>
+                            <div class="formBack">
+                                $:render_template("books/edit/web", page, prefix="author--")
+                            </div>
+                        </fieldset>
+                    </fieldset>
 
                 </div>
-<!-- /ABOUT -->
-                <div id="web">
-                    $:render_template("books/edit/web", page, prefix="author--")
-                </div>
-            </div>
 
-        </div>
 
-        <div class="illustration">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page)
-        </div>
+        $:render_template("authors/infobox", page, edit_view=True)
 
             <div class="clearfix"></div>
 

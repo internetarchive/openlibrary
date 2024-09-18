@@ -10,6 +10,7 @@ import sys
 import httplib
 import json
 import argparse
+import lxml.etree
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')
@@ -57,7 +58,9 @@ attempts = 10
 wait = 5
 for attempt in range(attempts):
     try:
-        root = etree.parse(url).getroot()
+        root = etree.parse(
+            url, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         break
     except:
         if attempt == attempts - 1:

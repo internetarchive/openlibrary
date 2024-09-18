@@ -1,6 +1,11 @@
 $def with (work)
 
-<div id="excerpts-errors" class="note hidden">
+$ i18n_strings = {
+    $ "empty_excerpt": _("Please provide an excerpt."),
+    $ "over_wordcount": _("That excerpt is too long.")
+    $ }
+
+<div id="excerpts-errors" class="note" style="display: none" data-i18n="$json_encode(i18n_strings)">
 </div>
 
 <fieldset class="major" id="addexcerpts">
@@ -38,7 +43,7 @@ $def with (work)
                 <span class="tip">$_("Add an optional note.")</span>
             </div>
             <div class="input">
-                <textarea name="comment" id="excerpts-comment" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
+                <textarea name="comment" id="excerpts-comment" class="markdown" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
             </div>
         </div>
         <div class="formElement">

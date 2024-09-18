@@ -3,7 +3,6 @@
 ## docker compose -f compose.yaml -f compose.override.yaml -f compose.infogami-local.yaml up -d
 ##
 
-version: "3.8"
 services:
   web:
     volumes:

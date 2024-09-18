@@ -6,7 +6,7 @@ $putctx("show_ol_shell", False)
 <div class="saved-image-container">
     <div class="imagePost">
         $if image:
-            <img src="$image.url(size='M')" class="cover" width="200" alt="New book cover"/>
+            <img src="$image.url(size='M')" class="cover" width="200" alt="$_('New book cover')"/>
     </div>
 
     <div class="imageSaved" data-image-id="$(image and image.id)">
@@ -21,13 +21,10 @@ $putctx("show_ol_shell", False)
                     $else:
                         Uploaded anonymously on $datestr(d.created)<br/>
                     $if d.source_url:
-                        <a href="$d.source_url">$d.source_url</a><br/>
+                        <a href="$d.source_url" target="_blank">$d.source_url</a><br/>
                 <br/>
-            <a href="$changequery()">$_("Add another image")</a>?
+            <a href="$changequery()" class="imageSaved__button"><button class="cta-btn cta-btn--vanilla">$_("Add another image")</button></a>
+            <button type="button" name="finished" value="Finished" class="largest cta-btn cta-btn--primary popClose">$_("Finished")</button>
         </div>
     </div>
-</div>
-
-<div class="formButtons">
-    <button type="button" name="finished" id="popClose" value="Finished" class="largest">$_("Finished")</button>
 </div>

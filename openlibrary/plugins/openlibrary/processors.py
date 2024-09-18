@@ -1,8 +1,14 @@
 """web.py application processors for Open Library.
 """
+
+import re
 import web
 
+from openlibrary.accounts import get_current_user
+from openlibrary.core import cache
 from openlibrary.core.processors import ReadableUrlProcessor
+from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.utils import dateutil
 
 from openlibrary.core import helpers as h
 
@@ -83,6 +89,27 @@ class CORSProcessor:
 
         web.header("Access-Control-Allow-Method", allowed)
         web.header("Access-Control-Max-Age", 3600 * 24)  # one day
+
+
+class PreferenceProcessor:
+    """Processor to handle unauthorized patron preference reads"""
+
+    def __init__(self):
+        self.pref_pattern = re.compile(r'^\/people\/([^/]+)\/preferences(.json|.yml)?$')
+
+    def __call__(self, handler):
+        if self.pref_pattern.match(web.ctx.path):
+            user = get_current_user()
+            if not user:
+                # Must be logged in to see preferences
+                raise web.Unauthorized()
+
+            username = web.ctx.path.split('/')[2]
+            if username != user.get_username() and not user.is_admin():
+                # Can only view preferences if page owner or admin
+                raise web.Forbidden()
+
+        return handler()
 
 
 if __name__ == "__main__":

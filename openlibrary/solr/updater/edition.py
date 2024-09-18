@@ -1,15 +1,18 @@
 from functools import cached_property
 import logging
 import re
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import requests
 import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, get_solr_next
+from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
+
+if TYPE_CHECKING:
+    from openlibrary.solr.updater.work import WorkSolrBuilder
 
 logger = logging.getLogger("openlibrary.solr")
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
@@ -91,8 +94,14 @@ def is_sine_nomine(pub: str) -> bool:
 
 
 class EditionSolrBuilder(AbstractSolrBuilder):
-    def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
+    def __init__(
+        self,
+        edition: dict,
+        solr_work: 'WorkSolrBuilder | None' = None,
+        ia_metadata: bp.IALiteMetadata | None = None,
+    ):
         self._edition = edition
+        self._solr_work = solr_work
         self._ia_metadata = ia_metadata
         self._provider = bp.get_book_provider(edition)
 
@@ -157,6 +166,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             return int(self._edition.get('number_of_pages', None)) or None
         except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
             return None
+
+    @property
+    def translation_of(self) -> str | None:
+        return self._edition.get("translation_of")
 
     @property
     def format(self) -> str | None:
@@ -284,13 +297,22 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'alternative_title': list(self.alternative_title),
                 'cover_i': self.cover_i,
                 'language': self.language,
-                # Misc useful data
-                'publisher': self.publisher,
+                # Duplicate the author data from the work
                 **(
-                    {'format': [self.format] if self.format else None}
-                    if get_solr_next()
+                    {
+                        'author_name': self._solr_work.author_name,
+                        'author_key': self._solr_work.author_key,
+                        'author_alternative_name': list(
+                            self._solr_work.author_alternative_name
+                        ),
+                        'author_facet': self._solr_work.author_facet,
+                    }
+                    if self._solr_work
                     else {}
                 ),
+                # Misc useful data
+                'publisher': self.publisher,
+                'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,
                 # Identifiers

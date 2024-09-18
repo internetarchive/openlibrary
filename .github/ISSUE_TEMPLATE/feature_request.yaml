@@ -1,0 +1,59 @@
+name: Feature Request
+description: Propose a change or feature to Open Library
+labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
+
+  - type: textarea
+    attributes:
+      label: Proposal
+      description: Provide a brief summary of the proposed feature and any details, designs, or screenshots that may be relevant.
+      value: |
+        <!-- Brief overview of the proposal -->
+
+        <!-- Designs / screenshots that may help reviewers understand your proposal -->
+
+  - type: textarea
+    attributes:
+      label: Justification
+      description: Help us understand, what problem(s) the proposal addresses, what is the predicted impact and how might it be measured, which audiences are served, are there precedents for the feature, and any other context we might consider.
+      value: |
+        <!-- Problem: What problem does this proposal address & for what audience(s)? -->
+
+        <!-- Impact: What's the predicted impact, how do we measure, & what does success look like? -->
+
+        <!-- Research: Are there any precedents or findings from other projects or studies that support this feature? (link or screenshot if possible) -->
+
+  - type: textarea
+    attributes:
+      label: Breakdown
+      description: |
+        Instructions for completing this feature. Please leave this section blank for leads/maintainers if you are unsure what to enter
+      value: |
+
+        #### Requirements Checklist
+        <!-- What steps, functional pieces, or requirements need to be met to satisfy the proposal? -->
+        * [ ]
+
+        #### Related files
+        <!-- Files related to the implementation of feature; useful for good first issues -->
+        *
+
+        #### Stakeholders
+        <!-- @ tag stakeholders of this feature w/ questions or context as necessary -->
+        *
+
+        <hr>
+
+        #### Instructions for Contributors
+        <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
+        Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to Github, because the pre-commit bot may add commits to your PRs upstream.
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for showing interest in adding new features to Open Library! 👍

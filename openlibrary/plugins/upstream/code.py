@@ -37,12 +37,13 @@ import logging
 logger = logging.getLogger('openlibrary.plugins.upstream.code')
 
 
+# Note: This is done in web_nginx.conf on production ; this endpoint is
+# only used in development/gitpod.
 class static(delegate.page):
     path = "/images/.*"
 
     def GET(self):
-        host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
-        raise web.seeother(host + '/static' + web.ctx.path)
+        return web.seeother(f'/static{web.ctx.path}')
 
 
 class history(delegate.mode):
@@ -59,8 +60,8 @@ class history(delegate.mode):
         history = json.loads(
             infogami_request('/versions', data={'query': json.dumps(query)})
         )
-        for i, row in enumerate(history):
-            history[i].pop("ip")
+        for _, row in enumerate(history):
+            row.pop("ip")
         return json.dumps(history)
 
 
@@ -70,7 +71,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:
@@ -131,16 +132,13 @@ class merge_work(delegate.page):
         i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
         has_access = user and (
-            (user.is_admin() or user.is_librarian())
-            or user.is_usergroup_member('/usergroup/super-librarians')
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
 
         optional_kwargs = {}
-        if not (
-            user.is_usergroup_member('/usergroup/super-librarians') or user.is_admin()
-        ):
+        if not (user.is_admin() or user.is_super_librarian()):
             optional_kwargs['can_merge'] = 'false'
 
         return render_template(
@@ -277,26 +275,9 @@ def reload():
     all_js().reload()
 
 
-def setup_jquery_urls():
-    if config.get('use_google_cdn', True):
-        jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"
-        jqueryui_url = (
-            "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"
-        )
-    else:
-        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js"
-        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js"
-
-    web.template.Template.globals['jquery_url'] = jquery_url
-    web.template.Template.globals['jqueryui_url'] = jqueryui_url
-    web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
-
-
 def user_can_revert_records():
     user = web.ctx.site.get_user()
-    return user and (
-        user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-    )
+    return user and (user.is_admin() or user.is_super_librarian())
 
 
 @public
@@ -417,8 +398,6 @@ def setup():
     )
 
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
-
-    setup_jquery_urls()
 
 
 setup()

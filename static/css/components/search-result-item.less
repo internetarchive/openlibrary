@@ -10,7 +10,6 @@
 }
 
 .searchResultItem {
-  .display-flex();
   list-style-type: none;
   line-height: 1.5em;
   background-color: @grey-fafafa;
@@ -18,24 +17,33 @@
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
-  flex-wrap: wrap;
-  align-items: center;
+
+  &, .sri__main {
+    .display-flex();
+    align-items: center;
+    flex-direction: column;
+
+    @media (min-width: @width-breakpoint-tablet) {
+      flex-direction: row;
+    }
+  }
+
+  &.sri--w-main {
+    display: block;
+  }
 
   a[href] {
     text-decoration: none;
-  }
-  > div {
-    margin-top: 10px;
-    padding: 0 5px 0 15px;
   }
   h3 {
     display: block;
     margin: 0;
     padding: 0;
     color: @dark-grey;
-    font-size: 1.0em;
+    font-size: 1.1em;
     font-weight: 700;
-    font-family: @lucida_sans_serif-6;
+    font-family: @georgia_serif-1;
+    overflow: auto;
   }
   .details {
     overflow: auto;
@@ -44,13 +52,8 @@
     padding: 5px;
     margin: 0;
   }
-  .resultTitle {
-    overflow: auto;
-    margin: 0 !important;
-    font-family: @lucida_sans_serif-1;
-    color: @grey;
-  }
-  span.resultPublisher {
+
+  .resultStats {
     font-size: .75em;
     color: @grey;
     font-family: @lucida_sans_serif-6;
@@ -59,13 +62,18 @@
   span.resultType {
     font-size: .6875em;
   }
-  .publishedYear {
+  .resultDetails {
     display: block;
+  }
+  .ratingsByline {
+    color: @black;
   }
   .preview-covers {
     display: block;
     height: 45px;
     overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 5px;
   }
   .preview-covers img {
     border-radius: 4px;
@@ -152,7 +160,6 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .list-books {
     .searchResultItem {
-      flex-wrap: nowrap;
       .bookcover {
         width: 175px;
         text-align: right;
@@ -165,7 +172,6 @@
   }
   .list-results {
     .searchResultItem {
-      flex-wrap: nowrap;
       .imageLg {
         width: 175px;
         text-align: right;

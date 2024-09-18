@@ -1,0 +1,31 @@
+{
+  "slackChannel": "#team-abc-plus",
+  "publishFullDigest": true,
+  "leads": [
+    {
+      "githubUsername": "mekarpeles",
+      "leadLabel": "Lead: @mekarpeles",
+      "slackId": "<@U0AB3N5L7>"
+    },
+    {
+      "githubUsername": "cdrini",
+      "leadLabel": "Lead: @cdrini",
+      "slackId": "<@U709VCNLD>"
+    },
+    {
+      "githubUsername": "scottbarnes",
+      "leadLabel": "Lead: @scottbarnes",
+      "slackId": "<@U03MNR6T7FH>"
+    },
+    {
+      "githubUsername": "seabelis",
+      "leadLabel": "Lead: @seabelis",
+      "slackId": "<@UAHQ39ACT>"
+    },
+    {
+      "githubUsername": "jimchamp",
+      "leadLabel": "Lead: @jimchamp",
+      "slackId": "<@U01ARTHG9EV>"
+    }
+  ]
+}

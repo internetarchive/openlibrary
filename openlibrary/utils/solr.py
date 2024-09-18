@@ -19,6 +19,9 @@ T = TypeVar('T')
 
 class Solr:
     def __init__(self, base_url):
+        """
+        :param base_url: The base url of the solr server/collection. E.g. http://localhost:8983/solr/openlibrary
+        """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
         self.session = requests.Session()
@@ -44,7 +47,15 @@ class Solr:
         logger.info(f"solr /get: {key}, {fields}")
         resp = self.session.get(
             f"{self.base_url}/get",
-            params={'id': key, **({'fl': ','.join(fields)} if fields else {})},
+            # It's unclear how field=None is getting in here; a better fix would be at the source.
+            params={
+                'id': key,
+                **(
+                    {'fl': ','.join([field for field in fields if field])}
+                    if fields
+                    else {}
+                ),
+            },
         ).json()
 
         # Solr returns {doc: null} if the record isn't there
@@ -59,9 +70,9 @@ class Solr:
         if not keys:
             return []
         logger.info(f"solr /get: {keys}, {fields}")
-        resp = self.session.get(
+        resp = self.session.post(
             f"{self.base_url}/get",
-            params={
+            data={
                 'ids': ','.join(keys),
                 **({'fl': ','.join(fields)} if fields else {}),
             },

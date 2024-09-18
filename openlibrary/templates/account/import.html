@@ -6,7 +6,7 @@ $def with (books=None, books_wo_isbns=None)
     <div class="import-export">
       <div class="import-export__section">
         <h3>$_("Import from Goodreads")</h3>
-        <p>For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a></p>
+        <p>$:_('For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a>')</p>
         <form method="POST" action="/account/import/goodreads"
             enctype="multipart/form-data" class="olform olform--decoration">
           <div>
@@ -65,7 +65,7 @@ $def with (books=None, books_wo_isbns=None)
       </div>
       <div class="import-export__section">
         <h3>$_("Export your star ratings")</h3>
-        <p>$_("Download a copy of your star ratings") <a href="/help/faq/reviews#star-ratings">$_("What are star ratings?")</a></p>
+        <p>$_("Download a copy of your star ratings.") <a href="/help/faq/reviews#star-ratings">$_("What are star ratings?")</a></p>
         <form method="GET" action="/account/export"
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="ratings">
@@ -79,7 +79,7 @@ $def with (books=None, books_wo_isbns=None)
   $else:
     <div class="import-buttons">
       <div id="myProgress" class="hidden">
-        <div id="myBar">Importing...</div>
+        <div id="myBar">$_("Importing...")</div>
       </div>
       <div>
         <button class="hidden cta-btn cta-btn--available cta-btn--small cancel-button"
@@ -99,10 +99,10 @@ $def with (books=None, books_wo_isbns=None)
             $for key in keys:
               <th scope="col">$key</th>
             <th scope="col" class="import-status hidden">
-              Status
+              $_("Status")
             </th>
             <th scope="col" class="status-reason hidden">
-              Reason
+              $_("Reason")
             </th>
           </tr>
         </thead>
@@ -128,8 +128,8 @@ $def with (books=None, books_wo_isbns=None)
                   $if books_wo_isbns[id].get(key) != '=""':
                     $books_wo_isbns[id].get(key)
                 </td>
-              <td class="books-wo-isbn hidden error-imported">Error</td>
-              <td class="books-wo-isbn hidden error-imported">No ISBN</td>
+              <td class="books-wo-isbn hidden error-imported">$_("Error")</td>
+              <td class="books-wo-isbn hidden error-imported">$_("No ISBN")</td>
             </tr>
         </tbody>
       </table>

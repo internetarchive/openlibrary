@@ -6,7 +6,7 @@ If not dump and cdump uploaded for last YYYY-MM on archive.org
 If not sitemaps updated for this YYYY-MM on www
 If not partner dumps uploaded for this YYYY-MM on archive.org
 If no imports in last 48 hours (i.e. 2 days)
-If DD>17 for YYYY-MM and bwb `batchname` doesn’t exist in import psql table
+If DD>17 for YYYY-MM and bwb `batchname` doesn't exist in import psql table
 Send daily email with failures only or slack failures
 """
 

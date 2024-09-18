@@ -74,7 +74,7 @@ $if can_merge:
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
-                            <span class="metaDate" title="birth/death date">$a.get('birth_date', '') - $a.get('death_date', '')</span>
+                            <span class="metaDate" title="$_('birth/death date')">$a.get('birth_date', '') - $a.get('death_date', '')</span>
                         $elif a.date:
                             <span class="metaDate">$a.date</span>
                         $if a.remote_ids:
@@ -86,9 +86,13 @@ $if can_merge:
                                     <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
                             </div>
                     </label>
+                    $if a.bio:
+                        <p>${ macros.TruncateString(a.bio, 250) }</p>
+                    $else:
+                        <p>No description.</p>
                     <ul>
                     $for doc in top.docs:
-                        <li><a href="$doc['key']'" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
+                        <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
                         $if doc.get('first_publish_year'):
                             <span title="$_('First published in')">$doc['first_publish_year']</span>
                         </span></li>
@@ -111,7 +115,7 @@ $if can_merge:
             $if mrid:
                 <button id="reject-author-merge-btn" type="button" class="larger merge-feedback__reject">$_('Reject Merge')</button>
             $else:
-                <a href="javascript:history.go(-1);" class="small red sansserif">$_('Cancel')</a>
+                <a href="javascript:;" class="small red sansserif go-back-link">$_('Cancel')</a>
     </div>
 </div>
 

@@ -224,6 +224,14 @@ tr.table-row.selected{
   transform: translateY(-50%);
 }
 
+// Import styles for fulltext-search-suggestion card
+@import (less) "components/fulltext-search-suggestion.less";
+// Import styles for fulltext-search-suggestion card item
+@import (less) "components/fulltext-search-suggestion-item.less";
+// Import styles for fulltext-search-suggestion card item snippet
+@import (less) "components/fulltext-snippet.less";
+// Import styles for author infobox
+@import (less) "components/author-infobox.less";
 // Import all common components
 @import (less) "legacy.less";
 // Import styles specific to the BorrowTable for user pages
@@ -235,3 +243,5 @@ tr.table-row.selected{
 // Import styles for want-to-read buttons
 @import (less) "legacy-tools.less";
 @import (less) "components/mybooks-dropper.less";
+// Import styles for search box
+@import (less) "components/searchbox.less";

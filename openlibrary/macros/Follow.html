@@ -1,0 +1,18 @@
+$def with (publisher, fid='', following=False)
+
+$ subscriber = ctx.user and ctx.user.key
+
+
+<div>
+  $if ctx.user:
+    <form class="follow-form" id="follow_$fid" method="POST" action="$(subscriber)/follows.json"
+          property="follow" typeof="Follows" vocab="http://schema.org/">
+      <input type="hidden" value="$following" name="state"/>
+      <input type="hidden" value="$publisher" name="publisher"/>
+      <input type="hidden" value="$request.fullpath" name="redir_url"/>
+      $ css_treatment = 'delete' if following else 'primary'
+      <button type="submit" class="cta-btn cta-btn--$(css_treatment)">$_("Unfollow" if following else "Follow")</button>
+    </form>
+  $else:
+    <a class="cta-btn cta-btn--primary" href="/account/login?redir_url=$(ctx.path)">$_("Follow")</a>
+</div>

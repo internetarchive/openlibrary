@@ -1,12 +1,5 @@
 $def with (page, worldcat_links, affiliate_links, editions_page=False, render_times={})
 
-$if page.type.key == '/type/work' and page.edition_count == 1:
-    $ edit_url = page.editions[0].key + '?m=edit'
-$elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-    $ edit_url = page.url(suffix="/edit")
-$else:
-    $ edit_url = page.key + "?m=edit"
-
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
 <div class="Tools">
@@ -14,12 +7,12 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     $if page.volumes:
       <h3 class="header">
         <span class="icon read"></span>
-        <span class="head">Browse</span>
+        <span class="head">$_("Browse")</span>
       </h3>
       $for v in page.volumes:
         $if v.ia_id != "-":
           <div class="panel">
-            <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
+            <p><a href="$viewbook.replace('XXX', v.ia_id)">$_('View Volume %(num)d', num=v.volume_number)</a></p>
           </div>
 
     <div class="panel">
@@ -54,19 +47,20 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ render_times['databarWork: Modal Links - Desktop'] = time() - render_times['databarWork: Modal Links - Desktop']
 
         <div class="readers-stats__wrapper mobile">
-          $ star_ratings_stats = macros.StarRatingsStats(work)
+          $ star_ratings_stats = macros.StarRatingsStats(work, mobile=True)
           $:star_ratings_stats
 
           <hr>
           $ render_times['databarWork: Modal Links - Mobile'] = time()
-          $:render_template("type/edition/modal_links", work, edition, share_url)
+          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True)
           $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
         </div>
 
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
-          $if book_provider:
+          $ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
+          $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
             $:book_provider.render_download_options(page)
           $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
       </div>

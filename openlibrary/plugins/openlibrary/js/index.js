@@ -1,60 +1,23 @@
 import 'jquery';
-import 'jquery-validation';
-import 'jquery-ui/ui/widgets/dialog';
-import 'jquery-ui/ui/widgets/autocomplete';
-// For dialog boxes (e.g. add to list)
-import 'jquery-colorbox';
-// jquery.form#2.36 not on npm, no longer getting worked on
-import '../../../../vendor/js/jquery-form/jquery.form.js';
-import autocompleteInit from './autocomplete';
-import automaticInit from './automatic';
-import bookReaderInit from './bookreader_direct';
-import { ungettext, ugettext,  sprintf } from './i18n';
-import jQueryRepeat from './jquery.repeat';
-import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
+import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
-import * as Browser from './Browser';
-import { commify } from './python';
-import { Subject, urlencode, slice } from './subjects';
-import Template from './template.js';
-// Add $.fn.focusNextInputField
-import { truncate, cond } from './utils';
-import initValidate from './validate';
+import initServiceWorker from './service-worker-init.js'
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
-import { confirmDialog, initDialogs } from './dialog';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
-window.commify = commify;
-window.cond = cond;
-window.enumerate = enumerate;
-window.foreach = foreach;
-window.htmlquote = htmlquote;
-window.len = len;
-window.range = range;
-window.slice = slice;
-window.sprintf = sprintf;
-window.truncate = truncate;
-window.urlencode = urlencode;
-window.websafe = websafe;
-window._ = ugettext;
-window.ungettext = ungettext;
-window.uggettext = ugettext;
-
-window.Browser = Browser;
-window.Subject = Subject;
-window.Template = Template;
-
-// Extend existing prototypes
-String.prototype.join = join;
+exposeGlobally();
 
 window.jQuery = jQuery;
 window.$ = jQuery;
 
 window.Promise = Promise;
+
+// Init the service worker first since it does caching
+initServiceWorker();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
@@ -87,38 +50,48 @@ jQuery(function () {
         };
     }
 
-    const $markdownTextAreas = $('textarea.markdown');
-    // Live NodeList is cast to static array to avoid infinite loops
-    const $carouselElements = $('.carousel--progressively-enhanced');
-    const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
-
-    initDialogs();
-    // expose ol_confirm_dialog method
-    $.fn.ol_confirm_dialog = confirmDialog;
-
+    const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import(/* webpackChunkName: "tabs" */ './tabs')
             .then((module) => module.initTabs($tabs));
     }
 
-    initValidate($);
-    autocompleteInit($);
-    automaticInit($);
+    const $validates = $('form.validate');
+    if ($validates.length) {
+        import(/* webpackChunkName: "validate" */ './validate')
+            .then((module) => module.init($));
+    }
+
+    const $autocomplete = $('.multi-input-autocomplete');
+    if ($autocomplete.length) {
+        import(/* webpackChunkName: "autocomplete" */ './autocomplete')
+            .then((module) => module.init($));
+    }
+
+    // hide all images in .no-img
+    $('.no-img img').hide();
+
+    // disable save button after click
+    $('button[name=\'_save\']').on('submit', function() {
+        $(this).attr('disabled', true);
+    });
+
     // wmd editor
+    const $markdownTextAreas = $('textarea.markdown');
     if ($markdownTextAreas.length) {
         import(/* webpackChunkName: "markdown-editor" */ './markdown-editor')
             .then((module) => module.initMarkdownEditor($markdownTextAreas));
     }
-    bookReaderInit($);
-    jQueryRepeat($);
+
     init($);
+
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
 
-    const edition = document.getElementById('tabsAddbook');
+    const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
@@ -202,11 +175,18 @@ jQuery(function () {
             .then(module => module.initTypeChanger(typeChanger));
     }
 
-    // conditionally load real time signup functionality based on class in the page
-    if (document.getElementsByClassName('olform create validate').length) {
-        import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
-            .then(module => module.initRealTimeValidation());
+    // conditionally load validation and submission js for registration form
+    if (document.querySelector('form[name=signup]')) {
+        import(/* webpackChunkName: "signup" */'./signup.js')
+            .then(module => module.initSignupForm());
     }
+
+    // conditionally load submission js for login form
+    if (document.querySelector('form[name=login]')) {
+        import(/* webpackChunkName: "signup" */'./signup.js')
+            .then(module => module.initLoginForm());
+    }
+
     // conditionally load clamping components
     const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
@@ -235,10 +215,13 @@ jQuery(function () {
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
     }
+
     // Enable any carousels in the page
+    const $carouselElements = $('.carousel--progressively-enhanced');
     if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => { module.init($carouselElements);
+        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+            .then((module) => {
+                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
                 $('.slick-slide').each(function () {
                     if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
@@ -256,12 +239,6 @@ jQuery(function () {
         const readingLogConfig = JSON.parse(readingLogCharts.dataset.config)
         import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
             .then(module => module.init(readingLogConfig));
-    }
-
-    const pageEl = $('#page-barcodescanner');
-    if (pageEl.length) {
-        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
-            .then((module) => module.init());
     }
 
     if (document.getElementsByClassName('toast').length) {
@@ -352,9 +329,10 @@ jQuery(function () {
             .then((module) => module.initOfflineBanner());
     }
 
-    if (document.getElementById('searchFacets')) {
+    const searchFacets = document.getElementById('searchFacets')
+    if (searchFacets) {
         import(/* webpackChunkName: "search" */ './search')
-            .then((module) => module.initSearchFacets());
+            .then((module) => module.initSearchFacets(searchFacets));
     }
 
     // Conditionally load Integrated Librarian Environment
@@ -394,11 +372,19 @@ jQuery(function () {
             })
     }
 
-    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    // TODO: Make these selectors a consistent interface
+    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,.cta-btn--preview');
+    if ($dialogs.length) {
+        import(/* webpackChunkName: "dialog" */ './dialog')
+            .then(module => module.initDialogs())
+    }
+
+    const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
-        import(/* webpackChunkName: "dialog" */ './native-dialog')
+        import(/* webpackChunkName: "native-dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
@@ -443,6 +429,18 @@ jQuery(function () {
         $('details[open]').not(this).removeAttr('open');
     });
 
+    $('.header-dropdown').on('keydown', function (event) {
+        if (event.key === 'Escape') {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        }
+    });
+
+    $('.dropdown-menu').each(function() {
+        $(this).find('a').last().on('focusout', function() {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        });
+    });
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
@@ -455,7 +453,7 @@ jQuery(function () {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
-        import(/* webpackChunkName: "star-ratings" */'./handlers')
+        import(/* webpackChunkName: "star-ratings" */'./star-ratings')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
@@ -526,4 +524,44 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const leaveWaitlistLinks = document.querySelectorAll('a.leave');
+    if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
+        import(/* webpackChunkName: "waitlist" */ './waitlist')
+            .then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
+    }
+
+    const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
+    if (thirdPartyLoginsIframe) {
+        import(/* webpackChunkName: "ia_thirdparty_logins" */ './ia_thirdparty_logins')
+            .then((module) => module.initMessageEventListener(thirdPartyLoginsIframe));
+    }
+
+    // Password visibility toggle:
+    const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle')
+    if (passwordVisibilityToggle) {
+        import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
+            .then(module => module.initPasswordToggling(passwordVisibilityToggle))
+    }
+
+    // Affiliate links:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section')
+    if (affiliateLinksSection.length) {
+        import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
+            .then(module => module.initAffiliateLinks(affiliateLinksSection))
+    }
+
+    // Fulltext search box:
+    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    if (fulltextSearchSuggestion) {
+        import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
+            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
+    }
+
+    // Go back redirect:
+    const backLinks = document.querySelectorAll('.go-back-link')
+    if (backLinks.length) {
+        import (/* webpackChunkName: "go-back-links" */ './go-back-links')
+            .then(module => module.initGoBackLinks(backLinks))
+    }
 });
+

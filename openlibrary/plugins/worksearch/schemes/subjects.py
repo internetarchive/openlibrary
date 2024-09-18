@@ -15,6 +15,7 @@ class SubjectSearchScheme(SearchScheme):
         'subject_type',
         'work_count',
     }
+    non_solr_fields: set[str] = set()
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
     sorts = {

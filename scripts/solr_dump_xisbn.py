@@ -3,21 +3,28 @@
     Script for creating a file of similar ISBNs or LCCNs from Solr.
 
     Run on ol-solr1 (the staging solr). Turn off solr-next-updater on
-    ol-home0 , to avoid extra strain on the server, and then kick it off with:
+    ol-home0 , to avoid extra strain on the server, and then kick it off with
+    `tmux` (use tmux so if the ssh connection disconnects the process continues)
 
-    1. `tmux` (use tmux so if the ssh connection disconnects the process continues)
+    ```sh
+    # Took ~10.5 hours 2024-04
+    time docker run --rm \
+        --name similarities-dump \
+        --network host \
+        -e PYTHONPATH=/openlibrary \
+        openlibrary/olbase:latest \
+        python scripts/solr_dump_xisbn.py --solr-base http://localhost:8983/solr/openlibrary \
+    > unwanted_isbns_$(date +"%Y-%m-%d").txt
+
+    # Took ~8.5 hours 2024-04
+    time docker run --rm \
+        --name similarities-dump \
+        --network host \
+        -e PYTHONPATH=/openlibrary \
+        openlibrary/olbase:latest \
+        python scripts/solr_dump_xisbn.py --solr-base http://localhost:8983/solr/openlibrary --id-field lccn \
+    > unwanted_lccns_$(date +"%Y-%m-%d").txt
     ```
-    docker run --rm --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
-        PYTHONPATH=. python scripts/solr_dump_xisbn.py > output/isbn_sim_dump_$(date +"%Y-%m-%d").txt
-    '
-
-    docker run --rm --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
-        PYTHONPATH=. python scripts/solr_dump_xisbn.py --id-field lccn > output/lccn_sim_dump_$(date +"%Y-%m-%d").txt
-    '
-    ```
-
-    Note the `/opt/openlibrary/openlibrary/output` directory was added manually and `chown 999:root` so
-    that the container can write to it.
 """
 import asyncio
 import sys

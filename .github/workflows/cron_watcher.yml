@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - run: pip install internetarchive slack-sdk
@@ -28,13 +28,13 @@ jobs:
         shell: python
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL_ABC_TEAM: ${{ secrets.SLACK_CHANNEL_ABC_TEAM }}
+          SLACK_CHANNEL_ABC_TEAM_PLUS: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
         run: |
           import os, sys, slack_sdk
           token = os.getenv("SLACK_TOKEN")
-          channel = os.getenv("SLACK_CHANNEL_ABC_TEAM")
+          channel = os.getenv("SLACK_CHANNEL_ABC_TEAM_PLUS")
           if token and channel:
             slack_sdk.WebClient(token=token).chat_postMessage(channel=channel,
-              text="[cron_watcher](https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml) has failed.",
+              text="<https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml|`cron_watcher`> has failed.",
             )
           sys.exit(1)

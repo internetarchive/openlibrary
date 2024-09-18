@@ -5,7 +5,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
   $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
   <a href="$href" class="$link_class icon-link" $ga_attr>
-    <img class="icon-link__image" src="$img_src">
+    <img class="icon-link__image" src="$img_src" alt="">
     <div class="icon-link__text">$link_text</div>
   </a>
 
@@ -37,11 +37,12 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
     $ author_names = (work or edition).author_names
     $if authors:
       <h2 class="edition-byline">
-        $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
+        $ is_librarian = ctx.user and ctx.user.is_librarian()
+        $:macros.BookByline([{'name': author.name, 'url': author.url(), 'birth_date': author.birth_date, 'death_date': author.death_date} for author in authors], attrs='itemprop="author"', show_years=is_librarian)
       </h2>
     $elif author_names:
       <h2 class="edition-byline">
-        $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
+        $:macros.BookByline([{'name': name} for name in author_names], attrs='itemprop="author"')
       </h2>
     $:star_ratings_stats
   </span>

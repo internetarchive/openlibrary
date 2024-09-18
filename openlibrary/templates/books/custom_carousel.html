@@ -41,7 +41,7 @@ $def render_carousel_cover(book, lazy, layout):
     $ cover_url = False
 
   $if book.get('authors'):
-    $ author_names = [author.name for author in book.authors]
+    $ author_names = [author.name or _('name missing') for author in book.authors]
   $elif book.get('author_name'):
     $ author_names = book.get('author_name', [])
   $else:
@@ -57,7 +57,7 @@ $def render_carousel_cover(book, lazy, layout):
 
   <div class="book carousel__item">
     <div class="book-cover">
-      <a href="$(url)">
+      <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
         $if cover_url:
           <img class="bookcover" loading="lazy"
             title="$('%s%s'%(title,byline))"
@@ -76,7 +76,7 @@ $def render_carousel_cover(book, lazy, layout):
       </a>
     </div>
     <div class="book-cta">
-      $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action)
+      $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
     </div>
   </div>
 
@@ -84,26 +84,26 @@ $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
-          <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+          <h2 class="home-h2">
+            <a data-ol-link-track="BookCarousel|HeaderClick|$key" href="$url">$title</a>
+          </h2>
         </div>
       <div class="carousel-container carousel-container-decorated">
-        $ attrs = ''
-        $if load_more:
-          $ load_more_config = {
-          $  "url": load_more["url"].replace("&amp;", "&"),
-          $  "pageMode": load_more.get("mode", "offset"),
-          $  "limit": load_more.get("limit", 18)
-          $ }
-        $else:
-          $ load_more_config = {}
-        $if compact_mode:
-          $ config = ['.carousel-' + key, 4, 4, 4, 3, 2, 1, load_more_config ]
-        $else:
-          $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
+        $code:
+          config = {
+            'booksPerBreakpoint': [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
+            'analyticsCategory': 'BookCarousel',
+            'carouselKey': key,
+            'loadMore': {
+              "url": load_more["url"].replace("&amp;", "&"),
+              "pageMode": load_more.get("mode", "offset"),
+              "limit": load_more.get("limit", 18)
+            } if load_more else None
+          }
         $ compact = "carousel--compact" if compact_mode else ""
         $ grid = "carousel--grid" if layout == 'grid' else ""
         $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
-        <div class="carousel $grid $compact carousel-$key $loadjs"
+        <div class="carousel $grid $compact $loadjs"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5, layout)

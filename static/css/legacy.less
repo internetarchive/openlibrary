@@ -30,7 +30,6 @@
 
 @import (less) "components/read-panel.less";
 @import (less) "components/diff.less";
-@import (less) "components/iconochive.less";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
@@ -134,7 +133,7 @@ table {
       margin-left: 10px;
     }
   }
-  // openlibrary/templates/lib/markdown.html
+  // https://openlibrary.org/help/markdown
   &.help {
     margin: 20px 0;
     border-top: 1px solid @grey-e7e7e7;
@@ -255,13 +254,6 @@ em {
     width: 958px !important;
     padding: 0 !important;
     position: relative;
-  }
-}
-
-#contentBody,
-#contentMeta {
-  .tabs ul {
-    margin-left: 0;
   }
 }
 
@@ -503,14 +495,14 @@ textarea {
 }
 
 input {
-  &[type=text] {
+  &[type=text], &[type=email] {
     margin: 0 10px 5px 0;
   }
   &.repeat-add {
     font-size: 1.125em;
   }
   &.invalid {
-    border: 1px solid @red;
+    border-color: @red;
     color: @dark-grey;
   }
   &.highlight {
@@ -618,7 +610,6 @@ div#content {
 
 // openlibrary/templates/account/create.html
 // openlibrary/templates/account/email/forgot-ia.html
-// openlibrary/templates/account/email/forgot.html
 // openlibrary/templates/form.html
 // openlibrary/templates/login.html
 // openlibrary/templates/merge/authors.html
@@ -819,7 +810,6 @@ input.query {
 /* DIALOGS */
 
 // openlibrary/macros/EditButtons.html
-// openlibrary/macros/EditButtonsMacros.html
 div.cclicense {
   font-family: @lucida_sans_serif-2;
   font-size: .75em;
@@ -878,7 +868,6 @@ div.verify {
 }
 
 // openlibrary/templates/account/email/forgot-ia.html
-// openlibrary/templates/account/email/forgot.html
 .defaultstyling {
   font-family: @lucida_sans_serif-1;
   .padtop {
@@ -886,12 +875,6 @@ div.verify {
   }
 }
 
-// openlibrary/templates/account/email/forgot.html
-hr.forgot-padding {
-  margin: 30px 0 15px;
-}
-
-// openlibrary/templates/account/email/forgot.html
 // openlibrary/templates/account/email/forgot-ia.html
 .forgot-email {
   font-size: .8em;
@@ -1422,7 +1405,6 @@ ul {
 @import (less) "components/page-history.less";
 
 // openlibrary/macros/CoverImage.html
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
@@ -1439,7 +1421,6 @@ ul {
   line-height: normal;
 }
 
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .Author {
@@ -1449,7 +1430,6 @@ ul {
   font-size: 11px;
 }
 
-// openlibrary/macros/SearchResults.html
 // openlibrary/macros/SearchResultsWork.html
 // openlibrary/templates/books/show.html
 // openlibrary/templates/books/works-show.html
@@ -1533,13 +1513,11 @@ span.actions {
 // openlibrary/templates/work_search.html
 // openlibrary/templates/books/check.html
 // openlibrary/templates/account/books.html
-// openlibrary/macros/SearchResults.html
 // openlibrary/macros/FulltextResults.html
 ul.list-books {
   > li {
     .display-flex();
   }
-  // openlibrary/macros/SearchResults.html
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
   // openlibrary/templates/books/show.html
@@ -1556,7 +1534,6 @@ ul.list-books {
   }
 
   // `span.resultTitle .bookauthor` is used in:
-  // * openlibrary/macros/SearchResults.html
   // * openlibrary/macros/SearchResultsWork.html
   // `span.resultPublisher` is used in
   // * openlibrary/macros/SearchResultsWork.htm
@@ -1573,11 +1550,9 @@ ul.list-books {
   // openlibrary/templates/books/show.html
   // openlibrary/templates/books/check.html
   // openlibrary/macros/SearchResultsWork.html
-  // openlibrary/macros/SearchResults.html
   span.resultPublisher {
     display: block;
   }
-  // openlibrary/macros/SearchResults.html
   // openlibrary/templates/books/show.html
   span.resultType {
     font-size: .6875em;
@@ -1843,27 +1818,10 @@ div#subjectLists {
 // openlibrary/templates/account/privacy.html
 // openlibrary/templates/account.html
 .account-settings-menu {
-  margin-bottom: 15px;
   display: flex;
 }
 
 @import (less) "components/rating-form.less";
-
-// openlibrary/templates/lists/home.html
-// openlibrary/templates/search/lists.html
-// openlibrary/templates/search/inside.html
-.searchInsideForm {
-  input[type=text] {
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    max-width: 500px;
-    min-width: 100px;
-  }
-  input[type=submit] {
-    padding: 5px;
-  }
-}
 @import (less) "components/searchResultItemCta.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {

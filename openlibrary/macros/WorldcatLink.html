@@ -2,10 +2,10 @@ $def with(isbn=None, oclc_numbers=None, referer="")
 
 $if oclc_numbers or isbn:
   <div class="cta-section">
-    <p class="cta-section-title world-cat-link">$_('Check nearby libraries')</p>
+    <p class="cta-section-title world-cat-link">$_("Check nearby libraries")</p>
     <ul class="book-locate-options">
       $if isbn:
-        <li><a href="https://labs.library.link/services/borrow/?isbn=$isbn&embed=True&radius=500&refer=$(referer)">Library.link</a></li>
-      <li><a class="worldcat-link" data-ol-link-track="worldcat-search" href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)" title="$_('Check WorldCat for an edition near you')">WorldCat</a></li>
+        <li><a href="https://labs.library.link/services/borrow/?isbn=$isbn&embed=True&radius=500&refer=$(referer)">$_("Library.link")</a></li>
+      <li><a class="worldcat-link" data-ol-link-track="worldcat-search" href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)" title="$_('Check WorldCat for an edition near you')">$_("WorldCat")</a></li>
     </ul>
   </div>

@@ -1,5 +1,6 @@
 """Code for handling /data/*.txt.gz URLs.
 """
+
 import web
 from infogami import config
 from infogami.utils import delegate
@@ -30,11 +31,17 @@ def download_url(item, filename):
     return f"{IA_BASE_URL}/download/{item}/{filename}"
 
 
+# Should include openlibrary/data/dump.py split_dump's types at least
 DUMP_PREFIXES = (
     '',
     '_authors',
+    '_covers_metadata',
     '_editions',
     '_works',
+    '_redirects',
+    '_deletes',
+    '_lists',
+    '_other',
     '_deworks',
     '_ratings',
     '_reading-log',

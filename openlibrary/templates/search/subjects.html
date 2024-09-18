@@ -1,6 +1,6 @@
 $def with (get_results)
 
-$ q = query_param('q')
+$ q = query_param('q', '').strip()
 $ results_per_page = 100
 $ page = query_param('page')
 $if page:
@@ -20,15 +20,23 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
   $:macros.SearchNavigation()
     <div class="section">
         <form class="siteSearch olform" action="">
-            <input type="text" class="larger" name="q" size="100" value="$q"/>
-            <input type="submit" class="larger" value="$_('Search')"/>
+            $:render_template("search/searchbox", q=q)
         </form>
     </div>
 
 $if q:
     $ response = get_results(q, offset=offset, limit=results_per_page)
     $if not response.error:
-        <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $if response.num_found:
+            <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $else:
+            <center>
+                <div class="red">$:_('No <strong>subjects</strong> directly matched your search')</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$q">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
 
 $if q and response.error:
     <strong>

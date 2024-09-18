@@ -1,9 +1,11 @@
 $def with (page)
 
 $var title: $page.displayname
+$ username = page.key.split('/')[-1]
 $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
 $if days_since(page.created) < 30:
   $ putctx('robots', 'noindex')
 
@@ -13,6 +15,9 @@ $else:
     $ lists = []
 
 <div id="contentHead">
+    <h1>$settings.get('username')</h1>
+    $if is_public and not owners_page:
+        <div class="right">$:macros.Follow(username, following=is_subscribed)</div>
     $:macros.databarView(page)
     <h1>$page.displayname</h1>
     <div class="small sansserif">
@@ -71,13 +76,17 @@ $else:
         </div>
         <div class="clearfix"></div>
 
-    $if "recentchanges_v2" in ctx.features:
-        $ changes = render_template("recentchanges/render", author=page.key, limit=25)
-        $if changes.length > 1:
-            <h2>$_('Recent Activity')</h2>
-            $:changes
+    $ is_admin = ctx.user and ctx.user.is_admin()
+    $ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian())
+
+    $if owners_page or is_admin or is_librarian:
+        $if "recentchanges_v2" in ctx.features:
+            $ changes = render_template("recentchanges/render", author=page.key, limit=25)
+            $if changes.length > 1:
+                <h2>$_('Recent Activity')</h2>
+                $:changes
+            $else:
+                <p>$_("No edits. Yet.")</p>
         $else:
-            <p>$_("No edits. Yet.")</p>
-    $else:
-        $:macros.RecentChangesUsers(author=page, limit=25)
+            $:macros.RecentChangesUsers(author=page, limit=25)
 </div>

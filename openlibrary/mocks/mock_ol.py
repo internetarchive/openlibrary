@@ -13,7 +13,7 @@ from openlibrary.mocks.mock_infobase import mock_site, MockConnection
 from openlibrary.plugins import ol_infobase
 
 
-@pytest.fixture()
+@pytest.fixture
 def ol(request):
     """ol funcarg for pytest tests.
 
@@ -50,7 +50,7 @@ class OLBrowser(AppBrowser):
 class OL:
     """Mock OL object for all tests."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def __init__(self, request, monkeypatch):
         self.request = request
 

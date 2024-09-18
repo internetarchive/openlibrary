@@ -22,8 +22,10 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+
+import itertools
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import web
 
@@ -38,6 +40,7 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
     is_promise_item,
@@ -65,6 +68,8 @@ if TYPE_CHECKING:
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
+SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900", "1900-01-01"]
+SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 
 
 type_map = {
@@ -462,13 +467,12 @@ def build_pool(rec):
     return {k: list(v) for k, v in pool.items() if v}
 
 
-def find_quick_match(rec):
+def find_quick_match(rec: dict) -> str | None:
     """
     Attempts to quickly find an existing item match using bibliographic keys.
 
     :param dict rec: Edition record
-    :rtype: str|bool
-    :return: First key matched of format "/books/OL..M" or False if no match found.
+    :return: First key matched of format "/books/OL..M" or None if no match found.
     """
 
     if 'openlibrary' in rec:
@@ -483,15 +487,20 @@ def find_quick_match(rec):
         if ekeys:
             return ekeys[0]
 
-    # only searches for the first value from these lists
+    # Look for a matching non-ISBN ASIN identifier (e.g. from a BWB promise item).
+    if (non_isbn_asin := get_non_isbn_asin(rec)) and (
+        ekeys := editions_matched(rec, "identifiers.amazon", non_isbn_asin)
+    ):
+        return ekeys[0]
+
+    # Only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
             if f == 'source_records' and not rec[f][0].startswith('ia:'):
                 continue
-            ekeys = editions_matched(rec, f, rec[f][0])
-            if ekeys:
+            if ekeys := editions_matched(rec, f, rec[f][0]):
                 return ekeys[0]
-    return False
+    return None
 
 
 def editions_matched(rec, key, value=None):
@@ -514,59 +523,11 @@ def editions_matched(rec, key, value=None):
     return ekeys
 
 
-def find_exact_match(rec, edition_pool):
-    """
-    Returns an edition key match for rec from edition_pool
-    Only returns a key if all values match?
-
-    :param dict rec: Edition import record
-    :param dict edition_pool:
-    :rtype: str|bool
-    :return: edition key
-    """
-    seen = set()
-    for editions in edition_pool.values():
-        for ekey in editions:
-            if ekey in seen:
-                continue
-            seen.add(ekey)
-            existing = web.ctx.site.get(ekey)
-            match = True
-            for k, v in rec.items():
-                if k == 'source_records':
-                    continue
-                existing_value = existing.get(k)
-                if not existing_value:
-                    continue
-                if k == 'languages':
-                    existing_value = [
-                        str(re_lang.match(lang.key).group(1)) for lang in existing_value
-                    ]
-                if k == 'authors':
-                    existing_value = [dict(a) for a in existing_value]
-                    for a in existing_value:
-                        del a['type']
-                        del a['key']
-                    for a in v:
-                        if 'entity_type' in a:
-                            del a['entity_type']
-                        if 'db_name' in a:
-                            del a['db_name']
-
-                if existing_value != v:
-                    match = False
-                    break
-            if match:
-                return ekey
-    return False
-
-
-def find_enriched_match(rec, edition_pool):
+def find_threshold_match(rec: dict, edition_pool: dict) -> str | None:
     """
     Find the best match for rec in edition_pool and return its key.
     :param dict rec: the new edition we are trying to match.
     :param list edition_pool: list of possible edition key matches, output of build_pool(import record)
-    :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
     seen = set()
@@ -575,21 +536,16 @@ def find_enriched_match(rec, edition_pool):
             if edition_key in seen:
                 continue
             thing = None
-            found = True
             while not thing or is_redirect(thing):
                 seen.add(edition_key)
                 thing = web.ctx.site.get(edition_key)
                 if thing is None:
-                    found = False
                     break
                 if is_redirect(thing):
                     edition_key = thing['location']
-                    # FIXME: this updates edition_key, but leaves thing as redirect,
-                    # which will raise an exception in editions_match()
-            if not found:
-                continue
-            if editions_match(rec, thing):
+            if thing and editions_match(rec, thing):
                 return edition_key
+    return None
 
 
 def load_data(
@@ -667,9 +623,14 @@ def load_data(
 
     edits: list[dict] = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
-    # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
+    # edition.authors may have already been processed by import_authors() in build_query(),
+    # but not necessarily
     author_in = [
-        import_author(a, eastern=east_in_by_statement(rec, a))
+        (
+            import_author(a, eastern=east_in_by_statement(rec, a))
+            if isinstance(a, dict)
+            else a
+        )
         for a in edition.get('authors', [])
     ]
     # build_author_reply() adds authors to edits
@@ -745,6 +706,7 @@ def normalize_import_record(rec: dict) -> None:
         - Cleaning all ISBN and LCCN fields ('bibids');
         - Deduplicate authors; and
         - Remove throw-away data used for validation.
+        - Remove publication years of 1900 for AMZ/BWB/Promise.
 
         NOTE: This function modifies the passed-in rec in place.
     """
@@ -777,14 +739,18 @@ def normalize_import_record(rec: dict) -> None:
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
 
     # Validation by parse_data(), prior to calling load(), requires facially
-    # valid publishers, authors, and publish_date. If data are unavailable, we
-    # provide throw-away data which validates. We use ["????"] as an override,
-    # but this must be removed prior to import.
+    # valid publishers. If data are unavailable, we provide throw-away data
+    # which validates. We use ["????"] as an override, but this must be
+    # removed prior to import.
     if rec.get('publishers') == ["????"]:
         rec.pop('publishers')
-    if rec.get('authors') == [{"name": "????"}]:
-        rec.pop('authors')
-    if rec.get('publish_date') == "????":
+
+    # Remove suspect publication dates from certain sources (e.g. 1900 from Amazon).
+    if any(
+        source_record.split(":")[0] in SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY
+        and rec.get('publish_date') in SUSPECT_PUBLICATION_DATES
+        for source_record in rec['source_records']
+    ):
         rec.pop('publish_date')
 
 
@@ -814,16 +780,9 @@ def validate_record(rec: dict) -> None:
         raise SourceNeedsISBN
 
 
-def find_match(rec, edition_pool) -> str | None:
+def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
-    match = find_quick_match(rec)
-    if not match:
-        match = find_exact_match(rec, edition_pool)
-
-    if not match:
-        match = find_enriched_match(rec, edition_pool)
-
-    return match
+    return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
 
 
 def update_edition_with_rec_data(
@@ -849,7 +808,7 @@ def update_edition_with_rec_data(
         edition['ocaid'] = rec['ocaid']
         need_edition_save = True
 
-    # Add list fields to edition as needed
+    # Fields which have their VALUES added if absent.
     edition_list_fields = [
         'local_id',
         'lccn',
@@ -863,14 +822,16 @@ def update_edition_with_rec_data(
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
         if f in edition:
-            # get values from rec that are not currently on the edition
-            to_add = [v for v in values if v not in edition[f]]
+            # get values from rec field that are not currently on the edition
+            case_folded_values = {v.casefold() for v in edition[f]}
+            to_add = [v for v in values if v.casefold() not in case_folded_values]
             edition[f] += to_add
         else:
             edition[f] = to_add = values
         if to_add:
             need_edition_save = True
 
+    # Fields that are added as a whole if absent. (Individual values are not added.)
     other_edition_fields = [
         'description',
         'number_of_pages',
@@ -908,13 +869,15 @@ def update_work_with_rec_data(
     """
     # Add subjects to work, if not already present
     if 'subjects' in rec:
-        work_subjects = list(work.get('subjects', []))
-        for s in rec['subjects']:
-            if s not in work_subjects:
-                work_subjects.append(s)
-                need_work_save = True
-        if need_work_save and work_subjects:
-            work['subjects'] = work_subjects
+        work_subjects: list[str] = list(work.get('subjects', []))
+        rec_subjects: list[str] = rec.get('subjects', [])
+        deduped_subjects = uniq(
+            itertools.chain(work_subjects, rec_subjects), lambda item: item.casefold()
+        )
+
+        if work_subjects != deduped_subjects:
+            work['subjects'] = deduped_subjects
+            need_work_save = True
 
     # Add cover to work, if needed
     if not work.get('covers') and edition.get_covers():
@@ -930,7 +893,7 @@ def update_work_with_rec_data(
     if not work.get('authors'):
         authors = [import_author(a) for a in rec.get('authors', [])]
         work['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': a.key}
+            {'type': {'key': '/type/author_role'}, 'author': a.get('key')}
             for a in authors
             if a.get('key')
         ]
@@ -957,7 +920,7 @@ def should_overwrite_promise_item(
     return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
-def load(rec, account_key=None, from_marc_record: bool = False):
+def load(rec: dict, account_key=None, from_marc_record: bool = False) -> dict:
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -977,7 +940,6 @@ def load(rec, account_key=None, from_marc_record: bool = False):
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
-
     edition_pool = build_pool(rec)
     if not edition_pool:
         # No match candidates found, add edition

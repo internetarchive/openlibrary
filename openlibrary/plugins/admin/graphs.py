@@ -1,5 +1,6 @@
 """Utilities for rendering Graphite graphs.
 """
+
 import web
 from infogami import config
 

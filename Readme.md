@@ -4,6 +4,7 @@
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
 [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Open in Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
+[![contributors](https://img.shields.io/github/contributors/internetarchive/openlibrary.svg)](https://github.com/internetarchive/openlibrary/graphs/contributors)
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
@@ -19,7 +20,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
      - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
-   - [Contributing](CONTRIBUTING.md)
+   - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
 
@@ -77,18 +78,32 @@ If you want to dive into the source code for Infogami, see the [Infogami repo](h
 
 ## Running tests
 
-Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
-
-Run tests while the docker container is running.
+Open Library tests can be run using docker. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
 
 ```
-cd docker/
-docker compose exec web make test
+docker compose run --rm home make test
 ```
 
-### Integration Tests
+## Contributing
 
-Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md).
+There are many ways volunteers can contribute to the Open Library project, from development and design to data management and community engagement. Here’s how you can get involved:
+
+### Developers
+- **Getting Started:** Check out our [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) for instructions on how to set up your development environment, find issues to work on, and submit your contributions.
+- **Good First Issues:** Browse our [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to find beginner-friendly tasks.
+
+### Designers
+- **Design Contributions:** We welcome designers to help improve the user experience. You can start by looking at [design-related issues](https://github.com/internetarchive/openlibrary/labels/design).
+
+### Librarians and Data Enthusiasts
+- **Data Contributions:** Learn how to contribute to our catalog and help improve book data on Open Library. Visit our [volunteer page](https://openlibrary.org/volunteer) for more information.
+
+### Community Engagement
+- **Join our Community Calls:** Open Library hosts weekly community and design calls. Check the [community call schedule](https://github.com/internetarchive/openlibrary/wiki/Community-Call) for times and details.
+- **Ask Questions:** If you have any questions, join our [gitter chat](https://gitter.im/theopenlibrary/Lobby) or request an invitation to our Slack channel on our [volunteers page](https://openlibrary.org/volunteer).
+
+For more detailed information, refer to the [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md).
+
 
 ## License
 

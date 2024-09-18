@@ -2,34 +2,32 @@ import os
 
 import pytest
 from babel.messages.pofile import read_po
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 from openlibrary.i18n import get_locales
 
 root = os.path.dirname(__file__)
-# Fix these and then remove them from this list
-ALLOW_FAILURES = {'pl'}
 
 
-def trees_equal(el1: etree.Element, el2: etree.Element, error=True):
+def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
     """
     Check if the tree data is the same
-    >>> trees_equal(etree.fromstring('<root />'), etree.fromstring('<root />'))
+    >>> trees_equal(ET.fromstring('<root />'), ET.fromstring('<root />'))
     True
-    >>> trees_equal(etree.fromstring('<root x="3" />'),
-    ...               etree.fromstring('<root x="7" />'))
+    >>> trees_equal(ET.fromstring('<root x="3" />'),
+    ...               ET.fromstring('<root x="7" />'))
     True
-    >>> trees_equal(etree.fromstring('<root x="3" y="12" />'),
-    ...               etree.fromstring('<root x="7" />'), error=False)
+    >>> trees_equal(ET.fromstring('<root x="3" y="12" />'),
+    ...               ET.fromstring('<root x="7" />'), error=False)
     False
-    >>> trees_equal(etree.fromstring('<root><a /></root>'),
-    ...               etree.fromstring('<root />'), error=False)
+    >>> trees_equal(ET.fromstring('<root><a /></root>'),
+    ...               ET.fromstring('<root />'), error=False)
     False
-    >>> trees_equal(etree.fromstring('<root><a /></root>'),
-    ...               etree.fromstring('<root><a>Foo</a></root>'), error=False)
+    >>> trees_equal(ET.fromstring('<root><a /></root>'),
+    ...               ET.fromstring('<root><a>Foo</a></root>'), error=False)
     True
-    >>> trees_equal(etree.fromstring('<root><a href="" /></root>'),
-    ...               etree.fromstring('<root><a>Foo</a></root>'), error=False)
+    >>> trees_equal(ET.fromstring('<root><a href="" /></root>'),
+    ...               ET.fromstring('<root><a>Foo</a></root>'), error=False)
     False
     """
     try:
@@ -72,21 +70,15 @@ def gen_html_entries():
     for locale, msgid, msgstr in gen_po_msg_pairs():
         if '</' not in msgid:
             continue
-
-        if locale in ALLOW_FAILURES:
-            yield pytest.param(
-                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
-            )
-        else:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
+        yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
 @pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
-    # Need this to support &nbsp;, since etree only parses XML.
+    # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?
     entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
-    id_tree = etree.fromstring(f'{entities}<root>{msgid}</root>')
-    str_tree = etree.fromstring(f'{entities}<root>{msgstr}</root>')
+    id_tree = ET.fromstring(f'{entities}<root>{msgid}</root>')
+    str_tree = ET.fromstring(f'{entities}<root>{msgstr}</root>')
     if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
         assert trees_equal(id_tree, str_tree)

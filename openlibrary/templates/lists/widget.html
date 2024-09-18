@@ -44,8 +44,7 @@ $def render_head(page_lists, page_url):
       <h3 class="header">
         <span class="icon list heart-adjust"></span>
         $if len(page_lists) > 0:
-            $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
-            <span class="head"><a href="$page_url/lists">$(msg)</a></span>
+            <span class="head"><a href="$page_url/lists">$ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))</a></span>
         $else:
             <span class="head">$_("Lists")</span>
       </h3>
@@ -77,7 +76,7 @@ $if include_widget:
   $if username and show_active_lists:
     <ul class="listLists already-lists">
         $if async_load:
-          <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
+          <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
         $else:
           $:render_already_lists(user_lists, user_key)
     </ul>

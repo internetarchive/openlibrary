@@ -1,4 +1,5 @@
 """py.test tests for addbook"""
+
 import web
 from .. import addbook
 from openlibrary import accounts
@@ -15,6 +16,7 @@ def mock_user():
         (object,),
         {
             'is_admin': lambda slf: False,
+            'is_super_librarian': lambda slf: False,
             'is_librarian': lambda slf: False,
             'is_usergroup_member': lambda slf, grp: False,
         },

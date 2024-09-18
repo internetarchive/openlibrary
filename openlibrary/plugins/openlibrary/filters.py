@@ -1,6 +1,7 @@
 """
 Filters used to check if a certain statistic should be recorded
 """
+
 import re
 import logging
 

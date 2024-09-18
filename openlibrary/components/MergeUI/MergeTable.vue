@@ -48,6 +48,7 @@ import Vue from 'vue';
 import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
+import CONFIGS from '../configs.js';
 
 Vue.use(AsyncComputed);
 
@@ -60,10 +61,15 @@ function fetchRecord(olid) {
         M: 'books',
         A: 'authors'
     }[olid[olid.length - 1]];
+    let base = '';
+    if (CONFIGS.OL_BASE_BOOKS) {
+        base = CONFIGS.OL_BASE_BOOKS;
+    } else {
+        // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
+        base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
+    }
     const record_key = `/${type}/${olid}`;
-    // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-    const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${record_key}.json` : `${record_key}.json`;
-    return fetch(url).then(r => {
+    return fetch(`${base}${record_key}.json`).then(r => {
         return (r.ok) ? r.json() : {key: record_key, type: {key: '/type/none'}, error: r.statusText};
     });
 }
@@ -345,11 +351,14 @@ table.main {
       }
 
       & > div.wrap-key--title--subtitle--authors--error {
-        min-width: max-content;
+        min-width: 500px;
         padding: 0 0 calc(@row-padding * 2) 0;
 
         & > div {
           padding: @row-padding @row-padding 0 @row-padding;
+          white-space: normal;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
           &:last-child {
             padding-bottom: @row-padding;
           }
@@ -395,7 +404,7 @@ table.main {
     & > td.col-key--title--subtitle--authors--error,
     & > .col-subjects--subject_people--subject_places--subject_times,
     & > td.col-editions  {
-      max-width: max-content;
+      max-width: 100vw;
     }
   }
 

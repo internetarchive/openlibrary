@@ -9,6 +9,9 @@ import {
     isValidLccn,
     isIdDupe
 } from './idValidation';
+import { init as initAutocomplete } from './autocomplete';
+import { init as initJqueryRepeat } from './jquery.repeat';
+
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
@@ -68,6 +71,7 @@ function getJqueryElements(selector){
 }
 
 export function initRoleValidation() {
+    initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
         vars: {prefix: 'edition--'},
@@ -79,6 +83,7 @@ export function initRoleValidation() {
                 return error('#role-errors', '#role-name', dataConfig['You need to give this ROLE a name.'].replace(/ROLE/, data.role));
             }
             $('#role-errors').hide();
+            $('#select-role, #role-name').val('');
             return true;
         }
     });
@@ -97,7 +102,9 @@ export function isbnConfirmAdd(data) {
 
     const yesButtonSelector = '#yes-add-isbn'
     const noButtonSelector = '#do-not-add-isbn'
-    const onYes = () => {$('#id-errors').hide()};
+    const onYes = () => {
+        $('#id-errors').hide();
+    };
     const onNo = () => {
         $('#id-errors').hide();
         isbnOverride.clear();
@@ -122,8 +129,8 @@ export function isbnConfirmAdd(data) {
 function validateIsbn10(data, dataConfig, label) {
     data.value = parseIsbn(data.value);
 
-    if (isFormatValidIsbn10(data.value) === false) {
-        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
+    if (!isFormatValidIsbn10(data.value)) {
+        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -147,7 +154,7 @@ function validateIsbn13(data, dataConfig, label) {
     data.value = parseIsbn(data.value);
 
     if (isFormatValidIsbn13(data.value) === false) {
-        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -171,7 +178,8 @@ function validateLccn(data, dataConfig, label) {
     data.value = parseLccn(data.value);
 
     if (isValidLccn(data.value) === false) {
-        return error('#id-errors', 'id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
+        $('#id-value').val(data.value);
+        return error('#id-errors', '#id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
     }
     return true;
 }
@@ -187,14 +195,15 @@ export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
 
     if (data.name === '' || data.name === '---') {
-        return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
+        $('#id-value').val(data.value);
+        return error('#id-errors', '#select-id', dataConfig['Please select an identifier.'])
     }
     const label = $('#select-id').find(`option[value='${data.name}']`).html();
     if (data.value === '') {
-        return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
     }
     if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-        return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
     }
 
     let validId = true;
@@ -214,16 +223,16 @@ export function validateIdentifiers(data) {
     if (isIdDupe(entries, data.value) === true) {
         // isbnOverride being set will override the dupe checker, so clear isbnOverride if there's a dupe.
         if (isbnOverride.get()) {isbnOverride.clear()}
-        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
 
     if (validId === false) return false;
-
     $('#id-errors').hide();
     return true;
 }
 
 export function initIdentifierValidation() {
+    initJqueryRepeat();
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
         validate: function(data) {return validateIdentifiers(data)},
@@ -231,6 +240,7 @@ export function initIdentifierValidation() {
 }
 
 export function initClassificationValidation() {
+    initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
     $('#classifications').repeat({
         vars: {prefix: 'edition--'},
@@ -243,12 +253,14 @@ export function initClassificationValidation() {
                 return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
             }
             $('#classification-errors').hide();
+            $('#select-classification, #classification-value').val('');
             return true;
         }
     });
 }
 
 export function initLanguageMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
@@ -267,6 +279,7 @@ export function initLanguageMultiInputAutocomplete() {
 }
 
 export function initWorksMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
@@ -288,9 +301,15 @@ export function initWorksMultiInputAutocomplete() {
                 });
         });
     });
+
+    // Show the new work options checkboxes only if "New work" selected
+    $('input[name="works--0"]').on('autocompleteselect', function(_event, ui) {
+        $('.new-work-options').toggle(ui.item.key === '__new__');
+    });
 }
 
 export function initSeedsMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--seeds').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
@@ -314,6 +333,7 @@ export function initSeedsMultiInputAutocomplete() {
 }
 
 export function initAuthorMultiInputAutocomplete() {
+    initAutocomplete();
     getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
@@ -336,6 +356,7 @@ export function initAuthorMultiInputAutocomplete() {
 }
 
 export function initSubjectsAutocomplete() {
+    initAutocomplete();
     getJqueryElements('.csv-autocomplete--subjects').forEach(jqueryElement => {
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
         jqueryElement.setup_csv_autocomplete(
@@ -382,18 +403,22 @@ function show_hide_title() {
 }
 
 export function initEditExcerpts() {
+    initJqueryRepeat();
     $('#excerpts').repeat({
         vars: {
             prefix: 'work--excerpts',
         },
         validate: function(data) {
+            const i18nStrings = JSON.parse(document.querySelector('#excerpts-errors').dataset.i18n);
+
             if (!data.excerpt) {
-                return error('#excerpts-errors', '#excerpts-excerpt', 'Please provide an excerpt.');
+                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['empty_excerpt']);
             }
             if (data.excerpt.length > 2000) {
-                return error('#excerpts-errors', '#excerpts-excerpt', 'That excerpt is too long.')
+                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['over_wordcount']);
             }
             $('#excerpts-errors').hide();
+            $('#excerpts-excerpt').val('');
             return true;
         }
     });
@@ -425,24 +450,35 @@ export function initEditExcerpts() {
  *    - '#link-errors'
  */
 export function initEditLinks() {
+    initJqueryRepeat();
     $('#links').repeat({
         vars: {
             prefix: $('#links').data('prefix')
         },
         validate: function(data) {
-            if (data.url.trim() === '' || data.url.trim() === 'https://') {
-                $('#link-errors').html('Please provide a URL.');
-                $('#link-errors').removeClass('hidden');
-                $('#link-url').trigger('focus');
-                return false;
-            }
+            const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
+            const url = data.url.trim();
+
             if (data.title.trim() === '') {
-                $('#link-errors').html('Please provide a label.');
+                $('#link-errors').html(i18nStrings['empty_label']);
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').trigger('focus');
                 return false;
             }
+            if (url === '') {
+                $('#link-errors').html(i18nStrings['empty_url']);
+                $('#link-errors').removeClass('hidden');
+                $('#link-url').trigger('focus');
+                return false;
+            }
+            if (!isValidURL(url)) {
+                $('#link-errors').html(i18nStrings['invalid_url']);
+                $('#link-errors').removeClass('hidden');
+                $('#link-url').trigger('focus');
+                return false;
+            }
             $('#link-errors').addClass('hidden');
+            $('#link-label, #link-url').val('');
             return true;
         }
     });
@@ -472,5 +508,18 @@ export function initEdit() {
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);
+    }
+}
+
+/**
+ * Assesses URL validity using built-in URL object.
+ * @param string url
+ */
+function isValidURL(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
     }
 }

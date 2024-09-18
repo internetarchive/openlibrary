@@ -1,5 +1,6 @@
 """Handle book cover/author photo upload.
 """
+
 from logging import getLogger
 
 import requests

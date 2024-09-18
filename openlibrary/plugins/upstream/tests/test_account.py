@@ -162,7 +162,7 @@ class TestGoodReadsImport:
         assert books_wo_isbns == self.expected_books_wo_isbns
 
 
-@pytest.mark.xfail()
+@pytest.mark.xfail
 class TestAccount:
     def signup(self, b, displayname, username, password, email):
         b.open("/account/create")

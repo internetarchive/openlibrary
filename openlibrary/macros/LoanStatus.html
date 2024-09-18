@@ -1,10 +1,10 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
 $# * allow_expensive_availability_check - whether to check the groundtruth availability
 $#     if can't get availability from specified fields
-$# * secondary_action - whether to display elements (e.g. preview, searhc inside)
+$# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_sponsorship - whether to check if the book is eligible for sponsorship
 $# * sponsorship_help - whether to show the sponsorship help text
@@ -39,19 +39,25 @@ $ get_loan_for_total_time = time() - get_loan_for_start_time
 
 $ is_edition = doc.key.split('/')[1] == 'books'
 
+$def analytics_attr(action):
+  $if analytics_override:
+    data-ol-link-track="$analytics_override"
+  $else:
+    data-ol-link-track="CTAClick|$action"
+
 $if user_loan:
-  $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
+  $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen)
   $if secondary_action:
     $:macros.ReturnForm(ocaid)
     $:macros.FormatExpiry(user_loan['expiry'])
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons
-  $:book_provider.render_read_button(doc)
+  $:book_provider.render_read_button(doc, analytics_attr)
 
 $elif availability.get('is_readable') or availability.get('status') == 'open':
   $# Open / Publicly Readable (Unrestricted)
-  $:macros.ReadButton(ocaid, listen=listen)
+  $:macros.ReadButton(ocaid, analytics_attr, listen=listen)
   $if secondary_action:
     $:macros.BookSearchInside(ocaid)
 
@@ -60,14 +66,14 @@ $elif ocaid and ctx.user and ctx.user.is_printdisabled():
   $ pd_eligible = availability and availability.get('is_printdisabled')
   $ std_borrow = availability.get("available_to_borrow") or availability.get("available_to_browse")
   $if secondary_action and (availability.get('is_printdisabled') or availability.get('is_lendable')):
-    $:macros.BookPreview(ocaid)
-  $:macros.ReadButton(ocaid, borrow=pd_eligible, printdisabled=not std_borrow, listen=listen)
+    $:macros.BookPreview(ocaid, analytics_attr, show_only=False)
+  $:macros.ReadButton(ocaid, analytics_attr, borrow=pd_eligible, printdisabled=not std_borrow, listen=listen)
 
 $elif availability.get('is_lendable'):
   $if secondary_action:
-    $:macros.BookPreview(ocaid)
+    $:macros.BookPreview(ocaid, analytics_attr, show_only=False)
   $if availability.get("available_to_borrow") or availability.get("available_to_browse"):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen)
+    $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $if waiting_loan:
       $if secondary_action:
@@ -81,8 +87,13 @@ $elif availability.get('is_lendable'):
         </p>
       <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
         <input type="hidden" name="action" value="leave-waitinglist"/>
-        <input type="submit" class="cta-btn" id="unwaitlist_ebook"
-               value="$_('Leave waiting list')"/>
+        <input
+          type="submit"
+          class="cta-btn"
+          id="unwaitlist_ebook"
+          value="$_('Leave waiting list')"
+          $:analytics_attr('LeaveWaitlist')
+        />
       </form>
     $else:
       $# "JOIN-WAITLIST" button
@@ -90,7 +101,13 @@ $elif availability.get('is_lendable'):
       <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
         <input type="hidden" name="action" value="join-waitinglist"/>
         <div class="cta-button-group">
-          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
+          <input
+            type="submit"
+            class="cta-btn cta-btn--unavailable"
+            id="waitlist_ebook"
+            value="$_('Join Waitlist')"
+            $:analytics_attr('JoinWaitlist')
+          />
         </div>
       </form>
       $if secondary_action:
@@ -103,17 +120,27 @@ $elif availability.get('is_lendable'):
   $else:
     $# Checked out: Show checkout out + preview if secondary, else just preview
     <div class="cta-button-group">
-      <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
-       data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
+      <a
+        href="$work_key"
+        class="cta-btn cta-btn--missing"
+        title="$_('This book is currently checked out, please check back later.')"
+        $:analytics_attr('CheckedOut')
+      >$_("Checked Out")</a>
     </div>
 
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
-  $:macros.BookPreview(ocaid)
+  $:macros.BookPreview(ocaid, analytics_attr, show_only=True)
   $if secondary_action:
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $:macros.NotInLibrary(work_key)
+  $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
+  $# secondary_action means we're on a book page and it's the button under the cover image.
+  $ key = doc.key if is_edition else work_key
+  $if (is_edition and is_book_page) or secondary_action:
+      $:macros.NotInLibrary(None, analytics_attr)
+  $else:
+      $:macros.NotInLibrary(key, analytics_attr)
 
 $:post
 

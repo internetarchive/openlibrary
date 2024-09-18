@@ -2,6 +2,7 @@
 
 (this should go to web.py)
 """
+
 import web
 import copy
 import re
@@ -94,6 +95,17 @@ class Password(Input):
 
     def get_type(self):
         return "password"
+
+
+class Email(Input):
+    """Email input.
+
+    >>> Email("email", value='joe@archive.org').render()
+    '<input type="email" id="email" value="joe@archive.org" name="email" />'
+    """
+
+    def get_type(self):
+        return "email"
 
 
 class Checkbox(Input):

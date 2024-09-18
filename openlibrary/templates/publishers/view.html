@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: Publisher: $page.name
+$var title: $_('Publisher: %(name)s', name=page.name)
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
@@ -10,18 +10,18 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <em>Publisher</em> - <strong><span>$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
+            <em>$_("Publisher")</em> - <strong><span>$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
             $if page.ebook_count > 0:
                 / <span class="ebookcount"><span id="ebooks">$ungettext("%(count)s ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
             $else:
-                / 0 ebooks
+                / $_("0 ebooks")
             <span class="clickdata"></span>
         </span>
     </h1>
 </div>
 
 <div class="contentBody">
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
+  $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
 
 	<div class="head">
 	    <h2>
@@ -46,7 +46,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 
         <div class="head" id="subjectRelated">
             <h2>$_("Common Subjects")
-                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search for books published by $page.name</a></span>
+                <span class="count"><a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">$_('Search for books published by %(publisher)s', publisher=page.name)</a></span>
             </h2>
         </div>
 
@@ -60,11 +60,9 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 	        <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
-        <div class="contentQuarter link-box">
-            <h6>$s</h6>
-			<div class="subjects" id="subjects-$s">
-				$:renderSubjects(page[s][:limit])
-			</div>
+        <div class="contentQuarter link-box link-box--with-header">
+            <h3>$s</h3>
+            $:renderSubjects(page[s][:limit])
         </div>
         $if s != 'times':
             <div class="contentSpacer"></div>
@@ -105,10 +103,10 @@ $jsdef renderPublishers(publishers):
 <div class="section clearfix"></div>
 
 <form action="/search/publishers" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Publisher Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+    <h2 class="collapse"><label for="searchSubjects">$_("Publisher Search")</label>  <span class="sansserif grey smaller">$_("Try a keyword.")</span></h2>
     <p>
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-        <button type="submit" class="larger">$_('Search')</button>
+        <button type="submit" class="larger">$_("Search")</button>
     </p>
 </form>
 

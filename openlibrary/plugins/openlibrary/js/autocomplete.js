@@ -1,5 +1,6 @@
 // jquery plugins to provide author, language, and subject autocompletes.
 import 'jquery-ui/ui/widget';
+import 'jquery-ui/ui/widgets/autocomplete';
 import 'jquery-ui/ui/widgets/mouse';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
@@ -46,7 +47,7 @@ export const mapApiResultsToAutocompleteSuggestions = (results, labelFormatter, 
     return results.map(mapAPIResultToSuggestedItem);
 };
 
-export default function($) {
+export function init() {
     /**
      * Some extra options for when creating an autocomplete input field
      * @typedef {Object} OpenLibraryAutocompleteOptions
@@ -124,8 +125,7 @@ export default function($) {
             const term = options.termPreprocessor(q.term);
             const params = {
                 q: term,
-                limit: options.max,
-                timestamp: new Date()
+                limit: options.max
             };
             if (location.search.indexOf('lang=') !== -1) {
                 params.lang = new URLSearchParams(location.search).get('lang');

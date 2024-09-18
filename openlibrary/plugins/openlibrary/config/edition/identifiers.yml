@@ -1,0 +1,348 @@
+identifiers:
+-   label: ABAA (Antiquarian Booksellers’ Association of America)
+    name: abaa
+    notes: ''
+    url: https://www.abaa.org/book/@@@
+    website: https://www.abaa.org/
+-   label: Al Kindi
+    name: dominican_institute_for_oriental_studies_library
+    notes: ''
+    url: https://alkindi.ideo-cairo.org/manifestation/@@@
+    website: https://www.ideo-cairo.org/
+-   label: Alibris ID
+    name: alibris_id
+    notes: ''
+    url: https://www.alibris.com/booksearch?qwork=@@@
+-   label: Amazon ID (ASIN)
+    name: amazon
+    notes: ASIN
+    url: https://www.amazon.com/gp/product/@@@
+-   label: Anna's Archive
+    name: annas_archive
+    notes: Should be the number after md5/ in the link
+    url: https://annas-archive.org/md5/@@@
+-   label: Association for the Blind of Western Australia
+    name: abwa_bibliographic_number
+    notes: ''
+    website: http://www.guidedogswa.org/library/openbiblio/shared/biblio_view.php?bibid=@@@&tab=opac
+-   label: Better World Books
+    name: better_world_books
+    notes: ''
+    url: https://www.betterworldbooks.com/product/detail/@@@
+-   label: Biblioteca Nacional de España Depósito Legal
+    name: depósito_legal
+    notes: ''
+    website: https://www.bne.es/en/catalogues
+-   label: Bibliothèque nationale de France (BnF)
+    name: bibliothèque_nationale_de_france
+    notes: ''
+    url: https://catalogue.bnf.fr/ark:/12148/@@@
+    website: http://www.bnf.fr
+-   label: Bibsys ID
+    name: bibsys
+    notes: ''
+    url: https://bibsys-almaprimo.hosted.exlibrisgroup.com/primo_library/libweb/action/dlDisplay.do?vid=BIBSYS&docId=BIBSYS_ILS@@@
+    website: https://bibsys-almaprimo.hosted.exlibrisgroup.com/
+-   label: Biodiversity Heritage Library
+    name: bhl
+    notes: ''
+    url: https://www.biodiversitylibrary.org/bibliography/@@@
+    website: https://www.biodiversitylibrary.org
+-   label: Oxford University Bodleian Library Aleph System Number
+    name: bodleian,_oxford_university
+    notes: ''
+    url: http://solo.bodleian.ox.ac.uk/OXVU1:LSCOP_OX:oxfaleph@@@
+    website: https://www.bodleian.ox.ac.uk/
+-   label: BookBrainz
+    name: bookbrainz
+    url: https://bookbrainz.org/edition/@@@
+    website: https://bookbrainz.org
+-   label: Book Crossing ID (BCID)
+    name: bcid
+    notes: ''
+    url: https://www.bookcrossing.com/journal/@@@
+    website: https://www.bookcrossing.com
+-   label: BookLocker.com
+    name: booklocker.com
+    notes: ''
+    url: http://booklocker.com/books/@@@.html
+    website: http://booklocker.com/
+-   label: Book Mooch
+    name: bookmooch
+    url: http://www.bookmooch.com/detail/@@@
+-   label: Bowker BookWire
+    name: bookwire
+    notes: ''
+    website: http://www.bookwire.com/
+-   label: Books For You
+    name: booksforyou
+    notes: ''
+    url: http://www.booksforyou.co.in/@@@
+    website: http://www.booksforyou.co.in
+-   label: Boston Public Library
+    name: boston_public_library
+    notes: ''
+    url: https://bostonpl.bibliocommons.com/v2/record/@@@
+    website: https://bostonpl.bibliocommons.com
+-   label: British Library
+    name: british_library
+    notes: ''
+    website: https://www.bl.uk/
+-   label: Cornell University ecommons
+    name: cornell_university_online_library
+    notes: Cornell's Digital Repository
+    url: https://hdl.handle.net/1813/@@@
+    website: https://ecommons.cornell.edu/
+-   label: Cornell University Library Catalog
+    name: cornell_university_library
+    notes: Cornell University Library Catalog
+    url: https://catalog.library.cornell.edu/catalog/@@@
+    website: https://www.library.cornell.edu/
+-   label: Canadian National Library Archive
+    name: canadian_national_library_archive
+    notes: Session-based IDs
+    url: https://central.bac-lac.gc.ca/.redirect?app=fonandcol&id=@@@&lang=eng
+    website: https://library-archives.canada.ca/
+-   label: Choosebooks
+    name: choosebooks
+    notes: No longer up
+    url: http://www.choosebooks.com/displayBookDetails.do?itemId=@@@
+    website: http://www.choosebooks.com/
+-   label: Deutsche National Bibliothek
+    name: dnb
+    notes: ''
+    url: http://d-nb.info/@@@
+    website: http://www.d-nb.de/eng/index.htm
+-   label: Digital Library of Pomerania
+    name: digital_library_pomerania
+    notes: ''
+    url: http://zbc.ksiaznica.szczecin.pl/dlibra/docmetadata?id=@@@
+    website: http://zbc.ksiaznica.szczecin.pl
+-   label: Digital Object Identifier (DOI)
+    name: doi
+    notes: e.g. "10.1007/978-3-030-03515-0"
+    url: https://doi.org/@@@
+    webste: https://doi.org
+-   label: Discovereads
+    name: discovereads
+    notes: Discontinued
+    url: http://www.discovereads.com/books/@@@
+    website: http://www.discovereads.com
+-   label: Freebase
+    name: freebase
+    notes: retired
+    url: http://www.freebase.com/view/en/@@@
+    website: http://freebase.com/
+-   label: Folio
+    name: folio
+    notes: null
+    url: https://folio.com.ua/books/@@@
+-   label: Goodreads
+    name: goodreads
+    url: https://www.goodreads.com/book/show/@@@
+-   label: Google
+    name: google
+    url: https://books.google.com/books?id=@@@
+-   label: Grand Comics Database
+    name: grand_comics_database
+    notes: null
+    url: https://www.comics.org/issue/@@@
+    website: https://www.comics.org
+-   label: Hathi Trust
+    name: hathi_trust
+    url: https://catalog.hathitrust.org/Record/@@@
+    website: https://hathitrust.org/
+-   label: Harvard University Library
+    name: harvard
+    url: https://id.lib.harvard.edu/alma/@@@/catalog
+    website: https://library.harvard.edu
+-   label: Ilmiolibro
+    name: ilmiolibro
+    notes: ''
+    url: https://ilmiolibro.kataweb.it/schedalibro.asp?id=@@@
+    website: https://ilmiolibro.kataweb.it
+-   label: INDUCKS
+    name: inducks
+    notes: null
+    url: https://inducks.org/issue.php?c=@@@
+    website: https://inducks.org
+-   label: Internet Archive
+    name: ocaid
+    url: https://archive.org/details/@@@
+-   label: Internet Speculative Fiction Database
+    name: isfdb
+    url: http://www.isfdb.org/cgi-bin/pl.cgi?@@@
+    website: http://www.isfdb.org
+-   label: English Title Short Catalogue Citation Number
+    name: etsc
+    url: http://estc.bl.uk/@@@
+-   label: ISBN 10
+    name: isbn_10
+-   label: ISBN 13
+    name: isbn_13
+-   label: ISSN
+    name: issn
+    website: http://www.issn.org/
+-   label: ISTC
+    name: istc
+    notes: Incunabula Short Title Catalogue
+    url: https://data.cerl.org/istc/@@@
+    website: https://data.cerl.org/istc/
+-   label: LCCN
+    name: lccn
+    url: https://lccn.loc.gov/@@@
+-   label: Library Thing
+    name: librarything
+    url: https://www.librarything.com/work/@@@
+-   label: Lulu
+    name: lulu
+    url: https://www.lulu.com/product/@@@
+    website: https://www.lulu.com
+-   label: Magcloud
+    name: magcloud
+    notes: ''
+    url: http://www.magcloud.com/browse/Issue/@@@
+    website: http://www.magcloud.com
+-   label: MusicBrainz
+    name: musicbrainz
+    url: https://musicbrainz.org/release/@@@
+    website: https://musicbrainz.org
+-   label: National Diet Library, Japan
+    name: national_diet_library,_japan
+    notes: ''
+    url: https://id.ndl.go.jp/bib/@@@
+    website: https://www.ndl.go.jp/en/
+-   label: National Library of Australia
+    name: nla
+    url: https://catalogue.nla.gov.au/Record/@@@
+    website: https://www.nla.gov.au/
+-   label: National Library of Ukraine
+    name: nbuv
+    notes: ''
+    url: http://irbis-nbuv.gov.ua/ulib/item/@@@
+-   label: National Library of Sweden (Libris)
+    name: libris
+    notes: ''
+    url: https://libris.kb.se/bib/@@@
+    website: https://libris.kb.se
+-   label: OCLC/WorldCat
+    name: oclc_numbers
+    url: https://www.worldcat.org/oclc/@@@?tab=details
+    website: https://www.worldcat.org
+-   label: OverDrive
+    name: overdrive
+    url: https://www.overdrive.com/media/@@@
+    website: https://www.overdrive.com
+-   label: Paperback Swap
+    name: paperback_swap
+    url: http://www.paperbackswap.com/book/details/@@@
+    website: http://www.paperbackswap.com
+-   label: Project Gutenberg
+    name: project_gutenberg
+    url: https://www.gutenberg.org/ebooks/@@@
+    website: https://www.gutenberg.org
+-   label: Scribd
+    name: scribd
+    url: https://www.scribd.com/doc/@@@/
+    website: https://www.scribd.com/
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    note: pattern is /^\D{2}[A-Z0-3][E\d]\d{6}$/
+    url: http://id.sbn.it/bid/@@@
+    website: https://opac.sbn.it/
+-   label: Shelfari
+    name: shelfari
+    notes: merged with goodreads.com
+    url: http://waybackmachine.org/http://www.shelfari.com/books/@@@/
+    website: http://www.shelfari.com/
+-   label: Smashwords Book Download
+    name: smashwords_book_download
+    notes: Commission self-publishing platform
+    url: https://www.smashwords.com/books/view/@@@
+    website: https://www.smashwords.com
+-   label: Standard Ebooks
+    name: standard_ebooks
+    notes: ''
+    url: https://standardebooks.org/ebooks/@@@
+    website: https://standardebooks.org
+-   label: Storygraph
+    name: storygraph
+    notes: eg d57e098f-82dc-41f1-94f3-8fcb02dfab1b
+    url: https://app.thestorygraph.com/books/@@@
+    website: https://www.thestorygraph.com/
+-   label: ULRLS
+    name: ulrls
+    notes: ''
+    url: https://catalogue.libraries.london.ac.uk/record=@@@
+    website: https://catalogue.libraries.london.ac.uk/
+-   label: W. W. Norton
+    name: w._w._norton
+    notes: ''
+    url: http://books.wwnorton.com/books/detail.aspx?ID=@@@
+    website: http://wwnorton.com
+-   label: ZDB-ID
+    name: zdb-id
+    notes: 'The ZDB is the world’s largest specialized database for serial titles
+        (journals, annuals, newspapers etc., incl. e-journals). '
+    url: http://zdb-katalog.de/title.xhtml?ZDB-ID=@@@
+    website: http://zdb-katalog.de
+-   label: Fennica
+    name: fennica
+    notes: The National Library of Finland
+    url: https://kansalliskirjasto.finna.fi/Record/vaari.@@@
+    website: https://www.kansalliskirjasto.fi/
+-   label: Bayerische Staatsbibliothek BSB-ID
+    name: bayerische_staatsbibliothek
+    notes: ''
+    url: https://opacplus.bsb-muenchen.de/metaopac/search?id=@@@
+    website: http://www.bsb-muenchen.de
+-   label: Abebooks.de
+    name: abebooks.de
+    notes: ''
+    url: https://www.abebooks.de/servlet/BookDetailsPL?bi=@@@
+    website: http://www.bne.es/en/Inicio/index.html
+-   label: DC Books
+    name: dc_books
+    notes: ''
+    website: http://www.dcbooks.com/home
+-   label: PublishAmerica
+    name: publishamerica
+    notes: ''
+    website: http://www.publishamerica.com/
+-   label: British National Bibliography
+    name: british_national_bibliography
+    notes: ''
+    url: http://search.bl.uk/primo_library/libweb/action/display.do?doc=BLL01@@@
+    website: http://www.bl.uk/bibliographic/natbib.html
+-   label: Wikidata
+    name: wikidata
+    notes: ''
+    url: https://www.wikidata.org/wiki/@@@
+    website: https://wikidata.org
+-   label: LibriVox
+    name: librivox
+    notes: Should be a number; hover over the RSS button in LibriVox to see the ID
+    url: https://librivox.org/@@@
+-   label: OpenAlex
+    name: open_alex
+    notes: e.g. https://openalex.org/W1502163132
+    url: https://openalex.org/@@@
+-   label: OpenStax
+    name: openstax
+    notes: Should be a human readable URL slug
+    url: https://openstax.org/details/books/@@@
+-   label: Open Textbook Library
+    name: open_textbook_library
+    url: https://open.umn.edu/opentextbooks/textbooks/@@@
+-   label: Wikisource
+    name: wikisource
+    notes: Should be something like 'en:Some_Title'
+    url: https://wikisource.org/wiki/@@@
+-   label: Yakaboo
+    name: yakaboo
+    notes: eg https://www.yakaboo.ua/ua/zelene-svitlo.html
+    url: https://www.yakaboo.ua/ua/@@@.html
+-   label: Infosoup
+    name: infosoup
+    notes: e.g. https://infosoup.bibliocommons.com/v2/record/
+    url: https://infosoup.bibliocommons.com/v2/record/@@@

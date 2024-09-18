@@ -1,13 +1,18 @@
 ports:
-- port: 8080
+- name: Web App
+  port: 8080
 # ignore these ports by default to avoid extra notifications
-- port: 8983
+- name: Solr
+  port: 8983
   onOpen: ignore
-- port: 7075
+- name: Covers
+  port: 7075
   onOpen: ignore
-- port: 7000
+- name: Infobase
+  port: 7000
   onOpen: ignore
-- port: 3000
+- name: Debugger
+  port: 3000
   onOpen: ignore
 tasks:
 - name: watch
@@ -24,16 +29,10 @@ tasks:
   # init runs once for each commit to the default branch
   init: docker compose up --no-start && gp sync-done docker-up
   # command runs each time a user starts their workspace
-  command: docker compose up
+  command: |
+    export OL_COVERSTORE_PUBLIC_URL="https://7075-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+    docker compose up
 - name: dev shell
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh
   openMode: split-right
-
-github:
-  prebuilds:
-    # Disable all prebuilds ; it's not faster and often errors
-    master: false
-    pullRequests: false
-    branches: false
-    pullRequestsFromForks: false

@@ -8,10 +8,11 @@ $var title: $_('Search Open Library for %s', q)
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <form class="siteSearch searchInsideForm" action="/search/inside">
-    <input type="text" class="larger" name="q" value="$q"/>
-    <input type="submit" class="larger" value="$_('Search')">
-  </form>
+  <div class="section">
+    <form class="siteSearch olform" action="/search/inside">
+      $:render_template("search/searchbox", q=q)
+    </form>
+  </div>
     $ num_found = 0
     $if q:
         $if results and 'error' not in results and results['hits']:
@@ -23,7 +24,10 @@ $var title: $_('Search Open Library for %s', q)
 
         $if not num_found:
             $def escaped_query(): <strong>$q</strong>
-            <p class="sansserif red collapse">$:_('No hits for: %(query)s', query=escaped_query())</p>
+            <center>
+              <div class="red">$:_('No <strong>Search Inside</strong> text matched your search')</div>
+              <hr>
+            </center>
 
         $else:
             <p class="search-results-stats">$ungettext('About %(count)s result found', 'About %(count)s results found', num_found, count=commify(num_found)) $ungettext('in %(seconds)s second', 'in %(seconds)s seconds', search_time, seconds="%.2f" % search_time)</p>

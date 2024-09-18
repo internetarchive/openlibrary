@@ -1,7 +1,7 @@
 $def with (page)
 
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="$get_lang()">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$(get_lang() or 'en')">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="title" content="" />
@@ -79,9 +79,6 @@ $def with (page)
  */
 
   </script>
-
-    <!-- JavaScript execution queue that will be emptied at the bottom of the page -->
-    <script type="text/javascript">window.q = [];</script>
     $if "dev" in ctx.features:
         <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
 
@@ -89,5 +86,7 @@ $def with (page)
     <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
     <!-- Drini, Google Search Console -->
     <meta name="google-site-verification" content="XYOJ9Uj0MBr6wk7kj1IkttXrqY-bbRstFMADTfEt354" />
+    <!-- Drini, Bing Webmaster Tools -->
+    <meta name="msvalidate.01" content="8BEBECBEF537077737975A49D55B857D" />
 
 $putctx("sent_head", True)

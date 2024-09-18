@@ -50,7 +50,8 @@ async def index_subjects(
         resp = (
             await client.get(
                 f'{solr_base_url}/select',
-                timeout=30,  # Usually <10, but just in case
+                # Can be slow since we require such a large facet in a chunk
+                timeout=180,
                 params={
                     'q': 'type:work',
                     'rows': 0,

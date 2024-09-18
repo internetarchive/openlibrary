@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 
+from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
 import requests
 import web
 import json
@@ -12,8 +13,11 @@ import datetime
 import logging
 from time import time
 import math
-from pathlib import Path
 import infogami
+from openlibrary.core import db
+from openlibrary.core.batch_imports import (
+    batch_import,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -34,17 +38,20 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_work_availability, get_edition_availability
+from openlibrary.core.lending import get_availability
+from openlibrary.core.fulltext import fulltext_search
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.worksearch.code import do_search
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
+delegate.app.add_processor(processors.PreferenceProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -252,26 +259,24 @@ class addbook(delegate.page):
 
 
 class widget(delegate.page):
-    path = r'/(works|books)/(OL\d+[W|M])/widget'
+    path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
-    def GET(self, _type, olid=None):
-        if olid:
-            getter = (
-                get_work_availability if _type == 'works' else get_edition_availability
-            )
-            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
-            item['olid'] = olid
-            item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [
-                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
-            ]
-            return delegate.RawText(
-                render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
-                ),
-                content_type='text/html',
-            )
-        raise web.seeother('/')
+    def GET(self, key: str):  # type: ignore[override]
+        olid = key.split('/')[-1]
+        item = web.ctx.site.get(key)
+        is_work = key.startswith('/works/')
+        item['olid'] = olid
+        item['availability'] = get_availability(
+            'openlibrary_work' if is_work else 'openlibrary_edition',
+            [olid],
+        ).get(olid)
+        item['authors'] = [
+            web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+        ]
+        return delegate.RawText(
+            render_template('widget', format_work_data(item) if is_work else item),
+            content_type='text/html',
+        )
 
 
 class addauthor(delegate.page):
@@ -428,6 +433,7 @@ class ia_js_cdn(delegate.page):
 
     def GET(self, filename):
         web.header('Content-Type', 'text/javascript')
+        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
         return web.ok(fetch_ia_js(filename))
 
 
@@ -463,10 +469,114 @@ class health(delegate.page):
         return web.ok('OK')
 
 
-class isbn_lookup(delegate.page):
-    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
+def remove_high_priority(query: str) -> str:
+    """
+    Remove `high_priority=true` and `high_priority=false` from query parameters,
+    as the API expects to pass URL parameters through to another query, and
+    these may interfere with that query.
 
-    def GET(self, isbn):
+    >>> remove_high_priority('high_priority=true&v=1')
+    'v=1'
+    """
+    query_params = parse_qs(query)
+    query_params.pop("high_priority", None)
+    new_query = urlencode(query_params, doseq=True)
+    return new_query
+
+
+class batch_imports(delegate.page):
+    """
+    The batch import endpoint. Expects a JSONL file POSTed with multipart/form-data.
+    """
+
+    path = '/import/batch/new'
+
+    def GET(self):
+        return render_template("batch_import.html", batch_result=None)
+
+    def POST(self):
+
+        user_key = delegate.context.user and delegate.context.user.key
+        if user_key not in _get_members_of_group("/usergroup/admin"):
+            raise Forbidden('Permission Denied.')
+
+        # Get the upload from web.py. See the template for the <form> used.
+        batch_result = None
+        form_data = web.input()
+        if form_data.get("batchImportFile"):
+            batch_result = batch_import(form_data['batchImportFile'])
+        elif form_data.get("batchImportText"):
+            batch_result = batch_import(form_data['batchImportText'].encode("utf-8"))
+        else:
+            add_flash_message(
+                'error',
+                'Either attach a JSONL file or copy/paste JSONL into the text area.',
+            )
+
+        return render_template("batch_import.html", batch_result=batch_result)
+
+
+class BatchImportView(delegate.page):
+    path = r'/import/batch/(\d+)'
+
+    def GET(self, batch_id):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        batch = db.select('import_batch', where='id=$batch_id', vars=locals())[0]
+        total_rows = db.query(
+            'SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id',
+            vars=locals(),
+        )[0].count
+
+        rows = db.select(
+            'import_item',
+            where='batch_id=$batch_id',
+            order=f'{sort_field} {sort_order}',
+            limit=limit,
+            offset=offset,
+            vars=locals(),
+        )
+
+        status_counts = db.query(
+            'SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status',
+            vars=locals(),
+        )
+
+        return render_template(
+            'batch_import_view.html',
+            batch=batch,
+            rows=rows,
+            total_rows=total_rows,
+            page=page,
+            limit=limit,
+            sort=sort,
+            status_counts=status_counts,
+        )
+
+
+class isbn_lookup(delegate.page):
+    path = r'/(?:isbn|ISBN)/(.{10,})'
+
+    def GET(self, isbn: str):
+        input = web.input(high_priority=False)
+        isbn = isbn if isbn.upper().startswith("B") else canonical(isbn)
+        high_priority = input.get("high_priority") == "true"
+        if "high_priority" in web.ctx.env.get('QUERY_STRING'):
+            web.ctx.env['QUERY_STRING'] = remove_high_priority(
+                web.ctx.env.get('QUERY_STRING')
+            )
+
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -475,7 +585,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn):
+            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -827,7 +937,7 @@ api and api.add_hook('new', new)
 
 
 @public
-def changequery(query=None, **kw):
+def changequery(query=None, _path=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
     for k, v in kw.items():
@@ -840,7 +950,7 @@ def changequery(query=None, **kw):
         k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
-    out = web.ctx.get('readable_path', web.ctx.path)
+    out = _path or web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
@@ -998,11 +1108,71 @@ class Partials(delegate.page):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(workid=None, _component=None)
+        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
+        # `data['args']` is meant to be a list of a template's positional arguments, in order.
+        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
+        i = web.input(workid=None, _component=None, data=None)
         component = i.pop("_component")
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
+        elif component == "AffiliateLinks":
+            data = json.loads(i.data)
+            args = data.get('args', [])
+            # XXX : Throw error if args length is less than 2
+            macro = web.template.Template.globals['macros'].AffiliateLinks(
+                args[0], args[1]
+            )
+            partial = {"partials": str(macro)}
+
+        elif component == 'SearchFacets':
+            data = json.loads(i.data)
+            path = data.get('path')
+            query = data.get('query', '')
+            parsed_qs = parse_qs(query.replace('?', ''))
+            param = data.get('param', {})
+
+            sort = None
+            search_response = do_search(
+                param, sort, rows=0, spellcheck_count=3, facet=True
+            )
+
+            sidebar = render_template(
+                'search/work_search_facets',
+                param,
+                facet_counts=search_response.facet_counts,
+                async_load=False,
+                path=path,
+                query=parsed_qs,
+            )
+
+            active_facets = render_template(
+                'search/work_search_selected_facets',
+                param,
+                search_response,
+                param.get('q', ''),
+                path=path,
+                query=parsed_qs,
+            )
+
+            partial = {
+                "sidebar": str(sidebar),
+                "title": active_facets.title,
+                "activeFacets": str(active_facets).strip(),
+            }
+
+        elif component == "FulltextSearchSuggestion":
+            query = i.get('data', '')
+            data = fulltext_search(query)
+            hits = data.get('hits', [])
+            if not hits['hits']:
+                macro = '<div></div>'
+            else:
+                macro = web.template.Template.globals[
+                    'macros'
+                ].FulltextSearchSuggestion(query, data)
+            partial = {"partials": str(macro)}
+
         return delegate.RawText(json.dumps(partial))
 
 
@@ -1054,6 +1224,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
@@ -1072,8 +1252,25 @@ def setup_template_globals():
         get_cover_url,
     )
 
+    SUPPORTED_LANGUAGES = {
+        "cs": {"localized": 'Czech', "native": "Čeština"},
+        "de": {"localized": 'German', "native": "Deutsch"},
+        "en": {"localized": 'English', "native": "English"},
+        "es": {"localized": 'Spanish', "native": "Español"},
+        "fr": {"localized": 'French', "native": "Français"},
+        "hr": {"localized": 'Croatian', "native": "Hrvatski"},
+        "it": {"localized": 'Italian', "native": "Italiano"},
+        "pt": {"localized": 'Portuguese', "native": "Português"},
+        "hi": {"localized": 'Hindi', "native": "हिंदी"},
+        "sc": {"localized": 'Sardinian', "native": "Sardu"},
+        "te": {"localized": 'Telugu', "native": "తెలుగు"},
+        "uk": {"localized": 'Ukrainian', "native": "Українська"},
+        "zh": {"localized": 'Chinese', "native": "中文"},
+    }
+
     web.template.Template.globals.update(
         {
+            'cookies': web.cookies,
             'next': next,
             'sorted': sorted,
             'zip': zip,
@@ -1086,6 +1283,7 @@ def setup_template_globals():
             'random': random.Random(),
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
+            'supported_langs': SUPPORTED_LANGUAGES,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,

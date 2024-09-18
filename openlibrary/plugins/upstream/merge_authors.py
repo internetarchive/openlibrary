@@ -1,5 +1,6 @@
 """Merge authors.
 """
+
 import re
 import json
 import web
@@ -267,9 +268,7 @@ class merge_authors(delegate.page):
         keys = sorted(keys, key=lambda key: int(key[2:-1]))
 
         user = get_current_user()
-        can_merge = user and (
-            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-        )
+        can_merge = user and (user.is_admin() or user.is_super_librarian())
         return render_template(
             'merge/authors',
             keys,
@@ -284,12 +283,8 @@ class merge_authors(delegate.page):
         selected = uniq(i.merge_key)
 
         user = get_current_user()
-        can_merge = user and (
-            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-        )
-        can_request_merge = not can_merge and (
-            user and user.is_usergroup_member('/usergroup/librarians')
-        )
+        can_merge = user and (user.is_admin() or user.is_super_librarian())
+        can_request_merge = not can_merge and (user and user.is_librarian())
 
         # filter bad keys
         keys = self.filter_authors(keys)

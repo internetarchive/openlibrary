@@ -13,7 +13,7 @@ image_formats = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def image_dir(tmpdir):
     tmpdir.mkdir('localdisk')
     tmpdir.mkdir('items')

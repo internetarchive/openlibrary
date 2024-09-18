@@ -1,6 +1,7 @@
 """
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
+
 import web
 from infogami.infobase import client
 

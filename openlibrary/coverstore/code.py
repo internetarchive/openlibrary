@@ -210,7 +210,7 @@ def trim_microsecond(date):
 
 
 # Number of images stored in one archive.org item
-IMAGES_PER_ITEM = 10000
+IMAGES_PER_ITEM = 10_000
 
 
 def zipview_url_from_id(coverid, size):
@@ -239,17 +239,9 @@ class cover:
             ):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
-                raise web.seeother(i.default)
+                return web.seeother(i.default)
             else:
-                raise web.notfound("")
-
-        def redirect(id):
-            size_part = size and ("-" + size) or ""
-            url = f"/{category}/id/{id}{size_part}.jpg"
-
-            if query := web.ctx.env.get('QUERY_STRING'):
-                url += '?' + query
-            raise web.found(url)
+                return web.notfound("")
 
         if key == 'isbn':
             value = value.replace("-", "").strip()  # strip hyphens from ISBN
@@ -257,31 +249,20 @@ class cover:
         elif key == 'ia':
             url = self.get_ia_cover_url(value, size)
             if url:
-                raise web.found(url)
+                return web.found(url)
             else:
                 value = None  # notfound or redirect to default. handled later.
         elif key != 'id':
             value = self.query(category, key, value)
 
-        if not value or (value and safeint(value) in config.blocked_covers):
+        value = safeint(value)
+        if value is None or value in config.blocked_covers:
             return notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
-            url = zipview_url_from_id(int(value), size)
-            raise web.found(url)
-
-        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
-        if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
-            if 8_820_000 > int(value) >= 8_000_000:
-                prefix = f"{size.lower()}_" if size else ""
-                pid = "%010d" % int(value)
-                item_id = f"{prefix}covers_{pid[:4]}"
-                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
-                item_file = f"{pid}{'-' + size.upper() if size else ''}"
-                path = f"{item_id}/{item_tar}/{item_file}.jpg"
-                protocol = web.ctx.protocol
-                raise web.found(f"{protocol}://archive.org/download/{path}")
+            url = zipview_url_from_id(value, size)
+            return web.found(url)
 
         d = self.get_details(value, size.lower())
         if not d:
@@ -291,7 +272,7 @@ class cover:
         if key == 'id':
             etag = f"{d.id}-{size.lower()}"
             if not web.modified(trim_microsecond(d.created), etag=etag):
-                raise web.notmodified()
+                return web.notmodified()
 
             web.header('Cache-Control', 'public')
             # this image is not going to expire in next 100 years.
@@ -305,15 +286,15 @@ class cover:
         try:
             from openlibrary.coverstore import archive
 
-            if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
-                raise web.found(
+            if d.id >= 8_000_000 and d.uploaded:
+                return web.found(
                     archive.Cover.get_cover_url(
                         d.id, size=size, protocol=web.ctx.protocol
                     )
                 )
             return read_image(d, size)
         except OSError:
-            raise web.notfound()
+            return web.notfound()
 
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
@@ -337,14 +318,9 @@ class cover:
             h,
         )
 
-    def get_details(self, coverid, size=""):
-        try:
-            coverid = int(coverid)
-        except ValueError:
-            return None
-
+    def get_details(self, coverid: int, size=""):
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
-        if isinstance(coverid, int) and coverid < 6000000 and size in "sml":
+        if coverid < 6000000 and size in "sml":
             path = self.get_tar_filename(coverid, size)
 
             if path:
@@ -358,12 +334,12 @@ class cover:
 
         return db.details(coverid)
 
-    def is_cover_in_cluster(self, coverid):
+    def is_cover_in_cluster(self, coverid: int):
         """Returns True if the cover is moved to archive.org cluster.
         It is found by looking at the config variable max_coveritem_index.
         """
         try:
-            return int(coverid) < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
+            return coverid < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
         except (TypeError, ValueError):
             return False
 
@@ -457,8 +433,7 @@ class query:
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
 
-        if limit > 100:
-            limit = 100
+        limit = min(limit, 100)
 
         if i.olid and ',' in i.olid:
             i.olid = i.olid.split(',')
@@ -551,32 +526,11 @@ def render_list_preview_image(lst_key):
             image.append(img)
     max_height = 0
     for img in image:
-        if img.size[1] > max_height:
-            max_height = img.size[1]
-    if len(image) == 5:
-        background.paste(image[0], (63, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (247, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (431, 174 + max_height - image[2].size[1]))
-        background.paste(image[3], (615, 174 + max_height - image[3].size[1]))
-        background.paste(image[4], (799, 174 + max_height - image[4].size[1]))
-
-    elif len(image) == 4:
-        background.paste(image[0], (155, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (339, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (523, 174 + max_height - image[2].size[1]))
-        background.paste(image[3], (707, 174 + max_height - image[3].size[1]))
-
-    elif len(image) == 3:
-        background.paste(image[0], (247, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (431, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (615, 174 + max_height - image[2].size[1]))
-
-    elif len(image) == 2:
-        background.paste(image[0], (339, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (523, 174 + max_height - image[1].size[1]))
-
-    else:
-        background.paste(image[0], (431, 174 + max_height - image[0].size[1]))
+        max_height = max(img.size[1], max_height)
+    start_width = 63 + 92 * (5 - len(image))
+    for img in image:
+        background.paste(img, (start_width, 174 + max_height - img.size[1]))
+        start_width += 184
 
     logo = logo.resize((120, 74), Image.LANCZOS)
     background.paste(logo, (880, 14), logo)

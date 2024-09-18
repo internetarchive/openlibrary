@@ -1,10 +1,10 @@
-version: "3.8"
 services:
   web:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+      - OL_COVERSTORE_PUBLIC_URL=${OL_COVERSTORE_PUBLIC_URL:-}
     command: docker/ol-web-start.sh
     ports:
       - ${WEB_PORT:-8080}:8080
@@ -17,7 +17,7 @@ services:
         max-file: "4"
 
   solr:
-    image: solr:9.2.1
+    image: solr:9.5.0
     expose:
       - 8983
     environment:

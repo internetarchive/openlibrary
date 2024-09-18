@@ -60,7 +60,7 @@ sample_lines = [line0, line1, line2]
 sample_lines_unmarshalled = [line0_unmarshalled, line1_unmarshalled, line2_unmarshalled]
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_isbndb_data():
     """
     Get a data dictionary suitable, in ISBNdb JSONL format, for passing to the ISBNdb class.

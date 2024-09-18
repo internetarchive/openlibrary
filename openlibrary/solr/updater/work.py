@@ -18,10 +18,11 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
+from openlibrary.utils.open_syllabus_project import get_total_by_olid
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -261,7 +262,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._solr_editions = [
-            EditionSolrBuilder(e, self._ia_metadata.get(e.get('ocaid', '').strip()))
+            EditionSolrBuilder(
+                e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
+            )
             for e in self._editions
         ]
 
@@ -315,11 +318,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def alternative_title(self) -> set[str]:
-        return {
-            title
-            for book in (EditionSolrBuilder(self._work), *self._solr_editions)
-            for title in book.alternative_title
-        }
+        alt_title_set = set()
+        for book in (EditionSolrBuilder(self._work), *self._solr_editions):
+            alt_title_set.update(book.alternative_title)
+            if book.translation_of:
+                alt_title_set.add(book.translation_of)
+        return alt_title_set
 
     @property
     def alternative_subtitle(self) -> set[str]:
@@ -331,6 +335,10 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def edition_count(self) -> int:
         return len(self._editions)
+
+    @property
+    def osp_count(self) -> int | None:
+        return get_total_by_olid(self.key)
 
     @property
     def edition_key(self) -> list[str]:
@@ -569,8 +577,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def format(self) -> set[str]:
-        if not get_solr_next():
-            return set()
         return {ed.format for ed in self._solr_editions if ed.format}
 
     @property
@@ -631,13 +637,13 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_name(self) -> list[str]:
         return [a.get('name', '') for a in self._authors]
 
-    @property
+    @cached_property
     def author_alternative_name(self) -> set[str]:
         return {
             alt_name for a in self._authors for alt_name in a.get('alternate_names', [])
         }
 
-    @property
+    @cached_property
     def author_facet(self) -> list[str]:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 

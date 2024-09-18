@@ -57,9 +57,10 @@ class Edition(models.Edition):
 
     def get_authors(self):
         """Added to provide same interface for work and edition"""
+        work_authors = self.works[0].get_authors() if self.works else []
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return authors
+        return work_authors + authors
 
     def get_covers(self):
         """
@@ -102,6 +103,15 @@ class Edition(models.Edition):
             isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
+
+    def get_worldcat_url(self):
+        url = 'https://search.worldcat.org/'
+        if self.get('oclc_numbers'):
+            return f'{url}/title/{self.oclc_numbers[0]}'
+        elif self.get_isbn13():
+            # Handles both isbn13 & 10
+            return f'{url}/isbn/{self.get_isbn13()}'
+        return f'{url}/search?q={self.title}'
 
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
@@ -455,9 +465,9 @@ class Edition(models.Edition):
                 'date': self.get('publish_date'),
                 'orig-date': self.works[0].get('first_publish_date'),
                 'title': self.title.replace("[", "&#91").replace("]", "&#93"),
-                'url': f'https://archive.org/details/{self.ocaid}'
-                if self.ocaid
-                else None,
+                'url': (
+                    f'https://archive.org/details/{self.ocaid}' if self.ocaid else None
+                ),
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
                 'isbn': self.get_isbnmask(),
@@ -686,21 +696,6 @@ class Work(models.Work):
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
 
-    def get_representative_edition(self) -> str | None:
-        """When we have confidence we can direct patrons to the best edition
-        of a work (for them), return qualifying edition key. Attempts
-        to find best (most available) edition of work using
-        archive.org work availability API. May be extended to support language
-
-        :rtype str: infogami edition key or url which resolves to an edition or None
-        """
-        work_id = self.key.replace('/works/', '')
-        availability = lending.get_work_availability(work_id)
-        if ol_edition := availability.get(work_id, {}).get('openlibrary_edition'):
-            return f'/books/{ol_edition}'
-
-        return None
-
     def get_sorted_editions(
         self,
         ebooks_only: bool = False,
@@ -712,7 +707,7 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         """
         db_query = {"type": "/type/edition", "works": self.key}
-        db_query['limit'] = limit or 10000
+        db_query['limit'] = limit or 10000  # type: ignore[assignment]
 
         edition_keys = []
         if ebooks_only:
@@ -800,6 +795,8 @@ class SubjectPerson(Subject):
 
 
 class User(models.User):
+    displayname: str | None
+
     def get_name(self):
         return self.displayname or self.key.split('/')[-1]
 

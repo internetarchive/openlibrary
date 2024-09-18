@@ -580,14 +580,15 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
-    fetch(`/reading-goal/partials?year=${goalYear}`)
+    fetch(`/reading-goal/partials.json?year=${goalYear}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element')
             }
-            return response.text()
+            return response.json()
         })
-        .then(function(html) {
+        .then(function(data) {
+            const html = data['partials']
             const progress = document.createElement('SPAN')
             progress.id = 'reading-goal-container'
             progress.innerHTML = html

@@ -25,6 +25,9 @@ $ book_list_excerpt = ''
 $if books and books.docs:
     $ book_titles_excerpt = [work.title for work in books.docs[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
+
+$ books_count = books.num_found or 0
+
 $ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
 
@@ -37,18 +40,20 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
     $:macros.databarView(page)
 
     <h1 itemprop="name">$title</h1>
-    <h2 class="author collapse">
-    $if page.birth_date or page.death_date:
-        <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
-    $else:
-        $if page.date:
-            $page.date
-    </h2>
+    $if show_librarian_extras:
+        <h2 class="author collapse">
+            $if page.birth_date or page.death_date:
+                <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
+            $else:
+                $if page.date:
+                    $page.date
+        </h2>
 
 </div>
 
@@ -99,26 +104,22 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:format(page.get('bio', ''))
         </div>
 
-        $if page.website:
-            <div class="section">
-                <h6 class="collapse black uppercase">$_("Website")</h6>
-                <a href="$page.website" class="datalink">$page.website</a>
-            </div>
-
         $if page.location:
             <div class="section hidden">
                 <h6 class="collapse black uppercase">$_("Location")</h6>
                 $page.location
             </div>
-
+        <span class="mobile-only">
+            $:render_template("authors/infobox", page, imagesId="mobile")
+        </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
-                    $ungettext("%(count)d work", "%(count)d works", books.num_found, count=books.num_found)
+                    $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books">
-                $if books.num_found > 1:
+                $if books_count > 1:
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
                 <p>
@@ -134,40 +135,35 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     <input type="hidden" name="sort" value="$query_param('sort')"/>
                   $if (query_param('mode')):
                     <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
-                  <input type="submit"/>
+                  $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
                 </form>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
                 <div id="searchResults">
                     <ul class="list-books">
-                      $ use_my_books_droppers = 'my_books_dropper' in ctx.features
-                      $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper = use_my_books_droppers)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
                     </ul>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
         </div>
     </div>
     <div class="contentOnethird">
-        <div class="illustration">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page, ".bookCover img")
-        </div>
-
+        <span class="desktop-only">
+            $:render_template("authors/infobox", page, imagesId="desktop")
+        </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
-                <div class="section">
-                    <h6 class="collapse black uppercase">$label</h6>
+                <div class="section link-box link-box--with-header">
+                    <h3 class="collapse black uppercase">$label</h3>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
-        $if books.num_found > 0:
+        $if books_count > 0:
             $:render_subjects(_("Subjects"), books.facet_counts.get('subject_facet'), '')
             $:render_subjects(_("Places"), books.facet_counts.get('place_facet'), 'place:')
             $:render_subjects(_("People"), books.facet_counts.get('person_facet'), 'person:')
@@ -176,7 +172,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if "lists" in ctx.features:
             <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True, show_active_lists=True)
+                $:render_template("lists/widget", page, include_rating=False, async_load=True, show_active_lists=True, include_showcase=False)
             </div>
 
         <div class="section">
@@ -190,7 +186,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
                             $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
-                              <li>Inventaire.io: <a
+                              <li>$_("Inventaire.io:") <a
                                   itemprop="sameAs"
                                   href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
                               >wd:$page.remote_ids[id.name]</a></li>
@@ -198,12 +194,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
 
         <div class="section">
-            <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
+            <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
 
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
                 $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
+                    <li><a itemprop="sameAs" href="$page.wikipedia">$_("Wikipedia")</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>

@@ -1,6 +1,7 @@
 """
 
 """
+
 import secrets
 import time
 import datetime
@@ -8,6 +9,7 @@ import hashlib
 import hmac
 import random
 import string
+from typing import TYPE_CHECKING, Any
 import uuid
 import logging
 import requests
@@ -31,7 +33,14 @@ try:
 except ImportError:
     from json.decoder import JSONDecodeError  # type: ignore[misc, assignment]
 
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import User
+
 logger = logging.getLogger("openlibrary.account.model")
+
+
+class OLAuthenticationError(Exception):
+    pass
 
 
 def append_random_suffix(text, limit=9999):
@@ -206,7 +215,7 @@ class Account(web.storage):
         """Unblocks this account."""
         web.ctx.site.update_account(self.username, status="active")
 
-    def is_blocked(self):
+    def is_blocked(self) -> bool:
         """Tests if this account is blocked."""
         return getattr(self, 'status', '') == "blocked"
 
@@ -263,7 +272,7 @@ class Account(web.storage):
         t = self.get("last_login")
         return t and helpers.parse_datetime(t)
 
-    def get_user(self):
+    def get_user(self) -> 'User':
         """A user is where preferences are attached to an account. An
         "Account" is outside of infogami in a separate table and is
         used to store private user information.
@@ -299,11 +308,11 @@ class Account(web.storage):
             type="account-link", name="username", value=self.username
         )
 
-    def get_tags(self):
+    def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
         return self.get("tags", [])
 
-    def has_tag(self, tag):
+    def has_tag(self, tag: str) -> bool:
         return tag in self.get_tags()
 
     def add_tag(self, tag):
@@ -380,7 +389,7 @@ class Account(web.storage):
         return results
 
     @property
-    def itemname(self):
+    def itemname(self) -> str | None:
         """Retrieves the Archive.org itemname which links Open Library and
         Internet Archive accounts
         """
@@ -474,7 +483,14 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
-    def get(cls, link=None, email=None, username=None, key=None, test=False):
+    def get(
+        cls,
+        link: str | None = None,
+        email: str | None = None,
+        username: str | None = None,
+        key: str | None = None,
+        test: bool = False,
+    ) -> 'OpenLibraryAccount | None':
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -494,7 +510,9 @@ class OpenLibraryAccount(Account):
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(cls, username, test=False):
+    def get_by_username(
+        cls, username: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1
@@ -513,7 +531,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link, test=False):
+    def get_by_link(cls, link: str, test: bool = False) -> 'OpenLibraryAccount | None':
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -523,7 +541,9 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(cls, email, test=False):
+    def get_by_email(
+        cls, email: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
@@ -638,10 +658,10 @@ class InternetArchiveAccount(web.storage):
         notifications = notifications or []
 
         if cls.get(email=email):
-            raise ValueError('email_registered')
+            raise OLAuthenticationError('email_registered')
 
         if not screenname:
-            raise ValueError('screenname required')
+            raise OLAuthenticationError('missing_fields')
 
         _screenname = screenname
         attempt = 0
@@ -664,13 +684,12 @@ class InternetArchiveAccount(web.storage):
                 return ia_account
 
             elif 'screenname' not in response.get('values', {}):
-                errors = '_'.join(response.get('values', {}))
-                raise ValueError(errors)
+                raise OLAuthenticationError('undefined_error')
 
             elif attempt >= retries:
-                ve = ValueError('username_registered')
-                ve.value = _screenname
-                raise ve
+                e = OLAuthenticationError('username_registered')
+                e.value = _screenname
+                raise e
 
             _screenname = append_random_suffix(screenname)
             attempt += 1
@@ -820,11 +839,17 @@ def audit_accounts(
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         link = ol_account.itemname if ol_account else None
 
-        # The fact that there is no link implies no Open Library account exists
-        # containing a link to this Internet Archive account...
+        # The fact that there is no link implies either:
+        # 1. There was no Open Library account ever linked to this IA account
+        # 2. There is an OL account, and it was linked to this IA account at some point,
+        #    but the linkage was broken at some point.
+
+        # Today, it is possible for #2 to occur if a patron creates an IA account, deletes said
+        # account, then creates a new IA account using the same email that was used to create the
+        # original account.
         if not link:
-            # then check if there's an Open Library account which shares
-            # the same email as this IA account.
+            # If no account linkage is found, then check if there's an Open Library account
+            # which shares the same email as this IA account.
             ol_account = OpenLibraryAccount.get(email=email, test=test)
 
             # If an Open Library account with a matching email account exists...
@@ -833,7 +858,15 @@ def audit_accounts(
             # Open Library account having the same email as our IA account must have
             # been linked to a different Internet Archive account.
             if ol_account and ol_account.itemname:
-                return {'error': 'wrong_ia_account'}
+                logger.error(
+                    'IA <-> OL itemname mismatch',
+                    extra={
+                        'ol_itemname': ol_account.itemname,
+                        'ia_itemname': ia_account.itemname,
+                    },
+                )
+                ol_account.unlink()
+                ol_account.link(ia_account.itemname)
 
         # At this point, it must either be the case that
         # (a) `ol_account` already links to our IA account (in which case `link` has a
@@ -910,6 +943,7 @@ def audit_accounts(
 
 
 @public
-def get_internet_archive_id(key):
+def get_internet_archive_id(key: str) -> str | None:
     username = key.split('/')[-1]
-    return OpenLibraryAccount.get(username=username).itemname
+    ol_account = OpenLibraryAccount.get(username=username)
+    return ol_account.itemname if ol_account else None
