@@ -4775,55 +4775,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: languages/language_list.html
-msgid "Czech"
-msgstr ""
-
-#: languages/language_list.html
-msgid "German"
-msgstr ""
-
-#: languages/language_list.html
-msgid "English"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Spanish"
-msgstr ""
-
-#: languages/language_list.html
-msgid "French"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Croatian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Italian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Portuguese"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Hindi"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Sardinian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Telugu"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Ukrainian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Chinese"
+msgid "localized"
 msgstr ""
 
 #: languages/notfound.html
