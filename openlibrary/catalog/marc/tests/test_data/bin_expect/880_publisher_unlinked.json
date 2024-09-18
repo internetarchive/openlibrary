@@ -14,6 +14,10 @@
     {
       "name": "Hailman, Ben",
       "entity_type": "person"
+    },
+    {
+      "name": "Śagi, Uri",
+      "entity_type": "person"
     }
   ],
   "oclc_numbers": [
@@ -21,9 +25,6 @@
   ],
   "work_titles": [
     "What's the big idea, how big is it?"
-  ],
-  "contributions": [
-    "Śagi, Uri"
   ],
   "subjects": [
     "Size perception",

@@ -32,14 +32,15 @@
       "birth_date": "1934",
       "name": "Timpane, P. Michael",
       "entity_type": "person"
+    },
+    {
+      "name": "Brookings Institution, Washington, D.C. Panel on Social Experimentation",
+      "entity_type": "org"
     }
   ],
   "by_statement": "editors, Joseph A. Pechman, P. Michael Timpane",
   "publish_places": [
     "Washington"
-  ],
-  "contributions": [
-    "Brookings Institution, Washington, D.C. Panel on Social Experimentation"
   ],
   "isbn_10": [
     "0815769768",

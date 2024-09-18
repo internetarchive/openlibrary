@@ -16,15 +16,22 @@
     {
       "name": "United States. Congress. House. Committee on Foreign Affairs",
       "entity_type": "org"
+    },
+    {
+      "name": "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on Information and Public Affairs",
+      "entity_type": "org"
+    },
+    {
+      "name": "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on International Organizations and Movements",
+      "entity_type": "org"
+    },
+    {
+      "name": "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on Europe",
+      "entity_type": "org"
     }
   ],
   "oclc_numbers": [
     "10504687"
-  ],
-  "contributions": [
-    "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on Information and Public Affairs",
-    "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on International Organizations and Movements",
-    "United States. Congress. House. Committee on Foreign Affairs. Subcommittee on Europe"
   ],
   "publish_places": [
     "Washington"

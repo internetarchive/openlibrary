@@ -48,6 +48,12 @@
       "alternate_names": [
         "Dubnow, Simon"
       ]
+    },
+    {
+      "birth_date": "1887",
+      "death_date": "1966",
+      "name": "Mayzel, Nachman",
+      "entity_type": "person"
     }
   ],
   "subject_people": [
@@ -55,9 +61,6 @@
   ],
   "publish_places": [
     "Nyu-Yorḳ"
-  ],
-  "contributions": [
-    "Mayzel, Nachman, 1887-1966"
   ],
   "by_statement": "tsunoyfgesh.telṭ un redaḳṭirṭ fun Naḥman Mayzil"
 }
