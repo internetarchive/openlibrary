@@ -80,9 +80,28 @@ export function initEditionsTable() {
             bAutoWidth: false,
             pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
             drawCallback: function() {
-                if ($('#ile-toolbar').css('display') === 'none') {
-                    for (const elem of $('.ile-selected')) {
-                        elem.classList.remove('ile-selected');
+                if ($('#ile-toolbar')) {
+                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition']
+                    const matchEdition = (string) => {
+                        return string.match(/OL[0-9]+[a-zA-Z]/)
+                    }
+                    for (const el of $('.ile-selected')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'))
+                            if (!editionStorage.includes(edIdentifier[0])) {
+                                el.classList.remove('ile-selected');
+                            }
+                        }
+                    }
+                    for (const el of $('.ile-selectable')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'));
+                            if (editionStorage.includes(edIdentifier[0])) {
+                                el.classList.add('ile-selected');
+                            }
+                        }
                     }
                 }
             }

@@ -79,12 +79,6 @@ jQuery(function () {
 
     init($);
 
-    // // conditionally load functionality based on what's in the page
-    // if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-    //     import(/* webpackChunkName: "editions-table" */ './editions-table')
-    //         .then(module => module.initEditionsTable());
-    // }
-
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
