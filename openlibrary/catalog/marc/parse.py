@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any
 from collections.abc import Callable
@@ -18,6 +19,7 @@ from openlibrary.catalog.utils import (
 )
 
 DNB_AGENCY_CODE = 'DE-101'
+logger = logging.getLogger('openlibrary.catalog.marc')
 max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile('\ufffd')
 re_date = re.compile(r'^[0-9]+u*$')
@@ -337,8 +339,7 @@ def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
     for f in rec.get_fields('041'):
         if f.ind2() == '7':
             code_source = ' '.join(f.get_subfield_values('2'))
-            # TODO: Log or WARN rather than raise an exception.
-            # raise MarcException("Non-MARC language code(s), source = ", code_source)
+            logger.error(f'Unrecognised language source = {code_source}')
         for value in f.get_subfield_values('a'):
             value = value.replace(' ', '').replace('-', '')  # remove pad/separators
             if len(value) % 3 == 0:
@@ -347,6 +348,8 @@ def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
                     code = value[k : k + 3].lower()
                     if code != 'zxx' and code not in found:
                         found.append(code)
+            else:
+                logger.error(f'Unrecognised MARC language code(s) = {value}')
     return [lang_map.get(code, code) for code in found]
 
 
