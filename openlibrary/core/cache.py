@@ -60,7 +60,7 @@ class memcache_memoize:
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
         prethread: Callable | None = None,
-        hash_args: boolean = False,
+        hash_args: bool = False,
     ):
         """Creates a new memoized function for ``f``."""
         self.f = f
