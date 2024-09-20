@@ -100,7 +100,7 @@ class YearlyReadingGoals:
             where=where,
             vars=data,
             current=current_count,
-            updated=datetime.utcnow(),
+            updated=datetime.now(),
         )
 
     @classmethod
@@ -118,7 +118,7 @@ class YearlyReadingGoals:
             where=where,
             vars=data,
             target=new_target,
-            updated=datetime.utcnow(),
+            updated=datetime.now(),
         )
 
     # Delete methods:

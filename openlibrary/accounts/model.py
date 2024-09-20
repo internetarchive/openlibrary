@@ -122,7 +122,7 @@ def create_link_doc(key, username, email):
     """
     code = generate_uuid()
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     expires = now + datetime.timedelta(days=14)
 
     return {
