@@ -32,6 +32,23 @@ re_int = re.compile(r'\d{2,}')
 re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 
 
+ROLES = {
+    # MARC 21 realtor codes
+    # https://www.loc.gov/marc/relators/relacode.html
+    'art': 'Artist',
+    'aut': 'Author',
+    'clr': 'Colorist',
+    'com': 'Compiler',
+    'edt': 'Editor',
+    'ill': 'Illustrator',
+    'ltr': 'Letterer',
+    'trl': 'Translator',
+    # Non-standard terms from $e
+    'ed': 'Editor',
+    'comp': 'Compiler',
+}
+
+
 def strip_foc(s: str) -> str:
     foc = '[from old catalog]'
     return s[: -len(foc)].rstrip() if s.endswith(foc) else s
@@ -427,7 +444,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     and returns an author import dict.
     """
     author: dict[str, Any] = {}
-    contents = field.get_contents('abcde6')
+    contents = field.get_contents('abcde46')
     if 'a' not in contents and 'c' not in contents:
         # Should have at least a name or title.
         return author
@@ -440,6 +457,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
         ('b', 'numeration'),
         ('c', 'title'),
         ('e', 'role'),
+        ('4', 'role'),
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
@@ -455,6 +473,8 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
         ):
             author['alternate_names'] = [author['name']]
             author['name'] = name_from_list(name)
+    if author.get('role') in ROLES:
+        author['role'] = ROLES[author['role']]
     return author
 
 
