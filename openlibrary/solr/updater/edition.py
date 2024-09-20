@@ -146,7 +146,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             if chapter.get("subtitle"):
                 title += f": {chapter['subtitle']}"
             if chapter.get("authors"):
-                title += f" ({', '.join(chapter['authors'])})"
+                title += f" ({', '.join(a['name'] for a in chapter['authors'])})"
 
             result.append(
                 f'{chapter.get("label", "")} | {title} | {chapter.get("pagenum", "")}'
