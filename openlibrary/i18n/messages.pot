@@ -7638,12 +7638,6 @@ msgstr ""
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsStats.html
-msgid "Award"
-msgid_plural "Awards"
-msgstr[0] ""
-msgstr[1] ""
-
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "rating"
 msgstr ""
@@ -7661,6 +7655,12 @@ msgstr ""
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 msgstr ""
+
+#: StarRatingsStats.html
+msgid "Award"
+msgid_plural "Awards"
+msgstr[0] ""
+msgstr[1] ""
 
 #: StarRatingsStats.html
 msgid "Want to read"
