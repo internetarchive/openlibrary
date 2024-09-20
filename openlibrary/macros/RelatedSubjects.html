@@ -17,6 +17,6 @@ $def renderSubjects(subjects):
 
 $for category, label, limit in subject_list:
     <div class="contentQuarter link-box link-box--with-header">
-      <h6 class="black collapse uppercase">$label</h6>
+      <h3 class="black collapse uppercase">$label</h3>
       $:renderSubjects(page[category][:limit])
     </div>

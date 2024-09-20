@@ -13,7 +13,7 @@ ISBN_MATCH = 85
 THRESHOLD = 875
 
 
-def editions_match(rec: dict, existing):
+def editions_match(rec: dict, existing) -> bool:
     """
     Converts the existing edition into a comparable dict and performs a
     thresholded comparison to decide whether they are the same.
@@ -28,7 +28,6 @@ def editions_match(rec: dict, existing):
     thing_type = existing.type.key
     if thing_type == '/type/delete':
         return False
-    # FIXME: will fail if existing is a redirect.
     assert thing_type == '/type/edition'
     rec2 = {}
     for f in (
@@ -44,19 +43,15 @@ def editions_match(rec: dict, existing):
     ):
         if existing.get(f):
             rec2[f] = existing[f]
+    rec2['authors'] = []
     # Transfer authors as Dicts str: str
-    if existing.authors:
-        rec2['authors'] = []
-    for a in existing.authors:
-        while a.type.key == '/type/redirect':
-            a = web.ctx.site.get(a.location)
-        if a.type.key == '/type/author':
-            author = {'name': a['name']}
-            if birth := a.get('birth_date'):
-                author['birth_date'] = birth
-            if death := a.get('death_date'):
-                author['death_date'] = death
-            rec2['authors'].append(author)
+    for a in existing.get_authors():
+        author = {'name': a['name']}
+        if birth := a.get('birth_date'):
+            author['birth_date'] = birth
+        if death := a.get('death_date'):
+            author['death_date'] = death
+        rec2['authors'].append(author)
     return threshold_match(rec, rec2, THRESHOLD)
 
 

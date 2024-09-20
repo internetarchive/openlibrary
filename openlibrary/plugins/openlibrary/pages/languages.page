@@ -617,6 +617,12 @@
     "key": "/languages/del"
   },
   {
+    "code": "den",
+    "type": "/type/language",
+    "name": "Slavey",
+    "key": "/languages/den"
+  },
+  {
     "code": "din",
     "type": "/type/language",
     "name": "Dinka",
@@ -1694,6 +1700,12 @@
     "type": "/type/language",
     "name": "Mende",
     "key": "/languages/men"
+  },
+  {
+    "code": "mga",
+    "type": "/type/language",
+    "name": "Irish, Middle (ca. 1100-1550)",
+    "key": "/languages/mga"
   },
   {
     "code": "mic",

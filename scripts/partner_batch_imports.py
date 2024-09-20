@@ -116,11 +116,16 @@ class Biblio:
     VU VY VZ WA WC WI WL WM WP WT WX XL XZ ZF ZZ""".split()
 
     def __init__(self, data):
+        self.primary_format = data[6]
+        self.product_type = data[121]
+        assert (
+            not self.isnonbook()
+        ), f"{self.primary_format}/{self.product_type} is NONBOOK"
+
         self.isbn = data[124]
         self.source_id = f'bwb:{self.isbn}'
         self.isbn_13 = [self.isbn]
         self.title = data[10]
-        self.primary_format = data[6]
         self.publish_date = data[20][:4]  # YYYY
         self.publishers = [data[135]]
         self.weight = data[39]
@@ -159,9 +164,6 @@ class Biblio:
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field), field
-        assert (
-            self.primary_format not in self.NONBOOK
-        ), f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
@@ -182,6 +184,9 @@ class Biblio:
         # form list of author dicts
         authors = [make_author(*c) for c in contributors if c[0]]
         return authors
+
+    def isnonbook(self):
+        return self.primary_format in self.NONBOOK or 'OTH' in self.product_type
 
     def json(self):
         return {

@@ -4,7 +4,7 @@
   padding: 5px;
   margin: 0;
   font-size: small;
-  @media (min-width: @width-breakpoint-mobile-m) {
+  @media (min-width: @width-breakpoint-mobile) {
     width: 90%;
   }
   @media (min-width: @width-breakpoint-tablet) {
@@ -37,6 +37,14 @@
 
     a:hover {
       color: @link-blue;
+    }
+  }
+  &__full-results {
+    border-bottom: 1px solid @lightest-grey;
+    font-size: 1em;
+    overflow: hidden;
+    &:last-child {
+      border-bottom: none;
     }
   }
 

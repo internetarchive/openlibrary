@@ -90,28 +90,14 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr ""
 
-#: barcodescanner.html lib/nav_head.html
-msgid "Advanced"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Read Text ISBN"
-msgstr ""
-
-#: barcodescanner.html
-msgid "For books that print the ISBN without a barcode"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Point your camera at a barcode! 📷"
-msgstr ""
-
 #: batch_import.html
 msgid "Batch Imports"
 msgstr ""
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records."
+msgid ""
+"Attach a JSONL formatted document with import records or copy/paste the "
+"JSONL text into the textarea."
 msgstr ""
 
 #: batch_import.html
@@ -119,6 +105,14 @@ msgid ""
 "See the <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
+msgstr ""
+
+#: batch_import.html
+msgid "Attach a file:"
+msgstr ""
+
+#: batch_import.html
+msgid "Or copy/paste JSONL text:"
 msgstr ""
 
 #: batch_import.html
@@ -869,8 +863,8 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: FulltextSnippet.html ReadButton.html books/custom_carousel.html
-#: books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html books/custom_carousel.html books/edit/edition.html
+#: type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -5227,6 +5221,10 @@ msgid "Text"
 msgstr ""
 
 #: lib/nav_head.html
+msgid "Advanced"
+msgstr ""
+
+#: lib/nav_head.html
 msgid "Search by barcode"
 msgstr ""
 
@@ -7342,15 +7340,11 @@ msgstr ""
 msgid "right chevron"
 msgstr ""
 
-#: FulltextSnippet.html
-msgid "See All Results"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
 msgstr ""
 
@@ -7459,7 +7453,7 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: QueryCarousel.html
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 
@@ -7531,20 +7525,15 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
+msgid "Cover of edition %(id)s"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] ""
 msgstr[1] ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "%s previewable"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
 
 #: SearchResultsWork.html
 msgid "This is only visible to librarians."
@@ -7603,11 +7592,23 @@ msgstr ""
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsStats.html
-msgid "Rating"
-msgid_plural "Ratings"
-msgstr[0] ""
-msgstr[1] ""
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "ratings"
+msgstr ""
+
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr ""
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+msgstr ""
 
 #: StarRatingsStats.html
 msgid "Want to read"

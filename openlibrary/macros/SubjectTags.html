@@ -4,7 +4,7 @@ $def render_subjects(label, subjects, track_value, prefix=""):
   $if subjects:
     <div class="section link-box">
       <span class="clamp" data-before="&#9656; ">
-      <h6>$label</h6>
+      <h3>$label</h3>
         $for subject in subjects:
           <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
       </span>
