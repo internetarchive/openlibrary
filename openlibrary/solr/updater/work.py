@@ -334,6 +334,10 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         }
 
     @property
+    def chapter(self) -> set[str]:
+        return {chapter for ed in self._solr_editions for chapter in ed.chapter}
+
+    @property
     def edition_count(self) -> int:
         return len(self._editions)
 

@@ -257,7 +257,8 @@ def run_solr_query(  # noqa: PLR0912
                 ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
             )
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields, params)
+        highlight = True
+        params += scheme.q_to_solr_params(q, solr_fields, params, highlight=highlight)
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
@@ -285,6 +286,7 @@ class SearchResponse:
     num_found: int
     solr_select: str
     raw_resp: dict = None
+    highlighting: dict = None
     error: str = None
     time: float = None
     """Seconds to execute the query"""
@@ -321,6 +323,7 @@ class SearchResponse:
                 raw_resp=solr_result,
                 docs=solr_result['response']['docs'],
                 num_found=solr_result['response']['numFound'],
+                highlighting=solr_result.get('highlighting', None),
                 solr_select=solr_select,
                 time=time,
             )
@@ -890,6 +893,9 @@ def work_search(
         spellcheck_count=spellcheck_count,
     )
     response = resp.raw_resp['response']
+
+    if resp.highlighting is not None:
+        response['highlighting'] = resp.highlighting
 
     # backward compatibility
     response['num_found'] = response['numFound']

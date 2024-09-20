@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, highlighting=None)
 
 $code:
   max_rendered_authors = 9
@@ -106,15 +106,90 @@ $code:
           $ ratings_avg = doc.get('ratings_average', None)
           $ want_to_read_count = doc.get('want_to_read_count', None)
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
-          $if doc.get('ia'):
-            $if len(doc.get('ia')) > 1:
-              $ blur_preview = "preview-covers--blur" if blur else ""
-              <span class="preview-covers $blur_preview">
-                $for x, i in enumerate(doc.get('ia')[1:10]):
-                  <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
-                  </a>
+
+          $if highlighting:
+            $if highlighting.get('subject'):
+              <br />
+              <style>
+                .srw__subjects em {
+                  font-weight: bold;
+                }
+              </style>
+              $_('Matching subjects:')
+              <span class="srw__subjects">
+                $for subj in highlighting['subject']:
+                  $# detect-missing-i18n-skip-line
+                  <a href="/subjects/$utf8(subj.lower().replace(' ', '_').replace(',', '').replace('/', '').replace('<em>', '').replace('</em>', ''))" style="text-decoration:underline">$:subj</a>
               </span>
+
+            $if highlighting.get('chapter'):
+              <br />
+              $_('Matching chapters:')
+              $ matching_chapters = highlighting.get('chapter', [])
+              <style>
+                .srw__chapters {
+                  background: rgba(0, 124, 255, 0.2);
+                  border-radius: 4px;
+                  color: black;
+                  margin-bottom: 5px;
+                }
+                .srw__chapter {
+                  border-radius: inherit;
+                  padding: 6px 8px;
+                  display: flex;
+                  gap: 4px;
+                  line-height: 1.2em;
+                  transition: background-color 0.2s;
+                }
+                a.srw__chapter:hover {
+                  background: rgba(0, 124, 255, 0.2);
+                }
+                .srw__chapter em {
+                  font-weight: bold;
+                }
+                .srw__chapters .read-more__toggle {
+                  padding: 5px 10px;
+                  background: linear-gradient(rgba(255,255,255,0) 0,#f9f9f97d 10px);
+                }
+              </style>
+              <div class="srw__chapters read-more">
+                <div class="read-more__content" style="max-height:80px">
+                  $for chapter in matching_chapters:
+                    $if not chapter.strip():
+                      $continue
+                    $ chapter_parts = chapter.split('|')
+                    $if len(chapter_parts) < 3:
+                      $ chapter_parts = ['', chapter, '']
+                    $ pagenum = None
+                    $if chapter_parts[2].strip():
+                      $ pagenum = chapter_parts[2].strip()
+                    $ is_link = pagenum and pagenum.isdigit() and selected_ed.get('ia')
+                    $ tag = 'a' if is_link else 'div'
+                    <$tag class="srw__chapter" $:('href="https://archive.org/details/%s?admin=1#page/%s"' % (selected_ed.get('ia')[0], pagenum) if is_link else '')>
+                      <span>
+                        $if chapter_parts[0].strip() and not chapter_parts[0].strip().endswith('.'):
+                          $ chapter_parts[0] = chapter_parts[0].strip() + '. '
+                        $# This isn't html injection, because solr returns everything
+                        $# already html escaped except for the em of the highlight
+                        $:chapter_parts[0]
+                        $:chapter_parts[1]
+                      </span>
+                      $if pagenum:
+                        <div style="flex:1; border-bottom: 1px dotted;"></div>
+                        Page $pagenum
+                    </$tag>
+                  </div>
+                  $:macros.ReadMore(_('Show more'), _('Show less'))
+              </div>
+
+          $if doc.get('ia') and len(doc.get('ia')) > 1:
+            $ blur_preview = "preview-covers--blur" if blur else ""
+            <span class="preview-covers $blur_preview">
+              $for x, i in enumerate(doc.get('ia')[1:10]):
+                <a href="$(book_url)?edition=ia:$(urlquote(i))">
+                  <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+                </a>
+            </span>
           <span class="resultDetails">
             $if doc.get('first_publish_year'):
               <span>

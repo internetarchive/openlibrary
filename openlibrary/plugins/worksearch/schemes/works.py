@@ -50,6 +50,7 @@ class WorkSearchScheme(SearchScheme):
         "subtitle",
         "alternative_title",
         "alternative_subtitle",
+        "chapter",
         "cover_i",
         "ebook_access",
         "edition_count",
@@ -287,6 +288,7 @@ class WorkSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -321,7 +323,7 @@ class WorkSearchScheme(SearchScheme):
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^10 author_name^10',
+            qf='text alternative_title^10 author_name^10 chapter^5',
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
             pf='alternative_title^10 author_name^10',
@@ -359,6 +361,7 @@ class WorkSearchScheme(SearchScheme):
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
+                'chapter': 'chapter',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
                 'publish_date': 'publish_date',
@@ -490,7 +493,7 @@ class WorkSearchScheme(SearchScheme):
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text alternative_title^4 author_name^4',
+                qf='text alternative_title^4 author_name^4 chapter^4',
                 # Reading from the url parameter userEdQuery. This lets us avoid
                 # having to try to escape the query in order to fit inside this
                 # other query.
@@ -527,6 +530,14 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', q))
         else:
             new_params.append(('q', full_work_query))
+
+        if highlight:
+            new_params.append(('hl', 'true'))
+            new_params.append(('hl.fl', 'subject,chapter'))
+            # TODO: Need to limit to matching edition key THAT'S IMPOSSIBLE
+            # Need to make a separate request with the edition keys or'd together
+            new_params.append(('hl.q', str(work_q_tree)))
+            new_params.append(('hl.snippets', '10'))
 
         if full_ed_query:
             edition_fields = {
