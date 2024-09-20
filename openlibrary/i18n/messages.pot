@@ -7457,7 +7457,7 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: QueryCarousel.html
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 

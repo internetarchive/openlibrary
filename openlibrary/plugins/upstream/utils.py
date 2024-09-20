@@ -218,25 +218,26 @@ def render_macro(name, args, **kwargs):
 
 
 @public
-def render_cached_macro(name, args: tuple, **kwargs):
+def render_cached_macro(name: str, args: tuple, **kwargs):
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
-    def get_key():
+    def get_key_prefix():
         lang = web.ctx.lang
-        pd = web.cookies().get('pd', False)
-        key = f'{name}.{lang}'
-        if pd:
-            key += '.pd'
-        for arg in args:
-            key += f'.{arg}'
-        for k, v in kwargs.items():
-            key += f'.{k}:{v}'
-        return key
+        key_prefix = f'{name}.{lang}'
+        if web.cookies().get('pd', False):
+            key_prefix += '.pd'
+        if web.cookies().get('sfw', ''):
+            key_prefix += '.sfw'
+        return key_prefix
 
     five_minutes = 5 * 60
-    key = get_key()
+    key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
-        render_macro, key, timeout=five_minutes, prethread=caching_prethread()
+        render_macro,
+        key_prefix=key_prefix,
+        timeout=five_minutes,
+        prethread=caching_prethread(),
+        hash_args=True,  # this avoids cache key length overflow
     )
 
     try:
