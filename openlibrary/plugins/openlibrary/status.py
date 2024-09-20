@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+import datetime
 import functools
 from pathlib import Path
 import re
@@ -110,7 +110,7 @@ def setup():
         "Software version": get_software_version(),
         "Python version": sys.version.split()[0],
         "Host": host,
-        "Start time": datetime.now(timezone.utc),
+        "Start time": datetime.datetime.now(datetime.UTC),
     }
     feature_flags = get_features_enabled()
 
