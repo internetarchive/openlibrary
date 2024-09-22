@@ -336,10 +336,10 @@ jQuery(function () {
     }
 
     // Conditionally load Integrated Librarian Environment
-    if (document.getElementsByClassName('show-librarian-tools').length) {
-        import(/* webpackChunkName: "ile" */ './ile')
-            .then((module) => module.init());
-    }
+    // if (document.getElementsByClassName('show-librarian-tools').length) {
+    //     import(/* webpackChunkName: "ile" */ './ile')
+    //         .then((module) => module.init());
+    // }
 
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});

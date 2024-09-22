@@ -37,4 +37,6 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $if announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
+    $if 'show-librarian-tools' in bodyclass:
+      $:render_component('IntegratedLibrarianEnvironment')
   </div>
