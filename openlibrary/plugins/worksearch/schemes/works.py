@@ -538,6 +538,8 @@ class WorkSearchScheme(SearchScheme):
             # Need to make a separate request with the edition keys or'd together
             new_params.append(('hl.q', str(work_q_tree)))
             new_params.append(('hl.snippets', '10'))
+            # we can't trim e.g. chapter since it has a specific structure with the pipes
+            new_params.append(('hl.fragsize', '0'))
 
         if full_ed_query:
             edition_fields = {
