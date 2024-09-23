@@ -37,4 +37,33 @@
     display: inline-block;
     margin: 0 4px;
   }
+  &__star {
+    color: @gold;
+    font-size: 1.5em;
+  }
+  &__star--half{
+    margin: 0 0 0 -5px;
+    font-size: 1.5em;
+    background: linear-gradient(90deg, @gold 50%, @light-grey 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+}
+
+img.avatar {
+  padding: 0;
+  width: 25px;
+  height: 25px;
+}
+.avatar {
+  background: @grey-e7e7e7;
+  border-radius: 20px;
+  box-shadow: -1px 0 2px @light-grey;
+  position: relative;
+  margin-right: -5px;
+}
+li.readers-avatars {
+  position: relative;
+  top: 5px;
 }
