@@ -14,7 +14,7 @@ from infogami.utils import stats
 
 from openlibrary.core import helpers as h
 from openlibrary.core import cache
-from openlibrary.core.models import Image, Subject, Thing, ThingKey
+from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict
 from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
 
 from openlibrary.plugins.worksearch.search import get_solr
@@ -22,10 +22,6 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 import contextlib
 
 logger = logging.getLogger("openlibrary.lists.model")
-
-
-class ThingReferenceDict(TypedDict):
-    key: ThingKey
 
 
 SeedSubjectString = str

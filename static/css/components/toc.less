@@ -2,28 +2,71 @@
 @import (reference) "../less/colors.less";
 
 .toc__entry {
+  line-height: 1.2em;
+
   border-radius: 4px;
   padding: 3px 8px;
   @media only screen and (hover: none) {
-    padding: 6px 8px; /* Increase padding for touch-only devices */
+    padding: 8px; /* Increase padding for touch-only devices */
   }
-  display: flex;
-  gap: 4px;
-  line-height: 1.2em;
-  transition: background-color .2s;
 
   em {
     font-weight: bold;
   }
+
+  .toc__main {
+    display: flex;
+    gap: 4px;
+    position: relative;
+  }
+
+  .toc__dots {
+    flex: 1;
+    border-bottom: 1px dotted;
+    height: 1.2em;
+  }
+
+  .toc__subtitle {
+    font-style: oblique;
+    color: @accessible-grey;
+  }
+
+  .toc__subtitle, .toc__authors, .toc__description {
+    font-size: @font-size-label-large;
+    text-decoration: none;
+  }
+
+  .toc__description {
+    margin-top: 5px;
+  }
 }
 
-a.toc__entry {
+a.toc__main {
   text-decoration: none;
-  .toc__name {
+  border-radius: 4px;
+
+  .toc__title {
     text-decoration: underline;
   }
-  &:hover {
-    background: rgba(0, 124, 255, .2);
+
+  &:hover:after {
+    display: block;
+    content: "";
+    inset: -2px;
+    position: absolute;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: fade-in .2s;
+    background-color: rgba(0, 124, 255, .15);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    background-color: rgba(0, 124, 255, 0);
+  }
+  to {
+    background-color: rgba(0, 124, 255, .15);
   }
 }
 
@@ -33,6 +76,10 @@ a.toc__entry {
 
 @media (max-width: @width-breakpoint-mobile) {
   .toc__entry {
+    padding: 8px 0;
+  }
+
+  .toc__main {
     flex-direction: column;
     gap: 0;
   }
@@ -42,7 +89,7 @@ a.toc__entry {
   }
 
   .toc__pagenum {
-    font-size: .9em;
+    font-size: @font-size-label-large;
     color: @accessible-grey;
   }
 }
