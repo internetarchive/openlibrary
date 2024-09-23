@@ -37,7 +37,6 @@ from urllib.parse import urlencode
 from pydantic import ValidationError
 
 from .ia import get_metadata
-from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
@@ -1013,13 +1012,6 @@ class User(Thing):
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan
-
-    def get_waiting_loan_for(self, ocaid):
-        """
-        :param str or None ocaid: edition ocaid
-        :rtype: dict (e.g. {position: number})
-        """
-        return ocaid and WaitingLoan.find(self.key, ocaid)
 
     def get_user_waiting_loans(self, ocaid=None, use_cache=False):
         """
