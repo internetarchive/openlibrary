@@ -352,7 +352,7 @@ class SearchResponse:
         highlighting: dict[str, dict[str, list[str]]],
     ) -> dict[str, dict[str, list[str]]] | None:
         """
-        Remove highlight fragment that only contain stop words.
+        Remove highlight fragment that only contain stop words, and sort by most matches.
 
         :param highlighting: solr highlighting response. e.g. {'OL123W': {'title': ['<em>title</em>']}}
 
@@ -391,6 +391,13 @@ class SearchResponse:
                 highlights[field] = [
                     term for term in highlights[field] if get_matches(term) - stopwords
                 ]
+
+                # Sort by most matches
+                highlights[field].sort(
+                    key=lambda term: len(get_matches(term)), reverse=True
+                )
+
+                # Remove empty
                 if not highlights[field]:
                     del highlights[field]
 
