@@ -26,15 +26,20 @@ export function initEditionsTable() {
             $(this).attr('title','Available to read');
         }
     });
-    $('#editions th.read span').html('&nbsp;&uarr;');
-    $('#editions th').on('mouseup', function(){
+
+    function toggleSorting(e) {
         $('#editions th span').html('');
-        $(this).find('span').html('&nbsp;&uarr;');
-        if ($(this).hasClass('sorting_asc')) {
-            $(this).find('span').html('&nbsp;&darr;');
-        } else if ($(this).hasClass('sorting_desc')) {
-            $(this).find('span').html('&nbsp;&uarr;');
+        $(e).find('span').html('&nbsp;&uarr;');
+        if ($(e).hasClass('sorting_asc')) {
+            $(e).find('span').html('&nbsp;&darr;');
+        } else if ($(e).hasClass('sorting_desc')) {
+            $(e).find('span').html('&nbsp;&uarr;');
         }
+    }
+
+    $('#editions th.read span').html('&nbsp;&uarr;');
+    $('#editions th').on('mouseup', function() {
+        toggleSorting(this)
     });
 
     $('#editions').on('length.dt', function(e, settings, length) {
@@ -43,13 +48,7 @@ export function initEditionsTable() {
 
     $('#editions th').on('keydown', function(e) {
         if (e.key === 'Enter') {
-            $('#editions th span').html('');
-            $(this).find('span').html('&nbsp;&uarr;');
-            if ($(this).hasClass('sorting_asc')) {
-                $(this).find('span').html('&nbsp;&darr;');
-            } else if ($(this).hasClass('sorting_desc')) {
-                $(this).find('span').html('&nbsp;&uarr;');
-            }
+            toggleSorting(this);
         }
     })
 
