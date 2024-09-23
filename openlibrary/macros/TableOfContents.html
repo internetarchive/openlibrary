@@ -1,4 +1,4 @@
-$def with (table_of_contents, ocaid=None, highlighting=False, cls='', attrs='')
+$def with (table_of_contents, ocaid=None, cls='', attrs='')
 
 $ min_level = min(chapter.level for chapter in table_of_contents)
 <div class="toc $cls" $:attrs>
@@ -19,17 +19,13 @@ $ min_level = min(chapter.level for chapter in table_of_contents)
           $ label = chapter.label
           $if label and not label.endswith('.'):
             $ label = label.strip() + '. '
-          $if highlighting:
-            $# This isn't html injection, because solr returns everything already html escaped except for the em of the highlight
-            $:label
-            $:chapter.title
-          $else:
-            <div class="toc__title">$label $chapter.title</div>
 
-            $if chapter.subtitle:
-              <div class="toc__subtitle">$chapter.subtitle</div>
-            $if chapter.authors:
-              <div class="toc__authors">$:macros.BookByline(chapter.authors)</div>
+          <div class="toc__title">$label $chapter.title</div>
+
+          $if chapter.subtitle:
+            <div class="toc__subtitle">$chapter.subtitle</div>
+          $if chapter.authors:
+            <div class="toc__authors">$:macros.BookByline(chapter.authors)</div>
         </div>
         $if chapter.pagenum:
           <span class="toc__dots"></span>
