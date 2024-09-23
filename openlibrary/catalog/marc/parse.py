@@ -340,6 +340,7 @@ def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
         if f.ind2() == '7':
             code_source = ' '.join(f.get_subfield_values('2'))
             logger.error(f'Unrecognised language source = {code_source}')
+            continue  # Skip anything which is using a non-MARC code source e.g. iso639-1
         for value in f.get_subfield_values('a'):
             value = value.replace(' ', '').replace('-', '')  # remove pad/separators
             if len(value) % 3 == 0:
