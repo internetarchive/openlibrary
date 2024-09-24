@@ -291,6 +291,12 @@ class AmazonAPI:
                 ).lower()
             ),
         }
+
+        if (
+            book['product_group'].lower() == 'dvd'
+            or book['physical_format'].lower() == 'dvd'
+        ):
+            return {}
         return book
 
 
