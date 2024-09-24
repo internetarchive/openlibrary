@@ -5696,7 +5696,7 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
+#: merge_request_table/table_row.html
 msgid "Review"
 msgstr ""
 
@@ -6642,6 +6642,12 @@ msgstr ""
 #: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
 msgstr ""
+
+#: StarRatingsStats.html type/edition/modal_links.html
+msgid "Award"
+msgid_plural "Awards"
+msgstr[0] ""
+msgstr[1] ""
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
@@ -7655,12 +7661,6 @@ msgstr ""
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 msgstr ""
-
-#: StarRatingsStats.html
-msgid "Award"
-msgid_plural "Awards"
-msgstr[0] ""
-msgstr[1] ""
 
 #: StarRatingsStats.html
 msgid "Want to read"
