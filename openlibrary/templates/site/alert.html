@@ -2,7 +2,8 @@ $if not is_bot():
   $:get_donation_include()
 
 $ lang = get_lang() or 'en'
-$ use_lang = lang if lang in get_supported_languages() else 'en'
+$ supported_languages = get_supported_languages()
+$ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en')
 
 <div id="topNotice">
   <div class="page-banner page-banner-black page-banner-center">
@@ -12,7 +13,7 @@ $ use_lang = lang if lang in get_supported_languages() else 'en'
       <div class="language-component header-dropdown">
         <details>
           <summary>
-            <span>$(get_supported_languages()[use_lang]['localized']) ($use_lang)</span>
+            <span>$active_ui_lang['localized'] ($active_ui_lang['code'])</span>
             <img class="translate-icon" src="/static/images/language-icon.svg" title="$_('Change Website Language')" alt="$_('Change Website Language')"/>
           </summary>
           <div class="language-dropdown-component">
