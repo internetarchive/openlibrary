@@ -103,6 +103,21 @@ jQuery(function () {
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
+    const bestbookModal = document.querySelector('.bestbook-modal');
+    const awardLink = document.querySelector(".award-link");
+
+    // conditionally load for bestbook modal
+    if (bestbookModal || awardLink) {
+        import(/* webpackChunkName: "bestbook" */ './bestbook')
+            .then(module => {
+                if (bestbookModal) {
+                    module.initBestbookModal();
+                }
+                if (awardLink) {
+                    module.initAwardLink();
+                }
+            });
+    }
 
     // conditionally load for user edit page
     if (

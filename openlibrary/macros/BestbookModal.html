@@ -68,7 +68,7 @@ $jsdef render_subject_autocomplete_item(item):
             <p>$author_names</p>
           </div>
           <form id="ratingsForm" method="POST" action="$(work.key)/awards.json" vocab="http://schema.org/" typeof="Books" class="bestbook">
-            <label for="topic">On what topic?</label>
+            <label for="topic">$_("On what topic?")</label>
             $ config = {'name': 'topic', 'facet': 'subject', 'data': []}
             <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
                 $:render_subject_field_bestbook(config['name'], config['data'])
@@ -77,16 +77,16 @@ $jsdef render_subject_autocomplete_item(item):
             <input type="hidden" value="true" name="redir">
             <input type="hidden" value="$edition_key" name="edition_key">
 
-            <label for="comment">Why?</label>
-            <input name="comment" placeholder="comment" type="text" value="$default_comment">
-            <button class="bestbook__submit" type="submit">Submit</button>
+            <label for="comment">$_("Why?")</label>
+            <input name="comment" placeholder=$_("Comment") type="text" value="$default_comment">
+            <button class="bestbook__submit" type="submit">$_("Submit")</button>
           </form>
         </div>
         $if award:
           <div>
             <form action="$(work.key)/awards.json" method="POST">
               <input type="hidden" value="true" name="redir">
-              <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">Remove award</button>
+              <button class="cta-btn cta-btn--delete bestbook-remove-button" type="submit">$_("Remove Award")</button>
             </form>
           </div>
       </div>
