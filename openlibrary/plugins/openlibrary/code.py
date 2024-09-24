@@ -18,6 +18,7 @@ from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.i18n import gettext as _
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -1252,21 +1253,61 @@ def setup_template_globals():
         get_cover_url,
     )
 
-    SUPPORTED_LANGUAGES = {
-        "cs": {"localized": 'Czech', "native": "Čeština"},
-        "de": {"localized": 'German', "native": "Deutsch"},
-        "en": {"localized": 'English', "native": "English"},
-        "es": {"localized": 'Spanish', "native": "Español"},
-        "fr": {"localized": 'French', "native": "Français"},
-        "hr": {"localized": 'Croatian', "native": "Hrvatski"},
-        "it": {"localized": 'Italian', "native": "Italiano"},
-        "pt": {"localized": 'Portuguese', "native": "Português"},
-        "hi": {"localized": 'Hindi', "native": "हिंदी"},
-        "sc": {"localized": 'Sardinian', "native": "Sardu"},
-        "te": {"localized": 'Telugu', "native": "తెలుగు"},
-        "uk": {"localized": 'Ukrainian', "native": "Українська"},
-        "zh": {"localized": 'Chinese', "native": "中文"},
-    }
+    def get_supported_languages():
+        return {
+            "cs": {
+                "localized": _('Czech'),
+                "native": "Čeština"
+            },
+            "de": {
+                "localized": _('German'),
+                "native": "Deutsch"
+            },
+            "en": {
+                "localized": _('English'),
+                "native": "English"
+            },
+            "es": {
+                "localized": _('Spanish'),
+                "native": "Español"
+            },
+            "fr": {
+                "localized": _('French'),
+                "native": "Français"
+            },
+            "hr": {
+                "localized": _('Croatian'),
+                "native": "Hrvatski"
+            },
+            "it": {
+                "localized": _('Italian'),
+                "native": "Italiano"
+            },
+            "pt": {
+                "localized": _('Portuguese'),
+                "native": "Português"
+            },
+            "hi": {
+                "localized": _('Hindi'),
+                "native": "हिंदी"
+            },
+            "sc": {
+                "localized": _('Sardinian'),
+                "native": "Sardu"
+            },
+            "te": {
+                "localized": _('Telugu'),
+                "native": "తెలుగు"
+            },
+            "uk": {
+                "localized": _('Ukrainian'),
+                "native": "Українська"
+            },
+            "zh": {
+                "localized": _('Chinese'),
+                "native": "中文"
+            }
+        }
 
     web.template.Template.globals.update(
         {
@@ -1283,7 +1324,7 @@ def setup_template_globals():
             'random': random.Random(),
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
-            'supported_langs': SUPPORTED_LANGUAGES,
+            'get_supported_languages': get_supported_languages,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,
