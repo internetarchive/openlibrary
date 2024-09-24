@@ -1255,19 +1255,19 @@ def setup_template_globals():
 
     def get_supported_languages():
         return {
-            "cs": {"localized": _('Czech'), "native": "Čeština"},
-            "de": {"localized": _('German'), "native": "Deutsch"},
-            "en": {"localized": _('English'), "native": "English"},
-            "es": {"localized": _('Spanish'), "native": "Español"},
-            "fr": {"localized": _('French'), "native": "Français"},
-            "hr": {"localized": _('Croatian'), "native": "Hrvatski"},
-            "it": {"localized": _('Italian'), "native": "Italiano"},
-            "pt": {"localized": _('Portuguese'), "native": "Português"},
-            "hi": {"localized": _('Hindi'), "native": "हिंदी"},
-            "sc": {"localized": _('Sardinian'), "native": "Sardu"},
-            "te": {"localized": _('Telugu'), "native": "తెలుగు"},
-            "uk": {"localized": _('Ukrainian'), "native": "Українська"},
-            "zh": {"localized": _('Chinese'), "native": "中文"},
+            "cs": {"code": "cs", "localized": _('Czech'), "native": "Čeština"},
+            "de": {"code": "de", "localized": _('German'), "native": "Deutsch"},
+            "en": {"code": "en", "localized": _('English'), "native": "English"},
+            "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
+            "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
+            "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
+            "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
+            "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
+            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
+            "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
         }
 
     web.template.Template.globals.update(
