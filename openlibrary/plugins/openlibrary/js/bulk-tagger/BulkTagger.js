@@ -324,7 +324,7 @@ export class BulkTagger {
         let stagedTagIndex
         switch (menuOption.optionState) {
         case MenuOptionState.NONE_TAGGED:
-            stagedTagIndex = this.tagsToRemove.findIndex((tag) => (tag.tagName === menuOption.tag.tagname && tag.tagType === menuOption.tag.tagType))
+            stagedTagIndex = this.tagsToRemove.findIndex((tag) => (tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType))
             if (stagedTagIndex > -1) {
                 this.tagsToRemove.splice(stagedTagIndex, 1)
             }

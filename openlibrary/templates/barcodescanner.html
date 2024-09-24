@@ -5,26 +5,4 @@ $var title: $_('Barcode Scanner (Beta)')
 $ ctx.setdefault('cssfile', 'barcodescanner')
 $ ctx.setdefault("show_ol_shell", False)
 
-<div id="page-barcodescanner">
-    <div id="interactive" class="viewport"></div>
-    <div class="barcodescanner__toolbar">
-        <details class="barcodescanner__advanced">
-            <summary class="glass-button icon-button">
-                $# Variation of Gnome's setting icon
-                $# DUPLICATE of openlibrary/components/LibraryExplorer/components/icons/SettingsIcon.vue
-                <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 4.2742091 4.2333331" height="16" width="16"><path d="M 1.6561242,0.00198689 C 1.5224783,0.02929715 1.3981294,0.07810697 1.2746523,0.12924106 1.2650645,0.49211882 1.3252052,0.96714289 1.1837149,1.0917824 1.0448392,1.2143878 0.58027458,1.1118292 0.22117379,1.0734786 0.14476319,1.2109015 0.08433198,1.3552972 0.03958966,1.5092805 0.31734074,1.739384 0.70229912,1.9967977 0.71159623,2.1812871 0.72089334,2.3678103 0.34755635,2.6490479 0.09421016,2.9076237 0.15435082,3.0575395 0.23947746,3.1943815 0.33041481,3.3254125 0.68399544,3.2519072 1.1244458,3.1083831 1.2746523,3.2164619 1.427764,3.3265746 1.4286355,3.8007271 1.47454,4.1606995 1.6195168,4.2042803 1.772338,4.2214213 1.9283551,4.2333334 2.0919261,3.9111305 2.2581119,3.466322 2.4367907,3.4160595 2.6201181,3.3646352 2.996651,3.6821892 3.3083946,3.8701651 3.4353582,3.7821329 3.5483762,3.6743446 3.6535496,3.5613266 3.5059581,3.2286644 3.2345987,2.8105852 3.3083946,2.6351022 c 0.073796,-0.1754829 0.566833,-0.272812 0.9079206,-0.3994851 0.00261,-0.042709 0.018304,-0.083674 0.018304,-0.1272542 0,-0.1112747 -0.020046,-0.2202252 -0.036317,-0.3268514 C 3.8461741,1.6879593 3.3458736,1.6411833 3.2540645,1.4726731 3.1631272,1.3053253 3.3946833,0.85586816 3.5082825,0.51013195 3.3914875,0.4064111 3.2645238,0.31431163 3.1268104,0.23761048 2.8356947,0.45551144 2.4966408,0.81548385 2.3095366,0.78236289 2.1253376,0.74982302 1.9242876,0.30617665 1.7284674,0.00140584 c -0.023243,0.0040672 -0.049682,-0.0046482 -0.072634,0 z M 2.0192925,1.0914918 c 0.5415565,0 0.9805543,0.4389978 0.9805543,0.9805543 0,0.5415566 -0.4389978,0.9805543 -0.9805543,0.9805543 -0.5415566,0 -0.9805543,-0.4389977 -0.9805543,-0.9805543 0,-0.5415565 0.4389977,-0.9805543 0.9805543,-0.9805543 z" style="fill:currentColor;stroke:none;"></path></svg>
-                $_('Advanced')
-            </summary>
-            <div class="barcodescanner__controls">
-                <button class="barcodescanner__read-isbn glass-button">
-                    $_('Read Text ISBN')
-                    <br>
-                    <small>$_('For books that print the ISBN without a barcode')</small>
-                </button>
-            </div>
-        </details>
-        <div class="barcodescanner__result-strip">
-            <div class="empty">$_('Point your camera at a barcode! 📷')</div>
-        </div>
-    </div>
-</div>
+$:render_component('BarcodeScanner')
