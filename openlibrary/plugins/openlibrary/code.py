@@ -1255,58 +1255,19 @@ def setup_template_globals():
 
     def get_supported_languages():
         return {
-            "cs": {
-                "localized": _('Czech'),
-                "native": "Čeština"
-            },
-            "de": {
-                "localized": _('German'),
-                "native": "Deutsch"
-            },
-            "en": {
-                "localized": _('English'),
-                "native": "English"
-            },
-            "es": {
-                "localized": _('Spanish'),
-                "native": "Español"
-            },
-            "fr": {
-                "localized": _('French'),
-                "native": "Français"
-            },
-            "hr": {
-                "localized": _('Croatian'),
-                "native": "Hrvatski"
-            },
-            "it": {
-                "localized": _('Italian'),
-                "native": "Italiano"
-            },
-            "pt": {
-                "localized": _('Portuguese'),
-                "native": "Português"
-            },
-            "hi": {
-                "localized": _('Hindi'),
-                "native": "हिंदी"
-            },
-            "sc": {
-                "localized": _('Sardinian'),
-                "native": "Sardu"
-            },
-            "te": {
-                "localized": _('Telugu'),
-                "native": "తెలుగు"
-            },
-            "uk": {
-                "localized": _('Ukrainian'),
-                "native": "Українська"
-            },
-            "zh": {
-                "localized": _('Chinese'),
-                "native": "中文"
-            }
+            "cs": {"localized": _('Czech'), "native": "Čeština"},
+            "de": {"localized": _('German'), "native": "Deutsch"},
+            "en": {"localized": _('English'), "native": "English"},
+            "es": {"localized": _('Spanish'), "native": "Español"},
+            "fr": {"localized": _('French'), "native": "Français"},
+            "hr": {"localized": _('Croatian'), "native": "Hrvatski"},
+            "it": {"localized": _('Italian'), "native": "Italiano"},
+            "pt": {"localized": _('Portuguese'), "native": "Português"},
+            "hi": {"localized": _('Hindi'), "native": "हिंदी"},
+            "sc": {"localized": _('Sardinian'), "native": "Sardu"},
+            "te": {"localized": _('Telugu'), "native": "తెలుగు"},
+            "uk": {"localized": _('Ukrainian'), "native": "Українська"},
+            "zh": {"localized": _('Chinese'), "native": "中文"},
         }
 
     web.template.Template.globals.update(
