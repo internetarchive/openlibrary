@@ -241,12 +241,6 @@ jQuery(function () {
             .then(module => module.init(readingLogConfig));
     }
 
-    const pageEl = $('#page-barcodescanner');
-    if (pageEl.length) {
-        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
-            .then((module) => module.init());
-    }
-
     if (document.getElementsByClassName('toast').length) {
         import(/* webpackChunkName: "Toast" */ './Toast')
             .then((module) => {
@@ -561,6 +555,13 @@ jQuery(function () {
     if (fulltextSearchSuggestion) {
         import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
             .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
+    }
+
+    // Go back redirect:
+    const backLinks = document.querySelectorAll('.go-back-link')
+    if (backLinks.length) {
+        import (/* webpackChunkName: "go-back-links" */ './go-back-links')
+            .then(module => module.initGoBackLinks(backLinks))
     }
 });
 

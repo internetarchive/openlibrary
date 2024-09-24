@@ -5,7 +5,7 @@ import pytest
 from openlibrary.core import ia
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_ia(request, monkeypatch):
     """pytest funcarg to mock openlibrary.core.ia module.
 

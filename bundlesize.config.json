@@ -41,10 +41,6 @@
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/page-barcodescanner.*.js",
-      "maxSize": "30KB"
-    },
-    {
       "path": "static/build/signup.*.js",
       "maxSize": "2KB"
     },
@@ -74,7 +70,7 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "25KB"
+      "maxSize": "25.1KB"
     },
     {
       "path": "static/build/page-book.css",
@@ -102,7 +98,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "27.05KB"
+      "maxSize": "27.1KB"
     }
   ]
 }

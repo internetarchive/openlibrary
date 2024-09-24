@@ -90,28 +90,14 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr ""
 
-#: barcodescanner.html lib/nav_head.html
-msgid "Advanced"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Read Text ISBN"
-msgstr ""
-
-#: barcodescanner.html
-msgid "For books that print the ISBN without a barcode"
-msgstr ""
-
-#: barcodescanner.html
-msgid "Point your camera at a barcode! 📷"
-msgstr ""
-
 #: batch_import.html
 msgid "Batch Imports"
 msgstr ""
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records."
+msgid ""
+"Attach a JSONL formatted document with import records or copy/paste the "
+"JSONL text into the textarea."
 msgstr ""
 
 #: batch_import.html
@@ -119,6 +105,14 @@ msgid ""
 "See the <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
+msgstr ""
+
+#: batch_import.html
+msgid "Attach a file:"
+msgstr ""
+
+#: batch_import.html
+msgid "Or copy/paste JSONL text:"
 msgstr ""
 
 #: batch_import.html
@@ -626,11 +620,11 @@ msgstr ""
 msgid "Incorrect. Please try again."
 msgstr ""
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
 msgstr ""
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
 msgstr ""
 
@@ -695,27 +689,6 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
-#: subjects.html subjects/notfound.html type/author/view.html
-#: type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
-#: SubjectTags.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "Places"
-msgstr ""
-
-#: SubjectTags.html admin/menu.html admin/people/index.html
-#: admin/people/view.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "People"
-msgstr ""
-
-#: SubjectTags.html subjects.html type/list/view_body.html
-msgid "Times"
-msgstr ""
-
 #: subjects.html
 msgid "Edit Subject Tag"
 msgstr ""
@@ -735,90 +708,6 @@ msgstr[1] ""
 #, python-format
 msgid "Search for books with subject %(name)s."
 msgstr ""
-
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
-#: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html subjects.html
-#: subjects/notfound.html type/local_id/view.html
-msgid "Search"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Publishing History"
-msgstr ""
-
-#: subjects.html
-msgid ""
-"This is a chart to show the publishing history of editions of works about"
-" this subject. Along the X axis is time, and on the y axis is the count "
-"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
-" chart</a>."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Reset chart"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "or continue zooming in."
-msgstr ""
-
-#: subjects.html
-msgid "This graph charts editions published on this subject."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Editions Published"
-msgstr ""
-
-#: admin/imports.html publishers/view.html subjects.html
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Year of Publication"
-msgstr ""
-
-#: subjects.html
-msgid "Related..."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "None found."
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "See more books by, and learn about, this author"
-msgstr ""
-
-#: account/loans.html authors/index.html lists/showcase.html
-#: publishers/view.html search/authors.html search/publishers.html
-#: search/subjects.html subjects.html
-#, python-format
-msgid "%(count)d book"
-msgid_plural "%(count)d books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: subjects.html
-msgid "Prolific Authors"
-msgstr ""
-
-#: subjects.html
-msgid "who have written the most books on this subject"
-msgstr ""
-
-#: publishers/view.html subjects.html
-msgid "Get more information about this publisher"
-msgstr ""
-
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html subjects.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
 
 #: support.html
 msgid "How can we help?"
@@ -974,8 +863,8 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: FulltextSnippet.html ReadButton.html books/custom_carousel.html
-#: books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html books/custom_carousel.html books/edit/edition.html
+#: type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -1337,6 +1226,15 @@ msgid ""
 "Are you sure you want to leave the waiting list "
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
+
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/showcase.html publishers/view.html search/authors.html
+#: search/publishers.html search/subjects.html
+#, python-format
+msgid "%(count)d book"
+msgid_plural "%(count)d books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
@@ -2100,6 +1998,10 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
+#: PublishingHistory.html admin/imports.html publishers/view.html
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr ""
+
 #: admin/imports.html admin/imports_by_date.html site/stats.html
 msgid "Summary"
 msgstr ""
@@ -2364,6 +2266,12 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Admin Center"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html type/author/view.html
+#: type/list/view_body.html
+msgid "People"
 msgstr ""
 
 #: admin/menu.html
@@ -2999,6 +2907,12 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
+#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: publishers/notfound.html publishers/view.html search/advancedsearch.html
+#: search/publishers.html search/searchbox.html type/local_id/view.html
+msgid "Search"
+msgstr ""
+
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
@@ -3345,8 +3259,8 @@ msgstr ""
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
-#: books/add.html books/edit.html tag/add.html type/author/edit.html
-#: type/tag/edit.html
+#: books/add.html books/edit.html type/author/edit.html
+#: type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr ""
 
@@ -3395,7 +3309,7 @@ msgstr ""
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
 msgstr ""
 
-#: books/add.html tag/add.html
+#: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
 msgstr ""
 
@@ -3476,6 +3390,14 @@ msgstr ""
 #: books/check.html
 msgid "Select this book"
 msgstr ""
+
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: books/check.html
 #, python-format
@@ -3761,7 +3683,7 @@ msgstr ""
 msgid "How would you describe this book?"
 msgstr ""
 
-#: books/edit/about.html tag/add.html
+#: books/edit/about.html
 msgid "There's no wrong answer here."
 msgstr ""
 
@@ -4006,6 +3928,14 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Copy authors to new work"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Copy subjects to new work"
 msgstr ""
 
 #: books/edit/edition.html
@@ -4383,7 +4313,8 @@ msgid "Delete Event"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
-msgid "Read:"
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
@@ -5100,6 +5031,12 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
 #: lib/nav_foot.html
 msgid "Explore collections"
 msgstr ""
@@ -5285,6 +5222,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Advanced"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5892,6 +5833,10 @@ msgstr[1] ""
 msgid "0 ebooks"
 msgstr ""
 
+#: PublishingHistory.html publishers/view.html
+msgid "Publishing History"
+msgstr ""
+
 #: publishers/view.html
 msgid ""
 "This is a chart to show the when this publisher published books. Along "
@@ -5899,10 +5844,26 @@ msgid ""
 " <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
+#: PublishingHistory.html publishers/view.html
+msgid "Reset chart"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "or continue zooming in."
+msgstr ""
+
 #: publishers/view.html
 msgid ""
 "This graph charts editions from this publisher over time. Click to view a"
 " single year, or drag across a range."
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Editions Published"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Year of Publication"
 msgstr ""
 
 #: publishers/view.html
@@ -5914,8 +5875,20 @@ msgstr ""
 msgid "Search for books published by %(publisher)s"
 msgstr ""
 
+#: RelatedSubjects.html publishers/view.html
+msgid "None found."
+msgstr ""
+
+#: ProlificAuthors.html publishers/view.html
+msgid "See more books by, and learn about, this author"
+msgstr ""
+
 #: publishers/view.html
 msgid "published most by this publisher"
+msgstr ""
+
+#: publishers/view.html
+msgid "Get more information about this publisher"
 msgstr ""
 
 #: recentchanges/header.html
@@ -6424,18 +6397,6 @@ msgid "Add a tag to Open Library"
 msgstr ""
 
 #: tag/add.html
-msgid "Name of Tag"
-msgstr ""
-
-#: tag/add.html
-msgid "How would you describe this tag?"
-msgstr ""
-
-#: tag/add.html type/tag/edit.html
-msgid "Tag type"
-msgstr ""
-
-#: tag/add.html
 msgid "Add this tag now"
 msgstr ""
 
@@ -6601,6 +6562,11 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
+#: RelatedSubjects.html SubjectTags.html type/author/view.html
+#: type/list/view_body.html
+msgid "Places"
+msgstr ""
+
 #: Profile.html type/author/view.html
 msgid "Time"
 msgstr ""
@@ -6613,8 +6579,8 @@ msgstr ""
 msgid "Inventaire.io:"
 msgstr ""
 
-#: type/author/view.html
-msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
+#: type/author/view.html type/edition/view.html type/work/view.html
+msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
@@ -6818,10 +6784,6 @@ msgid "added anonymously."
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "This work does not appear on any lists."
 msgstr ""
 
@@ -6830,11 +6792,19 @@ msgid "Loading Related Books"
 msgstr ""
 
 #: type/language/view.html
+msgid "deprecated"
+msgstr ""
+
+#: type/language/view.html
 msgid "languages"
 msgstr ""
 
 #: type/language/view.html
 msgid "Code"
+msgstr ""
+
+#: type/language/view.html
+msgid "Current"
 msgstr ""
 
 #: type/language/view.html
@@ -7011,6 +6981,10 @@ msgstr ""
 msgid "Derived from seed metadata"
 msgstr ""
 
+#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
+msgid "Times"
+msgstr ""
+
 #: type/local_id/view.html
 msgid "Local IDs"
 msgstr ""
@@ -7063,12 +7037,16 @@ msgstr ""
 msgid "Edit Tag"
 msgstr ""
 
-#: type/tag/edit.html
-msgid "Label"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Name"
 msgstr ""
 
-#: type/tag/edit.html type/user/edit.html
-msgid "Description"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Description"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag type"
 msgstr ""
 
 #: type/tag/view.html
@@ -7119,6 +7097,10 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Display Name"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Description"
 msgstr ""
 
 #: type/user/view.html
@@ -7362,6 +7344,10 @@ msgstr[1] ""
 msgid "Related Books"
 msgstr ""
 
+#: EditionNavBar.html
+msgid "Go to next section"
+msgstr ""
+
 #: Follow.html
 msgid "UnfollowFollow"
 msgstr ""
@@ -7400,15 +7386,11 @@ msgstr ""
 msgid "right chevron"
 msgstr ""
 
-#: FulltextSnippet.html
-msgid "See All Results"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
 msgstr ""
 
@@ -7497,6 +7479,26 @@ msgstr ""
 msgid "Component"
 msgstr ""
 
+#: ProlificAuthors.html
+msgid "Prolific Authors"
+msgstr ""
+
+#: ProlificAuthors.html
+msgid "who have written the most books on this subject"
+msgstr ""
+
+#: PublishingHistory.html
+msgid ""
+"This is a chart to show the publishing history of editions of works about"
+" this subject. Along the X axis is time, and on the y axis is the count "
+"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
+" chart</a>."
+msgstr ""
+
+#: PublishingHistory.html
+msgid "This graph charts editions published on this subject."
+msgstr ""
+
 #: QueryCarousel.html
 msgid "Search collection"
 msgstr ""
@@ -7551,6 +7553,10 @@ msgstr ""
 msgid "No edit history available."
 msgstr ""
 
+#: RelatedSubjects.html
+msgid "Related..."
+msgstr ""
+
 #: ReturnForm.html
 msgid "Really return this book?"
 msgstr ""
@@ -7565,20 +7571,15 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
+msgid "Cover of edition %(id)s"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] ""
 msgstr[1] ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "%s previewable"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
 
 #: SearchResultsWork.html
 msgid "This is only visible to librarians."
@@ -7635,6 +7636,24 @@ msgstr ""
 
 #: StarRatings.html
 msgid "Clear my rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "ratings"
+msgstr ""
+
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr ""
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 msgstr ""
 
 #: StarRatingsStats.html

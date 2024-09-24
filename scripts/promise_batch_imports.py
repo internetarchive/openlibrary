@@ -29,7 +29,9 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch, ImportItem
-from openlibrary.core.vendors import get_amazon_metadata
+from openlibrary.core.vendors import get_amazon_metadata, stage_bookworm_metadata
+from openlibrary.plugins.upstream.utils import safeget
+from openlibrary.utils.isbn import to_isbn_13
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.promises")
@@ -97,7 +99,12 @@ def is_isbn_13(isbn: str):
 
 def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
     """
-    Stage incomplete records for import via BookWorm.
+    For incomplete records, try to stage more complete records from BookWorm.
+
+    This `staged` record is later used to supplement the lacking record once
+    the incomplete record is processed via `/api/import`, where additional metadata,
+    if found, is merged into the incoming import `rec` from the `staged` record this
+    function aims to create.
 
     An incomplete record lacks one or more of: title, authors, or publish_date.
     See https://github.com/internetarchive/openlibrary/issues/9440.
@@ -108,26 +115,26 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
 
     required_fields = ["title", "authors", "publish_date"]
     for book in olbooks:
-        # Only stage records missing a required field.
+        # Only look to BookWorm if the current record is incomplete.
         if all(book.get(field) for field in required_fields):
             continue
 
         incomplete_records += 1
 
-        # Skip if the record can't be looked up in Amazon.
-        isbn_10 = book.get("isbn_10")
-        asin = isbn_10[0] if isbn_10 else None
+        # Prefer ISBN 13 as an identifier.
+        isbn_10 = safeget(lambda: book.get("isbn_10", [])[0])
+        isbn_13 = safeget(lambda: book.get("isbn_13", [])[0])
+        identifier = to_isbn_13(isbn_13 or isbn_10 or "")
+
         # Fall back to B* ASIN as a last resort.
-        if not asin:
+        if not identifier:
             if not (amazon := book.get('identifiers', {}).get('amazon', [])):
                 continue
 
-            asin = amazon[0]
+            identifier = amazon[0]
+
         try:
-            get_amazon_metadata(
-                id_=asin,
-                id_type="asin",
-            )
+            stage_bookworm_metadata(identifier=identifier)
 
         except requests.exceptions.ConnectionError:
             logger.exception("Affiliate Server unreachable")
@@ -159,11 +166,6 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
     stage_incomplete_records_for_import(olbooks)
 
     batch = Batch.find(promise_id) or Batch.new(promise_id)
-    # Find just-in-time import candidates:
-    if jit_candidates := [
-        book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])
-    ]:
-        ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])

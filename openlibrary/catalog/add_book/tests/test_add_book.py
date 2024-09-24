@@ -9,6 +9,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     build_pool,
     editions_matched,
+    find_match,
     IndependentlyPublished,
     isbns_from_record,
     load,
@@ -34,7 +35,7 @@ def open_test_data(filename):
     return open(fullpath, mode='rb')
 
 
-@pytest.fixture()
+@pytest.fixture
 def ia_writeback(monkeypatch):
     """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
@@ -971,21 +972,19 @@ def test_title_with_trailing_period_is_stripped() -> None:
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
     This tests the case where there is an edition_pool, but `find_quick_match()`
-    and `find_exact_match()` find no matches, so this should return a
-    match from `find_enriched_match()`.
+    finds no matches. This should return a match from `find_threshold_match()`.
 
-    This also indirectly tests `merge_marc.editions_match()` (even though it's
-    not a MARC record.
+    This also indirectly tests `add_book.match.editions_match()`
     """
-    # Unfortunately this Work level author is totally irrelevant to the matching
-    # The code apparently only checks for authors on Editions, not Works
     author = {
         'type': {'key': '/type/author'},
-        'name': 'IRRELEVANT WORK AUTHOR',
+        'name': 'John Smith',
         'key': '/authors/OL20A',
     }
     existing_work = {
-        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'authors': [
+            {'author': {'key': '/authors/OL20A'}, 'type': {'key': '/type/author_role'}}
+        ],
         'key': '/works/OL16W',
         'title': 'Finding Existing',
         'subtitle': 'sub',
@@ -999,6 +998,7 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
         'publishers': ['Black Spot'],
         'type': {'key': '/type/edition'},
         'source_records': ['non-marc:test'],
+        'works': [{'key': '/works/OL16W'}],
     }
 
     existing_edition_2 = {
@@ -1010,6 +1010,7 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
         'type': {'key': '/type/edition'},
         'publish_country': 'usa',
         'publish_date': 'Jan 09, 2011',
+        'works': [{'key': '/works/OL16W'}],
     }
     mock_site.save(author)
     mock_site.save(existing_work)
@@ -1040,7 +1041,9 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
     }
 
     existing_work = {
-        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'authors': [
+            {'author': {'key': '/authors/OL20A'}, 'type': {'key': '/type/author_role'}}
+        ],
         'key': '/works/OL16W',
         'title': 'Covers',
         'type': {'key': '/type/work'},
@@ -1050,8 +1053,12 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
         'key': '/books/OL16M',
         'title': 'Covers',
         'publishers': ['Black Spot'],
+        # TODO: only matches if the date is exact. 2011 != Jan 09, 2011
+        #'publish_date': '2011',
+        'publish_date': 'Jan 09, 2011',
         'type': {'key': '/type/edition'},
         'source_records': ['non-marc:test'],
+        'works': [{'key': '/works/OL16W'}],
     }
 
     mock_site.save(author)
@@ -1481,7 +1488,7 @@ def test_overwrite_if_rev1_promise_item(name, edition, marc, expected) -> None:
     ), f"Test {name} failed. Expected {expected}, but got {result}"
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_load_data(mock_site):
     existing_author = {
         'key': '/authors/OL1A',
@@ -1750,3 +1757,28 @@ class TestNormalizeImportRecord:
         """
         normalize_import_record(rec=rec)
         assert rec == expected
+
+
+def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
+    # An existing light title + ISBN only record
+    existing_edition = {
+        'key': '/books/OL113M',
+        # NO author
+        # NO date
+        # NO publisher
+        'title': 'Just A Title',
+        'isbn_13': ['9780000000002'],
+        'source_records': ['promise:someid'],
+        'type': {'key': '/type/edition'},
+    }
+    marc_import = {
+        'authors': [{'name': 'Bob Smith'}],
+        'publish_date': '1913',
+        'publishers': ['Early Editions'],
+        'title': 'Just A Title',
+        'source_records': ['marc:somelibrary/some_marc.mrc'],
+    }
+    mock_site.save(existing_edition)
+    result = find_match(marc_import, {'title': [existing_edition['key']]})
+    assert result != '/books/OL113M'
+    assert result is None

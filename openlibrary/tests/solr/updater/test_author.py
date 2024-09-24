@@ -14,7 +14,7 @@ class MockResponse:
 
 
 class TestAuthorUpdater:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_workless_author(self, monkeypatch):
         class MockAsyncClient:
             async def __aenter__(self):
@@ -23,7 +23,7 @@ class TestAuthorUpdater:
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 pass
 
-            async def post(self, url, json):
+            async def post(self, *a, **kw):
                 return MockResponse(
                     {
                         "facets": {

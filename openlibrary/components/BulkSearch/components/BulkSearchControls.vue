@@ -5,11 +5,12 @@
     <details open class="bulk-search-controls">
         <summary>Input</summary>
         <div>
+            <p v-if="showColumnHint">Please include a header row. Supported columns include: "Title", "Author".</p>
             <textarea v-model="bulkSearchState.inputText"></textarea>
             <br />
             <label>Format: <select v-model="bulkSearchState._activeExtractorIndex">
                     <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
-                        {{ extractor["name"] }}
+                        {{ extractor.label }}
                     </option>
                 </select></label>
             <label v-if="this.showApiKey">OpenAI API Key:
@@ -40,7 +41,7 @@
 <script>
 import {sampleData} from '../utils/samples.js';
 import { BulkSearchState} from '../utils/classes.js';
-import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
+import { buildSearchUrl } from '../utils/searchUtils.js'
 export default {
 
     props: {
@@ -74,7 +75,11 @@ export default {
         matchBooksText(){
             if (this.loadingMatchedBooks) return 'Loading...'
             return 'Match Books'
-        }
+        },
+        showColumnHint(){
+            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor'
+            return false
+        },
     },
     methods: {
         togglePasswordVisibility(){
@@ -88,7 +93,6 @@ export default {
         },
         async matchBooks() {
             const fetchSolrBook = async function (book, matchOptions) {
-
                 try {
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
                     return await data.json()
@@ -99,7 +103,6 @@ export default {
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
             }
-            this.bulkSearchState.listUrl = buildListUrl(this.bulkSearchState.matchedBooks)
             this.loadingMatchedBooks = false
         },
 

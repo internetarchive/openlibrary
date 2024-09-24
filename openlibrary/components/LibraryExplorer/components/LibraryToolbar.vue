@@ -205,7 +205,7 @@ import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
 import SortIcon from './icons/SortIcon';
 import FeedbackIcon from './icons/FeedbackIcon';
-import CONFIGS from '../configs';
+import CONFIGS from '../../configs';
 import Multiselect from 'vue-multiselect';
 
 export default {

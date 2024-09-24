@@ -61,7 +61,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 
     $for s, limit in subject_list:
         <div class="contentQuarter link-box link-box--with-header">
-            <h6>$s</h6>
+            <h3>$s</h3>
             $:renderSubjects(page[s][:limit])
         </div>
         $if s != 'times':

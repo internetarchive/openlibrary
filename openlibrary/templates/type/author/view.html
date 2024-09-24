@@ -157,7 +157,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section link-box link-box--with-header">
-                    <h6 class="collapse black uppercase">$label</h6>
+                    <h3 class="collapse black uppercase">$label</h3>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
@@ -194,7 +194,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         </div>
 
         <div class="section">
-            <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
+            <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
 
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">

@@ -21,8 +21,7 @@ class ListSolrUpdater(AbstractSolrUpdater):
         return bool(re.match(r'^(/people/[^/]+)?/lists/[^/]+$', key))
 
     async def update_key(self, list: dict) -> tuple[SolrUpdateRequest, list[str]]:
-        lst = ListSolrBuilder(list)
-        seeds = lst.seed
+        seeds = ListSolrBuilder(list).seed
         lst = ListSolrBuilder(list, await fetch_seeds_facets(seeds))
         doc = lst.build()
         return SolrUpdateRequest(adds=[doc]), []
@@ -51,19 +50,20 @@ async def fetch_seeds_facets(seeds: list[str]):
                 raise NotImplementedError(f'Unknown seed type {seed_type}')
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
+        response = await client.post(
             base_url,
-            params=[  # type: ignore
-                ('wt', 'json'),
-                ('json.nl', 'arrarr'),
-                ('q', ' OR '.join(query)),
-                ('fq', 'type: work'),
-                ('rows', '0'),
-                ('facet', 'true'),
-                ('facet.mincount', '1'),
-                ('facet.limit', '50'),
-            ]
-            + [('facet.field', f"{field}_facet") for field in facet_fields],
+            timeout=30,
+            data={
+                'wt': 'json',
+                'json.nl': 'arrarr',
+                'q': ' OR '.join(query),
+                'fq': 'type:work',
+                'rows': 0,
+                'facet': 'true',
+                'facet.mincount': 1,
+                'facet.limit': 50,
+                'facet.field': [f"{field}_facet" for field in facet_fields],
+            },
         )
         return response.json()
 

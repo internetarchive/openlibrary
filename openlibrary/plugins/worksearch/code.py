@@ -326,8 +326,16 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
+    # If you want work_search page html to extend default_fetched_fields:
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
         fields |= {'subject'}
 
@@ -395,6 +403,9 @@ def get_doc(doc: SolrDocument):
             )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
+        ratings_average=doc.get('ratings_average', None),
+        ratings_count=doc.get('ratings_count', None),
+        want_to_read_count=doc.get('want_to_read_count', None),
     )
 
 

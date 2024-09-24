@@ -67,7 +67,8 @@ class TestBiblio:
     def test_non_books_rejected(self, input_):
         data = input_.strip().split('|')
         code = data[6]
-        with pytest.raises(AssertionError, match=f'{code} is NONBOOK'):
+        pclass = data[121]
+        with pytest.raises(AssertionError, match=f'{code}/{pclass} is NONBOOK'):
             _ = Biblio(data)
 
 

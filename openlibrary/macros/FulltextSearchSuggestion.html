@@ -6,7 +6,6 @@ $def render_snippet(query, doc):
 $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])[:4]
   $ num_found = commify(results['hits'].get('total', 0))
-  $ ia_base_url = "https://archive.org"
 
   $:macros.LoadingIndicator(_("Checking for Search Inside matches"))
     <div id="fulltextSuggestions" class="fulltext-suggestions">

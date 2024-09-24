@@ -23,6 +23,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
             "params": {
                 "json.nl": "arrarr",
                 "q": "author_key:%s " % author_id,
+                "fq": "type:work",
                 "fl": "title, subtitle",
                 "sort": "edition_count desc",
             },
@@ -44,7 +45,11 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 "field": field,
             }
         async with httpx.AsyncClient() as client:
-            response = await client.post(base_url, json=json)
+            response = await client.post(
+                base_url,
+                timeout=30,
+                json=json,
+            )
             reply = response.json()
 
         doc = AuthorSolrBuilder(author, reply).build()

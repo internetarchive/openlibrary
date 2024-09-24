@@ -12,13 +12,17 @@ from infogami.utils import delegate
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
-from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_doc
+from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
 
 
 @public
 def get_tag_types():
     return ["subject", "work", "collection"]
+
+
+def validate_tag(tag):
+    return tag.get('name', '') and tag.get('tag_type', '')
 
 
 class addtag(delegate.page):
@@ -32,7 +36,9 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        return render_template('tag/add', recaptcha=get_recaptcha())
+        i = web.input(name=None, type=None, sub_type=None)
+
+        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type)
 
     def has_permission(self, user) -> bool:
         """
@@ -44,7 +50,7 @@ class addtag(delegate.page):
 
     def POST(self):
         i = web.input(
-            tag_name="",
+            name="",
             tag_type="",
             tag_description="",
             tag_plugins="",
@@ -62,6 +68,10 @@ class addtag(delegate.page):
             raise web.unauthorized(message='Permission denied to add tags')
 
         i = utils.unflatten(i)
+
+        if not validate_tag(i):
+            raise web.badrequest()
+
         match = self.find_match(i)  # returns None or Tag (if match found)
 
         if match:
@@ -75,7 +85,7 @@ class addtag(delegate.page):
         """
         Tries to find an existing tag that matches the data provided by the user.
         """
-        return Tag.find(i.tag_name, i.tag_type)
+        return Tag.find(i.name, i.tag_type)
 
     def tag_match(self, match: list) -> NoReturn:
         """
@@ -91,7 +101,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
+        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins)
         raise safe_seeother(key)
 
 
@@ -120,7 +130,7 @@ class tag_edit(delegate.page):
         i = web.input(_comment=None)
         formdata = self.process_input(i)
         try:
-            if not formdata:
+            if not formdata or not validate_tag(formdata):
                 raise web.badrequest()
             elif "_delete" in i:
                 tag = web.ctx.site.new(
