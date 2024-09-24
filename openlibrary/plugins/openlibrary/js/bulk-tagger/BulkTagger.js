@@ -16,6 +16,12 @@ import { FadingToast } from '../Toast'
 const maxDisplayResults = 25;
 
 /**
+ * Subject labels that begin with this string are identified as type `collection`.
+ * @type {string}
+ */
+const COLLECTION_PREFIX = "collectionID:";
+
+/**
  * Represents the Bulk Tagger tool.
  *
  * The Bulk Tagger tool allows librarians to add or remove subjects in batches.
@@ -245,6 +251,13 @@ export class BulkTagger {
                         subject_people: data.subject_people || [],
                         subject_places: data.subject_places || [],
                         subject_times: data.subject_times || []
+                    }
+                    // Move collection labels from `subjects` to `collections`
+                    entry.collections = entry.subjects.filter((label) => label.startsWith(COLLECTION_PREFIX))
+                    entry.subjects = entry.subjects.filter((label) => !entry.collections.includes(label))
+                    for (let i = 0; i < entry.collections.length; ++i) {
+                        // Remove collection prefix from label
+                        entry.collections[i] = entry.collections[i].substring(COLLECTION_PREFIX.length)
                     }
                     if (!this.existingSubjects.has(id)) {
                         this.existingSubjects.set(id, [])
@@ -551,6 +564,8 @@ export class BulkTagger {
             subject_places: this.findMatches(this.tagsToAdd, 'subject_places'),
             subject_times: this.findMatches(this.tagsToAdd, 'subject_times')
         }
+        const collectionsToAdd = this.findMatches(this.tagsToAdd, 'collections')
+        collectionsToAdd.forEach(label => addSubjectsValue.subjects.push(`${COLLECTION_PREFIX}${label}`))
         this.addSubjectsInput.value = JSON.stringify(addSubjectsValue)
 
         const removeSubjectsValue = {
@@ -559,6 +574,8 @@ export class BulkTagger {
             subject_places: this.findMatches(this.tagsToRemove, 'subject_places'),
             subject_times: this.findMatches(this.tagsToRemove, 'subject_times')
         }
+        const collectionsToRemove = this.findMatches(this.tagsToRemove, 'collections')
+        collectionsToRemove.forEach(label => removeSubjectsValue.subjects.push(`${COLLECTION_PREFIX}${label}`))
         this.removeSubjectsInput.value = JSON.stringify(removeSubjectsValue)
     }
 
