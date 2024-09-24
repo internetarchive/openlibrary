@@ -19,7 +19,7 @@ const maxDisplayResults = 25;
  * Subject labels that begin with this string are identified as type `collection`.
  * @type {string}
  */
-const COLLECTION_PREFIX = "collectionID:";
+const COLLECTION_PREFIX = 'collectionID:';
 
 /**
  * Represents the Bulk Tagger tool.
