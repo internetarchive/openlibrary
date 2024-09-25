@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, oclc_numbers=None, isbn=None)
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, olid=None)
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -53,13 +53,9 @@ $else:
             <span class="btn-label">Download</span>
           </a>
         </li>
-        $if oclc_numbers or isbn:
+        $if olid:
           <li>
-            <a class="cta-btn cta-btn--available cta-btn--w-icon"
-               href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)">
-              <span class="btn-icon map"></span>
-              <span class="btn-label">Check Nearby Libraries</span>
-            </a>
+            $:macros.LocateButton(olid=olid)
           </li>
       </ul>
     </div>
