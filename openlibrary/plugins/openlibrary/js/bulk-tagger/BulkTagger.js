@@ -103,17 +103,6 @@ export class BulkTagger {
         this.existingSubjects = new Map()
 
         /**
-         * Stores arrays of selected menu options.
-         *
-         * Tag names are the keys to this map.  Corresponding arrays
-         * will contain menu options having the same name, but different
-         * types.
-         *
-         * @member {Map<String, Array<MenuOption>}
-         */
-        this.menuOptions = new Map()
-
-        /**
          * Array containing OLIDs of each selected work.
          *
          * @member {Array<String>}
