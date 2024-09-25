@@ -31,7 +31,7 @@ export default {
 }</script>
 
 
-<style>
+<style lang="less">
 @keyframes pulse {
   0% {
     opacity: 0;
@@ -75,7 +75,6 @@ export default {
   border-radius: 4px;
   display: flex;
   overflow: hidden;
-  font-family: sans-serif;
   color: inherit;
   text-decoration: inherit;
   position: relative;

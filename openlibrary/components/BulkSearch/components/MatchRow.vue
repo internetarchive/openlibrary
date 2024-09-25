@@ -45,8 +45,8 @@ th {
     display: flex;
     flex-direction: row;
     align-items: center;
-    overflow-x:scroll;
-
+    overflow-x:auto;
+    scrollbar-width:thin;
 }
 
 

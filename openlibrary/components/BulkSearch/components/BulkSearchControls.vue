@@ -25,13 +25,13 @@
                                 {{ extractor.label }}
                             </option>
                         </select></label>
-                        <div v-if="this.showApiKey">
-                        <label ><strong>OpenAI API Key</strong> <br>
-                            <input v-if="showPassword" placeholder= "Enter your OpenAI API key to use this feature." type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
 
-                            <input v-else type="text" placeholder= "OpenAI API key here...." @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
+                        <label v-if="this.showApiKey"><strong >OpenAI API Key</strong> <br>
+                            <input class="api-key-bar" v-if="showPassword" placeholder= "Enter your OpenAI API key to use this feature." type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
+
+                            <input class="api-key-bar" v-else type="text" placeholder= "OpenAI API key here...." @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
                         </label>
-                        </div>
+
 
                         <button @click="extractBooks" :disabled="loadingExtractedBooks">{{ extractBooksText }}</button>
                     </div>
@@ -175,12 +175,11 @@ textarea {
     column-gap:10px;
 }
 .progressCard{
-    font-family:sans-serif;
     background-color:#C7E3FC;
-    padding: 16px 12px;
+    padding: 16px;
     width: min(450px, 66vw);
     height:fit-content;
-    border-radius:1rem;
+    border-radius:30px;
     display:flex;
     column-gap:16px;
     flex-shrink:0;
@@ -193,6 +192,12 @@ textarea {
         .heading{
             color:#0376B8;
             margin:0px;
+            h3{
+                margin:0px;
+            }
+            p{
+                margin:0px;
+            }
         }
         select{
             width: 100%;
@@ -204,16 +209,13 @@ textarea {
             box-shadow: none;
             border:none;
             padding: 0.5rem;
-            transition-duration: 0.2s;
-            min-width:115px;
+            transition:  background-color 0.2s;
+            min-width:140px;
             align-self:center;
-            font:inherit;
+            cursor:pointer;
         }
         button:hover{
             background-color:#014c78;
-
-            transition-duration: 0.2s;
-            cursor:pointer;
         }
     }
     .numeral{
@@ -225,7 +227,6 @@ textarea {
         display:flex;
         font-weight:bold;
         justify-content:center;
-        font-size: 10px;
         flex-shrink: 0;
         display:flex;
         align-items:center;
@@ -244,4 +245,9 @@ textarea {
     }
 }
 
+
+.api-key-bar{
+    width:100%;
+    box-sizing:border-box;
+}
 </style>

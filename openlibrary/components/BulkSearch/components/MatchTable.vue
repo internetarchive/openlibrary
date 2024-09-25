@@ -39,7 +39,7 @@ table {
   max-width:100vw;
   table-layout:fixed;
   border-spacing:0px 2px;
-  padding-top:2px;
+  padding: 20px;
 }
 tr:first-child>th:first-child, td:first-child{
   border-radius: 5px 0px 0px 5px;
@@ -58,14 +58,14 @@ thead{
     transform: translate(0px,-2px);
 }
 
-.matchRow{
+.matchRow td{
   background-color: #EEEEEE;
 }
 .matchRow>td{
   padding: 0.5rem 0.5rem;
   text-align:left;
 }
-.matchRow:nth-child(odd){
+.matchRow:nth-child(odd) td{
   background-color: #E4E4E4;
   margin:2px;
 }
