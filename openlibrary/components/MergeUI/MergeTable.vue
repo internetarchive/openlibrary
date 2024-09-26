@@ -114,27 +114,27 @@ export default {
         },
 
         async augmentedRecords() {
-          if (!this.records) return null;
+            if (!this.records) return null;
 
-          // Clone the records to avoid mutating the original data
-          const recordsCopy = _.cloneDeep(this.records);
+            // Clone the records to avoid mutating the original data
+            const recordsCopy = _.cloneDeep(this.records);
 
-          // Fetch author data
-          const authorData = await get_author_names(recordsCopy);
+            // Fetch author data
+            const authorData = await get_author_names(recordsCopy);
 
-          // Add the name field to each author in the records
-          recordsCopy.forEach(work => {
-            if (work.authors) {
-              work.authors.forEach(authorEntry => {
-                const authorKey = authorEntry.author.key;
-                if (authorData[authorKey]) {
-                  authorEntry.author.name = authorData[authorKey].name;
+            // Add the name field to each author in the records
+            recordsCopy.forEach(work => {
+                if (work.authors) {
+                    work.authors.forEach(authorEntry => {
+                        const authorKey = authorEntry.author.key;
+                        if (authorData[authorKey]) {
+                            authorEntry.author.name = authorData[authorKey].name;
+                        }
+                    });
                 }
-              });
-            }
-          });
+            });
 
-          return recordsCopy;
+            return recordsCopy;
         },
 
         async editions() {
