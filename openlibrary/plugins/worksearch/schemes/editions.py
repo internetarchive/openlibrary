@@ -10,7 +10,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe = ['type:work']
+    # XXX : Does this break anything?
+    universe = ['type:edition']
     all_fields = {
         "key",
         "title",
