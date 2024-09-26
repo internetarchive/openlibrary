@@ -8,7 +8,7 @@ from openlibrary.core.vendors import get_amazon_metadata
 import web
 import json
 import requests
-from typing import Any
+from typing import Any, TypedDict
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -217,6 +217,10 @@ class Thing(client.Thing):
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
         }
+
+
+class ThingReferenceDict(TypedDict):
+    key: ThingKey
 
 
 class Edition(Thing):
