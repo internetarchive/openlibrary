@@ -230,6 +230,51 @@ function save_many(items, comment, action, data) {
     });
 }
 
+/**
+ * Fetches author data for given works
+ * @param {object[]} works
+ * @return {Promise<Record<string, object>>}
+ */
+export async function get_author_names(works) {
+    // Extract all unique author keys from the works
+    const authorKeys = _.uniq(_.flatMap(works, work =>
+        work.authors ? work.authors.map(a => a.author.key) : []
+    ));
+
+    if (authorKeys.length === 0) {
+        return {};
+    }
+
+    // Determine the base URL
+    let base = '';
+    if (CONFIGS.OL_BASE_BOOKS) {
+        base = CONFIGS.OL_BASE_BOOKS;
+    } else {
+        base = 'https://openlibrary.org';
+    }
+
+    const authorMap = {};
+
+    // Fetch each author individually
+    await Promise.all(authorKeys.map(async (authorKey) => {
+        const url = `${base}${authorKey}.json`;
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                authorMap[authorKey] = data;
+            } else {
+                console.error(`Failed to fetch author ${authorKey}: ${response.status} ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error(`Error fetching author ${authorKey}:`, error);
+        }
+    }));
+
+    return authorMap;
+}
+
+
 // /**
 //  * @param {Object} record
 //  * @param {string} comment

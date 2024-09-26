@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <MergeRow
-        v-for="record in records"
+        v-for="record in augmentedRecords"
         :key="record.key"
         :record="record"
         :fields="fields"
@@ -47,7 +47,7 @@ import _ from 'lodash';
 import Vue from 'vue';
 import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names } from './utils.js';
 import CONFIGS from '../configs.js';
 
 Vue.use(AsyncComputed);
@@ -113,6 +113,30 @@ export default {
             return records;
         },
 
+        async augmentedRecords() {
+          if (!this.records) return null;
+
+          // Clone the records to avoid mutating the original data
+          const recordsCopy = _.cloneDeep(this.records);
+
+          // Fetch author data
+          const authorData = await get_author_names(recordsCopy);
+
+          // Add the name field to each author in the records
+          recordsCopy.forEach(work => {
+            if (work.authors) {
+              work.authors.forEach(authorEntry => {
+                const authorKey = authorEntry.author.key;
+                if (authorData[authorKey]) {
+                  authorEntry.author.name = authorData[authorKey].name;
+                }
+              });
+            }
+          });
+
+          return recordsCopy;
+        },
+
         async editions() {
             if (!this.records) return null;
 
@@ -169,11 +193,11 @@ export default {
         },
 
         async merge() {
-            if (!this.master_key || !this.records || !this.editions)
+            if (!this.master_key || !this.augmentedRecords || !this.editions)
                 return undefined;
 
-            const master = this.records.find(r => r.key === this.master_key);
-            const all_dupes = this.records
+            const master = this.augmentedRecords.find(r => r.key === this.master_key);
+            const all_dupes = this.augmentedRecords
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
@@ -190,7 +214,7 @@ export default {
                 list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
             };
 
-            const unmergeable_works = this.records
+            const unmergeable_works = this.augmentedRecords
                 .filter(work => work.type.key === '/type/work' &&
                 this.selected[work.key] &&
                 work.key !== this.master_key &&
@@ -198,7 +222,7 @@ export default {
                 .map(r => r.key);
 
             return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
-        }
+        },
     },
     methods: {
         isCellUsed(record, field) {
