@@ -209,10 +209,11 @@ textarea {
             transition:  background-color 0.2s;
             min-width:140px;
             align-self:center;
-        &:not([disabled]) {
-            cursor:pointer;
-            &:hover{
-                background-color:#014c78;
+            &:not([disabled]) {
+                cursor:pointer;
+                &:hover{
+                    background-color:#014c78;
+                }
             }
         }
     }
