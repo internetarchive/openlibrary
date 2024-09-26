@@ -9,7 +9,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
 .noBookCard{
     flex-shrink: 0;
     margin-right: 6px;

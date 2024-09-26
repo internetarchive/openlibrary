@@ -1,14 +1,14 @@
 <template>
   <div class="tableWrapper">
     <table>
-      <thead class="tableHead">
+      <thead>
         <tr>
-          <th rowspan ="2" style="width:75px">#</th>
-          <th colspan = "2" style="width:400px; border-bottom:0px;"> Extracted Books</th>
-          <th rowspan = "2" style="">Matched Books</th>
+          <th rowspan ="2" style="width:4ch">#</th>
+          <th colspan = "2" style="width:400px;"> Extracted Books</th>
+          <th rowspan = "2">Matched Books</th>
         </tr>
         <tr>
-          <th style="border-top: 0px;">Title</th>
+          <th>Title</th>
           <th style="min-width: 200px;"> Author</th>
         </tr>
       </thead>

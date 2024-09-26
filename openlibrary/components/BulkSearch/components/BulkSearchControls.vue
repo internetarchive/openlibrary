@@ -160,7 +160,7 @@ label input {
 
 .sampleBar{
     float:right;
-    margin:0.25rem;
+    margin-bottom: 5px;
 }
 textarea {
     width: 100%;
@@ -186,12 +186,9 @@ textarea {
     .info{
         display:flex;
         flex-direction:column;
-        height:auto;
-        width:auto;
         row-gap:10px;
         .heading{
             color:#0376B8;
-            margin:0px;
             h3{
                 margin:0px;
             }
@@ -205,17 +202,18 @@ textarea {
         button{
             background-color:#0376B8;
             color:white;
-            border-radius:0.5rem;
+            border-radius:4px;
             box-shadow: none;
             border:none;
             padding: 0.5rem;
             transition:  background-color 0.2s;
             min-width:140px;
             align-self:center;
+        &:not([disabled]) {
             cursor:pointer;
-        }
-        button:hover{
-            background-color:#014c78;
+            &:hover{
+                background-color:#014c78;
+            }
         }
     }
     .numeral{
@@ -224,7 +222,6 @@ textarea {
         width:48px;
         background-color:white;
         color:#0376B8;
-        display:flex;
         font-weight:bold;
         justify-content:center;
         flex-shrink: 0;
@@ -236,13 +233,6 @@ textarea {
 
 .progressCardDisabled{
     opacity:50%;
-    .info{
-        button:hover{
-            background-color: #0376B8;
-            color: white;
-            cursor:default;
-        }
-    }
 }
 
 

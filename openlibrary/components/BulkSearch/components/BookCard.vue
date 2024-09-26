@@ -146,7 +146,7 @@ export default {
   .identifier {
     margin-top: 4px;
     padding-top: 4px;
-    color: #555;
+    color: #D8D8D8;
     border-top: 1px solid;
     flex: 1;
   }
