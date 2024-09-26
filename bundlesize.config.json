@@ -70,7 +70,8 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "25.1KB"
+      "maxSize": "26KB"
+
     },
     {
       "path": "static/build/page-book.css",

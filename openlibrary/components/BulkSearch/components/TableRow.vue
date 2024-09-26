@@ -41,11 +41,8 @@ th {
     padding: 4px;
 }
 .bookCards {
-    font-family: Roboto, sans-serif;
     display: flex;
     flex-direction: row;
     align-items: center;
-
-
 }
 </style>
