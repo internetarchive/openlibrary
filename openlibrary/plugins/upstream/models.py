@@ -420,8 +420,11 @@ class Edition(models.Edition):
 
         return TableOfContents.from_db(self.table_of_contents)
 
-    def set_toc_text(self, text: str):
-        self.table_of_contents = TableOfContents.from_markdown(text).to_db()
+    def set_toc_text(self, text: str | None):
+        if text:
+            self.table_of_contents = TableOfContents.from_markdown(text).to_db()
+        else:
+            self.table_of_contents = None
 
     def get_links(self):
         links1 = [
