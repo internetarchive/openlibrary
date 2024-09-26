@@ -664,57 +664,6 @@ def set_share_links(
         view_context.share_links = links
 
 
-def pad(seq: list, size: int, e=None) -> list:
-    """
-    >>> pad([1, 2], 4, 0)
-    [1, 2, 0, 0]
-    """
-    seq = seq[:]
-    while len(seq) < size:
-        seq.append(e)
-    return seq
-
-
-def parse_toc_row(line):
-    """Parse one row of table of contents.
-
-    >>> def f(text):
-    ...     d = parse_toc_row(text)
-    ...     return (d['level'], d['label'], d['title'], d['pagenum'])
-    ...
-    >>> f("* chapter 1 | Welcome to the real world! | 2")
-    (1, 'chapter 1', 'Welcome to the real world!', '2')
-    >>> f("Welcome to the real world!")
-    (0, '', 'Welcome to the real world!', '')
-    >>> f("** | Welcome to the real world! | 2")
-    (2, '', 'Welcome to the real world!', '2')
-    >>> f("|Preface | 1")
-    (0, '', 'Preface', '1')
-    >>> f("1.1 | Apple")
-    (0, '1.1', 'Apple', '')
-    """
-    RE_LEVEL = web.re_compile(r"(\**)(.*)")
-    level, text = RE_LEVEL.match(line.strip()).groups()
-
-    if "|" in text:
-        tokens = text.split("|", 2)
-        label, title, page = pad(tokens, 3, '')
-    else:
-        title = text
-        label = page = ""
-
-    return Storage(
-        level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
-    )
-
-
-def parse_toc(text: str | None) -> list[Any]:
-    """Parses each line of toc"""
-    if text is None:
-        return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
-
-
 T = TypeVar('T')
 
 
