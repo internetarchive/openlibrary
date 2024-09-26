@@ -17,6 +17,7 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
+from openlibrary.plugins.upstream.table_of_contents import TocEntry
 from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
@@ -414,24 +415,18 @@ class Edition(models.Edition):
 
         return "\n".join(format_row(r) for r in self.get_table_of_contents())
 
-    def get_table_of_contents(self):
+    def get_table_of_contents(self) -> list[TocEntry]:
         def row(r):
             if isinstance(r, str):
-                level = 0
-                label = ""
-                title = r
-                pagenum = ""
+                return TocEntry(level=0, title=r)
             else:
-                level = safeint(r.get('level', '0'), 0)
-                label = r.get('label', '')
-                title = r.get('title', '')
-                pagenum = r.get('pagenum', '')
+                return TocEntry.from_dict(r)
 
-            r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
-            return r
-
-        d = [row(r) for r in self.table_of_contents]
-        return [row for row in d if any(row.values())]
+        return [
+            toc_entry
+            for r in self.table_of_contents
+            if not (toc_entry := row(r)).is_empty()
+        ]
 
     def set_toc_text(self, text):
         self.table_of_contents = parse_toc(text)
