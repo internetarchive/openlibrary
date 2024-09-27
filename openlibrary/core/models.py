@@ -226,6 +226,11 @@ class ThingReferenceDict(TypedDict):
 class Edition(Thing):
     """Class to represent /type/edition objects in OL."""
 
+    table_of_contents: list[dict] | list[str] | list[str | dict] | None
+    """
+    Should be a list of dict; the other types are legacy
+    """
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 

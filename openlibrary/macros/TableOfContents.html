@@ -1,8 +1,8 @@
 $def with (table_of_contents, ocaid=None, cls='', attrs='')
 
-$ min_level = min(chapter.level for chapter in table_of_contents)
+$ min_level = min(chapter.level for chapter in table_of_contents.entries)
 <div class="toc $cls" $:attrs>
-  $for chapter in table_of_contents:
+  $for chapter in table_of_contents.entries:
     <div
       class="toc__entry"
       data-level="$chapter.level"
