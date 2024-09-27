@@ -60,6 +60,35 @@ class TestTableOfContents:
             {"level": 1, "title": "Chapter 2"},
         ]
 
+    def test_from_db_complex(self):
+        db_table_of_contents = [
+            {
+                "level": 1,
+                "title": "Chapter 1",
+                "authors": [{"name": "Author 1"}],
+                "subtitle": "Subtitle 1",
+                "description": "Description 1",
+            },
+            {"level": 2, "title": "Section 1.1"},
+            {"level": 2, "title": "Section 1.2"},
+            {"level": 1, "title": "Chapter 2"},
+        ]
+
+        toc = TableOfContents.from_db(db_table_of_contents)
+
+        assert toc.entries == [
+            TocEntry(
+                level=1,
+                title="Chapter 1",
+                authors=[{"name": "Author 1"}],
+                subtitle="Subtitle 1",
+                description="Description 1",
+            ),
+            TocEntry(level=2, title="Section 1.1"),
+            TocEntry(level=2, title="Section 1.2"),
+            TocEntry(level=1, title="Chapter 2"),
+        ]
+
     def test_from_markdown(self):
         text = """\
             | Chapter 1 | 1
@@ -162,12 +191,21 @@ class TestTocEntry:
         entry = TocEntry.from_markdown(line)
         assert entry == TocEntry(level=0, title="Chapter missing pipe")
 
+        line = ' | Just title |  | {"authors": [{"name": "Author 1"}]}'
+        entry = TocEntry.from_markdown(line)
+        assert entry == TocEntry(
+            level=0, title="Just title", authors=[{"name": "Author 1"}]
+        )
+
     def test_to_markdown(self):
         entry = TocEntry(level=0, title="Chapter 1", pagenum="1")
-        assert entry.to_markdown() == "  | Chapter 1 | 1"
+        assert entry.to_markdown() == " | Chapter 1 | 1"
 
         entry = TocEntry(level=2, title="Chapter 1", pagenum="1")
-        assert entry.to_markdown() == "**  | Chapter 1 | 1"
+        assert entry.to_markdown() == "** | Chapter 1 | 1"
 
         entry = TocEntry(level=0, title="Just title")
-        assert entry.to_markdown() == "  | Just title | "
+        assert entry.to_markdown() == " | Just title | "
+
+        entry = TocEntry(level=0, title="", authors=[{"name": "Author 1"}])
+        assert entry.to_markdown() == ' |  |  | {"authors": [{"name": "Author 1"}]}'
