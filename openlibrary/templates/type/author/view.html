@@ -120,6 +120,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 </h2>
                 <p id="books">
                 $if books_count > 1:
+                    <div></div>
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
                 <p>
