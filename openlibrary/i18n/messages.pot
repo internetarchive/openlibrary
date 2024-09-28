@@ -429,7 +429,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: books/custom_carousel.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html login.html
+#: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -1017,11 +1018,6 @@ msgstr ""
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
-
-#: account/create.html books/custom_carousel.html
-#: search/work_search_facets.html
-msgid "Loading..."
 msgstr ""
 
 #: account/create.html
