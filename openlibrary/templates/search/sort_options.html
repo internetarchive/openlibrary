@@ -64,8 +64,9 @@ $code:
       $if not loop.last:
         |
     $if selected_sort and selected_sort.startswith('random') and not is_bot():
-      (<a href="$changequery(page=None, sort='random_%s' % today().timestamp())"
+      $# This is a button to avoid bots getting stuck in a random sort
+      (<button
          data-ol-link-track="SearchSort|RandomShuffle"
-         rel="nofollow"
-      >$_('Shuffle')</a>)
+         onclick="window.location = $dumps(changequery(page=None, sort='random_%s' % today().timestamp()));"
+      >$_('Shuffle')</button>)
 </span>
