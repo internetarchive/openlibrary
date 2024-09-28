@@ -1,9 +1,8 @@
-$def with(olid=None)
+$def with(edition_key=None)
 
-$ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', olid)
+$ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key)
 
-<a class="cta-btn cta-btn--available cta-btn--w-icon"
-   href="$locateUrl">
+<a class="cta-btn cta-btn--available cta-btn--w-icon" href="$locateUrl">
   <span class="btn-icon map"></span>
   <span class="btn-label">Locate</span>
 </a>

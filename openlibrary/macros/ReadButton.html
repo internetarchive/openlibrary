@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, olid=None)
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None)
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -53,9 +53,9 @@ $else:
             <span class="btn-label">Download</span>
           </a>
         </li>
-        $if olid:
+        $if edition_key:
           <li>
-            $:macros.LocateButton(olid=olid)
+            $:macros.LocateButton(edition_key=edition_key)
           </li>
       </ul>
     </div>
