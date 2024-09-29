@@ -22,7 +22,7 @@ import mwparserfromhell as mw
 import wikitextparser as wtp
 from nameparser import HumanName
 
-# from openlibrary.config import load_config
+from openlibrary.config import load_config
 from openlibrary.utils import uniq
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -208,6 +208,23 @@ ws_languages = [
 ]
 
 
+def format_author(raw_name: str) -> str:
+    name = HumanName(raw_name)
+    fn = f"{name.first} " if name.first != "" else ""
+    mid = f"{name.middle} " if name.middle != "" else ""
+    ln = name.last
+    suf = f" {name.suffix}" if name.suffix != "" else ""
+    return f"{fn}{mid}{ln}{suf}"
+
+
+@dataclass
+class Author:
+    wd_id: str
+    friendly_name: str | None = None 
+    ol_id: str | None = None 
+    viaf_id: str | None = None
+
+
 @dataclass
 class BookRecord:
     langconfig: LangConfig
@@ -215,19 +232,25 @@ class BookRecord:
     title: str | None = None
     publish_date: str | None = None
     edition: str | None = None
-    authors: list[str] = field(default_factory=list)
+    authors_plaintext: list[str] = field(default_factory=list)
+    authors: list[Author] = field(default_factory=list)
     description: str | None = None
     subjects: list[str] = field(default_factory=list)
     cover: str | None = None
     publishers: list[str] = field(default_factory=list)
     imagename: str | None = None
     categories: list[str] = field(default_factory=list)
+    ia_id: str | None = None
 
     def add_publishers(self, publishers: list[str]) -> None:
         self.publishers = uniq(self.publishers + publishers)
 
-    def add_authors(self, authors: list[str]) -> None:
-        self.publishers = uniq(self.authors + authors)
+    def add_authors_plaintext(self, authors: list[str]) -> None:
+        self.authors_plaintext = uniq(self.authors_plaintext + authors)
+
+    def add_authors(self, authors: list[Author]) -> None:
+        existing_ids = [a.wd_id for a in self.authors]
+        self.authors.extend([a for a in authors if a.wd_id not in existing_ids])
 
     def add_subjects(self, subjects: list[str]) -> None:
         self.subjects = uniq(self.subjects + subjects)
@@ -241,17 +264,33 @@ class BookRecord:
 
     @property
     def source_records(self) -> list[str]:
-        return [f"wikisource:{self.wikisource_id}"]
-
-    @staticmethod
-    def _format_author(name: HumanName) -> str:
-        fn = f"{name.first} " if name.first != "" else ""
-        mid = f"{name.middle} " if name.middle != "" else ""
-        ln = name.last
-        suf = f" {name.suffix}" if name.suffix != "" else ""
-        return f"{fn}{mid}{ln}{suf}"
+        records = [f"wikisource:{self.wikisource_id}"]
+        if self.ia_id is not None:
+            records.insert(0, f"ia:{self.ia_id}")
+        return records
 
     def to_dict(self):
+        publishers = ["Wikisource"]
+        publishers.extend(self.publishers)
+        authors = []
+        if self.authors:
+            authors.extend([
+                # TBD
+                {
+                    "name": author.friendly_name,
+                    **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
+                    **({"viaf": author.viaf_id} if author.viaf_id is not None else {}),
+                    **({"wd_id": author.wd_id} if author.wd_id is not None else {})
+                }
+                for author in self.authors
+            ])
+        if self.authors_plaintext:
+            existing_names = [a.friendly_name for a in self.authors if a.friendly_name is not None]
+            authors.extend([
+                {
+                    "name": name
+                }
+                for name in self.authors_plaintext if name not in existing_names])
         output = {
             "title": self.title,
             "source_records": self.source_records,
@@ -262,13 +301,8 @@ class BookRecord:
             output["publish_date"] = self.publish_date
         if self.edition is not None:
             output["edition_name"] = self.edition
-        if self.authors:
-            output["authors"] = [
-                {
-                    "name": BookRecord._format_author(author),
-                }
-                for author in self.authors
-            ]
+        if authors:
+            output["authors"] = authors
         if self.description is not None:
             output["description"] = self.description
         if self.subjects:
@@ -276,7 +310,7 @@ class BookRecord:
         if self.cover is not None:
             output["cover"] = self.cover
         if self.publishers:
-            output["publishers"] = self.publishers
+            output["publishers"] = publishers
         return output
 
 
@@ -292,7 +326,7 @@ def fetch_until_successful(url: str) -> dict:
                 time.sleep(10)
             else:
                 raise SystemExit(error)
-    raise SystemExit(f"could not fetch {url} after 5 tries")
+    raise SystemExit(f"could not fetch {url} after 5 tries. You may be rate limited, try again later")
 
 
 def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict):
@@ -335,13 +369,13 @@ def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict):
         except ValueError:
             pass
 
-    if not book.authors:
+    if not book.authors and not book.authors_plaintext:
         try:
             author = template.get("author").value.strip()
             if author != "":
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
                 if authors:
-                    book.add_authors(authors)
+                    book.add_authors_plaintext([format_author(a) for a in authors])
         except ValueError:
             pass
 
@@ -409,7 +443,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
         cont_url = update_url_with_params(url, data["continue"])
 
 
-def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord]):
+def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord], author_map: dict[str, list[str]]):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
     # The "while true" here is simply to retry requests that fail due to API limits.
     data = fetch_until_successful(url)
@@ -451,6 +485,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
   ?item
   ?itemLabel
   ?title
+  ?author
   ?authorLabel
   ?publisher
   ?publisherName
@@ -458,6 +493,7 @@ def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord
   ?date
   ?subjectLabel
   ?imageUrl
+  ?iaId
 WHERE {
   VALUES ?item {'''
             + ''.join([f"wd:{id}\n    " for id in batch])
@@ -473,6 +509,7 @@ WHERE {
   OPTIONAL { ?item wdt:P577 ?date. }
   OPTIONAL { ?item wdt:P921 ?subject. }
   OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P724 ?iaId. }
   BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", REPLACE(STR(?image), "^.*[/#]", "")) AS ?imageUrl)
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
             + cfg.langcode
@@ -517,15 +554,21 @@ WHERE {
                 if "title" in obj and "value" in obj["title"]
                 else obj["itemLabel"]["value"]
             )
-            id = get_wd_item_id(obj["item"]["value"])
-            impt = imports[id]
+            book_id = get_wd_item_id(obj["item"]["value"])
+            impt = imports[book_id]
 
             impt.title = title
             ids_for_wikisource_api.append(impt.wikisource_page_title)
 
-            # Author
-            if "authorLabel" in obj and "value" in obj["authorLabel"]:
-                impt.add_authors([obj["authorLabel"]["value"]])
+            # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
+            if "author" in obj and "value" in obj["author"]:
+                author_id = get_wd_item_id(obj["author"]["value"])
+                if author_id not in author_map:
+                    author_map[author_id] = []
+                author_map[author_id].append(book_id)
+            # If author isn't a WD object, add them as plaintext
+            elif "authorLabel" in obj and "value" in obj["authorLabel"]:
+                impt.add_authors_plaintext(format_author([obj["authorLabel"]["value"]]))
 
             # Publisher
             if ("publisher" in obj and "value" in obj["publisher"]) or (
@@ -553,6 +596,10 @@ WHERE {
             if "date" in obj and "value" in obj["date"]:
                 impt.publish_date = extract_year(obj["date"]["value"])
 
+            # IA ID
+            if "iaId" in obj and "value" in obj["iaId"]:
+                impt.ia_id = obj["iaId"]["value"]
+
         # For some reason, querying 50 titles can sometimes bring back more than 50 results,
         # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
         for ws_batch in itertools.batched(ids_for_wikisource_api, 50):
@@ -565,22 +612,21 @@ WHERE {
                     # these are already urlencoded, decode them before they get urlencoded again
                     "titles": "|".join([unquote(id) for id in ws_batch]),
                     # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
-                    "prop": "categories|revisions|images",
+                    "prop": "categories|revisions",
                     "rvprop": "content",
                     "rvslots": "main",
-                    # Include as many categories and images per response as possible
+                    # Include as many categories per response as possible
                     "cllimit": "max",
-                    "imlimit": "max",
                     "format": "json",
                 },
             )
 
             scrape_wikisource_api(ws_api_url, cfg, imports)
 
-        # Use wikidata image URL if it exists and wikisource didn't return one.
+        # Use wikidata image URL if it exists
         for obj in results:
-            id = get_wd_item_id(obj["item"]["value"])
-            impt = imports[id]
+            book_id = get_wd_item_id(obj["item"]["value"])
+            impt = imports[book_id]
 
             if (
                 impt.imagename is None
@@ -591,12 +637,71 @@ WHERE {
                 impt.cover = obj["imageUrl"]["value"]
 
 
+def fix_author_data(imports: dict[str, BookRecord], author_map: dict[str, list[str]], cfg: LangConfig):
+    author_ids = list(author_map.keys())
+    for batch in itertools.batched(author_ids, 50):
+        query = (
+            '''SELECT DISTINCT
+  ?author
+  ?authorLabel
+  ?olId
+  ?viafId
+WHERE {
+  VALUES ?author {'''
+            + ''.join([f"wd:{id}\n    " for id in batch])
+            + '''}
+  OPTIONAL { ?author wdt:P648 ?olId. }
+  OPTIONAL { ?author wdt:P214 ?viafId. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+            + cfg.langcode
+            + '''". }
+}'''
+        )
+        metadata_url = update_url_with_params(
+            WIKIDATA_API_URL, {"format": "json", "query": query}
+        )
+
+        data = fetch_until_successful(metadata_url)
+
+        if "results" not in data or "bindings" not in data["results"]:
+            continue
+
+        results = [
+            obj
+            for obj in data["results"]["bindings"]
+            if "author" in obj
+            and "value" in obj["author"]
+        ]
+
+        for obj in results:
+            author_id = get_wd_item_id(obj["author"]["value"])
+            author = Author(wd_id=author_id)
+            
+            if "authorLabel" in obj and "value" in obj["authorLabel"]:
+                author.friendly_name = format_author(obj["authorLabel"]["value"])
+            
+            if "olId" in obj and "value" in obj["olId"]:
+                author.ol_id = obj["olId"]["value"]
+            
+            if "viafId" in obj and "value" in obj["viafId"]:
+                author.viaf_id = obj["viafId"]["value"]
+
+            if author_id in author_map:
+                book_ids = author_map[author_id]
+                for book_id in book_ids:
+                    imports[book_id].add_authors([author])
+
+
+
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
 def process_all_books(cfg: LangConfig):
     imports: dict[str, BookRecord] = {}
+    author_map: dict[str, list[str]] = {}
 
     for url in cfg.all_wikidata_category_urls:
-        scrape_wikidata_api(url, cfg, imports)
+        scrape_wikidata_api(url, cfg, imports, author_map)
+
+    fix_author_data(imports, author_map, cfg)
 
     batch: list[BookRecord] = []
 
@@ -618,7 +723,7 @@ def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
     """
-    # load_config(ol_config)
+    load_config(ol_config)
 
     for ws_language in ws_languages:
         process_all_books(ws_language)
