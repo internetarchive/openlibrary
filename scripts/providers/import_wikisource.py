@@ -220,8 +220,8 @@ def format_author(raw_name: str) -> str:
 @dataclass
 class Author:
     wd_id: str
-    friendly_name: str | None = None 
-    ol_id: str | None = None 
+    friendly_name: str | None = None
+    ol_id: str | None = None
     viaf_id: str | None = None
 
 
@@ -274,23 +274,33 @@ class BookRecord:
         publishers.extend(self.publishers)
         authors = []
         if self.authors:
-            authors.extend([
-                # TBD
-                {
-                    "name": author.friendly_name,
-                    **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
-                    **({"viaf": author.viaf_id} if author.viaf_id is not None else {}),
-                    **({"wd_id": author.wd_id} if author.wd_id is not None else {})
-                }
-                for author in self.authors
-            ])
+            authors.extend(
+                [
+                    # TBD
+                    {
+                        "name": author.friendly_name,
+                        **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
+                        **(
+                            {"viaf": author.viaf_id}
+                            if author.viaf_id is not None
+                            else {}
+                        ),
+                        **({"wd_id": author.wd_id} if author.wd_id is not None else {}),
+                    }
+                    for author in self.authors
+                ]
+            )
         if self.authors_plaintext:
-            existing_names = [a.friendly_name for a in self.authors if a.friendly_name is not None]
-            authors.extend([
-                {
-                    "name": name
-                }
-                for name in self.authors_plaintext if name not in existing_names])
+            existing_names = [
+                a.friendly_name for a in self.authors if a.friendly_name is not None
+            ]
+            authors.extend(
+                [
+                    {"name": name}
+                    for name in self.authors_plaintext
+                    if name not in existing_names
+                ]
+            )
         output = {
             "title": self.title,
             "source_records": self.source_records,
@@ -326,7 +336,9 @@ def fetch_until_successful(url: str) -> dict:
                 time.sleep(10)
             else:
                 raise SystemExit(error)
-    raise SystemExit(f"could not fetch {url} after 5 tries. You may be rate limited, try again later")
+    raise SystemExit(
+        f"could not fetch {url} after 5 tries. You may be rate limited, try again later"
+    )
 
 
 def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict):
@@ -443,7 +455,12 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
         cont_url = update_url_with_params(url, data["continue"])
 
 
-def scrape_wikidata_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord], author_map: dict[str, list[str]]):
+def scrape_wikidata_api(
+    url: str,
+    cfg: LangConfig,
+    imports: dict[str, BookRecord],
+    author_map: dict[str, list[str]],
+):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
     # The "while true" here is simply to retry requests that fail due to API limits.
     data = fetch_until_successful(url)
@@ -637,7 +654,9 @@ WHERE {
                 impt.cover = obj["imageUrl"]["value"]
 
 
-def fix_author_data(imports: dict[str, BookRecord], author_map: dict[str, list[str]], cfg: LangConfig):
+def fix_author_data(
+    imports: dict[str, BookRecord], author_map: dict[str, list[str]], cfg: LangConfig
+):
     author_ids = list(author_map.keys())
     for batch in itertools.batched(author_ids, 50):
         query = (
@@ -669,20 +688,19 @@ WHERE {
         results = [
             obj
             for obj in data["results"]["bindings"]
-            if "author" in obj
-            and "value" in obj["author"]
+            if "author" in obj and "value" in obj["author"]
         ]
 
         for obj in results:
             author_id = get_wd_item_id(obj["author"]["value"])
             author = Author(wd_id=author_id)
-            
+
             if "authorLabel" in obj and "value" in obj["authorLabel"]:
                 author.friendly_name = format_author(obj["authorLabel"]["value"])
-            
+
             if "olId" in obj and "value" in obj["olId"]:
                 author.ol_id = obj["olId"]["value"]
-            
+
             if "viafId" in obj and "value" in obj["viafId"]:
                 author.viaf_id = obj["viafId"]["value"]
 
@@ -690,7 +708,6 @@ WHERE {
                 book_ids = author_map[author_id]
                 for book_id in book_ids:
                     imports[book_id].add_authors([author])
-
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
