@@ -585,7 +585,7 @@ WHERE {
                 author_map[author_id].append(book_id)
             # If author isn't a WD object, add them as plaintext
             elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-                impt.add_authors_plaintext(format_author([obj["authorLabel"]["value"]]))
+                impt.add_authors_plaintext([format_author(obj["authorLabel"]["value"])])
 
             # Publisher
             if ("publisher" in obj and "value" in obj["publisher"]) or (
