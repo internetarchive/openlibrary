@@ -213,13 +213,13 @@ class BookRecord:
     title: str | None = None
     publish_date: str | None = None
     edition: str | None = None
-    authors: list[str] = field(default_factory=lambda: [])
+    authors: list[str] = field(default_factory=list)
     description: str | None = None
-    subjects: list[str] = field(default_factory=lambda: [])
+    subjects: list[str] = field(default_factory=list)
     cover: str | None = None
-    publishers: list[str] = field(default_factory=lambda: [])
+    publishers: list[str] = field(default_factory=list)
     imagename: str | None = None
-    categories: list[str] = field(default_factory=lambda: [])
+    categories: list[str] = field(default_factory=list)
 
     def add_publishers(self, publishers: list[str]) -> None:
         self.publishers = uniq(self.publishers + publishers)
@@ -290,6 +290,7 @@ def fetch_until_successful(url: str) -> dict:
                 time.sleep(10)
             else:
                 raise SystemExit(error)
+    raise SystemExit(f"could not fetch {url} after 5 tries")
 
 
 def update_record_with_wikisource_metadata(
@@ -390,6 +391,7 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             )
             if not book:
                 print(f"{page_identifier} not found in result set")
+                continue
             # MediaWiki's API paginates through pages, page categories, and page images separately.
             # This means that when you hit this API requesting both revision (infobox) and image data,
             # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
