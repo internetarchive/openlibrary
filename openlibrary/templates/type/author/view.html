@@ -118,10 +118,10 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
-                <p id="books">
                 $if books_count > 1:
+                  <div id="books">
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-
+                  </div>
                 <p>
                   $if input(mode="everything").mode == "everything":
                     $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))

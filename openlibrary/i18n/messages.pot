@@ -6076,15 +6076,7 @@ msgid "On leaf number %(page_num)d:"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sorted by"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Relevance"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -6116,11 +6108,15 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Any"
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Any"
 msgstr ""
 
 #: search/sort_options.html
