@@ -95,6 +95,7 @@ WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 def get_wd_item_id(string: str):
     return string.split('/')[-1]
 
+
 @dataclass
 class LangConfig:
     langcode: str
@@ -206,6 +207,7 @@ ws_languages = [
     )
 ]
 
+
 @dataclass
 class BookRecord:
     langconfig: LangConfig
@@ -292,9 +294,7 @@ def fetch_until_successful(url: str) -> dict:
                 raise SystemExit(error)
 
 
-def update_record_with_wikisource_metadata(
-    book: BookRecord, new_data: dict
-):
+def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
@@ -385,7 +385,11 @@ def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookReco
             page_identifier = quote(page["title"].replace(' ', '_'))
 
             book = next(
-                (book for book in imports.values() if book.wikisource_page_title == page_identifier),
+                (
+                    book
+                    for book in imports.values()
+                    if book.wikisource_page_title == page_identifier
+                ),
                 None,
             )
             if not book:
@@ -557,9 +561,7 @@ WHERE {
                 {
                     "action": "query",
                     # these are already urlencoded, decode them before they get urlencoded again
-                    "titles": "|".join(
-                        [unquote(id) for id in ws_batch]
-                    ),
+                    "titles": "|".join([unquote(id) for id in ws_batch]),
                     # Relevant page data. The inclusion of |revisions, and rvprop/rvslots, are used to get book info from the page's infobox.
                     "prop": "categories|revisions|images",
                     "rvprop": "content",
