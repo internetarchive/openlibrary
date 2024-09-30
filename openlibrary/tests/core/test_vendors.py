@@ -8,6 +8,7 @@ from openlibrary.core.vendors import (
     clean_amazon_metadata_for_load,
     betterworldbooks_fmt,
     AmazonAPI,
+    is_dvd,
 )
 
 
@@ -347,3 +348,28 @@ def test_clean_amazon_metadata_does_not_load_DVDS_physical_format(
     )
     result = AmazonAPI.serialize(amazon_metadata)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("physical_format", "product_group", "expected"),
+    [
+        ('dvd', 'dvd', True),
+        (None, None, False),
+        ('Book', 'Book', False),
+        ('DVD', None, True),
+        ('Dvd', None, True),
+        ('dvd', None, True),
+        ('Book', 'dvd', True),
+        (None, 'dvd', True),
+        (None, 'Book', False),
+        ('dvd', 'book', True),
+    ],
+)
+def test_is_dvd(physical_format, product_group, expected):
+    book = {
+        'physical_format': physical_format,
+        'product_group': product_group,
+    }
+
+    got = is_dvd(book)
+    assert got is expected
