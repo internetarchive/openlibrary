@@ -6,7 +6,8 @@ $ i18n_strings = {
     $ "invalid_email_format": _("Must be a valid email address"),
     $ "username_length_err": _("Must be between 3 and 20 characters"),
     $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
-    $ "password_length_err": _("Must be between 3 and 20 characters")
+    $ "password_length_err": _("Must be between 3 and 20 characters"),
+    $ "loading_text": _("Loading...")
     $ }
 
 $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
@@ -74,7 +75,8 @@ $var title: $_("Sign Up to Open Library")
                     $ classes = 'g-recaptcha'
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
-                <button type="submit" name="signup" id="signup" class="$classes cta-btn cta-btn--primary" $sitekey $callback>$_("Sign Up with Email")</button>
+                    <div class="$classes" $sitekey $callback data-size="invisible"></div>
+                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
                 <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
                 <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
             </div>
