@@ -1034,6 +1034,10 @@ msgid ""
 "nonprofit Internet Archive"
 msgstr ""
 
+#: account/create.html type/author/view.html
+msgid "Success!"
+msgstr ""
+
 #: account/create.html
 msgid "Your URL"
 msgstr ""
@@ -6474,10 +6478,6 @@ msgstr ""
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
-
-#: type/author/view.html
-msgid "Success!"
 msgstr ""
 
 #: type/author/view.html

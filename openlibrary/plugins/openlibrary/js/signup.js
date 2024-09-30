@@ -4,6 +4,10 @@ export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const submitBtn = document.querySelector('button[name=signup]')
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+    const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
+    const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
+    const emailSuccessIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--success');
+    const usernameSuccessIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--success');
 
     // Keep the same with openlibrary/plugins/upstream/forms.py
     const VALID_EMAIL_RE = /^.*@.*\..*$/;
@@ -66,6 +70,8 @@ export function initSignupForm() {
     function validateUsername() {
         const value_username = $('#username').val();
 
+        usernameSuccessIcon.hide();
+
         if (value_username === '') {
             clearError('#username', '#usernameMessage');
             return;
@@ -81,15 +87,20 @@ export function initSignupForm() {
             return;
         }
 
-        clearError('#username', '#usernameMessage');
+        usernameLoadingIcon.show();
 
         $.ajax({
             url: '/account/validate',
             data: { username: value_username },
             type: 'GET',
             success: function(errors) {
+                usernameLoadingIcon.hide();
+
                 if (errors.username) {
                     renderError('#username', '#usernameMessage', errors.username);
+                } else {
+                    clearError('#username', '#usernameMessage');
+                    usernameSuccessIcon.show();
                 }
             }
         });
@@ -97,6 +108,8 @@ export function initSignupForm() {
 
     function validateEmail() {
         const value_email = $('#emailAddr').val();
+
+        emailSuccessIcon.hide();
 
         if (value_email === '') {
             clearError('#emailAddr', '#emailAddrMessage');
@@ -108,15 +121,20 @@ export function initSignupForm() {
             return;
         }
 
-        clearError('#emailAddr', '#emailAddrMessage');
+        emailLoadingIcon.show();
 
         $.ajax({
             url: '/account/validate',
             data: { email: value_email },
             type: 'GET',
             success: function(errors) {
+                emailLoadingIcon.hide();
+
                 if (errors.email) {
                     renderError('#emailAddr', '#emailAddrMessage', errors.email);
+                } else {
+                    clearError('#emailAddr', '#emailAddrMessage');
+                    emailSuccessIcon.show();
                 }
             }
         });
