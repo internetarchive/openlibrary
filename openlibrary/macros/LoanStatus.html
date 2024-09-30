@@ -42,7 +42,7 @@ $ is_edition = doc.key.split('/')[1] == 'books'
 $# Pass work key to Read Button for worldcat
 $ edition_key = None
 $if is_edition:
-  $ edition_key = work_key.split('/')[2]
+  $ edition_key = doc.key.split('/')[2]
 
 $def analytics_attr(action):
   $if analytics_override:
