@@ -6,7 +6,8 @@ const displayTypeMapping = {
     subjects: 'subject',
     subject_people: 'person',
     subject_places: 'place',
-    subject_times: 'time'
+    subject_times: 'time',
+    collections: 'collection',
 }
 
 /**
@@ -17,7 +18,8 @@ export const subjectTypeMapping = {
     subject: 'subjects',
     person: 'subject_people',
     place: 'subject_places',
-    time: 'subject_times'
+    time: 'subject_times',
+    collection: 'collections'
 }
 
 /**
