@@ -322,8 +322,9 @@ def is_independently_published(publishers: list[str]) -> bool:
     """
     Return True if the book is independently published.
     """
+    independent_publisher_names = ['independently published', 'independent publisher']
     return any(
-        publisher.casefold() == "independently published" for publisher in publishers
+        publisher.casefold() in independent_publisher_names for publisher in publishers
     )
 
 
