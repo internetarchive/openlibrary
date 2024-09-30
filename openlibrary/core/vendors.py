@@ -291,7 +291,30 @@ class AmazonAPI:
                 ).lower()
             ),
         }
+
+        if is_dvd(book):
+            return {}
         return book
+
+
+def is_dvd(book) -> bool:
+    """
+    If product_group or physical_format is a dvd, it will return True.
+    """
+    product_group = book['product_group']
+    physical_format = book['physical_format']
+
+    try:
+        product_group = product_group.lower()
+    except AttributeError:
+        product_group = None
+
+    try:
+        physical_format = physical_format.lower()
+    except AttributeError:
+        physical_format = None
+
+    return 'dvd' in [product_group, physical_format]
 
 
 @public
