@@ -1034,16 +1034,8 @@ msgid ""
 "nonprofit Internet Archive"
 msgstr ""
 
-#: account/create.html
-msgid "Loading spinner"
-msgstr ""
-
 #: account/create.html type/author/view.html
 msgid "Success!"
-msgstr ""
-
-#: account/create.html
-msgid "Checkmark"
 msgstr ""
 
 #: account/create.html
