@@ -15,9 +15,10 @@
                             {{(role[field].key || role[field]).slice("/type/".length)}}
                         </div>
                         <div v-else-if="field == 'author'">
-                            <a :href="`${role[field].key}`" target="_blank">
+                            <a :href="`${role[field].key}`" target="_blank" class="author-author-children">
                                 {{role[field].key.slice("/authors/".length)}}
                             </a>
+                            <p class="author-author-children"><b>{{role[field].name}}</b></p>
                         </div>
                         <div v-else>{{a[k]}}</div>
                     </div>
