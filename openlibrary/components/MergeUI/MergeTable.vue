@@ -192,8 +192,8 @@ export default {
             if (!this.master_key || !this.records || !this.editions)
                 return undefined;
 
-            const master = this.enhancedRecords.find(r => r.key === this.master_key);
-            const all_dupes = this.enhancedRecords
+            const master = this.records.find(r => r.key === this.master_key);
+            const all_dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
