@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <MergeRow
-        v-for="record in records"
+        v-for="record in enhancedRecords"
         :key="record.key"
         :record="record"
         :fields="fields"
@@ -47,7 +47,7 @@ import _ from 'lodash';
 import Vue from 'vue';
 import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names } from './utils.js';
 import CONFIGS from '../configs.js';
 
 Vue.use(AsyncComputed);
@@ -111,6 +111,26 @@ export default {
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
+        },
+
+        async enhancedRecords(){
+            if (!this.records) return null;
+
+            const author_names = await get_author_names(this.records)
+
+            const enhanced_records = _.cloneDeep(this.records)
+
+            enhanced_records.flatMap(record =>
+                record.authors.map(entry=> {
+                    for (const [key, value] of Object.entries(author_names)) {
+                        if (entry.author.key === `/authors/${key}`){
+                            entry.author.name = value
+                        }
+                    }
+                })
+            )
+
+            return enhanced_records
         },
 
         async editions() {
