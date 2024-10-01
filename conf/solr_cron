@@ -1,7 +1,0 @@
-PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-
-#Updating Solr's trending scores.
-0 * * * *  su openlibrary "python scripts/calculate_trending_scores_hourly.py"
-
-5 0 * * * su openlibrary "python scripts/calculate_trending_scores_daily.py"
