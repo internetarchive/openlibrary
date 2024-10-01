@@ -494,6 +494,11 @@ li.excerpt-item {
 }
 
 .field-authors {
+  .author-author-children {
+    display: inline-block;
+    padding-right: 2em;
+  }
+
   thead, td.author-index, td.author-type {
     display: none;
   }
