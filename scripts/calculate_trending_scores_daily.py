@@ -42,11 +42,10 @@ if __name__ == '__main__':
             load_config(ol_config)
     current_day = datetime.datetime.now().weekday()
     work_data = fetch_works(current_day)
-    print(work_data)
+
     request_body = [
         form_inplace_updates(work_id, current_day, work_data[work_id])
         for work_id in work_data
     ]
-    print(request_body)
+
     resp = get_solr().update_in_place(request_body)
-    print(resp)

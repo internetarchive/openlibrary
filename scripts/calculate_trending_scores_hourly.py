@@ -63,8 +63,18 @@ def fetch_works(current_hour: int):
     return doc_data
 
 
+# If the arithmetic mean is below 10/7 (i.e: there have been)
+# less than 10 reading log events for the work in the past week,
+# it should not show up on trending.
+AVERAGE_DAILY_EVENTS_FLOOR = 10 / 7
+
+
+# This function calculates how many standard deviations the value for the last
+# 24 hours is away from the mean.
 def get_z_score(solr_doc: dict, count: int, current_hour: int):
     arith_mean = sum([solr_doc[f'trending_score_daily_{i}'] for i in range(7)]) / 7
+    if arith_mean < ():
+        return 0
     last_24_hours_value = (
         solr_doc['trending_score_hourly_sum']
         + count
