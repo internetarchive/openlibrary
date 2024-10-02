@@ -1,6 +1,8 @@
 from unittest.mock import patch
 import pytest
+import time
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.schemes import hash_function
 
 # {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
@@ -112,6 +114,19 @@ QUERY_PARSER_TESTS = {
 def test_process_user_query(query, parsed_query):
     s = WorkSearchScheme()
     assert s.process_user_query(query) == parsed_query
+
+
+TEST_PARAM1 = "subject:('Reading Level-Grade 11' OR 'Reading Level-Grade 12') first_publish_year:[2000 TO *]"
+
+
+def test_hash_performance():
+    start_time = time.time()
+    num_inputs = 10000
+    for i in range(num_inputs):
+        string = TEST_PARAM1 + str(i)
+        hash_value = hash_function(string)
+    end_time = time.time()
+    assert (end_time - start_time) < 3.0, "Performance test failed"
 
 
 EDITION_KEY_TESTS = {
