@@ -116,7 +116,7 @@ describe('SearchBar', () => {
         });
 
         test('Does not add title prefix to lucene-style queries', () => {
-            expect(fn('author:"Harry Potter"')).toBe('author:"Harry Potter"');
+            expect(fn('"Harry Potter"')).toBe('author:"Harry Potter"');
             expect(fn('"Harry Potter"')).toBe('"Harry Potter"');
         });
     });
