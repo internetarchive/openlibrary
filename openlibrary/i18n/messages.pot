@@ -4634,7 +4634,7 @@ msgid ""
 "something new."
 msgstr ""
 
-#: home/stats.html site/around_the_library.html
+#: home/stats.html
 msgid "Around the Library"
 msgstr ""
 
@@ -5908,7 +5908,6 @@ msgid "expand"
 msgstr ""
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
-#: site/around_the_library.html
 msgid "opened a new Open Library account!"
 msgstr ""
 
@@ -6249,10 +6248,6 @@ msgstr ""
 
 #: site/alert.html
 msgid "Internet Archive logo"
-msgstr ""
-
-#: site/around_the_library.html
-msgid "View all recent changes"
 msgstr ""
 
 #: site/body.html
