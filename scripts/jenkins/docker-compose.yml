@@ -1,0 +1,49 @@
+services:
+  jenkins_controller:
+    user: root
+    image: jenkinsci/blueocean
+    expose:
+      - 8080 # Jenkins UI
+      - 50000 # Port for Jenkins agents to connect to
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data
+    restart: unless-stopped
+    networks:
+      - jenkins-net
+
+  jenkins_nginx:
+    # Use the IA nginx to get IP anonymization
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    user: root
+    command: ../../docker/ol-nginx-start.sh
+    # Only accessible via https
+    ports:
+      # - ${PUBLIC_PORT:-80}:80
+      - ${PUBLIC_SSL_PORT:-443}:443
+    volumes:
+      - ../../docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
+      - ./jenkins_nginx.conf:/etc/nginx/sites-enabled/jenkins_nginx.conf:ro
+      - ../../../olsystem/etc/nginx/deny.conf:/olsystem/etc/nginx/deny.conf:ro
+    restart: unless-stopped
+    networks:
+      - jenkins-net
+    secrets:
+      - ssl_certificate
+      - ssl_certificate_key
+
+# secrets mounted to /run/secrets/
+# e.g. /run/secrets/ia_db_pw_file
+secrets:
+  ssl_certificate:
+    file: /opt/.petabox/openlibrary.org.combined.crt
+  ssl_certificate_key:
+    file: /opt/.petabox/openlibrary.org.nopassword.key
+
+volumes:
+  jenkins-data: null
+
+networks:
+  jenkins-net: null
