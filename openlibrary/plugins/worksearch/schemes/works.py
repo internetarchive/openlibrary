@@ -344,10 +344,11 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Duplicate author fields
-                'author_name': 'author_name',
-                'author_key': 'author_key',
-                'author_alternative_name': 'author_alternative_name',
-                'author_facet': 'author_facet',
+                # Disabled until the next full reindex
+                # 'author_name': 'author_name',
+                # 'author_key': 'author_key',
+                # 'author_alternative_name': 'author_alternative_name',
+                # 'author_facet': 'author_facet',
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
