@@ -275,8 +275,8 @@ def copy(
     for group in web.group(docs, 50):
         try:
             print(dest.save_many(group, comment=comment))
-        except BaseException:
-            print("Something went wrong saving this batch!")
+        except BaseException as e:
+            print(f"Something went wrong saving this batch! {e}")
     saved.update(keys)
 
 
