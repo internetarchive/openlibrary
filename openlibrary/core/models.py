@@ -915,7 +915,7 @@ class User(Thing):
     def is_read_only(self):
         return self.is_usergroup_member('/usergroup/read-only')
 
-    def get_lists(self, seed=None, limit=100, offset=0, sort=True):
+    def get_lists(self, seed=None, limit=1000, offset=0, sort=True):
         """Returns all the lists of this user.
 
         When seed is specified, this returns all the lists which contain the
@@ -924,7 +924,7 @@ class User(Thing):
         seed could be an object or a string like "subject:cheese".
         """
         # cache the default case
-        if seed is None and limit == 100 and offset == 0:
+        if seed is None and limit == 1000 and offset == 0:
             keys = self._get_lists_cached()
         else:
             keys = self._get_lists_uncached(seed=seed, limit=limit, offset=offset)
@@ -945,9 +945,9 @@ class User(Thing):
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
-        return self._get_lists_uncached(limit=100, offset=0)
+        return self._get_lists_uncached(limit=1000, offset=0)
 
-    def _get_lists_uncached(self, seed=None, limit=100, offset=0):
+    def _get_lists_uncached(self, seed=None, limit=1000, offset=0):
         q = {
             "type": "/type/list",
             "key~": self.key + "/lists/*",
