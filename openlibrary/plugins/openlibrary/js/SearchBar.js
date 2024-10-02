@@ -27,7 +27,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
     ['/search'](work) {
         const author_name = work.author_name ? work.author_name[0] : '';
         return `
-            <li>
+            <li tabindex=0>
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
@@ -62,6 +62,7 @@ export class SearchBar {
         this.$input = this.$form.find('input[type="text"]');
         this.$results = this.$component.find('ul.search-results');
         this.$facetSelect = this.$component.find('.search-facet-selector select');
+        this.$barcodeScanner = this.$component.find('#barcode_scanner_link');
 
         /** State */
         /** Whether the bar is in collapsible mode */
@@ -76,12 +77,65 @@ export class SearchBar {
 
         this.initFromUrlParams(urlParams);
         this.initCollapsibleMode();
+        // Stop renderAutoCompletionResults from firing when ESC is pressed in results list
+        this.escapeInput = false;
 
         // Bind to changes in the search state
         SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
         this.facet.sync(this.handleFacetValueChange.bind(this));
         this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
+
+        // Shift + Tabbing out of the search facet to clear results list
+        this.$facetSelect.on('keydown', (e) => {
+            if (e.key === 'Tab' && e.shiftKey) {
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$input.on('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                this.$results.children().last().trigger('focus');
+                return false;
+            } else if (e.key === 'ArrowDown') {
+                this.$results.children().first().trigger('focus');
+                return false;
+            } else if (e.key === 'Escape') {
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$barcodeScanner.on('keydown', (e) => {
+            if (e.key === 'Tab') {
+                this.clearAutocompletionResults();
+            }
+        })
+
+        this.$results.on('keydown', (e) => {
+            if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+                if (!e.target.previousElementSibling) {
+                    this.$input.trigger('focus');
+                    return false;
+                } else {
+                    $(e.target.previousElementSibling).trigger('focus');
+                    return false;
+                }
+            } else if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+                if (!e.target.nextElementSibling) {
+                    this.$input.trigger('focus');
+                    return false;
+                } else {
+                    $(e.target.nextElementSibling).trigger('focus');
+                    return false;
+                }
+            } else if (e.key === 'Enter') {
+                e.target.firstElementChild.click();
+            } else if (e.key === 'Escape') {
+                this.$input.trigger('focus');
+                this.escapeInput = true;
+                this.clearAutocompletionResults();
+            }
+        })
 
         this.initAutocompletionLogic();
     }
@@ -242,14 +296,17 @@ export class SearchBar {
         this.$input.on('click', false);
 
         this.$input.on('keyup', debounce(event => {
-            // ignore directional keys and enter for callback
-            if (![13,37,38,39,40].includes(event.keyCode)) {
+            // ignore directional keys, enter, escape, and shift for callback
+            if (![13,16,27,37,38,39,40].includes(event.keyCode)) {
                 this.renderAutocompletionResults();
             }
         }, 500, false));
 
         this.$input.on('focus', debounce(event => {
             event.stopPropagation();
+            if (this.escapeInput) {
+                return;
+            }
             this.renderAutocompletionResults();
         }, 300, false));
     }
