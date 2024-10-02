@@ -9,6 +9,7 @@ from . import db
 class WorkRatingsSummary(TypedDict):
     ratings_average: float
     ratings_sortable: float
+    ratings_stddev: float
     ratings_count: int
     ratings_count_1: int
     ratings_count_2: int
@@ -114,14 +115,25 @@ class Ratings(db.CommonExtras):
         cls, rating_counts: list[int]
     ) -> WorkRatingsSummary:
         total_count = sum(rating_counts, 0)
-        ratings_average = (
-            (sum((k * n_k for k, n_k in enumerate(rating_counts, 1)), 0) / total_count)
-            if total_count != 0
-            else 0
-        )
+        if total_count:
+            mean = (
+                sum((k * n_k for k, n_k in enumerate(rating_counts, 1)), 0)
+                / total_count
+            )
+            stddev = sqrt(
+                sum(
+                    (((k - mean) ** 2) * n_k for k, n_k in enumerate(rating_counts, 1)),
+                    0,
+                )
+                / total_count
+            )
+        else:
+            mean = 0
+            stddev = 0
         return {
-            'ratings_average': ratings_average,
+            'ratings_average': mean,
             'ratings_sortable': cls.compute_sortable_rating(rating_counts),
+            'ratings_stddev': stddev,
             'ratings_count': total_count,
             'ratings_count_1': rating_counts[0],
             'ratings_count_2': rating_counts[1],

@@ -25,6 +25,8 @@ class SearchScheme:
     field_name_map: dict[str, str]
     # Mapping of user sort to solr sort
     sorts: dict[str, str | Callable[[], str]]
+    # Mapping of user fields that can be aggregated on to solr functions
+    aggregates: dict[str, str]
     # Default
     default_fetched_fields: set[str]
     # Fields that should be rewritten
