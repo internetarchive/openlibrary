@@ -476,6 +476,16 @@
     "ol_key": "samstupendous"
   },
   {
+    "name": "Sandy C.",
+    "title": "Engineering Volunteer",
+    "roles": ["volunteer"],
+    "departments": ["engineering"],
+    "projects": ["Vue Migrations"],
+    "photo_path": "",
+    "github_id": "schu96",
+    "ol_key": ""
+  },
+  {
     "name": "Scott Barnes",
     "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
@@ -496,6 +506,16 @@
     "projects": ["Read Button Dropper"],
     "personal_url": "https://github.com/SivanC",
     "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Stef K.",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Wikisource Imports"],
+    "photo_path": "",
+    "github_id": "pidgezero-one",
     "ol_key": ""
   },
   {
