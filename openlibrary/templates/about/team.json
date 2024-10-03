@@ -509,12 +509,13 @@
     "ol_key": ""
   },
   {
-    "name": "Stef K.",
+    "name": "Stef Kischak",
     "title": "Engineering Fellow",
     "roles": ["fellow-2024"],
     "departments": ["engineering"],
     "projects": ["Wikisource Imports"],
-    "photo_path": "",
+    "photo_path": "https://github.com/user-attachments/assets/4d8dd2c9-7750-41f6-91e9-2ab5b27258cb",
+    "personal_url": "https://pidgezero.one",
     "github_id": "pidgezero-one",
     "ol_key": ""
   },
