@@ -1252,6 +1252,49 @@ def setup_template_globals():
         get_cover_url,
     )
 
+    def get_languages_dict(): #Returns languages as a dictionary mapping the codes to names and displaying both
+        return {
+             "cs": {
+                 "localized": 'Czech', 
+                 "native": "Čeština"},
+             "de": {
+                 "localized": 'German', 
+                 "native": "Deutsch"},
+            "en": {
+                "localized": 'English', 
+                "native": "English"},
+            "es": {
+                "localized": 'Spanish', 
+                "native": "Español"},
+            "fr": {
+                "localized": 'French', 
+                "native": "Français"},
+            "hr": {
+                "localized": 'Croatian', 
+                "native": "Hrvatski"},
+            "it": {
+                "localized": 'Italian', 
+                "native": "Italiano"},
+            "pt": {
+                "localized": 'Portuguese', 
+                "native": "Português"},
+            "hi": {
+                "localized": 'Hindi', 
+                "native": "हिंदी"},
+            "sc": {
+                "localized": 'Sardinian', 
+                "native": "Sardu"},
+            "te": {
+                "localized": 'Telugu', 
+                "native": "తెలుగు"},
+            "uk": {
+                "localized": 'Ukrainian', 
+                "native": "Українська"},
+            "zh": {
+                "localized": 'Chinese', 
+                "native": "中文"},
+        }
+
     web.template.Template.globals.update(
         {
             'cookies': web.cookies,
@@ -1267,6 +1310,7 @@ def setup_template_globals():
             'random': random.Random(),
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
+            'get_supported_languages': get_languages_dict,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,
