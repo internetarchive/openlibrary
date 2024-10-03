@@ -4,9 +4,9 @@ $ rating_stats = work and work.get_rating_stats() or {}
 $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 $ ratings_average = rating_stats.get('avg_rating', None)
 $ ratings_count = rating_stats.get('num_ratings', None)
-$ want_to_read_count = "{:,}".format(stats_by_bookshelf.get('want-to-read', None))
-$ currently_reading_count = "{:,}".format(stats_by_bookshelf.get('currently-reading', None))
-$ already_read_count = "{:,}".format(stats_by_bookshelf.get('already-read', None))
+$ want_to_read_count = "{:,}".format(stats_by_bookshelf.get('want-to-read', ''))
+$ currently_reading_count = "{:,}".format(stats_by_bookshelf.get('currently-reading', ''))
+$ already_read_count = "{:,}".format(stats_by_bookshelf.get('already-read', ''))
 $ review_count_class = 'readers-stats__review-count--none' if ratings_count == None else ''
 $ id = '--mobile' if mobile else ''
 
