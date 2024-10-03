@@ -78,7 +78,7 @@ export function initSearchFacets(facetsElem) {
                 facetsElem.replaceWith(newFacetsElem)
                 hydrateFacets()
 
-                document.title = data.title
+                document.title = decodeEntities(data.title)
             })
             .catch(() => {
                 // XXX : Handle case where `/partials` response is not `2XX` here
@@ -87,8 +87,14 @@ export function initSearchFacets(facetsElem) {
         hydrateFacets()
     }
 }
-
-
+/**
+ * Decodes HMTL entities
+ */
+function decodeEntities (str) {
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = str;
+    return tempElement.textContent || tempElement.innerText;
+}
 /**
  * Adds click listeners to the "show more" and "show less" facet affordances.
  */
