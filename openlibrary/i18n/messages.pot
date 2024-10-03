@@ -3891,6 +3891,13 @@ msgid ""
 msgstr ""
 
 #: books/edit/edition.html
+msgid ""
+"This table of contents contains extra information like authors or "
+"descriptions. We don't have a great user interface for this yet, so "
+"editing this data could be difficult. Watch out!"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Any notes about this specific edition?"
 msgstr ""
 
