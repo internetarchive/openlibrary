@@ -211,6 +211,20 @@ export function initObservationsModal($modalLinks) {
     })
 }
 
+export function initBestbookModal($modalLinks)
+{
+    addClickListeners($modalLinks, '800px');
+    // addObservationReloadListeners($('.observations-list'))
+    // addDeleteObservationsListeners($('.delete-observations-button'));
+
+    // $modalLinks.each(function(_i, modalLinkElement) {
+    //     const $element = $(modalLinkElement);
+    //     const context = JSON.parse(getModalContent($element).dataset['context'])
+
+    //     addObservationChangeListeners($element.next(), context);
+    // })
+}
+
 /**
  * Add on click listeners to a collection of modal links.
  *
