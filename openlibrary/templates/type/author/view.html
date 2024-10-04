@@ -131,7 +131,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $if books_count > 1:
                 <div style="display: flex; align-items: center;">
                     <div style="margin-right: 15px; margin-top:10px ">
-                        <label for="sortOptions">Sort by:</label>
+                       <label for="sortOptions">$_('Sort by: ')</label>
                         $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
                     </div>
 
