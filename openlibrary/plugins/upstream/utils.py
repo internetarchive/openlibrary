@@ -1385,20 +1385,6 @@ _get_recent_changes2 = web.memoize(
 
 
 @public
-def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.get("features", []):
-        changes = _get_recent_changes2()
-    else:
-        changes = _get_recent_changes()
-
-    _changes = random.sample(changes, n) if len(changes) > n else changes
-    for _, change in enumerate(_changes):
-        change['__body__'] = (
-            change['__body__'].replace('<script>', '').replace('</script>', '')
-        )
-    return _changes
-
-
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
