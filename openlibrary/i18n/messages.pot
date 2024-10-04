@@ -6508,6 +6508,10 @@ msgid "Search %(author)s books"
 msgstr ""
 
 #: type/author/view.html
+msgid "Sort by: "
+msgstr ""
+
+#: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
