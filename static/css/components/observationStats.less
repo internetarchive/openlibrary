@@ -85,3 +85,73 @@
 .no-stats-message {
   margin-bottom: 15px;
 }
+
+.status-awardable {
+  background-color: @lightest-grey;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+form.bestbook {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+
+  input {
+    padding: 5px 10px;
+    width: 200px;
+    margin-top: 0;
+  }
+}
+
+.bestbook_body{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.bestbook_data {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+
+  h3 {
+    font-size: 1.2em;
+  }
+}
+
+.bestbook-modal .bestbook-img {
+  height: 200px !important;
+  width: 100px !important;
+}
+
+button.bestbook__submit {
+  margin-top: 10px;
+  align-self: center;
+}
+
+.remove-award {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.bestbook-remove-button {
+  align-self: center;
+  width: fit-content;
+  float: left;
+}
+
+.bestbook-modal textarea {
+  font-size: 1.1rem;
+  padding: 3px;
+  height: 2rem;
+  width: 300px;
+}
