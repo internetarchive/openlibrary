@@ -27,8 +27,9 @@
     "departments": ["engineering"],
     "projects": ["Search Sort Dropper"],
     "photo_path": "https://avatars.githubusercontent.com/u/46887245",
-    "favorite_book_url": "",
+    "favorite_book_url": "https://openlibrary.org/works/OL893415W/Dune",
     "github_id": "aarasawa",
+    "personal_website": "https://aarasawa.dev",
     "ol_key": ""
   },
   {
@@ -277,7 +278,7 @@
     "ol_key": ""
   },
   {
-    "name": "Jordan F.",
+    "name": "Jordan Frederick",
     "title": "Super Librarian",
     "roles": ["volunteer"],
     "departments": ["librarians"],
@@ -297,7 +298,7 @@
     "ol_key": ""
   },
   {
-    "name": "Kathrin P.",
+    "name": "Kathrin Passig",
     "title": "Super Librarian",
     "roles": ["volunteer"],
     "departments": ["librarians"],
