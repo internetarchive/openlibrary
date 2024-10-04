@@ -366,8 +366,8 @@ msgstr ""
 msgid "Who"
 msgstr ""
 
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
+#: BestbookModal.html RecentChanges.html RecentChangesUsers.html
+#: admin/history.html admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
 msgid "Comment"
 msgstr ""
@@ -1988,9 +1988,10 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html covers/add.html
+#: BestbookModal.html admin/imports-add.html admin/inspect/store.html
+#: admin/ip/view.html admin/people/edits.html admin/permissions.html
+#: check_ins/check_in_form.html check_ins/reading_goal_form.html
+#: covers/add.html
 msgid "Submit"
 msgstr ""
 
@@ -4315,10 +4316,6 @@ msgstr ""
 #: check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Give Best Book Award"
 msgstr ""
 
 #: check_ins/check_in_prompt.html
@@ -7234,6 +7231,18 @@ msgstr ""
 
 #: BestbookModal.html
 msgid "Best Book Award"
+msgstr ""
+
+#: BestbookModal.html
+msgid "On what topic?"
+msgstr ""
+
+#: BestbookModal.html
+msgid "Why?"
+msgstr ""
+
+#: BestbookModal.html
+msgid "Remove Award"
 msgstr ""
 
 #: BookByline.html
