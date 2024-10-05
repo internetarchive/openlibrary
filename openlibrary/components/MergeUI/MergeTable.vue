@@ -117,7 +117,13 @@ export default {
         async enhancedRecords(){
             if (!this.records) return null;
 
-            const author_names = await get_author_names(this.records)
+            let author_names;
+
+            try {
+                author_names = await get_author_names(this.records);
+            } catch (error) {
+                console.error('Error creating enhancedRecords:', error);
+            }
 
             const enhanced_records = _.cloneDeep(this.records)
 
