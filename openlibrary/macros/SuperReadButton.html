@@ -1,0 +1,154 @@
+$def with(ocaid, olid, borrow=False, listen=False, loan=None, label='', printdisabled=False)
+
+$ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
+
+$if printdisabled:
+  $ action = "read"
+  $ label = _("Special Access")
+  $ title = _("Special ebook access from the Internet Archive for patrons with qualifying print disabilities")
+  $ analytics_action = "PrintDisabled"
+$elif (borrow and not loan):
+  $ action = "borrow"
+  $ label = label or _("Borrow")
+  $ title = _("Borrow ebook from Internet Archive")
+  $ analytics_action = "Borrow"
+$else:
+  $ action = "read"
+  $ label = _("Read")
+  $ title = _("Read ebook from Internet Archive")
+  $ analytics_action = "Read"
+
+<style type="text/css">
+
+.fullwidth {
+  width: 100%;
+}
+
+.cta-button-group details.cta-dropper {
+    margin-bottom: 10px;
+}
+
+details.cta-dropper.cta-selector input.cta-btn {
+    margin: 0;
+}
+
+/* Override cta-btn */
+details.cta-dropper.cta-selector a.cta-btn {
+    border-radius: 0;
+    margin: 0;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-block;
+    border-right: 1px solid #fff;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+/* Style for the details component */
+details.cta-dropper {
+    display: inline-block;
+    position: relative;
+    border-radius: 5px;
+}
+
+/* Summary element (button + dropper arrow) */
+details.cta-dropper.cta-selector summary {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+    background-color: #0376b8;
+    border-radius: 5px;
+}
+
+/* Right arrow (triangle) styling */
+.dropper-arrow {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid white;
+    margin: 10px;
+}
+
+/* Rotating arrow when details is open */
+details.cta-dropper[open] .dropper-arrow {
+    border-top: none;
+    border-bottom: 6px solid white;
+}
+
+.cta-dropper ul.dropper-menu {
+    margin: 0;
+}
+
+.cta-dropper ul.dropper-menu li {
+    list-style-type: none;
+    margin: 0;
+    padding: 5px 10px;
+}
+
+/* Dropper menu */
+.dropper-menu {
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    background-color: white;
+    border: 1px solid lightgrey;
+    width: 200px;
+    display: none;
+    border-radius: 5px;
+    z-index: 999999;
+}
+
+/* Show menu when details is open */
+details.cta-dropper[open] .dropper-menu {
+    display: block;
+}
+
+/* Menu item styling */
+ul.dropper-menu li {
+    padding: 10px;
+    border-bottom: 1px solid lightgrey;
+    cursor: pointer;
+    list-style: none;
+}
+
+/* Last item without border */
+.dropper-menu li:last-child {
+    border-bottom: none;
+}
+
+/* Hover effect for dropper menu items */
+.dropper-menu li:hover {
+    background-color: #f0f0f0;
+}
+
+ul.dropper-menu {
+  margin: 0;
+}
+
+.dropper-menu li a {
+    text-decoration: none;
+    color: black;
+    font-family: arial;
+}
+
+</style>
+
+<div class="cta-button-group">
+  <details class="cta-dropper cta-selector fullwidth">
+    <summary>
+      <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)" data-ol-link-track="CTAClick|$action"
+      $if loan:
+        data-userid="$(loan['userid'])"
+      >$label</a>
+      <span class="dropper-arrow"></span>
+    </summary>
+    <ul class="dropper-menu">
+      <li><a href="">Listen</a></li>
+      <li>$:macros.BookSearchInside(ocaid)</li>
+      <li><a class="cta-btn--external" href="">Locate</a></li>
+    </ul>
+  </details>
+</div>
