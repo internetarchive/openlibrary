@@ -824,8 +824,8 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/cita_press_read_button.html
+#: LoanReadForm.html ReadButton.html SuperReadButton.html
+#: admin/inspect/memcache.html book_providers/cita_press_read_button.html
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
@@ -864,8 +864,8 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html books/custom_carousel.html books/edit/edition.html
-#: type/list/embed.html widget.html
+#: ReadButton.html SuperReadButton.html books/custom_carousel.html
+#: books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -7460,21 +7460,21 @@ msgstr ""
 msgid "Search collection"
 msgstr ""
 
-#: ReadButton.html
+#: ReadButton.html SuperReadButton.html
 msgid "Special Access"
 msgstr ""
 
-#: ReadButton.html
+#: ReadButton.html SuperReadButton.html
 msgid ""
 "Special ebook access from the Internet Archive for patrons with "
 "qualifying print disabilities"
 msgstr ""
 
-#: ReadButton.html
+#: ReadButton.html SuperReadButton.html
 msgid "Borrow ebook from Internet Archive"
 msgstr ""
 
-#: ReadButton.html
+#: ReadButton.html SuperReadButton.html
 msgid "Read ebook from Internet Archive"
 msgstr ""
 
