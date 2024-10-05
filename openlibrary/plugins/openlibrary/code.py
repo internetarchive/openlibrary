@@ -574,6 +574,73 @@ class BatchImportView(delegate.page):
         )
 
 
+class BatchImportApprove(delegate.page):
+    """
+    Approve `batch_id`, with a `status` of `needs_review`, for import.
+
+    Making a GET as an admin to this endpoint will change a batch's status from
+    `needs_review` to `pending`.
+    """
+
+    path = r'/import/batch/approve/(\d+)'
+
+    def GET(self, batch_id):
+
+        user_key = delegate.context.user and delegate.context.user.key
+        if user_key not in _get_members_of_group("/usergroup/admin"):
+            raise Forbidden('Permission Denied.')
+
+        db.query(
+            """
+            UPDATE import_item
+            SET status = 'pending'
+            WHERE batch_id = $1 AND status = 'needs_review';
+            """,
+            (batch_id,),
+        )
+
+        return web.found(f"/import/batch/{batch_id}")
+
+
+class BatchImportPendingView(delegate.page):
+    """
+    Endpoint for viewing `needs_review` batch imports.
+    """
+
+    path = r"/import/batch/pending"
+
+    def GET(self):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        rows = db.query(
+            """
+            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
+            FROM import_item
+            WHERE status = 'needs_review'
+            GROUP BY batch_id;
+            """,
+            vars=locals(),
+        )
+
+        return render_template(
+            "batch_import_pending_view",
+            rows=rows,
+            page=page,
+            limit=limit,
+        )
+
+
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/(.{10,})'
 

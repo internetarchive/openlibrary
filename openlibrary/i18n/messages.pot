@@ -166,6 +166,36 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
+#: batch_import_pending_view.html
+msgid "Pending Batch Imports"
+msgstr ""
+
+#: batch_import_pending_view.html
+msgid "batch_id"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Added Time"
+msgstr ""
+
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: admin/sponsorship.html batch_import_pending_view.html batch_import_view.html
+#: status.html
+msgid "Status"
+msgstr ""
+
+#: batch_import_pending_view.html batch_import_view.html
+#: merge_request_table/table_header.html
+msgid "Submitter"
+msgstr ""
+
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Comments"
+msgstr ""
+
 #: batch_import_view.html
 msgid "Batch Import Status"
 msgstr ""
@@ -191,21 +221,15 @@ msgid "Status Summary"
 msgstr ""
 
 #: batch_import_view.html
-msgid "Import Items"
+msgid "Approve"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html batch_import_view.html
-msgid "Added Time"
+#: batch_import_view.html
+msgid "Import Items"
 msgstr ""
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
-
-#: account/import.html account/loans.html admin/imports.html
-#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: admin/sponsorship.html batch_import_view.html status.html
-msgid "Status"
 msgstr ""
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
@@ -223,14 +247,6 @@ msgstr ""
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
-
-#: RecentChangesAdmin.html batch_import_view.html
-msgid "Comments"
-msgstr ""
-
-#: batch_import_view.html merge_request_table/table_header.html
-msgid "Submitter"
 msgstr ""
 
 #: batch_import_view.html
