@@ -498,16 +498,24 @@ class batch_imports(delegate.page):
     def POST(self):
 
         user_key = delegate.context.user and delegate.context.user.key
-        if user_key not in _get_members_of_group("/usergroup/admin"):
-            raise Forbidden('Permission Denied.')
+        import_status = (
+            "pending"
+            if user_key in _get_members_of_group("/usergroup/admin")
+            else "needs_review"
+        )
 
         # Get the upload from web.py. See the template for the <form> used.
         batch_result = None
         form_data = web.input()
         if form_data.get("batchImportFile"):
-            batch_result = batch_import(form_data['batchImportFile'])
+            batch_result = batch_import(
+                form_data['batchImportFile'], import_status=import_status
+            )
         elif form_data.get("batchImportText"):
-            batch_result = batch_import(form_data['batchImportText'].encode("utf-8"))
+            batch_result = batch_import(
+                form_data['batchImportText'].encode("utf-8"),
+                import_status=import_status,
+            )
         else:
             add_flash_message(
                 'error',
