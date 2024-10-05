@@ -129,10 +129,9 @@ export default {
 
             for (const record of enhanced_records) {
                 for (const entry of record.authors) {
-                    entry.author.name = author_names[entry.author.key];
+                    entry.name = author_names[entry.author.key.slice('/authors/'.length)];
                 }
             }
-
             return enhanced_records
         },
 
@@ -497,7 +496,7 @@ li.excerpt-item {
 }
 
 .field-authors {
-  .author-author-children {
+  td.author-author, td.author-name {
     display: inline-block;
     padding-right: 2em;
   }
