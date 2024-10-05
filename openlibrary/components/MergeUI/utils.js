@@ -248,7 +248,9 @@ export async function get_author_names(works) {
 
     const response = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
 
-    if (!response.ok) return {error: true};
+    if (!response.ok) {
+        throw new Error('Failed to fetch author data');
+    }
 
     const results = await response.json()
 
