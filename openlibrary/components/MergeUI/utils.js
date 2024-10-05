@@ -246,7 +246,7 @@ export async function get_author_names(works) {
         fields: 'key,name',
     })
 
-    const response = await fetch(`${CONFIGS.OL_BASE_BOOKS}/search/authors.json?${queryParams}`)
+    const response = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
 
     if (!response.ok) return {error: true};
 
