@@ -127,15 +127,11 @@ export default {
 
             const enhanced_records = _.cloneDeep(this.records)
 
-            enhanced_records.flatMap(record =>
-                record.authors.map(entry=> {
-                    for (const [key, value] of Object.entries(author_names)) {
-                        if (entry.author.key === `/authors/${key}`){
-                            entry.author.name = value
-                        }
-                    }
-                })
-            )
+            for (const record of enhanced_records) {
+                for (const entry of record.authors) {
+                    entry.author.name = author_names[entry.author.key];
+                }
+            }
 
             return enhanced_records
         },
