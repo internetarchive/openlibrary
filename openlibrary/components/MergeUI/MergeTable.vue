@@ -113,6 +113,7 @@ export default {
             return records;
         },
 
+        /** The records, with extra helpful metadata attached for display. Should NOT be saved to Open Library */
         async enhancedRecords(){
             if (!this.records) return null;
 
