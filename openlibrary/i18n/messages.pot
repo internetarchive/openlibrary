@@ -7242,6 +7242,12 @@ msgid "Why?"
 msgstr ""
 
 #: BestbookModal.html
+msgid ""
+"Awards may only be given to books you have already read. Submitting this "
+"award will mark this book as \"Already Read\""
+msgstr ""
+
+#: BestbookModal.html
 msgid "Remove Award"
 msgstr ""
 

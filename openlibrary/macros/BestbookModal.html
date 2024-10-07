@@ -6,7 +6,6 @@ $# :param str classes: HTML classes for this component
 $# :param str reload_id: Reference to UI component that will update when observations are added or removed
 
 $ topics = work.get_subjects()
-
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $# The following data is accessed via JS:
 $ context = {
@@ -14,6 +13,8 @@ $ context = {
   $ "work": work.key,
   $ "id": id
   $ }
+
+$ users_work_read_status = get_patrons_work_read_status(username, work.key) if work and username else None
 
 $if reload_id:
   $ context['reloadId'] = reload_id
@@ -53,7 +54,7 @@ $jsdef render_subject_autocomplete_item(item):
   $:link_markup
   $if ctx.user:
     <div class="hidden">
-      <div id="$id-metadata-form" class="floaterAdd metadata-form bestbook-modal" data-context="$json_encode(context)">
+      <div id="$id-metadata-form" class="metadata-form bestbook-modal" data-context="$json_encode(context)">
         <div class="floaterHead">
           <h2>$_("Best Book Award")</h2>
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
@@ -80,6 +81,9 @@ $jsdef render_subject_autocomplete_item(item):
             <label for="comment">$_("Why?")</label>
             <input name="comment" placeholder=$_("Comment") type="text" value="$default_comment">
             <button class="bestbook__submit" type="submit">$_("Submit")</button>
+            $if users_work_read_status != 3:
+              <div class="bestbook_warning">⚠️ $_("Awards may only be given to books you have already read. Submitting this award will mark this book as \"Already Read\"")
+              </div>
           </form>
         </div>
         $if award:
