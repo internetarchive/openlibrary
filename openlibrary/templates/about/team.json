@@ -257,16 +257,6 @@
     "ol_key": ""
   },
   {
-    "name": "Jl",
-    "title": "Super Librarian",
-    "roles": ["volunteer"],
-    "departments": ["librarians"],
-    "projects": [],
-    "photo_path": "",
-    "github_id": "",
-    "ol_key": ""
-  },
-  {
     "name": "Jon Robson",
     "title": "Frontend Lead-Emeritus",
     "roles": ["fellow-2017"],
@@ -398,14 +388,14 @@
     "ol_key": ""
   },
   {
-    "name": "Popcar",
+    "name": "@Popcar",
     "title": "Super Librarian",
     "roles": ["volunteer"],
     "departments": ["librarians"],
     "projects": ["Graphic Novels"],
     "photo_path": "",
     "github_id": "",
-    "ol_key": ""
+    "ol_key": "popcar"
   },
   {
     "name": "Rebecca Shoptaw",
@@ -418,6 +408,16 @@
     "favorite_book_url": "https://openlibrary.org/works/OL20867W/Middlemarch",
     "github_id": "rebecca-shoptaw",
     "ol_key": ""
+  },
+  {
+    "name": "@reshelved",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": "reshelved"
   },
   {
     "name": "Roya E.",
