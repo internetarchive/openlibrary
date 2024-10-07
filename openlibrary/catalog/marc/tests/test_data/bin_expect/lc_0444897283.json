@@ -26,17 +26,26 @@
     {
       "name": "IFIP TC5/WG 5.6 International Conference on Computer Applications in the Automation of Shipyard Operation and Ship Design (7th 1991 Rio de Janeiro, Brazil)",
       "entity_type": "event"
+    },
+    {
+      "name": "Vieira, Claudio Baraúna",
+      "birth_date": "1944",
+      "entity_type": "person"
+    },
+    {
+      "name": "Martins, Protásio",
+      "birth_date": "1950",
+      "entity_type": "person"
+    },
+    {
+      "name": "Kuo, Chengi",
+      "entity_type": "person"
     }
   ],
-  "by_statement": "edited by Claudio Bara\u00fana Vieira, Prot\u00e1sio Martins, Chengi Kuo",
+  "by_statement": "edited by Claudio Baraúna Vieira, Protásio Martins, Chengi Kuo",
   "publish_places": [
     "Amsterdam",
     "New York"
-  ],
-  "contributions": [
-    "Vieira, Claudio Bara\u00fana, 1944-",
-    "Martins, Prot\u00e1sio, 1950-",
-    "Kuo, Chengi"
   ],
   "isbn_10": [
     "0444897283"
