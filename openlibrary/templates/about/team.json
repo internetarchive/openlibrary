@@ -144,14 +144,16 @@
     "ol_key": ""
   },
   {
-    "name": "Freso",
+    "name": "Frederik “Freso” S. Olesen",
     "title": "Super Librarian",
     "roles": ["volunteer"],
     "departments": ["librarians"],
     "projects": [],
-    "photo_path": "",
-    "github_id": "",
-    "ol_key": ""
+    "photo_path": "https://avatars.githubusercontent.com/u/177659",
+    "personal_url": "https://freso.dk/",
+    "favorite_book_url": "https://openlibrary.org/people/freso/lists/OL272257L",
+    "github_id": "Freso",
+    "ol_key": "Freso"
   },
   {
     "name": "Giacomo Cignoni",
