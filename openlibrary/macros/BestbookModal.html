@@ -1,4 +1,4 @@
-$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None, award=None)
+$def with (work, link_markup, id, classes='', reload_id=None, edition_key=None, award=None, awarded=False)
 $# :param Work work: The work that is being reviewed
 $# :param str link_markup: arkup for element that triggers observations modal
 $# :param str id: Unique identifier for this modal
@@ -80,12 +80,13 @@ $jsdef render_subject_autocomplete_item(item):
 
             <label for="comment">$_("Why?")</label>
             <input name="comment" placeholder=$_("Comment") type="text" value="$default_comment">
-            <button class="bestbook__submit" type="submit">$_("Submit")</button>
+            <button class="bestbook_submit" type="submit">$_("Submit")</button>
             $if users_work_read_status != 3:
               <div class="bestbook_warning">⚠️ $_("Awards may only be given to books you have already read. Submitting this award will mark this book as \"Already Read\"")
               </div>
           </form>
         </div>
+
         $if award:
           <div>
             <form action="$(work.key)/awards.json" method="POST">

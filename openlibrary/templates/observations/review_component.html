@@ -86,7 +86,7 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
   $# awards section here
 
   <div class="awards-div">
-    <h3 class="reviews-subtitle">$_('Awards') (🏆 $:num_awards)</h3>
+    <h3 class="reviews-subtitle">$_('Awards') (🏆 $num_awards)</h3>
     $if len(d) > 0:
       <div class="awards">
       $for topic, count in d.items():
@@ -101,12 +101,12 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
       $if ctx.user:
         $if user_award:
           $ link_text = _('+ Update Bestbook Award')
-          $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
+          $ link_markup = '<a href="javascript:;" class="bestbook-modal-link">%s</a>' % link_text
+          $:macros.BestbookModal(work, link_markup,'', 'stats-link', '', edition_key, user_award, True)
         $elif users_work_read_status == 3:
           $ link_text = _('+ Give Bestbook Award')
-          $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
-          $:macros.BestbookModal(work, link_markup, '', 'stats-link', '', edition_key, user_award)
+          $ link_markup = '<a href="javascript:;" class="bestbook-modal-link">%s</a>' % link_text
+          $:macros.BestbookModal(work, link_markup, '','stats-link', '', edition_key, user_award, False)
         $elif users_work_read_status == 1 or users_work_read_status == 2:
           <div class="status-awardable">$_('Complete reading book to award bestbook')</div>
         $else:

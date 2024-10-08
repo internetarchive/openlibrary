@@ -214,6 +214,38 @@ export function initObservationsModal($modalLinks) {
 export function initBestbookModal($modalLinks)
 {
     addClickListeners($modalLinks, '800px');
+    $('.bestbook_submit').on('click', function(event) {
+        event.preventDefault(); // Prevent form from submitting
+        const form = $(this).closest('form')[0];
+        const formData = new FormData(form);
+        const url = form.action;
+        alert(url);
+
+        fetch(url, {
+            method: 'post',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    const review = confirm('Would you like to add community review tags?');
+                    // new FadingToast('Award added!').show();
+                    if (review)
+                    {
+                        $('.observations-modal-link')[0].click()
+                    }
+                } else {
+                    this.hideTaggingMenu();
+                    new FadingToast('Subjects successfully updated.').show()
+                    this.submitButton.textContent = 'Submit';
+                    this.updateFetchedSubjects();
+                    this.resetTaggingMenu();
+                }
+            })
+
+        console.log('Submit button clicked!');
+        // Additional code here
+    });
+
     // addObservationReloadListeners($('.observations-list'))
     // addDeleteObservationsListeners($('.delete-observations-button'));
 
