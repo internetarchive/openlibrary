@@ -81,9 +81,10 @@
     "roles": ["volunteer"],
     "departments": ["librarians"],
     "projects": [],
-    "photo_path": "",
-    "github_id": "",
-    "ol_key": ""
+    "photo_path": "https://avatars.githubusercontent.com/u/7125952",
+    "github_id": "dcapillae",
+    "personal_website": "https://dcapillae.wordpress.com",
+    "ol_key": "dcapillae"
   },
   {
     "name": "Debbie",
