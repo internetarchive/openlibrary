@@ -1,4 +1,4 @@
-$def with (name, type, subject_type=None)
+$def with (name, type, subject_type=None, fkey=None)
 
 $var title: $_("Add a tag")
 
@@ -11,7 +11,7 @@ $var title: $_("Add a tag")
 
 <div id="contentBody">
     <form method="post" action="" id="addtag" class="olform addtag1">
-        $:render_template("type/tag/tag_form_inputs", tag_name=name, tag_type=type)
+        $:render_template("type/tag/tag_form_inputs", tag_name=name, tag_type=type, fkey=fkey)
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">

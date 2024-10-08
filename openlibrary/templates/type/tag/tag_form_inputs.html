@@ -1,4 +1,4 @@
-$def with (tag_name='', tag_type='', tag_description='')
+$def with (tag_name='', tag_type='', tag_description='', fkey=None, body='', show_type_picker=True)
 
 <div class="formElement">
     <div class="label">
@@ -15,22 +15,43 @@ $def with (tag_name='', tag_type='', tag_description='')
             <label for="tag_description">$_("Tag Description")</label>
         </div>
         <div class="input">
-            <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80">$tag_description</textarea>
+            <textarea id="tag_description" name="tag_description" rows="5" cols="80">$tag_description</textarea>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">$_("Page Body")</label>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="page_body" rows="5" cols="50" class="markdown">$body</textarea>
         </div>
     </div>
 </fieldset>
 
 <div class="formElement">
-    <div class="label"><label for="tag_type">$_("Tag type")</label></div>
+    <div class="label">
+        <label for="fkey">$_("Subject Key")</label>
+    </div>
     <div class="input">
-        <select name="tag_type" id="tag_type" required>
-            <option value="">$_("Select")</option>
-            $ tag_types = get_tag_types()
-            $for t_type in tag_types:
-                $if t_type == tag_type:
-                    <option value="$t_type" selected>$t_type</option>
-                $else:
-                    <option value="$t_type">$t_type</option>
-        </select>
+        <input type="text" value="$fkey" disabled>
     </div>
 </div>
+
+$if show_type_picker:
+    <div class="formElement">
+        <div class="label"><label for="tag_type">$_("Tag type")</label></div>
+        <div class="input">
+            <select name="tag_type" id="tag_type" required>
+                <option value="">$_("Select")</option>
+                $ tag_types = get_tag_types()
+                $for t_type in tag_types:
+                    $if t_type == tag_type:
+                        <option value="$t_type" selected>$t_type</option>
+                    $else:
+                        <option value="$t_type">$t_type</option>
+            </select>
+        </div>
+    </div>
