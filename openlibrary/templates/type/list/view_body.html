@@ -38,13 +38,6 @@ $jsdef render_seed_count(seed_count):
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
         $ owner = list.get_owner()
-        $:macros.databarView(list, edit=not owner)
-        <div class="superNav">
-            $if owner:
-                <a href="$owner.key">$owner.displayname</a>
-                /
-                <a href="$owner.key/lists">$_('Lists')</a>
-        </div>
         <h1>$list.name</h1>
         <p class="collapse sansserif">
             $ component_times['render_seed_count'] = time()
