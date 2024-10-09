@@ -18,46 +18,44 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
-<div class="dropdown-button-group cta-dropper">
-  <div class="cta-button-group cta-dropper__button">
+<div class="cta-dropper">
+  <div class="cta-button-group cta-dropper-button">
     <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
         $:analytics_attr(analytics_action)
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
   </div>
-  <details class="cta-dropper__details">
-    <summary class="cta-dropper__summary">
+  <details>
+    <summary>
     </summary>
-    <div class="cta-dropper__content">
-      <ul class="cta-dropper__content-list">
-        $if listen:
-          <li>
-            <a href="$(stream_url)&_autoReadAloud=show"
-               title="$title using Read Aloud"
-               $:analytics_attr(action.capitalize() + 'Listen')
-               class="cta-btn cta-btn--available cta-btn--w-icon">
-              <span class="btn-icon listen"></span>
-              <span class="btn-label">$_("Listen")</span>
-            </a>
-          </li>
+    <ul class="dropper-menu">
+      $if listen:
         <li>
-          <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon search"></span>
-            <span class="btn-label">Search Inside</span>
+          <a href="$(stream_url)&_autoReadAloud=show"
+             title="$title using Read Aloud"
+             $:analytics_attr(action.capitalize() + 'Listen')
+             class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon listen"></span>
+            <span class="btn-label">$_("Listen")</span>
           </a>
         </li>
+      <li>
+        <a class="cta-btn cta-btn--available cta-btn--w-icon">
+          <span class="btn-icon search"></span>
+          <span class="btn-label">$_("Search Inside")</span>
+        </a>
+      </li>
+      <li>
+        <a class="cta-btn cta-btn--available cta-btn--w-icon">
+          <span class="btn-icon download"></span>
+          <span class="btn-label">$_("Download")</span>
+        </a>
+      </li>
+      $if edition_key:
         <li>
-          <a class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon download"></span>
-            <span class="btn-label">Download</span>
-          </a>
+          $:macros.LocateButton(edition_key=edition_key)
         </li>
-        $if edition_key:
-          <li>
-            $:macros.LocateButton(edition_key=edition_key)
-          </li>
-      </ul>
-    </div>
+    </ul>
   </details>
 </div>

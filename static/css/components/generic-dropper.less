@@ -89,112 +89,101 @@
   text-overflow: ellipsis;
 }
 
-.cta-btn .listen {
-  background-image: url(/static/images/icons/icon_listen.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-.cta-btn .search {
-  background-image: url(/static/images/icons/icon_search.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-.cta-btn .download {
-  background-image: url(/static/images/icons/icon_download.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-.cta-btn .map {
-  background-image: url(/static/images/icons/icon_map.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-
+/* Style for read button and dropper button */
 .cta-dropper {
   display: flex;
   margin-bottom: 10px;
-  &__button {
-    & .cta-btn {
+  .cta-button-group.cta-dropper-button {
+    .cta-btn {
       border-radius: 5px 2px 2px 5px;
-      text-align: center;
     }
-    border-right: 1px solid rgba(0,0,0,0);
-    border-radius: 5px 2px 2px 5px;
+    border-right: 1px solid transparent;
     flex-grow: 1;
   }
-  &__details {
+  details {
     background-color: @primary-blue;
     border-radius: 2px 5px 5px 2px;
+    // raise dropper menu above "Want to Read" dropper
+    z-index: @z-index-level-14;
+    // mark details as nearest container ancestor to dropdown menu
+    contain: layout;
   }
-  &__summary {
+  summary {
     cursor: pointer;
     list-style-type: none;
     &:hover { background-color: darken(@primary-blue, 20%); }
     border-radius: 2px 5px 5px 2px;
   }
-  &__summary::after {
+  summary::after {
     display: block;
-    content: "";
     margin: 0 8px;
     padding-top: 16px;
     width: 24px;
     height: 24px;
+    /* Style for animated arrow on dropdown button. Copied from "Want to Read" dropper above */
+    content: "";
     background: url(/images/icons/icon_dropit.png) no-repeat center;
     background-position: 0;
     background-size: 45px;
+    // whiten arrow png
     filter: brightness(0) invert(1);
   }
-  &__details[open] summary::after {
+  details[open] summary::after {
     content: "";
     background-position: -22px 50%;
   }
+}
 
-  &__content {
-    background-color: @white;
-    position: absolute;
-    left: 35px;
-    width: 194px;
-    z-index: @z-index-level-14;
-    margin-top: 10px;
-    border: 1px solid;
-    border-radius: 5px;
-    border-color: @lighter-grey;
+.cta-dropper .dropper-menu {
+  margin: 0;
+  border: 1px solid @lighter-grey;
+  border-radius: 5px;
+  background-color: @white;
+  position: absolute;
+  // align dropper menu with buttons
+  right: 0;
+  width: 194px;
+  li+li {
+    border-top: 1px solid @lighter-grey;
   }
-  &__content .cta-dropper__content-list {
-    margin: 0 5px;
-  }
-  &__content li+li {
-    border-top: 1px solid;
-    border-color: @lighter-grey;
-  }
-  &__content .cta-dropper__content-list li {
+  li {
     list-style: none;
     margin: 0;
   }
-  &__content-list .cta-btn {
+  .cta-btn {
     &.cta-btn--w-icon, &:link, &:visited {
       background: @white;
       color: @black;
       text-align: left;
-      padding: 5px;
+      padding: 5px 10px;
+      border-radius: 0;
       margin: 0;
     }
+    .btn-label {
+      padding: 0;
+    }
+    .btn-icon {
+      display: inline-block;
+      filter: invert(1);
+      margin: 5px 2px -3px;
+      width: 1.2em;
+      height: 1.2em;
+    }
+    &:hover {
+      background-color: @lighter-grey;
+    }
   }
-  &__content-list .cta-btn--w-icon:hover {
-    background-color: rgba(0,0,0,0);
+}
+
+// dropper menu icons
+.cta-btn {
+  .listen, .search, .download, .map {
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
   }
-  &__content-list .cta-btn .btn-label {
-    padding: 0;
-  }
-  &__content-list .cta-btn .btn-icon {
-    display: inline-block;
-    filter: invert(1);
-    margin: 5px 2px -3px;
-    width: 1.2em;
-    height: 1.2em;
-  }
+  .listen { background-image: url(/static/images/icons/icon_listen.png); }
+  .search { background-image: url(/static/images/icons/icon_search.png); }
+  .download { background-image: url(/static/images/icons/icon_download.png); }
+  .map { background-image: url(/static/images/icons/icon_map.png); }
 }
