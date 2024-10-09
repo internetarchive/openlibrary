@@ -37,7 +37,7 @@ $ get_loan_for_start_time = time()
 $ user_loan = doc.get('loan') or (check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid, use_cache=True))
 $ get_loan_for_total_time = time() - get_loan_for_start_time
 
-$ is_edition = doc.key.split('/')[1] == 'books'
+$ olid = doc.key.split('/')[1] == 'books'
 
 $def analytics_attr(action):
   $if analytics_override:
@@ -57,9 +57,7 @@ $elif book_provider and book_provider.short_name != 'ia':
 
 $elif availability.get('is_readable') or availability.get('status') == 'open':
   $# Open / Publicly Readable (Unrestricted)
-  $:macros.ReadButton(ocaid, analytics_attr, listen=listen)
-  $if secondary_action:
-    $:macros.BookSearchInside(ocaid)
+  $:macros.SuperReadButton(ocaid, olid)
 
 $elif ocaid and ctx.user and ctx.user.is_printdisabled():
   $# Exemptions for patrons with Print Disabilities
@@ -73,7 +71,7 @@ $elif availability.get('is_lendable'):
   $if secondary_action:
     $:macros.BookPreview(ocaid, analytics_attr, show_only=False)
   $if availability.get("available_to_borrow") or availability.get("available_to_browse"):
-    $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen)
+    $:macros.SuperReadButton(ocaid, olid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $if waiting_loan:
       $if secondary_action:
@@ -136,8 +134,8 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
 $else:
   $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
   $# secondary_action means we're on a book page and it's the button under the cover image.
-  $ key = doc.key if is_edition else work_key
-  $if (is_edition and is_book_page) or secondary_action:
+  $ key = doc.key if olid else work_key
+  $if (olid and is_book_page) or secondary_action:
       $:macros.NotInLibrary(None, analytics_attr)
   $else:
       $:macros.NotInLibrary(key, analytics_attr)
