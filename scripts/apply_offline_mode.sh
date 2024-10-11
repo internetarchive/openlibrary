@@ -5,7 +5,21 @@
 # developer experience when IA is down.
 #####
 
-touch offline.patch
-curl "https://github.com/internetarchive/openlibrary/compare/master...offline-mode.patch" -o offline.patch
-git apply offline.patch
-rm offline.patch
+reverse=''
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --reverse)
+            reverse='--reverse'
+            shift
+            ;;
+        *)
+            # Handle other arguments or show usage
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+curl "https://github.com/internetarchive/openlibrary/compare/master...offline-mode.patch" | git apply $reverse
