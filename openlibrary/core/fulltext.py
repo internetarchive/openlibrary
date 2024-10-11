@@ -19,6 +19,8 @@ def fulltext_search_api(params):
 
     logger.debug('URL: ' + search_select)
     try:
+        if config.get("offline_mode"):
+            raise requests.HTTPError("Fulltext search is disabled")
         response = requests.get(search_select, timeout=30)
         response.raise_for_status()
         return response.json()

@@ -1456,7 +1456,7 @@ def get_donation_include() -> str:
     """
         % script_src
     )
-    return html
+    return html if config.get("offline_mode", False) else ""
 
 
 @public

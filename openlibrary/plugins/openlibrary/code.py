@@ -426,7 +426,7 @@ class robotstxt(delegate.page):
 
 @web.memoize
 def fetch_ia_js(filename: str) -> str:
-    return requests.get(f'https://archive.org/includes/{filename}').text
+    return requests.get(f'https://archive.org/includes/{filename}').text if not infogami.config.get("offline_mode", False) else ""
 
 
 class ia_js_cdn(delegate.page):
@@ -1241,7 +1241,7 @@ class Partials(delegate.page):
             query = i.get('data', '')
             data = fulltext_search(query)
             hits = data.get('hits', [])
-            if not hits['hits']:
+            if not hits:
                 macro = '<div></div>'
             else:
                 macro = web.template.Template.globals[

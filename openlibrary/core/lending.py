@@ -70,6 +70,7 @@ config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
+config_offline_mode = None
 
 
 def setup(config):
@@ -81,6 +82,7 @@ def setup(config):
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
     global config_ia_civicrm_api, config_ia_domain
+    global config_offline_mode
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -101,6 +103,7 @@ def setup(config):
     config_ia_civicrm_api = config.get('ia_civicrm_api')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
+    config_offline_mode = config.get('offline_mode', False)
 
 
 @public
@@ -246,6 +249,8 @@ def get_available(
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
+    if config_offline_mode:
+        return {'error': 'offline_mode'}
 
     url = url or compose_ia_url(
         limit=limit,
@@ -396,7 +401,7 @@ def get_availability(
                 },
                 headers=headers,
                 timeout=10,
-            ).json(),
+            ).json() if not config_offline_mode else {"responses": {}},
         )
         uncached_values = {
             _id: update_availability_schema_to_v2(

@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, test=False)
+$def with (stats=None, blog_posts=None, test=False, hide_stats=False)
 
 $ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
@@ -40,7 +40,8 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $:render_template("home/categories", test=test)
 
-  $:render_template("home/stats", stats)
+  $if not hide_stats:
+    $:render_template("home/stats", stats)
 
   $:render_template("home/about", blog_posts)
  </div>

@@ -44,12 +44,12 @@ def get_homepage():
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
-    blog_posts = get_blog_feeds()
+    blog_posts = get_blog_feeds() if config.get('offline_mode', False) else None
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    page = render_template("home/index", stats=stats, blog_posts=blog_posts, hide_stats=config.get('offline_mode', False))
     # Convert to a dict so it can be cached
     return dict(page)
 

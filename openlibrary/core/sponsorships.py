@@ -6,6 +6,7 @@ import web
 from urllib.parse import urlencode
 
 from collections import OrderedDict
+from infogami import config
 from infogami.utils.view import public
 from openlibrary.core import lending
 from openlibrary.core.vendors import get_betterworldbooks_metadata, get_amazon_metadata
@@ -61,6 +62,8 @@ def get_sponsored_editions(user, page: int = 1) -> list:
     :param user user: infogami user
     :return: list of archive.org editions sponsored by user
     """
+    if config.get('offline_mode', False):
+        return []
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     if archive_id:
         url = 'https://archive.org/advancedsearch.php'

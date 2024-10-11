@@ -192,3 +192,5 @@ sentry_cron_jobs:
 
 # Observations cache settings:
 observation_cache_duration: 86400
+
+offline_mode: True
