@@ -397,15 +397,19 @@ def get_availability(
             )
         response = cast(
             AvailabilityServiceResponse,
-            requests.get(
-                config_ia_availability_api_v2_url,
-                params={
-                    id_type: ','.join(ids_to_fetch),
-                    "scope": "printdisabled",
-                },
-                headers=headers,
-                timeout=10,
-            ).json() if not config_offline_mode else {"responses": {}},
+            (
+                requests.get(
+                    config_ia_availability_api_v2_url,
+                    params={
+                        id_type: ','.join(ids_to_fetch),
+                        "scope": "printdisabled",
+                    },
+                    headers=headers,
+                    timeout=10,
+                ).json()
+                if not config_offline_mode
+                else {"responses": {}}
+            ),
         )
         uncached_values = {
             _id: update_availability_schema_to_v2(

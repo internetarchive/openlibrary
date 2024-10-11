@@ -49,7 +49,12 @@ def get_homepage():
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template("home/index", stats=stats, blog_posts=blog_posts, hide_stats=config.get('offline_mode', False))
+    page = render_template(
+        "home/index",
+        stats=stats,
+        blog_posts=blog_posts,
+        hide_stats=config.get('offline_mode', False),
+    )
     # Convert to a dict so it can be cached
     return dict(page)
 
