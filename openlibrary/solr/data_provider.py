@@ -19,6 +19,7 @@ import requests
 import web
 from web import DB
 
+from infogami import config
 from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
@@ -144,6 +145,9 @@ class DataProvider:
         reached, downstream code will fetch remaining ocaids individually
         (and skip bad ocaids)
         """
+        if config.get("offline_mode", False):
+            return []
+
         if not ocaids or _recur_depth > _max_recur_depth:
             logger.warning(
                 'Max recursion exceeded trying fetch IA data', extra={'ocaids': ocaids}

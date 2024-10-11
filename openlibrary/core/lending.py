@@ -12,6 +12,7 @@ import uuid
 import eventer
 import requests
 
+from infogami import config
 from infogami.utils.view import public
 from infogami.utils import delegate
 from openlibrary.core import cache
@@ -195,6 +196,9 @@ def get_cached_groundtruth_availability(ocaid):
 def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
+    if config.get("offline_mode", False):
+        return []
+
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
     try:
