@@ -22,17 +22,19 @@
   "publish_country": "nyu",
   "authors": [
     {
-      "personal_name": "Homer",
       "name": "Homer",
+      "entity_type": "person"
+    },
+    {
+      "name": "Buckley, Theodore William Aldis",
+      "birth_date": "1825",
+      "death_date": "1856",
       "entity_type": "person"
     }
   ],
   "by_statement": "literally translated, with explanatory notes, by Theodore Alois Buckley",
   "oclc_numbers": [
     "4282700"
-  ],
-  "contributions": [
-    "Buckley, Theodore William Aldis, 1825-1856"
   ],
   "publish_places": [
     "New York"
