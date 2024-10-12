@@ -70,7 +70,7 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
-def batch_import(raw_data: bytes) -> BatchResult:
+def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
 
@@ -81,9 +81,11 @@ def batch_import(raw_data: bytes) -> BatchResult:
     access the batch and any errors, respectively. See BatchResult for more.
 
     The line numbers errors use 1-based counting because they are line numbers in a file.
+
+    import_status: "pending", "needs_review", etc.
     """
     user = accounts.get_current_user()
-    username = user.get_username()
+    username = user.get_username() if user else None
     batch_name = f"batch-{generate_hash(raw_data)}"
     errors: list[BatchImportError] = []
     raw_import_records: list[dict] = []
@@ -129,6 +131,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
             'ia_id': item['source_records'][0],
             'data': item,
             'submitter': username,
+            'status': import_status,
         }
         for item in raw_import_records
     ]

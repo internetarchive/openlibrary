@@ -6,7 +6,8 @@ $ i18n_strings = {
     $ "invalid_email_format": _("Must be a valid email address"),
     $ "username_length_err": _("Must be between 3 and 20 characters"),
     $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
-    $ "password_length_err": _("Must be between 3 and 20 characters")
+    $ "password_length_err": _("Must be between 3 and 20 characters"),
+    $ "loading_text": _("Loading...")
     $ }
 
 $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
@@ -29,7 +30,7 @@ $var title: $_("Sign Up to Open Library")
         $# :param openlibrary.utils.form.Input input:
         $# :param str suffix: HTML to put at bottom of input
 
-        <div class="formElement ol-signup-form__input">
+        <div class="formElement ol-signup-form__input ol-signup-form__input--$(input.id)">
             <div class="label">
                 <label for="$input.id">$input.description</label>
                 $if input.help:
@@ -39,9 +40,14 @@ $var title: $_("Sign Up to Open Library")
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
-                    <a href="javascript:;" class="password-visibility-toggle">
+                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
                         <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
                     </a>
+                $else:
+                    <div class="ol-signup-form__icon-wrap">
+                        <img src="/static/images/bubble-loader.svg" class="ol-signup-form__icon ol-signup-form__icon--loading" title="$_('Loading...')" alt="$_('Loading...')" style="display:none"/>
+                        <img src="/static/images/icons/icon_check-circle.svg" class="ol-signup-form__icon ol-signup-form__icon--success" title="$_('Success!')" alt="$_('Success!')" style="display:none" />
+                    </div>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
         </div>
@@ -62,7 +68,7 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.username, suffix=str(screenname_url()))
             $:field(form.password)
 
-            <div class="ol-signup-form__newsletter">
+            <div class="ol-signup-form__checkbox">
                 $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
             </div>
 
@@ -74,7 +80,8 @@ $var title: $_("Sign Up to Open Library")
                     $ classes = 'g-recaptcha'
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
-                <button type="submit" name="signup" id="signup" class="$classes cta-btn cta-btn--primary" $sitekey $callback>$_("Sign Up with Email")</button>
+                    <div class="$classes" $sitekey $callback data-size="invisible"></div>
+                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
                 <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
                 <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
             </div>

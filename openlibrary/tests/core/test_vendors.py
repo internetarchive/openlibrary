@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +7,8 @@ from openlibrary.core.vendors import (
     split_amazon_title,
     clean_amazon_metadata_for_load,
     betterworldbooks_fmt,
+    AmazonAPI,
+    is_dvd,
 )
 
 
@@ -257,3 +260,116 @@ def test_get_amazon_metadata() -> None:
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected
+
+
+@dataclass
+class ProductGroup:
+    display_value: str | None
+
+
+@dataclass
+class Binding:
+    display_value: str | None
+
+
+@dataclass
+class Classifications:
+    product_group: ProductGroup | None
+    binding: Binding
+
+
+@dataclass
+class ItemInfo:
+    classifications: Classifications | None
+    content_info: str
+    by_line_info: str
+    title: str
+
+
+@dataclass
+class AmazonAPIReply:
+    item_info: ItemInfo
+    images: str
+    offers: str
+    asin: str
+
+
+@pytest.mark.parametrize(
+    ("product_group", "expected"),
+    [
+        ('dvd', {}),
+        ('DVD', {}),
+        ('Dvd', {}),
+    ],
+)
+def test_clean_amazon_metadata_does_not_load_DVDS_product_group(
+    product_group, expected
+) -> None:
+    """Ensure data load does not load dvds and relies on fake API response objects"""
+    dvd_product_group = ProductGroup(product_group)
+    classification = Classifications(
+        product_group=dvd_product_group, binding=Binding('')
+    )
+    item_info = ItemInfo(
+        classifications=classification, content_info='', by_line_info='', title=''
+    )
+    amazon_metadata = AmazonAPIReply(
+        item_info=item_info,
+        images='',
+        offers='',
+        asin='',
+    )
+    result = AmazonAPI.serialize(amazon_metadata)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("physical_format", "expected"),
+    [
+        ('dvd', {}),
+        ('DVD', {}),
+        ('Dvd', {}),
+    ],
+)
+def test_clean_amazon_metadata_does_not_load_DVDS_physical_format(
+    physical_format, expected
+) -> None:
+    dvd_product_group = ProductGroup('isolate_physical_format')
+    binding = Binding(physical_format)
+    classification = Classifications(product_group=dvd_product_group, binding=binding)
+    item_info = ItemInfo(
+        classifications=classification, content_info='', by_line_info='', title=''
+    )
+    amazon_metadata = AmazonAPIReply(
+        item_info=item_info,
+        images='',
+        offers='',
+        asin='',
+    )
+    result = AmazonAPI.serialize(amazon_metadata)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("physical_format", "product_group", "expected"),
+    [
+        ('dvd', 'dvd', True),
+        (None, None, False),
+        ('Book', 'Book', False),
+        ('DVD', None, True),
+        ('Dvd', None, True),
+        ('dvd', None, True),
+        ('Book', 'dvd', True),
+        (None, 'dvd', True),
+        (None, 'Book', False),
+        ('dvd', 'book', True),
+    ],
+)
+def test_is_dvd(physical_format, product_group, expected):
+    book = {
+        'physical_format': physical_format,
+        'product_group': product_group,
+    }
+
+    got = is_dvd(book)
+    assert got is expected

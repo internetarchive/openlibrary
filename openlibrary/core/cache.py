@@ -1,6 +1,7 @@
 """Caching utilities.
 """
 
+import hashlib
 import random
 import string
 import time
@@ -59,6 +60,7 @@ class memcache_memoize:
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
         prethread: Callable | None = None,
+        hash_args: bool = False,
     ):
         """Creates a new memoized function for ``f``."""
         self.f = f
@@ -70,6 +72,7 @@ class memcache_memoize:
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads: dict = {}
         self.prethread = prethread
+        self.hash_args = hash_args
 
     def _get_memcache(self):
         if self._memcache is None:
@@ -177,20 +180,21 @@ class memcache_memoize:
             thread.join()
 
     def encode_args(self, args, kw=None):
+        """Encodes arguments to construct the memcache key."""
         kw = kw or {}
-        """Encodes arguments to construct the memcache key.
-        """
+
         # strip [ and ] from key
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return a + "-" + self.json_encode(kw)
-        else:
-            return a
+            a = a + "-" + self.json_encode(kw)
+        if self.hash_args:
+            return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
+        return a
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "-" + self.encode_args(args, kw)
+        key = self.key_prefix + "$" + self.encode_args(args, kw)
         return key.replace(
             " ", "_"
         )  # XXX: temporary fix to handle spaces in the arguments

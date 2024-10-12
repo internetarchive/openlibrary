@@ -1,31 +1,9 @@
 $def with (q_param, search_response, get_doc, param, page, rows)
 
-$ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
-
-$code:
-    def del_facet_url(k, v):
-        if k != 'has_fulltext':
-            return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
-        else:
-            return changequery(page=None,**{k:None})
-
 <div>
     <div id="contentHead">
       <h1>$_("Search Books")</h1>
     </div>
-
-$ facet_map = (
-$    ('has_fulltext', _('eBook?')),
-$    ('language', _('Language')),
-$    ('author_key', _('Author')),
-$    ('subject_facet', _('Subjects')),
-$    ('first_publish_year', _('First published')),
-$    ('publisher_facet', _('Publisher')),
-$    ('person_facet', _('People')),
-$    ('place_facet', _('Places')),
-$    ('time_facet', _('Times')),
-$    ('public_scan_b', _('Classic eBooks')),
-$ )
 
 <div id="contentBody">
   $:macros.SearchNavigation()
@@ -60,76 +38,31 @@ $ )
         $for v in values if isinstance(values, list) else [values]:
           <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
     </form>
-
-        $if param and not search_response.error:
-            $ title = []
-            $if q_param:
-                $title.append(q_param)
-            $if 'has_fulltext' in param:
-                $title.append(_('eBook'))
-
-            $if 'public_scan_b' in param:
-                $title.append(_('Classic eBook'))
-
-            $if any(header in param for header, label in facet_map):
-                <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="$_('Search facets')" width="11" height="10" style="margin-right:5px;"/><strong>
-                $for header, label in facet_map:
-                    $ counts = search_response.facet_counts[header]
-                    $for k, display, count in counts:
-                        $if k not in param.get(header, []):
-                            $continue
-
-                        $if header not in ['has_fulltext', 'public_scan_b']:
-                            $title.append(display)
-
-                        $if header == 'has_fulltext':
-                            $fulltext_names.get(k, '')
-                        $elif header == 'public_scan_b':
-                            $if display == 'true':
-                                <a href="/read" title="$_('Explore Classic eBooks')">$_("Only Classic eBooks")</a>
-                            $else:
-                                Classic eBooks hidden
-                        $elif header == 'subject_facet':
-                            <a href="/subjects/$display.replace(' ', '_')" title="$_('Explore books about %(subject)s', subject=display)" class="facetSubject">$display</a>
-                        $elif header == 'person_facet':
-                            <a href="/subjects/person:$display.replace(' ', '_')" title="$_('Explore books about %(subject)s', subject=display)" class="facetSubject">$display</a>
-                        $elif header == 'place_facet':
-                            <a href="/subjects/place:$display.replace(' ', '_')" title="$_('Explore books about %(subject)s', subject=display)" class="facetSubject">$display</a>
-                        $elif header == 'time_facet':
-                            <a href="/subjects/time:$display.replace(' ', '_')" title="$_('Explore books about %(subject)s', subject=display)" class="facetSubject">$display</a>
-                        $elif header == 'first_publish_year':
-                            <span title="$_('First published in')">$display</span>
-                        $elif header == 'language':
-                            <span title="$_('Written in')">$display</span>
-                        $elif header == 'publisher_facet':
-                            <span title="$_('Published by')">$display</span>
-                        $elif header == 'author_key':
-                            <span title="$_('Author')">$display</span>
-                        <span style="padding-right:15px;"><a href="$del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
-                </strong></span></p>
-            $var title: $_('%(title)s - search', title=', '.join(title))
-
+        <span class="selected-search-facets-container">
+            $if search_response.facet_counts:
+              $:render_template('search/work_search_selected_facets', param, search_response, q_param)
+        </span>
     </div>
 
 
 <!-- results -->
 
     $if param and not search_response.docs:
+        $if ctx.path == '/search':
+            $ path_id = 'books'
+        $else:
+            $ path_id = ctx.path.split('/')
         $ query = query_param('q')
         $# Temporarily (2020-03-26) disable automatically showing full-text
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-          <div class="red">$_("No results found.")</div>
+          <div class="red">$:_('No <strong>%(path_id)s</strong> directly matched your search', path_id=path_id)</div>
           <hr>
-          <div>
-            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
-          </div>
-          <hr>
-          <div>
-                <a href="/books/add">$_("Add a new book to Open Library?")</a>
-          </div>
         </center>
+        <div id="fulltext-search-suggestion" data-query="$query">
+            $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+        </div>
 
     $elif param and not search_response.error and len(search_response.docs):
         <div class="search-results-stats">
@@ -164,7 +97,7 @@ $if search_response.error:
     <h3>$_("BARF! Search engine ERROR!")</h3>
     <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
 $elif param and len(search_response.docs):
-    $:render_template('search/work_search_facets', facet_map, param, facet_counts=search_response.facet_counts)
+    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
 

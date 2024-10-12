@@ -1,6 +1,7 @@
 /* eslint no-console: 0 */
 import _ from 'lodash';
 import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService'
+import CONFIGS from '../configs.js';
 
 const collator = new Intl.Collator('en-US', {numeric: true})
 export const DEFAULT_EDITION_LIMIT = 200
@@ -125,30 +126,35 @@ export function make_redirect(master_key, dupe) {
 
 export function get_editions(work_key) {
     const endpoint = `${work_key}/editions.json`;
-    // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-    const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(`${url}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
+    let base = '';
+    if (CONFIGS.OL_BASE_BOOKS) {
+        base = CONFIGS.OL_BASE_BOOKS;
+    } else {
+        // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
+        base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
+    }
+    return fetch(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
 }
 
 export function get_lists(key, limit=10) {
-    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
+    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
 }
 
 export function get_bookshelves(key) {
-    return fetch(`${key}/bookshelves.json`).then(r => {
+    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/bookshelves.json`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
 }
 
 export function get_ratings(key) {
-    return fetch(`${key}/ratings.json`).then(r => {
+    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/ratings.json`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
@@ -216,7 +222,8 @@ function save_many(items, comment, action, data) {
         '42-action': action,
         '42-data': JSON.stringify(data),
     };
-    return fetch('/api/save_many', {
+
+    return fetch(`${CONFIGS.OL_BASE_SAVES}/api/save_many`, {
         method: 'POST',
         headers,
         body: JSON.stringify(items)

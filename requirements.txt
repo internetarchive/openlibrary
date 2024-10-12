@@ -5,7 +5,7 @@ beautifulsoup4==4.12.2
 DBUtils==1.4
 Deprecated==1.2.14
 eventer==0.1.1
-feedparser==6.0.10
+feedparser==6.0.11
 flup-py3==1.0.3
 Genshi==0.7.7
 git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382
@@ -21,7 +21,7 @@ mwparserfromhell==0.6.6
 nameparser==1.1.3
 Pillow==10.4.0
 psycopg2==2.9.6
-pydantic==2.1.0
+pydantic==2.4.0
 pymarc==5.1.0
 python-dateutil==2.8.2
 python-memcached==1.59

@@ -19,6 +19,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
@@ -54,6 +55,22 @@ if hasattr(config, 'plugin_worksearch'):
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+
+@public
+def get_facet_map() -> tuple[tuple[str, str]]:
+    return (
+        ('has_fulltext', _('eBook?')),
+        ('language', _('Language')),
+        ('author_key', _('Author')),
+        ('subject_facet', _('Subjects')),
+        ('first_publish_year', _('First published')),
+        ('publisher_facet', _('Publisher')),
+        ('person_facet', _('People')),
+        ('place_facet', _('Places')),
+        ('time_facet', _('Times')),
+        ('public_scan_b', _('Classic eBooks')),
+    )
 
 
 @public
@@ -301,6 +318,7 @@ def do_search(
     sort: str | None,
     page=1,
     rows=100,
+    facet=False,
     spellcheck_count=None,
 ):
     """
@@ -308,8 +326,16 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
+    # If you want work_search page html to extend default_fetched_fields:
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
         fields |= {'subject'}
 
@@ -321,6 +347,7 @@ def do_search(
         sort,
         spellcheck_count,
         fields=list(fields),
+        facet=facet,
     )
 
 
@@ -365,6 +392,7 @@ def get_doc(doc: SolrDocument):
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
         id_cita_press=doc.get('id_cita_press', []),
+        id_wikisource=doc.get('id_wikisource', []),
         editions=[
             web.storage(
                 {
@@ -375,6 +403,9 @@ def get_doc(doc: SolrDocument):
             )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
+        ratings_average=doc.get('ratings_average', None),
+        ratings_count=doc.get('ratings_count', None),
+        want_to_read_count=doc.get('want_to_read_count', None),
     )
 
 

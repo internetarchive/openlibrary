@@ -609,8 +609,33 @@ class SaveBookHelper:
             # Create a new work if so desired
             new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
             if new_work_key == "__new__" and self.work is not None:
-                self.work = self.new_work(self.edition)
-                edition_data.works = [{'key': self.work.key}]
+                new_work = self.new_work(self.edition)
+                edition_data.works = [{'key': new_work.key}]
+
+                new_work_options = formdata.get(
+                    'new_work_options',
+                    {
+                        'copy_authors': 'no',
+                        'copy_subjects': 'no',
+                    },
+                )
+
+                if (
+                    new_work_options.get('copy_authors') == 'yes'
+                    and 'authors' in self.work
+                ):
+                    new_work.authors = self.work.authors
+                if new_work_options.get('copy_subjects') == 'yes':
+                    for field in (
+                        'subjects',
+                        'subject_places',
+                        'subject_times',
+                        'subject_people',
+                    ):
+                        if field in self.work:
+                            new_work[field] = self.work[field]
+
+                self.work = new_work
                 saveutil.save(self.work)
 
             identifiers = edition_data.pop('identifiers', [])
@@ -623,7 +648,7 @@ class SaveBookHelper:
                 edition_data.pop('physical_dimensions', None)
             )
             self.edition.set_weight(edition_data.pop('weight', None))
-            self.edition.set_toc_text(edition_data.pop('table_of_contents', ''))
+            self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
 
             if edition_data.pop('translation', None) != 'yes':
                 edition_data.translation_of = None

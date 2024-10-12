@@ -1,9 +1,11 @@
 """Open Library Import API
 """
 
+from typing import Any
 from infogami.plugins.api.code import add_hook
 from infogami.infobase.client import ClientException
 
+from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
@@ -17,8 +19,9 @@ from openlibrary.plugins.upstream.utils import (
     get_abbrev_from_full_lang_name,
     LanguageMultipleMatchError,
     get_location_and_publisher,
+    safeget,
 )
-from openlibrary.utils.isbn import get_isbn_10s_and_13s
+from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 import web
 
@@ -100,6 +103,24 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
             raise DataError('unrecognized-XML-format')
     elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
+
+        # Only look to the import_item table if a record is incomplete.
+        # This is the minimum to achieve a complete record. See:
+        # https://github.com/internetarchive/openlibrary/issues/9440
+        # import_validator().validate() requires more fields.
+        minimum_complete_fields = ["title", "authors", "publish_date"]
+        is_complete = all(obj.get(field) for field in minimum_complete_fields)
+        if not is_complete:
+            isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
+            isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
+            identifier = to_isbn_13(isbn_13 or isbn_10 or "")
+
+            if not identifier:
+                identifier = get_non_isbn_asin(rec=obj)
+
+            if identifier:
+                supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
+
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
@@ -117,6 +138,39 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
+
+
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found,
+    uses select metadata to supplement empty fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'description',
+        'isbn_10',
+        'isbn_13',
+        'number_of_pages',
+        'physical_format',
+        'publish_date',
+        'publishers',
+        'title',
+        'source_records',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if field == "source_records":
+                rec[field].extend(import_item_metadata.get(field))
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
 
 
 class importapi:
@@ -137,7 +191,7 @@ class importapi:
         try:
             edition, _ = parse_data(data)
 
-        except DataError as e:
+        except (DataError, json.JSONDecodeError) as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
             return self.error('invalid-value', str(e).replace('\n', ': '))

@@ -41,11 +41,7 @@
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/page-barcodescanner.*.js",
-      "maxSize": "30KB"
-    },
-    {
-      "path": "static/build/realtime-account-validation.*.js",
+      "path": "static/build/signup.*.js",
       "maxSize": "2KB"
     },
     {
@@ -62,7 +58,7 @@
     },
     {
       "path": "static/build/search.*.js",
-      "maxSize": "1KB"
+      "maxSize": "1.2KB"
     },
     {
       "path": "static/build/tabs.*.js",
@@ -74,7 +70,8 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "25KB"
+      "maxSize": "26KB"
+
     },
     {
       "path": "static/build/page-book.css",
@@ -102,7 +99,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "27KB"
+      "maxSize": "30KB"
     }
   ]
 }

@@ -88,6 +88,13 @@ class show_bwb(app.view):
         return app.render_template("showbwb", isbn)
 
 
+class show_google_books(app.view):
+    path = "/show-records/google_books:(.*)"
+
+    def GET(self, isbn):
+        return app.render_template("showgoogle_books", isbn)
+
+
 re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
 re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 

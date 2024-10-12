@@ -14,9 +14,11 @@ import logging
 from time import time
 import math
 import infogami
+from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.i18n import gettext as _
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -40,10 +42,12 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_availability
+from openlibrary.core.fulltext import fulltext_search
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.worksearch.code import do_search
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -494,14 +498,147 @@ class batch_imports(delegate.page):
     def POST(self):
 
         user_key = delegate.context.user and delegate.context.user.key
+        import_status = (
+            "pending"
+            if user_key in _get_members_of_group("/usergroup/admin")
+            else "needs_review"
+        )
+
+        # Get the upload from web.py. See the template for the <form> used.
+        batch_result = None
+        form_data = web.input()
+        if form_data.get("batchImportFile"):
+            batch_result = batch_import(
+                form_data['batchImportFile'], import_status=import_status
+            )
+        elif form_data.get("batchImportText"):
+            batch_result = batch_import(
+                form_data['batchImportText'].encode("utf-8"),
+                import_status=import_status,
+            )
+        else:
+            add_flash_message(
+                'error',
+                'Either attach a JSONL file or copy/paste JSONL into the text area.',
+            )
+
+        return render_template("batch_import.html", batch_result=batch_result)
+
+
+class BatchImportView(delegate.page):
+    path = r'/import/batch/(\d+)'
+
+    def GET(self, batch_id):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        batch = db.select('import_batch', where='id=$batch_id', vars=locals())[0]
+        total_rows = db.query(
+            'SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id',
+            vars=locals(),
+        )[0].count
+
+        rows = db.select(
+            'import_item',
+            where='batch_id=$batch_id',
+            order=f'{sort_field} {sort_order}',
+            limit=limit,
+            offset=offset,
+            vars=locals(),
+        )
+
+        status_counts = db.query(
+            'SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status',
+            vars=locals(),
+        )
+
+        return render_template(
+            'batch_import_view.html',
+            batch=batch,
+            rows=rows,
+            total_rows=total_rows,
+            page=page,
+            limit=limit,
+            sort=sort,
+            status_counts=status_counts,
+        )
+
+
+class BatchImportApprove(delegate.page):
+    """
+    Approve `batch_id`, with a `status` of `needs_review`, for import.
+
+    Making a GET as an admin to this endpoint will change a batch's status from
+    `needs_review` to `pending`.
+    """
+
+    path = r'/import/batch/approve/(\d+)'
+
+    def GET(self, batch_id):
+
+        user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden('Permission Denied.')
 
-        # Get the upload from web.py. See the template for the <form> used.
-        form_data = web.input(batchImport={})
-        batch_result = batch_import(form_data['batchImport'].file.read())
+        db.query(
+            """
+            UPDATE import_item
+            SET status = 'pending'
+            WHERE batch_id = $1 AND status = 'needs_review';
+            """,
+            (batch_id,),
+        )
 
-        return render_template("batch_import.html", batch_result=batch_result)
+        return web.found(f"/import/batch/{batch_id}")
+
+
+class BatchImportPendingView(delegate.page):
+    """
+    Endpoint for viewing `needs_review` batch imports.
+    """
+
+    path = r"/import/batch/pending"
+
+    def GET(self):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        rows = db.query(
+            """
+            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
+            FROM import_item
+            WHERE status = 'needs_review'
+            GROUP BY batch_id;
+            """,
+            vars=locals(),
+        )
+
+        return render_template(
+            "batch_import_pending_view",
+            rows=rows,
+            page=page,
+            limit=limit,
+        )
 
 
 class isbn_lookup(delegate.page):
@@ -876,7 +1013,7 @@ api and api.add_hook('new', new)
 
 
 @public
-def changequery(query=None, **kw):
+def changequery(query=None, _path=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
     for k, v in kw.items():
@@ -889,7 +1026,7 @@ def changequery(query=None, **kw):
         k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
-    out = web.ctx.get('readable_path', web.ctx.path)
+    out = _path or web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
@@ -1064,6 +1201,54 @@ class Partials(delegate.page):
             )
             partial = {"partials": str(macro)}
 
+        elif component == 'SearchFacets':
+            data = json.loads(i.data)
+            path = data.get('path')
+            query = data.get('query', '')
+            parsed_qs = parse_qs(query.replace('?', ''))
+            param = data.get('param', {})
+
+            sort = None
+            search_response = do_search(
+                param, sort, rows=0, spellcheck_count=3, facet=True
+            )
+
+            sidebar = render_template(
+                'search/work_search_facets',
+                param,
+                facet_counts=search_response.facet_counts,
+                async_load=False,
+                path=path,
+                query=parsed_qs,
+            )
+
+            active_facets = render_template(
+                'search/work_search_selected_facets',
+                param,
+                search_response,
+                param.get('q', ''),
+                path=path,
+                query=parsed_qs,
+            )
+
+            partial = {
+                "sidebar": str(sidebar),
+                "title": active_facets.title,
+                "activeFacets": str(active_facets).strip(),
+            }
+
+        elif component == "FulltextSearchSuggestion":
+            query = i.get('data', '')
+            data = fulltext_search(query)
+            hits = data.get('hits', [])
+            if not hits['hits']:
+                macro = '<div></div>'
+            else:
+                macro = web.template.Template.globals[
+                    'macros'
+                ].FulltextSearchSuggestion(query, data)
+            partial = {"partials": str(macro)}
+
         return delegate.RawText(json.dumps(partial))
 
 
@@ -1143,6 +1328,23 @@ def setup_template_globals():
         get_cover_url,
     )
 
+    def get_supported_languages():
+        return {
+            "cs": {"code": "cs", "localized": _('Czech'), "native": "Čeština"},
+            "de": {"code": "de", "localized": _('German'), "native": "Deutsch"},
+            "en": {"code": "en", "localized": _('English'), "native": "English"},
+            "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
+            "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
+            "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
+            "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
+            "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
+            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
+            "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
+        }
+
     web.template.Template.globals.update(
         {
             'cookies': web.cookies,
@@ -1158,6 +1360,7 @@ def setup_template_globals():
             'random': random.Random(),
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
+            'get_supported_languages': get_supported_languages,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,

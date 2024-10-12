@@ -1,6 +1,7 @@
 import functools
+import os
 from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 import unicodedata
 
 import web
@@ -12,7 +13,7 @@ from babel.lists import format_list
 from collections import defaultdict
 import re
 import random
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 import datetime
 import logging
 from html.parser import HTMLParser
@@ -212,6 +213,40 @@ def render_component(
     return html
 
 
+def render_macro(name, args, **kwargs):
+    return dict(web.template.Template.globals['macros'][name](*args, **kwargs))
+
+
+@public
+def render_cached_macro(name: str, args: tuple, **kwargs):
+    from openlibrary.plugins.openlibrary.home import caching_prethread
+
+    def get_key_prefix():
+        lang = web.ctx.lang
+        key_prefix = f'{name}.{lang}'
+        if web.cookies().get('pd', False):
+            key_prefix += '.pd'
+        if web.cookies().get('sfw', ''):
+            key_prefix += '.sfw'
+        return key_prefix
+
+    five_minutes = 5 * 60
+    key_prefix = get_key_prefix()
+    mc = cache.memcache_memoize(
+        render_macro,
+        key_prefix=key_prefix,
+        timeout=five_minutes,
+        prethread=caching_prethread(),
+        hash_args=True,  # this avoids cache key length overflow
+    )
+
+    try:
+        page = mc(name, args, **kwargs)
+        return web.template.TemplateResult(page)
+    except (ValueError, TypeError) as e:
+        return '<span>Failed to render macro</span>'
+
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
@@ -355,7 +390,10 @@ def get_coverstore_url() -> str:
 
 @public
 def get_coverstore_public_url() -> str:
-    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
+    if OL_COVERSTORE_PUBLIC_URL := os.environ.get('OL_COVERSTORE_PUBLIC_URL'):
+        return OL_COVERSTORE_PUBLIC_URL.rstrip('/')
+    else:
+        return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
 def _get_changes_v1_raw(
@@ -626,57 +664,6 @@ def set_share_links(
         view_context.share_links = links
 
 
-def pad(seq: list, size: int, e=None) -> list:
-    """
-    >>> pad([1, 2], 4, 0)
-    [1, 2, 0, 0]
-    """
-    seq = seq[:]
-    while len(seq) < size:
-        seq.append(e)
-    return seq
-
-
-def parse_toc_row(line):
-    """Parse one row of table of contents.
-
-    >>> def f(text):
-    ...     d = parse_toc_row(text)
-    ...     return (d['level'], d['label'], d['title'], d['pagenum'])
-    ...
-    >>> f("* chapter 1 | Welcome to the real world! | 2")
-    (1, 'chapter 1', 'Welcome to the real world!', '2')
-    >>> f("Welcome to the real world!")
-    (0, '', 'Welcome to the real world!', '')
-    >>> f("** | Welcome to the real world! | 2")
-    (2, '', 'Welcome to the real world!', '2')
-    >>> f("|Preface | 1")
-    (0, '', 'Preface', '1')
-    >>> f("1.1 | Apple")
-    (0, '1.1', 'Apple', '')
-    """
-    RE_LEVEL = web.re_compile(r"(\**)(.*)")
-    level, text = RE_LEVEL.match(line.strip()).groups()
-
-    if "|" in text:
-        tokens = text.split("|", 2)
-        label, title, page = pad(tokens, 3, '')
-    else:
-        title = text
-        label = page = ""
-
-    return Storage(
-        level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
-    )
-
-
-def parse_toc(text: str | None) -> list[Any]:
-    """Parses each line of toc"""
-    if text is None:
-        return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
-
-
 T = TypeVar('T')
 
 
@@ -710,51 +697,54 @@ def strip_accents(s: str) -> str:
 
 
 @functools.cache
-def get_languages() -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": 1000})
-    return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
+def get_languages(limit: int = 1000) -> dict:
+    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
+    return {
+        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
+    }
+
+
+def word_prefix_match(prefix: str, text: str) -> bool:
+    # Compare to each word of `text` for more accurate matching
+    # Eg. the prefix 'greek' will match with 'ancient greek' as well as 'greek'
+    return any(piece.startswith(prefix) for piece in text.split())
 
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of:
+    Given, e.g., "English", this returns an iterator of the following:
         <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
     """
 
-    def normalize(s: str) -> str:
+    def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
+        # For each language attempt to match based on:
+        # The language's name translated into the current user's chosen language (user_lang)
+        user_lang = web.ctx.lang or 'en'
+        yield safeget(lambda: lang['name_translated'][user_lang][0])
+
+        # The language's name translated into its native name (lang_iso_code)
+        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        yield safeget(lambda: lang['name_translated'][lang_iso_code][0])
+
+        # The language's name as it was fetched from get_languages() (None)
+        yield lang['name']
+
+    def normalize_for_search(s: str) -> str:
         return strip_accents(s).lower()
 
-    prefix = normalize(prefix)
-    user_lang = web.ctx.lang or 'en'
+    prefix = normalize_for_search(prefix)
     for lang in get_languages().values():
-        user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
-        if user_lang_name and normalize(user_lang_name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=user_lang_name,
-            )
-            continue
-
-        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
-        native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
-        if native_lang_name and normalize(native_lang_name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=native_lang_name,
-            )
-            continue
-
-        if normalize(lang.name).startswith(prefix):
-            yield Storage(
-                key=lang.key,
-                code=lang.code,
-                name=lang.name,
-            )
-            continue
+        for lang_name in get_names_to_try(lang):
+            if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
+                yield Storage(
+                    key=lang.key,
+                    code=lang.code,
+                    name=lang_name,
+                )
+                break
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
@@ -1189,13 +1179,16 @@ def _get_author_config():
 
     The results are cached on the first invocation.
     Any changes to /config/author page require restarting the app.
-
     """
-    thing = web.ctx.site.get('/config/author')
-    if hasattr(thing, "identifiers"):
-        identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
-    else:
-        identifiers = {}
+    # Load the author config from the author.yml file in the author directory
+    with open(
+        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
+    ) as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
+
     return Storage(identifiers=identifiers)
 
 
@@ -1392,25 +1385,11 @@ _get_recent_changes2 = web.memoize(
 
 
 @public
-def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.get("features", []):
-        changes = _get_recent_changes2()
-    else:
-        changes = _get_recent_changes()
-
-    _changes = random.sample(changes, n) if len(changes) > n else changes
-    for i, change in enumerate(_changes):
-        _changes[i]['__body__'] = (
-            _changes[i]['__body__'].replace('<script>', '').replace('</script>', '')
-        )
-    return _changes
-
-
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.fromstring(requests.get(url).text)
+        tree = ET.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error(

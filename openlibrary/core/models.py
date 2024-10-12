@@ -8,7 +8,7 @@ from openlibrary.core.vendors import get_amazon_metadata
 import web
 import json
 import requests
-from typing import Any
+from typing import Any, TypedDict
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -219,8 +219,17 @@ class Thing(client.Thing):
         }
 
 
+class ThingReferenceDict(TypedDict):
+    key: ThingKey
+
+
 class Edition(Thing):
     """Class to represent /type/edition objects in OL."""
+
+    table_of_contents: list[dict] | list[str] | list[str | dict] | None
+    """
+    Should be a list of dict; the other types are legacy
+    """
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -1161,7 +1170,7 @@ class Tag(Thing):
 
     @classmethod
     def find(cls, tag_name, tag_type):
-        """Returns a Tag object for a given tag name and tag type."""
+        """Returns a Tag key for a given tag name and tag type."""
         q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
         match = list(web.ctx.site.things(q))
         return match[0] if match else None

@@ -1,0 +1,55 @@
+.fsi-snippet {
+  display: inline;
+  width: 60%;
+  padding: 5px;
+  margin: 0;
+  font-size: small;
+  @media (min-width: @width-breakpoint-mobile) {
+    width: 90%;
+  }
+  @media (min-width: @width-breakpoint-tablet) {
+    width: auto;
+    font-size: medium;
+  }
+
+  &__main {
+    padding: 5px;
+    margin: 0 5px;
+    line-height: 1.6em;
+
+    &__page-num a {
+      color: @dark-grey;
+      display: inline;
+      text-decoration: none;
+      font-family: @lucida_sans_serif-1;
+    }
+
+    a:link,
+    a:hover,
+    a:visited {
+      text-decoration: none;
+    }
+
+    a:link {
+      font-family: @georgia_serif-1;
+      color: @black;
+    }
+
+    a:hover {
+      color: @link-blue;
+    }
+  }
+  &__full-results {
+    border-bottom: 1px solid @lightest-grey;
+    font-size: 1em;
+    overflow: hidden;
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__quotation-mark {
+    font-size: larger;
+    display: inline;
+  }
+}

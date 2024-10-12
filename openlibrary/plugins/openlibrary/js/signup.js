@@ -1,8 +1,13 @@
 import { debounce } from './nonjquery_utils.js';
 
-export function initRealTimeValidation() {
+export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
+    const submitBtn = document.querySelector('button[name=signup]')
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+    const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
+    const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
+    const emailSuccessIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--success');
+    const usernameSuccessIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--success');
 
     // Keep the same with openlibrary/plugins/upstream/forms.py
     const VALID_EMAIL_RE = /^.*@.*\..*$/;
@@ -14,18 +19,23 @@ export function initRealTimeValidation() {
 
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
-        // Checks whether reportValidity exists for cross-browser compatibility
-        // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
-            const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
-            const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
-
-            if (numInvalidInputs === 0 && isFormattingValid) {
-                signupForm.submit();
-            }
+            signupForm.submit();
         }
         window.submitCreateAccountForm = submitCreateAccountForm
     }
+
+    // Checks whether reportValidity exists for cross-browser compatibility
+    // Includes invalid input count to account for checks not covered by reportValidity
+    $(signupForm).on('submit', function(e) {
+        e.preventDefault();
+        const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
+        const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity();
+        if (numInvalidInputs === 0 && isFormattingValid && window.grecaptcha) {
+            $(submitBtn).prop('disabled', true).text(i18nStrings['loading_text']);
+            window.grecaptcha.execute();
+        }
+    });
 
     $('#username').on('keyup', function(){
         const value = $(this).val();
@@ -60,6 +70,8 @@ export function initRealTimeValidation() {
     function validateUsername() {
         const value_username = $('#username').val();
 
+        usernameSuccessIcon.hide();
+
         if (value_username === '') {
             clearError('#username', '#usernameMessage');
             return;
@@ -75,15 +87,20 @@ export function initRealTimeValidation() {
             return;
         }
 
-        clearError('#username', '#usernameMessage');
+        usernameLoadingIcon.show();
 
         $.ajax({
             url: '/account/validate',
             data: { username: value_username },
             type: 'GET',
             success: function(errors) {
+                usernameLoadingIcon.hide();
+
                 if (errors.username) {
                     renderError('#username', '#usernameMessage', errors.username);
+                } else {
+                    clearError('#username', '#usernameMessage');
+                    usernameSuccessIcon.show();
                 }
             }
         });
@@ -91,6 +108,8 @@ export function initRealTimeValidation() {
 
     function validateEmail() {
         const value_email = $('#emailAddr').val();
+
+        emailSuccessIcon.hide();
 
         if (value_email === '') {
             clearError('#emailAddr', '#emailAddrMessage');
@@ -102,15 +121,20 @@ export function initRealTimeValidation() {
             return;
         }
 
-        clearError('#emailAddr', '#emailAddrMessage');
+        emailLoadingIcon.show();
 
         $.ajax({
             url: '/account/validate',
             data: { email: value_email },
             type: 'GET',
             success: function(errors) {
+                emailLoadingIcon.hide();
+
                 if (errors.email) {
                     renderError('#emailAddr', '#emailAddrMessage', errors.email);
+                } else {
+                    clearError('#emailAddr', '#emailAddrMessage');
+                    emailSuccessIcon.show();
                 }
             }
         });
@@ -159,4 +183,13 @@ export function initRealTimeValidation() {
             validateInput(this);
         }
     });
+}
+
+export function initLoginForm() {
+    const loginForm = $('form[name=login]');
+    const loadingText = loginForm.data('i18n')['loading_text'];
+
+    loginForm.on('submit', () => {
+        $('button[type=submit]').prop('disabled', true).text(loadingText);
+    })
 }

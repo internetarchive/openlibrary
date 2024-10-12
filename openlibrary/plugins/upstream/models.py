@@ -17,7 +17,8 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream.table_of_contents import TableOfContents
+from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author
@@ -57,9 +58,10 @@ class Edition(models.Edition):
 
     def get_authors(self):
         """Added to provide same interface for work and edition"""
+        work_authors = self.works[0].get_authors() if self.works else []
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return authors
+        return work_authors + authors
 
     def get_covers(self):
         """
@@ -102,6 +104,15 @@ class Edition(models.Edition):
             isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
+
+    def get_worldcat_url(self):
+        url = 'https://search.worldcat.org/'
+        if self.get('oclc_numbers'):
+            return f'{url}/title/{self.oclc_numbers[0]}'
+        elif self.get_isbn13():
+            # Handles both isbn13 & 10
+            return f'{url}/isbn/{self.get_isbn13()}'
+        return f'{url}/search?q={self.title}'
 
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
@@ -398,33 +409,22 @@ class Edition(models.Edition):
                 d
             )
 
-    def get_toc_text(self):
-        def format_row(r):
-            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
+    def get_toc_text(self) -> str:
+        if toc := self.get_table_of_contents():
+            return toc.to_markdown()
+        return ""
 
-        return "\n".join(format_row(r) for r in self.get_table_of_contents())
+    def get_table_of_contents(self) -> TableOfContents | None:
+        if not self.table_of_contents:
+            return None
 
-    def get_table_of_contents(self):
-        def row(r):
-            if isinstance(r, str):
-                level = 0
-                label = ""
-                title = r
-                pagenum = ""
-            else:
-                level = safeint(r.get('level', '0'), 0)
-                label = r.get('label', '')
-                title = r.get('title', '')
-                pagenum = r.get('pagenum', '')
+        return TableOfContents.from_db(self.table_of_contents)
 
-            r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
-            return r
-
-        d = [row(r) for r in self.table_of_contents]
-        return [row for row in d if any(row.values())]
-
-    def set_toc_text(self, text):
-        self.table_of_contents = parse_toc(text)
+    def set_toc_text(self, text: str | None):
+        if text:
+            self.table_of_contents = TableOfContents.from_markdown(text).to_db()
+        else:
+            self.table_of_contents = None
 
     def get_links(self):
         links1 = [

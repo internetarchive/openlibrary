@@ -132,6 +132,9 @@ class borrow(delegate.page):
 
         from openlibrary.book_providers import get_book_provider
 
+        if action == 'locate':
+            raise web.seeother(edition.get_worldcat_url())
+
         # Direct to the first web book if at least one is available.
         if (
             action in ["borrow", "read"]
@@ -746,7 +749,7 @@ def is_users_turn_to_borrow(user, edition) -> bool:
 def is_admin() -> bool:
     """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
-    return user and user.key in [
+    return user is not None and user.key in [
         m.key for m in web.ctx.site.get('/usergroup/admin').members
     ]
 

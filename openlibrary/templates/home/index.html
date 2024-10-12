@@ -22,7 +22,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
   $if not test:
     $:render_template("books/custom_carousel", key="trending", books=get_trending_books(books_only=True, since_days=0, since_hours=24, minimum=3, sort_by_count=False), title=_('Trending Books'), url="/trending/daily", test=test, load_more={"url": "/trending/hours.json?hours=24&minimum=3&sort_by_count=false", "mode": "page", "limit": 18})
 
-    $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", url="/read", sort='random.hourly')
+    $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", url="/read", sort='random.hourly', use_cache=False)
 
   $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test)
 

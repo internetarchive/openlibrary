@@ -17,7 +17,7 @@ from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
 
 
-@pytest.fixture()
+@pytest.fixture
 def data0(request):
     return {
         "/books/OL0M": {"key": "/books/OL0M", "title": "book-0"},
@@ -34,7 +34,7 @@ def data0(request):
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def data1(request):
     return {
         "/books/OL1M": {
@@ -51,7 +51,7 @@ def data1(request):
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def data9(request):
     return {
         "/authors/OL9A": {"key": "/authors/OL9A", "name": "Mark Twain"},

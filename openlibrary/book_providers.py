@@ -6,6 +6,7 @@ from urllib import parse
 
 import web
 from web import uniq
+from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
@@ -147,7 +148,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     """
     identifier_key: str | None
 
-    def get_olids(self, identifier):
+    def get_olids(self, identifier: str) -> list[str]:
         return web.ctx.site.things(
             {"type": "/type/edition", self.db_selector: identifier}
         )
@@ -157,7 +158,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         return {f"{self.db_selector}~": "*"}
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return f"identifiers.{self.identifier_key}"
 
     @property
@@ -190,14 +191,16 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
 
     def render_read_button(
         self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
-    ):
+    ) -> TemplateResult:
         return render_template(
             self.get_template_path('read_button'),
             self.get_best_identifier(ed_or_solr),
             analytics_attr,
         )
 
-    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+    def render_download_options(
+        self, edition: Edition, extra_args: list | None = None
+    ) -> TemplateResult:
         return render_template(
             self.get_template_path('download_options'),
             self.get_best_identifier(edition),
@@ -221,7 +224,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        edition: Edition | web.Storage,
     ) -> list[Acquisition]:
         if edition.providers:
             return [Acquisition.from_json(dict(p)) for p in edition.providers]
@@ -234,11 +237,11 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     identifier_key = 'ocaid'
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return self.identifier_key
 
     @property
-    def solr_key(self):
+    def solr_key(self) -> str:
         return "ia"
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
@@ -258,7 +261,9 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
 
-    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+    def render_download_options(
+        self, edition: Edition, extra_args: list | None = None
+    ) -> TemplateResult | str:
         if edition.is_access_restricted():
             return ''
 
@@ -298,6 +303,20 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
             return EbookAccess.UNCLASSIFIED
         else:
             return EbookAccess.PUBLIC
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://archive.org/details/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class LibriVoxProvider(AbstractBookProvider):
@@ -416,29 +435,46 @@ class DirectProvider(AbstractBookProvider):
     identifier_key = None
 
     @property
-    def db_selector(self):
+    def db_selector(self) -> str:
         return "providers.url"
 
     @property
-    def solr_key(self):
+    def solr_key(self) -> None:
         # TODO: Not implemented yet
         return None
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
-        # It's an edition
-        if ed_or_solr.get('providers'):
-            return [
+        """
+        Note: This will only work for solr records if the provider field was fetched
+        in the solr request. (Note: this field is populated from db)
+        """
+        if providers := ed_or_solr.get('providers', []):
+            identifiers = [
                 provider.url
                 for provider in map(Acquisition.from_json, ed_or_solr['providers'])
                 if provider.ebook_access >= EbookAccess.PRINTDISABLED
             ]
+            to_remove = set()
+            for tbp in PROVIDER_ORDER:
+                # Avoid infinite recursion.
+                if isinstance(tbp, DirectProvider):
+                    continue
+                if not tbp.get_identifiers(ed_or_solr):
+                    continue
+                for acq in tbp.get_acquisitions(ed_or_solr):
+                    to_remove.add(acq.url)
+
+            return [
+                identifier for identifier in identifiers if identifier not in to_remove
+            ]
+
         else:
             # TODO: Not implemented for search/solr yet
             return []
 
     def render_read_button(
         self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
-    ):
+    ) -> TemplateResult | str:
         acq_sorted = sorted(
             (
                 p
@@ -482,6 +518,11 @@ class DirectProvider(AbstractBookProvider):
         )
 
 
+class WikisourceProvider(AbstractBookProvider):
+    short_name = 'wikisource'
+    identifier_key = 'wikisource'
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -491,6 +532,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     StandardEbooksProvider(),
     OpenStaxProvider(),
     CitaPressProvider(),
+    WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]
@@ -558,7 +600,7 @@ ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
 prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
 
-def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
+def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
@@ -642,7 +684,7 @@ def get_best_edition(
     return best if best else (None, None)
 
 
-def get_solr_keys():
+def get_solr_keys() -> list[str]:
     return [p.solr_key for p in PROVIDER_ORDER if p.solr_key]
 
 

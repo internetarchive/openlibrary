@@ -1,13 +1,14 @@
 """Simple implementation of mock infogami site to use in testing.
 """
 
-import datetime
 import glob
 import itertools
 import json
 import re
 import pytest
 import web
+
+from datetime import datetime
 
 from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
@@ -79,7 +80,7 @@ class MockSite:
     def save(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
 
         if author:
             author = {"key": author.key}
@@ -102,7 +103,7 @@ class MockSite:
     def save_many(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:
@@ -411,7 +412,7 @@ class MockStore(dict):
         return [(doc["_key"], doc) for doc in self._query(**kw)]
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_site(request):
     """mock_site funcarg.
 

@@ -291,7 +291,30 @@ class AmazonAPI:
                 ).lower()
             ),
         }
+
+        if is_dvd(book):
+            return {}
         return book
+
+
+def is_dvd(book) -> bool:
+    """
+    If product_group or physical_format is a dvd, it will return True.
+    """
+    product_group = book['product_group']
+    physical_format = book['physical_format']
+
+    try:
+        product_group = product_group.lower()
+    except AttributeError:
+        product_group = None
+
+    try:
+        physical_format = physical_format.lower()
+    except AttributeError:
+        physical_format = None
+
+    return 'dvd' in [product_group, physical_format]
 
 
 @public
@@ -379,6 +402,30 @@ def _get_amazon_metadata(
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
         logger.exception(f"Affiliate Server: id {id_} not found")
+    return None
+
+
+def stage_bookworm_metadata(identifier: str | None) -> dict | None:
+    """
+    `stage` metadata, if found. into `import_item` via BookWorm.
+
+    :param str identifier: ISBN 10, ISBN 13, or B*ASIN. Spaces, hyphens, etc. are fine.
+    """
+    if not identifier:
+        return None
+    try:
+        r = requests.get(
+            f"http://{affiliate_server_url}/isbn/{identifier}?high_priority=true&stage_import=true"
+        )
+        r.raise_for_status()
+        if data := r.json().get('hit'):
+            return data
+        else:
+            return None
+    except requests.exceptions.ConnectionError:
+        logger.exception("Affiliate Server unreachable")
+    except requests.exceptions.HTTPError:
+        logger.exception(f"Affiliate Server: id {identifier} not found")
     return None
 
 

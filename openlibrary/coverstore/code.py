@@ -210,7 +210,7 @@ def trim_microsecond(date):
 
 
 # Number of images stored in one archive.org item
-IMAGES_PER_ITEM = 10000
+IMAGES_PER_ITEM = 10_000
 
 
 def zipview_url_from_id(coverid, size):
@@ -259,28 +259,10 @@ class cover:
         if value is None or value in config.blocked_covers:
             return notfound()
 
-        if 8_820_000 > value >= 8_000_000 and size == "L":
-            # This item is currently offline due to heavy traffic;
-            # Fix incoming in the next ~week; See:
-            # - https://webarchive.jira.com/browse/PBOX-3879
-            # - https://github.com/internetarchive/openlibrary/issues/9560
-            size = "M"
-
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(value, size)
             return web.found(url)
-
-        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
-        if 8_820_000 > value >= 8_000_000:
-            prefix = f"{size.lower()}_" if size else ""
-            pid = "%010d" % value
-            item_id = f"{prefix}covers_{pid[:4]}"
-            item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
-            item_file = f"{pid}{'-' + size.upper() if size else ''}"
-            path = f"{item_id}/{item_tar}/{item_file}.jpg"
-            protocol = web.ctx.protocol
-            return web.found(f"{protocol}://archive.org/download/{path}")
 
         d = self.get_details(value, size.lower())
         if not d:
@@ -304,7 +286,7 @@ class cover:
         try:
             from openlibrary.coverstore import archive
 
-            if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
+            if d.id >= 8_000_000 and d.uploaded:
                 return web.found(
                     archive.Cover.get_cover_url(
                         d.id, size=size, protocol=web.ctx.protocol
@@ -451,8 +433,7 @@ class query:
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
 
-        if limit > 100:
-            limit = 100
+        limit = min(limit, 100)
 
         if i.olid and ',' in i.olid:
             i.olid = i.olid.split(',')
