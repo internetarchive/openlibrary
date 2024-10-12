@@ -20,7 +20,7 @@
                             </a>
                         </div>
                         <div v-else-if="field == 'name'">
-                            <b>{{role[field]}}</b>
+                            {{role[field]}}
                         </div>
                         <div v-else>{{a[k]}}</div>
                     </div>

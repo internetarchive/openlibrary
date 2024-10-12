@@ -496,9 +496,14 @@ li.excerpt-item {
 }
 
 .field-authors {
-  td.author-author, td.author-name {
+  td.author-author {
     display: inline-block;
     padding-right: 2em;
+  }
+
+  td.author-name {
+    display: inline-block;
+    font-weight: bold;
   }
 
   thead, td.author-index, td.author-type {
