@@ -13,6 +13,7 @@ import os
 import itertools
 import datetime
 from dataclasses import dataclass, field
+from typing import Any
 
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, quote, unquote
 
@@ -262,7 +263,7 @@ class BookRecord:
         existing_ids = [a.wd_id for a in self.authors]
         self.authors.extend([a for a in authors if a.wd_id not in existing_ids])
 
-    def add_illustrators(self, illustrators: list[Author]) -> None:
+    def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
 
     def add_subjects(self, subjects: list[str]) -> None:
@@ -490,10 +491,10 @@ def scrape_wikisource_api(
                 ),
                 None,
             )
-            book = imports[key]
-            if not book:
+            if not key:
                 print(f"{page_identifier} not found in result set")
                 continue
+            book = imports[key]
             # MediaWiki's API paginates through pages, page categories, and page images separately.
             # This means that when you hit this API requesting both revision (infobox) and image data,
             # sequential paginated API responses might contain the same Wikisource book entries, but with different subsets of its properties.
@@ -506,6 +507,78 @@ def scrape_wikisource_api(
             break
         cont_url = update_url_with_params(url, data["continue"])
 
+def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]):
+
+    # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
+    if "author" in obj and "value" in obj["author"]:
+        author_id = get_wd_item_id(obj["author"]["value"])
+        if author_id not in author_map:
+            author_map[author_id] = []
+        author_map[author_id].append(book_id)
+    # If author isn't a WD object, add them as plaintext
+    elif "authorLabel" in obj and "value" in obj["authorLabel"]:
+        impt.add_authors_plaintext(
+            [format_contributor(obj["authorLabel"]["value"])]
+        )
+
+    # Illustrators
+    if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
+        impt.add_illustrators(
+            [format_contributor(obj["illustratorLabel"]["value"])]
+        )
+
+    # Publisher
+    if ("publisher" in obj and "value" in obj["publisher"]) or (
+        "publisherName" in obj and "value" in obj["publisherName"]
+    ):
+        impt.add_publishers(
+            [
+                (
+                    obj["publisherName"]["value"]
+                    if "publisherLabel" not in obj
+                    else obj["publisherLabel"]["value"]
+                )
+            ]
+        )
+
+    # Edition
+    if "editionLabel" in obj and "value" in obj["editionLabel"]:
+        impt.edition = obj["editionLabel"]["value"]
+
+    # Subject
+    if "subjectLabel" in obj and "value" in obj["subjectLabel"]:
+        impt.add_subjects([obj["subjectLabel"]["value"]])
+
+    # Date
+    if "date" in obj and "value" in obj["date"]:
+        impt.publish_date = extract_year(obj["date"]["value"])
+
+    # IA ID
+    if "iaId" in obj and "value" in obj["iaId"]:
+        impt.ia_id = obj["iaId"]["value"]
+
+    # Publish place
+    if (
+        "publicationPlaceLabel" in obj
+        and "value" in obj["publicationPlaceLabel"]
+    ):
+        impt.add_publish_place([obj["publicationPlaceLabel"]["value"]])
+
+    # OCLC
+    if "oclcLabel" in obj and "value" in obj["oclcLabel"]:
+        impt.add_oclcs([obj["oclcLabel"]["value"]])
+
+    # LCCN
+    if "lccn" in obj and "value" in obj["lccn"]:
+        impt.lccn = obj["lccn"]["value"]
+
+    # ISBN10
+    if "isbn10" in obj and "value" in obj["isbn10"]:
+        impt.isbn10 = obj["isbn10"]["value"]
+
+    # ISBN13
+    if "isbn13" in obj and "value" in obj["isbn13"]:
+        impt.isbn13 = obj["isbn13"]["value"]
 
 def scrape_wikidata_api(
     url: str,
@@ -644,76 +717,7 @@ WHERE {
             impt.title = title
             ids_for_wikisource_api.append(impt.wikisource_page_title)
 
-            # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
-            if "author" in obj and "value" in obj["author"]:
-                author_id = get_wd_item_id(obj["author"]["value"])
-                if author_id not in author_map:
-                    author_map[author_id] = []
-                author_map[author_id].append(book_id)
-            # If author isn't a WD object, add them as plaintext
-            elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-                impt.add_authors_plaintext(
-                    [format_contributor(obj["authorLabel"]["value"])]
-                )
-
-            # Illustrators
-            if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
-                impt.add_illustrators(
-                    [format_contributor(obj["illustratorLabel"]["value"])]
-                )
-
-            # Publisher
-            if ("publisher" in obj and "value" in obj["publisher"]) or (
-                "publisherName" in obj and "value" in obj["publisherName"]
-            ):
-                impt.add_publishers(
-                    [
-                        (
-                            obj["publisherName"]["value"]
-                            if "publisherLabel" not in obj
-                            else obj["publisherLabel"]["value"]
-                        )
-                    ]
-                )
-
-            # Edition
-            if "editionLabel" in obj and "value" in obj["editionLabel"]:
-                impt.edition = obj["editionLabel"]["value"]
-
-            # Subject
-            if "subjectLabel" in obj and "value" in obj["subjectLabel"]:
-                impt.add_subjects([obj["subjectLabel"]["value"]])
-
-            # Date
-            if "date" in obj and "value" in obj["date"]:
-                impt.publish_date = extract_year(obj["date"]["value"])
-
-            # IA ID
-            if "iaId" in obj and "value" in obj["iaId"]:
-                impt.ia_id = obj["iaId"]["value"]
-
-            # Publish place
-            if (
-                "publicationPlaceLabel" in obj
-                and "value" in obj["publicationPlaceLabel"]
-            ):
-                impt.add_publish_place([obj["publicationPlaceLabel"]["value"]])
-
-            # OCLC
-            if "oclcLabel" in obj and "value" in obj["oclcLabel"]:
-                impt.add_oclcs([obj["oclcLabel"]["value"]])
-
-            # LCCN
-            if "lccn" in obj and "value" in obj["lccn"]:
-                impt.lccn = obj["lccn"]["value"]
-
-            # ISBN10
-            if "isbn10" in obj and "value" in obj["isbn10"]:
-                impt.isbn10 = obj["isbn10"]["value"]
-
-            # ISBN13
-            if "isbn13" in obj and "value" in obj["isbn13"]:
-                impt.isbn13 = obj["isbn13"]["value"]
+            update_import_with_wikidata_api_response(impt, book_id, obj, author_map)
 
         # For some reason, querying 50 titles can sometimes bring back more than 50 results,
         # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
