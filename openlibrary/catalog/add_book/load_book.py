@@ -161,10 +161,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         queries.insert(0, {"type": "/type/author", "wd_id~": author["wd_id"]})
     if "viaf" in author:
         queries.insert(0, {"type": "/type/author", "viaf~": author["viaf"]})
-    if "ol_id" in author:
+    if "ol_id" in author: # this can't be right, id should already exist if author exists, but can't find that in author.type
         queries.insert(0, {"type": "/type/author", "ol_id~": author["ol_id"]})
+    print(queries)
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
+            print("qqqqq", query)
             break
 
     authors = [web.ctx.site.get(k) for k in reply]
