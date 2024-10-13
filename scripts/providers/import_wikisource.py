@@ -351,7 +351,7 @@ class BookRecord:
             output["isbn_10"] = self.isbn10
         if self.isbn13:
             output["isbn_13"] = self.isbn13
-        
+
         return output
 
 
@@ -372,7 +372,9 @@ def fetch_until_successful(url: str) -> dict:
     )
 
 
-def update_record_with_wikisource_metadata(book: BookRecord, book_id: str, new_data: dict, author_map: dict[str, list[str]]):
+def update_record_with_wikisource_metadata(
+    book: BookRecord, book_id: str, new_data: dict, author_map: dict[str, list[str]]
+):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
@@ -412,7 +414,10 @@ def update_record_with_wikisource_metadata(book: BookRecord, book_id: str, new_d
         except ValueError:
             pass
 
-    if not [b for b in author_map if book_id in author_map[b]] and not book.authors_plaintext:
+    if (
+        not [b for b in author_map if book_id in author_map[b]]
+        and not book.authors_plaintext
+    ):
         try:
             author = template.get("author").value.strip()
             if author != "":
@@ -457,7 +462,12 @@ def print_records(records: list[BookRecord]):
         print(json.dumps(r))
 
 
-def scrape_wikisource_api(url: str, cfg: LangConfig, imports: dict[str, BookRecord], author_map: dict[str, list[str]]):
+def scrape_wikisource_api(
+    url: str,
+    cfg: LangConfig,
+    imports: dict[str, BookRecord],
+    author_map: dict[str, list[str]],
+):
     cont_url = url
 
     # Continue until you've reached the end of paginated results
@@ -501,7 +511,7 @@ def scrape_wikidata_api(
     url: str,
     cfg: LangConfig,
     imports: dict[str, BookRecord],
-    author_map: dict[str, list[str]]
+    author_map: dict[str, list[str]],
 ):
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
     # The "while true" here is simply to retry requests that fail due to API limits.
@@ -642,11 +652,15 @@ WHERE {
                 author_map[author_id].append(book_id)
             # If author isn't a WD object, add them as plaintext
             elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-                impt.add_authors_plaintext([format_contributor(obj["authorLabel"]["value"])])
+                impt.add_authors_plaintext(
+                    [format_contributor(obj["authorLabel"]["value"])]
+                )
 
             # Illustrators
             if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
-                impt.add_illustrators([format_contributor(obj["illustratorLabel"]["value"])])
+                impt.add_illustrators(
+                    [format_contributor(obj["illustratorLabel"]["value"])]
+                )
 
             # Publisher
             if ("publisher" in obj and "value" in obj["publisher"]) or (
@@ -679,7 +693,10 @@ WHERE {
                 impt.ia_id = obj["iaId"]["value"]
 
             # Publish place
-            if "publicationPlaceLabel" in obj and "value" in obj["publicationPlaceLabel"]:
+            if (
+                "publicationPlaceLabel" in obj
+                and "value" in obj["publicationPlaceLabel"]
+            ):
                 impt.add_publish_place([obj["publicationPlaceLabel"]["value"]])
 
             # OCLC
@@ -777,7 +794,9 @@ WHERE {
             contributor = Author(wd_id=contributor_id)
 
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
-                contributor.friendly_name = format_contributor(obj["contributorLabel"]["value"])
+                contributor.friendly_name = format_contributor(
+                    obj["contributorLabel"]["value"]
+                )
 
             if "olId" in obj and "value" in obj["olId"]:
                 contributor.ol_id = obj["olId"]["value"]
@@ -789,7 +808,6 @@ WHERE {
                 book_ids = map[contributor_id]
                 for book_id in book_ids:
                     imports[book_id].add_authors([contributor])
-
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
