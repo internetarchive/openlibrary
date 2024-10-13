@@ -322,7 +322,7 @@ class BookRecord:
             output["cover"] = self.cover
         if publishers:
             output["publishers"] = publishers
-        
+
         return output
 
 
