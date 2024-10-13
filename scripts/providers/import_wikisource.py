@@ -306,6 +306,7 @@ class BookRecord:
             "source_records": self.source_records,
             "identifiers": {"wikisource": [self.wikisource_id]},
             "languages": [self.langconfig.ol_langcode],
+            "ia_id": self.source_records[0],
         }
         if self.publish_date is not None:
             output["publish_date"] = self.publish_date
@@ -319,8 +320,9 @@ class BookRecord:
             output["subjects"] = self.subjects
         if self.cover is not None:
             output["cover"] = self.cover
-        if self.publishers:
+        if publishers:
             output["publishers"] = publishers
+        
         return output
 
 
@@ -412,7 +414,7 @@ def update_record_with_wikisource_metadata(book: BookRecord, new_data: dict):
 
 def print_records(records: list[BookRecord]):
     for rec in records:
-        r = {"ia_id": rec.source_records[0], "data": rec.to_dict()}
+        r = rec.to_dict()
         print(json.dumps(r))
 
 
