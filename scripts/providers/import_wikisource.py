@@ -507,7 +507,10 @@ def scrape_wikisource_api(
             break
         cont_url = update_url_with_params(url, data["continue"])
 
-def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]):
+
+def update_import_with_wikidata_api_response(
+    impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]
+):
 
     # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
     if "author" in obj and "value" in obj["author"]:
@@ -517,15 +520,11 @@ def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj
         author_map[author_id].append(book_id)
     # If author isn't a WD object, add them as plaintext
     elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-        impt.add_authors_plaintext(
-            [format_contributor(obj["authorLabel"]["value"])]
-        )
+        impt.add_authors_plaintext([format_contributor(obj["authorLabel"]["value"])])
 
     # Illustrators
     if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
-        impt.add_illustrators(
-            [format_contributor(obj["illustratorLabel"]["value"])]
-        )
+        impt.add_illustrators([format_contributor(obj["illustratorLabel"]["value"])])
 
     # Publisher
     if ("publisher" in obj and "value" in obj["publisher"]) or (
@@ -558,10 +557,7 @@ def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj
         impt.ia_id = obj["iaId"]["value"]
 
     # Publish place
-    if (
-        "publicationPlaceLabel" in obj
-        and "value" in obj["publicationPlaceLabel"]
-    ):
+    if "publicationPlaceLabel" in obj and "value" in obj["publicationPlaceLabel"]:
         impt.add_publish_place([obj["publicationPlaceLabel"]["value"]])
 
     # OCLC
@@ -579,6 +575,7 @@ def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj
     # ISBN13
     if "isbn13" in obj and "value" in obj["isbn13"]:
         impt.isbn13 = obj["isbn13"]["value"]
+
 
 def scrape_wikidata_api(
     url: str,
