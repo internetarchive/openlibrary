@@ -301,7 +301,11 @@ class BookRecord:
                             if author.viaf_id is not None
                             else {}
                         ),
-                        **({"wikidata": author.wikidata} if author.wikidata is not None else {}),
+                        **(
+                            {"wikidata": author.wikidata}
+                            if author.wikidata is not None
+                            else {}
+                        ),
                     }
                     for author in self.authors
                 ]
