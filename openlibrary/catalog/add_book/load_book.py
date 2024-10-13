@@ -148,7 +148,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     name = author["name"].replace("*", r"\*")
     queries = [
         {"type": "/type/author", "name~": name},
-        {"type": "/type/author", "name~": name},
         {"type": "/type/author", "alternate_names~": name},
         {
             "type": "/type/author",
@@ -157,16 +156,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
-    if "wd_id" in author:
-        queries.insert(0, {"type": "/type/author", "wd_id~": author["wd_id"]})
-    if "viaf" in author:
-        queries.insert(0, {"type": "/type/author", "viaf~": author["viaf"]})
-    if (
-        "ol_id" in author
-    ):  # this can't be right, id should already exist if author exists, but can't find that in author.type
-        queries.insert(
-            0, {"type": "/type/author", "key~": "/authors/" + author["ol_id"]}
-        )
+    if wikidata_id := author.get("wikidata"):
+        queries.insert(0, {"type": "/type/author", "remote_ids.wikidata~": wikidata_id})
+    if viaf := author.get("viaf"):
+        queries.insert(0, {"type": "/type/author", "remote_ids.viaf~": viaf})
+    if ol_id := author.get("ol_id"):
+        queries.insert(0, {"type": "/type/author", "key~": "/authors/" + ol_id})
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
             break
@@ -261,6 +256,11 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':
         if f in author:
             a[f] = author[f]
+    for f in 'viaf', 'wikidata':
+        if f in author:
+            if 'remote_ids' not in a:
+                a['remote_ids'] = {}
+            a['remote_ids'][f] = author[f]
     return a
 
 

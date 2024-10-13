@@ -220,7 +220,7 @@ def format_contributor(raw_name: str) -> str:
 
 @dataclass
 class Author:
-    wd_id: str
+    wikidata: str
     friendly_name: str | None = None
     ol_id: str | None = None
     viaf_id: str | None = None
@@ -260,8 +260,8 @@ class BookRecord:
         self.authors_plaintext = uniq(self.authors_plaintext + authors)
 
     def add_authors(self, authors: list[Author]) -> None:
-        existing_ids = [a.wd_id for a in self.authors]
-        self.authors.extend([a for a in authors if a.wd_id not in existing_ids])
+        existing_ids = [a.wikidata for a in self.authors]
+        self.authors.extend([a for a in authors if a.wikidata not in existing_ids])
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
@@ -301,7 +301,7 @@ class BookRecord:
                             if author.viaf_id is not None
                             else {}
                         ),
-                        **({"wd_id": author.wd_id} if author.wd_id is not None else {}),
+                        **({"wikidata": author.wikidata} if author.wikidata is not None else {}),
                     }
                     for author in self.authors
                 ]
@@ -792,7 +792,7 @@ WHERE {
 
         for obj in results:
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
-            contributor = Author(wd_id=contributor_id)
+            contributor = Author(wikidata=contributor_id)
 
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
                 contributor.friendly_name = format_contributor(

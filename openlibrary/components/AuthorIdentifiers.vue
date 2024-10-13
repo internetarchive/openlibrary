@@ -35,6 +35,7 @@ const identifierPatterns  = {
     lc_naf: /^n[bors]?[0-9]+$/,
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
+    viaf: /^[0-9]{8,11}$/
 }
 export default {
     // Props are for external options; if a subelement of this is modified,

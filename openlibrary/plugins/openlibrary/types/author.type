@@ -172,26 +172,6 @@
             },
             "name": "links"
         },
-        {
-            "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": true,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "viaf"
-        },
-        {
-            "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": true,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "wd_id"
-        }
     ],
     "key": "/type/author",
     "type": {
