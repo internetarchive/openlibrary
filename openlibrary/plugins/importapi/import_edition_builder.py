@@ -100,9 +100,12 @@ class import_edition_builder:
             self.edition_dict[key] = [val]
 
     def add_author(self, key, val):
-        # We don't know birth_date or death_date.
-        # Should name and personal_name be the same value?
-        author_dict = {'personal_name': val, 'name': val, 'entity_type': 'person'}
+        if isinstance(val, dict):
+            author_dict = val
+            if "name" in author_dict:
+                author_dict['personal_name'] = author_dict['name']
+        else:
+            author_dict = {'personal_name': val, 'name': val, 'entity_type': 'person'}
         self.add_list('authors', author_dict)
 
     def add_illustrator(self, key, val):
