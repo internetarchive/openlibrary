@@ -180,16 +180,6 @@
             "type": {
                 "key": "/type/property"
             },
-            "name": "ol_id"
-        },
-        {
-            "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": true,
-            "type": {
-                "key": "/type/property"
-            },
             "name": "viaf"
         },
         {
