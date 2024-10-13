@@ -104,9 +104,10 @@ class import_edition_builder:
             author_dict = val
             if "name" in author_dict:
                 author_dict['personal_name'] = author_dict['name']
+            self.add_list('authors', author_dict)
         else:
-            author_dict = {'personal_name': val, 'name': val, 'entity_type': 'person'}
-        self.add_list('authors', author_dict)
+            self.add_list('authors', {'personal_name': val, 'name': val, 'entity_type': 'person'})
+        
 
     def add_illustrator(self, key, val):
         self.add_list('contributions', val + ' (Illustrator)')
