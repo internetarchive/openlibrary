@@ -142,7 +142,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             seen.add(obj['key'])
         return obj
 
-    # Try for open library ID, then VIAF, then Wikidata ID. 
+    # Try for open library ID, then VIAF, then Wikidata ID.
     # If not found, try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
     # then last name with identical birth and death dates (that are not themselves `None` or '').
     name = author["name"].replace("*", r"\*")
