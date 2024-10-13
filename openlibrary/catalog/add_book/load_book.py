@@ -142,10 +142,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             seen.add(obj['key'])
         return obj
 
-    # Try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
+    # Try for open library ID, then VIAF, then Wikidata ID. 
+    # If not found, try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
     # then last name with identical birth and death dates (that are not themselves `None` or '').
     name = author["name"].replace("*", r"\*")
     queries = [
+        {"type": "/type/author", "name~": name},
         {"type": "/type/author", "name~": name},
         {"type": "/type/author", "alternate_names~": name},
         {
@@ -155,6 +157,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
+    if "wd_id" in author:
+        queries.insert(0, {"type": "/type/author", "wd_id~": author["wd_id"]})
+    if "viaf" in author:
+        queries.insert(0, {"type": "/type/author", "viaf~": author["viaf"]})
+    if "ol_id" in author:
+        queries.insert(0, {"type": "/type/author", "ol_id~": author["ol_id"]})
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
             break
