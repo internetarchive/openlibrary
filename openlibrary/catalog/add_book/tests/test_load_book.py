@@ -173,7 +173,7 @@ class TestImportAuthor:
 
     def test_second_match_strong_identifier(self, mock_site):
         """
-        Next highest priority match is any strong identifier, such as OL ID, VIAF, Goodreads ID, etc.
+        Next highest priority match is any other strong identifier, such as VIAF, Goodreads ID, Amazon ID, etc.
         """
         self.add_three_existing_authors(mock_site)
 
