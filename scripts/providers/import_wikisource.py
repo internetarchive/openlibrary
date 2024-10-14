@@ -222,7 +222,7 @@ def format_contributor(raw_name: str) -> str:
 class Author:
     friendly_name: str | None = None
     ol_id: str | None = None
-    remote_ids: dict[str, str] | None = None
+    remote_ids: dict[str, str] = field(default_factory=dict[str, str])
 
 
 @dataclass
