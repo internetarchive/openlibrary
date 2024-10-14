@@ -260,7 +260,9 @@ class BookRecord:
 
     def add_authors(self, authors: list[Author]) -> None:
         existing_ids = [a.remote_ids["wikidata"] for a in self.authors]
-        self.authors.extend([a for a in authors if a.remote_ids["wikidata"] not in existing_ids])
+        self.authors.extend(
+            [a for a in authors if a.remote_ids["wikidata"] not in existing_ids]
+        )
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
@@ -823,7 +825,22 @@ WHERE {
                 contributor.ol_id = obj["olId"]["value"]
 
             # Couldn't find inventaire, youtube
-            for id in ["viaf", "bookbrainz", "musicbrainz", "goodreads", "isni", "imdb", "lc_naf", "librarything", "librivox", "project_gutenberg", "opac_sbn", "amazon", "storygraph", "youtube"]:
+            for id in [
+                "viaf",
+                "bookbrainz",
+                "musicbrainz",
+                "goodreads",
+                "isni",
+                "imdb",
+                "lc_naf",
+                "librarything",
+                "librivox",
+                "project_gutenberg",
+                "opac_sbn",
+                "amazon",
+                "storygraph",
+                "youtube",
+            ]:
                 if id in obj and "value" in obj[id]:
                     contributor.remote_ids[id] = obj[id]["value"]
 
