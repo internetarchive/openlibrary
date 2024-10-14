@@ -824,7 +824,7 @@ WHERE {
             if "olId" in obj and "value" in obj["olId"]:
                 contributor.ol_id = obj["olId"]["value"]
 
-            # Couldn't find inventaire, youtube
+            # Couldn't find inventaire
             for id in [
                 "viaf",
                 "bookbrainz",
