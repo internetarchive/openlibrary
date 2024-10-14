@@ -254,7 +254,15 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
             new['death_date'] = author['death_date']
         return new
     a = {'type': {'key': '/type/author'}}
-    for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date', 'remote_ids':
+    for f in (
+        'name',
+        'title',
+        'personal_name',
+        'birth_date',
+        'death_date',
+        'date',
+        'remote_ids',
+    ):
         if f in author:
             a[f] = author[f]
     return a
