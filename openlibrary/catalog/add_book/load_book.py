@@ -156,8 +156,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
-    if wikidata_id := author.get("wikidata"):
-        queries.insert(0, {"type": "/type/author", "remote_ids.wikidata~": wikidata_id})
     if remote_ids := author.get("remote_ids"):
         for id in remote_ids:
             queries.insert(
