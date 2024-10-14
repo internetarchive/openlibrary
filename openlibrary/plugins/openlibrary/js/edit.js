@@ -371,8 +371,22 @@ export function initSubjectsAutocomplete() {
         );
     });
 
+    getJqueryElements('.csv-autocomplete--awards').forEach(jqueryElement => {
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_csv_autocomplete(
+            'textarea',
+            {
+                endpoint: `/subjects_autocomplete?work_id=${dataConfig.work_id}`,
+                addnew: false,
+            },
+            {
+                formatItem: render_subject_autocomplete_item,
+            }
+        );
+    });
+
     /* Resize textarea to fit on input */
-    $('.csv-autocomplete--subjects textarea').on('input', function () {
+    $('.csv-autocomplete--subjects textarea, .csv-autocomplete--awards textarea').on('input', function () {
         this.style.height = 'auto';
         this.style.height = `${this.scrollHeight + 5}px`;
     });

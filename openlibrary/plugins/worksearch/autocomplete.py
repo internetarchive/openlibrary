@@ -154,6 +154,14 @@ class subjects_autocomplete(autocomplete):
         return super().direct_get(fq=fq)
 
 
+class awards_autocomplete(autocomplete):
+    path = "/awards_autocomplete"
+
+    def GET(self):
+        i = web.input(work_id="")
+        pass
+
+
 def setup():
     """Do required setup."""
     pass
