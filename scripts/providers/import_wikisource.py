@@ -220,10 +220,9 @@ def format_contributor(raw_name: str) -> str:
 
 @dataclass
 class Author:
-    wikidata: str
     friendly_name: str | None = None
     ol_id: str | None = None
-    viaf_id: str | None = None
+    remote_ids: dict[str, str] | None = None
 
 
 @dataclass
@@ -260,8 +259,8 @@ class BookRecord:
         self.authors_plaintext = uniq(self.authors_plaintext + authors)
 
     def add_authors(self, authors: list[Author]) -> None:
-        existing_ids = [a.wikidata for a in self.authors]
-        self.authors.extend([a for a in authors if a.wikidata not in existing_ids])
+        existing_ids = [a.remote_ids["wikidata"] for a in self.authors]
+        self.authors.extend([a for a in authors if a.remote_ids["wikidata"] not in existing_ids])
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
@@ -295,17 +294,8 @@ class BookRecord:
                 [
                     {
                         "name": author.friendly_name,
+                        "remote_ids": author.remote_ids,
                         **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
-                        **(
-                            {"viaf": author.viaf_id}
-                            if author.viaf_id is not None
-                            else {}
-                        ),
-                        **(
-                            {"wikidata": author.wikidata}
-                            if author.wikidata is not None
-                            else {}
-                        ),
                     }
                     for author in self.authors
                 ]
@@ -767,13 +757,39 @@ def fix_contributor_data(
   ?contributor
   ?contributorLabel
   ?olId
-  ?viafId
+  ?viaf
+  ?bookbrainz
+  ?musicbrainz
+  ?goodreads
+  ?isni
+  ?imdb
+  ?lc_naf
+  ?librarything
+  ?librivox
+  ?project_gutenberg
+  ?opac_sbn
+  ?amazon
+  ?storygraph
+  ?youtube
 WHERE {
   VALUES ?contributor {'''
             + ''.join([f"wd:{id}\n    " for id in batch])
             + '''}
   OPTIONAL { ?contributor wdt:P648 ?olId. }
-  OPTIONAL { ?contributor wdt:P214 ?viafId. }
+  OPTIONAL { ?contributor wdt:P214 ?viaf. }
+  OPTIONAL { ?contributor wdt:P2607 ?bookbrainz. }
+  OPTIONAL { ?contributor wdt:P434 ?musicbrainz. }
+  OPTIONAL { ?contributor wdt:P2963 ?goodreads. }
+  OPTIONAL { ?contributor wdt:P213 ?isni. }
+  OPTIONAL { ?contributor wdt:P345 ?imdb. }
+  OPTIONAL { ?contributor wdt:P244 ?lc_naf. }
+  OPTIONAL { ?contributor wdt:P7400 ?librarything. }
+  OPTIONAL { ?contributor wdt:P1899 ?librivox. }
+  OPTIONAL { ?contributor wdt:P1938 ?project_gutenberg. }
+  OPTIONAL { ?contributor wdt:P396 ?opac_sbn. }
+  OPTIONAL { ?contributor wdt:P4862 ?amazon. }
+  OPTIONAL { ?contributor wdt:P12430 ?storygraph. }
+  OPTIONAL { ?contributor wdt:P2397 ?youtube. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
             + cfg.langcode
             + '''". }
@@ -796,7 +812,7 @@ WHERE {
 
         for obj in results:
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
-            contributor = Author(wikidata=contributor_id)
+            contributor = Author(remote_ids={"wikidata": contributor_id})
 
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
                 contributor.friendly_name = format_contributor(
@@ -806,8 +822,10 @@ WHERE {
             if "olId" in obj and "value" in obj["olId"]:
                 contributor.ol_id = obj["olId"]["value"]
 
-            if "viafId" in obj and "value" in obj["viafId"]:
-                contributor.viaf_id = obj["viafId"]["value"]
+            # Couldn't find inventaire, youtube
+            for id in ["viaf", "bookbrainz", "musicbrainz", "goodreads", "isni", "imdb", "lc_naf", "librarything", "librivox", "project_gutenberg", "opac_sbn", "amazon", "storygraph", "youtube"]:
+                if id in obj and "value" in obj[id]:
+                    contributor.remote_ids[id] = obj[id]["value"]
 
             if contributor_id in map:
                 book_ids = map[contributor_id]

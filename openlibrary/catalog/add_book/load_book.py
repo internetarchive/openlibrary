@@ -142,7 +142,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             seen.add(obj['key'])
         return obj
 
-    # Try for open library ID, then VIAF, then Wikidata ID.
+    # Try for open library ID, then other external identifiers (wikidata, bookbrainz, etc).
     # If not found, try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
     # then last name with identical birth and death dates (that are not themselves `None` or '').
     name = author["name"].replace("*", r"\*")
@@ -158,8 +158,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     ]
     if wikidata_id := author.get("wikidata"):
         queries.insert(0, {"type": "/type/author", "remote_ids.wikidata~": wikidata_id})
-    if viaf := author.get("viaf"):
-        queries.insert(0, {"type": "/type/author", "remote_ids.viaf~": viaf})
+        if remote_ids := author.get("remote_ids"):
+            for id in remote_ids:
+                queries.insert(0, {"type": "/type/author", f"remote_ids.{id}~": remote_ids[id]})
     if ol_id := author.get("ol_id"):
         queries.insert(0, {"type": "/type/author", "key~": "/authors/" + ol_id})
     for query in queries:
@@ -256,11 +257,6 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date', 'remote_ids':
         if f in author:
             a[f] = author[f]
-    for f in 'viaf', 'wikidata':
-        if f in author:
-            if 'remote_ids' not in a:
-                a['remote_ids'] = {}
-            a['remote_ids'][f] = author[f]
     return a
 
 

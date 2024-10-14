@@ -29,13 +29,24 @@
 </template>
 
 <script>
+const uuidV4Validator = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/
+const genericNumericValidator = /^[0-9]+$/
 const identifierPatterns  = {
     wikidata: /^Q[1-9]\d*$/i,
     isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
     lc_naf: /^n[bors]?[0-9]+$/,
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
-    viaf: /^[0-9]+$/
+    viaf: genericNumericValidator,
+    bookbrainz: uuidV4Validator,
+    musicbrainz: uuidV4Validator,
+    imdb: /^\w{2}\d+$/,
+    goodreads: genericNumericValidator,
+    librarything: /^\S+$/,
+    librivox: genericNumericValidator,
+    project_gutenberg: /^[1-9]\d{0,4}$/,
+    opac_sbn: /^\D{2}[A-Z0-3]V\d{6}$/,
+    storygraph: uuidV4Validator
 }
 export default {
     // Props are for external options; if a subelement of this is modified,
