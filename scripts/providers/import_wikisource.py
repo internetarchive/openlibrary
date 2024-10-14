@@ -221,7 +221,7 @@ def format_contributor(raw_name: str) -> str:
 @dataclass
 class Author:
     friendly_name: str | None = None
-    ol_id: str | None = None
+    key: str | None = None
     remote_ids: dict[str, str] = field(default_factory=dict[str, str])
 
 
@@ -297,7 +297,7 @@ class BookRecord:
                     {
                         "name": author.friendly_name,
                         "remote_ids": author.remote_ids,
-                        **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
+                        **({"key": author.key} if author.key is not None else {}),
                     }
                     for author in self.authors
                 ]
@@ -822,7 +822,7 @@ WHERE {
                 )
 
             if "olId" in obj and "value" in obj["olId"]:
-                contributor.ol_id = obj["olId"]["value"]
+                contributor.key = "/authors/" + obj["olId"]["value"]
 
             # Couldn't find inventaire
             for id in [

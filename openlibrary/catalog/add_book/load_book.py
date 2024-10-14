@@ -161,8 +161,8 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             queries.insert(
                 0, {"type": "/type/author", f"remote_ids.{id}~": remote_ids[id]}
             )
-    if ol_id := author.get("ol_id"):
-        queries.insert(0, {"type": "/type/author", "key~": "/authors/" + ol_id})
+    if key := author.get("key"):
+        queries.insert(0, {"type": "/type/author", "key~": key})
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
             break
