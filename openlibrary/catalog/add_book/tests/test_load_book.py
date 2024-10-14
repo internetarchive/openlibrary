@@ -84,7 +84,7 @@ class TestImportAuthor:
                 "name": f"John Smith {num}",
                 "key": f"/authors/OL{num}A",
                 "type": {"key": "/type/author"},
-                "viaf": str(num)
+                "viaf": str(num),
             }
             mock_site.save(existing_author)
 
@@ -148,15 +148,15 @@ class TestImportAuthor:
             "name": "William H. Brewer",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
-            "remote_ids": {"viaf": "12345678"}
-        } 
+            "remote_ids": {"viaf": "12345678"},
+        }
 
         # Another author with VIAF
         author_different_key = {
             "name": "William Brewer",
             "key": "/authors/OL4A",
             "type": {"key": "/type/author"},
-            "remote_ids": {"viaf": "87654321"}
+            "remote_ids": {"viaf": "87654321"},
         }
 
         mock_site.save(author)
@@ -167,7 +167,7 @@ class TestImportAuthor:
         searched_author = {
             "name": "William H. Brewer",
             "key": "/authors/OL4A",
-            "remote_ids": {"viaf": "12345678"}
+            "remote_ids": {"viaf": "12345678"},
         }
         found = import_author(searched_author)
         assert found.key == author_different_key["key"]
@@ -183,25 +183,22 @@ class TestImportAuthor:
             "name": "William H. Brewer",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
-            "remote_ids": {"viaf": "12345678"}
-        } 
+            "remote_ids": {"viaf": "12345678"},
+        }
 
         # Another author with VIAF
         author_different_viaf = {
             "name": "William Brewer",
             "key": "/authors/OL4A",
             "type": {"key": "/type/author"},
-            "remote_ids": {"viaf": "87654321"}
+            "remote_ids": {"viaf": "87654321"},
         }
 
         mock_site.save(author)
         mock_site.save(author_different_viaf)
 
         # Look for exact match on VIAF, regardless of name field.
-        searched_author = {
-            "name": "William Brewer",
-            "remote_ids": {"viaf": "12345678"}
-        }
+        searched_author = {"name": "William Brewer", "remote_ids": {"viaf": "12345678"}}
         found = import_author(searched_author)
         assert found.key == author["key"]
 
