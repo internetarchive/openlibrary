@@ -84,7 +84,6 @@ class TestImportAuthor:
                 "name": f"John Smith {num}",
                 "key": f"/authors/OL{num}A",
                 "type": {"key": "/type/author"},
-                "viaf": str(num),
             }
             mock_site.save(existing_author)
 
