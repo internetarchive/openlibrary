@@ -30,7 +30,7 @@
 
 <script>
 const uuidV4Validator = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/
-const genericNumericValidator = /^[0-9]+$/
+const genericNumericValidator = /^[1-9]\d*$/
 const identifierPatterns  = {
     wikidata: /^Q[1-9]\d*$/i,
     isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
