@@ -44,7 +44,7 @@ const identifierPatterns  = {
     goodreads: genericNumericValidator,
     librarything: /^\S+$/,
     librivox: genericNumericValidator,
-    project_gutenberg: /^[1-9]\d{0,4}$/,
+    project_gutenberg: genericNumericValidator,
     opac_sbn: /^\D{2}[A-Z0-3]V\d{6}$/,
     storygraph: uuidV4Validator
 }
