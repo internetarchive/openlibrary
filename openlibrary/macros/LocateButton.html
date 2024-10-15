@@ -1,0 +1,9 @@
+$def with(edition_key)
+
+$ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or '')
+
+<a class="cta-btn cta-btn--available cta-btn--w-icon" href="$locateUrl"
+  data-ol-link-track="CTACLICK|Locate">
+  <span class="btn-icon map"></span>
+  <span class="btn-label">Locate</span>
+</a>
