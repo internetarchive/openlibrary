@@ -46,7 +46,7 @@ const identifierPatterns  = {
     librivox: genericNumericValidator,
     project_gutenberg: genericNumericValidator,
     opac_sbn: /^\D{2}[A-Z0-3]V\d{6}$/,
-    storygraph: uuidV4Validator
+    storygraph: uuidV4Validator,
 }
 export default {
     // Props are for external options; if a subelement of this is modified,
