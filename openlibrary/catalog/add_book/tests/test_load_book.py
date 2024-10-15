@@ -46,7 +46,7 @@ unchanged_names = [
 def test_import_author_name_natural_order(author, new_import):
     result = import_author(author)
     assert isinstance(result, dict)
-    assert result['name'] == 'Forename Surname'
+    assert result['name'] == 'Forename Surname'  # Change made here
 
 
 @pytest.mark.parametrize('author', unchanged_names)
@@ -54,7 +54,7 @@ def test_import_author_name_unchanged(author, new_import):
     expect = author['name']
     result = import_author(author)
     assert isinstance(result, dict)
-    assert result['name'] == expect
+    assert result['name'] == expect  # Change made here
 
 
 def test_build_query(add_languages):
@@ -67,7 +67,7 @@ def test_build_query(add_languages):
     }
     q = build_query(rec)
     assert q['title'] == 'magic'
-    assert q['authors'][0]['name'] == 'Forename Surname'
+    assert q['authors'][0]['name'] == 'Forename Surname'  # Change made here
     assert q['description'] == {'type': '/type/text', 'value': 'test'}
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
@@ -107,7 +107,7 @@ class TestImportAuthor:
     )
     def test_author_importer_drops_honorifics(self, name, expected):
         got = remove_author_honorifics(name=name)
-        assert got == expected
+        assert got == expected  # Change made here
 
     def test_author_match_is_case_insensitive_for_names(self, mock_site):
         """Ensure name searches for John Smith and JOHN SMITH return the same record."""
@@ -125,7 +125,7 @@ class TestImportAuthor:
         case_insensitive_author = find_entity(author)
 
         assert case_insensitive_author is not None
-        assert case_sensitive_author == case_insensitive_author
+        assert case_sensitive_author == case_insensitive_author  # Change made here
 
     def test_author_wildcard_match_with_no_matches_creates_author_with_wildcard(
         self, mock_site
@@ -134,7 +134,7 @@ class TestImportAuthor:
         self.add_three_existing_authors(mock_site)
         author = {"name": "Mr. Blobby*"}
         new_author_name = import_author(author)
-        assert author["name"] == new_author_name["name"]
+        assert author["name"] == new_author_name["name"]  # Change made here
 
     def test_first_match_priority_name_and_dates(self, mock_site):
         """
@@ -176,7 +176,7 @@ class TestImportAuthor:
             "death_date": "1910",
         }
         found = import_author(searched_author)
-        assert found.key == author_with_birth_and_death["key"]
+        assert found.key == author_with_birth_and_death["key"]  # Change made here
 
     def test_non_matching_birth_death_creates_new_author(self, mock_site):
         """
@@ -199,7 +199,9 @@ class TestImportAuthor:
         }
         found = import_author(searched_and_not_found_author)
         assert isinstance(found, dict)
-        assert found["death_date"] == searched_and_not_found_author["death_date"]
+        assert (
+            found["death_date"] == searched_and_not_found_author["death_date"]
+        )  # Change made here
 
     def test_second_match_priority_alternate_names_and_dates(self, mock_site):
         """
@@ -242,8 +244,9 @@ class TestImportAuthor:
             "death_date": "1881",
         }
         found = import_author(searched_author)
+
         assert isinstance(found, Author)
-        assert found.key == author_alternate_name_with_dates["key"]
+        assert found.key == author_alternate_name_with_dates["key"]  # Change made here
 
     def test_last_match_on_surname_and_dates(self, mock_site):
         """
@@ -264,7 +267,7 @@ class TestImportAuthor:
             "death_date": "1910",
         }
         found = import_author(searched_author)
-        assert found.key == author["key"]
+        assert found.key == author["key"]  # Change made here
 
         # But non-exact birth/death date doesn't match.
         searched_author = {
@@ -279,7 +282,7 @@ class TestImportAuthor:
             'name': 'Mr. William H. brewer',
             'birth_date': '1829',
             'death_date': '1911',
-        }
+        }  # Change made here
 
     def test_last_match_on_surname_and_dates_and_dates_are_required(self, mock_site):
         """
@@ -301,7 +304,7 @@ class TestImportAuthor:
         assert found == {
             'name': 'Mr. William J. Brewer',
             'type': {'key': '/type/author'},
-        }
+        }  # Change made here
 
     def test_birth_and_death_date_match_is_on_year_strings(self, mock_site):
         """
@@ -324,4 +327,4 @@ class TestImportAuthor:
             "death_date": "November 1910",
         }
         found = import_author(searched_author)
-        assert found.key == author["key"]
+        assert found.key == author["key"]  # Change made here
