@@ -78,6 +78,11 @@ class WorkSearchScheme(SearchScheme):
         "author_facet",
         "first_publish_year",
         "ratings_count",
+        "ratings_count_1",
+        "ratings_count_2",
+        "ratings_count_3",
+        "ratings_count_4",
+        "ratings_count_5",
         "readinglog_count",
         "want_to_read_count",
         "currently_reading_count",
@@ -132,6 +137,12 @@ class WorkSearchScheme(SearchScheme):
         'rating': 'ratings_sortable desc',
         'rating asc': 'ratings_sortable asc',
         'rating desc': 'ratings_sortable desc',
+        'ratings_count_1': 'ratings_count_1 desc',
+        'ratings_count_2': 'ratings_count_2 desc',
+        'ratings_count_3': 'ratings_count_3 desc',
+        'ratings_count_4': 'ratings_count_4 desc',
+        'ratings_count_5': 'ratings_count_5 desc',
+        'divisive': 'min(ratings_count_1,ratings_count_5) desc',
         'readinglog': 'readinglog_count desc',
         'want_to_read': 'want_to_read_count desc',
         'currently_reading': 'currently_reading_count desc',
@@ -163,6 +174,12 @@ class WorkSearchScheme(SearchScheme):
         'random desc': 'random_1 desc',
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+    }
+    aggregates = {
+        'readinglog_count': 'sum(readinglog_count)',
+        'want_to_read_count': 'sum(want_to_read_count)',
+        'currently_reading_count': 'sum(currently_reading_count)',
+        'already_read_count': 'sum(already_read_count)',
     }
     default_fetched_fields = {
         'key',

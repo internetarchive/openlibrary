@@ -110,12 +110,14 @@ class Bookshelves(db.CommonExtras):
     def most_logged_books(
         cls,
         shelf_id: str = '',
+        q: str = '',
         limit: int = 10,
         since: date | None = None,
         page: int = 1,
         fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
+        fields: list[str] | None = None,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -147,27 +149,64 @@ class Bookshelves(db.CommonExtras):
         }
 
         logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return cls.fetch(logged_books, q, fields) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def fetch(
+        cls,
+        readinglog_items: list,
+        q: str = "",
+        fields: list[str] | None = None,
+    ) -> list:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
         """
-        from openlibrary.plugins.worksearch.code import get_solr_works
+        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
         from openlibrary.core.lending import get_availabilities
 
-        # This gives us a dict of all the works representing
-        # the logged_books, keyed by work_id
-        work_index = get_solr_works(
-            f"/works/OL{i['work_id']}W" for i in readinglog_items
-        )
+        fetch_availability = not fields or 'availability' in fields
 
-        # Loop over each work in the index and inject its availability
-        availability_index = get_availabilities(work_index.values())
-        for work_key in availability_index:
-            work_index[work_key]['availability'] = availability_index[work_key]
+        solr_fields = set(fields or [])
+        if 'availability' in solr_fields:
+            solr_fields.remove('availability')
+            solr_fields.add('ia')
+        if solr_fields and 'key' not in solr_fields:
+            solr_fields.add('key')
+
+        if not q:
+            solr_works = get_solr().get_many(
+                (f"/works/OL{i['work_id']}W" for i in readinglog_items),
+                fields=fields or WorkSearchScheme.default_fetched_fields,
+            )
+        else:
+            # If a query string is provided, we need to fetch the works
+            # from solr using the query string
+            solr_works = run_solr_query(
+                scheme=WorkSearchScheme(),
+                param={'q': q},
+                rows=len(readinglog_items),
+                fields=fields,
+                extra_params=[
+                    (
+                        "fq",
+                        "key:(%s)"
+                        % " OR ".join(
+                            f'"/works/OL{i["work_id"]}W"' for i in readinglog_items
+                        ),
+                    )
+                ],
+            ).docs
+
+        # Loop over each solr work inject its availability
+        if fetch_availability:
+            availability_index = get_availabilities(solr_works)
+            for work in solr_works:
+                if availability := availability_index.get(work['key']):
+                    work['availability'] = availability
+
+        work_index = {work['key']: work for work in solr_works}
 
         # Return items from the work_index in the order
         # they are represented by the trending logged books
@@ -175,7 +214,11 @@ class Bookshelves(db.CommonExtras):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
                 readinglog_items[i]['work'] = work_index[key]
-        return readinglog_items
+
+        if not q:
+            return readinglog_items
+        else:
+            return [item for item in readinglog_items if 'work' in item]
 
     @classmethod
     def count_total_books_logged_by_user(
