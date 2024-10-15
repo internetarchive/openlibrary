@@ -14,6 +14,7 @@ class SolrDocument(TypedDict):
     subtitle: Optional[str]
     alternative_title: Optional[list[str]]
     alternative_subtitle: Optional[list[str]]
+    chapter: Optional[list[str]]
     edition_count: Optional[int]
     edition_key: Optional[list[str]]
     cover_edition_key: Optional[str]
