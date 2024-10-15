@@ -138,7 +138,8 @@ $else:
   $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
   $if (is_edition and is_book_page) or secondary_action:
-      $:macros.NotInLibrary(None, analytics_attr)
+      $ edition_key = doc.key.split('/')[2]
+      $:macros.LocateButton(edition_key)
   $else:
       $:macros.NotInLibrary(key, analytics_attr)
 
