@@ -842,6 +842,9 @@ WHERE {
                 "youtube",
             ]:
                 if id in obj and "value" in obj[id]:
+                    val = obj[id]["value"]
+                    if id == "youtube" and val[0] != "@":
+                        val = f'@{val}'
                     contributor.identifiers[id] = obj[id]["value"]
 
             if contributor_id in map:

@@ -261,10 +261,13 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
         'birth_date',
         'death_date',
         'date',
-        'identifiers',
+        'remote_ids',
     ):
         if f in author:
             a[f] = author[f]
+    # Import record hitting endpoing should list external IDs under "identifiers", but needs to be "remote_ids" when going into the DB.
+    if "identifiers" in author:
+        a["remote_ids"] = author["identifiers"]
     return a
 
 
