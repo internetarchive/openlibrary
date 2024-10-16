@@ -197,7 +197,10 @@ class TestImportAuthor:
         mock_site.save(author_different_viaf)
 
         # Look for exact match on VIAF, regardless of name field.
-        searched_author = {"name": "William Brewer", "identifiers": {"viaf": "12345678"}}
+        searched_author = {
+            "name": "William Brewer",
+            "identifiers": {"viaf": "12345678"},
+        }
         found = import_author(searched_author)
         assert found.key == author["key"]
 
