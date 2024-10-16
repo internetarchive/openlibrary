@@ -159,7 +159,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     if identifiers := author.get("identifiers"):
         for id in identifiers:
             queries.insert(
-                0, {"type": "/type/author", f"remote_ids.{id}~": identifiers[id]}
+                0, {"type": "/type/author", f"identifiers.{id}~": identifiers[id]}
             )
     if key := author.get("key"):
         queries.insert(0, {"type": "/type/author", "key~": key})
