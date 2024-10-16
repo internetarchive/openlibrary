@@ -37,16 +37,8 @@ const identifierPatterns  = {
     lc_naf: /^n[bors]?[0-9]+$/,
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
-    viaf: genericNumericValidator,
-    bookbrainz: uuidV4Validator,
-    musicbrainz: uuidV4Validator,
     imdb: /^\w{2}\d+$/,
-    goodreads: genericNumericValidator,
-    librarything: /^\S+$/,
-    librivox: genericNumericValidator,
-    project_gutenberg: genericNumericValidator,
     opac_sbn: /^\D{2}[A-Z0-3]V\d{6}$/,
-    storygraph: uuidV4Validator,
 }
 export default {
     // Props are for external options; if a subelement of this is modified,
