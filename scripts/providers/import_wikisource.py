@@ -222,7 +222,7 @@ def format_contributor(raw_name: str) -> str:
 class Author:
     friendly_name: str | None = None
     key: str | None = None
-    remote_ids: dict[str, str] = field(default_factory=dict[str, str])
+    identifiers: dict[str, str] = field(default_factory=dict[str, str])
 
 
 @dataclass
@@ -259,9 +259,9 @@ class BookRecord:
         self.authors_plaintext = uniq(self.authors_plaintext + authors)
 
     def add_authors(self, authors: list[Author]) -> None:
-        existing_ids = [a.remote_ids["wikidata"] for a in self.authors]
+        existing_ids = [a.identifiers["wikidata"] for a in self.authors]
         self.authors.extend(
-            [a for a in authors if a.remote_ids["wikidata"] not in existing_ids]
+            [a for a in authors if a.identifiers["wikidata"] not in existing_ids]
         )
 
     def add_illustrators(self, illustrators: list[str]) -> None:
@@ -296,7 +296,7 @@ class BookRecord:
                 [
                     {
                         "name": author.friendly_name,
-                        "remote_ids": author.remote_ids,
+                        "identifiers": author.identifiers,
                         **({"key": author.key} if author.key is not None else {}),
                     }
                     for author in self.authors
@@ -814,7 +814,7 @@ WHERE {
 
         for obj in results:
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
-            contributor = Author(remote_ids={"wikidata": contributor_id})
+            contributor = Author(identifiers={"wikidata": contributor_id})
 
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
                 contributor.friendly_name = format_contributor(
@@ -842,7 +842,7 @@ WHERE {
                 "youtube",
             ]:
                 if id in obj and "value" in obj[id]:
-                    contributor.remote_ids[id] = obj[id]["value"]
+                    contributor.identifiers[id] = obj[id]["value"]
 
             if contributor_id in map:
                 book_ids = map[contributor_id]

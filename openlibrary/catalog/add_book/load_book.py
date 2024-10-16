@@ -156,10 +156,10 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
-    if remote_ids := author.get("remote_ids"):
-        for id in remote_ids:
+    if identifiers := author.get("identifiers"):
+        for id in identifiers:
             queries.insert(
-                0, {"type": "/type/author", f"remote_ids.{id}~": remote_ids[id]}
+                0, {"type": "/type/author", f"remote_ids.{id}~": identifiers[id]}
             )
     if key := author.get("key"):
         queries.insert(0, {"type": "/type/author", "key~": key})
@@ -261,7 +261,7 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
         'birth_date',
         'death_date',
         'date',
-        'remote_ids',
+        'identifiers',
     ):
         if f in author:
             a[f] = author[f]
