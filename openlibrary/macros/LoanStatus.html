@@ -10,6 +10,9 @@ $# * check_sponsorship - whether to check if the book is eligible for sponsorshi
 $# * sponsorship_help - whether to show the sponsorship help text
 $# * check_loan_status - whether to check the user's loan status to determine read button
 
+$if is_lending_disabled():
+  $return macros.UnavailableButton()
+
 $ loanstatus_start_time = time()
 
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
