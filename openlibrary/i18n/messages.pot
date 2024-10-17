@@ -7721,6 +7721,10 @@ msgid ""
 "don't change it.)"
 msgstr ""
 
+#: UnavailableButton.html
+msgid "Currently Unavailable"
+msgstr ""
+
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
 msgstr ""
