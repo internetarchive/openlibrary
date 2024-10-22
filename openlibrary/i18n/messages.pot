@@ -4008,18 +4008,6 @@ msgid "Like, ISBN?"
 msgstr ""
 
 #: books/edit/edition.html
-msgid "Select one of many..."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Remove this identifier"
-msgstr ""
-
-#: books/edit/edition.html lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
-#: books/edit/edition.html
 msgid "Please select a classification."
 msgstr ""
 
@@ -4037,6 +4025,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Select one of many..."
 msgstr ""
 
 #: books/edit/edition.html
@@ -4997,6 +4989,10 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
+msgstr ""
+
+#: lib/nav_foot.html site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html
