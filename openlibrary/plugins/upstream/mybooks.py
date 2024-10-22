@@ -469,7 +469,6 @@ class ReadingLog:
     def lists(self) -> list:
         return self.user.get_lists()
 
-
     @property
     def booknotes_counts(self):
         return PatronBooknotes.get_counts(self.user.get_username())

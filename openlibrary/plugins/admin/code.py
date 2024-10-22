@@ -835,6 +835,7 @@ class show_log:
             with open(filepath) as f:
                 return f.read()
 
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
