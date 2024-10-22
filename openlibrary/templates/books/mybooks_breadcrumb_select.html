@@ -23,7 +23,5 @@ $if mb.is_my_page:
   $   (_("Reviews"), url_prefix + "/books/observations"),
   $   (_("Imports and Exports"), "/account/import")
   $ ]
-$if mb.sponsorships:
-  $ options += [ (_("Sponsorships"), readlog_url % "sponsorships") ]
 $:render_template("books/breadcrumb_select", selected, options)
 

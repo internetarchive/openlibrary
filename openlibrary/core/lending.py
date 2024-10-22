@@ -65,7 +65,6 @@ config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
 config_ia_loan_api_developer_key = None
-config_ia_civicrm_api = None
 config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -80,7 +79,7 @@ def setup(config):
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
-    global config_ia_civicrm_api, config_ia_domain
+    global config_ia_domain
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -98,7 +97,6 @@ def setup(config):
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_users_loan_history = config.get('ia_users_loan_history')
     config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
-    config_ia_civicrm_api = config.get('ia_civicrm_api')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
 

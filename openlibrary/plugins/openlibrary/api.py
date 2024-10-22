@@ -26,7 +26,6 @@ from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
-from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.follows import PubSub
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
@@ -427,24 +426,6 @@ class author_works(delegate.page):
             links['next'] = web.changequery(offset=offset + limit)
 
         return {"links": links, "size": size, "entries": works}
-
-
-class sponsorship_eligibility_check(delegate.page):
-    path = r'/sponsorship/eligibility/(.*)'
-
-    @jsonapi
-    def GET(self, _id):
-        i = web.input(patron=None, scan_only=False)
-        edition = (
-            web.ctx.site.get('/books/%s' % _id)
-            if re.match(r'OL[0-9]+M', _id)
-            else models.Edition.from_isbn(_id)
-        )
-        if not edition:
-            return json.dumps({"status": "error", "reason": "Invalid ISBN 13"})
-        return json.dumps(
-            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
-        )
 
 
 class price_api(delegate.page):

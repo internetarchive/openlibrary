@@ -331,27 +331,6 @@ class Edition(Thing):
         ocaid = self.get('ocaid')
         return get_metadata(ocaid) if ocaid else {}
 
-    @property  # type: ignore[misc]
-    @cache.method_memoize
-    def sponsorship_data(self):
-        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get(
-            'collection', []
-        )
-        if not was_sponsored:
-            return None
-
-        donor = self.ia_metadata.get('donor')
-
-        return web.storage(
-            {
-                'donor': donor,
-                'donor_account': (
-                    OpenLibraryAccount.get_by_link(donor) if donor else None
-                ),
-                'donor_msg': self.ia_metadata.get('donor_msg'),
-            }
-        )
-
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book."""
         return waitinglist.get_waitinglist_size(self.key)
@@ -906,9 +885,6 @@ class User(Thing):
     def is_super_librarian(self):
         return self.is_usergroup_member('/usergroup/super-librarians')
 
-    def in_sponsorship_beta(self):
-        return self.is_usergroup_member('/usergroup/sponsors')
-
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
 
@@ -1078,7 +1054,7 @@ class UserGroup(Thing):
     @classmethod
     def from_key(cls, key: str):
         """
-        :param str key: e.g. /usergroup/sponsor-waitlist
+        :param str key: e.g. /usergroup/foo
         :rtype: UserGroup | None
         """
         if not key.startswith('/usergroup/'):
