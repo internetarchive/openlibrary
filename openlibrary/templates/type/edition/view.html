@@ -288,10 +288,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               </div>
             $if is_librarian:
               $if ocaid:
-                <div class="edition-omniline-item">
+                <!-- <div class="edition-omniline-item">
                  <div>$_("Internet Archive")</div>
                   <span><a href="https://archive.org/details/$ocaid">$ocaid</a></span>
-                </div>
+                </div> -->
 
               $ edition_identifiers = edition.get_identifiers()
               $ isbns = []
