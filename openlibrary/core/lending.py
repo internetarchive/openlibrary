@@ -12,6 +12,8 @@ import uuid
 import eventer
 import requests
 
+from simplejson.errors import JSONDecodeError
+
 from infogami.utils.view import public
 from infogami.utils import delegate
 from openlibrary.core import cache
@@ -650,13 +652,16 @@ def get_user_waiting_loans(user_key):
     """
     from .waitinglist import WaitingLoan
 
-    account = OpenLibraryAccount.get(key=user_key)
-    itemname = account.itemname
-    result = WaitingLoan.query(userid=itemname)
-    get_cached_user_waiting_loans.memcache_set(
-        [user_key], {}, result or {}, time.time()
-    )  # rehydrate cache
-    return result or []
+    try:
+        account = OpenLibraryAccount.get(key=user_key)
+        itemname = account.itemname
+        result = WaitingLoan.query(userid=itemname)
+        get_cached_user_waiting_loans.memcache_set(
+            [user_key], {}, result or {}, time.time()
+        )  # rehydrate cache
+        return result or []
+    except JSONDecodeError as e:
+        return []
 
 
 get_cached_user_waiting_loans = cache.memcache_memoize(
@@ -1034,7 +1039,10 @@ class IA_Lending_API:
             return loans[0]
 
     def find_loans(self, **kw):
-        return self._post(method="loan.query", **kw).get('result', [])
+        try:
+            return self._post(method="loan.query", **kw).get('result', [])
+        except JSONDecodeError as e:
+            return []
 
     def create_loan(self, identifier, userid, format, ol_key):
         response = self._post(
