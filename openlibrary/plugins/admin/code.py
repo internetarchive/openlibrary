@@ -32,7 +32,6 @@ from openlibrary import accounts
 from openlibrary.accounts.model import Account, clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
-from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -837,19 +836,6 @@ class show_log:
                 return f.read()
 
 
-class sponsorship_stats:
-    def GET(self):
-        return render_template("admin/sponsorship", summary())
-
-
-class sync_sponsored_books(delegate.page):
-    @jsonapi
-    def GET(self):
-        i = web.input(dryrun=None)
-        dryrun = i.dryrun == "true"
-        return sync_completed_sponsored_books(dryrun=dryrun)
-
-
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -883,10 +869,6 @@ def setup():
         r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label=""
     )
     register_admin_page('/admin/spamwords', spamwords, label="")
-    register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
-    register_admin_page(
-        '/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync"
-    )
 
     from openlibrary.plugins.admin import mem
 

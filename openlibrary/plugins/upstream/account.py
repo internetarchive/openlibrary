@@ -824,29 +824,6 @@ class account_my_books(delegate.page):
         raise web.seeother(f'/people/{username}/books')
 
 
-# This would be by the civi backend which would require the api keys
-class fake_civi(delegate.page):
-    path = "/internal/fake/civicrm"
-
-    def GET(self):
-        i = web.input(entity='Contact')
-        contact = {'values': [{'contact_id': '270430'}]}
-        contributions = {
-            'values': [
-                {
-                    "receive_date": "2019-07-31 08:57:00",
-                    "custom_52": "9780062457714",
-                    "total_amount": "50.00",
-                    "custom_53": "ol",
-                    "contact_id": "270430",
-                    "contribution_status": "",
-                }
-            ]
-        }
-        entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(json.dumps(entity), content_type="application/json")
-
-
 class import_books(delegate.page):
     path = "/account/import"
 

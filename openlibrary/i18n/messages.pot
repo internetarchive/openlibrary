@@ -181,8 +181,7 @@ msgstr ""
 
 #: account/import.html account/loans.html admin/imports.html
 #: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: admin/sponsorship.html batch_import_pending_view.html batch_import_view.html
-#: status.html
+#: batch_import_pending_view.html batch_import_view.html status.html
 msgid "Status"
 msgstr ""
 
@@ -1372,11 +1371,6 @@ msgstr ""
 msgid "Import & Export Options"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
-msgid "Sponsorships"
-msgstr ""
-
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
 msgstr ""
@@ -1590,11 +1584,6 @@ msgid "Books added by people %(username)s follows"
 msgstr ""
 
 #: account/reading_log.html
-#, python-format
-msgid "Books %(userdisplayname)s is sponsoring"
-msgstr ""
-
-#: account/reading_log.html
 msgid "Search your reading log"
 msgstr ""
 
@@ -1723,10 +1712,6 @@ msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Sponsoring"
 msgstr ""
 
 #: account/sidebar.html
@@ -2296,10 +2281,6 @@ msgid "People"
 msgstr ""
 
 #: admin/menu.html
-msgid "Sponsorship"
-msgstr ""
-
-#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -2424,101 +2405,6 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Book Sponsorship"
-msgstr ""
-
-#: admin/sponsorship.html
-#, python-format
-msgid "We've sponsored <strong>%(num)d</strong> books"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Internet Archive Revenue"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Better World Books Revenue"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Δ Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Δ Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Profit/Los"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Total Unscanned Books"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Print Slips"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Average Scan Cost"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Remaining Scanning Liability"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Projected Profit/Loss"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Cover"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Sponsor Date"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "IDs"
-msgstr ""
-
-#: admin/sponsorship.html books/add.html books/edit.html
-#: books/edit/edition.html lib/nav_head.html search/advancedsearch.html
-#: type/about/edit.html type/page/edit.html type/template/edit.html
-msgid "Title"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Donor"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Edit XML"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "BWB Link"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -3274,6 +3160,12 @@ msgstr ""
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html type/about/edit.html type/page/edit.html
+#: type/template/edit.html
+msgid "Title"
 msgstr ""
 
 #: books/add.html books/edit.html
@@ -7603,10 +7495,6 @@ msgstr ""
 msgid "QR Code"
 msgstr ""
 
-#: SponsorCarousel.html
-msgid "Books to Sponsor"
-msgstr ""
-
 #: StarRatings.html
 msgid "Clear my rating"
 msgstr ""
@@ -7773,19 +7661,6 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
-
-#: databarWork.html
-#, python-format
-msgid "This book was generously donated by %(donor)s"
-msgstr ""
-
-#: databarWork.html
-msgid "This book was generously donated anonymously"
-msgstr ""
-
-#: databarWork.html
-msgid "Learn more about Book Sponsorship"
 msgstr ""
 
 #: account.py

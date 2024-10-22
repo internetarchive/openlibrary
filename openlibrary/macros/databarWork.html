@@ -36,7 +36,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $# if edition availability status is error
         $ render_times['databarWork: LoanStatus'] = time()
         $ expensive_check = page.get('availability', {}).get('status') in ['error']
-        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
+        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         <hr>
@@ -76,21 +76,5 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         </div>
       </div>
     </div>
-
-    $if edition and edition.sponsorship_data:
-      <div class="sponsorship-card">
-        $if edition.sponsorship_data.donor:
-          $ donor = edition.sponsorship_data.donor
-          $if edition.sponsorship_data.donor_account:
-            $ donor = edition.sponsorship_data.donor_account.render_link()
-          $:_('This book was generously donated by %(donor)s', donor=donor)
-        $else:
-          $_('This book was generously donated anonymously')
-        <hr>
-        $if edition.sponsorship_data.donor_msg:
-          <q>$edition.sponsorship_data.donor_msg</q>
-          <hr>
-        <a href="/sponsorship" class="learn-more">$_("Learn more about Book Sponsorship")</a>
-      </div>
   </div>
 </div>

@@ -21,9 +21,6 @@ $elif key == 'already-read':
 $elif key == 'feed':
   $ og_title = _("Books in %(username)s feed", username=userDisplayName)
   $ og_description = _("Books added by people %(username)s follows", username=userDisplayName)
-$elif key == 'sponsorships':
-  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
-  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=shelf_count)
 
 $putctx("description", og_description)
 $add_metatag(property="og:title", content=og_title)

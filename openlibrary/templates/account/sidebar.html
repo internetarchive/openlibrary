@@ -34,14 +34,6 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>
         <li><a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
       </ul>
-    $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-      <ul class="sidebar-section">
-        <li class="section-header">$_('Sponsorships')</li>
-        $ sponsorship_count = ''
-        $if counts.get('sponsorships', None):
-          $ sponsorship_count = "%d" % counts['sponsorships']
-        <li><a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
-      </ul>
     <ul class="sidebar-section">
       <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
       $if owners_page:
