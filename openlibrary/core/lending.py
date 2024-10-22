@@ -1035,6 +1035,7 @@ class IA_Lending_API:
 
     def find_loans(self, **kw):
         from simplejson.errors import JSONDecodeError
+
         try:
             return self._post(method="loan.query", **kw).get('result', [])
         except JSONDecodeError as e:
