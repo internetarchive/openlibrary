@@ -31,9 +31,9 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       </div>
       $# Announcement banner will only be rendered if announcement and storage_key variables are set.
       $# Be sure to escape any single quotes inside of the announcement HTML string.
-      $ announcement = ''
+      $ announcement = 'Open Library is running in limited-availability mode: some books may appear as unavailable'
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
-      $ cookie_name = ''
+      $ cookie_name = 'sos'
       $if announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
