@@ -11,11 +11,11 @@
   "table_of_contents": [
     {
       "type": "/type/toc_item",
-      "title": "Ar\u1e6di\u1e33len vegn Shimen Dubnov"
+      "title": "Arṭiḳlen vegn Shimen Dubnov"
     },
     {
       "type": "/type/toc_item",
-      "title": "Ophandlungen un ar\u1e6di\u1e33len fun Shimen Dubnov"
+      "title": "Ophandlungen un arṭiḳlen fun Shimen Dubnov"
     },
     {
       "type": "/type/toc_item",
@@ -42,23 +42,25 @@
   "authors": [
     {
       "birth_date": "1860",
-      "personal_name": "Dubnow, Simon",
       "death_date": "1941",
-      "name": "Dubnow, Simon",
+      "name": "דובנאוו, שמעון",
       "entity_type": "person",
       "alternate_names": [
-        "דובנאוו, שמעון"
+        "Dubnow, Simon"
       ]
+    },
+    {
+      "birth_date": "1887",
+      "death_date": "1966",
+      "name": "Mayzel, Nachman",
+      "entity_type": "person"
     }
   ],
   "subject_people": [
     "Simon Dubnow (1860-1941)"
   ],
   "publish_places": [
-    "Nyu-Yor\u1e33"
+    "Nyu-Yorḳ"
   ],
-  "contributions": [
-    "Mayzel, Nachman, 1887-1966"
-  ],
-  "by_statement": "tsunoyfgesh.tel\u1e6d un reda\u1e33\u1e6dir\u1e6d fun Na\u1e25man Mayzil"
+  "by_statement": "tsunoyfgesh.telṭ un redaḳṭirṭ fun Naḥman Mayzil"
 }
