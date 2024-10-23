@@ -40,4 +40,4 @@ This seems to be related to Vue's use of shadow dom. For a workaround, see the c
 
 ## Examples
 
-For an example of using Vue on existing pages see `openlibrary/components/AuthorIdentifiers.vue`
+For an example of using Vue on existing pages see `openlibrary/components/IdentifiersInput.vue`
