@@ -1,0 +1,17 @@
+
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# At XX:05, check the counts of reading log events, and use them to
+# update the trending count for 1) all works with a non-zero trending count
+# and 2) all  works with reading-log events in the last hour.
+
+05 * * * * su openlibrary -c "python /openlibrary/scripts/calculate_trending_scores_hourly.py"
+
+#At midnight each day, transfer the sum of the last 24 hours of trending scores to the appropriate 'daily' slot
+#for each work. This once more affects: all works with a non-zero count for that day, or ones with a current
+#sum of greater than zero for those 24 hours.
+
+0 0 * * * su openlibrary -c "python /openlibrary/scripts/calculate_trending_scores_daily.py"
+
+#Test command
+* * * * * su openlibrary -c "python /openlibrary/scripts/test_scripts.py"

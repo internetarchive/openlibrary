@@ -53,6 +53,10 @@ def can_update_key(key: str) -> bool:
     return any(updater.key_test(key) for updater in get_solr_updaters())
 
 
+async def in_place_update():
+    pass
+
+
 async def update_keys(
     keys: list[str],
     commit=True,
