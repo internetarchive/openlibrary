@@ -53,7 +53,7 @@ $var title: $header_title
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
         </div>
       $if page:
-        $:macros.databarView(page)
+        $:macros.databarView(page, edit=mb.is_my_page)
     </header>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
