@@ -455,6 +455,12 @@ msgstr ""
 
 #: login.html
 msgid ""
+"Open Library is currently in limited-availability mode. During this time,"
+" patrons will be unable to log in."
+msgstr ""
+
+#: login.html
+msgid ""
 "This is a development instance, the default credentials are automatically"
 " filled."
 msgstr ""
@@ -1037,6 +1043,12 @@ msgstr ""
 
 #: account/create.html
 msgid "Sign Up to Open Library"
+msgstr ""
+
+#: account/create.html
+msgid ""
+"Open Library is currently in limited-availability mode. During this time,"
+" patrons will be unable to register for an account."
 msgstr ""
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
