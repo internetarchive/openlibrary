@@ -14,6 +14,14 @@ $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
 
 $var title: $_("Sign Up to Open Library")
 
+<div class="flash-messages">
+    <div class="info ol-signup-form__info-box error">
+        <span>
+            $_("Open Library is currently in limited-availability mode. During this time, patrons will be unable to register for an account.")
+        </span>
+    </div>
+</div>
+
 <div class="ol-page-signup">
     <div id="contentHead" class="ol-signup-hero">
         <h1 class="ol-signup-hero__title">$_("Sign Up")</h1>

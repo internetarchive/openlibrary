@@ -8,6 +8,14 @@ $putctx("cssfile", "signup")
 
 $var title: $_("Log In")
 
+<div class="flash-messages">
+    <div class="info ol-signup-form__info-box error">
+        <span>
+            $_("Open Library is currently in limited-availability mode. During this time, patrons will be unable to log in.")
+        </span>
+    </div>
+</div>
+
 $if "dev" in ctx.features:
     <div class="flash-messages" id="autofill-dev-credentials">
         <div class="info ol-signup-form__info-box">
