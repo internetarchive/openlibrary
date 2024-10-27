@@ -7411,6 +7411,10 @@ msgstr ""
 msgid "Checked Out"
 msgstr ""
 
+#: LocateButton.html
+msgid "Locate"
+msgstr ""
+
 #: ManageLoansButtons.html
 #, python-format
 msgid "There is one person waiting for this book."
