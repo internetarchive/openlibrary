@@ -2,6 +2,8 @@
  * Functionalities for templates/work_search and related templates.
  */
 
+import unescape from 'lodash/unescape'
+
 /**
  * Displays more facets by removing the ui-helper-hidden class.
  *
@@ -78,7 +80,7 @@ export function initSearchFacets(facetsElem) {
                 facetsElem.replaceWith(newFacetsElem)
                 hydrateFacets()
 
-                document.title = data.title
+                setTitle(data.title)
             })
             .catch(() => {
                 // XXX : Handle case where `/partials` response is not `2XX` here
@@ -88,6 +90,10 @@ export function initSearchFacets(facetsElem) {
     }
 }
 
+function setTitle(title) {
+    const titleElem = document.querySelector('title')
+    titleElem.textContent = unescape(title)
+}
 
 /**
  * Adds click listeners to the "show more" and "show less" facet affordances.
