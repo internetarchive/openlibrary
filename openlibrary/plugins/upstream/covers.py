@@ -3,10 +3,11 @@
 
 from logging import getLogger
 
+import os
 import requests
 import web
 from io import BytesIO
-
+from PIL import Image as PILImage
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts
@@ -27,6 +28,8 @@ def setup():
 class add_cover(delegate.page):
     path = r"(/books/OL\d+M)/add-cover"
     cover_category = "b"
+    max_file_size = 10 * 1024 * 1024 # 10 MB
+    allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
 
     def GET(self, key):
         book = web.ctx.site.get(key)
@@ -62,7 +65,28 @@ class add_cover(delegate.page):
         olid = key.split("/")[-1]
 
         if i.file is not None and hasattr(i.file, 'file'):
-            data = i.file.file
+            file_data = i.file.file
+            file_size = len(file_data.read())
+            file_data.seek(0)
+
+            # Check file size
+            if file_size > self.max_file_size:
+                return web.storage({'error': 'File size exceeds 10MB limit'})
+            
+            # Check file extension
+            file_extension = os.path.splitext(i.file.filename)[1].lower()
+            if file_extension not in self.allowed_extensions:
+                return web.storage({'error': 'Unsupported file extension'})
+            
+            # Validate the image file
+            try:
+                image = PILImage.open(file_data)
+                image.verify()
+                file_data.seek(0)
+            except Exception:
+                return web.storage({'error': 'Not a valid image file'})
+            
+            data = file_data
         else:
             data = None
 
