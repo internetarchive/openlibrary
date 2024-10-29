@@ -28,7 +28,7 @@ def setup():
 class add_cover(delegate.page):
     path = r"(/books/OL\d+M)/add-cover"
     cover_category = "b"
-    max_file_size = 10 * 1024 * 1024 # 10 MB
+    max_file_size = 10 * 1024 * 1024  # 10 MB
     allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
 
     def GET(self, key):
@@ -72,12 +72,12 @@ class add_cover(delegate.page):
             # Check file size
             if file_size > self.max_file_size:
                 return web.storage({'error': 'File size exceeds 10MB limit'})
-            
+
             # Check file extension
             file_extension = os.path.splitext(i.file.filename)[1].lower()
             if file_extension not in self.allowed_extensions:
                 return web.storage({'error': 'Unsupported file extension'})
-            
+
             # Validate the image file
             try:
                 image = PILImage.open(file_data)
@@ -85,7 +85,7 @@ class add_cover(delegate.page):
                 file_data.seek(0)
             except Exception:
                 return web.storage({'error': 'Not a valid image file'})
-            
+
             data = file_data
         else:
             data = None
