@@ -7,7 +7,7 @@ import os
 import requests
 import web
 from io import BytesIO
-from PIL import Image as PILImage
+from PIL import Image as PILImage, UnidentifiedImageError
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts
@@ -83,7 +83,7 @@ class add_cover(delegate.page):
                 image = PILImage.open(file_data)
                 image.verify()
                 file_data.seek(0)
-            except Exception:
+            except UnidentifiedImageError:
                 return web.storage({'error': 'Not a valid image file'})
 
             data = file_data
