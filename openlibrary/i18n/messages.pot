@@ -2011,7 +2011,7 @@ msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
 #: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html covers/add.html
+#: check_ins/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -4428,10 +4428,6 @@ msgstr ""
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
-
-#: covers/add.html
-msgid "Or, paste in the image URL if it's on the web"
 msgstr ""
 
 #: covers/add.html
