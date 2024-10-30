@@ -7494,6 +7494,10 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
+#: ReadButton.html
+msgid "Locate"
+msgstr ""
+
 #: ReadMore.html
 msgid "Read more"
 msgstr ""
