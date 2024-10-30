@@ -33,7 +33,7 @@ $else:
       $if listen:
         <li>
           <a href="$(stream_url)&_autoReadAloud=show"
-             title="$title using Read Aloud"
+            title="$title using Read Aloud"
              $:analytics_attr(action.capitalize() + 'Listen')
              class="cta-btn cta-btn--available cta-btn--w-icon">
             <span class="btn-icon listen"></span>
@@ -41,10 +41,12 @@ $else:
           </a>
         </li>
       <li>
-        <a class="cta-btn cta-btn--available cta-btn--w-icon">
+        <form action="/borrow/ia/$(ocaid)">
           <span class="btn-icon search"></span>
-          <span class="btn-label">$_("Search Inside")</span>
-        </a>
+          <input type="text" name="q"
+             data-ol-link-track="CTAClick|ReadSearchInside"
+             placeholder="$_('Search Inside')">
+        </form>
       </li>
       <li>
         <a class="cta-btn cta-btn--available cta-btn--w-icon">

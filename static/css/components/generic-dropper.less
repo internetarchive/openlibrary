@@ -150,33 +150,50 @@
     list-style: none;
     margin: 0;
   }
-  .cta-btn {
-    &.cta-btn--w-icon, &:link, &:visited {
-      background: @white;
-      color: @black;
-      text-align: left;
-      padding: 5px 10px;
-      border-radius: 0;
-      margin: 0;
-    }
-    .btn-label {
-      padding: 0;
-    }
-    .btn-icon {
-      display: inline-block;
-      filter: invert(1);
-      margin: 5px 2px -3px;
-      width: 1.2em;
-      height: 1.2em;
-    }
-    &:hover {
-      background-color: @lighter-grey;
-    }
+  .btn-icon {
+    display: inline-block;
+    filter: invert(1);
+    margin: 5px 2px -3px;
+    width: 1.2em;
+    height: 1.2em;
+    // prevent search icon from shrinking
+    flex-shrink: 0;
+  }
+}
+.dropper-menu .cta-btn {
+  &.cta-btn--w-icon, &:link, &:visited {
+    background: @white;
+    color: @black;
+    text-align: left;
+    padding: 5px 10px;
+    border-radius: 0;
+    margin: 0;
+  }
+  .btn-label {
+    padding: 0;
+  }
+  &:hover {
+    background-color: @lighter-grey;
   }
 }
 
+.dropper-menu form { 
+  padding: 9.85px 10px;
+  display: flex;
+}
+.dropper-menu input {
+  font-size: 16px;
+  border: transparent;
+  padding-left: 5px;
+  min-width: 0;
+}
+.dropper-menu .btn-icon.search {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 // dropper menu icons
-.cta-btn {
+.cta-btn, .dropper-menu form {
   .listen, .search, .download, .map {
     background-repeat: no-repeat;
     background-size: contain;
