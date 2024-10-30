@@ -89,17 +89,19 @@
   text-overflow: ellipsis;
 }
 
-/* Style for read button and dropper button */
+/* Unified Read Button Styling */
 .cta-dropper {
   display: flex;
   margin-bottom: 10px;
-  .cta-button-group.cta-dropper-button {
+  // main cta button
+  .cta-dropper-button {
     .cta-btn {
       border-radius: 5px 2px 2px 5px;
     }
     border-right: 1px solid transparent;
     flex-grow: 1;
   }
+  // dropdown button
   details {
     background-color: @primary-blue;
     border-radius: 2px 5px 5px 2px;
@@ -120,7 +122,7 @@
     padding-top: 16px;
     width: 24px;
     height: 24px;
-    /* Style for animated arrow on dropdown button. Copied from "Want to Read" dropper above */
+    // style for animated arrow on dropdown button. Copied from "Want to Read" dropper above
     content: "";
     background: url(/images/icons/icon_dropit.png) no-repeat center;
     background-position: 0;
@@ -133,7 +135,58 @@
     background-position: -22px 50%;
   }
 }
-
+// dropdown containing Listen/Search/Download/Locate buttons
+.dropper-menu {
+  .cta-btn.cta-btn--w-icon, .cta-btn:link, .cta-btn:visited {
+    background: @white;
+    color: @black;
+    text-align: left;
+    padding: 5px 10px;
+    border-radius: 0;
+    margin: 0;
+  }
+  .cta-btn .btn-label { padding: 0; }
+  .cta-btn:hover { background-color: @lighter-grey; }
+  // search inside form-specific styles
+  form {
+    display: flex;
+    align-items: center;
+  }
+  input {
+    font-size: 16px;
+    border: transparent;
+    padding: 9.85px 10px 9.85px 38px;
+    // override flex min-width: auto to shrink to form
+    min-width: 0;
+    &:hover { background-color: @lighter-grey; }
+  }
+  .btn-icon {
+    display: inline-block;
+    filter: invert(1);
+    margin: 5px 2px -3px;
+    // width uses higher specificity below
+    height: 1.2em;
+    &.search {
+      position: absolute;
+      margin: 0 2px 0 12px;
+      // highlight/click search box through icon
+      pointer-events: none;
+      // override medium text size in edition table links
+      font-size: 16px;
+    }
+  }
+  // icons
+  .listen { background-image: url(/static/images/icons/icon_listen.png); }
+  .search { background-image: url(/static/images/icons/icon_search.png); }
+  .download { background-image: url(/static/images/icons/icon_download.png); }
+  .map { background-image: url(/static/images/icons/icon_map.png); }
+  .listen, .search, .download, .map {
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+}
+// extra specificity needed for style overrides
 .cta-dropper .dropper-menu {
   margin: 0;
   border: 1px solid @lighter-grey;
@@ -143,47 +196,10 @@
   // align dropper menu with buttons
   right: 0;
   width: 194px;
-  li+li {
-    border-top: 1px solid @lighter-grey;
-  }
   li {
+    border-top: 1px solid @lighter-grey;
     list-style: none;
     margin: 0;
   }
-  .cta-btn {
-    &.cta-btn--w-icon, &:link, &:visited {
-      background: @white;
-      color: @black;
-      text-align: left;
-      padding: 5px 10px;
-      border-radius: 0;
-      margin: 0;
-    }
-    .btn-label {
-      padding: 0;
-    }
-    .btn-icon {
-      display: inline-block;
-      filter: invert(1);
-      margin: 5px 2px -3px;
-      width: 1.2em;
-      height: 1.2em;
-    }
-    &:hover {
-      background-color: @lighter-grey;
-    }
-  }
-}
-
-// dropper menu icons
-.cta-btn {
-  .listen, .search, .download, .map {
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
-  }
-  .listen { background-image: url(/static/images/icons/icon_listen.png); }
-  .search { background-image: url(/static/images/icons/icon_search.png); }
-  .download { background-image: url(/static/images/icons/icon_download.png); }
-  .map { background-image: url(/static/images/icons/icon_map.png); }
+  .btn-icon { width: 1.2em; }
 }
