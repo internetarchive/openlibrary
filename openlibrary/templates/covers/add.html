@@ -54,15 +54,15 @@ $if doc.type.key == "/type/work":
     </div>
 </form>
 
-<form class="ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
-    <div class="label">
-        <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
-    </div>
-    <div class="input">
-        <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." required />
-        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Submit")</button>
-    </div>
-</form>
+$#<form class="ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
+$#    <div class="label">
+$#        <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
+$#    </div>
+$#    <div class="input">
+$#        <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." required />
+$#        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Submit")</button>
+$#    </div>
+$#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
     $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
