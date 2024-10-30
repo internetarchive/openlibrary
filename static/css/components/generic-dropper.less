@@ -1,10 +1,10 @@
 .generic-dropper-wrapper {
   position: relative;
-  z-index: @z-index-level-4;
+  z-index: @z-index-level-3;
   min-height: 50px;
 
   &--active {
-    z-index: @z-index-level-5;
+    z-index: @z-index-level-4;
   }
 }
 
@@ -106,7 +106,7 @@
     background-color: @primary-blue;
     border-radius: 2px 5px 5px 2px;
     // raise dropper menu above "Want to Read" dropper
-    z-index: @z-index-level-14;
+    z-index: @z-index-level-4;
     // mark details as nearest container ancestor to dropdown menu
     contain: layout;
   }
@@ -147,40 +147,23 @@
   }
   .cta-btn .btn-label { padding: 0; }
   .cta-btn:hover { background-color: @lighter-grey; }
-  // search inside form-specific styles
-  form {
-    display: flex;
-    align-items: center;
-  }
-  input {
-    font-size: 16px;
-    border: transparent;
-    padding: 9.85px 10px 9.85px 38px;
-    // override flex min-width: auto to shrink to form
-    min-width: 0;
-    &:hover { background-color: @lighter-grey; }
+  li {
+    &+li { border-top: 1px solid @lighter-grey; }
+    &:first-child, &:last-child { overflow: clip; }
+    &:first-child { border-radius: 5px 5px 0 0; }
+    &:last-child { border-radius: 0 0 5px 5px; }
   }
   .btn-icon {
     display: inline-block;
     filter: invert(1);
     margin: 5px 2px -3px;
     // width uses higher specificity below
-    height: 1.2em;
-    &.search {
-      position: absolute;
-      margin: 0 2px 0 12px;
-      // highlight/click search box through icon
-      pointer-events: none;
-      // override medium text size in edition table links
-      font-size: 16px;
-    }
+    height: 1.5em;
   }
   // icons
   .listen { background-image: url(/static/images/icons/icon_listen.png); }
-  .search { background-image: url(/static/images/icons/icon_search.png); }
-  .download { background-image: url(/static/images/icons/icon_download.png); }
   .map { background-image: url(/static/images/icons/icon_map.png); }
-  .listen, .search, .download, .map {
+  .listen, .map {
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
@@ -188,7 +171,7 @@
 }
 // extra specificity needed for style overrides
 .cta-dropper .dropper-menu {
-  margin: 0;
+  margin: 5px 0 0;
   border: 1px solid @lighter-grey;
   border-radius: 5px;
   background-color: @white;
@@ -197,9 +180,8 @@
   right: 0;
   width: 194px;
   li {
-    border-top: 1px solid @lighter-grey;
     list-style: none;
     margin: 0;
   }
-  .btn-icon { width: 1.2em; }
+  .btn-icon { width: 1.5em; }
 }

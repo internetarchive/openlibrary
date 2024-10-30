@@ -61,6 +61,8 @@ $elif book_provider and book_provider.short_name != 'ia':
 $elif availability.get('is_readable') or availability.get('status') == 'open':
   $# Open / Publicly Readable (Unrestricted)
   $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key)
+  $if secondary_action:
+    $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and ctx.user and ctx.user.is_printdisabled():
   $# Exemptions for patrons with Print Disabilities

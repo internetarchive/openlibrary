@@ -40,23 +40,12 @@ $else:
             <span class="btn-label">$_("Listen")</span>
           </a>
         </li>
-      <li>
-        <form action="/borrow/ia/$(ocaid)">
-          <span class="btn-icon search"></span>
-          <input type="text" name="q"
-             data-ol-link-track="CTAClick|ReadSearchInside"
-             placeholder="$_('Search Inside')">
-        </form>
-      </li>
-      <li>
-        <a class="cta-btn cta-btn--available cta-btn--w-icon">
-          <span class="btn-icon download"></span>
-          <span class="btn-label">$_("Download")</span>
-        </a>
-      </li>
       $if edition_key:
         <li>
-          $:macros.LocateButton(edition_key=edition_key)
+          <a class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon map"></span>
+            <span class="btn-label">$_("Locate")</span>
+          </a>
         </li>
     </ul>
   </details>

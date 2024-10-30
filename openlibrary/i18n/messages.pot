@@ -6021,8 +6021,8 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html FulltextSearchSuggestion.html ReadButton.html
-#: SearchNavigation.html search/inside.html search/snippets.html
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html search/snippets.html
 msgid "Search Inside"
 msgstr ""
 
@@ -7498,7 +7498,7 @@ msgid "Listen"
 msgstr ""
 
 #: ReadButton.html
-msgid "Download"
+msgid "Locate"
 msgstr ""
 
 #: ReadMore.html

@@ -17,8 +17,13 @@ table#editions,
     width: 185px;
     margin: 0 auto;
   }
-  .cta-button-group.cta-dropper__button {
-    width: 145px;
+
+  // make cta with dropper same size as cta with no dropper
+  .cta-dropper {
+    width: fit-content;
+    margin: 0 auto;
+    .cta-dropper-button { width: 145px; }
+    .dropper-menu { width: 185px; }
   }
 
   thead {
