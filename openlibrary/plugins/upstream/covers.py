@@ -24,12 +24,33 @@ logger = getLogger("openlibrary.plugins.upstream.covers")
 def setup():
     pass
 
+class image_validator:
+    def __init__(self):
+        self.max_file_size = 10 * 1024 * 1024  # 10 MB
+        self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
+
+    def validate_size(self, file_data):
+        file_size = len(file_data.read())
+        file_data.seek(0)
+        if file_size > self.max_file_size:
+            raise ValueError("File size exceeds 10MB limit")
+        
+    def validate_extension(self, filename):
+        file_extension = os.path.splitext(filename)[1].lower()
+        if file_extension not in self.allowed_extensions:
+            raise ValueError("Unsupported file extension")
+
+    def validate_image(self, file_data):
+        try:
+            image = PILImage.open(file_data)
+            image.verify()
+            file_data.seek(0)
+        except UnidentifiedImageError:
+            raise ValueError("Not a valid image file")
 
 class add_cover(delegate.page):
     path = r"(/books/OL\d+M)/add-cover"
     cover_category = "b"
-    max_file_size = 10 * 1024 * 1024  # 10 MB
-    allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
 
     def GET(self, key):
         book = web.ctx.site.get(key)
@@ -66,25 +87,15 @@ class add_cover(delegate.page):
 
         if i.file is not None and hasattr(i.file, 'file'):
             file_data = i.file.file
-            file_size = len(file_data.read())
-            file_data.seek(0)
+            filename = i.file.filename
 
-            # Check file size
-            if file_size > self.max_file_size:
-                return web.storage({'error': 'File size exceeds 10MB limit'})
-
-            # Check file extension
-            file_extension = os.path.splitext(i.file.filename)[1].lower()
-            if file_extension not in self.allowed_extensions:
-                return web.storage({'error': 'Unsupported file extension'})
-
-            # Validate the image file
+            validator = image_validator()
             try:
-                image = PILImage.open(file_data)
-                image.verify()
-                file_data.seek(0)
-            except UnidentifiedImageError:
-                return web.storage({'error': 'Not a valid image file'})
+                validator.validate_extension(filename)
+                validator.validate_size(file_data)
+                validator.validate_image(file_data)
+            except ValueError as e:
+                return web.storage({'error': str(e)})
 
             data = file_data
         else:
