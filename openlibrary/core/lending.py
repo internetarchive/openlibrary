@@ -1103,9 +1103,9 @@ class IA_Lending_API:
             ).json()
             logger.info("POST response: %s", jsontext)
             return jsontext
-        except Exception:  # TODO: Narrow exception scope
+        except (JSONDecodeError, Exception):  # TODO: Narrow exception scope
             logger.exception("POST failed")
-            raise
+            return {}
 
 
 ia_lending_api = IA_Lending_API()
