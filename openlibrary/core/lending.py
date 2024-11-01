@@ -1103,9 +1103,12 @@ class IA_Lending_API:
             ).json()
             logger.info("POST response: %s", jsontext)
             return jsontext
-        except (JSONDecodeError, Exception):  # TODO: Narrow exception scope
-            logger.exception("POST failed")
+        except JSONDecodeError:
+            logger.exception("POST failed to openlibrary.php, no json")
             return {}
+        except Exception:  # TODO: Narrow exception scope
+            logger.exception("POST failed")
+            raise
 
 
 ia_lending_api = IA_Lending_API()
