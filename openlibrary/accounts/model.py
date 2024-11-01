@@ -663,6 +663,8 @@ class InternetArchiveAccount(web.storage):
         if not screenname:
             raise OLAuthenticationError('missing_fields')
 
+        raise OLAuthenticationError('undefined_error')
+
         _screenname = screenname
         attempt = 0
         while True:
