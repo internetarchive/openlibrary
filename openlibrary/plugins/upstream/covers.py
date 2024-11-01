@@ -24,6 +24,7 @@ logger = getLogger("openlibrary.plugins.upstream.covers")
 def setup():
     pass
 
+
 class image_validator:
     def __init__(self):
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
@@ -34,7 +35,7 @@ class image_validator:
         file_data.seek(0)
         if file_size > self.max_file_size:
             raise ValueError("File size exceeds 10MB limit")
-        
+
     def validate_extension(self, filename):
         file_extension = os.path.splitext(filename)[1].lower()
         if file_extension not in self.allowed_extensions:
@@ -47,6 +48,7 @@ class image_validator:
             file_data.seek(0)
         except UnidentifiedImageError:
             raise ValueError("Not a valid image file")
+
 
 class add_cover(delegate.page):
     path = r"(/books/OL\d+M)/add-cover"
