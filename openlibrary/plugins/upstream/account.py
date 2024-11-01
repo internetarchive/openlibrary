@@ -296,6 +296,8 @@ class account_create(delegate.page):
         )
 
     def POST(self):
+        return web.seeother("/account/register")
+
         f: forms.RegisterForm = self.get_form()
 
         if f.validates(web.input()):
