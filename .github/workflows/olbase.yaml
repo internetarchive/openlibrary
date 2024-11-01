@@ -1,6 +1,10 @@
 name: olbase
 
 on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
   schedule:
     - cron: '00 16 * * 2'
   workflow_dispatch:
