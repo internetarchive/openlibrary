@@ -219,7 +219,7 @@ export class BulkSearchState{
             new RegexExtractor('Pattern: Title - Author', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
             new RegexExtractor('Pattern: Title (Author)', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
             new RegexExtractor('Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-            new AiExtractor('✨ AI Extraction', 'gpt-4o-mini'),
+            new AiExtractor('✨ AI Extraction (Beta)', 'gpt-4o-mini'),
             new TableExtractor('Extract from a Table/Spreadsheet')
         ]
         /** @type {Number} */
