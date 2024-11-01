@@ -147,7 +147,11 @@ $else:
       $ edition_key = doc.key.split('/')[2]
       $:macros.LocateButton(edition_key)
   $else:
-      $:macros.NotInLibrary(key, analytics_attr)
+      $ edition_key = doc.key.split('/')[2]
+      <div class="cta-button-group">
+        $:macros.LocateButton(edition_key)
+      </div>
+      $#:macros.NotInLibrary(key, analytics_attr)
 
 $:post
 
