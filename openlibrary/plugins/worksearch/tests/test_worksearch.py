@@ -62,6 +62,7 @@ def test_get_doc():
             'cover_edition_key': 'OL1111795M',
             'languages': [],
             'id_project_gutenberg': [],
+            'id_project_runeberg': [],
             'id_librivox': [],
             'id_standard_ebooks': [],
             'id_openstax': [],
