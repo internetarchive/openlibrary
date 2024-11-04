@@ -877,9 +877,6 @@ class Loan(dict):
         # self['user'] will be None for IA loans
         return self['user'] is not None
 
-    def get_key(self):
-        return self['_key']
-
     def save(self):
         # loans stored at IA are not supposed to be saved at OL.
         # This call must have been made in mistake.
