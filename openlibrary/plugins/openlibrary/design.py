@@ -1,8 +1,11 @@
-import web
+import web  # noqa: F401 side effects may be needed
 import logging
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import (
+    render_template,
+    public,  # noqa: F401 side effects may be needed
+)
 
 logger = logging.getLogger("openlibrary.design")
 

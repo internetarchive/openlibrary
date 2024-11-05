@@ -18,7 +18,7 @@ from infogami.utils.view import (
     add_flash_message,
 )
 from infogami.infobase.client import ClientException
-import infogami.core.code as core
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
@@ -39,7 +39,7 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts,
-    Account,
+    Account,  # noqa: F401 side effects may be needed
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
@@ -348,7 +348,9 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
+        from openlibrary.plugins.openlibrary.code import (
+            BadRequest,  # noqa: F401 side effects may be needed
+        )
 
         d = json.loads(web.data())
         email = d.get('email', "")

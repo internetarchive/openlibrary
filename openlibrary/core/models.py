@@ -19,7 +19,7 @@ from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.core import lending
-from openlibrary.catalog import add_book
+from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -27,7 +27,10 @@ from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils import extract_numeric_id_from_olid, dateutil
+from openlibrary.utils import (
+    extract_numeric_id_from_olid,
+    dateutil,  # noqa: F401 side effects may be needed
+)
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 

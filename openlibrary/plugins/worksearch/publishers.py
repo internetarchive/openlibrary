@@ -1,8 +1,11 @@
 """Publisher pages
 """
 
-from infogami.utils import delegate, stats
-from infogami.utils.view import render_template, safeint
+from infogami.utils import delegate, stats  # noqa: F401 side effects may be needed
+from infogami.utils.view import (
+    render_template,
+    safeint,  # noqa: F401 side effects may be needed
+)
 import web
 import logging
 

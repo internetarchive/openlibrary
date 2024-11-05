@@ -20,8 +20,8 @@ from openlibrary.coverstore.utils import (
     download,
     ol_get,
     ol_things,
-    random_string,
-    rm_f,
+    random_string,  # noqa: F401 side effects may be needed
+    rm_f,  # noqa: F401 side effects may be needed
     safeint,
 )
 from openlibrary.plugins.openlibrary.processors import CORSProcessor

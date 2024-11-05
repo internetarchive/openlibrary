@@ -1,6 +1,6 @@
 import datetime
 import json
-import web
+import web  # noqa: F401 side effects may be needed
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 

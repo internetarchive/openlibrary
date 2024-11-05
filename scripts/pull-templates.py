@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
-import _init_path  # Imported for its side effect of setting PYTHONPATH
+import _init_path  # Imported for its side effect of setting PYTHONPATH  # noqa: F401 side effects may be needed
 
 import os
 import web

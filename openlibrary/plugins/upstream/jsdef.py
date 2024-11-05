@@ -57,10 +57,10 @@ import json
 
 import web
 from web.template import (
-    Template,
-    Parser,
-    LineNode,
-    SuiteNode,
+    Template,  # noqa: F401 side effects may be needed
+    Parser,  # noqa: F401 side effects may be needed
+    LineNode,  # noqa: F401 side effects may be needed
+    SuiteNode,  # noqa: F401 side effects may be needed
     DefNode,
     PythonTokenizer,
     # INDENT,

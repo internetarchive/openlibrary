@@ -23,8 +23,8 @@ import copy
 from collections import defaultdict
 import logging as Logging
 
-from infogami import config
-from openlibrary.utils.solr import Solr
+from infogami import config  # noqa: F401 side effects may be needed
+from openlibrary.utils.solr import Solr  # noqa: F401 side effects may be needed
 import web
 
 

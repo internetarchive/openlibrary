@@ -1,8 +1,12 @@
-import web
+import web  # noqa: F401 side effects may be needed
 
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, safeint, render
+from infogami.utils.view import (
+    public,  # noqa: F401 side effects may be needed
+    safeint,  # noqa: F401 side effects may be needed
+    render,
+)
 
 
 class bulk_search(delegate.page):
