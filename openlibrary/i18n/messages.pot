@@ -2844,14 +2844,13 @@ msgstr ""
 msgid "Died"
 msgstr ""
 
-#: authors/infobox.html type/author/view.html type/edition/view.html
-#: type/work/view.html
-msgid "Wikipedia"
+#: authors/infobox.html
+msgid "Visit Wikipedia"
 msgstr ""
 
 #: authors/infobox.html
 #, python-format
-msgid "Wikipedia (in %s)"
+msgid "Visit Wikipedia (in %s)"
 msgstr ""
 
 #: book_providers/cita_press_download_options.html
@@ -6462,6 +6461,10 @@ msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
+msgstr ""
+
+#: type/author/view.html type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/author/view.html
