@@ -19,7 +19,7 @@ import web
 from openlibrary.accounts.model import OpenLibraryAccount
 from . import helpers as h
 from .sendmail import sendmail_with_template
-from . import db
+from . import db  # noqa: F401 side effects may be needed
 from . import lending
 
 
