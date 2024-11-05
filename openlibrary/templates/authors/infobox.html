@@ -36,15 +36,19 @@ $def render_social_icon(url, icon_url, title):
                 $:render_infobox_row(_("Date"), '', page.date)
     </table>
     <hr>
-    <div style="display: flex; justify-content: center;">
+    <div style="display: flex; justify-content: center; gap: .25rem; flex-wrap: wrap;">
         $if wikidata:
             $ wiki_link = wikidata.get_wikipedia_link(i18n.get_locale())
             $if wiki_link:
                 $ icon_url = "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg"
                 $ url, lang = wiki_link
-                $ label = _("Visit Wikipedia")
+                $ label = _("Wikipedia")
                 $if lang != i18n.get_locale():
-                    $ label = _("Visit Wikipedia (in %s)") % lang
+                    $ label = _("Wikipedia (in %s)") % lang
                 $:render_social_icon(url, icon_url, label)
+
+            $ social_profiles = wikidata.get_profiles_to_render()
+            $for profile in social_profiles:
+                $:render_social_icon(profile['url'], profile['icon_url'], profile['label'])
     </div>
 </div>
