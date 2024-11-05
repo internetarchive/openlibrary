@@ -55,7 +55,7 @@ def start_server():
 def load_infogami(config_file):
     import infogami
     from infogami import config
-    from infogami.utils import delegate
+    from infogami.utils import delegate  # noqa: F401 side effects may be needed
 
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
