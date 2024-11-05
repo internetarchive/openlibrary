@@ -50,6 +50,30 @@ SOCIAL_PROFILES = [
         "label": "Muck Rack",
         "base_url": "https://muckrack.com/",
     },
+    {
+        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Mastodon_logotype_%28simple%29_new_hue.svg",
+        "wikidata_property": "P4033",
+        "label": "Mastodon",
+        "base_url": "https://fedirect.toolforge.org/?id=",
+    },
+    {
+        "icon_url": "https://play-lh.googleusercontent.com/XXqfqs9irPSjphsMPcC-c6Q4-FY5cd8klw4IdI2lof_Ie-yXaFirqbNDzK2kJ808WXJk",
+        "wikidata_property": "P4985",
+        "label": "TMDB",
+        "base_url": "https://www.themoviedb.org/person/",
+    },
+    {
+        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Cib-imdb_%28CoreUI_Icons_v1.0.0%29.svg",
+        "wikidata_property": "P345",
+        "label": "IMDb",
+        "base_url": "https://www.imdb.com/name/",
+    },
+    {
+        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg",
+        "wikidata_property": "P2002",
+        "label": "X (Twitter)",
+        "base_url": "https://twitter.com/",
+    },
 ]
 
 
