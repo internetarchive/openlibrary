@@ -29,5 +29,14 @@ $def render_infobox_row(label, itemprop, value):
             $:render_infobox_row(_("Died"), 'deathDate', page.death_date)
         $elif page.date:
                 $:render_infobox_row(_("Date"), '', page.date)
+
+        $if wikidata:
+            $ wiki_link = wikidata.get_wikipedia_link(ctx.lang)
+            $if wiki_link:
+                $ url, lang = wiki_link
+                $ label = _("Wikipedia")
+                $if lang != ctx.lang:
+                    $ label = _("Wikipedia (in %s)") % lang
+                <a href="$url">$label</a>
     </table>
 </div>

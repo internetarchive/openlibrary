@@ -40,6 +40,20 @@ class WikidataEntity:
         """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
+    def get_wikipedia_link(self, language: str = 'en') -> tuple[str, str] | None:
+        """
+        Get the Wikipedia URL and language for a given language code.
+        Falls back to English if requested language is unavailable.
+        """
+        requested_wiki = f'{language}wiki'
+        english_wiki = 'enwiki'
+
+        if requested_wiki in self.sitelinks:
+            return self.sitelinks[requested_wiki]['url'], language
+        elif english_wiki in self.sitelinks:
+            return self.sitelinks[english_wiki]['url'], 'en'
+        return None
+
     @classmethod
     def from_dict(cls, response: dict, updated: datetime):
         return cls(
