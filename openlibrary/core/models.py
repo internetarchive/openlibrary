@@ -34,7 +34,6 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from . import cache, waitinglist
 
 from urllib.parse import urlencode
-from pydantic import ValidationError
 
 from .ia import get_metadata
 from .waitinglist import WaitingLoan

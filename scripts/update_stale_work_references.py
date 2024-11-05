@@ -8,7 +8,6 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.models import Work
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-import datetime
 
 
 def main(ol_config: str, days=1, skip=7):
