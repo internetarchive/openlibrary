@@ -30,20 +30,38 @@ def get_subject_tag_types():
 
 
 def validate_tag(tag):
+    return tag.get('name', '') and tag.get('tag_type', '') in get_tag_types()
+
+
+def validate_subject_tag(tag):
+    # TODO : Add `body` validation?
     return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types()
 
 
-def create_subject_tag(name: str, description: str, tag_type: str, body: str = '') -> Tag:
+def create_tag(tag: dict) -> Tag:
+    if not validate_tag(tag):
+        raise ValueError("Invalid data for tag creation")
+
     d = {
-        "name": name,
-        "tag_description": description,
         "type": {"key": "/type/tag"},
-        "tag_type": tag_type,
-        "body": body,
+        **tag,
     }
+
+    tag = Tag.create(trim_doc(d))
+    return tag
+
+
+def create_subject_tag(tag: dict) -> Tag:
+    if not validate_subject_tag(tag):
+        raise ValueError("Invalid data for subject tag creation")
+
+    d = {
+        "type": {"key": "/type/tag"},
+        **tag,
+    }
+
     # TODO : handle case where body is empty string
     tag = Tag.create(trim_doc(d))
-
     return tag
 
 
@@ -101,10 +119,6 @@ class addtag(delegate.page):
             # no match
             return self.no_match(i)
 
-    @staticmethod
-    def create_tag(i):
-        return create_subject_tag(i.name, i.tag_description, i.tag_type, i.body)
-
     def find_match(self, i: web.utils.Storage):
         """
         Tries to find an existing tag that matches the data provided by the user.
@@ -125,7 +139,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        tag = addtag.create_tag(i)
+        tag = create_tag(i)
         raise safe_seeother(tag.key)
 
 
@@ -154,7 +168,8 @@ class tag_edit(delegate.page):
         i = web.input(_comment=None)
         formdata = self.process_input(i)
         try:
-            if not formdata or not validate_tag(formdata):
+            # TODO : use type-based validation here
+            if not formdata or not validate_subject_tag(formdata):
                 raise web.badrequest()
             elif "_delete" in i:
                 tag = web.ctx.site.new(
@@ -171,6 +186,7 @@ class tag_edit(delegate.page):
             return render_template("type/tag/edit", tag)
 
     def process_input(self, i):
+        # TODO : `unflatten` call not needed for tag form data
         i = utils.unflatten(i)
         tag = trim_doc(i)
         return tag
@@ -193,11 +209,10 @@ class add_typed_tag(delegate.page):
             return render_template("type/tag/subject/edit", i)
         return render_template(f"type/tag/{tag_type}/edit", i)
 
-
     def POST(self, tag_type):
-        if not self.validate_type(tag_type):
+        i = web.input(tag_type=tag_type)
+        if not self.validate_type(i.tag_type) or not self.validate_input(i):
             raise web.badrequest()
-        i = web.input()
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
@@ -207,7 +222,10 @@ class add_typed_tag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized()
 
-        tag = addtag.create_tag(i)
+        if i.tag_type in get_subject_tag_types():
+            tag = create_subject_tag(i)
+        else:
+            tag = create_tag(i)
         raise safe_seeother(tag.key)
 
     def has_permission(self, user):
@@ -217,6 +235,11 @@ class add_typed_tag(delegate.page):
 
     def validate_type(self, tag_type):
         return tag_type in get_tag_types()
+
+    def validate_input(self, i):
+        if i.tag_type in get_subject_tag_types():
+            return validate_subject_tag(i)
+        return validate_tag(i)
 
 
 def setup():
