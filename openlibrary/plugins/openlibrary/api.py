@@ -27,11 +27,7 @@ from openlibrary.plugins.worksearch.subjects import (
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.core import (
-    models,
-    lending,
-    helpers as h,
-)
+from openlibrary.core import models, lending, helpers as h
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
