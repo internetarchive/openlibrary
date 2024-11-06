@@ -25,7 +25,6 @@ import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.utils import (
-    dateutil,  # noqa: F401 side effects may be needed
     olid_to_key,
 )
 from openlibrary.plugins.upstream import spamcheck, utils

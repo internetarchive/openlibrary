@@ -21,7 +21,7 @@ import time
 from configparser import ConfigParser
 from pathlib import Path
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH  # noqa: F401 side effects may be needed
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import ImportItem

@@ -28,8 +28,6 @@ from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
 from openlibrary.core import (
-    ia,  # noqa: F401 side effects may be needed
-    db,  # noqa: F401 side effects may be needed
     models,
     lending,
     helpers as h,

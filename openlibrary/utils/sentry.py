@@ -8,7 +8,6 @@ from sentry_sdk.utils import capture_internal_exceptions
 from sentry_sdk.tracing import Transaction, TRANSACTION_SOURCE_ROUTE
 from infogami.utils.app import (
     find_page,
-    find_view,  # noqa: F401 side effects may be needed
     modes,
 )
 from infogami.utils.types import type_patterns

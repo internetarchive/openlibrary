@@ -1,6 +1,5 @@
 from typing import cast
 from openlibrary.accounts.model import (
-    Account,  # noqa: F401 side effects may be needed
     OpenLibraryAccount,
 )
 from openlibrary.plugins.admin.code import revert_all_user_edits

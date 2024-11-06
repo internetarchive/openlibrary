@@ -17,7 +17,6 @@ from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
     public,
-    render_template,  # noqa: F401 side effects may be needed
     add_flash_message,
 )
 from infogami.infobase.utils import parse_datetime

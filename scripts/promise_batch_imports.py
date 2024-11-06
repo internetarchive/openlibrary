@@ -24,16 +24,14 @@ import logging
 from typing import Any
 from urllib.parse import urlencode
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH  # noqa: F401 side effects may be needed
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import (
     Batch,
-    ImportItem,  # noqa: F401 side effects may be needed
 )
 from openlibrary.core.vendors import (
-    get_amazon_metadata,  # noqa: F401 side effects may be needed
     stage_bookworm_metadata,
 )
 from openlibrary.plugins.upstream.utils import safeget

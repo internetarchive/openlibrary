@@ -1,10 +1,7 @@
 import logging
 
 from infogami.utils import delegate
-from infogami.utils.view import (
-    render_template,
-    public,  # noqa: F401 side effects may be needed
-)
+from infogami.utils.view import render_template
 
 logger = logging.getLogger("openlibrary.design")
 

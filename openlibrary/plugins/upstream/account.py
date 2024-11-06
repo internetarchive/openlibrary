@@ -39,7 +39,6 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts,
-    Account,  # noqa: F401 side effects may be needed
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,

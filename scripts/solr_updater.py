@@ -19,7 +19,7 @@ import urllib
 
 from collections.abc import Iterator
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH  # noqa: F401 side effects may be needed
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
 import aiofiles
 import web

@@ -33,7 +33,6 @@ from openlibrary.accounts.model import Account, clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import (
     admin as admin_stats,
-    helpers as h,  # noqa: F401 side effects may be needed
     imports,
     cache,
 )

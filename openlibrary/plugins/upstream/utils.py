@@ -36,7 +36,6 @@ from infogami.utils.view import (
     render,
     get_template,
     public,
-    query_param,  # noqa: F401 side effects may be needed
 )
 from infogami.utils.macro import macro
 from infogami.utils.context import InfogamiContext, context
