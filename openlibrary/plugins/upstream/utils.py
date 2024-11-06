@@ -12,12 +12,10 @@ import babel.dates
 from babel.lists import format_list
 from collections import defaultdict
 import re
-import random
 import xml.etree.ElementTree as ET
 import datetime
 import logging
 from html.parser import HTMLParser
-from pathlib import Path
 import yaml
 
 import requests

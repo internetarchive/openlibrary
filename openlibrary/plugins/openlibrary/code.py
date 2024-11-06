@@ -2,7 +2,7 @@
 Open Library Plugin.
 """
 
-from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
+from urllib.parse import parse_qs, urlencode
 import requests
 import web
 import json

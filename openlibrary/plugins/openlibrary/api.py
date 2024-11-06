@@ -5,7 +5,6 @@ its experience. This does not include public facing APIs with LTS
 """
 
 import web
-import re
 import json
 import qrcode
 import io
