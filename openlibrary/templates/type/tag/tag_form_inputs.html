@@ -1,4 +1,4 @@
-$def with (tag_name='', tag_type='', tag_description='')
+$def with (tag_name='', tag_type='', tag_description='', body='')
 
 <div class="formElement">
     <div class="label">
@@ -16,6 +16,17 @@ $def with (tag_name='', tag_type='', tag_description='')
         </div>
         <div class="input">
             <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80">$tag_description</textarea>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">$_("Page Body")</label>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="page_body" rows="5" cols="50" class="markdown">$body</textarea>
         </div>
     </div>
 </fieldset>

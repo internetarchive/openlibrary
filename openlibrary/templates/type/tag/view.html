@@ -3,6 +3,15 @@ $def with (tag)
 $var title: $tag.name
 $ title = tag.name
 
+$code:
+    def derive_subject_key(tag):
+        key = "/subjects/"
+        if tag.tag_type != "subject":
+            key += "%s:" % tag.tag_type
+        # TODO : normalize the same as subject label URLs
+        key += tag.name.replace(" ", "_")
+        return key
+
 <div id="contentHead">
     $:macros.databarView(tag)
     <h1 itemprop="name">
@@ -11,10 +20,10 @@ $ title = tag.name
     <h3 itemprop="description">
         $tag.tag_description
     </h3>
-    $if tag.tag_type == 'subject':
-        $ subject_name = title.replace(' ', "_")
+    $if tag.tag_type in get_subject_tag_types():
+        $ subject_key = derive_subject_key(tag)
         <footer>
-            <a href="/subjects/$subject_name">
+            <a href="$subject_key">
                 $_('View subject page for %(name)s.', name=title)
             </a>
         </footer>

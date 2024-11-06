@@ -335,18 +335,12 @@ class SubjectEngine:
                     subject.name = s.name
                     subject[meta.key].pop(i)
                     break
-
+            # TODO : return subject first, then decorate with tag if needed
             q = {"type": "/type/tag", "name": subject.name, "tag_type": "subject"}
             match = web.ctx.site.things(q)
             if match:
                 tag = web.ctx.site.get(match[0])
-                match = {
-                    'name': tag.name,
-                    'id': tag.key,
-                    'description': tag.tag_description,
-                    'plugins': tag.tag_plugins,
-                }
-                subject.tag = match
+                subject.tag = tag
 
         return subject
 

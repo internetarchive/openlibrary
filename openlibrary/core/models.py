@@ -1154,10 +1154,7 @@ class Tag(Thing):
     @classmethod
     def create(
         cls,
-        tag_name,
-        tag_description,
-        tag_type,
-        tag_plugins,
+        tag,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1165,22 +1162,17 @@ class Tag(Thing):
         current_user = web.ctx.site.get_user()
         patron = current_user.get_username() if current_user else 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
+        tag['key'] = key
+
         from openlibrary.accounts import RunAs
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            web.ctx.site.save(
-                {
-                    'key': key,
-                    'name': tag_name,
-                    'tag_description': tag_description,
-                    'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
-                    'type': {"key": '/type/tag'},
-                },
+            t = web.ctx.site.save(
+                tag,
                 comment=comment,
             )
-            return key
+            return t
 
 
 @dataclass

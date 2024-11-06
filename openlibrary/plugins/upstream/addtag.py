@@ -15,13 +15,36 @@ from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.utils import render_template
 
 
+SUBJECT_SUB_TYPES = ["subject", "person", "place", "time"]
+TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
+
+
 @public
 def get_tag_types():
-    return ["subject", "work", "collection"]
+    return TAG_TYPES
+
+
+@public
+def get_subject_tag_types():
+    return SUBJECT_SUB_TYPES
 
 
 def validate_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '')
+    return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types()
+
+
+def create_subject_tag(name: str, description: str, tag_type: str, body: str = '') -> Tag:
+    d = {
+        "name": name,
+        "tag_description": description,
+        "type": {"key": "/type/tag"},
+        "tag_type": tag_type,
+        "body": body,
+    }
+    # TODO : handle case where body is empty string
+    tag = Tag.create(trim_doc(d))
+
+    return tag
 
 
 class addtag(delegate.page):
@@ -37,7 +60,7 @@ class addtag(delegate.page):
 
         i = web.input(name=None, type=None, sub_type=None)
 
-        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type)
+        return render_template('tag/add', i.name)
 
     def has_permission(self, user) -> bool:
         """
@@ -52,7 +75,7 @@ class addtag(delegate.page):
             name="",
             tag_type="",
             tag_description="",
-            tag_plugins="",
+            body="",
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -66,6 +89,7 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
+        # TODO : unflatten not needed
         i = utils.unflatten(i)
 
         if not validate_tag(i):
@@ -100,8 +124,8 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins)
-        raise safe_seeother(key)
+        tag = create_subject_tag(i.name, i.tag_description, i.tag_type, i.body)
+        raise safe_seeother(tag.key)
 
 
 class tag_edit(delegate.page):
