@@ -44,6 +44,7 @@ class subjects(delegate.page):
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
+            self.decorate_with_tag(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -57,6 +58,13 @@ class subjects(delegate.page):
             key = key.replace("/places/", "/place:")
             key = key.replace("/times/", "/time:")
         return key
+
+    def decorate_with_tag(self, subject):
+        q = {"type": "/type/tag", "name": subject.name, "tag_type": subject.subject_type}
+        matches = web.ctx.site.things(q)
+        if matches:
+            tag = web.ctx.site.get(matches[0])
+            subject.tag = tag
 
 
 class subjects_json(delegate.page):
@@ -335,12 +343,6 @@ class SubjectEngine:
                     subject.name = s.name
                     subject[meta.key].pop(i)
                     break
-            # TODO : return subject first, then decorate with tag if needed
-            q = {"type": "/type/tag", "name": subject.name, "tag_type": "subject"}
-            match = web.ctx.site.things(q)
-            if match:
-                tag = web.ctx.site.get(match[0])
-                subject.tag = tag
 
         return subject
 
