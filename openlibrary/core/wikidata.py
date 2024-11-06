@@ -73,7 +73,7 @@ class WikidataEntity:
         """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
-    def get_external_profiles(self, language: str) -> list[dict]:
+    def get_external_profiles(self, language: str = 'en') -> list[dict]:
         """
         Get formatted social profile data for all configured social profiles.
 
