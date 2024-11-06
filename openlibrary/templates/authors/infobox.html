@@ -38,14 +38,9 @@ $def render_social_icon(url, icon_url, title):
     <hr>
     <div style="display: flex; justify-content: center; gap: .25rem; flex-wrap: wrap;">
         $if wikidata:
-            $ wiki_link = wikidata.get_wikipedia_link(i18n.get_locale())
-            $if wiki_link:
-                $ icon_url = "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg"
-                $ url, lang = wiki_link
-                $ label = _("Wikipedia")
-                $if lang != i18n.get_locale():
-                    $ label = _("Wikipedia (in %s)") % lang
-                $:render_social_icon(url, icon_url, label)
+            $ wiki_profiles = wikidata.get_wiki_profiles_to_render(i18n.get_locale())
+            $for profile in wiki_profiles:
+                $:render_social_icon(profile['url'], profile['icon_url'], profile['label'])
 
             $ social_profiles = wikidata.get_profiles_to_render()
             $for profile in social_profiles:

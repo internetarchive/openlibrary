@@ -148,6 +148,41 @@ class WikidataEntity:
             if "value" in statement and "content" in statement["value"]
         ]
 
+    def get_wiki_profiles_to_render(self, language: str) -> list[dict]:
+        """
+        Get formatted Wikipedia and Wikidata profile data for rendering.
+
+        Args:
+            language: The preferred language code (e.g., 'en')
+
+        Returns:
+            List of dicts containing url, icon_url, and label for Wikipedia and Wikidata profiles
+        """
+        profiles = []
+
+        # Add Wikipedia link if available
+        if wiki_link := self.get_wikipedia_link(language):
+            url, lang = wiki_link
+            label = "Wikipedia" if lang == language else f"Wikipedia (in {lang})"
+            profiles.append(
+                {
+                    "url": url,
+                    "icon_url": "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg",
+                    "label": label,
+                }
+            )
+
+        # Add Wikidata link
+        profiles.append(
+            {
+                "url": f"https://www.wikidata.org/wiki/{self.id}",
+                "icon_url": "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg",
+                "label": "Wikidata",
+            }
+        )
+
+        return profiles
+
     def get_profiles_to_render(self) -> list[dict]:
         """
         Get formatted social profile data for all configured social profiles.
