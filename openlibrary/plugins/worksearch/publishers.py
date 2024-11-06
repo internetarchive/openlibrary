@@ -2,9 +2,7 @@
 """
 
 from infogami.utils import delegate
-from infogami.utils.view import (
-    render_template,
-)
+from infogami.utils.view import render_template
 import web
 import logging
 
