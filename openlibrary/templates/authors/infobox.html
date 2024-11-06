@@ -16,7 +16,7 @@ $def render_infobox_row(label, itemprop, value):
 
 $def render_social_icon(url, icon_url, title):
     <a href="$url">
-        <img src="$icon_url" style="max-height: 1.5em; width: 1.5em;" title="$title">
+        <img class="profile-icon" src="$icon_url" title="$title">
     </a>
 
 <div class="infobox">
@@ -36,7 +36,7 @@ $def render_social_icon(url, icon_url, title):
                 $:render_infobox_row(_("Date"), '', page.date)
     </table>
     <hr>
-    <div style="display: flex; justify-content: center; gap: .25rem; flex-wrap: wrap;">
+    <div class="profile-icon-container">
         $if wikidata:
             $ wiki_profiles = wikidata.get_wiki_profiles_to_render(i18n.get_locale())
             $for profile in wiki_profiles:

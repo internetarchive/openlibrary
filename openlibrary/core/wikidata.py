@@ -19,7 +19,8 @@ logger = logging.getLogger("core.wikidata")
 WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/'
 WIKIDATA_CACHE_TTL_DAYS = 30
 
-SOCIAL_PROFILES = [
+# TODO: Pull the icon, label, and base_url from wikidata itself
+SOCIAL_PROFILE_CONFIGS = [
     {
         "icon_name": "google_scholar.svg",
         "wikidata_property": "P1960",
@@ -143,7 +144,7 @@ class WikidataEntity:
             List of dicts containing url, icon_url, and label for all social profiles
         """
         profiles = []
-        for profile_config in SOCIAL_PROFILES:
+        for profile_config in SOCIAL_PROFILE_CONFIGS:
             values = self.get_statement_values(profile_config["wikidata_property"])
             profiles.extend(
                 [
