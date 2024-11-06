@@ -37,7 +37,7 @@ from urllib.parse import urlencode
 
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
-from ..accounts import OpenLibraryAccount
+from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
@@ -988,7 +988,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow
+        from ..plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
         loans = (
             lending.get_cached_loans_of_user(self.key)

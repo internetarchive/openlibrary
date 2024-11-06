@@ -18,7 +18,7 @@ from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (  # noqa: E402
     PrioritizedIdentifier,
     Priority,
-    Submit,
+    Submit,  # noqa: F401 side effects may be needed
     get_isbns_from_book,
     get_isbns_from_books,
     get_editions_for_books,
