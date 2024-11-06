@@ -21,59 +21,11 @@ WIKIDATA_CACHE_TTL_DAYS = 30
 
 SOCIAL_PROFILES = [
     {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/ResearchGate_icon_SVG.svg",
-        "wikidata_property": "P2038",
-        "label": "ResearchGate",
-        "base_url": "https://www.researchgate.net/profile/",
-    },
-    {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/0/06/ORCID_iD.svg",
-        "wikidata_property": "P496",
-        "label": "ORCID",
-        "base_url": "https://orcid.org/",
-    },
-    {
         "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Scholar_logo.svg",
         "wikidata_property": "P1960",
         "label": "Google Scholar",
         "base_url": "https://scholar.google.com/citations?user=",
-    },
-    {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Academia-logo-2021.svg",
-        "wikidata_property": "P5715",
-        "label": "Academia.edu",
-        "base_url": "",
-    },
-    {
-        "icon_url": "https://avatars.githubusercontent.com/u/2212508",
-        "wikidata_property": "P6005",
-        "label": "Muck Rack",
-        "base_url": "https://muckrack.com/",
-    },
-    {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Mastodon_logotype_%28simple%29_new_hue.svg",
-        "wikidata_property": "P4033",
-        "label": "Mastodon",
-        "base_url": "https://fedirect.toolforge.org/?id=",
-    },
-    {
-        "icon_url": "https://play-lh.googleusercontent.com/XXqfqs9irPSjphsMPcC-c6Q4-FY5cd8klw4IdI2lof_Ie-yXaFirqbNDzK2kJ808WXJk",
-        "wikidata_property": "P4985",
-        "label": "TMDB",
-        "base_url": "https://www.themoviedb.org/person/",
-    },
-    {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Cib-imdb_%28CoreUI_Icons_v1.0.0%29.svg",
-        "wikidata_property": "P345",
-        "label": "IMDb",
-        "base_url": "https://www.imdb.com/name/",
-    },
-    {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg",
-        "wikidata_property": "P2002",
-        "label": "X (Twitter)",
-        "base_url": "https://twitter.com/",
-    },
+    }
 ]
 
 
