@@ -35,11 +35,11 @@ $def render_social_icon(url, icon_url, title):
         $elif page.date:
                 $:render_infobox_row(_("Date"), '', page.date)
     </table>
-    <hr>
-    <div class="profile-icon-container">
-        $if wikidata:
+    $if wikidata:
+        <hr>
+        <div class="profile-icon-container">
             $ social_profiles = wikidata.get_external_profiles(i18n.get_locale())
             $for profile in social_profiles:
                 $:render_social_icon(profile['url'], profile['icon_url'], profile['label'])
-    </div>
+        </div>
 </div>
