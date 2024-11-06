@@ -1,4 +1,4 @@
 #!/bin/bash
 
-crontab /etc/cron.d/openlibrary.ol_home0
+crontab "$CRONTAB_FILE"
 cron -f -L2

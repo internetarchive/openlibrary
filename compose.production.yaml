@@ -123,9 +123,6 @@ services:
   cron-jobs:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    hostname: "$HOSTNAME"
-    user: root
-    command: docker/ol-cron-start.sh
     restart: unless-stopped
     env_file:
       - ../olsystem/etc/cron-jobs.env
@@ -133,9 +130,6 @@ services:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
       - /1/var/tmp:/1/var/tmp
-    networks:
-      - webnet
-      - dbnet
 
   infobase:
     profiles: ["ol-home0"]
