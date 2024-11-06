@@ -21,7 +21,7 @@ WIKIDATA_CACHE_TTL_DAYS = 30
 
 SOCIAL_PROFILES = [
     {
-        "icon_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Scholar_logo.svg",
+        "icon_name": "google_scholar.svg",
         "wikidata_property": "P1960",
         "label": "Google Scholar",
         "base_url": "https://scholar.google.com/citations?user=",
@@ -119,7 +119,7 @@ class WikidataEntity:
             profiles.append(
                 {
                     "url": url,
-                    "icon_url": "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg",
+                    "icon_url": "/static/images/identifier_icons/wikipedia.svg",
                     "label": label,
                 }
             )
@@ -128,7 +128,7 @@ class WikidataEntity:
         profiles.append(
             {
                 "url": f"https://www.wikidata.org/wiki/{self.id}",
-                "icon_url": "https://upload.wikimedia.org/wikipedia/en/8/80/Wikipedia-logo-v2.svg",
+                "icon_url": "/static/images/identifier_icons/wikidata.svg",
                 "label": "Wikidata",
             }
         )
@@ -149,7 +149,7 @@ class WikidataEntity:
                 [
                     {
                         "url": f"{profile_config['base_url']}{value}",
-                        "icon_url": profile_config["icon_url"],
+                        "icon_url": f"/static/images/identifier_icons/{profile_config["icon_name"]}",
                         "label": profile_config["label"],
                     }
                     for value in values
