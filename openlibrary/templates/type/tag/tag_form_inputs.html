@@ -1,5 +1,6 @@
-$def with (tag_name='', tag_type='', tag_description='', body='')
+$def with (page, type_picker_options={"show_picker": True, "subjects_only": False})
 
+$ tag_name = page and page.get('name', '')
 <div class="formElement">
     <div class="label">
         <label for="tag_name">$_("Tag Name")</label>*<span class="tip">$_("Required field")</span>
@@ -9,34 +10,27 @@ $def with (tag_name='', tag_type='', tag_description='', body='')
     </div>
 </div>
 
+$ tag_description = page and page.get('tag_description', '')
 <fieldset class="major">
     <div class="formElement">
         <div class="label">
             <label for="tag_description">$_("Tag Description")</label>
         </div>
         <div class="input">
-            <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80">$tag_description</textarea>
+            <textarea id="tag_description" name="tag_description" rows="5" cols="80">$tag_description</textarea>
         </div>
     </div>
 </fieldset>
 
-<fieldset class="major">
-    <div class="formElement">
-        <div class="label">
-            <label for="page_body">$_("Page Body")</label>
-        </div>
-        <div class="input">
-            <textarea id="page_body" name="page_body" rows="5" cols="50" class="markdown">$body</textarea>
-        </div>
-    </div>
-</fieldset>
-
-<div class="formElement">
+$ hidden = 'hidden' if not type_picker_options.get("show_picker") else ''
+$ tag_type = page and page.get('tag_type', '')
+<div class="formElement $hidden">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>
     <div class="input">
         <select name="tag_type" id="tag_type" required>
             <option value="">$_("Select")</option>
-            $ tag_types = get_tag_types()
+            $ subjects_only = type_picker_options.get("subjects_only")
+            $ tag_types = get_subject_tag_types() if subjects_only else get_tag_types()
             $for t_type in tag_types:
                 $if t_type == tag_type:
                     <option value="$t_type" selected>$t_type</option>
@@ -45,3 +39,53 @@ $def with (tag_name='', tag_type='', tag_description='', body='')
         </select>
     </div>
 </div>
+
+$if not type_picker_options.get("subjects_only", False):
+    <div class="sub-type-inputs">
+        <div class="sub-type-inputs__input-set hidden" data-input-type="subject">
+            $:render_template("type/tag/subject/edit_form_inputs", page)
+        </div>
+        <div class="sub-type-inputs__input-set hidden" data-input-type="collection">
+            $:render_template("type/tag/collection/edit_form_inputs", page)
+        </div>
+    </div>
+
+    <script>
+        const SUBJECT_TYPES = ["subject", "person", "place", "time"]
+        const tagTypeSelector = document.querySelector('#tag_type')
+        const subTypeInputs = document.querySelectorAll(".sub-type-inputs__input-set")
+        const inputSetMapping = {}
+
+        function initTagTypeSelector(selector) {
+            subTypeInputs.forEach((input) => {
+                inputSetMapping[input.dataset.inputType] = input
+            })
+
+            selector.addEventListener("change", (event) => {
+                const selectedValue = event.target.value
+                let selectedType
+                if (SUBJECT_TYPES.includes(selectedValue)) {
+                    selectedType = 'subject'
+                } else {
+                    selectedType = selectedValue
+                }
+
+                hideSubTypeInputs()
+                if (selectedType) {
+                    showSubTypeInputs(selectedType)
+                }
+            })
+        }
+
+        function hideSubTypeInputs() {
+            subTypeInputs.forEach((input) => {
+                input.classList.add('hidden')
+            })
+        }
+
+        function showSubTypeInputs(inputsToShow) {
+            inputSetMapping[inputsToShow].classList.remove('hidden')
+        }
+
+        initTagTypeSelector(tagTypeSelector)
+    </script>

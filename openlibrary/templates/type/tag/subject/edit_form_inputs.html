@@ -1,0 +1,14 @@
+$def with (page)
+
+$ body = page and page.get('body', '')
+
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">$_("Page Body")</label>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="body" rows="5" cols="50" class="markdown">$body</textarea>
+        </div>
+    </div>
+</fieldset>

@@ -60,7 +60,7 @@ class addtag(delegate.page):
 
         i = web.input(name=None, type=None, sub_type=None)
 
-        return render_template('tag/add', i.name)
+        return render_template('tag/add', i)
 
     def has_permission(self, user) -> bool:
         """
@@ -89,9 +89,6 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        # TODO : unflatten not needed
-        i = utils.unflatten(i)
-
         if not validate_tag(i):
             raise web.badrequest()
 
@@ -103,6 +100,10 @@ class addtag(delegate.page):
         else:
             # no match
             return self.no_match(i)
+
+    @staticmethod
+    def create_tag(i):
+        return create_subject_tag(i.name, i.tag_description, i.tag_type, i.body)
 
     def find_match(self, i: web.utils.Storage):
         """
@@ -124,7 +125,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        tag = create_subject_tag(i.name, i.tag_description, i.tag_type, i.body)
+        tag = addtag.create_tag(i)
         raise safe_seeother(tag.key)
 
 
@@ -173,6 +174,49 @@ class tag_edit(delegate.page):
         i = utils.unflatten(i)
         tag = trim_doc(i)
         return tag
+
+
+class add_typed_tag(delegate.page):
+    path = "/tag/([^/]+)/add"
+
+    def GET(self, tag_type):
+        if not self.validate_type(tag_type):
+            raise web.badrequest()
+        if not (patron := get_current_user()):
+            # NOTE : will lose any query params on login redirect
+            raise web.seeother(f'/account/login?redirect={self.path}')
+        if not self.has_permission(patron):
+            raise web.unauthorized()
+
+        i = web.input(tag_type=tag_type)
+        if tag_type in get_subject_tag_types():
+            return render_template("type/tag/subject/edit", i)
+        return render_template(f"type/tag/{tag_type}/edit", i)
+
+
+    def POST(self, tag_type):
+        if not self.validate_type(tag_type):
+            raise web.badrequest()
+        i = web.input()
+        if spamcheck.is_spam(i, allow_privileged_edits=True):
+            return render_template(
+                "message.html", "Oops", 'Something went wrong. Please try again later.'
+            )
+        if not (patron := get_current_user()):
+            raise web.seeother(f'/account/login')
+        if not self.has_permission(patron):
+            raise web.unauthorized()
+
+        tag = addtag.create_tag(i)
+        raise safe_seeother(tag.key)
+
+    def has_permission(self, user):
+        return user and (
+            user.is_librarian() or user.is_super_librarian() or user.is_admin()
+        )
+
+    def validate_type(self, tag_type):
+        return tag_type in get_tag_types()
 
 
 def setup():

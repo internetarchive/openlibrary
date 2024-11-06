@@ -1,17 +1,22 @@
 $def with (page)
 
-$var title: $_("Add a tag")
+$ is_editing = page and page.get("key", "")
+
+$var title: $(_("Edit subject tag") if is_editing else _("Add a subject tag"))
+$ heading = _("Edit subject tag") if is_editing else _("Add a subject tag to Open Library")
 
 <div id="contentHead">
     <div class="head">
-        <h1>$_("Add a tag to Open Library")</h1>
+        <h1>$heading</h1>
     </div>
-    <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
+    $if not is_editing:
+        <p class="instruct">$_("We require a minimum set of fields to create a new subject tag.")</p>
 </div>
 
 <div id="contentBody">
     <form method="post" action="" id="addtag" class="olform addtag1">
-        $:render_template("type/tag/tag_form_inputs", page)
+        $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": True, "subjects_only": True})
+        $:render_template("type/tag/subject/edit_form_inputs", page)
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">
@@ -19,7 +24,6 @@ $var title: $_("Add a tag")
             </div>
             <div class="input">
                 <button type="submit" title="$_('Add this tag now')" id="create-tag-button" class="larger">$_('Add')</button>
-                &nbsp;
                 <a href="javascript:;" class="attn go-back-link">$_('Cancel')</a>
             </div>
         </div>

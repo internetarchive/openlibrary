@@ -10,7 +10,7 @@ $ q = query_param('q')
 <div class="page-heading-search-box">
     $if can_add_tag and not has_tag:
       <div class="subjectTagEdit">
-        $ link_url = "/tag/add?name=%s" % (page.name)
+        $ link_url = "/tag/%s/add?name=%s" % (page.subject_type, page.name)
         $ link_cta = _("Tag")
         $ elem_title = _("Link this subject to a tag")
         $ link_track = "CTAClick|SubjectPageTag"
