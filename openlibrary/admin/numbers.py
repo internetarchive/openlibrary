@@ -22,8 +22,6 @@ main harness. They can be utility functions.
 import functools
 import logging
 
-import web  # noqa: F401 side effects may be needed
-
 logger = logging.getLogger(__name__)
 
 

@@ -1,6 +1,5 @@
 import re
 import unicodedata
-import web  # noqa: F401 side effects may be needed
 
 # fields needed for matching:
 # title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors

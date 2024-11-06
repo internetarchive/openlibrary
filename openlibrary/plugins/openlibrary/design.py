@@ -1,4 +1,3 @@
-import web  # noqa: F401 side effects may be needed
 import logging
 
 from infogami.utils import delegate
