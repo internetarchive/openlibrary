@@ -1,17 +1,20 @@
 import {
     parseIsbn,
     parseLccn,
+    parseOclc,
     isChecksumValidIsbn10,
     isChecksumValidIsbn13,
     isFormatValidIsbn10,
     isFormatValidIsbn13,
-    isValidLccn
+    isValidLccn,
+    isValidOclc
 } from './idValidation.js'
 
 let invalidChecksum;
 let invalidIsbn10;
 let invalidIsbn13;
 let invalidLccn;
+let invalidOclc;
 let emptyId;
 
 const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
@@ -32,6 +35,7 @@ export function initAddBookImport () {
     invalidIsbn10 = i18nStrings.invalid_isbn10;
     invalidIsbn13 = i18nStrings.invalid_isbn13;
     invalidLccn = i18nStrings.invalid_lccn;
+    invalidOclc = i18nStrings.invalid_oclc;
     emptyId = i18nStrings.empty_id;
 
     $('#id_value').on('change',autoCompleteIdName);
@@ -69,7 +73,7 @@ function displayIsbnError(event, errorMessage) {
     document.getElementById('id_value').value = parseIsbn(document.getElementById('id_value').value);
 }
 
-function displayLccnError(event, errorMessage) {
+function displayIdentifierError(event, errorMessage) {
     const errorDiv = document.getElementById('id-errors');
     errorDiv.classList.remove('hidden');
     errorDiv.textContent = errorMessage;
@@ -97,6 +101,9 @@ function parseAndValidateId(event) {
     }
     else if (fieldName === 'lccn') {
         parseAndValidateLccn(event, idValue);
+    }
+    else if (fieldName === 'oclc_numbers') {
+        parseAndValidateOclc(event, idValue);
     }
     else if (!fieldName || !isEmptyId(event, idValue)) {
         document.getElementById('id_value').value = idValue.trim();
@@ -140,7 +147,15 @@ function parseAndValidateIsbn13(event, idValue) {
 function parseAndValidateLccn(event, idValue) {
     idValue = parseLccn(idValue);
     if (!isValidLccn(idValue)) {
-        return displayLccnError(event, invalidLccn);
+        return displayIdentifierError(event, invalidLccn);
+    }
+    document.getElementById('id_value').value = idValue;
+}
+
+function parseAndValidateOclc(event, idValue) {
+    idValue = parseOclc(idValue);
+    if (!isValidOclc(idValue)) {
+        return displayIdentifierError(event, invalidOclc);
     }
     document.getElementById('id_value').value = idValue;
 }
