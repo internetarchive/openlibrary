@@ -1,4 +1,4 @@
-$if not is_bot():
+$if False and not is_bot():
   $:get_donation_include()
 
 $ lang = get_lang() or 'en'
@@ -9,6 +9,7 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
   <div class="page-banner page-banner-black page-banner-center">
     <div class="iaBar">
         <a class="iaLogo" href="https://archive.org"><img alt="$_('Internet Archive logo')" src="/static/images/ia-logo.svg" width="160"></a>
+        $# detect-missing-i18n-skip-line
         <a class="ghost-btn" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
       <div class="language-component header-dropdown">
         <details>

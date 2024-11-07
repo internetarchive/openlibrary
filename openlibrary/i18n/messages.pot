@@ -1039,6 +1039,12 @@ msgstr ""
 msgid "Sign Up to Open Library"
 msgstr ""
 
+#: account/create.html
+msgid ""
+"Open Library is currently in limited-availability mode. During this time,"
+" patrons will be unable to create accounts."
+msgstr ""
+
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
 msgstr ""

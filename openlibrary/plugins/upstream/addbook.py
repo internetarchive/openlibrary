@@ -16,7 +16,7 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _
+from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary import accounts
 import logging
 

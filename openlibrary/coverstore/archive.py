@@ -13,7 +13,9 @@ import internetarchive as ia
 from infogami.infobase import utils
 
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
+from openlibrary.coverstore.coverlib import (
+    find_image_path,  # noqa: F401 side effects may be needed
+)
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 

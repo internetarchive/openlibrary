@@ -1,8 +1,14 @@
 from itertools import groupby
 import re
 
-from babel.messages.catalog import TranslationError, Message, Catalog
-from babel.messages.checkers import python_format
+from babel.messages.catalog import (
+    TranslationError,  # noqa: F401 side effects may be needed
+    Message,
+    Catalog,
+)
+from babel.messages.checkers import (
+    python_format,  # noqa: F401 side effects may be needed
+)
 
 
 def validate(message: Message, catalog: Catalog) -> list[str]:

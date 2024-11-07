@@ -2,7 +2,7 @@
 Open Library Plugin.
 """
 
-from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
+from urllib.parse import parse_qs, urlencode
 import requests
 import web
 import json
@@ -38,7 +38,9 @@ from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
+from openlibrary.core.vendors import (
+    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
+)
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_availability
@@ -298,7 +300,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit
+        from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -1406,7 +1408,9 @@ def setup():
     authors.setup()
     swagger.setup()
 
-    from openlibrary.plugins.openlibrary import api
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 side effects may be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 

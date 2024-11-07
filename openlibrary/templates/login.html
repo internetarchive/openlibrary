@@ -27,7 +27,15 @@ $if "dev" in ctx.features:
 
     <div id="contentBody" class="ol-signup-form">
     $if not ctx.user:
-        $:render_template("account/ia_thirdparty_logins")
+        <div class="flash-messages">
+            <div class="info ol-signup-form__info-box error">
+            <span>
+                Google sign-in is temporarily unavailable, sorry for the inconvenience.
+            </span>
+            </div>
+        </div>
+        $# Temporarily disable google signin
+        $#:render_template("account/ia_thirdparty_logins")
         <div class="ol-signup-form__big-or">$_('OR')</div>
         <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
 

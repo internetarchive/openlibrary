@@ -8,6 +8,7 @@ import requests
 import web
 from io import BytesIO
 from PIL import Image as PILImage, UnidentifiedImageError
+
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts

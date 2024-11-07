@@ -4,14 +4,16 @@ from web.template import TemplateResult
 
 from typing import Final, Literal, cast, TYPE_CHECKING
 
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary.i18n import gettext as _
 
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+)
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes

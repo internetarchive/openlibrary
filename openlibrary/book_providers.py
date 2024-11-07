@@ -550,14 +550,8 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
         return cover.url(size) if cover else None
 
     # Solr edition
-    elif ed_or_solr['key'].startswith('/books/'):
-        if ed_or_solr.get('cover_i'):
-            return (
-                get_coverstore_public_url()
-                + f'/b/id/{ed_or_solr["cover_i"]}-{size}.jpg'
-            )
-        else:
-            return None
+    elif ed_or_solr['key'].startswith('/books/') and ed_or_solr.get('cover_i'):
+        return get_coverstore_public_url() + f'/b/id/{ed_or_solr["cover_i"]}-{size}.jpg'
 
     # Solr document augmented with availability
     availability = ed_or_solr.get('availability', {}) or {}
@@ -567,7 +561,7 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
         return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
     if availability.get('identifier'):
         ocaid = ed_or_solr['availability']['identifier']
-        return f"//archive.org/services/img/{ocaid}"
+        return f"https://archive.org/download/{ocaid}/page/cover_w180_h360.jpg"
 
     # Plain solr - we don't know which edition is which here, so this is most
     # preferable

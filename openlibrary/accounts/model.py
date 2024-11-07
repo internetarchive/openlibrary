@@ -9,7 +9,7 @@ import hashlib
 import hmac
 import random
 import string
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 import uuid
 import logging
 import requests
@@ -662,6 +662,8 @@ class InternetArchiveAccount(web.storage):
 
         if not screenname:
             raise OLAuthenticationError('missing_fields')
+
+        raise OLAuthenticationError('undefined_error')
 
         _screenname = screenname
         attempt = 0

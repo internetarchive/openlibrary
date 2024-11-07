@@ -7,9 +7,11 @@ import copy
 
 import web
 
-from openlibrary.catalog.add_book import normalize
+from openlibrary.catalog.add_book import (
+    normalize,  # noqa: F401 side effects may be needed
+)
 from openlibrary.core.models import Thing
-import openlibrary.core.helpers as h
+import openlibrary.core.helpers as h  # noqa: F401 side effects may be needed
 
 
 class NoQueryParam(KeyError):

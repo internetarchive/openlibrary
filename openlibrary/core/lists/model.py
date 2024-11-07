@@ -8,9 +8,9 @@ from typing import TypedDict, cast
 import web
 import logging
 
-from infogami import config
-from infogami.infobase import client, common
-from infogami.utils import stats
+from infogami import config  # noqa: F401 side effects may be needed
+from infogami.infobase import client, common  # noqa: F401 side effects may be needed
+from infogami.utils import stats  # noqa: F401 side effects may be needed
 
 from openlibrary.core import helpers as h
 from openlibrary.core import cache

@@ -19,7 +19,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
-from infogami.plugins.api.code import jsonapi
+from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 
 from openlibrary.catalog.add_book import (
     update_ia_metadata_for_ol_edition,
@@ -31,7 +31,11 @@ import openlibrary
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
+from openlibrary.core import (
+    admin as admin_stats,
+    imports,
+    cache,
+)
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -646,7 +650,7 @@ def get_admin_stats():
     return storify(xstats)
 
 
-from openlibrary.plugins.upstream import borrow
+from openlibrary.plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
 
 class inspect:

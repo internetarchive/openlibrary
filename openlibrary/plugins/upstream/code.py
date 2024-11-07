@@ -14,19 +14,22 @@ from infogami.plugins.api.code import jsonapi, make_query
 from infogami.plugins.api.code import request as infogami_request
 
 from infogami.infobase import client
-from infogami.utils import delegate, app, types
+from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 from infogami.utils.view import render_template  # used for its side effects
-from infogami.utils.context import context
+from infogami.utils.context import context  # noqa: F401 side effects may be needed
 
-from openlibrary import accounts
+from openlibrary import accounts  # noqa: F401 side effects may be needed
 
 from openlibrary.plugins.upstream import addbook, addtag, covers, models, utils
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import merge_authors
 from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import checkins
-from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from openlibrary.plugins.upstream import (
+    borrow,  # noqa: F401 side effects may be needed
+    recentchanges,  # noqa: F401 side effects may be needed
+)  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
