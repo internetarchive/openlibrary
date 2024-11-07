@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc  # noqa: F401 side effects may be needed
 from openlibrary import config
 from ftplib import FTP
 from time import sleep

@@ -5,10 +5,14 @@ import re
 import web
 
 from openlibrary.accounts import get_current_user
-from openlibrary.core import cache
-from openlibrary.core.processors import ReadableUrlProcessor
-from openlibrary.plugins.openlibrary.home import caching_prethread
-from openlibrary.utils import dateutil
+from openlibrary.core import cache  # noqa: F401 side effects may be needed
+from openlibrary.core.processors import (
+    ReadableUrlProcessor,  # noqa: F401 side effects may be needed
+)
+from openlibrary.plugins.openlibrary.home import (
+    caching_prethread,  # noqa: F401 side effects may be needed
+)
+from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 
 from openlibrary.core import helpers as h
 

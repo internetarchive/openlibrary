@@ -15,10 +15,13 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template, add_flash_message
+from infogami.utils.view import (
+    public,
+    add_flash_message,
+)
 from infogami.infobase.utils import parse_datetime
 
-from openlibrary.core import models
+from openlibrary.core import models  # noqa: F401 side effects may be needed
 from openlibrary.core import stats
 from openlibrary.core import lending
 from openlibrary.core import vendors

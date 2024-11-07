@@ -20,8 +20,6 @@ from openlibrary.coverstore.utils import (
     download,
     ol_get,
     ol_things,
-    random_string,
-    rm_f,
     safeint,
 )
 from openlibrary.plugins.openlibrary.processors import CORSProcessor

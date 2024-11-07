@@ -4,7 +4,7 @@
 import web
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
+from infogami.utils.view import public  # noqa: F401 side effects may be needed
 
 import requests
 

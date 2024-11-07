@@ -19,7 +19,9 @@ import web
 import datetime
 from gzip import open as gzopen
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.plugins.openlibrary.processors import (
+    urlsafe,  # noqa: F401 side effects may be needed
+)
 
 t = web.template.Template
 
