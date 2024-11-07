@@ -6,7 +6,6 @@ from logging import getLogger
 import os
 import requests
 import web
-from io import BytesIO
 from PIL import Image as PILImage, UnidentifiedImageError
 
 from infogami.utils import delegate
