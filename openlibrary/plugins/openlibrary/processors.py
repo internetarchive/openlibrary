@@ -115,11 +115,11 @@ class PreferenceProcessor:
 cutoff = '2024-11-07T18:00:00'
 stale_date = datetime.fromisoformat(cutoff)
 
+
 class RequireLogoutProcessor:
 
     def __call__(self, handler):
-        session_cookie = web.cookies().get("session")
-        if session_cookie:
+        if session_cookie := web.cookies().get("session"):
             split_cookie = session_cookie.split(",")
             create_date = datetime.fromisoformat(split_cookie[1])
 
