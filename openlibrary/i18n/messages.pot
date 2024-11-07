@@ -3243,6 +3243,10 @@ msgid "LibriVox"
 msgstr ""
 
 #: books/add.html
+msgid "OCLC/WorldCat"
+msgstr ""
+
+#: books/add.html
 msgid "Project Gutenberg"
 msgstr ""
 
