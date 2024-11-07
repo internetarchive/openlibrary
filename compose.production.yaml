@@ -19,7 +19,6 @@ services:
       - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
-      - .:/openlibrary
 
   solr:
     profiles: ["ol-solr0"]
