@@ -5,10 +5,7 @@ import re
 import web
 
 from openlibrary.accounts import get_current_user
-from openlibrary.core import cache
 from openlibrary.core.processors import ReadableUrlProcessor
-from openlibrary.plugins.openlibrary.home import caching_prethread
-from openlibrary.utils import dateutil
 
 from openlibrary.core import helpers as h
 
