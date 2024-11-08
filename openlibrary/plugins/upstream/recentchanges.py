@@ -9,7 +9,9 @@ import yaml
 
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
-from infogami.utils.view import add_flash_message  # TODO: unused import?
+from infogami.utils.view import (
+    add_flash_message,  # noqa: F401 side effects may be needed
+)  # TODO: unused import?
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
