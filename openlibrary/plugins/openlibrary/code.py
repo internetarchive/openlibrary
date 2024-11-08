@@ -25,7 +25,7 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
 from infogami.utils.app import metapage
-from infogami.utils import delegate
+from infogami.utils import delegate, features
 from openlibrary.utils import dateutil
 from infogami.utils.view import (
     render,
@@ -1127,7 +1127,6 @@ def save_error():
 
 
 def internalerror():
-    i = web.input(_method='GET', debug='false')
     name = save_error()
 
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
@@ -1141,7 +1140,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if i.debug.lower() == 'true':
+    if features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(render.internalerror(name))
