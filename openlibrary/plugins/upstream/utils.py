@@ -1410,7 +1410,7 @@ def _get_blog_feeds():
             }
 
         try:
-            headers = { "If-Modified-Since": modified_date }
+            headers = {"If-Modified-Since": modified_date}
             stats.begin("get_blog_feeds", url=url)
             result = requests.get(url, headers=headers)
             if result.status_code == 304:
@@ -1434,6 +1434,7 @@ def _get_blog_feeds():
             stats.end()
 
         return items
+
     return parse_xml
 
 
