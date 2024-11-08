@@ -9,8 +9,6 @@ from infogami.core.code import logout as infogami_logout
 
 from openlibrary.accounts import get_current_user
 
-from openlibrary.core.processors import ReadableUrlProcessor
-
 from openlibrary.core import helpers as h
 
 urlsafe = h.urlsafe
