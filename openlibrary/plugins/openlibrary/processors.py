@@ -7,6 +7,9 @@ import web
 
 from infogami.core.code import logout as infogami_logout
 
+from openlibrary.core.processors import (
+    ReadableUrlProcessor,  # noqa: F401 side effects may be needed
+)
 from openlibrary.accounts import get_current_user
 
 from openlibrary.core import helpers as h
