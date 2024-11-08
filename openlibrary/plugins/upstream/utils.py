@@ -1389,33 +1389,56 @@ _get_recent_changes2 = web.memoize(
 @public
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
-    try:
-        stats.begin("get_blog_feeds", url=url)
-        tree = ET.fromstring(requests.get(url).text)
-    except Exception:
-        # Handle error gracefully.
-        logging.getLogger("openlibrary").error(
-            "Failed to fetch blog feeds", exc_info=True
-        )
-        return []
-    finally:
-        stats.end()
+    # take the earliest possible time we can and convert it to something we can use in a header
+    modified_date = datetime.datetime.min.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-    def parse_item(item):
-        pubdate = datetime.datetime.strptime(
-            item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000'
-        ).isoformat()
-        return {
-            "title": item.find("title").text,
-            "link": item.find("link").text,
-            "pubdate": pubdate,
-        }
+    # store the existing items; this assumes an approach where we don't wish to update memcache_memoize
+    items = []
 
-    return [parse_item(item) for item in tree.findall(".//item")]
+    def parse_xml():
+        nonlocal modified_date
+        nonlocal items
+
+        def parse_item(item):
+            pubdate = datetime.datetime.strptime(
+                item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000'
+            ).isoformat()
+            return {
+                "title": item.find("title").text,
+                "link": item.find("link").text,
+                "pubdate": pubdate,
+            }
+
+        try:
+            headers = { "If-Modified-Since": modified_date }
+            stats.begin("get_blog_feeds", url=url)
+            result = requests.get(url, headers=headers)
+            if result.status_code == 304:
+                # we don't need to update; return cached at end of function
+                pass
+            elif result.status_code == 200:
+                # update the modified date
+                modified_date = result.headers["Last-Modified"]
+                tree = ET.fromstring(result.text)
+                items = [parse_item(item) for item in tree.findall(".//item")]
+            else:
+                raise Exception
+        except Exception:
+            # Handle error gracefully.
+            logging.getLogger("openlibrary").error(
+                "Failed to fetch blog feeds", exc_info=True
+            )
+            # clear out the existing items in case of a failure
+            items = []
+        finally:
+            stats.end()
+
+        return items
+    return parse_xml
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds(), key_prefix="upstream.get_blog_feeds", timeout=5 * 60
 )
 
 
