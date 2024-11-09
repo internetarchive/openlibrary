@@ -1,8 +1,7 @@
 $def with (doc, cover_selector=".bookCover img", imagesId=0)
 
-$# If user is not logged-in don't show add/manage link.
-$if not ctx.user:
-    $return
+$# Temporarily disable cover management
+$return
 
 
 $if doc.type.key == '/type/author':
