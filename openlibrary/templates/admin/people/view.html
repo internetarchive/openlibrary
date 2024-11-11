@@ -106,7 +106,7 @@ $ has_profile = person.get_user() is not None
 <div id="contentBody">
 
     <div class="status status-$person.status">
-        <form method="POST" action="?debug=true">
+        <form method="POST">
             Status: <span class="status">$person.status</span>
 
         $if person.status in ['active', 'verified']:
@@ -216,7 +216,7 @@ $ has_profile = person.get_user() is not None
     <tr>
         <td>$_("Anonymize Account:")</td>
         <td>
-            <form method="POST" id="anonymize-form" action="?debug=true">
+            <form method="POST" id="anonymize-form">
                 <input type="checkbox" id="dry-run-checkbox" name="dry_run">
                 <label for="dry-run-checkbox">$_("Dry Run")</label>
                 <button type="submit" name="action" value="anonymize_account" style="float: right;" class="account-anonymization-button" data-display-name="$person.username">$_("Anonymize Account")</button>
