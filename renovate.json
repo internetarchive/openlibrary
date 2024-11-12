@@ -19,7 +19,8 @@
       "automerge": true
     },
     {
-      "matchPackageNames": ["mypy", "pytest", "pytest-asyncio", "ruff", "safety"],
+      "matchPackagePatterns": ["*"],
+      "fileMatch": ["requirements_test.txt"],
       "automerge": true
     },
     {
