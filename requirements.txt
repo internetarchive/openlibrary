@@ -26,7 +26,7 @@ python-memcached==1.59
 PyYAML==6.0.1
 qrcode==7.4.2
 requests==2.32.2
-sentry-sdk==1.28.1
+sentry-sdk==2.8.0
 simplejson==3.19.1
 statsd==4.0.1
 validate_email==1.3
