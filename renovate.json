@@ -32,12 +32,13 @@
       "automerge": true
     },
     {
-      "fileMatch": [
-        "requirements_test.txt"
-      ],
       "automerge": true,
       "matchPackageNames": [
-        "*"
+        "mypy",
+        "pytest",
+        "pytest-asyncio",
+        "ruff",
+        "safety"
       ]
     },
     {
