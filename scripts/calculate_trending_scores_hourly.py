@@ -30,7 +30,11 @@ def fetch_works(current_hour: int):
         for storage in list(ol_db.query(query))
     }
     print(db_data)
-    query = f'trending_score_hourly_{current_hour}:[1 TO *] OR {" OR ".join(["key:\"" + key + "\"" for key in db_data])}'
+    query = (
+        f'trending_score_hourly_{current_hour}:[1 TO *]'
+        + (" OR " if db_data != {} else "")
+        + (" OR ".join(["key:\"" + key + "\"" for key in db_data]))
+    )
     print(query)
     resp = execute_solr_query(
         '/export',
@@ -108,12 +112,10 @@ def form_inplace_updates(work_id: str, count: int, solr_doc: dict, current_hour:
 
 
 if __name__ == '__main__':
-    from contextlib import redirect_stdout
-
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:
-        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
-            load_config(ol_config)
+
+        load_config(ol_config)
 
         current_hour = datetime.datetime.now().hour
         work_data = fetch_works(current_hour)
@@ -130,5 +132,6 @@ if __name__ == '__main__':
             print(request_body)
             resp = get_solr().update_in_place(request_body)
             print(resp)
+            print("Hourly update completed.")
     else:
-        print("failure")
+        print("Could not find environment variable \"OL_Config\"")

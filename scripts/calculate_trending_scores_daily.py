@@ -34,18 +34,19 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
 
 
 if __name__ == '__main__':
-    from contextlib import redirect_stdout
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:
-        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
-            load_config(ol_config)
-    current_day = datetime.datetime.now().weekday()
-    work_data = fetch_works(current_day)
+        load_config(ol_config)
+        current_day = datetime.datetime.now().weekday()
+        work_data = fetch_works(current_day)
 
-    request_body = [
-        form_inplace_updates(work_id, current_day, work_data[work_id])
-        for work_id in work_data
-    ]
+        request_body = [
+            form_inplace_updates(work_id, current_day, work_data[work_id])
+            for work_id in work_data
+        ]
+        print("Daily update completed.")
 
-    resp = get_solr().update_in_place(request_body)
+        resp = get_solr().update_in_place(request_body)
+    else:
+        print("Error: OL_Config could not be found.")
