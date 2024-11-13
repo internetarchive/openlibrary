@@ -5,6 +5,7 @@ from openlibrary.config import load_config
 from openlibrary.core import db
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.code import execute_solr_query
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from math import sqrt
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
@@ -23,7 +24,7 @@ from math import sqrt
 def fetch_works(current_hour: int):
     ol_db = db.get_db()
     query = "select work_id, Count(updated)"
-    query += "from bookshelves_events group by bookshelves_events.updated, work_id "
+    query += "from bookshelves_books group by bookshelves_books.updated, work_id "
     query += "having updated >= localtimestamp - interval '1 hour'"
     db_data = {
         f'/works/OL{storage.work_id}W': storage.count
@@ -77,7 +78,7 @@ AVERAGE_DAILY_EVENTS_FLOOR = 10 / 7
 # 24 hours is away from the mean.
 def get_z_score(solr_doc: dict, count: int, current_hour: int):
     arith_mean = sum([solr_doc[f'trending_score_daily_{i}'] for i in range(7)]) / 7
-    if arith_mean < ():
+    if arith_mean < AVERAGE_DAILY_EVENTS_FLOOR:
         return 0
     last_24_hours_value = (
         solr_doc['trending_score_hourly_sum']
@@ -111,11 +112,10 @@ def form_inplace_updates(work_id: str, count: int, solr_doc: dict, current_hour:
     return request_body
 
 
-if __name__ == '__main__':
-    ol_config = os.getenv("OL_CONFIG")
-    if ol_config:
+def main(openlibrary_yml: str):
+    if openlibrary_yml:
 
-        load_config(ol_config)
+        load_config(openlibrary_yml)
 
         current_hour = datetime.datetime.now().hour
         work_data = fetch_works(current_hour)
@@ -135,3 +135,7 @@ if __name__ == '__main__':
             print("Hourly update completed.")
     else:
         print("Could not find environment variable \"OL_Config\"")
+
+
+if __name__ == '__main__':
+    FnToCLI(main).run()

@@ -6,6 +6,7 @@ from openlibrary.plugins.worksearch.code import execute_solr_query
 import datetime
 
 from openlibrary.plugins.worksearch.search import get_solr
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
 def fetch_works(current_day: int):
@@ -33,11 +34,9 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
     return {"key": work_id, f'trending_score_daily_{current_day}': {"set": new_value}}
 
 
-if __name__ == '__main__':
-
-    ol_config = os.getenv("OL_CONFIG")
-    if ol_config:
-        load_config(ol_config)
+def main(openlibrary_yml: str):
+    if openlibrary_yml:
+        load_config(openlibrary_yml)
         current_day = datetime.datetime.now().weekday()
         work_data = fetch_works(current_day)
 
@@ -50,3 +49,7 @@ if __name__ == '__main__':
         resp = get_solr().update_in_place(request_body)
     else:
         print("Error: OL_Config could not be found.")
+
+
+if __name__ == '__main__':
+    FnToCLI(main).run()
