@@ -1,7 +1,6 @@
 import _init_path
 import os
 from openlibrary.config import load_config
-from openlibrary.core import db
 from openlibrary.plugins.worksearch.code import execute_solr_query
 import datetime
 
