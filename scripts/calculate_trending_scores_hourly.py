@@ -136,5 +136,6 @@ def main(openlibrary_yml: str):
     else:
         print("Could not find environment variable \"OL_Config\"")
 
+
 if __name__ == '__main__':
     FnToCLI(main).run()
