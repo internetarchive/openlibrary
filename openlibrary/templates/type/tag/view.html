@@ -18,9 +18,14 @@ $code:
         $title
     </h1>
     <h3 itemprop="description">
+        $# TODO : sanitize and format
         $tag.tag_description
     </h3>
     $if tag.tag_type in get_subject_tag_types():
+        <div>
+            $:sanitize(format(tag.body))
+        </div>
+
         $ subject_key = derive_subject_key(tag)
         <footer>
             <a href="$subject_key">

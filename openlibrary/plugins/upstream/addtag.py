@@ -34,8 +34,7 @@ def validate_tag(tag):
 
 
 def validate_subject_tag(tag):
-    # TODO : Add `body` validation?
-    return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types()
+    return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types() and tag.get('body')
 
 
 def create_tag(tag: dict) -> Tag:
