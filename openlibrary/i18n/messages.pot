@@ -1724,8 +1724,8 @@ msgstr ""
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
 #: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/list/view_body.html
-#: type/user/view.html type/work/view.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
 msgid "Lists"
 msgstr ""
 

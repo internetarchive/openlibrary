@@ -52,7 +52,7 @@ $var title: $header_title
               $ share_links = ctx.get('share_links')
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
         </div>
-      $if page:
+      $if page and mb.is_my_page:
         $:macros.databarView(page)
     </header>
 
