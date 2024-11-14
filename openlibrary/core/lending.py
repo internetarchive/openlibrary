@@ -462,10 +462,11 @@ def get_ocaid(item: dict) -> str | None:
         possible_fields.remove('ia')
         possible_fields.append('ia')
 
-    ocaids = []
+    ocaids: list[str] = []
     for field in possible_fields:
         if item.get(field):
-            ocaids += item[field] if isinstance(item[field], list) else [item[field]]
+            val = cast(list[str] | str, item[field])
+            ocaids += val if isinstance(val, list) else [val]
     ocaids = uniq(ocaids)
     return next((ocaid for ocaid in ocaids if not is_non_ia_ocaid(ocaid)), None)
 
