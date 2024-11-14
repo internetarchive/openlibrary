@@ -1216,6 +1216,25 @@ def _get_edition_config():
         classifications=classifications, identifiers=identifiers, roles=roles
     )
 
+@public
+def get_work_config() -> Storage:
+    return _get_work_config()
+
+@web.memoize
+def _get_work_config() -> Storage:
+    """
+    Pulls the list of all work identifiers from the identifiers.yml file
+    and inserts them into a Storage object?
+    """
+    with open(
+        'openlibrary/plugins/openlibrary/config/work/identifiers.yml'
+    ) as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
+    return Storage(identifiers=identifiers)
+
 
 from openlibrary.core.olmarkdown import OLMarkdown
 

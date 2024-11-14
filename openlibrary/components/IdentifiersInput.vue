@@ -170,7 +170,7 @@ export default {
                     return;
                 }
             } else if (this.assignedIdentifiers[this.selectedIdentifier]) {
-                errorDisplay(`An author identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`)
+                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`)
                 return;
             } else { errorDisplay() }
             // We use $set otherwise we wouldn't get the reactivity desired
@@ -227,6 +227,10 @@ export default {
     },
     created: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
+        if (this.assignedIdentifiers.length === 0) {
+            this.assignedIdentifiers = {}
+            return;
+        }
         if (this.isEdition) {
             const edition_identifiers = {};
             this.assignedIdentifiers.forEach(entry => {
@@ -237,6 +241,12 @@ export default {
                 }
             })
             this.assignedIdentifiers = edition_identifiers;
+        } else if (this.input_prefix === 'work--identifiers'){
+            const work_identifiers = {};
+            this.assignedIdentifiers.forEach(entry => {
+                work_identifiers[entry.name] = entry.value;
+            })
+            this.assignedIdentifiers = work_identifiers;
         }
     },
     watch: {
