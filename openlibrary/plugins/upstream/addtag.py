@@ -122,7 +122,8 @@ class addtag(delegate.page):
         """
         Tries to find an existing tag that matches the data provided by the user.
         """
-        return Tag.find(i.name, i.tag_type)
+        matches =  Tag.find(i.name, tag_type=i.tag_type)
+        return matches[0] if matches else None
 
     def tag_match(self, match: list) -> NoReturn:
         """

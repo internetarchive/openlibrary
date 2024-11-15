@@ -45,7 +45,16 @@ $ q = query_param('q')
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
 </div>
-
+$if 'disambiguations' in page:
+    <div>
+        <h3>Disambiguations</h3>
+        <ul>
+            $for i in page.disambiguations:
+            <li>
+                <a href="$i.key">$i.name ($i.tag_type)</a>
+            </li>
+        </ul>
+    </div>
 <div class="contentBody">
 
     $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})

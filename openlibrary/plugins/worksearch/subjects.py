@@ -11,8 +11,9 @@ import web
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.core.lending import add_availability
-from openlibrary.core.models import Subject
+from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 
@@ -44,6 +45,8 @@ class subjects(delegate.page):
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
+            self.decorate_with_disambiguations(subj)
+            # TODO : use disambiguations to find linked tag
             self.decorate_with_tag(subj)
             page = render_template("subjects", page=subj)
 
@@ -59,9 +62,14 @@ class subjects(delegate.page):
             key = key.replace("/times/", "/time:")
         return key
 
+    def decorate_with_disambiguations(self, subject):
+        matches = Tag.find(subject.name)
+        if matches:
+            tags = web.ctx.site.get_many(matches)
+            subject.disambiguations = tags
+
     def decorate_with_tag(self, subject):
-        q = {"type": "/type/tag", "name": subject.name, "tag_type": subject.subject_type}
-        matches = web.ctx.site.things(q)
+        matches = Tag.find(subject.name, tag_type=subject.subject_type)
         if matches:
             tag = web.ctx.site.get(matches[0])
             subject.tag = tag

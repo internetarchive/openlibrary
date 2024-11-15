@@ -1145,11 +1145,13 @@ class Tag(Thing):
         return self.name or "unnamed"
 
     @classmethod
-    def find(cls, tag_name, tag_type):
+    def find(cls, tag_name, tag_type=None):
         """Returns a Tag key for a given tag name and tag type."""
-        q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
-        match = list(web.ctx.site.things(q))
-        return match[0] if match else None
+        q = {'type': '/type/tag', 'name': tag_name}
+        if tag_type:
+            q['tag_type'] = tag_type
+        matches = list(web.ctx.site.things(q))
+        return matches
 
     @classmethod
     def create(
