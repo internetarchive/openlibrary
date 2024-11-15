@@ -242,6 +242,18 @@ class add_typed_tag(delegate.page):
         return validate_tag(i)
 
 
+class tag_search(delegate.page):
+    path = "/tags/-/([^/]+):([^/]+)"
+
+    def GET(self, type, name):
+        # TODO : Search is case sensitive
+        # TODO : Handle spaces and special characters
+        matches = Tag.find(name, tag_type=type)
+        if matches:
+            return web.seeother(matches[0])
+        return render_template("notfound", f"/tags/-/{type}:{name}", create=False)
+
+
 def setup():
     """Do required setup."""
     pass
