@@ -11,6 +11,19 @@
         a{margin: 8px; padding: 4px 8px; background: #e44028; color: white; border-radius: 4px; text-decoration: none;}
         a.goback{background: #0376b8;}
         </style>
+        <script>
+        window.addEventListener('online', () => location.reload());
+        if (location.hostname === 'localhost') {
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/');
+                    if (response.ok) location.reload();
+                } catch (e) {
+                    // Connection still not available
+                }
+            }, 1000);
+        }
+        </script>
     </head>
     <body>
     <div id="logo"><img src="static/images/logo_OL-err.png" alt="The Open Library is closed!" width="219"/></div>
