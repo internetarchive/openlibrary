@@ -351,8 +351,6 @@ def get_ia_item(ocaid):
 
 
 def modify_ia_item(item, data):
-    raise Exception("modify_ia_item is temporarily disabled")
-
     access_key = (
         lending.config_ia_ol_metadata_write_s3
         and lending.config_ia_ol_metadata_write_s3['s3_key']
