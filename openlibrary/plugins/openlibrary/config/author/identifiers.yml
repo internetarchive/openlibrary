@@ -17,6 +17,11 @@ identifiers:
     notes: ''
     url: https://isni.org/isni/@@@
     website: https://isni.org/
+-   label: Integrated Authority File (GND)
+    name: gnd
+    notes: ''
+    url: https://d-nb.info/gnd/@@@
+    website: https://gnd.network/
 -   label: IMDb
     name: imdb
     notes: Should be something like nm0393654
