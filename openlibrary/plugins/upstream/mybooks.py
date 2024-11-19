@@ -67,9 +67,10 @@ class mybooks_home(delegate.page):
             loans = web.Storage({"docs": [], "total_results": len(loans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
-                book = web.ctx.site.get(loan['book'])
-                book.loan = loan
-                loans.docs.append(book)
+                # Book will be None if no OL edition exists for the book
+                if book := web.ctx.site.get(loan['book']):
+                    book.loan = loan
+                    loans.docs.append(book)
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}

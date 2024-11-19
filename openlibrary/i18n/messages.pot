@@ -1049,10 +1049,6 @@ msgid ""
 "nonprofit Internet Archive"
 msgstr ""
 
-#: account/create.html
-msgid "Google sign-in is temporarily unavailable, sorry for the inconvenience."
-msgstr ""
-
 #: account/create.html type/author/view.html
 msgid "Success!"
 msgstr ""
