@@ -15,7 +15,6 @@ from babel.messages import Catalog, Message
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import (
-    extract_from_file,  # noqa: F401 side effects may be needed
     extract_from_dir,
     extract_python,
 )
