@@ -1435,33 +1435,6 @@ def jsdef_get(obj, key, default=None):
 
 
 @public
-def get_donation_include() -> str:
-    ia_host = get_ia_host(allow_dev=True)
-    # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services
-    if ia_host != "archive.org":
-        script_src = f"https://{ia_host}/includes/donate.js"
-    else:
-        script_src = "/cdn/archive.org/donate.js"
-
-    if 'ymd' in (web_input := web.input()):
-        # Should be eg 20220101 (YYYYMMDD)
-        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
-            script_src += '?' + urllib.parse.urlencode({'ymd': web_input.ymd})
-        else:
-            raise ValueError('?ymd should be 8 digits (eg 20220101)')
-
-    html = (
-        """
-    <div id="donato"></div>
-    <script src="%s" data-platform="ol"></script>
-    """
-        % script_src
-    )
-    return html
-
-
-@public
 def get_ia_host(allow_dev: bool = False) -> str:
     if allow_dev:
         web_input = web.input()

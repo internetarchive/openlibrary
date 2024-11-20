@@ -1,5 +1,5 @@
-$if False and not is_bot():
-  $:get_donation_include()
+$if not is_bot():
+  $:render_template('site/donation_banner')
 
 $ lang = get_lang() or 'en'
 $ supported_languages = get_supported_languages()
