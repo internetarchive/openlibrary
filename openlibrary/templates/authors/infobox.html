@@ -15,8 +15,8 @@ $def render_infobox_row(label, itemprop, value):
         </tr>
 
 $def render_social_icon(url, icon_url, title):
-    <a href="$url">
-        <img class="profile-icon" src="$icon_url" title="$title">
+    <a href="$url" title="$_('View on %(site)s', site=title)">
+        <img class="profile-icon" src="$icon_url" alt="">
     </a>
 
 <div class="infobox">
