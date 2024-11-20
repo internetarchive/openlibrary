@@ -2,6 +2,9 @@ import datetime
 import itertools
 import logging
 import re
+import typing
+import httpx
+from statistics import median
 import time
 from collections import defaultdict
 from collections.abc import Iterable
@@ -19,7 +22,7 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
@@ -46,9 +49,22 @@ class WorkSolrUpdater(AbstractSolrUpdater):
 
         :param dict work: Work to insert/update
         """
+        base_url = get_solr_base_url() + '/query'
         wkey = work['key']
         update = SolrUpdateRequest()
-
+        json: dict[str, typing.Any] = {
+            "params": {
+                "json.nl": "arrarr",
+                "q": "key: %s" % wkey,
+                "fl": [
+                    "trending_score_hourly_sum",
+                    'trending_score_hourly_*',
+                    "trending_score_daily_*",
+                    "trending_z_score",
+                ],
+                "sort": "trending_z_score desc",
+            },
+        }
         # q = {'type': '/type/redirect', 'location': wkey}
         # redirect_keys = [r['key'][7:] for r in query_iter(q)]
         # redirect_keys = [k[7:] for k in data_provider.find_redirects(wkey)]
@@ -106,9 +122,16 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     iaid: get_ia_collection_and_box_id(iaid, self.data_provider)
                     for iaid in iaids
                 }
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        base_url,
+                        timeout=30,
+                        json=json,
+                    )
+                reply = response.json()
 
                 solr_doc = WorkSolrBuilder(
-                    work, editions, authors, self.data_provider, ia_metadata
+                    work, editions, authors, self.data_provider, ia_metadata, reply
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work['key'], exc_info=True)
@@ -256,12 +279,14 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         authors: list[dict],
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
+        solr_reply: dict,
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
+        self._solr_reply = solr_reply
         self._solr_editions = [
             EditionSolrBuilder(
                 e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
@@ -661,7 +686,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def trending_z_score(self) -> float:
-        return self._work.get("trending_z_score", 0)
+        if docs := self._solr_reply['response'].get('docs', []):
+            return docs[0].get('trending_z_score', 0)
+        return 0
 
     def build_subjects(self) -> dict:
         doc: dict = {}
@@ -683,17 +710,17 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return doc
 
     def build_trending_scores(self) -> dict:
+        reply = self._solr_reply['response'].get('docs', [])
+        reply = reply[0] if reply else {}
         doc: dict = {
-            f'trending_score_hourly_{index}': self._work.get(
+            f'trending_score_hourly_{index}': reply.get(
                 f'trending_score_hourly_{index}', 0
             )
             for index in range(24)
         }
+        doc |= {"trending_score_hourly_sum": reply.get("trending_score_hourly_sum", 0)}
         doc |= {
-            "trending_score_hourly_sum": self._work.get("trending_score_hourly_sum", 0)
-        }
-        doc |= {
-            f'trending_score_daily_{index}': self._work.get(
+            f'trending_score_daily_{index}': reply.get(
                 f'trending_score_daily_{index}', 0
             )
             for index in range(7)
