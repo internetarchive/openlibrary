@@ -1435,25 +1435,6 @@ def jsdef_get(obj, key, default=None):
 
 
 @public
-def get_donation_include() -> str:
-    ia_host = get_ia_host(allow_dev=True)
-    # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services
-    # Note donate.js also reads the ?ymd=YYYYMMDD parameter and the
-    # `variant` parameter.
-    if ia_host != "archive.org":
-        script_src = f"https://{ia_host}/includes/donate.js"
-    else:
-        script_src = "/cdn/archive.org/donate.js"
-
-    html = f"""
-        <div id="donato"></div>
-        <script src="{websafe(script_src)}" data-platform="ol"></script>
-    """
-    return html
-
-
-@public
 def get_ia_host(allow_dev: bool = False) -> str:
     if allow_dev:
         web_input = web.input()
