@@ -1439,26 +1439,12 @@ def get_donation_include() -> str:
     ia_host = get_ia_host(allow_dev=True)
     # The following allows archive.org staff to test banners without
     # needing to reload openlibrary services
+    # Note donate.js also reads the ?ymd=YYYYMMDD parameter and the
+    # `variant` parameter.
     if ia_host != "archive.org":
         script_src = f"https://{ia_host}/includes/donate.js"
     else:
         script_src = "/cdn/archive.org/donate.js"
-
-    web_input = web.input()
-    params = {}
-
-    if 'ymd' in web_input:
-        # Should be eg 20220101 (YYYYMMDD)
-        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
-            params['ymd'] = web_input.ymd
-        else:
-            raise ValueError('?ymd should be 8 digits (eg 20220101)')
-
-    if 'donate_variant' in web_input:
-        params['variant'] = web_input.donate_variant
-
-    if params:
-        script_src += "?" + urlencode(params)
 
     html = f"""
         <div id="donato"></div>
