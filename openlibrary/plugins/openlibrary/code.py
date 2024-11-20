@@ -1383,6 +1383,28 @@ def setup_context_defaults():
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
+def setup_requests():
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if infogami.config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get('http_proxy')
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get('http_proxy')
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if infogami.config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(infogami.config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
+
+
 def setup():
     from openlibrary.plugins.openlibrary import (
         sentry,
@@ -1421,6 +1443,7 @@ def setup():
 
     setup_context_defaults()
     setup_template_globals()
+    setup_requests()
 
 
 setup()
