@@ -1388,8 +1388,12 @@ def setup_requests():
 
     logger.info("Setting up proxy")
     if infogami.config.get("http_proxy", ""):
-        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get('http_proxy')
-        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get('http_proxy')
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
         logger.info('Proxy environment variables are set')
     else:
         logger.info("No proxy configuration found")
