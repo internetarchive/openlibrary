@@ -10,6 +10,12 @@ IGNORE_CHANGES=${IGNORE_CHANGES:-0}
 # Check is GNU-specific because some hosts had something else called parallel installed
 # [[ $(parallel --version 2>/dev/null) = GNU* ]] || sudo apt-get -y --no-install-recommends install parallel
 
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "jq is not installed. Please follow the instructions on https://jqlang.github.io/jq/download/ to install it."
+    exit 1
+fi
+
 cleanup() {
     TMP_DIR=$1
     echo ""
@@ -121,7 +127,7 @@ deploy_olsystem() {
     echo -e "No changes found in the $REPO repo on the servers.\n"
 
     # Get the latest code
-    echo -ne "Cloning $REPO repo..."
+    echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
     echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
     # compress the repo to speed up the transfer
@@ -184,7 +190,7 @@ deploy_openlibrary() {
 
     if [ $GIT_LAST_UPDATED_TS -gt $IMAGE_LAST_UPDATED_TS ]; then
         echo "✗ Docker image is not up-to-date"
-        echo "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image"
+        echo "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image for the master branch"
         cleanup $TMP_DIR
         exit 1
     else
