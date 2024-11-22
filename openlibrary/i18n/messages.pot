@@ -2831,6 +2831,11 @@ msgid "including <i>%(topwork)s</i>"
 msgstr ""
 
 #: authors/infobox.html
+#, python-format
+msgid "View on %(site)s"
+msgstr ""
+
+#: authors/infobox.html
 msgid "Born"
 msgstr ""
 

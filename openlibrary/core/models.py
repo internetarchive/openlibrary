@@ -776,7 +776,6 @@ class Author(Thing):
     def wikidata(
         self, bust_cache: bool = False, fetch_missing: bool = False
     ) -> WikidataEntity | None:
-        return None
         if wd_id := self.remote_ids.get("wikidata"):
             return get_wikidata_entity(
                 qid=wd_id, bust_cache=bust_cache, fetch_missing=fetch_missing
