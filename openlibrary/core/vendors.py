@@ -28,7 +28,6 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 
-BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
