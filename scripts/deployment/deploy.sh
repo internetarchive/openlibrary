@@ -121,8 +121,9 @@ deploy_olsystem() {
     echo -e "No changes found in the $REPO repo on the servers.\n"
 
     # Get the latest code
+    echo -ne "Cloning $REPO repo..."
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
-    echo -n "Cloned $REPO repo (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
+    echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
     # compress the repo to speed up the transfer
     tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
@@ -168,9 +169,10 @@ deploy_openlibrary() {
     check_server_access
 
     cd $TMP_DIR
+    echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
-    echo "Cloned openlibrary repo (SHA: $GIT_SHA)"
+    echo "✔ (SHA: $GIT_SHA)"
     echo ""
 
     # Assert latest docker image is up-to-date
