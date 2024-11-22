@@ -103,7 +103,7 @@ deploy_olsystem() {
     cd $TMP_DIR
 
     CLEANUP=${CLEANUP:-1}
-    CLONE_URL=${CLONE_URL:-"https://github.com/internetarchive/olsystem.git"}
+    CLONE_URL=${CLONE_URL:-"git@github.com:internetarchive/olsystem.git"}
     REPO=${REPO:-"olsystem"}
     REPO_NEW="${REPO}_new"
     REPO_PREVIOUS="${REPO}_previous"
