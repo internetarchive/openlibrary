@@ -59,21 +59,6 @@ Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release
 
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
-### For Users of Macs Containing an M2 chip
-Please use following commands to build docker on your local machine! to avoild compability issues.
-```
-cd openlibrary
-```
-```
-ls docker/
-```
-I notice from your directory listing that the file is named `Dockerfile.olbase`, not `Dockerfile.base`.
-```
-docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
-```
-The error was occurring because we were trying to use `Dockerfile.base` when the actual file is named `Dockerfile.olbase`. Try running this corrected command and This should start building the base image correctly. Once this completes successfully, we can proceed with the docker compose build command.
-
-
 ### For All Users
 All commands are from the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
 
