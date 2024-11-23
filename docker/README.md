@@ -68,7 +68,7 @@ cd openlibrary
 ```
 ls docker/
 ```
-I notice from your directory listing that the file is named `Dockerfile.olbase`, not `Dockerfile.base`. 
+I notice from your directory listing that the file is named `Dockerfile.olbase`, not `Dockerfile.base`.
 ```
 docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
 ```
