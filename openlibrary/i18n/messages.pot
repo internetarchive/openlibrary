@@ -3551,14 +3551,6 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: books/edition-sort.html
-msgid "Libraries near you:"
-msgstr ""
-
-#: books/edition-sort.html
-msgid "Look for this edition at WorldCat"
-msgstr ""
-
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: mybooks.py
 msgid "Books"
@@ -5951,8 +5943,8 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
-#: search/inside.html search/snippets.html
+#: BookSearchInside.html FulltextSearchSuggestion.html ReadButton.html
+#: SearchNavigation.html search/inside.html search/snippets.html
 msgid "Search Inside"
 msgstr ""
 
@@ -7389,6 +7381,14 @@ msgstr ""
 
 #: ReadButton.html
 msgid "Listen"
+msgstr ""
+
+#: ReadButton.html
+msgid "Download"
+msgstr ""
+
+#: ReadButton.html
+msgid "Locate"
 msgstr ""
 
 #: ReadMore.html
