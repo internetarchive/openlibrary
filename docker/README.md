@@ -59,9 +59,8 @@ Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release
 
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
-### For Users of Macs Containing an m@ chip
-
-please use following commands to build docker on your local machine! to avoild compability issues.
+### For Users of Macs Containing an M2 chip
+Please use following commands to build docker on your local machine! to avoild compability issues.
 ```
 cd openlibrary
 ```
