@@ -15,10 +15,13 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template, add_flash_message
+from infogami.utils.view import (
+    public,
+    add_flash_message,
+)
 from infogami.infobase.utils import parse_datetime
 
-from openlibrary.core import models
+from openlibrary.core import models  # noqa: F401 side effects may be needed
 from openlibrary.core import stats
 from openlibrary.core import lending
 from openlibrary.core import vendors
@@ -118,13 +121,11 @@ class borrow(delegate.page):
         i = web.input(
             action='borrow',
             format=None,
-            ol_host=None,
             _autoReadAloud=None,
             q="",
             redirect="",
         )
 
-        ol_host = i.ol_host or 'openlibrary.org'
         action = i.action
         edition = web.ctx.site.get(key)
         if not edition:
@@ -241,7 +242,6 @@ class borrow(delegate.page):
                             loan['_key'],
                             edition.ocaid,
                             bookPath,
-                            ol_host,
                             ia_userid=ia_itemname,
                         )
                     )
@@ -355,29 +355,6 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
     return web.storage(d)
 
 
-# Handler for /iauth/{itemid}
-class ia_auth(delegate.page):
-    path = r"/ia_auth/(.*)"
-
-    def GET(self, item_id):
-        i = web.input(_method='GET', callback=None, loan=None, token=None)
-
-        content_type = "application/json"
-
-        # check that identifier is valid
-
-        user = accounts.get_current_user()
-        auth_json = json.dumps(get_ia_auth_dict(user, item_id, i.loan, i.token))
-
-        output = auth_json
-
-        if i.callback:
-            content_type = "text/javascript"
-            output = f'{i.callback} ( {output} );'
-
-        return delegate.RawText(output, content_type=content_type)
-
-
 # Handler for /borrow/receive_notification - receive ACS4 status update notifications
 class borrow_receive_notification(delegate.page):
     path = r"/borrow/receive_notification"
@@ -445,12 +422,6 @@ def datetime_from_utc_timestamp(seconds):
 def can_return_resource_type(resource_type: str) -> bool:
     """Returns true if this resource can be returned from the OL site."""
     return resource_type.startswith('bookreader')
-
-
-@public
-def ia_identifier_is_valid(item_id: str) -> bool:
-    """Returns false if the item id is obviously malformed. Not currently checking length."""
-    return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id))
 
 
 @public
@@ -775,118 +746,14 @@ def delete_loan(loan_key, loan=None) -> None:
     loan.delete()
 
 
-def get_ia_auth_dict(user, item_id: str, user_specified_loan_key, access_token):
-    """Returns response similar to one of these:
-    {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
-    {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
-    """  # noqa: E501
-
-    base_url = 'http://' + web.ctx.host
-    resolution_dict = {'base_url': base_url, 'item_id': item_id}
-
-    error_message = None
-    user_has_current_loan = False
-
-    # Sanity checks
-    if not ia_identifier_is_valid(item_id):
-        return {
-            'success': False,
-            'msg': 'Invalid item id',
-            'resolution': 'This book does not appear to have a valid item identifier.',
-        }
-
-    # Lookup loan information
-    loan = lending.get_loan(item_id)
-    loan_key = loan and loan.get_key()
-
-    if loan_key is None:
-        # Book is not checked out as a BookReader loan - may still be checked out in ACS4
-        error_message = 'Lending Library Book'
-        resolution_message = (
-            'This book is part of the <a href="%(base_url)s/subjects/Lending_library">'
-            'lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">'
-            'visit this book\'s page on Open Library</a> to access the book.'
-            % resolution_dict
-        )
-
-    else:
-        # If we know who this user is, from third-party cookies and they are logged into openlibrary.org, check if they have the loan
-        if user:
-            if loan['user'] != user.key:
-                # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
-                error_message = 'This book is checked out'
-                resolution_message = (
-                    'This book is currently checked out.  You can '
-                    '<a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on '
-                    'Open Library</a> or '
-                    '<a href="%(base_url)s/subjects/Lending_library">look at other '
-                    'books available to borrow</a>.' % resolution_dict
-                )
-
-            elif loan['expiry'] < datetime.utcnow().isoformat():
-                # User has the loan, but it's expired
-                error_message = 'Your loan has expired'
-                resolution_message = (
-                    'Your loan for this book has expired.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.'
-                    % resolution_dict
-                )
-
-            else:
-                # User holds the loan - win!
-                user_has_current_loan = True
-        else:
-            # Don't have user context - not logged in or third-party cookies disabled
-
-            # Check if the loan id + token is valid
-            if (
-                user_specified_loan_key
-                and access_token
-                and ia_token_is_current(item_id, access_token)
-            ):
-                # Win!
-                user_has_current_loan = True
-
-            else:
-                # Couldn't validate using token - they need to go to Open Library
-                error_message = "Lending Library Book"
-                resolution_message = (
-                    'This book is part of the <a href="%(base_url)s/subjects/Lending_'
-                    'library" title="Open Library Lending Library">lending library</a>. '
-                    'Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow '
-                    'book page on Open Library">visit this book\'s page on Open Library'
-                    '</a> to access the book.  You must have cookies enabled for '
-                    'archive.org and openlibrary.org to access borrowed books.'
-                    % resolution_dict
-                )
-
-    if error_message:
-        return {
-            'success': False,
-            'msg': error_message,
-            'resolution': resolution_message,
-        }
-    else:
-        # No error message, make sure we thought the loan was current as sanity check
-        if not user_has_current_loan:
-            raise Exception(
-                'lending: no current loan for this user found but no error condition specified'
-            )
-
-    return {'success': True, 'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)}
-
-
 def ia_hash(token_data: str) -> str:
-    access_key = make_access_key()
-    return hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
-
-
-def make_access_key():
     try:
-        return config.ia_access_secret.encode('utf-8')
+        access_key = config.ia_access_secret.encode('utf-8')  # type: ignore[attr-defined]
     except AttributeError:
         raise RuntimeError(
             "config value config.ia_access_secret is not present -- check your config"
         )
+    return hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
 
 
 def make_ia_token(item_id: str, expiry_seconds: int) -> str:
@@ -903,33 +770,7 @@ def make_ia_token(item_id: str, expiry_seconds: int) -> str:
     return token
 
 
-def ia_token_is_current(item_id: str, access_token: str) -> bool:
-    # Check if token has expired
-    try:
-        token_timestamp = access_token.split('-')[0]
-    except:
-        return False
-
-    token_time = int(token_timestamp)
-    now = int(time.time())
-    if token_time < now:
-        return False
-
-    # Verify token is valid
-    try:
-        token_hmac = access_token.split('-')[1]
-    except:
-        return False
-
-    expected_data = f'{item_id}-{token_timestamp}'
-    expected_hmac = ia_hash(expected_data)
-
-    return token_hmac == expected_hmac
-
-
-def make_bookreader_auth_link(
-    loan_key, item_id, book_path, ol_host, ia_userid=None
-) -> str:
+def make_bookreader_auth_link(loan_key, item_id, book_path, ia_userid=None) -> str:
     """
     Generate a link to BookReaderAuth.php that starts the BookReader
     with the information to initiate reading a borrowed book
@@ -940,8 +781,6 @@ def make_bookreader_auth_link(
         'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS),
         'id': item_id,
         'bookPath': book_path,
-        'olHost': ol_host,
-        'olAuthUrl': f"https://{ol_host}/ia_auth/XXX",
         'iaUserId': ia_userid,
         'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS),
     }

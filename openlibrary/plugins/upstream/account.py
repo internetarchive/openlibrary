@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
 import logging
-import re
 import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
@@ -19,7 +18,7 @@ from infogami.utils.view import (
     add_flash_message,
 )
 from infogami.infobase.client import ClientException
-import infogami.core.code as core
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
@@ -40,7 +39,6 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts,
-    Account,
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
@@ -347,7 +345,9 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
+        from openlibrary.plugins.openlibrary.code import (
+            BadRequest,  # noqa: F401 side effects may be needed
+        )
 
         d = json.loads(web.data())
         email = d.get('email', "")
@@ -822,29 +822,6 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
         raise web.seeother(f'/people/{username}/books')
-
-
-# This would be by the civi backend which would require the api keys
-class fake_civi(delegate.page):
-    path = "/internal/fake/civicrm"
-
-    def GET(self):
-        i = web.input(entity='Contact')
-        contact = {'values': [{'contact_id': '270430'}]}
-        contributions = {
-            'values': [
-                {
-                    "receive_date": "2019-07-31 08:57:00",
-                    "custom_52": "9780062457714",
-                    "total_amount": "50.00",
-                    "custom_53": "ol",
-                    "contact_id": "270430",
-                    "contribution_status": "",
-                }
-            ]
-        }
-        entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(json.dumps(entity), content_type="application/json")
 
 
 class import_books(delegate.page):

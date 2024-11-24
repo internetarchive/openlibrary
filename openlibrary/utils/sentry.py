@@ -6,7 +6,10 @@ import sentry_sdk
 import web
 from sentry_sdk.utils import capture_internal_exceptions
 from sentry_sdk.tracing import Transaction, TRANSACTION_SOURCE_ROUTE
-from infogami.utils.app import find_page, find_view, modes
+from infogami.utils.app import (
+    find_page,
+    modes,
+)
 from infogami.utils.types import type_patterns
 
 from openlibrary.utils import get_software_version

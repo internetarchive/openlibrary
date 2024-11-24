@@ -1,9 +1,13 @@
 from typing import cast
-from openlibrary.accounts.model import Account, OpenLibraryAccount
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,
+)
 from openlibrary.plugins.admin.code import revert_all_user_edits
 import web
 
-from openlibrary.plugins.upstream.models import Changeset
+from openlibrary.plugins.upstream.models import (
+    Changeset,  # noqa: F401 side effects may be needed
+)
 
 
 def make_test_account(username: str) -> OpenLibraryAccount:

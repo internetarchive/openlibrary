@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -6,8 +6,6 @@ $# * allow_expensive_availability_check - whether to check the groundtruth avail
 $#     if can't get availability from specified fields
 $# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
-$# * check_sponsorship - whether to check if the book is eligible for sponsorship
-$# * sponsorship_help - whether to show the sponsorship help text
 $# * check_loan_status - whether to check the user's loan status to determine read button
 
 $ loanstatus_start_time = time()

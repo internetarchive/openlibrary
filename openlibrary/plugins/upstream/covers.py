@@ -3,9 +3,10 @@
 
 from logging import getLogger
 
+import os
 import requests
 import web
-from io import BytesIO
+from PIL import Image as PILImage, UnidentifiedImageError
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
@@ -22,6 +23,31 @@ logger = getLogger("openlibrary.plugins.upstream.covers")
 
 def setup():
     pass
+
+
+class image_validator:
+    def __init__(self):
+        self.max_file_size = 10 * 1024 * 1024  # 10 MB
+        self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
+
+    def validate_size(self, file_data):
+        file_size = len(file_data.read())
+        file_data.seek(0)
+        if file_size > self.max_file_size:
+            raise ValueError("File size exceeds 10MB limit")
+
+    def validate_extension(self, filename):
+        file_extension = os.path.splitext(filename)[1].lower()
+        if file_extension not in self.allowed_extensions:
+            raise ValueError("Unsupported file extension")
+
+    def validate_image(self, file_data):
+        try:
+            image = PILImage.open(file_data)
+            image.verify()
+            file_data.seek(0)
+        except UnidentifiedImageError:
+            raise ValueError("Not a valid image file")
 
 
 class add_cover(delegate.page):
@@ -62,7 +88,18 @@ class add_cover(delegate.page):
         olid = key.split("/")[-1]
 
         if i.file is not None and hasattr(i.file, 'file'):
-            data = i.file.file
+            file_data = i.file.file
+            filename = i.file.filename
+
+            validator = image_validator()
+            try:
+                validator.validate_extension(filename)
+                validator.validate_size(file_data)
+                validator.validate_image(file_data)
+            except ValueError as e:
+                return web.storage({'error': str(e)})
+
+            data = file_data
         else:
             data = None
 

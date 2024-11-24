@@ -3,7 +3,6 @@ import logging
 import re
 import time
 
-from datetime import date
 from typing import Any, Literal
 
 import requests
@@ -29,7 +28,6 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 
-BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
@@ -588,8 +586,8 @@ def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
             price = _price
             qlt = 'new'
 
-    market_price = ('$' + market_price[0]) if market_price else None
-    return betterworldbooks_fmt(isbn, qlt, price, market_price)
+    first_market_price = ('$' + market_price[0]) if market_price else None
+    return betterworldbooks_fmt(isbn, qlt, price, first_market_price)
 
 
 def betterworldbooks_fmt(

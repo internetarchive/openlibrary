@@ -17,10 +17,9 @@ import socket
 import sys
 import urllib
 
-from typing import Union
 from collections.abc import Iterator
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
 import aiofiles
 import web
