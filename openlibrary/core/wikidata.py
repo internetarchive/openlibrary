@@ -29,6 +29,24 @@ SOCIAL_PROFILE_CONFIGS = [
     }
 ]
 
+REMOTE_IDS = {
+    "openlibrary_id": "P648",
+    "viaf": "P214",
+    "isni": "P213",
+    "lc_naf": "P244",
+    "opac_sbn": "P396",
+    "project_gutenberg": "P1938",
+    "librivox": "P1899",
+    "bookbrainz": "P2607",
+    "musicbrainz": "P434",
+    "librarything": "P7400",
+    "goodreads": "P2963",
+    "storygraph": "P12430",
+    "imdb": "P345",
+    "amazon": "P4862",
+    "youtube": "P2397"
+}
+
 
 @dataclass
 class WikidataEntity:
@@ -96,6 +114,20 @@ class WikidataEntity:
                 ]
             )
         return profiles
+
+    def get_remote_ids(self, language: str = 'en') -> list[dict]:
+        """
+        Get remote IDs like viaf, isni, etc.
+
+        Returns:
+            Dict containing identifier names as keys and lists of corresponding values
+        """
+        remote_ids = {}
+
+        for service, id in REMOTE_IDS.items():
+            values = self._get_statement_values(id)
+            remote_ids[service] = values
+        return remote_ids
 
     def _get_wiki_profiles(self, language: str) -> list[dict]:
         """
