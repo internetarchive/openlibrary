@@ -32,23 +32,22 @@ def main(ol_config: str):
 	except:
 		pass
 
-	d = db.get_db()
-
-	for row in d.query(
-		"select * from wikidata"
+	for row in db.query(
+		"select id from wikidata"
 	):
 		e = get_wikidata_entity(row.id)
 		ids = e.get_remote_ids()
+		print(ids)
 		if "openlibrary_id" not in ids or not ids["openlibrary_id"]:
 			continue
 		for key in ids["openlibrary_id"]:
-			q = {"type": "/type/author", "key~": key}
+			q = {"type": "/type/author", "key~": "/authors/" + key}
 			reply = list(web.ctx.site.things(q))
 			authors = [web.ctx.site.get(k) for k in reply]
 			if any(a.type.key != '/type/author' for a in authors):
 				seen: set[dict] = set()
 				authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
-		print(authors)
+			print(authors)
 
 
 if __name__ == "__main__":
