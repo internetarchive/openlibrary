@@ -59,6 +59,7 @@ from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
+from openlibrary.plugins.openlibrary.code import setup_requests
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     normalize_identifier,
@@ -722,6 +723,7 @@ def start_server():
     # # type: (str) -> None
 
     load_config(web.ol_configfile)
+    setup_requests()
 
     # sentry loaded by infogami
     infogami._setup()
@@ -751,6 +753,7 @@ def start_gunicorn_server():
 
         def load(self):
             load_config(configfile)
+            setup_requests()
             # init_setry(app)
             return app.wsgifunc(https_middleware)
 
