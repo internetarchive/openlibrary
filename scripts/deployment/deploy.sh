@@ -1,63 +1,285 @@
-#!/bin/bash
-
-set -o xtrace
+#!/bin/bash -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
-SERVERS="ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0 ol-solr0"
-COMPOSE_FILE="compose.yaml:compose.production.yaml"
-
-# This script must be run on ol-home0 to start a new deployment.
-HOSTNAME="${HOSTNAME:-$HOST}"
-if [[ $HOSTNAME != ol-home0.* ]]; then
-    echo "FATAL: Must only be run on ol-home0" ;
-    exit 1 ;
-fi
+SERVER_SUFFIX=${SERVER_SUFFIX:-""}
+SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
+SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+IGNORE_CHANGES=${IGNORE_CHANGES:-0}
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
-[[ $(parallel --version 2>/dev/null) = GNU* ]] || sudo apt-get -y --no-install-recommends install parallel
+# [[ $(parallel --version 2>/dev/null) = GNU* ]] || sudo apt-get -y --no-install-recommends install parallel
 
-echo "Starting production deployment at $(date)"
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "jq is not installed. Please follow the instructions on https://jqlang.github.io/jq/download/ to install it."
+    exit 1
+fi
 
-# `sudo git pull origin master` the core Open Library repos:
-parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin master" ::: $SERVERS ::: /opt/olsystem /opt/openlibrary
+cleanup() {
+    TMP_DIR=$1
+    echo ""
+    echo "Cleaning up"
+    rm -rf $TMP_DIR
+}
 
-# Get all Docker images and sort them by creation date
-images=($(docker image ls --format '{{.ID}} {{.CreatedAt}} {{.Repository}}' | grep 'openlibrary/olbase' | sort -k 2 -r | awk '{print $1}'))
+check_for_local_changes() {
+    SERVER=$1
+    REPO_DIR=$2
 
-# Keep the first three images and remove the rest to save disk space
-for image in "${images[@]:3}"
-do
-    docker rmi $image
-done
+    echo -n "   $SERVER ... "
 
-# Rebuild & upload docker image for olbase
-cd /opt/openlibrary
-sudo make git
-set -e
-docker build -t openlibrary/olbase:latest -t "openlibrary/olbase:deploy-$(date '+%Y-%m-%d')" -f docker/Dockerfile.olbase .
-docker login
-docker push openlibrary/olbase:latest
-set +e
+    OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
+
+    if [ -z "$OUTPUT" ]; then
+        echo "✓"
+    elif [ $IGNORE_CHANGES -eq 1 ]; then
+        echo "✗ (ignored)"
+    else
+        echo "✗"
+        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them before deploying."
+        echo "Or, set IGNORE_CHANGES=1 to ignore this check."
+        ssh -t $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all"
+        cleanup "$TMP_DIR"
+        exit 1
+    fi
+}
+
+check_server_access() {
+    echo ""
+    echo "Checking server access..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+        if ssh -o ConnectTimeout=5 $SERVER "echo '✓'"; then
+            :
+        else
+            echo "⚠"
+            echo "Could not access $SERVER."
+            exit 1
+        fi
+    done
+}
+
+copy_to_servers() {
+    TAR_PATH="$1"
+    DESTINATION="$2"
+    DIR_IN_TAR="$3"
+    DESTINATION_PARENT=$(dirname $DESTINATION)
+
+    TAR_FILE=$(basename $TAR_PATH)
+
+    echo "Copying to the servers..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER: Copying ... "
+        ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
+
+        if OUTPUT=$(scp "$TAR_PATH" "$SERVER:/tmp/$TAR_FILE" 2>&1); then
+            echo -n "✓."
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            return 1
+        fi
+
+        echo -n " Extracting ... "
+        if OUTPUT=$(ssh "$SERVER" "sudo tar -xzf /tmp/$TAR_FILE -C $DESTINATION_PARENT" 2>&1); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            ssh "$SERVER" "sudo rm -rf /tmp/$TAR_FILE"
+            return 1
+        fi
+
+        # If DIR_IN_TAR is different from the final part of the DESTINATION, move it
+        DESTINATION_FINAL=$(basename $DESTINATION)
+        if [ "$DIR_IN_TAR" != "$DESTINATION_FINAL" ]; then
+            ssh "$SERVER" "
+                sudo rm -rf $DESTINATION || true
+                sudo mv '$DESTINATION_PARENT/$DIR_IN_TAR' $DESTINATION
+            " 2>&1
+        fi
+
+        ssh "$SERVER" "sudo rm -rf /tmp/$TAR_FILE"
+    done
+}
+
+deploy_olsystem() {
+    TMP_DIR=${TMP_DIR:-$(mktemp -d)}
+    cd $TMP_DIR
+
+    CLEANUP=${CLEANUP:-1}
+    CLONE_URL=${CLONE_URL:-"git@github.com:internetarchive/olsystem.git"}
+    REPO=${REPO:-"olsystem"}
+    REPO_NEW="${REPO}_new"
+    REPO_PREVIOUS="${REPO}_previous"
+
+    echo "Starting $REPO deployment at $(date)"
+    echo "Deploying to: $SERVERS"
+
+    check_server_access
+
+    echo ""
+    echo "Checking for changes in the $REPO repo on the servers..."
+    for SERVER in $SERVERS; do
+        check_for_local_changes $SERVER "/opt/$REPO"
+    done
+    echo -e "No changes found in the $REPO repo on the servers.\n"
+
+    # Get the latest code
+    echo -ne "Cloning $REPO repo ... "
+    git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
+    echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
+    # compress the repo to speed up the transfer
+    tar -czf $REPO_NEW.tar.gz $REPO_NEW
+    echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
+
+    if ! copy_to_servers "$TMP_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
+        cleanup "$TMP_DIR"
+        exit 1
+    fi
+
+    echo ""
+    echo "Final swap..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+
+        if OUTPUT=$(ssh $SERVER "
+            sudo chown -R root:staff /opt/$REPO_NEW;
+            sudo chmod -R g+rwX /opt/$REPO_NEW;
+
+            sudo rm -rf /opt/$REPO_PREVIOUS || true;
+            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS;
+            sudo mv /opt/$REPO_NEW /opt/$REPO;
+        "); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            cleanup "$TMP_DIR"
+            exit 1
+        fi
+    done
+
+    echo "Finished $REPO deployment at $(date)"
+    echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
+    if [ $CLEANUP -eq 1 ]; then
+        cleanup "$TMP_DIR"
+    fi
+}
+
+deploy_openlibrary() {
+    COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
+    TMP_DIR=$(mktemp -d)
+
+    check_server_access
+
+    cd $TMP_DIR
+    echo -ne "Cloning openlibrary repo ... "
+    git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
+    GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
+    echo "✔ (SHA: $GIT_SHA)"
+    echo ""
+
+    # Assert latest docker image is up-to-date
+    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
+    IMAGE_LAST_UPDATED=$(echo $IMAGE_META | jq -r '.last_updated')
+    GIT_LAST_UPDATED=$(git -C openlibrary log -1 --format=%cd --date=iso-strict)
+    IMAGE_LAST_UPDATED_TS=$(date -d $IMAGE_LAST_UPDATED +%s)
+    GIT_LAST_UPDATED_TS=$(date -d $GIT_LAST_UPDATED +%s)
+
+    if [ $GIT_LAST_UPDATED_TS -gt $IMAGE_LAST_UPDATED_TS ]; then
+        echo "✗ Docker image is not up-to-date"
+        echo "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image for the master branch"
+        cleanup $TMP_DIR
+        exit 1
+    else
+        echo "✓ Docker image is up-to-date"
+        echo ""
+    fi
+
+    echo "Checking for changes in the openlibrary repo on the servers..."
+    for SERVER in $SERVERS; do
+        check_for_local_changes $SERVER "/opt/openlibrary"
+    done
+    echo -e "No changes found in the openlibrary repo on the servers.\n"
+    echo ""
+
+    mkdir -p openlibrary_new
+    cp -r openlibrary/compose*.yaml openlibrary_new
+    cp -r openlibrary/docker openlibrary_new
+    tar -czf openlibrary_new.tar.gz openlibrary_new
+    if ! copy_to_servers "$TMP_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+        cleanup "$TMP_DIR"
+        exit 1
+    fi
+    echo ""
+
+    # Fix file ownership + Make into a git repo so can easily track local mods
+    for SERVER in $SERVERS; do
+        ssh $SERVER "
+            sudo chown -R root:staff /opt/openlibrary
+            sudo chmod -R g+rwX /opt/openlibrary
+            cd /opt/openlibrary
+            sudo git init > /dev/null
+            sudo git add . > /dev/null
+            sudo git commit -m 'Deployed openlibrary' > /dev/null
+        "
+    done
+
+    echo "Prune old images..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+        # ssh $SERVER "docker image prune -f"
+        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            cleanup "$TMP_DIR"
+            exit 1
+        fi
+    done
+    echo ""
+
+    echo "Pull the latest docker images..."
+    # We need to fetch by the exact image sha, since the registry mirror on the prod servers
+    # has a cache which means fetching the `latest` image could be stale.
+    OLBASE_SHA=$(echo $IMAGE_META | jq -r '.images[0].digest')
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+        ssh -t $SERVER "
+            docker pull openlibrary/olbase@$OLBASE_SHA
+            echo 'FROM openlibrary/olbase@$OLBASE_SHA' | docker build --tag openlibrary/olbase:latest -f - .
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME='\$HOSTNAME' docker compose --profile $SERVER pull
+        "
+        echo "✓"
+    done
+
+    echo "Finished production deployment at $(date)"
+    echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
+
+    cleanup $TMP_DIR
+}
 
 # Clone booklending utils
-parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
-
-# Prune old images now ; this should remove any unused images
-parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
-
-# Pull the latest docker images
-parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker compose --profile {} pull --quiet" ::: $SERVERS
-
-# Add a git SHA tag to the Docker image to facilitate rapid rollback
-cd /opt/openlibrary
-CUR_SHA=$(sudo git rev-parse HEAD | head -c7)
-parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest' | docker build -t 'openlibrary/olbase:$CUR_SHA' -" ::: $SERVERS
+# parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 
 # And tag the deploy!
-DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
-sudo git tag $DEPLOY_TAG
-sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+# DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
+# sudo git tag $DEPLOY_TAG
+# sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
-echo "Finished production deployment at $(date)"
-echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
+
+# Supports:
+# - deploy.sh olsystem
+# - deploy.sh openlibrary
+
+if [ "$1" == "olsystem" ]; then
+    deploy_olsystem
+elif [ "$1" == "openlibrary" ]; then
+    deploy_openlibrary
+else
+    echo "Usage: $0 [olsystem|openlibrary]"
+    exit 1
+fi
