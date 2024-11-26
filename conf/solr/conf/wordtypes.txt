@@ -21,5 +21,3 @@
 \u00A9 => ALPHANUM
 # number sign (#), only as alphabetic for case like 'C#'
 \u0023 => ALPHA
-# Question mark (?), treated as alphanumeric
-\u003F => ALPHANUM
