@@ -19,15 +19,6 @@ import os
 from openlibrary.core import db
 
 
-def walk_redirects(obj, seen):
-    seen.add(obj['key'])
-    while obj['type']['key'] == '/type/redirect':
-        assert obj['location'] != obj['key']
-        obj = web.ctx.site.get(obj['location'])
-        seen.add(obj['key'])
-    return obj
-
-
 def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
@@ -43,7 +34,7 @@ def main(ol_config: str):
     except:
         pass
 
-    # how i fix this lol
+    # how i fix this lol there's no IP when running from within docker
     web.ctx.ip = '127.0.0.1'
 
     for row in db.query("select id from wikidata"):
