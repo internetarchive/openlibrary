@@ -249,7 +249,7 @@ def publish_digest(
 
     if response.status_code != 200:
         print(f'Failed to send message to Slack.  Status code: {response.status_code}')
-        sys.exit(errno.ECOMM)
+        sys.exit(errno.EPIPE)
 
     d = response.json()
     if not d.get('ok', True):
