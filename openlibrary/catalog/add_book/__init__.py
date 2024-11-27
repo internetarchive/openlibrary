@@ -25,7 +25,7 @@ A record is loaded by calling the load function.
 
 import itertools
 import re
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, TypeAlias
 
 import web
 
@@ -49,6 +49,7 @@ from openlibrary.catalog.utils import (
     published_in_future_year,
 )
 from openlibrary.core import lending
+from openlibrary.core.models import ThingKey
 from openlibrary.plugins.upstream.utils import strip_accents, safeget
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
@@ -77,6 +78,12 @@ type_map = {
     'notes': 'text',
     'number_of_pages': 'int',
 }
+
+
+ImportRecord: TypeAlias = dict
+"""
+TODO: Flesh this out. Should be the same as https://github.com/internetarchive/openlibrary-client/blob/master/olclient/schemata/import.schema.json
+"""
 
 
 class CoverNotSaved(Exception):
@@ -440,28 +447,34 @@ def isbns_from_record(rec):
     return isbns
 
 
-def build_pool(rec):
+def build_pool(
+    rec: ImportRecord,
+    match_fields_override: set[str] | None = None,
+) -> dict[str, list[ThingKey]]:
     """
     Searches for existing edition matches on title and bibliographic keys.
 
-    :param dict rec: Edition record
-    :rtype: dict
     :return: {<identifier: title | isbn | lccn etc>: [list of /books/OL..M keys that match rec on <identifier>]}
     """
-    pool = defaultdict(set)
-    match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
+    if match_fields_override:
+        match_fields = match_fields_override
+    else:
+        match_fields = {'title', 'oclc_numbers', 'lccn', 'ocaid', 'isbn'}
 
-    # Find records with matching fields
-    for field in match_fields:
-        pool[field] = set(editions_matched(rec, field))
+    pool = {
+        field: set(editions_matched(rec, field))
+        for field in match_fields
+        if field != 'isbn'
+    }
 
     # update title pool with normalized title matches
-    pool['title'].update(
-        set(editions_matched(rec, 'normalized_title_', normalize(rec['title'])))
-    )
+    if 'title' in match_fields:
+        pool['title'].update(
+            set(editions_matched(rec, 'normalized_title_', normalize(rec['title'])))
+        )
 
     # Find records with matching ISBNs
-    if isbns := isbns_from_record(rec):
+    if 'isbn' in match_fields and (isbns := isbns_from_record(rec)):
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
     return {k: list(v) for k, v in pool.items() if v}
@@ -503,14 +516,16 @@ def find_quick_match(rec: dict) -> str | None:
     return None
 
 
-def editions_matched(rec, key, value=None):
+def editions_matched(
+    rec: ImportRecord,
+    key: str,
+    value: list | str | None = None,
+) -> list[ThingKey]:
     """
     Search OL for editions matching record's 'key' value.
 
-    :param dict rec: Edition import record
-    :param str key: Key to search on, e.g. 'isbn_'
+    :param key: Key to search on, e.g. 'isbn_'
     :param list|str value: Value or Values to use, overriding record values
-    :rtpye: list
     :return: List of edition keys ["/books/OL..M",]
     """
     if value is None and key not in rec:
@@ -697,7 +712,7 @@ def load_data(
     return reply
 
 
-def normalize_import_record(rec: dict) -> None:
+def normalize_import_record(rec: ImportRecord) -> None:
     """
     Normalize the import record by:
         - Verifying required fields;
@@ -754,7 +769,7 @@ def normalize_import_record(rec: dict) -> None:
         rec.pop('publish_date')
 
 
-def validate_record(rec: dict) -> None:
+def validate_record(rec: ImportRecord) -> None:
     """
     Check for:
         - publication years too old from non-exempt sources (e.g. Amazon);
