@@ -1,12 +1,11 @@
 import hashlib
+import logging
 
 import web
-import logging
 
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary import accounts
 from openlibrary.core import stats
 from openlibrary.core.cache import get_memcache

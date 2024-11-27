@@ -1,12 +1,13 @@
 import json
 import logging
+from urllib.parse import urlencode
 
 import requests
 import web
+
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
-from urllib.parse import urlencode
 
 logger = logging.getLogger("openlibrary.inside")
 

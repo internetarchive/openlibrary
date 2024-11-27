@@ -1,10 +1,10 @@
+import json
+import sys
+import urllib
+from time import sleep
+
 import requests
 import web
-import json
-from time import sleep
-import urllib
-import sys
-
 
 query_host = 'openlibrary.org'
 

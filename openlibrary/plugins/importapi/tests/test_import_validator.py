@@ -1,8 +1,7 @@
 import pytest
-
 from pydantic import ValidationError
 
-from openlibrary.plugins.importapi.import_validator import import_validator, Author
+from openlibrary.plugins.importapi.import_validator import Author, import_validator
 
 
 def test_create_an_author_with_no_name():

@@ -3,19 +3,17 @@
 
 import json
 import re
-from datetime import datetime, date
+from collections.abc import Callable, Iterable
+from datetime import date, datetime
+from typing import Any
 from urllib.parse import urlsplit
-
-import web
 
 import babel
 import babel.core
 import babel.dates
 import babel.numbers
-
+import web
 from babel.core import Locale
-from collections.abc import Callable, Iterable
-from typing import Any
 
 try:
     import genshi
@@ -34,7 +32,6 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
-
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()

@@ -1,18 +1,17 @@
 """Language pages
 """
 
-from infogami.plugins.api.code import jsonapi
-from infogami.utils import delegate
-from infogami.utils.view import render_template, safeint
-import web
 import json
 import logging
 
+import web
+
+from infogami.plugins.api.code import jsonapi
+from infogami.utils import delegate
+from infogami.utils.view import render_template, safeint
 from openlibrary.plugins.upstream.utils import get_language_name
 
-from . import subjects
-from . import search
-
+from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 

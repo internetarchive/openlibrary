@@ -10,10 +10,9 @@ This adapter module is a filter that sits above an Infobase server and fakes the
 """
 
 import json
-import web
-
 import urllib
 
+import web
 
 urls = (
     '/([^/]*)/get',
@@ -284,8 +283,8 @@ class account(proxy):
 
 
 def main():
-    import sys
     import os
+    import sys
 
     web.config.infobase_server = sys.argv[1].rstrip('/')
     os.environ['REAL_SCRIPT_NAME'] = ''
