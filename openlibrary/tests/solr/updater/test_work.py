@@ -1,4 +1,5 @@
 import pytest
+
 from openlibrary.solr.updater.work import (
     WorkSolrBuilder,
     WorkSolrUpdater,

@@ -2,14 +2,12 @@
 
 import logging
 import re
-from typing import TypeVar
 from collections.abc import Callable, Iterable
+from typing import TypeVar
+from urllib.parse import urlencode, urlsplit
 
 import requests
 import web
-
-from urllib.parse import urlencode, urlsplit
-
 
 logger = logging.getLogger("openlibrary.logger")
 

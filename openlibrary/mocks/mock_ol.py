@@ -1,6 +1,8 @@
-import pytest
 import re
+
+import pytest
 import web
+
 from infogami import config
 from infogami.utils import delegate
 
@@ -9,7 +11,7 @@ try:  # newer versions of web.py
 except ImportError:  # older versions of web.py
     from web import AppBrowser
 
-from openlibrary.mocks.mock_infobase import mock_site, MockConnection
+from openlibrary.mocks.mock_infobase import MockConnection, mock_site
 from openlibrary.plugins import ol_infobase
 
 

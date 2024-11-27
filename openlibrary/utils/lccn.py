@@ -1,6 +1,5 @@
 import re
 
-
 REV_RE = re.compile(r'rev.*')
 REMOVESUFFIX_RE = re.compile(r'[^\/]+')
 HYPHEN_RE = re.compile(r'(.+)-+([0-9]+)')

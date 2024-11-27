@@ -1,4 +1,5 @@
 import pytest
+
 from openlibrary.utils.lccn import normalize_lccn
 
 

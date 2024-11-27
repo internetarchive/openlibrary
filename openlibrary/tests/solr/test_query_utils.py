@@ -1,12 +1,13 @@
 import pytest
+
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     luqum_parser,
     luqum_remove_child,
-    luqum_replace_child,
-    luqum_traverse,
-    luqum_replace_field,
     luqum_remove_field,
+    luqum_replace_child,
+    luqum_replace_field,
+    luqum_traverse,
 )
 
 REMOVE_TESTS = {
