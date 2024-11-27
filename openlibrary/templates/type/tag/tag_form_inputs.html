@@ -40,12 +40,18 @@ $ tag_type = page and page.get('tag_type', '')
     </div>
 </div>
 
-$if not type_picker_options.get("subjects_only", False):
+$if type_picker_options.get("subjects_only", False):
     <div class="sub-type-inputs">
-        <div class="sub-type-inputs__input-set hidden" data-input-type="subject">
+        <div class="sub-type-inputs__input-set" data-input-type="subject">
             $:render_template("type/tag/subject/edit_form_inputs", page)
         </div>
-        <div class="sub-type-inputs__input-set hidden" data-input-type="collection">
+    </div>
+$else:
+    <div class="sub-type-inputs">
+        <div class="sub-type-inputs__input-set" data-input-type="subject">
+            $:render_template("type/tag/subject/edit_form_inputs", page)
+        </div>
+        <div class="sub-type-inputs__input-set" data-input-type="collection">
             $:render_template("type/tag/collection/edit_form_inputs", page)
         </div>
     </div>
@@ -54,12 +60,22 @@ $if not type_picker_options.get("subjects_only", False):
         const SUBJECT_TYPES = ["subject", "person", "place", "time"]
         const tagTypeSelector = document.querySelector('#tag_type')
         const subTypeInputs = document.querySelectorAll(".sub-type-inputs__input-set")
+        const inputContainer = document.querySelector(".sub-type-inputs")
         const inputSetMapping = {}
 
         function initTagTypeSelector(selector) {
             subTypeInputs.forEach((input) => {
                 inputSetMapping[input.dataset.inputType] = input
             })
+            inputContainer.textContent = ""
+
+            if (selector.value) {
+                if (SUBJECT_TYPES.includes(selector.value)) {
+                    showSubTypeInputs('subject')
+                } else {
+                    showSubTypeInputs(selector.value)
+                }
+            }
 
             selector.addEventListener("change", (event) => {
                 const selectedValue = event.target.value
@@ -78,13 +94,11 @@ $if not type_picker_options.get("subjects_only", False):
         }
 
         function hideSubTypeInputs() {
-            subTypeInputs.forEach((input) => {
-                input.classList.add('hidden')
-            })
+            inputContainer.textContent = ""
         }
 
         function showSubTypeInputs(inputsToShow) {
-            inputSetMapping[inputsToShow].classList.remove('hidden')
+            inputContainer.appendChild(inputSetMapping[inputsToShow])
         }
 
         initTagTypeSelector(tagTypeSelector)
