@@ -1156,7 +1156,8 @@ class Tag(Thing):
         tag_name,
         tag_description,
         tag_type,
-        tag_plugins,
+        body='',
+        fkey=None,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1168,18 +1169,19 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            web.ctx.site.save(
+            t = web.ctx.site.save(
                 {
                     'key': key,
                     'name': tag_name,
                     'tag_description': tag_description,
                     'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
                     'type': {"key": '/type/tag'},
+                    'fkey': fkey,
+                    'body': body.strip(),
                 },
                 comment=comment,
             )
-            return key
+            return web.ctx.site.get(key)
 
 
 @dataclass

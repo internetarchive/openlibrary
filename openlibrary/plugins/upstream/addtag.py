@@ -14,6 +14,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
+from openlibrary.plugins.worksearch.subjects import get_subject
 
 
 @public
@@ -21,8 +22,58 @@ def get_tag_types():
     return ["subject", "work", "collection"]
 
 
-def validate_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '')
+def validate_tag(tag, for_promotion=False):
+    return (
+        (tag.get('name', '') and tag.get('fkey', None))
+        if for_promotion
+        else (tag.get('name', '') and tag.get('tag_type', ''))
+    )
+
+
+def has_permission(user) -> bool:
+    """
+    Can a tag be added?
+    """
+    return user and (
+        user.is_librarian() or user.is_super_librarian() or user.is_admin()
+    )
+
+
+def create_subject_tag(
+    name: str, description: str, fkey: str | None = None, body: str = ''
+) -> Tag:
+    tag = Tag.create(name, description, 'subject', fkey=fkey, body=body)
+    if fkey and not body:
+        subject = get_subject(
+            fkey,
+            details=True,
+            filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
+            sort='readinglog',
+        )
+        if subject and subject.work_count > 0:
+            tag.body = str(render_template('subjects', page=subject))
+            tag._save()
+    return tag
+
+
+class promotetag(delegate.page):
+    path = "/tag/promote"
+
+    def GET(self):
+        if not (patron := get_current_user()):
+            raise web.seeother(f'/account/login?redirect={self.path}')
+        if not has_permission(patron):
+            raise web.unauthorized(
+                message='Permission denied to promote subject to tags'
+            )
+
+        i = web.input(name="", fkey=None, description="")
+
+        if not validate_tag(i, for_promotion=True):
+            raise web.badrequest()
+
+        tag = create_subject_tag(i.name, i.description, fkey=i.fkey)
+        raise safe_seeother(tag.key)
 
 
 class addtag(delegate.page):
@@ -33,19 +84,13 @@ class addtag(delegate.page):
         if not (patron := get_current_user()):
             raise web.seeother(f'/account/login?redirect={self.path}')
 
-        if not self.has_permission(patron):
+        if not has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        i = web.input(name=None, type=None, sub_type=None)
+        i = web.input(name=None, type=None, sub_type=None, fkey=None)
 
-        return render_template('tag/add', i.name, i.type, subject_type=i.sub_type)
-
-    def has_permission(self, user) -> bool:
-        """
-        Can a tag be added?
-        """
-        return user and (
-            user.is_librarian() or user.is_super_librarian() or user.is_admin()
+        return render_template(
+            'tag/add', i.name, i.type, subject_type=i.sub_type, fkey=i.fkey
         )
 
     def POST(self):
@@ -53,7 +98,8 @@ class addtag(delegate.page):
             name="",
             tag_type="",
             tag_description="",
-            tag_plugins="",
+            body="",
+            fkey=None,
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -64,7 +110,7 @@ class addtag(delegate.page):
         if not (patron := get_current_user()):
             raise web.seeother(f'/account/login?redirect={self.path}')
 
-        if not self.has_permission(patron):
+        if not has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
         i = utils.unflatten(i)
@@ -101,8 +147,8 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create(i.name, i.tag_description, i.tag_type, i.tag_plugins)
-        raise safe_seeother(key)
+        tag = create_subject_tag(i.name, i.tag_description, fkey=i.fkey, body=i.body)
+        raise safe_seeother(tag.key)
 
 
 class tag_edit(delegate.page):
