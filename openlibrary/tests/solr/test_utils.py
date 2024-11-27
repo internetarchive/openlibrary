@@ -2,7 +2,7 @@ import json
 from unittest.mock import MagicMock
 
 import httpx
-from httpx import Response, ConnectError
+from httpx import ConnectError, Response
 
 from openlibrary.solr.utils import SolrUpdateRequest, solr_update
 

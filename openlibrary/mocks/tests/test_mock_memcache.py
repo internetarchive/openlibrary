@@ -1,5 +1,6 @@
-from .. import mock_memcache
 import memcache
+
+from .. import mock_memcache
 
 
 class Test_mock_memcache:

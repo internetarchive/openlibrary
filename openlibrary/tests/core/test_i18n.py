@@ -1,8 +1,8 @@
 import web
-from openlibrary.mocks.mock_infobase import MockSite
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
+from openlibrary.mocks.mock_infobase import MockSite
 
 
 class MockTranslations(dict):

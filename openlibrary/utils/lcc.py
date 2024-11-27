@@ -86,6 +86,7 @@ But it works for subject-related range queries, so we consider it sufficient.
 """
 
 from __future__ import annotations
+
 import re
 from collections.abc import Iterable
 

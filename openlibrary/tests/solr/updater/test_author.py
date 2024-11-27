@@ -1,5 +1,6 @@
 import httpx
 import pytest
+
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.tests.solr.test_update import FakeDataProvider, make_author
 
