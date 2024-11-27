@@ -217,7 +217,7 @@ class Thing(client.Thing):
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
         }
-    
+
     def get_key_numeric(self):
         """Returns just the numeric part of the key."""
         return int(re.search(r'\d+', self.key))
@@ -810,8 +810,10 @@ class Author(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-    
-    def merge_remote_ids(self, incoming_ids: dict[str, str]) -> tuple[dict[str, str], int]:
+
+    def merge_remote_ids(
+        self, incoming_ids: dict[str, str]
+    ) -> tuple[dict[str, str], int]:
         output = {**self.remote_ids}
         if len(incoming_ids.items()) == 0:
             return output, 0
@@ -827,7 +829,6 @@ class Author(Thing):
         if conflicts > matches:
             raise Exception("wikidata json conflicts with existing remote ids")
         return output, matches
-        
 
 
 class User(Thing):

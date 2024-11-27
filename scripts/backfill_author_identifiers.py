@@ -20,45 +20,45 @@ from openlibrary.core import db
 
 
 def walk_redirects(obj, seen):
-	seen.add(obj['key'])
-	while obj['type']['key'] == '/type/redirect':
-		assert obj['location'] != obj['key']
-		obj = web.ctx.site.get(obj['location'])
-		seen.add(obj['key'])
-	return obj
+    seen.add(obj['key'])
+    while obj['type']['key'] == '/type/redirect':
+        assert obj['location'] != obj['key']
+        obj = web.ctx.site.get(obj['location'])
+        seen.add(obj['key'])
+    return obj
+
 
 def main(ol_config: str):
-	"""
-	:param str ol_config: Path to openlibrary.yml file
-	"""
-	load_config(ol_config)
-	infogami._setup()
+    """
+    :param str ol_config: Path to openlibrary.yml file
+    """
+    load_config(ol_config)
+    infogami._setup()
 
-	password = ''
-	try:
-		password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
-		if password.endswith('\n'):
-			password = password[:-1]
-	except:
-		pass
+    password = ''
+    try:
+        password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
+        if password.endswith('\n'):
+            password = password[:-1]
+    except:
+        pass
 
-	# how i fix this lol
-	web.ctx.ip='127.0.0.1'
+    # how i fix this lol
+    web.ctx.ip = '127.0.0.1'
 
-	for row in db.query(
-		"select id from wikidata"
-	):
-		e = get_wikidata_entity(row.id)
-		e.consolidate_remote_author_ids()
-		try:
-			e.consolidate_remote_author_ids()
-		except Exception as err:
-			# don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
-			# TODO: raise a flag to librarians here?
-			print(str(err))
-			pass
+    for row in db.query("select id from wikidata"):
+        e = get_wikidata_entity(row.id)
+        e.consolidate_remote_author_ids()
+        try:
+            e.consolidate_remote_author_ids()
+        except Exception as err:
+            # don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
+            # TODO: raise a flag to librarians here?
+            print(str(err))
+            pass
+
 
 # Get wikidata for authors who dont have it yet?
 
 if __name__ == "__main__":
-	FnToCLI(main).run()
+    FnToCLI(main).run()

@@ -142,11 +142,13 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             obj = web.ctx.site.get(obj['location'])
             seen.add(obj['key'])
         return obj
-    
+
     def get_redirected_authors(authors: list["Author"]):
         if any(a.type.key != '/type/author' for a in authors):
             seen: set[dict] = set()
-            all_authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
+            all_authors = [
+                walk_redirects(a, seen) for a in authors if a['key'] not in seen
+            ]
             return all_authors
         return authors
 
@@ -161,12 +163,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         matched_authors = []
         # Get all the authors that match any incoming identifier.
         for identifier, val in identifiers.items():
-            queries.append(
-                {"type": "/type/author", f"remote_ids.{identifier}~": val}
-            )
+            queries.append({"type": "/type/author", f"remote_ids.{identifier}~": val})
         for query in queries:
             if reply := list(web.ctx.site.things(query)):
-                matched_authors.extend(get_redirected_authors([web.ctx.site.get(k) for k in reply]))
+                matched_authors.extend(
+                    get_redirected_authors([web.ctx.site.get(k) for k in reply])
+                )
         matched_authors = uniq(matched_authors)
         # The match is whichever one has the most identifiers in common AND does not have more conflicts than matched identifiers.
         highest_matches = 0
@@ -179,7 +181,11 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
                     highest_matches = matches
                 elif matches == highest_matches and matches > 0:
                     # Prioritize the lower OL ID when matched identifiers are equal
-                    selected_match = a if a.get_key_numeric() < selected_match.get_key_numeric() else selected_match
+                    selected_match = (
+                        a
+                        if a.get_key_numeric() < selected_match.get_key_numeric()
+                        else selected_match
+                    )
             except:
                 # Reject if too many conflicts
                 # TODO: raise a flag to librarians here?
@@ -224,6 +230,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return [match[0]]
     return [pick_from_matches(author, match)]
 
+
 def find_entity(author: dict[str, Any]) -> "Author | None":
     """
     Looks for an existing Author record in OL
@@ -239,6 +246,7 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
             t.remote_ids, _ = t.merge_remote_ids(author["identifiers"])
             things[index] = t
     return things[0] if things else None
+
 
 def remove_author_honorifics(name: str) -> str:
     """

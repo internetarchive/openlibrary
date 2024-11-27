@@ -47,7 +47,7 @@ REMOTE_IDS = {
     "storygraph": "P12430",
     "imdb": "P345",
     "amazon": "P4862",
-    "youtube": "P2397"
+    "youtube": "P2397",
 }
 
 
@@ -206,14 +206,14 @@ class WikidataEntity:
             for statement in self.statements[property_id]
             if "value" in statement and "content" in statement["value"]
         ]
-    
+
     # can this move into author def'n?
     def consolidate_remote_author_ids(self) -> None:
         output = {"wikidata": self.id}
         ol_id = self.get_openlibrary_id()
         if ol_id is None or not re.fullmatch(r"^OL\d+A$", ol_id):
             return
-        
+
         key = "/authors/" + ol_id
         q = {"type": "/type/author", "key~": key}
         reply = list(web.ctx.site.things(q))
@@ -223,16 +223,16 @@ class WikidataEntity:
         author = authors[0]
         if author.wikidata() is not None and author.wikidata().id != self.id:
             raise Exception("wikidata IDs do not match")
-        wd_remote_ids = {key: value[0] for key, value in self.get_remote_ids().items() if value != []}
-        
+        wd_remote_ids = {
+            key: value[0] for key, value in self.get_remote_ids().items() if value != []
+        }
+
         # Verify that the author's IDs are not significantly different.
         output, _ = author.merge_remote_ids(wd_remote_ids)
-        
+
         # save
         author.remote_ids = output
-        web.ctx.site.save(
-            query={**author, "key": key, "type": {"key": "/type/author"}}
-        )
+        web.ctx.site.save(query={**author, "key": key, "type": {"key": "/type/author"}})
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:
@@ -260,7 +260,6 @@ def get_wikidata_entity(
         return _get_from_web(qid)
 
     return None
-
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:
@@ -312,7 +311,6 @@ def _add_to_cache(entity: WikidataEntity) -> None:
             # don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
             # TODO: raise a flag to librarians here?
             pass
-
 
     if _get_from_cache(entity.id):
         return oldb.update(
