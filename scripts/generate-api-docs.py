@@ -1,8 +1,9 @@
-import web
 import os
 import re
 import shutil
 from collections import defaultdict
+
+import web
 
 template = """\
 $def with (mod, submodules)

@@ -4,11 +4,12 @@ To run:
 PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yml ./path/to/pressbooks.json
 """
 
-import json
 import datetime
-import logging
-import requests
 import html
+import json
+import logging
+
+import requests
 
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config

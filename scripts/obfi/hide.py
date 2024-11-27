@@ -7,9 +7,8 @@ import hashlib
 import os
 import struct
 import sys
-from typing import Final
 import urllib.request
-
+from typing import Final
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
 if not SEED_PATH:
