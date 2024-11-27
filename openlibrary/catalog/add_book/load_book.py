@@ -142,8 +142,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             seen.add(obj['key'])
         return obj
 
-    # Try for open library ID, then other external identifiers (wikidata, bookbrainz, etc).
-    # If not found, try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
+    # Try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
     # then last name with identical birth and death dates (that are not themselves `None` or '').
     name = author["name"].replace("*", r"\*")
     queries = [
@@ -156,13 +155,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
-    if identifiers := author.get("identifiers"):
-        for id in identifiers:
-            queries.insert(
-                0, {"type": "/type/author", f"identifiers.{id}~": identifiers[id]}
-            )
-    if key := author.get("key"):
-        queries.insert(0, {"type": "/type/author", "key~": key})
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
             break
@@ -254,20 +246,9 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
             new['death_date'] = author['death_date']
         return new
     a = {'type': {'key': '/type/author'}}
-    for f in (
-        'name',
-        'title',
-        'personal_name',
-        'birth_date',
-        'death_date',
-        'date',
-        'remote_ids',
-    ):
+    for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':
         if f in author:
             a[f] = author[f]
-    # Import record hitting endpoing should list external IDs under "identifiers", but needs to be "remote_ids" when going into the DB.
-    if "identifiers" in author:
-        a["remote_ids"] = author["identifiers"]
     return a
 
 

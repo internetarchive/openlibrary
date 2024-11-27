@@ -136,77 +136,9 @@ class TestImportAuthor:
         new_author_name = import_author(author)
         assert author["name"] == new_author_name["name"]
 
-    def test_first_match_ol_key(self, mock_site):
+    def test_first_match_priority_name_and_dates(self, mock_site):
         """
-        Highest priority match is OL key.
-        """
-        self.add_three_existing_authors(mock_site)
-
-        # Author with VIAF
-        author = {
-            "name": "William H. Brewer",
-            "key": "/authors/OL3A",
-            "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "12345678"},
-        }
-
-        # Another author with VIAF
-        author_different_key = {
-            "name": "William Brewer",
-            "key": "/authors/OL4A",
-            "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "87654321"},
-        }
-
-        mock_site.save(author)
-        mock_site.save(author_different_key)
-
-        # Look for exact match on OL ID, regardless of other fields.
-        # We ideally shouldn't ever have a case where different authors have the same VIAF, but this demonstrates priority.
-        searched_author = {
-            "name": "William H. Brewer",
-            "key": "/authors/OL4A",
-            "identifiers": {"viaf": "12345678"},
-        }
-        found = import_author(searched_author)
-        assert found.key == author_different_key["key"]
-
-    def test_second_match_strong_identifier(self, mock_site):
-        """
-        Next highest priority match is any other strong identifier, such as VIAF, Goodreads ID, Amazon ID, etc.
-        """
-        self.add_three_existing_authors(mock_site)
-
-        # Author with VIAF
-        author = {
-            "name": "William H. Brewer",
-            "key": "/authors/OL3A",
-            "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "12345678"},
-        }
-
-        # Another author with VIAF
-        author_different_viaf = {
-            "name": "William Brewer",
-            "key": "/authors/OL4A",
-            "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "87654321"},
-        }
-
-        mock_site.save(author)
-        mock_site.save(author_different_viaf)
-
-        # Look for exact match on VIAF, regardless of name field.
-        searched_author = {
-            "name": "William Brewer",
-            "identifiers": {"viaf": "12345678"},
-        }
-        found = import_author(searched_author)
-        assert found.key == author["key"]
-
-    def test_third_match_priority_name_and_dates(self, mock_site):
-        """
-        Next highest priority match is name, birth date, and death date.
+        Highest priority match is name, birth date, and death date.
         """
         self.add_three_existing_authors(mock_site)
 
@@ -269,7 +201,7 @@ class TestImportAuthor:
         assert isinstance(found, dict)
         assert found["death_date"] == searched_and_not_found_author["death_date"]
 
-    def test_match_priority_alternate_names_and_dates(self, mock_site):
+    def test_second_match_priority_alternate_names_and_dates(self, mock_site):
         """
         Matching, as a unit, alternate name, birth date, and death date, get
         second match priority.
