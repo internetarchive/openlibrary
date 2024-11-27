@@ -1,13 +1,12 @@
 """Cover management."""
 
 import datetime
-from logging import getLogger
 import os
-
 from io import BytesIO
+from logging import getLogger
 
-from PIL import Image
 import web
+from PIL import Image
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f

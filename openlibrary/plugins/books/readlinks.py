@@ -3,18 +3,18 @@ Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
 
-import sys
 import re
-import requests
+import sys
 
+import requests
 import web
-from openlibrary.core import ia
-from openlibrary.core import helpers
-from openlibrary.api import OpenLibrary  # noqa: F401 side effects may be needed
-from openlibrary.plugins.books import dynlinks
-from infogami.utils.delegate import register_exception
-from infogami.utils import stats
+
 from infogami import config
+from infogami.utils import stats
+from infogami.utils.delegate import register_exception
+from openlibrary.api import OpenLibrary  # noqa: F401 side effects may be needed
+from openlibrary.core import helpers, ia
+from openlibrary.plugins.books import dynlinks
 
 
 def key_to_olid(key):

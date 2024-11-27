@@ -1,8 +1,9 @@
-from collections import defaultdict
 import re
+from collections import defaultdict
 from typing import cast
 
 import httpx
+
 from openlibrary.plugins.openlibrary.lists import (
     SeedType,
     seed_key_to_seed_type,

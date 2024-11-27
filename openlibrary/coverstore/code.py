@@ -4,14 +4,11 @@ import io
 import json
 import logging
 import os
-
-import requests
-
-import web
-
-from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
+import requests
+import web
+from PIL import Image, ImageDraw, ImageFont
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image

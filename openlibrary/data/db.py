@@ -20,12 +20,14 @@ How to use:
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
 
-from openlibrary.utils import olmemcache
-import json
-import web
 import datetime
+import json
 import sys
 import time
+
+import web
+
+from openlibrary.utils import olmemcache
 
 __all__ = [
     "setup_database",

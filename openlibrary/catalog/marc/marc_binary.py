@@ -1,15 +1,15 @@
-from pymarc import MARC8ToUnicode
-from unicodedata import normalize
 from collections.abc import Iterator
+from unicodedata import normalize
+
+from pymarc import MARC8ToUnicode
 
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.marc.marc_base import (
-    MarcBase,
-    MarcFieldBase,
-    MarcException,
     BadMARC,
+    MarcBase,
+    MarcException,
+    MarcFieldBase,
 )
-
 
 marc8 = MARC8ToUnicode(quiet=True)
 

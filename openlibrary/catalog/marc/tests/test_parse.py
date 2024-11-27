@@ -1,18 +1,19 @@
 import json
-import pytest
+from collections.abc import Iterable
+from pathlib import Path
 
-from openlibrary.catalog.marc.parse import (
-    read_author_person,
-    read_edition,
-    NoTitle,
-    SeeAlsoAsTitle,
-)
+import lxml.etree
+import pytest
+from lxml import etree
+
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
-from lxml import etree
-from pathlib import Path
-from collections.abc import Iterable
-import lxml.etree
+from openlibrary.catalog.marc.parse import (
+    NoTitle,
+    SeeAlsoAsTitle,
+    read_author_person,
+    read_edition,
+)
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'

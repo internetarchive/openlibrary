@@ -1,8 +1,10 @@
+import gc
+
+import web
+
 from infogami.utils import delegate  # noqa: F401 side effects may be needed
 from infogami.utils.view import render, safeint
 from openlibrary.plugins.admin import memory
-import web
-import gc
 
 
 def render_template(name, *a, **kw):

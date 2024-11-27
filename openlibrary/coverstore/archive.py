@@ -3,21 +3,20 @@
 import glob
 import os
 import re
-import sys
 import subprocess
+import sys
 import time
 import zipfile
-import web
+
 import internetarchive as ia
+import web
 
 from infogami.infobase import utils
-
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import (
     find_image_path,  # noqa: F401 side effects may be needed
 )
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-
 
 ITEM_SIZE = 1_000_000
 BATCH_SIZE = 10_000

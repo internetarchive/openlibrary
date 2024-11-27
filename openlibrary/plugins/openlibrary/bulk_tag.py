@@ -1,9 +1,10 @@
-from infogami.utils import delegate
+import json
 
+import web
+
+from infogami.utils import delegate
 from openlibrary.core import stats
 from openlibrary.utils import uniq
-import web
-import json
 
 
 class bulk_tag_works(delegate.page):

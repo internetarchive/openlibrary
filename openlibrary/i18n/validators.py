@@ -1,9 +1,9 @@
-from itertools import groupby
 import re
+from itertools import groupby
 
 from babel.messages.catalog import (
-    Message,
     Catalog,
+    Message,
 )
 
 

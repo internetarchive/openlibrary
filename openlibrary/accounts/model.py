@@ -2,31 +2,30 @@
 
 """
 
-import secrets
-import time
 import datetime
 import hashlib
 import hmac
-import random
-import string
-from typing import TYPE_CHECKING
-import uuid
 import logging
-import requests
+import random
+import secrets
+import string
+import time
+import uuid
+from typing import TYPE_CHECKING
 
-from validate_email import validate_email
+import requests
 import web
+from validate_email import validate_email
 
 from infogami import config
-from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
-
-from openlibrary.core import stats, helpers
+from infogami.utils.view import public, render_template
+from openlibrary.core import helpers, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.edits import CommunityEditsQueue
 
 try:
     from simplejson.errors import JSONDecodeError

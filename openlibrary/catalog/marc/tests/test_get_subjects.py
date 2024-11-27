@@ -1,10 +1,12 @@
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
-from lxml import etree
 from pathlib import Path
-import pytest
+
 import lxml.etree
+import pytest
+from lxml import etree
+
+from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
 
 xml_samples = [
     ('bijouorannualofl1828cole', {}),

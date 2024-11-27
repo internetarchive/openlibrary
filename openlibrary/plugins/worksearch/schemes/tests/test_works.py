@@ -1,5 +1,7 @@
 from unittest.mock import patch
+
 import pytest
+
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 # {'Test name': ('query', fields[])}
