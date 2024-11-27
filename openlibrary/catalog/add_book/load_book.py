@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, Final
 import web
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.core.helpers import extract_year
+from openlibrary.utils import uniq
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -141,10 +142,51 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             obj = web.ctx.site.get(obj['location'])
             seen.add(obj['key'])
         return obj
+    
+    def get_redirected_authors(authors: list["Author"]):
+        if any(a.type.key != '/type/author' for a in authors):
+            seen: set[dict] = set()
+            all_authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
+            return all_authors
+        return authors
 
-    # Try for open library ID, then other external identifiers (wikidata, bookbrainz, etc).
-    # If not found, try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
-    # then last name with identical birth and death dates (that are not themselves `None` or '').
+    # Look for OL ID first.
+    if key := author.get("key"):
+        if reply := list(web.ctx.site.things({"type": "/type/author", "key~": key})):
+            # Always match on OL ID, even if remote identifiers don't match.
+            return get_redirected_authors([web.ctx.site.get(k) for k in reply])
+    # Try other identifiers next.
+    if identifiers := author.get("identifiers"):
+        queries = []
+        matched_authors = []
+        # Get all the authors that match any incoming identifier.
+        for identifier, val in identifiers.items():
+            queries.append(
+                {"type": "/type/author", f"remote_ids.{identifier}~": val}
+            )
+        for query in queries:
+            if reply := list(web.ctx.site.things(query)):
+                matched_authors.extend(get_redirected_authors([web.ctx.site.get(k) for k in reply]))
+        matched_authors = uniq(matched_authors)
+        # The match is whichever one has the most identifiers in common AND does not have more conflicts than matched identifiers.
+        highest_matches = 0
+        selected_match = None
+        for a in matched_authors:
+            try:
+                _, matches = a.merge_remote_ids(identifiers)
+                if matches > highest_matches:
+                    selected_match = a
+                    highest_matches = matches
+                elif matches == highest_matches and matches > 0:
+                    # Prioritize the lower OL ID when matched identifiers are equal
+                    selected_match = a if a.get_key_numeric() < selected_match.get_key_numeric() else selected_match
+            except:
+                # Reject if too many conflicts
+                # TODO: raise a flag to librarians here?
+                pass
+        if highest_matches > 0 and selected_match is not None:
+            return [selected_match]
+    # Fall back to name/date matching, which we did before introducing identifiers.
     name = author["name"].replace("*", r"\*")
     queries = [
         {"type": "/type/author", "name~": name},
@@ -156,23 +198,30 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
-    if identifiers := author.get("identifiers"):
-        for id in identifiers:
-            queries.insert(
-                0, {"type": "/type/author", f"identifiers.{id}~": identifiers[id]}
-            )
-    if key := author.get("key"):
-        queries.insert(0, {"type": "/type/author", "key~": key})
+    things = []
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
-            break
-
-    authors = [web.ctx.site.get(k) for k in reply]
-    if any(a.type.key != '/type/author' for a in authors):
-        seen: set[dict] = set()
-        authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
-    return authors
-
+            things = get_redirected_authors([web.ctx.site.get(k) for k in reply])
+    match = []
+    seen = set()
+    for a in things:
+        key = a['key']
+        if key in seen:
+            continue
+        seen.add(key)
+        assert a.type.key == '/type/author'
+        if 'birth_date' in author and 'birth_date' not in a:
+            continue
+        if 'birth_date' not in author and 'birth_date' in a:
+            continue
+        if not author_dates_match(author, a):
+            continue
+        match.append(a)
+    if not match:
+        return []
+    if len(match) == 1:
+        return [match[0]]
+    return [pick_from_matches(author, match)]
 
 def find_entity(author: dict[str, Any]) -> "Author | None":
     """
@@ -184,30 +233,11 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if author.get('entity_type', 'person') != 'person':
-        return things[0] if things else None
-    match = []
-    seen = set()
-    for a in things:
-        key = a['key']
-        if key in seen:
-            continue
-        seen.add(key)
-        orig_key = key
-        assert a.type.key == '/type/author'
-        if 'birth_date' in author and 'birth_date' not in a:
-            continue
-        if 'birth_date' not in author and 'birth_date' in a:
-            continue
-        if not author_dates_match(author, a):
-            continue
-        match.append(a)
-    if not match:
-        return None
-    if len(match) == 1:
-        return match[0]
-    return pick_from_matches(author, match)
-
+    if "identifiers" in author:
+        for index, t in enumerate(things):
+            t.remote_ids, _ = t.merge_remote_ids(author["identifiers"])
+            things[index] = t
+    return things[0] if things else None
 
 def remove_author_honorifics(name: str) -> str:
     """

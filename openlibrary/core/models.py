@@ -8,6 +8,7 @@ from openlibrary.core.vendors import get_amazon_metadata
 import web
 import json
 import requests
+import re
 from typing import Any, TypedDict
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -29,7 +30,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
-from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity, REMOTE_IDS
 
 from . import cache, waitinglist
 
@@ -216,6 +217,10 @@ class Thing(client.Thing):
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
         }
+    
+    def get_key_numeric(self):
+        """Returns just the numeric part of the key."""
+        return int(re.search(r'\d+', self.key))
 
 
 class ThingReferenceDict(TypedDict):
@@ -805,6 +810,24 @@ class Author(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+    
+    def merge_remote_ids(self, incoming_ids: dict[str, str]) -> tuple[dict[str, str], int]:
+        output = {**self.remote_ids}
+        if len(incoming_ids.items()) == 0:
+            return output, 0
+        matches = 0
+        conflicts = 0
+        for identifier in REMOTE_IDS:
+            if identifier in output and identifier in incoming_ids:
+                if output[identifier] != incoming_ids[identifier]:
+                    conflicts = conflicts + 1
+                else:
+                    output[identifier] = incoming_ids[identifier]
+                    matches = matches + 1
+        if conflicts > matches:
+            raise Exception("wikidata json conflicts with existing remote ids")
+        return output, matches
+        
 
 
 class User(Thing):

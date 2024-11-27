@@ -1,3 +1,13 @@
+"""
+Copies all author identifiers from the author's stored Wikidata info into their remote_ids.
+
+To Run:
+
+PYTHONPATH=. python ./scripts/populate_author_identifiers.py /olsystem/etc/openlibrary.yml
+
+(If testing locally, run inside `docker compose exec web bash` and use ./conf/openlibrary.yml)
+"""
+
 #!/usr/bin/env python
 import web
 from openlibrary.core.wikidata import get_wikidata_entity
@@ -32,23 +42,23 @@ def main(ol_config: str):
 	except:
 		pass
 
+	# how i fix this lol
+	web.ctx.ip='127.0.0.1'
+
 	for row in db.query(
 		"select id from wikidata"
 	):
 		e = get_wikidata_entity(row.id)
-		ids = e.get_remote_ids()
-		print(ids)
-		if "openlibrary_id" not in ids or not ids["openlibrary_id"]:
-			continue
-		for key in ids["openlibrary_id"]:
-			q = {"type": "/type/author", "key~": "/authors/" + key}
-			reply = list(web.ctx.site.things(q))
-			authors = [web.ctx.site.get(k) for k in reply]
-			if any(a.type.key != '/type/author' for a in authors):
-				seen: set[dict] = set()
-				authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
-			print(authors)
+		e.consolidate_remote_author_ids()
+		try:
+			e.consolidate_remote_author_ids()
+		except Exception as err:
+			# don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
+			# TODO: raise a flag to librarians here?
+			print(str(err))
+			pass
 
+# Get wikidata for authors who dont have it yet?
 
 if __name__ == "__main__":
 	FnToCLI(main).run()
