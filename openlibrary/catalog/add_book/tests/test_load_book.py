@@ -147,7 +147,7 @@ class TestImportAuthor:
             "name": "William H. Brewer",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "12345678"},
+            "remote_ids": {"viaf": "12345678"},
         }
 
         # Another author with VIAF
@@ -155,7 +155,7 @@ class TestImportAuthor:
             "name": "William Brewer",
             "key": "/authors/OL4A",
             "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "87654321"},
+            "remote_ids": {"viaf": "87654321"},
         }
 
         mock_site.save(author)
@@ -182,7 +182,7 @@ class TestImportAuthor:
             "name": "William H. Brewer",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "12345678"},
+            "remote_ids": {"viaf": "12345678"},
         }
 
         # Another author with VIAF
@@ -190,7 +190,7 @@ class TestImportAuthor:
             "name": "William Brewer",
             "key": "/authors/OL4A",
             "type": {"key": "/type/author"},
-            "identifiers": {"viaf": "87654321"},
+            "remote_ids": {"viaf": "87654321"},
         }
 
         mock_site.save(author)

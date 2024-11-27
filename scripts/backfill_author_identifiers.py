@@ -13,7 +13,6 @@ import web
 from openlibrary.core.wikidata import get_wikidata_entity
 from openlibrary.config import load_config
 import infogami
-from infogami import config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 import os
 from openlibrary.core import db
