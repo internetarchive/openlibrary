@@ -8,8 +8,9 @@ from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, public
+
 from openlibrary.accounts import get_current_user
-from openlibrary.plugins.upstream import spamcheck, utils
+from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.utils import render_template
@@ -158,6 +159,11 @@ class tag_edit(delegate.page):
         if tag is None:
             raise web.notfound()
 
+        if tag.tag_type in SUBJECT_SUB_TYPES:
+            return render_template("type/tag/subject/edit", tag)
+        elif tag.tag_type == "collection":
+            return render_template("type/tag/collection/edit", tag)
+
         return render_template('type/tag/edit', tag)
 
     def POST(self, key):
@@ -168,8 +174,7 @@ class tag_edit(delegate.page):
         i = web.input(_comment=None)
         formdata = self.process_input(i)
         try:
-            # TODO : use type-based validation here
-            if not formdata or not validate_subject_tag(formdata):
+            if not formdata or not self.validate(formdata, tag.tag_type):
                 raise web.badrequest()
             elif "_delete" in i:
                 tag = web.ctx.site.new(
@@ -186,10 +191,14 @@ class tag_edit(delegate.page):
             return render_template("type/tag/edit", tag)
 
     def process_input(self, i):
-        # TODO : `unflatten` call not needed for tag form data
-        i = utils.unflatten(i)
         tag = trim_doc(i)
         return tag
+
+    def validate(self, data, tag_type):
+        if tag_type in SUBJECT_SUB_TYPES:
+            return validate_subject_tag(data)
+        else:
+            return validate_tag(data)
 
 
 class add_typed_tag(delegate.page):

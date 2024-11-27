@@ -45,9 +45,7 @@ class subjects(delegate.page):
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
-            self.decorate_with_disambiguations(subj)
-            # TODO : use disambiguations to find linked tag
-            self.decorate_with_tag(subj)
+            self.decorate_with_tags(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -62,17 +60,14 @@ class subjects(delegate.page):
             key = key.replace("/times/", "/time:")
         return key
 
-    def decorate_with_disambiguations(self, subject):
-        matches = Tag.find(subject.name)
-        if matches:
-            tags = web.ctx.site.get_many(matches)
+    def decorate_with_tags(self, subject) -> None:
+        tag_keys = Tag.find(subject.name)
+        if tag_keys:
+            tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-    def decorate_with_tag(self, subject):
-        matches = Tag.find(subject.name, tag_type=subject.subject_type)
-        if matches:
-            tag = web.ctx.site.get(matches[0])
-            subject.tag = tag
+            if filtered_tags := [tag for tag in tags if tag.tag_type == subject.subject_type]:
+                subject.tag = filtered_tags[0]
 
 
 class subjects_json(delegate.page):

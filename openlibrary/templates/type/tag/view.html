@@ -8,8 +8,8 @@ $code:
         key = "/subjects/"
         if tag.tag_type != "subject":
             key += "%s:" % tag.tag_type
-        # TODO : normalize the same as subject label URLs
         key += tag.name.replace(" ", "_")
+        key = key.lower()
         return key
 
 <div id="contentHead">
@@ -17,10 +17,9 @@ $code:
     <h1 itemprop="name">
         $title
     </h1>
-    <h3 itemprop="description">
-        $# TODO : sanitize and format
-        $tag.tag_description
-    </h3>
+    <div itemprop="description">
+        $:sanitize(format(tag.tag_description))
+    </div>
     $if tag.tag_type in get_subject_tag_types():
         <div>
             $:sanitize(format(tag.body))
