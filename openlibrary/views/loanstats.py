@@ -59,19 +59,28 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
+    q: str = "",
+    fields: list[str] | None = None,
 ):
-    logged_books = (
-        Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
-        if (since_days == 0 and since_hours == 0)
-        else Bookshelves.most_logged_books(
+    # i.e. "now"
+    if since_days == since_hours == 0:
+        logged_books = Bookshelves.fetch(
+            get_activity_stream(limit=limit, page=page),
+            q=q,
+            fields=fields,
+        )
+    else:
+        logged_books = Bookshelves.most_logged_books(
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
+            q=q,
+            fields=fields,
         )
-    )
+
     return (
         [book['work'] for book in logged_books if book.get('work')]
         if books_only

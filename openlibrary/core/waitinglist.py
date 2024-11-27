@@ -15,6 +15,7 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
+from typing import cast
 import web
 from openlibrary.accounts.model import OpenLibraryAccount
 from . import helpers as h
