@@ -41,17 +41,15 @@ import queue
 import sys
 import threading
 import time
-
 from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Final
 
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
-
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import infogami
 from infogami import config
@@ -61,8 +59,8 @@ from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
-    normalize_identifier,
     isbn_10_to_isbn_13,
+    normalize_identifier,
 )
 
 logger = logging.getLogger("affiliate-server")

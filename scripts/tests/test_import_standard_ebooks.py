@@ -1,6 +1,5 @@
 from scripts.import_standard_ebooks import map_data
 
-
 SAMPLE_1 = {
     'id': 'https://standardebooks.org/ebooks/t-e-lawrence/seven-pillars-of-wisdom',
     'guidislink': True,

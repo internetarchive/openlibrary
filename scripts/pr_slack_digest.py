@@ -1,6 +1,7 @@
-from datetime import datetime
-import requests
 import os
+from datetime import datetime
+
+import requests
 
 
 def send_slack_message(message: str):
