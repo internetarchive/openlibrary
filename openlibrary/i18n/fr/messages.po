@@ -3425,6 +3425,10 @@ msgstr "Envoyer nous vos impressions"
 msgid "Your feedback will help us improve these cards"
 msgstr "Votre retour nous aidera à améliorer ces encarts"
 
+#: home/welcome.html
+msgid "Set a Yearly Reading Goal"
+msgstr "Fixer un objectif annuel de lecture"
+
 #: languages/index.html:15
 #, python-format
 msgid "%s book"
