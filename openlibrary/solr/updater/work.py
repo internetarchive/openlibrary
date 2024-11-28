@@ -52,19 +52,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         base_url = get_solr_base_url() + '/query'
         wkey = work['key']
         update = SolrUpdateRequest()
-        json: dict[str, typing.Any] = {
-            "params": {
-                "json.nl": "arrarr",
-                "q": "key: %s" % wkey,
-                "fl": [
-                    "trending_score_hourly_sum",
-                    'trending_score_hourly_*',
-                    "trending_score_daily_*",
-                    "trending_z_score",
-                ],
-                "sort": "trending_z_score desc",
-            },
-        }
+
         # q = {'type': '/type/redirect', 'location': wkey}
         # redirect_keys = [r['key'][7:] for r in query_iter(q)]
         # redirect_keys = [k[7:] for k in data_provider.find_redirects(wkey)]
@@ -122,16 +110,9 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     iaid: get_ia_collection_and_box_id(iaid, self.data_provider)
                     for iaid in iaids
                 }
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(
-                        base_url,
-                        timeout=30,
-                        json=json,
-                    )
-                reply = response.json()
 
                 solr_doc = WorkSolrBuilder(
-                    work, editions, authors, self.data_provider, ia_metadata, reply
+                    work, editions, authors, self.data_provider, ia_metadata
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work['key'], exc_info=True)
@@ -279,14 +260,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         authors: list[dict],
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
-        solr_reply: dict,
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
-        self._solr_reply = solr_reply
         self._solr_editions = [
             EditionSolrBuilder(
                 e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
@@ -684,12 +663,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 identifiers[k] += v
         return dict(identifiers)
 
-    @property
-    def trending_z_score(self) -> float:
-        if docs := self._solr_reply['response'].get('docs', []):
-            return docs[0].get('trending_z_score', 0)
-        return 0
-
     def build_subjects(self) -> dict:
         doc: dict = {}
         field_map = {
@@ -710,7 +683,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return doc
 
     def build_trending_scores(self) -> dict:
-        reply = self._solr_reply['response'].get('docs', [])
+        record = self._data_provider.get_solr_record(self.key)
+        reply = record.get('docs', {}) if record else {}
         reply = reply[0] if reply else {}
         doc: dict = {
             f'trending_score_hourly_{index}': reply.get(

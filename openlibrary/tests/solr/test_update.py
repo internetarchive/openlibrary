@@ -91,6 +91,13 @@ class FakeDataProvider(DataProvider):
     def get_metadata(self, id):
         return {}
 
+    def get_solr_record(self, work_key: str) -> dict | None:
+        doc: dict = {f'trending_score_hourly_{index}': 0 for index in range(24)}
+        doc |= {"trending_score_hourly_sum": 0}
+        doc |= {f'trending_score_daily_{index}': 0 for index in range(7)}
+        doc |= {"trending_z_score": 0}
+        return doc
+
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         return None
 
