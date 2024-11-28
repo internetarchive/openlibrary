@@ -578,42 +578,46 @@
          cases will work, for example query "wi fi" will match
          document "WiFi" or "wi-fi".
     -->
-    <dynamicField name="*_txt_en_split" type="text_en_splitting"  indexed="true"  stored="true"/>
-    <fieldType name="text_en_splitting" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
-      <analyzer type="index">
-        <tokenizer name="whitespace"/>
-        <!-- in this example, we will only use synonyms at query time
-        <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-        -->
-        <!-- Case insensitive stop word removal.
-        -->
-        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
-        <!-- <filter name="stop"
-                ignoreCase="true"
-                words="lang/stopwords_en.txt"
-        /> -->
-        <filter name="icuFolding"/>
-        <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-        <filter name="lowercase"/>
-        <filter name="keywordMarker" protected="protwords.txt"/>
-        <filter name="porterStem"/>
-        <filter name="flattenGraph" />
-      </analyzer>
-      <analyzer type="query">
-        <tokenizer name="whitespace"/>
-        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
-        <!-- <filter name="stop"
-                ignoreCase="true"
-                words="lang/stopwords_en.txt"
-        /> -->
-        <filter name="icuFolding"/>
-        <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
-        <filter name="lowercase"/>
-        <filter name="keywordMarker" protected="protwords.txt"/>
-        <filter name="porterStem"/>
-      </analyzer>
-    </fieldType>
+<dynamicField name="*_txt_en_split" type="text_en_splitting" indexed="true" stored="true"/>
+<fieldType name="text_en_splitting" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
+  <analyzer type="index">
+    <tokenizer name="whitespace"/>
+    <!-- in this example, we will only use synonyms at query time
+    <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+    -->
+    <!-- Case insensitive stop word removal.
+    -->
+    <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
+    <!-- <filter name="stop"
+            ignoreCase="true"
+            words="lang/stopwords_en.txt"
+    /> -->
+    <filter name="icuFolding"/>
+    <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1" splitOnNumerics="1" preserveOriginal="1"/>
+    <filter name="lowercase"/>
+    <filter name="keywordMarker" protected="protwords.txt"/>
+    <filter name="porterStem"/>
+    <filter name="flattenGraph" />
+    <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true"
+      maxPosAsterisk="2" maxPosQuestion="1" minTrailing="2" maxFractionAsterisk="0"/>
+  </analyzer>
+  <analyzer type="query">
+    <tokenizer name="whitespace"/>
+    <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+    <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
+    <!-- <filter name="stop"
+            ignoreCase="true"
+            words="lang/stopwords_en.txt"
+    /> -->
+    <filter name="icuFolding"/>
+    <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1" splitOnNumerics="1" preserveOriginal="1"/>
+    <filter name="lowercase"/>
+    <filter name="keywordMarker" protected="protwords.txt"/>
+    <filter name="porterStem"/>
+    <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true"
+      maxPosAsterisk="2" maxPosQuestion="1" minTrailing="2" maxFractionAsterisk="0"/>
+  </analyzer>
+</fieldType>
 
     <!-- Less flexible matching, but less false matches.  Probably not ideal for product names,
          but may be good for SKUs.  Can insert dashes in the wrong place and still match. -->
