@@ -296,6 +296,19 @@ jQuery(function () {
             });
     }
 
+    const coverForm = document.querySelector('.ol-cover-form--clipboard');
+    if (coverForm) {
+        import(/* webpackChunkName: "covers" */ './covers')
+            .then(module => {
+                if (coverForm) {
+                    document.getElementById('pasteButton').addEventListener('click', async () => {
+                        const formData = await module.pasteImage();
+                        module.initPasteForm(formData);
+                    });
+                }
+            });
+    }
+
     if (document.getElementById('addbook')) {
         import(/* webpackChunkName: "add-book" */ './add-book')
             .then(module => module.initAddBookImport());

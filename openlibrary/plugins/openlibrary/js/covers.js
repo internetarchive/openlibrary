@@ -48,6 +48,7 @@ function add_iframe(selector, src) {
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
     $('.ol-cover-form').on('submit', function () {
+        console.log('submitting form');
         const loadingIndicator = document.querySelector('.loadingIndicator');
         const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
 
@@ -111,4 +112,80 @@ export function initCoversSaved() {
         }
         parent.$(cover_selector).attr('src', cover_url);
     }
+}
+
+// This function will be triggered when the user clicks the "Paste" button
+export async function pasteImage() {
+    console.log('Pasting image...');
+    let formData = null;
+    try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            if (item.types.includes("image/png")) {
+                const blob = await item.getType("image/png");
+                const image = document.getElementById('image');
+                image.src = URL.createObjectURL(blob);
+                image.style.display = 'block';
+
+                // Update the global formData with the new image blob
+                formData = new FormData();
+                formData.append('file', blob, 'pasted-image.png');
+
+                // Automatically fill in the hidden file input with the FormData
+                const fileInput = document.getElementById('hiddenFileInput');
+                const file = new File([blob], 'pasted-image.png', { type: 'image/png' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files; // This sets the file input with the image
+
+                // Show the upload button and update its text
+                const uploadButton = document.getElementById('uploadButton2');
+                console.log(uploadButton);
+                uploadButton.style.display = 'inline';
+                uploadButton.innerText = 'Use this image';
+
+                // Update the paste button text
+                document.getElementById('pasteButton').innerText = 'Change Image';
+                console.log(document.getElementById('pasteButton').innerText);
+
+                return formData;
+            } else {
+                throw new Error("Clipboard does not contain PNG image data.");
+            }
+        }
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+export function initPasteForm(formData) {
+    document.getElementById('uploadButton2').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const form = document.getElementById('clipboardForm');
+        if (formData) {
+            // Show the loading indicator
+            const loadingIndicator = document.querySelector('.loadingIndicator');
+            const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
+
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('hidden');
+                formDivs.forEach(div => div.classList.add('hidden'));
+            }
+
+            // Submit the form
+            form.submit();
+
+            // Hide the loading indicator after a delay to simulate form submission time
+            setTimeout(() => {
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                    formDivs.forEach(div => div.classList.remove('hidden'));
+                }
+                initCoversSaved(); // Trigger the initCoversSaved function
+            }, 3000); // Delay Added
+        } else {
+            alert('No image data to upload.');
+        }
+    });
 }

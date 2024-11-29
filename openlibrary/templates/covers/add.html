@@ -50,10 +50,26 @@ $if doc.type.key == "/type/work":
     </div>
     <div class="input">
         <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png" required/>
-        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
+        <button id='uploadButton1' type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
     </div>
 </form>
 
+<form id="clipboardForm" class="ol-cover-form ol-cover-form--clipboard" method="post" enctype="multipart/form-data" action="$action">
+    <div class="label">
+        <label for="coverClipboard">$_("Or, paste an image from your clipboard")</label>
+    </div>
+    <div class="input">
+        <button type="button" onclick="pasteImage()" class="cta-btn cta-btn--vanilla" id="pasteButton">$_("No Image Pasted")</button>
+    </div>
+    <!-- Hidden file input that will be populated with the pasted image -->
+    <input type="file" name="file" id="hiddenFileInput" style="display: none;" />
+    <button id="uploadButton2" type="submit" class="cta-btn cta-btn--vanilla" style="display: none;">$_("Upload")</button>
+</form>
+
+<div id="imageContainer" style="text-align: center; margin-top: 20px;">
+    <img id="image" style="max-width: 100%; max-height: 400px; display: none; margin: 0 auto;" />
+</div>
+$:macros.LoadingIndicator(_("Uploading..."))
 $#<form class="ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
 $#    <div class="label">
 $#        <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
