@@ -121,8 +121,8 @@ export async function pasteImage() {
     try {
         const clipboardItems = await navigator.clipboard.read();
         for (const item of clipboardItems) {
-            if (item.types.includes("image/png")) {
-                const blob = await item.getType("image/png");
+            if (item.types.includes('image/png')) {
+                const blob = await item.getType('image/png');
                 const image = document.getElementById('image');
                 image.src = URL.createObjectURL(blob);
                 image.style.display = 'block';
@@ -150,7 +150,7 @@ export async function pasteImage() {
 
                 return formData;
             } else {
-                throw new Error("Clipboard does not contain PNG image data.");
+                throw new Error('Clipboard does not contain PNG image data.');
             }
         }
     } catch (error) {
