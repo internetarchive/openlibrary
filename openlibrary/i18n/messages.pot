@@ -4320,11 +4320,19 @@ msgid "Upload"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Or, paste an image from your clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "No Image Pasted"
 msgstr ""
 
 #: covers/add.html
 msgid "Uploading..."
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/author_photo.html
