@@ -9,6 +9,7 @@ describe('SearchBar', () => {
             <form class="search-bar-input" action="https://openlibrary.org/search?q=foo">
                 <input type="text">
             </form>
+            <ul class="search-results"></ul>
         </div>`;
 
     describe('initFromUrlParams', () => {
@@ -210,6 +211,23 @@ describe('SearchBar', () => {
 
             // Verify clearAutocompletionResults was called
             expect(clearResultsSpy.callCount).toBe(1);
+        });
+
+        test('Autocomplete rendering behavior depends on existing results', () => {
+            sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
+            const renderSpy = sandbox.spy(sb, 'renderAutocompletionResults');
+
+            // Should render when results are empty
+            sb.$input.triggerHandler('focus');
+            expect(renderSpy.callCount).toBe(1, 'Should render when no results exist');
+
+            renderSpy.resetHistory();
+
+            // Should not render when results exist
+            sb.$results.append('<li>Some result</li>');
+            sb.$input.triggerHandler('focus');
+            expect(renderSpy.callCount).toBe(0, 'Should not render when results exist');
         });
     });
 });

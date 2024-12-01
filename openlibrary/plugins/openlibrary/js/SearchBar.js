@@ -310,7 +310,9 @@ export class SearchBar {
 
         this.$input.on('focus', debounce(event => {
             event.stopPropagation();
-            if (this.escapeInput) {
+            // don't render on focus if there are already results showing, avoid flashing
+            const resultsAreRendered = this.$results.children().length > 0;
+            if (this.escapeInput || resultsAreRendered) {
                 return;
             }
             this.renderAutocompletionResults();
