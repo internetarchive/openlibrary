@@ -137,6 +137,12 @@ export class SearchBar {
             }
         })
 
+        this.$form.on('keydown', (e) => {
+            if (e.key === 'Tab') {
+                this.clearAutocompletionResults();
+            }
+        });
+
         this.initAutocompletionLogic();
     }
 

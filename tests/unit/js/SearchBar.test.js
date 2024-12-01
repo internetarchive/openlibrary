@@ -197,5 +197,19 @@ describe('SearchBar', () => {
                 expect(getJSONStub.callCount).toBe(0);
             });
         }
+
+        test('Tabbing out of search input clears autocomplete results', () => {
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+
+            // Spy on the clearAutocompletionResults method
+            const clearResultsSpy = sandbox.spy(sb, 'clearAutocompletionResults');
+
+            // Simulate tab keydown event on the form
+            const tabEvent = $.Event('keydown', { key: 'Tab' });
+            sb.$form.trigger(tabEvent);
+
+            // Verify clearAutocompletionResults was called
+            expect(clearResultsSpy.callCount).toBe(1);
+        });
     });
 });
