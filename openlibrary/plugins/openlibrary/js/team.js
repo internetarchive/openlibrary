@@ -89,7 +89,7 @@ export function initTeamFilter() {
     const showError = () => {
         const noResults = document.createElement('h3');
         noResults.classList = 'noResults';
-        noResults.innerHTML =
+        noResults.textContent =
       'It looks like we don\'t have anyone with those specifications.';
         cardsContainer.append(noResults);
     };
@@ -130,13 +130,13 @@ export function initTeamFilter() {
                 ? (memberName.classList = 'description__name--length-long')
                 : (memberName.classList = 'description__name--length-short');
 
-            memberName.innerHTML = `${member.name}`;
+            memberName.textContent = `${member.name}`;
             // memberRole.classList = 'description__role';
-            // memberRole.innerHTML = `${role}`;
+            // memberRole.textContent = `${role}`;
             // memberDepartment.classList = 'description__department';
-            // memberDepartment.innerHTML = `${member.departments}`;
+            // memberDepartment.textContent = `${member.departments}`;
             memberTitle.classList = 'description__title';
-            memberTitle.innerHTML = `${member.title}`;
+            memberTitle.textContent = `${member.title}`;
 
             descriptionLinks.classList = 'description__links';
             if (member.personal_url) {
@@ -181,21 +181,21 @@ export function initTeamFilter() {
 
     const createSectionHeading = (text) => {
         const sectionSeparator = document.createElement('div');
-        sectionSeparator.innerHTML = `${text}`;
+        sectionSeparator.textContent = `${text}`;
         sectionSeparator.classList = 'sectionSeparator';
         cardsContainer.append(sectionSeparator);
     };
 
     const createsubSection = (array, text) => {
         const subsectionSeparator = document.createElement('div');
-        subsectionSeparator.innerHTML = `${text}`;
+        subsectionSeparator.textContent = `${text}`;
         subsectionSeparator.classList = 'subsectionSeparator';
         cardsContainer.append(subsectionSeparator);
         createCards(array);
     };
 
     const filterTeam = (role, department) => {
-        cardsContainer.innerHTML = '';
+        cardsContainer.textContent = '';
         // **************************************** default sort *****************************************
         if (role === 'All' && department === 'All') {
             createSectionHeading('Staff');
