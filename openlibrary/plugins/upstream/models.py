@@ -18,7 +18,11 @@ from openlibrary.plugins.upstream import (
     borrow,
 )
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
-from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config, get_work_config
+from openlibrary.plugins.upstream.utils import (
+    MultiDict,
+    get_edition_config,
+    get_work_config,
+)
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
@@ -789,7 +793,9 @@ class Work(models.Work):
                 if not isinstance(value, list):
                     value = [value]
 
-                id = id_map.get(name) or web.storage(name=name, label=name, url_format=None)
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
                 for v in value:
                     d[id.name] = web.storage(
                         name=id.name,
@@ -797,6 +803,7 @@ class Work(models.Work):
                         value=v,
                         url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
                     )
+
         for name in names:
             process(name, self[name])
 
@@ -804,6 +811,7 @@ class Work(models.Work):
             process(name, values[name])
 
         return d
+
 
 class Subject(client.Thing):
     pass
