@@ -63,6 +63,7 @@ export class SearchBar {
         this.$results = this.$component.find('ul.search-results');
         this.$facetSelect = this.$component.find('.search-facet-selector select');
         this.$barcodeScanner = this.$component.find('#barcode_scanner_link');
+        this.$searchSubmit = this.$component.find('.search-bar-submit')
 
         /** State */
         /** Whether the bar is in collapsible mode */
@@ -112,20 +113,24 @@ export class SearchBar {
         })
 
         this.$results.on('keydown', (e) => {
-            if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
-                if (!e.target.previousElementSibling) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                // On arrow keys focus on the next item unless there is none, then focus on input
+                const direction = e.key === 'ArrowUp' ? 'previousElementSibling' : 'nextElementSibling';
+                if (!e.target[direction]) {
                     this.$input.trigger('focus');
                     return false;
                 } else {
-                    $(e.target.previousElementSibling).trigger('focus');
+                    $(e.target[direction]).trigger('focus');
                     return false;
                 }
-            } else if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
-                if (!e.target.nextElementSibling) {
-                    this.$input.trigger('focus');
+            } else if (e.key === 'Tab') {
+                // On tab, always go to the next selector (instead of next result), like wikipedia
+                this.clearAutocompletionResults();
+                if (e.shiftKey) {
+                    this.$facetSelect.trigger('focus');
                     return false;
                 } else {
-                    $(e.target.nextElementSibling).trigger('focus');
+                    this.$searchSubmit.trigger('focus');
                     return false;
                 }
             } else if (e.key === 'Enter') {
