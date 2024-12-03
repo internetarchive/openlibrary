@@ -256,7 +256,9 @@ class BookRecord:
         self.publish_places = uniq(self.publish_places + places)
 
     def add_authors(self, authors: list[Author]) -> None:
-        self.authors = uniq(self.authors + authors, key=lambda author: author.friendly_name)
+        self.authors = uniq(
+            self.authors + authors, key=lambda author: author.friendly_name
+        )
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
@@ -297,13 +299,13 @@ class BookRecord:
             output["edition_name"] = self.edition
         if self.authors:
             output["authors"] = [
-                    {
-                        "name": author.friendly_name,
-                        "birth_date": author.birth_date,
-                        "death_date": author.death_date,
-                    }
-                    for author in self.authors
-                ]
+                {
+                    "name": author.friendly_name,
+                    "birth_date": author.birth_date,
+                    "death_date": author.death_date,
+                }
+                for author in self.authors
+            ]
         if self.description is not None:
             output["description"] = self.description
         if self.subjects:
@@ -389,16 +391,15 @@ def update_record_with_wikisource_metadata(
         except ValueError:
             pass
 
-    if (
-        not [b for b in author_map if book_id in author_map[b]]
-        and not book.authors
-    ):
+    if not [b for b in author_map if book_id in author_map[b]] and not book.authors:
         try:
             author = template.get("author").value.strip()
             if author != "":
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
                 if authors:
-                    book.add_authors([Author(friendly_name=format_contributor(a)) for a in authors])
+                    book.add_authors(
+                        [Author(friendly_name=format_contributor(a)) for a in authors]
+                    )
         except ValueError:
             pass
 
@@ -493,7 +494,9 @@ def update_import_with_wikidata_api_response(
         author_map[author_id].append(book_id)
     # If author isn't a WD object, add them as plaintext
     elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-        impt.add_authors([Author(friendly_name=format_contributor(obj["authorLabel"]["value"]))])
+        impt.add_authors(
+            [Author(friendly_name=format_contributor(obj["authorLabel"]["value"]))]
+        )
 
     # Illustrators
     if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
@@ -768,9 +771,9 @@ WHERE {
 
             # Don't include author if their name is incomplete, for whatever reason
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
-                contributor = Author(friendly_name=format_contributor(
-                    obj["contributorLabel"]["value"]
-                ))
+                contributor = Author(
+                    friendly_name=format_contributor(obj["contributorLabel"]["value"])
+                )
 
                 if "birthDate" in obj and "value" in obj["birthDate"]:
                     contributor.birth_date = obj["birthDate"]["value"]
