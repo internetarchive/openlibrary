@@ -33,16 +33,10 @@ from openlibrary.core.helpers import (
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-<<<<<<< HEAD
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity, REMOTE_IDS
-=======
 from openlibrary.core.vendors import get_amazon_metadata
-from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
->>>>>>> master
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
