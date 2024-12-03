@@ -219,7 +219,6 @@ export function initBestbookModal($modalLinks)
         const form = $(this).closest('form')[0];
         const formData = new FormData(form);
         const url = form.action;
-        alert(url);
 
         fetch(url, {
             method: 'post',
@@ -227,11 +226,14 @@ export function initBestbookModal($modalLinks)
         })
             .then(response => {
                 if (response.ok) {
+                    $('.bestbook-modal .dialog--close')[0].click()
                     const review = confirm('Would you like to add community review tags?');
                     // new FadingToast('Award added!').show();
                     if (review)
                     {
-                        $('.observations-modal-link')[0].click()
+                        setTimeout(() => {
+                            document.querySelector('.observations-modal-link').click()
+                        }, 1000);
                     }
                 } else {
                     this.hideTaggingMenu();

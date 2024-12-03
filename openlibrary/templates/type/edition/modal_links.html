@@ -15,7 +15,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
 <div class="modal-links $('mobile' if mobile else 'desktop')">
   $if work and work.get('key', ''):
-    $ review_content = icon_link("observations-modal-link award-link", "/static/images/bestbook/trophy.svg", _("Award"), ga_data="ModalLinkClick|ReviewIcon")
+    $ review_content = icon_link("bestbook-modal-link award-link", "/static/images/bestbook/trophy.svg", _("Award"), ga_data="ModalLinkClick|ReviewIcon")
     $:macros.BestbookModal(work, review_content, '', 'stats-link', '', edition.key)
 
     $if mobile:

@@ -122,13 +122,10 @@ class bestbook(delegate.page):
                 + str(username),
             )
             r = response('Only readers can award')
-            if i.redir:
-                raise web.seeother(key)
             return r
 
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
-            add_flash_message("info", "Best book removed")
             r = response('Removed award')
 
         elif bestbook_model.Bestbook.check_if_award_given(
@@ -136,9 +133,7 @@ class bestbook(delegate.page):
             work_id=work_id,
             topic=i.topic,
         ):
-            add_flash_message(
-                "error", "Error: limit one award per book, and one award per topic."
-            )
+            r = response("You have already awarded the book!")
         else:
             if existing:
                 bestbook_model.Bestbook.remove(submitter=username, work_id=work_id)
@@ -149,15 +144,11 @@ class bestbook(delegate.page):
                 comment=i.comment,
                 topic=i.topic,
             )
-            print("\n \n Awarded the book \n \n")
             if not existing:
-                add_flash_message("info", "Best book award added")
+                r = response('Awarded the book')
             else:
-                add_flash_message("info", "Updated best book award")
-            r = response('Awarded the book')
+                r = response('Updated the bestbook award')
 
-        if i.redir:
-            raise web.seeother(key)
         return r
 
 
