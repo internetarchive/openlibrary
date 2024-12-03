@@ -4,20 +4,19 @@ To Run:
 PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml
 """
 
+import itertools
+import json
 import logging
 import re
-import requests
 import time
-import json
-import itertools
 from dataclasses import dataclass, field
 from typing import Any
-
-from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, quote, unquote
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse, urlunparse
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
 # and the latter doesn't have a method to get a template prop by key.
 import mwparserfromhell as mw
+import requests
 import wikitextparser as wtp
 from nameparser import HumanName
 
