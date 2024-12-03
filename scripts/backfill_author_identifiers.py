@@ -9,8 +9,9 @@ PYTHONPATH=. python ./scripts/populate_author_identifiers.py /olsystem/etc/openl
 """
 
 #!/usr/bin/env python
-import infogami
 import web
+
+import infogami
 from openlibrary.config import load_config
 from openlibrary.core import db
 from openlibrary.core.wikidata import get_wikidata_entity
