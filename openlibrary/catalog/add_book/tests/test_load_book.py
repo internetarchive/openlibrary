@@ -172,9 +172,9 @@ class TestImportAuthor:
         found = import_author(searched_author)
         assert found.key == author_different_key["key"]
 
-    def test_second_match_strong_identifier(self, mock_site):
+    def test_second_match_remote_identifier(self, mock_site):
         """
-        Next highest priority match is any other strong identifier, such as VIAF, Goodreads ID, Amazon ID, etc.
+        Next highest priority match is any other remote identifier, such as VIAF, Goodreads ID, Amazon ID, etc.
         """
         self.add_three_existing_authors(mock_site)
 
