@@ -10,6 +10,7 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 import requests
 import web
@@ -120,7 +121,7 @@ class WikidataEntity:
             )
         return profiles
 
-    def get_remote_ids(self) -> dict[str, any]:
+    def get_remote_ids(self) -> dict[str, Any]:
         """
         Get remote IDs like viaf, isni, etc.
 
@@ -228,7 +229,7 @@ class WikidataEntity:
         if author.wikidata() is not None and author.wikidata().id != self.id:
             # TODO: Flag this to librarians. This means the OL entity identified by the Wikidata JSON has a different Wikidata ID than the JSON expects.
             return
-        wd_remote_ids = {
+        wd_remote_ids: dict[str, str] = {
             key: value[0] for key, value in self.get_remote_ids().items() if value != []
         }
 
@@ -312,7 +313,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
     ol_id = entity.get_openlibrary_id()
 
     # here, we should write WD data to author remote ids
-    if re.fullmatch(r"^OL\d+A$", ol_id):
+    if ol_id is not None and re.fullmatch(r"^OL\d+A$", ol_id):
         entity.consolidate_remote_author_ids()
 
     if _get_from_cache(entity.id):

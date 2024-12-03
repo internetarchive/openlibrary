@@ -30,7 +30,8 @@ def main(ol_config: str):
 
     for row in db.query("select id from wikidata"):
         e = get_wikidata_entity(row.id)
-        e.consolidate_remote_author_ids()
+        if e is not None:
+            e.consolidate_remote_author_ids()
 
 
 # Get wikidata for authors who dont have it yet?
