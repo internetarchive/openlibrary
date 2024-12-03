@@ -155,7 +155,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("key")) and (reply := list(web.ctx.site.things({"type": "/type/author", "key~": key}))):
+    if (key := author.get("key")) and (
+        reply := list(web.ctx.site.things({"type": "/type/author", "key~": key}))
+    ):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([web.ctx.site.get(k) for k in reply])
     # Try other identifiers next.
@@ -180,7 +182,11 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             if matches > highest_matches:
                 selected_match = a
                 highest_matches = matches
-            elif matches == highest_matches and matches > 0 and selected_match is not None:
+            elif (
+                matches == highest_matches
+                and matches > 0
+                and selected_match is not None
+            ):
                 # Prioritize the lower OL ID when matched identifiers are equal
                 selected_match = (
                     a
