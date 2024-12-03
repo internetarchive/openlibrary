@@ -219,8 +219,11 @@ def format_contributor(raw_name: str) -> str:
 @dataclass
 class Author:
     friendly_name: str | None = None
-    key: str | None = None
-    identifiers: dict[str, str] = field(default_factory=dict[str, str])
+    birth_date: str | None = None
+    death_date: str | None = None
+
+    def __hash__(self):
+        return hash((self.friendly_name, self.birth_date, self.death_date))
 
 
 @dataclass
@@ -230,7 +233,6 @@ class BookRecord:
     title: str | None = None
     publish_date: str | None = None
     edition: str | None = None
-    authors_plaintext: list[str] = field(default_factory=list)
     authors: list[Author] = field(default_factory=list)
     illustrators: list[str] = field(default_factory=list)
     description: str | None = None
@@ -253,14 +255,8 @@ class BookRecord:
     def add_publish_place(self, places: list[str]) -> None:
         self.publish_places = uniq(self.publish_places + places)
 
-    def add_authors_plaintext(self, authors: list[str]) -> None:
-        self.authors_plaintext = uniq(self.authors_plaintext + authors)
-
     def add_authors(self, authors: list[Author]) -> None:
-        existing_ids = [a.identifiers["wikidata"] for a in self.authors]
-        self.authors.extend(
-            [a for a in authors if a.identifiers["wikidata"] not in existing_ids]
-        )
+        self.authors = uniq(self.authors + authors, key=lambda author: author.friendly_name)
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         self.illustrators = uniq(self.illustrators + illustrators)
@@ -288,29 +284,6 @@ class BookRecord:
     def to_dict(self):
         publishers = ["Wikisource"]
         publishers.extend(self.publishers)
-        authors = []
-        if self.authors:
-            authors.extend(
-                [
-                    {
-                        "name": author.friendly_name,
-                        "identifiers": author.identifiers,
-                        **({"key": author.key} if author.key is not None else {}),
-                    }
-                    for author in self.authors
-                ]
-            )
-        if self.authors_plaintext:
-            existing_names = [
-                a.friendly_name for a in self.authors if a.friendly_name is not None
-            ]
-            authors.extend(
-                [
-                    {"name": name}
-                    for name in self.authors_plaintext
-                    if name not in existing_names
-                ]
-            )
         output = {
             "title": self.title,
             "source_records": self.source_records,
@@ -322,8 +295,15 @@ class BookRecord:
             output["publish_date"] = self.publish_date
         if self.edition is not None:
             output["edition_name"] = self.edition
-        if authors:
-            output["authors"] = authors
+        if self.authors:
+            output["authors"] = [
+                    {
+                        "name": author.friendly_name,
+                        "birth_date": author.birth_date,
+                        "death_date": author.death_date,
+                    }
+                    for author in self.authors
+                ]
         if self.description is not None:
             output["description"] = self.description
         if self.subjects:
@@ -411,14 +391,14 @@ def update_record_with_wikisource_metadata(
 
     if (
         not [b for b in author_map if book_id in author_map[b]]
-        and not book.authors_plaintext
+        and not book.authors
     ):
         try:
             author = template.get("author").value.strip()
             if author != "":
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
                 if authors:
-                    book.add_authors_plaintext([format_contributor(a) for a in authors])
+                    book.add_authors([Author(friendly_name=format_contributor(a)) for a in authors])
         except ValueError:
             pass
 
@@ -459,7 +439,6 @@ def print_records(records: list[BookRecord]):
 
 def scrape_wikisource_api(
     url: str,
-    cfg: LangConfig,
     imports: dict[str, BookRecord],
     author_map: dict[str, list[str]],
 ):
@@ -514,7 +493,7 @@ def update_import_with_wikidata_api_response(
         author_map[author_id].append(book_id)
     # If author isn't a WD object, add them as plaintext
     elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-        impt.add_authors_plaintext([format_contributor(obj["authorLabel"]["value"])])
+        impt.add_authors([Author(friendly_name=format_contributor(obj["authorLabel"]["value"]))])
 
     # Illustrators
     if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
@@ -731,7 +710,7 @@ WHERE {
                 },
             )
 
-            scrape_wikisource_api(ws_api_url, cfg, imports, author_map)
+            scrape_wikisource_api(ws_api_url, imports, author_map)
 
         # Use wikidata image URL if it exists
         for obj in results:
@@ -756,40 +735,14 @@ def fix_contributor_data(
             '''SELECT DISTINCT
   ?contributor
   ?contributorLabel
-  ?olId
-  ?viaf
-  ?bookbrainz
-  ?musicbrainz
-  ?goodreads
-  ?isni
-  ?imdb
-  ?lc_naf
-  ?librarything
-  ?librivox
-  ?project_gutenberg
-  ?opac_sbn
-  ?amazon
-  ?storygraph
-  ?youtube
+  ?birthDate
+  ?deathDate
 WHERE {
   VALUES ?contributor {'''
             + ''.join([f"wd:{id}\n    " for id in batch])
             + '''}
-  OPTIONAL { ?contributor wdt:P648 ?olId. }
-  OPTIONAL { ?contributor wdt:P214 ?viaf. }
-  OPTIONAL { ?contributor wdt:P2607 ?bookbrainz. }
-  OPTIONAL { ?contributor wdt:P434 ?musicbrainz. }
-  OPTIONAL { ?contributor wdt:P2963 ?goodreads. }
-  OPTIONAL { ?contributor wdt:P213 ?isni. }
-  OPTIONAL { ?contributor wdt:P345 ?imdb. }
-  OPTIONAL { ?contributor wdt:P244 ?lc_naf. }
-  OPTIONAL { ?contributor wdt:P7400 ?librarything. }
-  OPTIONAL { ?contributor wdt:P1899 ?librivox. }
-  OPTIONAL { ?contributor wdt:P1938 ?project_gutenberg. }
-  OPTIONAL { ?contributor wdt:P396 ?opac_sbn. }
-  OPTIONAL { ?contributor wdt:P4862 ?amazon. }
-  OPTIONAL { ?contributor wdt:P12430 ?storygraph. }
-  OPTIONAL { ?contributor wdt:P2397 ?youtube. }
+  OPTIONAL { ?contributor wdt:P569 ?birthDate. }
+  OPTIONAL { ?contributor wdt:P570 ?deathDate. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
             + cfg.langcode
             + '''". }
@@ -812,43 +765,23 @@ WHERE {
 
         for obj in results:
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
-            contributor = Author(identifiers={"wikidata": contributor_id})
 
+            # Don't include author if their name is incomplete, for whatever reason
             if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
-                contributor.friendly_name = format_contributor(
+                contributor = Author(friendly_name=format_contributor(
                     obj["contributorLabel"]["value"]
-                )
+                ))
 
-            if "olId" in obj and "value" in obj["olId"]:
-                contributor.key = "/authors/" + obj["olId"]["value"]
+                if "birthDate" in obj and "value" in obj["birthDate"]:
+                    contributor.birth_date = obj["birthDate"]["value"]
 
-            # Couldn't find inventaire
-            for id in [
-                "viaf",
-                "bookbrainz",
-                "musicbrainz",
-                "goodreads",
-                "isni",
-                "imdb",
-                "lc_naf",
-                "librarything",
-                "librivox",
-                "project_gutenberg",
-                "opac_sbn",
-                "amazon",
-                "storygraph",
-                "youtube",
-            ]:
-                if id in obj and "value" in obj[id]:
-                    val = obj[id]["value"]
-                    if id == "youtube" and val[0] != "@":
-                        val = f'@{val}'
-                    contributor.identifiers[id] = obj[id]["value"]
+                if "deathDate" in obj and "value" in obj["deathDate"]:
+                    contributor.death_date = obj["deathDate"]["value"]
 
-            if contributor_id in map:
-                book_ids = map[contributor_id]
-                for book_id in book_ids:
-                    imports[book_id].add_authors([contributor])
+                if contributor_id in map:
+                    book_ids = map[contributor_id]
+                    for book_id in book_ids:
+                        imports[book_id].add_authors([contributor])
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
