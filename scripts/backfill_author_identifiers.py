@@ -28,9 +28,8 @@ def main(ol_config: str):
     # TODO: raise an actual exception here
     password = ''
     try:
-        password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
-        if password.endswith('\n'):
-            password = password[:-1]
+        with pwfile as open(os.path.expanduser('~/.openlibrary_db_password')):
+            password = pwfile.read().strip('\n')
     except:
         pass
 
