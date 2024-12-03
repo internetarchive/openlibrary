@@ -156,4 +156,3 @@ class import_edition_builder:
             add_func(new_key, val)
         else:
             self.add_string(key, val)
-
