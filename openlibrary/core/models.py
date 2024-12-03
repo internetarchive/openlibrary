@@ -4,6 +4,7 @@
 import json
 import requests
 import re
+import web
 from typing import Any, TypedDict
 import logging
 from collections import defaultdict
@@ -12,8 +13,6 @@ from datetime import datetime, timedelta
 from typing import Any, TypedDict
 from urllib.parse import urlencode
 
-import requests
-import web
 
 from infogami.infobase import client
 
