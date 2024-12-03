@@ -176,24 +176,19 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         highest_matches = 0
         selected_match = None
         for a in matched_authors:
-            try:
-                # merge_remote_ids will be in #10092
-                _, matches = a.merge_remote_ids(identifiers)
-                if matches > highest_matches:
-                    selected_match = a
-                    highest_matches = matches
-                elif matches == highest_matches and matches > 0:
-                    # Prioritize the lower OL ID when matched identifiers are equal
-                    selected_match = (
-                        a
-                        if extract_numeric_id_from_olid(a.key)
-                        < extract_numeric_id_from_olid(selected_match.key)
-                        else selected_match
-                    )
-            except:
-                # Reject if too many conflicts
-                # TODO: raise a flag to librarians here?
-                pass
+            # merge_remote_ids will be in #10092
+            _, matches = a.merge_remote_ids(identifiers)
+            if matches > highest_matches:
+                selected_match = a
+                highest_matches = matches
+            elif matches == highest_matches and matches > 0:
+                # Prioritize the lower OL ID when matched identifiers are equal
+                selected_match = (
+                    a
+                    if extract_numeric_id_from_olid(a.key)
+                    < extract_numeric_id_from_olid(selected_match.key)
+                    else selected_match
+                )
         if highest_matches > 0 and selected_match is not None:
             return [selected_match]
     # Fall back to name/date matching, which we did before introducing identifiers.
