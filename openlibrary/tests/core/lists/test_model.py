@@ -1,5 +1,5 @@
-from openlibrary.mocks.mock_infobase import MockSite
 import openlibrary.core.lists.model as list_model
+from openlibrary.mocks.mock_infobase import MockSite
 
 
 class TestList:

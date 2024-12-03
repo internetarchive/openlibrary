@@ -15,11 +15,12 @@ USAGE:
 
     $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
 """
-import sys
 import os
+import sys
+
+import web
 import yaml
 from gunicorn.app.base import Application
-import web
 
 
 def setup_env():
@@ -55,7 +56,7 @@ def start_server():
 def load_infogami(config_file):
     import infogami
     from infogami import config
-    from infogami.utils import delegate
+    from infogami.utils import delegate  # noqa: F401 side effects may be needed
 
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"

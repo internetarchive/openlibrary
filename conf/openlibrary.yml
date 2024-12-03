@@ -56,6 +56,7 @@ http_request_timeout: 10
 
 features:
     cache_most_recent: enabled
+    debug: enabled
     dev: enabled
     history_v2: admin
     inlibrary: enabled
@@ -170,12 +171,6 @@ ia_xauth_api_url: http://web:8080/internal/fake/xauth
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
-
-ia_civicrm_api:
-    url: http://web:8080/internal/fake/civicrm
-    api_key: XXX
-    site_key: XXX
-    auth: XXX
 
 sentry:
     enabled: false

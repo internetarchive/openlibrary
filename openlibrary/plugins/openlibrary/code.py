@@ -2,17 +2,19 @@
 Open Library Plugin.
 """
 
-from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
+import datetime
+import json
+import logging
+import math
+import os
+import random
+import socket
+from time import time
+from urllib.parse import parse_qs, urlencode
+
 import requests
 import web
-import json
-import os
-import socket
-import random
-import datetime
-import logging
-from time import time
-import math
+
 import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
@@ -24,35 +26,37 @@ from openlibrary.i18n import gettext as _
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import openlibrary.core.stats
+from infogami.core.db import ValidationException
+from infogami.infobase import client
+from infogami.utils import delegate, features
 from infogami.utils.app import metapage
-from infogami.utils import delegate
-from openlibrary.utils import dateutil
 from infogami.utils.view import (
+    add_flash_message,
+    public,
     render,
     render_template,
-    public,
     safeint,
-    add_flash_message,
 )
-from infogami.infobase import client
-from infogami.core.db import ValidationException
-
 from openlibrary.core import cache
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
-from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_availability
 from openlibrary.core.fulltext import fulltext_search
-import openlibrary.core.stats
+from openlibrary.core.lending import get_availability
+from openlibrary.core.models import Edition
+from openlibrary.core.vendors import (
+    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
+)
+from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.worksearch.code import do_search
+from openlibrary.utils import dateutil
+from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.RequireLogoutProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -87,7 +91,7 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists, bulk_tag
+from openlibrary.plugins.openlibrary import bulk_tag, lists
 
 lists.setup()
 bulk_tag.setup()
@@ -298,7 +302,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit
+        from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -716,8 +720,8 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
 
             # Perform import, if possible
-            from openlibrary.plugins.importapi.code import ia_importapi, BookImportError
             from openlibrary import accounts
+            from openlibrary.plugins.importapi.code import BookImportError, ia_importapi
 
             with accounts.RunAs('ImportBot'):
                 try:
@@ -1035,9 +1039,9 @@ def changequery(query=None, _path=None, **kw):
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
 
-from infogami.core.db import get_recent_changes as _get_recentchanges
-
 import urllib
+
+from infogami.core.db import get_recent_changes as _get_recentchanges
 
 
 @public
@@ -1124,7 +1128,6 @@ def save_error():
 
 
 def internalerror():
-    i = web.input(_method='GET', debug='false')
     name = save_error()
 
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
@@ -1138,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if i.debug.lower() == 'true':
+    if features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(render.internalerror(name))
@@ -1381,17 +1384,43 @@ def setup_context_defaults():
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
+def setup_requests():
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if infogami.config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if infogami.config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(infogami.config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
+
+
 def setup():
     from openlibrary.plugins.openlibrary import (
-        sentry,
-        home,
-        borrow_home,
-        stats,
-        support,
-        events,
-        design,
-        status,
         authors,
+        borrow_home,
+        design,
+        events,
+        home,
+        sentry,
+        stats,
+        status,
+        support,
         swagger,
     )
 
@@ -1406,7 +1435,9 @@ def setup():
     authors.setup()
     swagger.setup()
 
-    from openlibrary.plugins.openlibrary import api
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 side effects may be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
@@ -1417,6 +1448,7 @@ def setup():
 
     setup_context_defaults()
     setup_template_globals()
+    setup_requests()
 
 
 setup()

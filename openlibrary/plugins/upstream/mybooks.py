@@ -1,31 +1,29 @@
 import json
+from typing import TYPE_CHECKING, Final, Literal, cast
+
 import web
 from web.template import TemplateResult
 
-from typing import Final, Literal, cast, TYPE_CHECKING
-
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, safeint, render
-
-from openlibrary.i18n import gettext as _
-
+from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.dateutil import current_year
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+)
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
     get_loans_of_user,
 )
+from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.core.models import LoggedBooksData
-from openlibrary.core.models import User
-from openlibrary.core.follows import PubSub
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.i18n import gettext as _
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
     from openlibrary.core.lists.model import List
@@ -66,9 +64,10 @@ class mybooks_home(delegate.page):
             loans = web.Storage({"docs": [], "total_results": len(loans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
-                book = web.ctx.site.get(loan['book'])
-                book.loan = loan
-                loans.docs.append(book)
+                # Book will be None if no OL edition exists for the book
+                if book := web.ctx.site.get(loan['book']):
+                    book.loan = loan
+                    loans.docs.append(book)
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
@@ -153,47 +152,6 @@ class mybooks_feed(delegate.page):
                 user=mb.me,
             )
             return mb.render(header_title=_("My Feed"), template=template)
-        raise web.seeother(mb.user.key)
-
-
-class mybooks_sponsorships(delegate.page):
-    path = "/people/([^/]+)/books/sponsorships"
-
-    def GET(self, username, key="sponsorships"):
-        i = web.input(
-            page=1,
-            sort='desc',
-            q="",
-            checkin_year=None,
-            results_per_page=RESULTS_PER_PAGE,
-        )
-        mb = MyBooksTemplate(username, key)
-        if mb.sponsorships:
-            docs = (
-                add_availability(
-                    web.ctx.site.get_many(
-                        [
-                            '/books/%s' % doc['openlibrary_edition']
-                            for doc in mb.sponsorships
-                        ]
-                    )
-                )
-                if mb.sponsorships
-                else None
-            )
-            template = render['account/reading_log'](
-                docs,
-                mb.key,
-                len(docs),
-                mb.counts['sponsorships'],
-                mb.is_my_page,
-                i.page,
-                sort_order=i.sort,
-                user=mb.me,
-                q=i.q,
-                results_per_page=i.results_per_page,
-            )
-            return mb.render(header_title=_("Sponsorships"), template=template)
         raise web.seeother(mb.user.key)
 
 
@@ -424,7 +382,6 @@ class MyBooksTemplate:
         "loans",
         "feed",
         "waitlist",
-        "sponsorships",
         "notes",
         "observations",
         "imports",
@@ -449,7 +406,6 @@ class MyBooksTemplate:
             else -1
         )
         self.key = key.lower()
-        self.sponsorships = []
 
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
@@ -468,8 +424,6 @@ class MyBooksTemplate:
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
-            self.sponsorships = get_sponsored_editions(self.user)
-            self.counts['sponsorships'] = len(self.sponsorships)
 
         self.component_times: dict = {}
 
@@ -516,17 +470,12 @@ class ReadingLog:
         return self.user.get_lists()
 
     @property
-    def sponsorship_counts(self):
-        return {'sponsorships': len(get_sponsored_editions(self.user))}
-
-    @property
     def booknotes_counts(self):
         return PatronBooknotes.get_counts(self.user.get_username())
 
     @property
     def get_sidebar_counts(self):
         counts = self.reading_log_counts
-        counts.update(self.sponsorship_counts)
         counts.update(self.booknotes_counts)
         return counts
 

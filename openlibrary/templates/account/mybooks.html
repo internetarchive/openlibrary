@@ -200,18 +200,6 @@ $def empty_mobile_carousel(data):
             </a>
           </div>
         </li>
-        $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-          <li>
-            <div class="carousel-section-header">
-              <a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')>
-                $_("Sponsorships")
-                $ sponsorship_count = ''
-                $if counts.get('sponsorships', None):
-                  $ sponsorship_count = "(%d)" % counts['sponsorships']
-                $sponsorship_count
-              </a>
-            </div>
-          </li>
       </ul>
   </div>
   <p></p>

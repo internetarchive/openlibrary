@@ -1,6 +1,6 @@
 import re
-from pymarc.record import Record
 
+from pymarc.record import Record
 
 trans = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '\n': '<br>', '\x1b': '<b>[esc]</b>'}
 re_html_replace = re.compile('([&<>\n\x1b])')

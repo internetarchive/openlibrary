@@ -25,19 +25,23 @@ A record is loaded by calling the load function.
 
 import itertools
 import re
-from typing import TYPE_CHECKING, Any, Final
-
-import web
-
 from collections import defaultdict
 from copy import copy
 from time import sleep
+from typing import TYPE_CHECKING, Any, Final
 
 import requests
+import web
 
 from infogami import config
-
 from openlibrary import accounts
+from openlibrary.catalog.add_book.load_book import (
+    InvalidLanguage,
+    build_query,
+    east_in_by_statement,
+    import_author,
+)
+from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
     get_non_isbn_asin,
@@ -49,18 +53,10 @@ from openlibrary.catalog.utils import (
     published_in_future_year,
 )
 from openlibrary.core import lending
-from openlibrary.plugins.upstream.utils import strip_accents, safeget
-from openlibrary.utils import uniq, dicthash
+from openlibrary.plugins.upstream.utils import safeget, strip_accents
+from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
-
-from openlibrary.catalog.add_book.load_book import (
-    build_query,
-    east_in_by_statement,
-    import_author,
-    InvalidLanguage,
-)
-from openlibrary.catalog.add_book.match import editions_match, mk_norm
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition

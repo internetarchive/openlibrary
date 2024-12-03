@@ -1,17 +1,18 @@
-from dataclasses import dataclass
-import itertools
-import time
 import copy
+import itertools
 import json
 import logging
 import re
-from typing import Any, cast
+import time
+import urllib
 from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any, cast
 from unicodedata import normalize
+
 import requests
 import web
 from requests import Response
-import urllib
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -25,19 +26,18 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
-from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
     has_solr_editions_enabled,
 )
-from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.isbn import normalize_isbn
-
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -887,10 +887,10 @@ class search_json(delegate.page):
 def setup():
     from openlibrary.plugins.worksearch import (
         autocomplete,
-        subjects,
+        bulk_search,
         languages,
         publishers,
-        bulk_search,
+        subjects,
     )
 
     bulk_search.setup()

@@ -4,7 +4,6 @@ import socket
 import sys
 import time
 import urllib.request
-from collections.abc import Callable, Generator
 from pathlib import Path
 
 import pytest

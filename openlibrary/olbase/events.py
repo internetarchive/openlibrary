@@ -9,8 +9,10 @@ List of events:
 """
 
 import logging
-import web
+
 import eventer
+import web
+
 from infogami.infobase import config, server
 from openlibrary.utils import olmemcache
 

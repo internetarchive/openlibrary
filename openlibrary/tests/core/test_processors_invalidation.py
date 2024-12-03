@@ -1,5 +1,6 @@
-import web
 import datetime
+
+import web
 
 from infogami.infobase import client
 from openlibrary.core.processors import invalidation

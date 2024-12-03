@@ -1,18 +1,16 @@
 """Open Library extension to provide a new kind of client connection with caching support.
 """
 
-from infogami import config
-from infogami.infobase import client, lru
-from infogami.utils import stats
-
-import web
-import json
 import datetime
-
-from openlibrary.core import ia
-
+import json
 import logging
 
+import web
+
+from infogami import config
+from infogami.infobase import client
+from infogami.utils import stats
+from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary")
 

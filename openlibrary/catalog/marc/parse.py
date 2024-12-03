@@ -1,15 +1,15 @@
 import logging
 import re
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import (
-    MarcBase,
-    MarcFieldBase,
     BadMARC,
-    NoTitle,
+    MarcBase,
     MarcException,
+    MarcFieldBase,
+    NoTitle,
 )
 from openlibrary.catalog.utils import (
     pick_first_date,

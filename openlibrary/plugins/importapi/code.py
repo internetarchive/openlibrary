@@ -1,47 +1,42 @@
 """Open Library Import API
 """
 
+import base64
+import json
+import logging
+import re
+import urllib
 from typing import Any
-from infogami.plugins.api.code import add_hook
-from infogami.infobase.client import ClientException
 
-from openlibrary.catalog.utils import get_non_isbn_asin
-from openlibrary.plugins.openlibrary.code import can_write
+import lxml.etree
+import web
+from lxml import etree
+from pydantic import ValidationError
+
+from infogami.infobase.client import ClientException
+from infogami.plugins.api.code import add_hook
+from openlibrary import accounts, records
+from openlibrary.catalog import add_book
+from openlibrary.catalog.get_ia import get_from_archive_bulk, get_marc_record_from_ia
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog import add_book
-from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts, records
+from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.core import ia
-from openlibrary.plugins.upstream.utils import (
-    LanguageNoMatchError,
-    get_abbrev_from_full_lang_name,
-    LanguageMultipleMatchError,
-    get_location_and_publisher,
-    safeget,
-)
-from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
-
-import web
-
-import base64
-import json
-import re
-
-from pydantic import ValidationError
-
 from openlibrary.plugins.importapi import (
     import_edition_builder,
     import_opds,
     import_rdf,
 )
-from lxml import etree
-import logging
-
-import urllib
-import lxml.etree
-
+from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.upstream.utils import (
+    LanguageMultipleMatchError,
+    LanguageNoMatchError,
+    get_abbrev_from_full_lang_name,
+    get_location_and_publisher,
+    safeget,
+)
+from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')

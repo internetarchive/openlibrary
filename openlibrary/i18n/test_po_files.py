@@ -1,8 +1,8 @@
 import os
+import xml.etree.ElementTree as ET
 
 import pytest
 from babel.messages.pofile import read_po
-import xml.etree.ElementTree as ET
 
 from openlibrary.i18n import get_locales
 

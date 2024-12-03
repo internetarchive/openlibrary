@@ -18,8 +18,8 @@ import re
 import struct
 import sys
 import time
-from typing import Final
 import urllib.request
+from typing import Final
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
 if not SEED_PATH:

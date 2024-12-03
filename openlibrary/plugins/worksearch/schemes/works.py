@@ -1,13 +1,14 @@
-from copy import deepcopy
-from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, cast
 from collections.abc import Callable
+from copy import deepcopy
+from datetime import datetime
+from typing import Any, cast
 
 import luqum.tree
 import web
+
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -18,8 +19,8 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_remove_field,
     luqum_replace_child,
-    luqum_traverse,
     luqum_replace_field,
+    luqum_traverse,
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
