@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from openlibrary.core import db
 from openlibrary.core.helpers import days_since
+from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("core.wikidata")
 
@@ -140,7 +141,8 @@ class WikidataEntity:
         """
         res = self._get_statement_values("P648")
         if len(res) > 0:
-            return res[0]
+            return min(res, key=extract_numeric_id_from_olid)
+
         return None
 
     def _get_wiki_profiles(self, language: str) -> list[dict]:
@@ -227,11 +229,12 @@ class WikidataEntity:
         }
 
         # Verify that the author's IDs are not significantly different.
-        output, _ = author.merge_remote_ids(wd_remote_ids)
+        output, matches = author.merge_remote_ids(wd_remote_ids)
 
-        # save
-        author.remote_ids = output
-        web.ctx.site.save(query={**author, "key": key, "type": {"key": "/type/author"}})
+        # save if there are new identifiers to save
+        if matches >= 0:
+            author.remote_ids = output
+            web.ctx.site.save(query={**author, "key": key, "type": {"key": "/type/author"}})
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:

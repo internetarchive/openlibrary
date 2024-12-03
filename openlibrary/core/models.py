@@ -814,7 +814,7 @@ class Author(Thing):
     ) -> tuple[dict[str, str], int]:
         output = {**self.remote_ids}
         if len(incoming_ids.items()) == 0:
-            return output, 0
+            return output, -1
         matches = 0
         conflicts = 0
         for identifier in REMOTE_IDS:
@@ -825,7 +825,9 @@ class Author(Thing):
                     output[identifier] = incoming_ids[identifier]
                     matches = matches + 1
         if conflicts > matches:
-            raise Exception("wikidata json conflicts with existing remote ids")
+            # This means that the identifiers we already have for this author have too many conflicts with whichever identifiers we're trying to merge into it.
+            # TODO: Raise this to librarians, somehow.
+            return self.remote_ids, -1
         return output, matches
 
 
