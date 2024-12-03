@@ -177,6 +177,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         selected_match = None
         for a in matched_authors:
             try:
+                # merge_remote_ids will be in #10092
                 _, matches = a.merge_remote_ids(identifiers)
                 if matches > highest_matches:
                     selected_match = a
@@ -246,6 +247,7 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     things = find_author(author)
     if "identifiers" in author:
         for index, t in enumerate(things):
+            # merge_remote_ids will be in #10092
             t.remote_ids, _ = t.merge_remote_ids(author["identifiers"])
             things[index] = t
     return things[0] if things else None
