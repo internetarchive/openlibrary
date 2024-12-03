@@ -221,11 +221,11 @@ class WikidataEntity:
         authors = [web.ctx.site.get(k) for k in reply]
         if len(authors) != 1:
             # There should never, ever be len(authors) > 1, because that would imply two OL author entities have the same OL ID.
-            return output
+            return
         author = authors[0]
         if author.wikidata() is not None and author.wikidata().id != self.id:
             # TODO: Flag this to librarians. This means the OL entity identified by the Wikidata JSON has a different Wikidata ID than the JSON expects.
-            return output
+            return
         wd_remote_ids = {
             key: value[0] for key, value in self.get_remote_ids().items() if value != []
         }
