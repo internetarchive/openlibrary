@@ -185,7 +185,8 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
                     # Prioritize the lower OL ID when matched identifiers are equal
                     selected_match = (
                         a
-                        if extract_numeric_id_from_olid(a.key) < extract_numeric_id_from_olid(selected_match.key)
+                        if extract_numeric_id_from_olid(a.key)
+                        < extract_numeric_id_from_olid(selected_match.key)
                         else selected_match
                     )
             except:
