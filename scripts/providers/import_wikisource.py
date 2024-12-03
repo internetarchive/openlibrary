@@ -202,6 +202,7 @@ ws_languages = [
             "Early modern speeches",
             "Sermons",
             "PD-EdictGov",
+            "Film"
         ],
     )
 ]
