@@ -4,7 +4,7 @@ import web
 
 from openlibrary.catalog.utils import author_dates_match, flip_name, key_int
 from openlibrary.core.helpers import extract_year
-from openlibrary.utils import uniq
+from openlibrary.utils import uniq, extract_numeric_id_from_olid
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -185,7 +185,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
                     # Prioritize the lower OL ID when matched identifiers are equal
                     selected_match = (
                         a
-                        if a.get_key_numeric() < selected_match.get_key_numeric()
+                        if extract_numeric_id_from_olid(a.key) < extract_numeric_id_from_olid(selected_match.key)
                         else selected_match
                     )
             except:
@@ -197,7 +197,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     # Fall back to name/date matching, which we did before introducing identifiers.
     name = author["name"].replace("*", r"\*")
     queries = [
-        {"type": "/type/author", "name~": name},
         {"type": "/type/author", "name~": name},
         {"type": "/type/author", "alternate_names~": name},
         {
@@ -211,6 +210,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
             things = get_redirected_authors([web.ctx.site.get(k) for k in reply])
+            break
     match = []
     seen = set()
     for a in things:

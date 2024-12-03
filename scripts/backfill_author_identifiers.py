@@ -25,6 +25,7 @@ def main(ol_config: str):
     load_config(ol_config)
     infogami._setup()
 
+    # TODO: raise an actual exception here
     password = ''
     try:
         password = open(os.path.expanduser('~/.openlibrary_db_password')).read()

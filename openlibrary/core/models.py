@@ -220,10 +220,6 @@ class Thing(client.Thing):
             "l": self._get_lists_cached(),
         }
 
-    def get_key_numeric(self):
-        """Returns just the numeric part of the key."""
-        return int(re.search(r'\d+', self.key))
-
 
 class ThingReferenceDict(TypedDict):
     key: ThingKey

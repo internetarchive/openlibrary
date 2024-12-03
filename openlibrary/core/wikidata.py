@@ -308,7 +308,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
             entity.consolidate_remote_author_ids()
         except:
             # don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
-            # TODO: raise a flag to librarians here?
+            # TODO: replace "pass" with some way to flag to librarians why this try-catch failed. will normally be caused by conflicting IDs
             pass
 
     if _get_from_cache(entity.id):
