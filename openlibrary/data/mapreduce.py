@@ -13,12 +13,12 @@ This works as follows:
 * The reduced key, value pairs are returned as an iterator.
 """
 
-import sys
+import gzip
 import itertools
+import logging
 import os
 import subprocess
-import logging
-import gzip
+import sys
 
 logger = logging.getLogger("mapreduce")
 

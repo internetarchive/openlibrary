@@ -9,7 +9,6 @@ from time import perf_counter
 
 from infogami.utils.view import public
 
-
 MINUTE_SECS = 60
 HALF_HOUR_SECS = MINUTE_SECS * 30
 HOUR_SECS = MINUTE_SECS * 60

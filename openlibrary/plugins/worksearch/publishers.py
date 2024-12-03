@@ -1,13 +1,14 @@
 """Publisher pages
 """
 
-from infogami.utils import delegate
-from infogami.utils.view import render_template
-import web
 import logging
 
-from . import subjects
-from . import search
+import web
+
+from infogami.utils import delegate
+from infogami.utils.view import render_template
+
+from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 

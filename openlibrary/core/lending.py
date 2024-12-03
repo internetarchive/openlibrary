@@ -1,29 +1,26 @@
 """Module for providing core functionality of lending on Open Library.
 """
 
-from typing import TYPE_CHECKING, Literal, TypedDict, cast
-
-import web
 import datetime
 import logging
 import time
 import uuid
+from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
 import requests
-
+import web
 from simplejson.errors import JSONDecodeError
 
-from infogami.utils.view import public
 from infogami.utils import delegate
-from openlibrary.core import cache
+from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 
-from . import ia
 from . import helpers as h
-
+from . import ia
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition

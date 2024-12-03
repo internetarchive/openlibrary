@@ -10,11 +10,11 @@ To Run:
 PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
 """
 
-from collections.abc import Mapping
 import datetime
 import logging
 import os
 import re
+from collections.abc import Mapping
 from typing import cast
 
 import requests

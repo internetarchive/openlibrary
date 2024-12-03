@@ -434,69 +434,20 @@ $ })
                 <label for="select-id">$_("Do you know any identifiers for this edition?")</label>
                 <span class="tip">$_("Like, ISBN?")</span>
             </div>
-            <div class="input">
-                <table class="identifiers">
-                    <tr id="identifiers-form">
-                        <td align="right">
-                            <select name="name" id="select-id">
-                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
-                            $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
-                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
-                            $if is_privileged_user:
-                                $ exclude = []
-                            $else:
-                                $ exclude = ["ocaid"]
+            <div id="hiddenIdentifiers"></div>
+            <div class="identifiers-display">
+                $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
+                $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
+                $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
+                $if is_privileged_user:
+                    $ exclude = []
+                $else:
+                    $ exclude = ["ocaid"]
 
-                            $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
-                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
+                $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
+                $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
 
-                            <option value="">$_('Select one of many...')</option>
-                            $for id in set1:
-                                <option value="$id.name">$id.label</option>
-                            <optgroup label="----------"></optgroup>
-                            $for id in set2:
-                                <option value="$id.name">$id.label</option>
-
-                            <!-- <option>---</option> -->
-                            <!-- <option value="__add__">Add a new ID type</option> -->
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" name="value" id="id-value"/>
-                        </td>
-                        <td>
-                            <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
-                        </td>
-                    </tr>
-                    <tbody id="identifiers-display">
-                        <tr id="identifiers-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-id").find("option[value='" + name + "']").html()}}</strong></td>
-                            <td>{{value}}
-                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
-                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
-                            </td>
-                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
-                        </tr>
-                        <tr>
-                            <td align="right">$_("Open Library")</td>
-                            <td>$book.key.split("/")[-1]</td>
-                            <td></td>
-                        </tr>
-                        $for i, id in enumerate(book.get_identifiers().values()):
-                        <tr id="identifiers--$i" class="repeat-item">
-                            <td align="right"><strong>$id_labels.get(id.name, id.name)</strong></td>
-                            <td>$id.value
-                                <input type="hidden" name="edition--identifiers--${i}--name" value="$id.name"/>
-                                <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value" class="$id.name"/>
-                            </td>
-                            $# Disable removing ocaid for regular users.
-                            $if id.name == "ocaid" and not is_privileged_user:
-                                <td></td>
-                            $else:
-                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+                $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenIdentifiers', multiple='true', admin=str(is_privileged_user), edition_popular=set1,secondary_identifiers=set2))
             </div>
         </div>
     </div>

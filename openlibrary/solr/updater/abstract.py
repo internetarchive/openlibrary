@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from typing import cast
+
 import openlibrary.book_providers as bp
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.solr_types import SolrDocument

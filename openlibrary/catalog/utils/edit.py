@@ -1,9 +1,11 @@
 import re
+from time import sleep
+
 import requests
 import web
-from openlibrary.catalog.utils.query import get_mc
+
 from openlibrary.api import unmarshal
-from time import sleep
+from openlibrary.catalog.utils.query import get_mc
 
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile(r'\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')

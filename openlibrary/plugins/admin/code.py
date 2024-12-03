@@ -1,40 +1,37 @@
 """Plugin to provide admin interface.
 """
 
-import os
-from collections.abc import Iterable
-import requests
-import sys
-import web
-import subprocess
 import datetime
-import traceback
-import logging
 import json
+import logging
+import os
+import subprocess
+import sys
+import traceback
+from collections.abc import Iterable
 
+import requests
+import web
 from internetarchive.exceptions import ItemLocateError
 
-from infogami import config
-from infogami.utils import delegate
-from infogami.utils.view import render, public
-from infogami.utils.context import context
-from infogami.utils.view import add_flash_message
-from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
-
-from openlibrary.catalog.add_book import (
-    update_ia_metadata_for_ol_edition,
-    create_ol_subjects_for_ocaid,
-)
-
 import openlibrary
-
+from infogami import config
+from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
+from infogami.utils import delegate
+from infogami.utils.context import context
+from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
-from openlibrary.accounts.model import Account, clear_cookies
-from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
+from openlibrary.catalog.add_book import (
+    create_ol_subjects_for_ocaid,
+    update_ia_metadata_for_ol_edition,
+)
 from openlibrary.core import (
     admin as admin_stats,
-    imports,
+)
+from openlibrary.core import (
     cache,
+    imports,
 )
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck

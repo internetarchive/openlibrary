@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import json
-import requests
 import time
+from collections.abc import Generator
 from itertools import islice
 from typing import Any
-from collections.abc import Generator
+
+import requests
+
+from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-from openlibrary.config import load_config
 
 FEED_URL = 'https://open.umn.edu/opentextbooks/textbooks.json?'
 

@@ -1,7 +1,9 @@
-import pytest
-from unittest.mock import patch
-from openlibrary.core import wikidata
 from datetime import datetime, timedelta
+from unittest.mock import patch
+
+import pytest
+
+from openlibrary.core import wikidata
 
 EXAMPLE_WIKIDATA_DICT = {
     'id': "Q42",

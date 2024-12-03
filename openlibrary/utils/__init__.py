@@ -1,10 +1,10 @@
 """Generic utilities"""
 
-from enum import Enum
 import re
+from collections.abc import Callable, Iterable
+from enum import Enum
 from subprocess import CalledProcessError, run
-from typing import TypeVar, Literal
-from collections.abc import Iterable, Callable
+from typing import Literal, TypeVar
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 

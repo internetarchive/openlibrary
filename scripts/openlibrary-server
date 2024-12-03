@@ -15,11 +15,12 @@ USAGE:
 
     $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
 """
-import sys
 import os
+import sys
+
+import web
 import yaml
 from gunicorn.app.base import Application
-import web
 
 
 def setup_env():

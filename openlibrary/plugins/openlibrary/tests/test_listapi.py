@@ -1,9 +1,8 @@
 # from py.test import config
 import json
+import urllib
 
 import cookielib
-
-import urllib
 
 
 def pytest_funcarg__config(request):

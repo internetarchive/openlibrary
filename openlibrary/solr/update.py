@@ -1,18 +1,17 @@
 import functools
+import json
 import logging
 from pathlib import Path
 from typing import Literal, cast
 
 import aiofiles
-
-import json
 import web
 
 from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
-    get_data_provider,
     DataProvider,
     ExternalDataProvider,
+    get_data_provider,
 )
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater

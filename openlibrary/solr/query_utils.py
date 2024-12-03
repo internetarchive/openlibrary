@@ -1,8 +1,9 @@
-from typing import Literal
-from collections.abc import Callable
-from luqum.parser import parser
-from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary
 import re
+from collections.abc import Callable
+from typing import Literal
+
+from luqum.parser import parser
+from luqum.tree import BaseOperation, Group, Item, SearchField, Unary, Word
 
 
 class EmptyTreeError(Exception):
