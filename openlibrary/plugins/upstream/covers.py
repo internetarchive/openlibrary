@@ -1,20 +1,21 @@
 """Handle book cover/author photo upload.
 """
 
+import os
 from logging import getLogger
 
-import os
 import requests
 import web
-from PIL import Image as PILImage, UnidentifiedImageError
+from PIL import Image as PILImage
+from PIL import UnidentifiedImageError
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
-    get_coverstore_url,
     get_coverstore_public_url,
+    get_coverstore_url,
     render_template,
 )
 

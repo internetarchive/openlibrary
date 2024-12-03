@@ -1,15 +1,15 @@
-from dataclasses import dataclass
 import datetime
 import functools
-from pathlib import Path
 import re
 import socket
 import sys
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import public, render_template
 from openlibrary.core import stats
 from openlibrary.utils import get_software_version
 

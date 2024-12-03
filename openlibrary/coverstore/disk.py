@@ -1,5 +1,5 @@
-import random
 import os
+import random
 import string
 
 chars = string.ascii_letters + string.digits

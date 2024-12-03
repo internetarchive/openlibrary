@@ -1,5 +1,7 @@
 from unittest.mock import Mock
+
 import pytest
+
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 

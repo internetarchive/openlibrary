@@ -2,7 +2,6 @@ import os
 
 from openlibrary.solr.types_generator import generate
 
-
 root = os.path.dirname(__file__)
 
 

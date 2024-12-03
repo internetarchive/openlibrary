@@ -1,34 +1,34 @@
 """Lists implementation.
 """
 
-from dataclasses import dataclass, field
 import json
-from urllib.parse import parse_qs
 import random
+from dataclasses import dataclass, field
 from typing import Literal, cast
+from urllib.parse import parse_qs
+
 import web
 
-from infogami.utils import delegate
-from infogami.utils.view import render_template, public, require_login
+import openlibrary.core.helpers as h
 from infogami.infobase import client, common
-
+from infogami.utils import delegate
+from infogami.utils.view import public, render_template, require_login
 from openlibrary.accounts import get_current_user
-from openlibrary.core import formats, cache
-from openlibrary.core.models import ThingKey
+from openlibrary.core import cache, formats
 from openlibrary.core.lists.model import (
     AnnotatedSeedDict,
     List,
-    ThingReferenceDict,
     SeedSubjectString,
+    ThingReferenceDict,
 )
-import openlibrary.core.helpers as h
+from openlibrary.core.models import ThingKey
+from openlibrary.coverstore.code import render_list_preview_image
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.addbook import safe_seeother
-from openlibrary.utils import olid_to_key
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
+from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
-from openlibrary.coverstore.code import render_list_preview_image
+from openlibrary.utils import olid_to_key
 
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:

@@ -27,9 +27,8 @@ logger = logging.getLogger("infobase.ol")
 
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore
+    from infogami.infobase import common, dbstore, server
     from infogami.infobase import logger as infobase_logger
-    from infogami.infobase import server
 
     dbstore.default_schema = schema.get_schema()
 

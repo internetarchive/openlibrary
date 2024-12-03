@@ -24,9 +24,7 @@ $ sort = query_param('sort', None)
         $:render_template("search/searchbox", q=q)
     </form>
   </div>
-</div>
 
-<div id="contentMeta">
     $ results = get_results(q, offset=offset, limit=results_per_page, sort=sort)
 
     $if q and results.error:

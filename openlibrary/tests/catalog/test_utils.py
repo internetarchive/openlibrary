@@ -1,6 +1,7 @@
+from datetime import datetime, timedelta
+
 import pytest
 
-from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,

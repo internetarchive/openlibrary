@@ -1,58 +1,55 @@
-import functools
-import os
-from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Generator, Iterable, Iterator
-import unicodedata
-
-import web
-import json
-import babel
-import babel.core
-import babel.dates
-from babel.lists import format_list
-from collections import defaultdict
-import re
-import xml.etree.ElementTree as ET
 import datetime
+import functools
+import json
 import logging
-from html.parser import HTMLParser
-import yaml
-
-import requests
-
-from html import unescape
+import os
+import re
+import unicodedata
 import urllib
-from collections.abc import MutableMapping
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
+from html import unescape
+from html.parser import HTMLParser
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
-    urlencode as parse_urlencode,
     urlparse,
     urlunparse,
 )
+from urllib.parse import (
+    urlencode as parse_urlencode,
+)
+
+import babel
+import babel.core
+import babel.dates
+import requests
+import web
+import yaml
+from babel.lists import format_list
+from web.template import TemplateResult
+from web.utils import Storage
 
 from infogami import config
-from infogami.utils import view, delegate, stats
+from infogami.infobase.client import Changeset, Nothing, Thing, storify
+from infogami.utils import delegate, stats, view
+from infogami.utils.context import InfogamiContext, context
+from infogami.utils.macro import macro
 from infogami.utils.view import (
-    render,
     get_template,
     public,
+    render,
 )
-from infogami.utils.macro import macro
-from infogami.utils.context import InfogamiContext, context
-from infogami.infobase.client import Changeset, Nothing, Thing, storify
-
+from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
-
-from web.utils import Storage
-from web.template import TemplateResult
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
-        Work,
         Author,
         Edition,
+        Work,
     )
 
 
@@ -1254,10 +1251,11 @@ def websafe(text: str) -> str:
         return _websafe(text)
 
 
-from openlibrary.plugins.upstream import adapter
-from openlibrary.utils.olcompress import OLCompressor
-from openlibrary.utils import olmemcache
 import memcache
+
+from openlibrary.plugins.upstream import adapter
+from openlibrary.utils import olmemcache
+from openlibrary.utils.olcompress import OLCompressor
 
 
 class UpstreamMemcacheClient:
@@ -1432,33 +1430,6 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
-
-
-@public
-def get_donation_include() -> str:
-    ia_host = get_ia_host(allow_dev=True)
-    # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services
-    if ia_host != "archive.org":
-        script_src = f"https://{ia_host}/includes/donate.js"
-    else:
-        script_src = "/cdn/archive.org/donate.js"
-
-    if 'ymd' in (web_input := web.input()):
-        # Should be eg 20220101 (YYYYMMDD)
-        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
-            script_src += '?' + urllib.parse.urlencode({'ymd': web_input.ymd})
-        else:
-            raise ValueError('?ymd should be 8 digits (eg 20220101)')
-
-    html = (
-        """
-    <div id="donato"></div>
-    <script src="%s" data-platform="ol"></script>
-    """
-        % script_src
-    )
-    return html
 
 
 @public

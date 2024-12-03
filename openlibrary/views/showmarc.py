@@ -2,12 +2,12 @@
 Hook to show MARC or other source record details in Open Library.
 """
 
-from .. import app
-
-import web
 import re
 
 import requests
+import web
+
+from .. import app
 
 
 class old_show_marc(app.view):

@@ -2,11 +2,12 @@
 going through infobase API.
 """
 
+import datetime
 import json
 import os
-import web
-import datetime
 from collections import defaultdict
+
+import web
 
 
 class DocumentLoader:

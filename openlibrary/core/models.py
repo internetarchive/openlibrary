@@ -1,44 +1,45 @@
 """Models of various OL objects.
 """
 
-from datetime import datetime, timedelta
-import logging
-from openlibrary.core.vendors import get_amazon_metadata
-
-import web
 import json
-import requests
-from typing import Any, TypedDict
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, TypedDict
+from urllib.parse import urlencode
+
+import requests
+import web
 
 from infogami.infobase import client
 
-from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
-
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
-from openlibrary.core import lending
 from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
+from openlibrary.core import lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
-from openlibrary.core.helpers import private_collection_in
+from openlibrary.core.helpers import (
+    parse_datetime,
+    private_collection_in,
+    safesort,
+    urlsafe,
+)
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
+from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
+from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
 from . import cache, waitinglist
-
-from urllib.parse import urlencode
-
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
-from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
-from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -776,7 +777,6 @@ class Author(Thing):
     def wikidata(
         self, bust_cache: bool = False, fetch_missing: bool = False
     ) -> WikidataEntity | None:
-        return None
         if wd_id := self.remote_ids.get("wikidata"):
             return get_wikidata_entity(
                 qid=wd_id, bust_cache=bust_cache, fetch_missing=fetch_missing

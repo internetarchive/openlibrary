@@ -1,8 +1,9 @@
 import datetime
 import re
 from typing import TYPE_CHECKING
-import web
 from unicodedata import normalize
+
+import web
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
