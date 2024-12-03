@@ -25,14 +25,6 @@ def main(ol_config: str):
     load_config(ol_config)
     infogami._setup()
 
-    # TODO: raise an actual exception here
-    password = ''
-    try:
-        with pwfile as open(os.path.expanduser('~/.openlibrary_db_password')):
-            password = pwfile.read().strip('\n')
-    except:
-        pass
-
     # how i fix this lol there's no IP when running from within docker
     web.ctx.ip = '127.0.0.1'
 
