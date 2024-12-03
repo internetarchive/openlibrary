@@ -234,7 +234,9 @@ class WikidataEntity:
         # save if there are new identifiers to save
         if matches >= 0:
             author.remote_ids = output
-            web.ctx.site.save(query={**author, "key": key, "type": {"key": "/type/author"}})
+            web.ctx.site.save(
+                query={**author, "key": key, "type": {"key": "/type/author"}}
+            )
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:
