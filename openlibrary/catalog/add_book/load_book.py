@@ -4,7 +4,7 @@ import web
 
 from openlibrary.catalog.utils import author_dates_match, flip_name, key_int
 from openlibrary.core.helpers import extract_year
-from openlibrary.utils import uniq, extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, uniq
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -155,10 +155,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return authors
 
     # Look for OL ID first.
-    if key := author.get("key"):
-        if reply := list(web.ctx.site.things({"type": "/type/author", "key~": key})):
-            # Always match on OL ID, even if remote identifiers don't match.
-            return get_redirected_authors([web.ctx.site.get(k) for k in reply])
+    if (key := author.get("key")) and (reply := list(web.ctx.site.things({"type": "/type/author", "key~": key}))):
+        # Always match on OL ID, even if remote identifiers don't match.
+        return get_redirected_authors([web.ctx.site.get(k) for k in reply])
     # Try other identifiers next.
     if identifiers := author.get("identifiers"):
         queries = []
@@ -181,7 +180,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             if matches > highest_matches:
                 selected_match = a
                 highest_matches = matches
-            elif matches == highest_matches and matches > 0:
+            elif matches == highest_matches and matches > 0 and selected_match is not None:
                 # Prioritize the lower OL ID when matched identifiers are equal
                 selected_match = (
                     a
