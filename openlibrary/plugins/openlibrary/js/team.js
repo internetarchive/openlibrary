@@ -131,10 +131,6 @@ export function initTeamFilter() {
                 : (memberName.classList = 'description__name--length-short');
 
             memberName.textContent = `${member.name}`;
-            // memberRole.classList = 'description__role';
-            // memberRole.textContent = `${role}`;
-            // memberDepartment.classList = 'description__department';
-            // memberDepartment.textContent = `${member.departments}`;
             memberTitle.classList = 'description__title';
             memberTitle.textContent = `${member.title}`;
 
