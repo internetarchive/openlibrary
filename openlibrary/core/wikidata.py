@@ -220,10 +220,12 @@ class WikidataEntity:
         reply = list(web.ctx.site.things(q))
         authors = [web.ctx.site.get(k) for k in reply]
         if len(authors) != 1:
+            # There should never, ever be len(authors) > 1, because that would imply two OL author entities have the same OL ID.
             return output
         author = authors[0]
         if author.wikidata() is not None and author.wikidata().id != self.id:
-            raise Exception("wikidata IDs do not match")
+            # TODO: Flag this to librarians. This means the OL entity identified by the Wikidata JSON has a different Wikidata ID than the JSON expects.
+            return output
         wd_remote_ids = {
             key: value[0] for key, value in self.get_remote_ids().items() if value != []
         }
@@ -309,12 +311,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
 
     # here, we should write WD data to author remote ids
     if re.fullmatch(r"^OL\d+A$", ol_id):
-        try:
-            entity.consolidate_remote_author_ids()
-        except:
-            # don't error out if we can't save WD ids to remote IDs. might be a case of identifiers not matching what we have in OL
-            # TODO: replace "pass" with some way to flag to librarians why this try-catch failed. will normally be caused by conflicting IDs
-            pass
+        entity.consolidate_remote_author_ids()
 
     if _get_from_cache(entity.id):
         return oldb.update(
