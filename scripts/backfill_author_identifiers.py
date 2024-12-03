@@ -9,13 +9,12 @@ PYTHONPATH=. python ./scripts/populate_author_identifiers.py /olsystem/etc/openl
 """
 
 #!/usr/bin/env python
-import web
-from openlibrary.core.wikidata import get_wikidata_entity
-from openlibrary.config import load_config
 import infogami
-from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-import os
+import web
+from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.core.wikidata import get_wikidata_entity
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
 def main(ol_config: str):

@@ -2,11 +2,9 @@
 """
 
 import json
-import requests
-import re
-import web
-from typing import Any, TypedDict
 import logging
+import requests
+import web
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
