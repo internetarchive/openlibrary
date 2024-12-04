@@ -258,8 +258,14 @@ class merge_authors(delegate.page):
         return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
     def GET(self):
-        i = web.input(key=[], mrid=None)
-        keys = uniq(i.key)
+        i = web.input(key=[], mrid=None, records='')
+
+        # key is deprecated in favor of records but we will support both
+        if deprecated_keys := uniq(i.key):
+            redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
+            raise web.redirect(redir_url)
+
+        keys = uniq(i.records.split(','))
 
         # filter bad keys
         keys = self.filter_authors(keys)
