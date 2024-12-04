@@ -27,31 +27,31 @@ describe('SearchBar', () => {
 
         test('Updates facet from params', () => {
             expect(sb.facet.read()).not.toBe('title');
-            sb.initFromUrlParams({ facet: 'title' });
+            sb.initFromUrlParams({facet: 'title'});
             expect(sb.facet.read()).toBe('title');
         });
 
         test('Ignore invalid facets', () => {
             const originalValue = sb.facet.read();
-            sb.initFromUrlParams({ facet: 'spam' });
+            sb.initFromUrlParams({facet: 'spam'});
             expect(sb.facet.read()).toBe(originalValue);
         });
 
         test('Sets input value from q param', () => {
-            sb.initFromUrlParams({ q: 'Harry Potter' });
+            sb.initFromUrlParams({q: 'Harry Potter'});
             expect(sb.$input.val()).toBe('Harry Potter');
         });
 
         test('Remove title prefix from q param', () => {
-            sb.initFromUrlParams({ q: 'title:"Harry Potter"', facet: 'title' });
+            sb.initFromUrlParams({q: 'title:"Harry Potter"', facet: 'title'});
             expect(sb.$input.val()).toBe('Harry Potter');
-            sb.initFromUrlParams({ q: 'title: "Harry"', facet: 'title' });
+            sb.initFromUrlParams({q: 'title: "Harry"', facet: 'title'});
             expect(sb.$input.val()).toBe('Harry');
         });
 
         test('Persists value in url param', () => {
             expect(localStorage.getItem('facet')).not.toBe('title');
-            sb.initFromUrlParams({ facet: 'title' });
+            sb.initFromUrlParams({facet: 'title'});
             expect(localStorage.getItem('facet')).toBe('title');
         });
     });
@@ -64,7 +64,7 @@ describe('SearchBar', () => {
         afterEach(() => localStorage.clear());
 
         test('Queries are marshalled before submit for titles', () => {
-            sb.initFromUrlParams({ facet: 'title' });
+            sb.initFromUrlParams({facet: 'title'});
             const spy = sinon.spy(SearchBar, 'marshalBookSearchQuery');
             sb.submitForm();
             expect(spy.callCount).toBe(1);
@@ -72,7 +72,7 @@ describe('SearchBar', () => {
         });
 
         test('Form action is updated on submit', () => {
-            sb.initFromUrlParams({ facet: 'title' });
+            sb.initFromUrlParams({facet: 'title'});
             const originalAction = sb.$form[0].action;
             sb.submitForm();
             expect(sb.$form[0].action).not.toBe(originalAction);
@@ -168,7 +168,7 @@ describe('SearchBar', () => {
         test('Title searches tigger autocomplete even if containing title: prefix', () => {
             // Stub debounce to avoid have to manipulate time (!)
             sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
-            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), { facet: 'title' });
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
             const getJSONStub = sandbox.stub($, 'getJSON');
             sb.$input.val('title:"Harry"');
             sb.$input.triggerHandler('focus');
@@ -178,7 +178,7 @@ describe('SearchBar', () => {
         test('Focussing on input when empty does not trigger autocomplete', () => {
             // Stub debounce to avoid have to manipulate time (!)
             sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
-            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), { facet: 'title' });
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
             const getJSONStub = sandbox.stub($, 'getJSON');
             sb.$input.val('');
             sb.$input.triggerHandler('focus');
