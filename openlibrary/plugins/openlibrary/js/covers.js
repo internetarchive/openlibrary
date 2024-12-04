@@ -171,8 +171,6 @@ export function initPasteForm(formData) {
 
             // Submit the form
             form.submit();
-        } else {
-            alert('No image data to upload.');
         }
     });
 }
