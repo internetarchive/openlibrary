@@ -171,15 +171,6 @@ export function initPasteForm(formData) {
 
             // Submit the form
             form.submit();
-
-            // Hide the loading indicator after a delay to simulate form submission time
-            setTimeout(() => {
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add('hidden');
-                    formDivs.forEach(div => div.classList.remove('hidden'));
-                }
-                initCoversSaved(); // Trigger the initCoversSaved function
-            }, 3000); // Delay Added
         } else {
             alert('No image data to upload.');
         }
