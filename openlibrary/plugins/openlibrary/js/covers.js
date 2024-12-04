@@ -137,7 +137,7 @@ export async function pasteImage() {
                 fileInput.files = dataTransfer.files; // This sets the file input with the image
 
                 // Show the upload button and update its text
-                const uploadButton = document.getElementById('uploadButton2');
+                const uploadButton = document.getElementById('uploadButtonPaste');
                 uploadButton.style.display = 'inline';
                 uploadButton.innerText = 'Use this image';
 
@@ -155,7 +155,7 @@ export async function pasteImage() {
 }
 
 export function initPasteForm(formData) {
-    document.getElementById('uploadButton2').addEventListener('click', function(event) {
+    document.getElementById('uploadButtonPaste').addEventListener('click', function(event) {
         event.preventDefault(); // Prevent the default form submission
 
         const form = document.getElementById('clipboardForm');

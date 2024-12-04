@@ -50,7 +50,7 @@ $if doc.type.key == "/type/work":
     </div>
     <div class="input">
         <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png" required/>
-        <button id='uploadButton1' type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
+        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
     </div>
 </form>
 
@@ -63,7 +63,7 @@ $if doc.type.key == "/type/work":
     </div>
     <!-- Hidden file input that will be populated with the pasted image -->
     <input type="file" name="file" id="hiddenFileInput" style="display: none;" />
-    <button id="uploadButton2" type="submit" class="cta-btn cta-btn--vanilla" style="display: none;">$_("Upload")</button>
+    <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla" style="display: none;">$_("Upload")</button>
 </form>
 
 <div id="imageContainer" style="text-align: center; margin-top: 20px;">
