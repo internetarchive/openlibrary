@@ -119,22 +119,24 @@ export async function pasteImage() {
     try {
         const clipboardItems = await navigator.clipboard.read();
         for (const item of clipboardItems) {
-            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg')) {
+            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg') && !item.types.includes('image/jpg')) {
                 continue;
             }
 
-            const blob = await item.getType('image/png');
+            const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
+            const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
+            const blob = await item.getType(mimeType);
             const image = document.getElementById('image');
             image.src = URL.createObjectURL(blob);
             image.style.display = 'block';
 
             // Update the global formData with the new image blob
             formData = new FormData();
-            formData.append('file', blob, 'pasted-image.png');
+            formData.append('file', blob, `pasted-image.${fileExtension}`);
 
             // Automatically fill in the hidden file input with the FormData
             const fileInput = document.getElementById('hiddenFileInput');
-            const file = new File([blob], 'pasted-image.png', { type: 'image/png' });
+            const file = new File([blob], `pasted-image.${fileExtension}`, { type: mimeType });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files; // This sets the file input with the image

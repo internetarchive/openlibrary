@@ -58,17 +58,19 @@ $if doc.type.key == "/type/work":
     <div class="label">
         <label for="coverClipboard">$_("Or, paste an image from your clipboard")</label>
     </div>
-    <div class="input">
-        <button type="button" id="pasteButton" class="cta-btn cta-btn--vanilla">$_("No Image Pasted")</button>
+
+    <div id="imageContainer" style="margin-top: 20px;">
+        <img id="image" style="max-width: 100%; max-height: 400px; display: none;" />
     </div>
+
     <!-- Hidden file input that will be populated with the pasted image -->
     <input type="file" name="file" id="hiddenFileInput" style="display: none;" />
-    <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla" style="display: none;">$_("Upload")</button>
-</form>
 
-<div id="imageContainer" style="text-align: center; margin-top: 20px;">
-    <img id="image" style="max-width: 100%; max-height: 400px; display: none; margin: 0 auto;" />
-</div>
+    <div class="button-container" style="margin-top: 10px;">
+        <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla" style="display: none; width: auto;">$_("Upload")</button>
+        <button type="button" id="pasteButton" class="cta-btn cta-btn--vanilla" style="width: auto;">$_("No Image Pasted")</button>
+    </div>
+</form>
 $:macros.LoadingIndicator(_("Uploading..."))
 $#<form class="ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
 $#    <div class="label">
