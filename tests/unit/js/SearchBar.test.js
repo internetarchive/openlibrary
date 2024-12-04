@@ -9,6 +9,7 @@ describe('SearchBar', () => {
             <form class="search-bar-input" action="https://openlibrary.org/search?q=foo">
                 <input type="text">
             </form>
+            <ul class="search-results"></ul>
         </div>`;
 
     describe('initFromUrlParams', () => {
@@ -145,7 +146,7 @@ describe('SearchBar', () => {
         test('Advanced facet triggers redirect', () => {
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
             const navigateToStub = sandbox.stub(sb, 'navigateTo');
-            const event = Object.assign(new $.Event(), { target: { value: 'advanced' }});
+            const event = Object.assign(new $.Event(), { target: { value: 'advanced' } });
             sb.handleFacetSelectChange(event);
             expect(navigateToStub.callCount).toBe(1);
             expect(navigateToStub.args[0]).toEqual(['/advancedsearch']);
@@ -197,5 +198,92 @@ describe('SearchBar', () => {
                 expect(getJSONStub.callCount).toBe(0);
             });
         }
+
+        test('Tabbing out of search input clears autocomplete results', () => {
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+
+            // Spy on the clearAutocompletionResults method
+            const clearResultsSpy = sandbox.spy(sb, 'clearAutocompletionResults');
+
+            // Simulate tab keydown event on the form
+            const tabEvent = $.Event('keydown', { key: 'Tab' });
+            sb.$form.trigger(tabEvent);
+
+            // Verify clearAutocompletionResults was called
+            expect(clearResultsSpy.callCount).toBe(1);
+        });
+
+        test('Autocomplete rendering behavior depends on existing results', () => {
+            sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), { facet: 'title' });
+            const renderSpy = sandbox.spy(sb, 'renderAutocompletionResults');
+
+            // Should render when results are empty
+            sb.$input.triggerHandler('focus');
+            expect(renderSpy.callCount).toBe(1, 'Should render when no results exist');
+
+            renderSpy.resetHistory();
+
+            // Should not render when results exist
+            sb.$results.append('<li>Some result</li>');
+            sb.$input.triggerHandler('focus');
+            expect(renderSpy.callCount).toBe(0, 'Should not render when results exist');
+        });
+
+        test('Tabbing from search result focuses search submit button and clears results', () => {
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+
+            // Add a dummy result and focus on it
+            sb.$results.append('<li tabindex="0">Test Result</li>');
+            const $resultItem = sb.$results.children().first();
+            $resultItem.trigger('focus');
+
+            // Spy on the clearAutocompletionResults method
+            const clearResultsSpy = sandbox.spy(sb, 'clearAutocompletionResults');
+
+            // Spy on the focus trigger for search submit
+            const focusSpy = sandbox.spy(sb.$searchSubmit, 'trigger');
+
+            // Simulate tab keydown event on the result item
+            const tabEvent = $.Event('keydown', { key: 'Tab', shiftKey: false });
+            $resultItem.trigger(tabEvent);
+
+            // Verify clearAutocompletionResults was called
+            expect(clearResultsSpy.callCount).toBe(1, 'Should clear autocomplete results');
+
+            // Verify search submit was focused
+            expect(focusSpy.calledWith('focus')).toBe(true, 'Should focus search submit button');
+
+            // Verify event default was prevented
+            expect(tabEvent.isDefaultPrevented()).toBe(true, 'Should prevent default tab behavior');
+        });
+
+        test('Shift+tabbing from search result focuses facet select and clears results', () => {
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+
+            // Add a dummy result and focus on it
+            sb.$results.append('<li tabindex="0">Test Result</li>');
+            const $resultItem = sb.$results.children().first();
+            $resultItem.trigger('focus');
+
+            // Spy on the clearAutocompletionResults method
+            const clearResultsSpy = sandbox.spy(sb, 'clearAutocompletionResults');
+
+            // Spy on the focus trigger for facet select
+            const focusSpy = sandbox.spy(sb.$facetSelect, 'trigger');
+
+            // Simulate shift+tab keydown event on the result item
+            const shiftTabEvent = $.Event('keydown', { key: 'Tab', shiftKey: true });
+            $resultItem.trigger(shiftTabEvent);
+
+            // Verify clearAutocompletionResults was called
+            expect(clearResultsSpy.callCount).toBe(1, 'Should clear autocomplete results');
+
+            // Verify facet select was focused
+            expect(focusSpy.calledWith('focus')).toBe(true, 'Should focus facet select');
+
+            // Verify event default was prevented
+            expect(shiftTabEvent.isDefaultPrevented()).toBe(true, 'Should prevent default tab behavior');
+        });
     });
 });
