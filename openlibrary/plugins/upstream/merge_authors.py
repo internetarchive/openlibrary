@@ -265,7 +265,7 @@ class merge_authors(delegate.page):
             redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
             raise web.redirect(redir_url)
 
-        keys = uniq(i.records.split(','))
+        keys = uniq(i.records.strip(',').split(','))
 
         # filter bad keys
         keys = self.filter_authors(keys)
