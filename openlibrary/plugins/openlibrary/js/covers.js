@@ -119,36 +119,37 @@ export async function pasteImage() {
     try {
         const clipboardItems = await navigator.clipboard.read();
         for (const item of clipboardItems) {
-            if (item.types.includes('image/png')) {
-                const blob = await item.getType('image/png');
-                const image = document.getElementById('image');
-                image.src = URL.createObjectURL(blob);
-                image.style.display = 'block';
-
-                // Update the global formData with the new image blob
-                formData = new FormData();
-                formData.append('file', blob, 'pasted-image.png');
-
-                // Automatically fill in the hidden file input with the FormData
-                const fileInput = document.getElementById('hiddenFileInput');
-                const file = new File([blob], 'pasted-image.png', { type: 'image/png' });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files; // This sets the file input with the image
-
-                // Show the upload button and update its text
-                const uploadButton = document.getElementById('uploadButtonPaste');
-                uploadButton.style.display = 'inline';
-                uploadButton.innerText = 'Use this image';
-
-                // Update the paste button text
-                document.getElementById('pasteButton').innerText = 'Change Image';
-
-                return formData;
-            } else {
-                alert('Clipboard does not contain PNG image data.');
+            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg')) {
+                continue;
             }
+
+            const blob = await item.getType('image/png');
+            const image = document.getElementById('image');
+            image.src = URL.createObjectURL(blob);
+            image.style.display = 'block';
+
+            // Update the global formData with the new image blob
+            formData = new FormData();
+            formData.append('file', blob, 'pasted-image.png');
+
+            // Automatically fill in the hidden file input with the FormData
+            const fileInput = document.getElementById('hiddenFileInput');
+            const file = new File([blob], 'pasted-image.png', { type: 'image/png' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files; // This sets the file input with the image
+
+            // Show the upload button and update its text
+            const uploadButton = document.getElementById('uploadButtonPaste');
+            uploadButton.style.display = 'inline';
+            uploadButton.innerText = 'Use this image';
+
+            // Update the paste button text
+            document.getElementById('pasteButton').innerText = 'Change Image';
+
+            return formData;
         }
+        alert('No image found in clipboard');
     } catch (error) {
 
     }
