@@ -280,8 +280,9 @@ jQuery(function () {
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
     const saveCoversElement = document.getElementsByClassName('imageSaved').length;
+    const coverForm = document.querySelector('.ol-cover-form--clipboard');
 
-    if (addCoversElement || manageCoversElement || saveCoversElement) {
+    if (addCoversElement || manageCoversElement || saveCoversElement || coverForm) {
         import(/* webpackChunkName: "covers" */ './covers')
             .then((module) => {
                 if (manageCoversElement) {
@@ -293,13 +294,6 @@ jQuery(function () {
                 if (saveCoversElement) {
                     module.initCoversSaved();
                 }
-            });
-    }
-
-    const coverForm = document.querySelector('.ol-cover-form--clipboard');
-    if (coverForm) {
-        import(/* webpackChunkName: "covers" */ './covers')
-            .then(module => {
                 if (coverForm) {
                     document.getElementById('pasteButton').addEventListener('click', async () => {
                         const formData = await module.pasteImage();
