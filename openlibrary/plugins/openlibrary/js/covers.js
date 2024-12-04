@@ -146,7 +146,7 @@ export async function pasteImage() {
 
                 return formData;
             } else {
-                throw new Error('Clipboard does not contain PNG image data.');
+                alert('Clipboard does not contain PNG image data.');
             }
         }
     } catch (error) {
