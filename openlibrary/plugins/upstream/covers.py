@@ -25,6 +25,10 @@ def setup():
     pass
 
 
+class ImageValidationError(Exception):
+    pass
+
+
 class ImageValidator:
     def __init__(self):
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
@@ -39,12 +43,12 @@ class ImageValidator:
         file_size = len(file_data.read())
         file_data.seek(0)
         if file_size > self.max_file_size:
-            raise ValueError("File size exceeds 10MB limit")
+            raise ImageValidationError("File size exceeds 10MB limit")
 
     def validate_extension(self, filename):
         file_extension = os.path.splitext(filename)[1].lower()
         if file_extension not in self.allowed_extensions:
-            raise ValueError("Unsupported file extension")
+            raise ImageValidationError("Unsupported file extension")
 
     def validate_image(self, file_data):
         try:
@@ -52,7 +56,7 @@ class ImageValidator:
             image.verify()
             file_data.seek(0)
         except UnidentifiedImageError:
-            raise ValueError("Not a valid image file")
+            raise ImageValidationError("Not a valid image file")
 
 
 class add_cover(delegate.page):
@@ -79,7 +83,7 @@ class add_cover(delegate.page):
 
         try:
             data = self.upload(key, i)
-        except ValueError as e:
+        except ImageValidationError:
             return render_template("covers/add", book, status=web.storage({"code": 1}))
 
         if coverid := data.get('id'):
