@@ -89,6 +89,9 @@ def get_login_error(error_key):
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
         ),
+        "request_timeout": _(
+            "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
+        ),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
     return LOGIN_ERRORS[error_key]
