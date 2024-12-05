@@ -34,10 +34,10 @@ class ImageValidator:
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
         self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
 
-    def validate(self, file):
-        self.validate_extension(file.filename)
-        self.validate_size(file.file)
-        self.validate_image(file.file)
+    def validate(self, filename, data):
+        self.validate_extension(filename)
+        self.validate_size(data)
+        self.validate_image(data)
 
     def validate_size(self, file_data):
         file_size = len(file_data.read())
@@ -100,10 +100,9 @@ class add_cover(delegate.page):
         olid = key.split("/")[-1]
 
         if i.file is not None and hasattr(i.file, 'file'):
-            validator = ImageValidator()
-            validator.validate(i.file)
-
             data = i.file.file
+            validator = ImageValidator()
+            validator.validate(i.file.filename, data)
         else:
             data = None
 
