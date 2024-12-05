@@ -83,6 +83,15 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
+    def width(self):
+        """Get the width of the image."""
+        info = self.info()
+        return info["width"] if info else None
+    
+    def height(self):
+        """Get the height of the image."""
+        info = self.info()
+        return info["height"] if info else None
 
 ThingKey = str
 
