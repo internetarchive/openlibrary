@@ -22,7 +22,7 @@ msgstr ""
 # verb, etcetera extensions coincinding against
 # singulars or plurals. Eg- One hour has passed
 # Tr. : "Ek ghonta hoi gol"; Two hours have passed
-# Tr. : :"Dui ghonta hoi gol". 
+# Tr. : :"Dui ghonta hoi gol".
 "Generated-By: Babel 2.12.1\n"
 
 #: account.html account/notifications.html account/privacy.html
