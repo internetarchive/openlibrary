@@ -1420,7 +1420,6 @@ def setup():
         sentry,
         stats,
         status,
-        support,
         swagger,
     )
 
@@ -1429,7 +1428,6 @@ def setup():
     design.setup()
     borrow_home.setup()
     stats.setup()
-    support.setup()
     events.setup()
     status.setup()
     authors.setup()
