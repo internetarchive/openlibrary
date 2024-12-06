@@ -7,6 +7,16 @@ $ i18n_strings = {
 $putctx("cssfile", "signup")
 
 $var title: $_("Log In")
+<style>
+    @media (max-width: 600px) {
+        #ia-third-party-logins {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    }
+</style>
 
 $if "dev" in ctx.features:
     <div class="flash-messages" id="autofill-dev-credentials">
