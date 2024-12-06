@@ -1,9 +1,9 @@
-import _init_path
-import os
-from openlibrary.config import load_config
-from openlibrary.plugins.worksearch.code import execute_solr_query
 import datetime
 
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
+
+from openlibrary.config import load_config
+from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
