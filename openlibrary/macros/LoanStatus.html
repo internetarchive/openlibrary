@@ -135,10 +135,16 @@ $else:
   $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
   $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
-  $if (is_edition and is_book_page) or secondary_action:
-      $:macros.NotInLibrary(None, analytics_attr)
+  $ edition_key = doc.key.split('/')[2]
+  $# Wrapper if locate button is in edition table
+  $if secondary_action:
+      $:macros.LocateButton(edition_key)
+  $elif is_edition:
+      <div class="cta-button-group">
+        $:macros.LocateButton(edition_key)
+      </div>
   $else:
-      $:macros.NotInLibrary(key, analytics_attr)
+      $:macros.NotInLibrary(None, analytics_attr)
 
 $:post
 
