@@ -231,9 +231,10 @@ function getSeedType(seed) {
  * @param {string} seedKey
  * @param {string} listTitle
  * @param {string} [coverUrl]
+ * @param {string} desiredHeight 
  * @returns {HTMLLIElement}
  */
-export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL) {
+export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL, desiredHeight = "") {
     if (!i18nStrings) {
         const i18nInput = document.querySelector('input[name=list-i18n-strings]')
         i18nStrings = JSON.parse(i18nInput.value)
@@ -244,7 +245,7 @@ export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl =
     const seedType = getSeedType(seedKey)
 
     const itemMarkUp = `<span class="image">
-                <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
+                <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}" width="22px" height="${desiredHeight}"/></a>
             </span>
             <span class="data">
                 <span class="label">

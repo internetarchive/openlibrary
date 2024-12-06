@@ -7,7 +7,7 @@ import { removeChildren } from '../utils'
 
 // XXX : jsdoc
 // XXX : decompose
-export function initMyBooksAffordances(dropperElements, showcaseElements) {
+export async function initMyBooksAffordances(dropperElements, showcaseElements) {
     const showcases = []
     for (const elem of showcaseElements) {
         const showcase = new ShowcaseItem(elem)
@@ -42,7 +42,7 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
 
     getListPartials()
         .then(response => response.json())
-        .then((data) => {
+        .then(async (data) => {
             // XXX : convert this block to one or two function calls
             const listData = data.listData
             const activeShowcaseItems = []
@@ -55,8 +55,18 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
                         const key = listData[listKey].members[0]
                         const coverID = key.slice(key.indexOf('OL'))
                         const cover = `https://covers.openlibrary.org/b/olid/${coverID}-S.jpg`
-
-                        activeShowcaseItems.push(createActiveShowcaseItem(listKey, seedKey, listData[listKey].listName, cover))
+                        
+                        const img = new Image()
+                        img.src = cover
+                        
+                        await new Promise((resolve) => {
+                            img.onload = () => {
+                                let desiredHeight = 22 * img.height / img.width
+                                desiredHeight = desiredHeight.toFixed(2)
+                                activeShowcaseItems.push(createActiveShowcaseItem(listKey, seedKey, listData[listKey].listName, cover, desiredHeight))
+                                resolve()
+                            }
+                        })
                     }
                 }
             }
