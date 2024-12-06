@@ -99,7 +99,6 @@ jQuery(function () {
     const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
-    const identifiers = document.querySelector('#identifiers');
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
@@ -109,7 +108,7 @@ jQuery(function () {
         edition ||
         autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
-        addRowButton || roles || identifiers || classifications ||
+        addRowButton || roles || classifications ||
         excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
@@ -131,9 +130,6 @@ jQuery(function () {
                 }
                 if (roles) {
                     module.initRoleValidation();
-                }
-                if (identifiers) {
-                    module.initIdentifierValidation();
                 }
                 if (classifications) {
                     module.initClassificationValidation();
