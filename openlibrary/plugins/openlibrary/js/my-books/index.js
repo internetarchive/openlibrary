@@ -55,10 +55,10 @@ export async function initMyBooksAffordances(dropperElements, showcaseElements) 
                         const key = listData[listKey].members[0]
                         const coverID = key.slice(key.indexOf('OL'))
                         const cover = `https://covers.openlibrary.org/b/olid/${coverID}-S.jpg`
-                        
+
                         const img = new Image()
                         img.src = cover
-                        
+
                         await new Promise((resolve) => {
                             img.onload = () => {
                                 let desiredHeight = 22 * img.height / img.width

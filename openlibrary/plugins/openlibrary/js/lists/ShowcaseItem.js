@@ -231,10 +231,10 @@ function getSeedType(seed) {
  * @param {string} seedKey
  * @param {string} listTitle
  * @param {string} [coverUrl]
- * @param {string} desiredHeight 
+ * @param {string} desiredHeight
  * @returns {HTMLLIElement}
  */
-export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL, desiredHeight = "") {
+export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL, desiredHeight = '') {
     if (!i18nStrings) {
         const i18nInput = document.querySelector('input[name=list-i18n-strings]')
         i18nStrings = JSON.parse(i18nInput.value)
