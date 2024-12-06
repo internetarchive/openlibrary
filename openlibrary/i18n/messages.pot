@@ -940,6 +940,10 @@ msgstr ""
 msgid "No <strong>%(path_id)s</strong> directly matched your search"
 msgstr ""
 
+#: work_search.html
+msgid "Add a new book"
+msgstr ""
+
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
