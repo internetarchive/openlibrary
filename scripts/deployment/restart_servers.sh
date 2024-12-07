@@ -3,7 +3,7 @@
 set -o xtrace
 
 # Restart the Docker services on all specified hosts.
-# If no host is specified, then the Docker services on this host are restarted.
+# If no host is specified, then restart all servers.
 
 # Example: restart_servers.sh ol-home0 ol-covers0 ol-web1
 # Recognized servers: ol-covers0*, ol-dev*, ol-home0*, ol-web*
@@ -15,12 +15,9 @@ PRODUCTION="compose.yaml:compose.production.yaml"
 HOSTNAME="${HOSTNAME:-$HOST}"
 OLIMAGE="${OLIMAGE:-}"
 
-# If no args provided then restart the services on localhost
-if [[ $@ == "" ]]; then
-    SERVERS="${HOSTNAME}"
-else
-    SERVERS=$@
-fi
+SERVER_SUFFIX=${SERVER_SUFFIX:-""}
+SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
+SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
 for SERVER in $SERVERS; do
     HOSTNAME=$(host $SERVER | cut -d " " -f 1)

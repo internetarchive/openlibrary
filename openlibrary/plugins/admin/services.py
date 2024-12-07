@@ -4,9 +4,9 @@ for the admin panel
 """
 
 import re
-import requests
 from collections import defaultdict
 
+import requests
 from bs4 import BeautifulSoup
 
 

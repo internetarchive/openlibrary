@@ -1,32 +1,29 @@
 import json
+from typing import TYPE_CHECKING, Final, Literal, cast
+
 import web
 from web.template import TemplateResult
 
-from typing import Final, Literal, cast, TYPE_CHECKING
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, safeint, render
-
-from openlibrary.i18n import gettext as _
-
+from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
     get_loans_of_user,
 )
+from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.models import LoggedBooksData
-from openlibrary.core.models import User
-from openlibrary.core.follows import PubSub
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.i18n import gettext as _
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
     from openlibrary.core.lists.model import List
@@ -67,9 +64,10 @@ class mybooks_home(delegate.page):
             loans = web.Storage({"docs": [], "total_results": len(loans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
-                book = web.ctx.site.get(loan['book'])
-                book.loan = loan
-                loans.docs.append(book)
+                # Book will be None if no OL edition exists for the book
+                if book := web.ctx.site.get(loan['book']):
+                    book.loan = loan
+                    loans.docs.append(book)
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}

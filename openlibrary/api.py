@@ -16,14 +16,15 @@ __version__ = "0.1"
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
 
 
-import os
-import re
 import datetime
 import json
-import web
 import logging
-import requests
+import os
+import re
 from configparser import ConfigParser
+
+import requests
+import web
 
 logger = logging.getLogger("openlibrary.api")
 

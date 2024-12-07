@@ -3,13 +3,13 @@
 Loaded from Infogami plugin mechanism.
 """
 
-import sys
-import os
 import logging
 import logging.config
+import os
+import sys
 
-from infogami.utils import template, macro, i18n, delegate
 import infogami
+from infogami.utils import delegate, i18n, macro, template
 
 old_plugins = [
     "openlibrary",

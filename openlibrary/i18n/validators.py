@@ -1,13 +1,9 @@
-from itertools import groupby
 import re
+from itertools import groupby
 
 from babel.messages.catalog import (
-    TranslationError,  # noqa: F401 side effects may be needed
-    Message,
     Catalog,
-)
-from babel.messages.checkers import (
-    python_format,  # noqa: F401 side effects may be needed
+    Message,
 )
 
 

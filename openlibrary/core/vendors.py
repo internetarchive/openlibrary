@@ -1,13 +1,12 @@
 from __future__ import annotations
+
 import logging
 import re
 import time
-
 from typing import Any, Literal
 
 import requests
 from dateutil import parser as isoparser
-from infogami.utils.view import public
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
@@ -15,6 +14,7 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
+from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -28,7 +28,6 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 
-BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
@@ -587,8 +586,8 @@ def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
             price = _price
             qlt = 'new'
 
-    market_price = ('$' + market_price[0]) if market_price else None
-    return betterworldbooks_fmt(isbn, qlt, price, market_price)
+    first_market_price = ('$' + market_price[0]) if market_price else None
+    return betterworldbooks_fmt(isbn, qlt, price, first_market_price)
 
 
 def betterworldbooks_fmt(

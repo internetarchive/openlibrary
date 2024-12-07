@@ -1,11 +1,12 @@
 """Handling various events triggered by Open Library.
 """
 
-from infogami.infobase import client
 import logging
-import web
 
 import eventer
+import web
+
+from infogami.infobase import client
 
 logger = logging.getLogger("openlibrary.events")
 

@@ -1,5 +1,6 @@
-from .. import dateutil
 import datetime
+
+from .. import dateutil
 
 
 def test_parse_date():

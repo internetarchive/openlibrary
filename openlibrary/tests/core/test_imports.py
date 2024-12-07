@@ -1,10 +1,10 @@
-import pytest
 from typing import Final
+
+import pytest
 import web
 
 from openlibrary.core.db import get_db
 from openlibrary.core.imports import Batch, ImportItem
-
 
 IMPORT_ITEM_DDL: Final = """
 CREATE TABLE import_item (

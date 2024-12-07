@@ -149,27 +149,17 @@
   color: @dark-grey;
   padding: 5px 0;
 
-  &__heading,
-  &__details {
-    width: fit-content;
-  }
-
-  &__heading {
-    font-weight: 900;
-  }
-
   &__body {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   &__progress-bar {
     background-color: @light-grey;
     border-radius: 5px;
     height: 20px;
-    margin: 5px 5px 0 0;
-    width: 50%;
+    margin: auto;
+    width: 85%;
+    margin-bottom: 10px;
   }
 
   &__completed {
@@ -180,21 +170,9 @@
   }
 
   &__details {
-    align-self: unset;
-    margin-left: 5px;
-  }
-}
-
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .reading-goal-progress {
-    &__body {
-      flex-direction: row;
-    }
-    &__progress-bar {
-      width: 33%;
-    }
-    &__details {
-      align-self: center;
-    }
+    display: flex;
+    justify-content: space-between;
+    width: 97%;
+    margin: auto;
   }
 }

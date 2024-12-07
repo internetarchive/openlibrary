@@ -1,8 +1,8 @@
+import gzip
+import json
 import logging
 import os
-import json
 import sqlite3
-import gzip
 from contextlib import closing
 from pathlib import Path
 

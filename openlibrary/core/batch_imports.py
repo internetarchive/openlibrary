@@ -1,14 +1,12 @@
-from dataclasses import dataclass
-import json
 import hashlib
-
+import json
+from dataclasses import dataclass
 from json.decoder import JSONDecodeError
 
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
+
 from openlibrary import accounts
-from openlibrary.core.imports import Batch
-from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 from openlibrary.catalog.add_book import (
     IndependentlyPublished,
     PublicationYearTooOld,
@@ -16,6 +14,8 @@ from openlibrary.catalog.add_book import (
     SourceNeedsISBN,
     validate_record,
 )
+from openlibrary.core.imports import Batch
+from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
 
 def generate_hash(data: bytes, length: int = 20):

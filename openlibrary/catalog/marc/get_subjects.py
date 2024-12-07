@@ -1,6 +1,7 @@
-from collections import defaultdict
 import re
-from openlibrary.catalog.utils import remove_trailing_dot, flip_name
+from collections import defaultdict
+
+from openlibrary.catalog.utils import flip_name, remove_trailing_dot
 
 re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 

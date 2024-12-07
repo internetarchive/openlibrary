@@ -210,8 +210,7 @@ q {
   }
 }
 
-abbr,
-acronym {
+abbr {
   border: 0;
   font-variant: normal;
 }
@@ -228,20 +227,12 @@ em {
   font-style: italic;
 }
 
-#contentBody,
-#contentMeta,
-.floaterBody {
-  ol,
-  ul {
-    margin-left: .5em;
-    margin-right: .5em;
-  }
-}
-
 #contentBody {
   ul,
   ol {
     margin-bottom: 20px;
+    margin-left: .5em;
+    margin-right: .5em;
   }
   li,
   blockquote {
@@ -255,12 +246,6 @@ em {
     padding: 0 !important;
     position: relative;
   }
-}
-
-#content,
-#contentBody,
-#contentMeta,
-.floaterBody {
   ol li {
     list-style: decimal;
     color: @dark-grey;
@@ -477,15 +462,6 @@ p {
   }
 }
 
-.print-disabled-download {
-  a {
-    flex: 1;
-  }
-  display: flex;
-  font-size: 10px;
-  align-items: center;
-}
-
 input[type=text],
 select,
 textarea {
@@ -521,23 +497,6 @@ input {
   margin-bottom: 10px;
   color: @grey;
   font-size: .9em;
-}
-
-// openlibrary/macros/FulltextSnippet.html
-.fulltext-excerpt {
-  padding: 10px;
-  border-bottom: 1px solid @lightest-grey;
-  font-size: .8em;
-  overflow: hidden;
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-// openlibrary/templates/work_search.html
-.advanced-search {
-  font-size: 12px;
-  float: right;
 }
 
 /* Search v2 */
@@ -776,11 +735,6 @@ div.siteSearch {
   }
 }
 
-// possibly unused
-input.query {
-  width: 205px;
-}
-
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
@@ -896,12 +850,6 @@ div.verify {
 
 /* LANGUAGE DROPDOWN */
 @import (less) "components/language.less";
-
-/* CONTENT */
-div.contentWide,
-div#contentMeta {
-  padding: 10px 20px 20px;
-}
 
 @import (less) "components/link-box.less";
 
@@ -1850,13 +1798,6 @@ div#subjectLists {
   * - /search/subjects
   * To be deleted in https://github.com/internetarchive/openlibrary/issues/1821
   */
-  div.contentWide,
-  div#contentMeta {
-    float: left;
-    clear: both;
-    width: 918px;
-    padding: 10px 20px 20px;
-  }
   .desktop-only {
     display: inherit;
   }

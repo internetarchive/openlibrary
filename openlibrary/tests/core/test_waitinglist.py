@@ -1,7 +1,9 @@
-from openlibrary.core.waitinglist import WaitingLoan
-from openlibrary.core import lending
 import json
+
 import pytest
+
+from openlibrary.core import lending
+from openlibrary.core.waitinglist import WaitingLoan
 
 
 class TestWaitingLoan:

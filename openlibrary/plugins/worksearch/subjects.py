@@ -1,21 +1,20 @@
 """Subject pages.
 """
 
+import datetime
+import json
 from dataclasses import dataclass
 from typing import Literal
+
 import web
-import json
-import datetime
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-
-from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
+from openlibrary.core.models import Subject
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
-
 
 __all__ = ["SubjectEngine", "get_subject", "SubjectMeta"]
 
@@ -221,7 +220,7 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import run_solr_query, WorkSearchScheme
+        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
 
         meta = self.get_meta(key)
         subject_type = meta.name

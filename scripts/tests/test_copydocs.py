@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..copydocs import copy, KeyVersionPair
+from ..copydocs import KeyVersionPair, copy
 
 
 class TestKeyVersionPair:

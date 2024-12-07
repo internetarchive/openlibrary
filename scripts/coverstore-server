@@ -17,8 +17,9 @@ start coverstore using gunicorn webserver:
 
 """
 
-import sys
 import os
+import sys
+
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import web
 
@@ -50,7 +51,7 @@ def start_gunicorn_server():
             pass
 
         def load(self):
-            from openlibrary.coverstore import server, code
+            from openlibrary.coverstore import code, server
 
             server.setup(configfile)
             return code.app.wsgifunc(https_middleware)

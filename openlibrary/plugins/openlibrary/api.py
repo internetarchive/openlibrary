@@ -4,40 +4,43 @@ its experience. This does not include public facing APIs with LTS
 (long term support)
 """
 
-import web
-import json
-import qrcode
 import io
+import json
 from collections import defaultdict
-from openlibrary.views.loanstats import get_trending_books
+
+import qrcode
+import web
+
 from infogami import config  # noqa: F401 side effects may be needed
-from infogami.utils import delegate
-from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.plugins.api.code import jsonapi
+from infogami.utils import delegate
 from infogami.utils.view import (
     add_flash_message,  # noqa: F401 side effects may be needed
+    render_template,  # noqa: F401 used for its side effects
 )
 from openlibrary import accounts
-from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
-from openlibrary.plugins.worksearch.subjects import (
-    get_subject,  # noqa: F401 side effects may be needed
-)
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.core import models, lending, helpers as h
+from openlibrary.core import helpers as h
+from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
-from openlibrary.core.observations import Observations, get_observation_metrics
-from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.follows import PubSub
+from openlibrary.core.helpers import NothingEncoder
+from openlibrary.core.models import Booknotes, Work
+from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
-from openlibrary.core.helpers import NothingEncoder
+from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.worksearch.subjects import (
+    get_subject,  # noqa: F401 side effects may be needed
+)
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.views.loanstats import get_trending_books
 
 
 class book_availability(delegate.page):

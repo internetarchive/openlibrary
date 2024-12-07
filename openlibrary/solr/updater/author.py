@@ -1,12 +1,13 @@
-from typing import cast
 import typing
+from typing import cast
+
 import httpx
+
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
+from openlibrary.solr.data_provider import WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
-from openlibrary.solr.data_provider import WorkReadingLogSolrSummary
-from openlibrary.core.ratings import WorkRatingsSummary, Ratings
-
 
 SUBJECT_FACETS = ['subject_facet', 'time_facet', 'person_facet', 'place_facet']
 

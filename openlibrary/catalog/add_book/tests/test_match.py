@@ -1,6 +1,6 @@
-import pytest
-
 from copy import deepcopy
+
+import pytest
 
 from openlibrary.catalog.add_book import load
 from openlibrary.catalog.add_book.match import (
@@ -11,8 +11,8 @@ from openlibrary.catalog.add_book.match import (
     compare_publisher,
     editions_match,
     expand_record,
-    normalize,
     mk_norm,
+    normalize,
     threshold_match,
 )
 

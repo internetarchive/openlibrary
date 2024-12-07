@@ -5,16 +5,16 @@ import glob
 import itertools
 import json
 import re
+from datetime import datetime
+
 import pytest
 import web
 
-from datetime import datetime
-
-from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
+from infogami.infobase import account, client, common
+from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
-
 
 key_patterns = {
     'work': '/works/OL%dW',
