@@ -23,6 +23,7 @@ from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
+from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
@@ -287,6 +288,31 @@ class DataProvider:
         :rtype: list of dict
         """
         raise NotImplementedError()
+
+    def get_solr_record(self, work_key: str) -> dict | None:
+        """
+        Fetches the record's information from Solr.
+        :param str work_key:type-prefixed key
+        :rtype: dict of str
+        """
+
+        response = requests.post(
+            get_solr_base_url() + '/query',
+            json={
+                "params": {
+                    "json.nl": "arrarr",
+                    "q": "key: %s" % work_key,
+                    "fl": [
+                        "trending_score_hourly_sum",
+                        'trending_score_hourly_*',
+                        "trending_score_daily_*",
+                        "trending_z_score",
+                    ],
+                    "sort": "trending_z_score desc",
+                }
+            },
+        )
+        return response.json()
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         raise NotImplementedError()
