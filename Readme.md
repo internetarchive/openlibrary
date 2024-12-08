@@ -36,10 +36,29 @@ Here's a quick public tour of Open Library to get you familiar with the service 
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
 - [Visit the Blog](https://blog.openlibrary.org)
 
-## Installation
+### Installations
 
-Run `docker compose up` and visit http://localhost:8080
+---
 
+Install Docker form [here](https://www.docker.com/products/docker-desktop/) and once its installed run below code in bash to check if its installed correctly:
+
+```bash
+docker --version
+```
+
+Once, docker is installed, go ahead and fork this repo form [here](https://github.com/internetarchive/openlibrary/fork) and then clone it to your local machine.
+
+```bash
+git clone https://github.com/<your-github-username>/<name-of-forked-repo>.git
+```
+
+it might take a few seconds to clone, once its done run this in terminal
+
+```bash
+docker compose up
+```
+
+and the installation would start at [http://localhost:8080](http://localhost:8080/)
 Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
