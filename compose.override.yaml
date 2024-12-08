@@ -56,6 +56,18 @@ services:
       # postgres data anywhere).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
 
+  cron-jobs:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    environment:
+      - CRONTAB_FILE=/etc/cron.d/cron.local
+    volumes:
+      - ./docker/cron.local:/etc/cron.d/cron.local:ro
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+
   covers:
     build:
       context: .

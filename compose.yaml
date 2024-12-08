@@ -64,6 +64,15 @@ services:
     networks:
       - webnet
 
+  cron-jobs:
+    image: "${OLIMAGE:-oldev:latest}"
+    hostname: "${HOSTNAME:-$HOST}"
+    user: root
+    command: docker/ol-cron-start.sh
+    networks:
+      - webnet
+      - dbnet
+
   covers:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
