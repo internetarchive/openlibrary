@@ -1,0 +1,22 @@
+$def with(runeberg_id, analytics_attr)
+
+<div class="cta-button-group">
+  <a
+      href="https://runeberg.org/$runeberg_id/"
+      title="$_('Read eBook from Project Runeberg')"
+      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--runeberg"
+      target="_blank"
+      $:analytics_attr('Read')
+      aria-haspopup="true"
+      aria-controls="runeberg-toast"
+  >$_('Read')</a>
+</div>
+
+$if render_once('runeberg-toast'):
+  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--runeberg" id="runeberg-toast" style="display:none">
+    <div class="toast__body">
+      $:_('This book is available from <a href="https://runeberg.org/">Project Runeberg</a>. Project Runeberg is a trusted book provider of classic Nordic (Scandinavian) literature in electronic form.')
+      <a href="https://runeberg.org/admin/">$_("Learn more")</a>
+    </div>
+    <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
+  </div>
