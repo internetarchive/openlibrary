@@ -2,9 +2,6 @@ import datetime
 import itertools
 import logging
 import re
-import typing
-import httpx
-from statistics import median
 import time
 from collections import defaultdict
 from collections.abc import Iterable
