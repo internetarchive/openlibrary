@@ -44,7 +44,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
     $if q:
-      <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
+      <span class="search-results-stat">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
     $else:
       <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
         $if sort_order == 'desc':
