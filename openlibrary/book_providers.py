@@ -1,7 +1,7 @@
-from dataclasses import dataclass
 import logging
 from collections.abc import Callable, Iterator
-from typing import TypedDict, Literal, cast, TypeVar, Generic
+from dataclasses import dataclass
+from typing import Generic, Literal, TypedDict, TypeVar, cast
 from urllib import parse
 
 import web
@@ -12,7 +12,6 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
-
 
 logger = logging.getLogger("openlibrary.book_providers")
 

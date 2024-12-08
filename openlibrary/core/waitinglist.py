@@ -15,13 +15,14 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
-import web
-from openlibrary.accounts.model import OpenLibraryAccount
-from . import helpers as h
-from .sendmail import sendmail_with_template
-from . import db  # noqa: F401 side effects may be needed
-from . import lending
 
+import web
+
+from openlibrary.accounts.model import OpenLibraryAccount
+
+from . import helpers as h
+from . import lending
+from .sendmail import sendmail_with_template
 
 logger = logging.getLogger("openlibrary.waitinglist")
 

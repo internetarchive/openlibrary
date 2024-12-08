@@ -530,8 +530,12 @@ function addGoalSubmissionListener(submitButton) {
                     if (isDeleted) {
                         const chipGroup = yearlyGoalSection.querySelector('.chip-group')
                         const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
-                        goalContainer.remove()
-                        chipGroup.classList.remove('hidden')
+                        if (chipGroup) {
+                            chipGroup.classList.remove('hidden')
+                        }
+                        if (goalContainer) {
+                            goalContainer.remove()
+                        }
                     } else {
                         const progressComponent = modal.closest('.reading-goal-progress')
                         updateProgressComponent(progressComponent, Number(formData.get('goal')))
@@ -563,10 +567,8 @@ function updateProgressComponent(elem, goal) {
 
     // Update view:
     const goalSpan = elem.querySelector('.reading-goal-progress__goal')
-    const percentageSpan = elem.querySelector('.reading-goal-progress__percentage')
     const completedBar = elem.querySelector('.reading-goal-progress__completed')
     goalSpan.textContent = goal
-    percentageSpan.textContent = `(${percentComplete}%)`
     completedBar.style.width = `${Math.min(100, percentComplete)}%`
 }
 

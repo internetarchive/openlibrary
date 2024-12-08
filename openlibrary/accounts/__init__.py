@@ -1,11 +1,11 @@
+from typing import TYPE_CHECKING
+
 import web
 
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
 from .model import *  # noqa: F403
 from .model import Account, Link
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import User

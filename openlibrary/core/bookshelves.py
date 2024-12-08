@@ -1,14 +1,15 @@
 import logging
-
-import web
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Literal, cast, Any, Final, TypedDict
-from collections.abc import Iterable
-from openlibrary.plugins.worksearch.search import get_solr
+from typing import Any, Final, Literal, TypedDict, cast
 
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+import web
+
 from infogami.infobase.utils import flatten
+from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -155,8 +156,8 @@ class Bookshelves(db.CommonExtras):
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
         """
-        from openlibrary.plugins.worksearch.code import get_solr_works
         from openlibrary.core.lending import get_availabilities
+        from openlibrary.plugins.worksearch.code import get_solr_works
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id

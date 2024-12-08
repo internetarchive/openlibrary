@@ -1,6 +1,7 @@
+import typing
 from argparse import BooleanOptionalAction
 from pathlib import Path
-import typing
+
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 

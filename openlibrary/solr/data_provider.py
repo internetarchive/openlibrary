@@ -10,13 +10,13 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import TypedDict, cast
 from collections.abc import Iterable, Sized
+from typing import TypedDict, cast
 
 import httpx
-from httpx import HTTPError
 import requests
 import web
+from httpx import HTTPError
 from web import DB
 
 from infogami.infobase.client import Site

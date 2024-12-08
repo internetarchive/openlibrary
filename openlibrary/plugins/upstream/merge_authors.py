@@ -1,11 +1,11 @@
 """Merge authors.
 """
 
-import re
 import json
-import web
-
+import re
 from typing import Any
+
+import web
 
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
@@ -13,7 +13,7 @@ from infogami.utils.view import render_template, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
-from openlibrary.utils import uniq, dicthash
+from openlibrary.utils import dicthash, uniq
 
 
 class BasicRedirectEngine:
@@ -258,8 +258,14 @@ class merge_authors(delegate.page):
         return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
     def GET(self):
-        i = web.input(key=[], mrid=None)
-        keys = uniq(i.key)
+        i = web.input(key=[], mrid=None, records='')
+
+        # key is deprecated in favor of records but we will support both
+        if deprecated_keys := uniq(i.key):
+            redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
+            raise web.redirect(redir_url)
+
+        keys = uniq(i.records.strip(',').split(','))
 
         # filter bad keys
         keys = self.filter_authors(keys)

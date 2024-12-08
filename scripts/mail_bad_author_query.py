@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import web
 import os
 import smtplib
 import sys
 from email.mime.text import MIMEText
+
+import web
 
 password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
 if password.endswith('\n'):

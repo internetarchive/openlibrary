@@ -1,18 +1,17 @@
 """Handlers for adding and editing tags."""
 
-import web
-
 from typing import NoReturn
 
+import web
+
 from infogami.core.db import ValidationException
-from infogami.utils.view import add_flash_message, public
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
-
+from infogami.utils.view import add_flash_message, public
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
+from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.utils import render_template
 
 

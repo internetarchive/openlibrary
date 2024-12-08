@@ -1,25 +1,23 @@
 """Helper functions used by the List model.
 """
 
+import contextlib
+import logging
 from collections.abc import Iterable
 from functools import cached_property
 from typing import TypedDict, cast
 
 import web
-import logging
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
 from infogami.utils import stats  # noqa: F401 side effects may be needed
-
-from openlibrary.core import helpers as h
 from openlibrary.core import cache
+from openlibrary.core import helpers as h
 from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict
 from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
-
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
-import contextlib
 
 logger = logging.getLogger("openlibrary.lists.model")
 

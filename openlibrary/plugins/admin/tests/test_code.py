@@ -1,10 +1,11 @@
 from typing import cast
+
+import web
+
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
 )
 from openlibrary.plugins.admin.code import revert_all_user_edits
-import web
-
 from openlibrary.plugins.upstream.models import (
     Changeset,  # noqa: F401 side effects may be needed
 )

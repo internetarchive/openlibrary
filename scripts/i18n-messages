@@ -2,9 +2,10 @@
 """Utility script to extract all translatable messages from templates and
 macros and write to openlibrary/i18n/messages.pot file.
 """
+import sys
+
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
-import sys
 from openlibrary import i18n
 
 

@@ -1,7 +1,8 @@
 import web
+
 from openlibrary.plugins.worksearch.code import (
-    process_facet,
     get_doc,
+    process_facet,
 )
 
 

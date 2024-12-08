@@ -1,32 +1,29 @@
 import json
+from typing import TYPE_CHECKING, Final, Literal, cast
+
 import web
 from web.template import TemplateResult
 
-from typing import Final, Literal, cast, TYPE_CHECKING
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, safeint, render
-
-from openlibrary.i18n import gettext as _
-
+from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
     get_loans_of_user,
 )
+from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.models import LoggedBooksData
-from openlibrary.core.models import User
-from openlibrary.core.follows import PubSub
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.i18n import gettext as _
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
     from openlibrary.core.lists.model import List

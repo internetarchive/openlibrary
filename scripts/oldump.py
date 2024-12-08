@@ -20,6 +20,7 @@ def log(*args) -> None:
 
 if __name__ == "__main__":
     from contextlib import redirect_stdout
+
     from infogami import config
     from openlibrary.config import load_config
     from openlibrary.data import dump

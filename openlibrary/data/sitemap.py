@@ -13,11 +13,12 @@ http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
 
-import sys
-import os
-import web
 import datetime
+import os
+import sys
 from gzip import open as gzopen
+
+import web
 
 from openlibrary.plugins.openlibrary.processors import (
     urlsafe,  # noqa: F401 side effects may be needed

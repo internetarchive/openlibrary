@@ -30,11 +30,6 @@ $add_metatag(property="og:description", content=og_description)
 $add_metatag(property="og:image", content=meta_photo_url)
 
 <div class="mybooks-list">
-  $ yearly_goal = get_reading_goals(year=checkin_year)
-  $if yearly_goal and owners_page and key in readlog_keys:
-    <div class="yearly-goal-section">
-      $:render_template('check_ins/reading_goal_progress', [yearly_goal])
-    </div>
 
   $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
 

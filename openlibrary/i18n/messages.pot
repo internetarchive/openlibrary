@@ -898,7 +898,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: widget.html
+#: check_ins/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -1312,15 +1312,6 @@ msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
 
 #: account/mybooks.html
-#, python-format
-msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/mybooks.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
-#: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr ""
 
@@ -1708,6 +1699,20 @@ msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html mybooks.py
 msgid "My Feed"
+msgstr ""
+
+#: account/sidebar.html
+#, python-format
+msgid "%(year)d Reading Goal"
+msgstr ""
+
+#: account/sidebar.html
+#, python-format
+msgid "Set %(year_span)s reading goal"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
@@ -2831,6 +2836,11 @@ msgid "including <i>%(topwork)s</i>"
 msgstr ""
 
 #: authors/infobox.html
+#, python-format
+msgid "View on %(site)s"
+msgstr ""
+
+#: authors/infobox.html
 msgid "Born"
 msgstr ""
 
@@ -2875,7 +2885,6 @@ msgstr ""
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
-#: check_ins/reading_goal_progress.html
 msgid "Learn more"
 msgstr ""
 
@@ -3546,14 +3555,6 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: books/edition-sort.html
-msgid "Libraries near you:"
-msgstr ""
-
-#: books/edition-sort.html
-msgid "Look for this edition at WorldCat"
-msgstr ""
-
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: mybooks.py
 msgid "Books"
@@ -3900,18 +3901,6 @@ msgid "Like, ISBN?"
 msgstr ""
 
 #: books/edit/edition.html
-msgid "Select one of many..."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Remove this identifier"
-msgstr ""
-
-#: books/edit/edition.html lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
-#: books/edit/edition.html
 msgid "Please select a classification."
 msgstr ""
 
@@ -3929,6 +3918,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Select one of many..."
 msgstr ""
 
 #: books/edit/edition.html
@@ -4259,15 +4252,10 @@ msgstr ""
 
 #: check_ins/reading_goal_progress.html
 #, python-format
-msgid "%(year)d Reading Goal:"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
 msgid ""
 "<span class=\"reading-goal-progress__books-"
 "read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> books"
+"progress__goal\">%(goal)d</span> Books"
 msgstr ""
 
 #: check_ins/reading_goal_progress.html
@@ -4885,6 +4873,10 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
+msgstr ""
+
+#: lib/nav_foot.html site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -7297,6 +7289,10 @@ msgstr ""
 
 #: LoanStatus.html
 msgid "Checked Out"
+msgstr ""
+
+#: LocateButton.html
+msgid "Locate"
 msgstr ""
 
 #: ManageLoansButtons.html

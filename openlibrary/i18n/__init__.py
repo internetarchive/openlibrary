@@ -1,24 +1,22 @@
 import os
 import shutil
-import sys
 import subprocess
+import sys
 from collections.abc import Iterator
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from datetime import datetime
-
-import web
 
 import babel
-from babel.support import Translations
+import web
 from babel.messages import Catalog, Message
-from babel.messages.pofile import read_po, write_po
-from babel.messages.mofile import write_mo
 from babel.messages.extract import (
-    extract_from_file,  # noqa: F401 side effects may be needed
     extract_from_dir,
     extract_python,
 )
+from babel.messages.mofile import write_mo
+from babel.messages.pofile import read_po, write_po
+from babel.support import Translations
 
 from .validators import validate
 

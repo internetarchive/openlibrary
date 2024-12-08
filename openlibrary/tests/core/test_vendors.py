@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from unittest.mock import patch
 
 import pytest
+
 from openlibrary.core.vendors import (
-    get_amazon_metadata,
-    split_amazon_title,
-    clean_amazon_metadata_for_load,
-    betterworldbooks_fmt,
     AmazonAPI,
+    betterworldbooks_fmt,
+    clean_amazon_metadata_for_load,
+    get_amazon_metadata,
     is_dvd,
+    split_amazon_title,
 )
 
 

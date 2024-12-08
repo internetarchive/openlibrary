@@ -1,18 +1,17 @@
 """web.py application processors for Open Library.
 """
 
-from datetime import datetime
 import re
+from datetime import datetime
+
 import web
 
 from infogami.core.code import logout as infogami_logout
-
+from openlibrary.accounts import get_current_user
+from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )
-from openlibrary.accounts import get_current_user
-
-from openlibrary.core import helpers as h
 
 urlsafe = h.urlsafe
 _safepath = h.urlsafe

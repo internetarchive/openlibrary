@@ -6,36 +6,34 @@ import hmac
 import json
 import logging
 import re
-from typing import Literal
-import requests
 import time
+import urllib
 from datetime import datetime
+from typing import Literal
 
+import lxml.etree
+import requests
 import web
-
-from infogami import config
-from infogami.utils import delegate
-from infogami.utils.view import (
-    public,
-    add_flash_message,
-)
-from infogami.infobase.utils import parse_datetime
-
-from openlibrary.core import models  # noqa: F401 side effects may be needed
-from openlibrary.core import stats
-from openlibrary.core import lending
-from openlibrary.core import vendors
-from openlibrary.core import waitinglist
-from openlibrary.i18n import gettext as _
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary import accounts
-from openlibrary.utils import dateutil
-
 from lxml import etree
 
-import urllib
-import lxml.etree
-
+from infogami import config
+from infogami.infobase.utils import parse_datetime
+from infogami.utils import delegate
+from infogami.utils.view import (
+    add_flash_message,
+    public,
+)
+from openlibrary import accounts
+from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.core import (
+    lending,
+    models,  # noqa: F401 side effects may be needed
+    stats,
+    vendors,
+    waitinglist,
+)
+from openlibrary.i18n import gettext as _
+from openlibrary.utils import dateutil
 
 logger = logging.getLogger("openlibrary.borrow")
 

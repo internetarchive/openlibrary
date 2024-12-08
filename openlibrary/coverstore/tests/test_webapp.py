@@ -1,10 +1,10 @@
 import json
+import urllib
 from os import system
 from os.path import abspath, dirname, join, pardir
 
 import pytest
 import web
-import urllib
 
 from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 
