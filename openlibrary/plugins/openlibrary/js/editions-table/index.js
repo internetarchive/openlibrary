@@ -8,6 +8,10 @@ export function initEditionsTable() {
     var rowCount;
     let currentLength;
 
+    // Prevent reinitialization of the editions datatable
+    if ($.fn.DataTable.isDataTable($('#editions'))) {
+        return;
+    }
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -75,7 +79,33 @@ export function initEditionsTable() {
             bFilter: true,
             bStateSave: false,
             bAutoWidth: false,
-            pageLength: currentLength ? currentLength : DEFAULT_LENGTH
-        });
+            pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
+            drawCallback: function() {
+                if ($('#ile-toolbar')) {
+                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition']
+                    const matchEdition = (string) => {
+                        return string.match(/OL[0-9]+[a-zA-Z]/)
+                    }
+                    for (const el of $('.ile-selected')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'))
+                            if (!editionStorage.includes(edIdentifier[0])) {
+                                el.classList.remove('ile-selected');
+                            }
+                        }
+                    }
+                    for (const el of $('.ile-selectable')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'));
+                            if (editionStorage.includes(edIdentifier[0])) {
+                                el.classList.add('ile-selected');
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
 }
