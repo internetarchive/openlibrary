@@ -562,7 +562,7 @@ jQuery(function () {
 
     const tagTypeSelector = document.querySelector('#tag_type')
     if (tagTypeSelector) {
-        import(/* webpackChunkName: "tag-form" */ "./tag-form")
+        import(/* webpackChunkName: "tag-form" */ './tag-form')
             .then(module => module.initTagTypeSelector(tagTypeSelector))
     }
 });

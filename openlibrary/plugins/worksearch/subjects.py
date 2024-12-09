@@ -60,12 +60,13 @@ class subjects(delegate.page):
         return key
 
     def decorate_with_tags(self, subject) -> None:
-        tag_keys = Tag.find(subject.name)
-        if tag_keys:
+        if tag_keys := Tag.find(subject.name):
             tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-            if filtered_tags := [tag for tag in tags if tag.tag_type == subject.subject_type]:
+            if filtered_tags := [
+                tag for tag in tags if tag.tag_type == subject.subject_type
+            ]:
                 subject.tag = filtered_tags[0]
 
 

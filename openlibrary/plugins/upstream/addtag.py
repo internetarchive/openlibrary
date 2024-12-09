@@ -34,7 +34,11 @@ def validate_tag(tag):
 
 
 def validate_subject_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types() and tag.get('body')
+    return (
+        tag.get('name', '')
+        and tag.get('tag_type', '') in get_subject_tag_types()
+        and tag.get('body')
+    )
 
 
 def create_tag(tag: dict):
@@ -122,7 +126,7 @@ class addtag(delegate.page):
         """
         Tries to find an existing tag that matches the data provided by the user.
         """
-        matches =  Tag.find(i.name, tag_type=i.tag_type)
+        matches = Tag.find(i.name, tag_type=i.tag_type)
         return matches[0] if matches else None
 
     def tag_match(self, match: list) -> NoReturn:
