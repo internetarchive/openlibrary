@@ -36,7 +36,7 @@ $ q = query_param('q')
         $page.tag['description']
       </h3>
       <p>
-        See <a href="$page.tag.get('key')">tag page</a> to edit description.
+        $:_('See <a href="%(tag_url)s">tag page</a> to edit description.', tag_url=page.tag.get('key'))
       </p>
     <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
@@ -47,7 +47,7 @@ $ q = query_param('q')
 </div>
 $if 'disambiguations' in page:
     <div>
-        <h3>Disambiguations</h3>
+        <h3>$_("Disambiguations")</h3>
         <ul>
             $for i in page.disambiguations:
             <li>
