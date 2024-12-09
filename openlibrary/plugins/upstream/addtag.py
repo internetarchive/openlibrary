@@ -8,16 +8,11 @@ from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, public
-
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.utils import render_template
-
-
-SUBJECT_SUB_TYPES = ["subject", "person", "place", "time"]
-TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 @public
@@ -28,6 +23,10 @@ def get_tag_types():
 @public
 def get_subject_tag_types():
     return SUBJECT_SUB_TYPES
+
+
+SUBJECT_SUB_TYPES = ["subject", "person", "place", "time"]
+TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 def validate_tag(tag):
@@ -227,7 +226,7 @@ class add_typed_tag(delegate.page):
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
         if not (patron := get_current_user()):
-            raise web.seeother(f'/account/login')
+            raise web.seeother('/account/login')
         if not self.has_permission(patron):
             raise web.unauthorized()
 

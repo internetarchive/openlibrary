@@ -1,7 +1,6 @@
 """Models of various OL objects.
 """
 
-import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
