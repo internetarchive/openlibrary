@@ -38,7 +38,7 @@ def validate_subject_tag(tag):
     return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types() and tag.get('body')
 
 
-def create_tag(tag: dict) -> Tag:
+def create_tag(tag: dict):
     if not validate_tag(tag):
         raise ValueError("Invalid data for tag creation")
 
@@ -51,7 +51,7 @@ def create_tag(tag: dict) -> Tag:
     return tag
 
 
-def create_subject_tag(tag: dict) -> Tag:
+def create_subject_tag(tag: dict):
     if not validate_subject_tag(tag):
         raise ValueError("Invalid data for subject tag creation")
 
