@@ -4,5 +4,5 @@ $ params = {'origin': request.home.replace('http:', 'https:')}
 <iframe
     id="ia-third-party-logins"
     src="https://$get_ia_host(allow_dev=True)/account/login.thirdparty.php?$(urlencode(params))"
-    style="border:0; width: 250px; height: 44px"
+    style="border:0; width: auto; max-width: 250px; height: 44px"
 ></iframe>
