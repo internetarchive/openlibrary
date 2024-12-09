@@ -16,7 +16,6 @@ $ heading = _("Edit subject tag") if is_editing else _("Add a subject tag to Ope
 <div id="contentBody">
     <form method="post" action="" id="addtag" class="olform addtag1">
         $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": True, "subjects_only": True})
-        $:render_template("type/tag/subject/edit_form_inputs", page)
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">
