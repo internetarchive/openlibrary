@@ -267,11 +267,11 @@ deploy_openlibrary() {
         "
     done
 
-    echo "Prune old images..."
+    echo "Prune docker images/cache..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
         # ssh $SERVER "docker image prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
+        if OUTPUT=$(ssh $SERVER "docker image prune -f && docker builder prune -f" 2>&1); then
             echo "✓"
         else
             echo "⚠"
