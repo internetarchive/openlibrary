@@ -211,8 +211,6 @@ deploy_openlibrary() {
     COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
     TMP_DIR=$(mktemp -d)
 
-    check_server_access
-
     cd $TMP_DIR
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
@@ -236,15 +234,15 @@ deploy_openlibrary() {
         exit 1
     else
         echo "✓ Docker image is up-to-date"
-        echo ""
     fi
+
+    check_server_access
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do
         check_for_local_changes $SERVER "/opt/openlibrary"
     done
     echo -e "No changes found in the openlibrary repo on the servers.\n"
-    echo ""
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
