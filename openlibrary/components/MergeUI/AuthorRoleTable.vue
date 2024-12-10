@@ -19,10 +19,7 @@
                                 {{role[field].key.slice("/authors/".length)}}
                             </a>
                         </div>
-                        <div v-else-if="field == 'name'">
-                            {{role[field]}}
-                        </div>
-                        <div v-else>{{a[k]}}</div>
+                        <div v-else>{{role[field]}}</div>
                     </div>
                 </td>
             </tr>
