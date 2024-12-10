@@ -21,7 +21,7 @@ $if search:
 
 $code:
   # Limit to just fields needed to render carousels
-  params = { 'q': query, 'fields': 'key,title,subtitle,author_name,cover_i,ia,availability,id_project_gutenberg,id_librivox,id_standard_ebooks,id_openstax' }
+  params = { 'q': query, 'fields': 'key,title,subtitle,author_name,cover_i,ia,availability,id_project_gutenberg,id_project_runeberg,id_librivox,id_standard_ebooks,id_openstax' }
   # Don't need fields in the search UI url, since they don't do anything there
   url = url or "/search?" + urlencode({'q': query})
   if has_fulltext_only:
