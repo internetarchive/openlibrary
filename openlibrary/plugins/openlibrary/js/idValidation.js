@@ -105,6 +105,35 @@ export function isValidLccn(lccn) {
 }
 
 /**
+ * Parses and cleans up OCLC/WorldCat identifier input.
+ * @param {String} oclc  OCLC string for parsing
+ * @returns {String}  parsed OCLC string
+ */
+export function parseOclc(oclc) {
+    // cleaning initial oclc entry
+    return oclc
+        // remove any whitespace
+        .replace(/\s/g, '')
+        // remove leading/padding zeroes
+        .replace(/^0+/, '');
+}
+
+/**
+ * Verify OCLC Control Number syntax. OCLC Numbers are “unique, sequentially
+ * assigned number[s] associated with a record in WorldCat.”
+ * They only contains digits and aren’t normally 0-padded.
+ * See https://help.oclc.org/Metadata_Services/OCLC_MARC_records/Summary_of_processing_changes/History_of_the_OCLC_number
+ * and https://help.oclc.org/Library_Management/WorldShare_Reports/Report_objects/Report_objects_A_to_Z/Report_objects_M-P#O
+ * @param {String} oclc  OCLC string to test for valid syntax
+ * @returns {boolean}  true if given OCLC is valid syntax, false otherwise
+ */
+export function isValidOclc(oclc) {
+    // matching parsed entry to regex representing valid oclc
+    const regex = /^[1-9][0-9]*$/;
+    return regex.test(oclc);
+}
+
+/**
  * Given a list of identifier entries from edition page form and a new
  * identifier, determines if the new identifier has already been entered
  * under the same type as an existing identifier entry.
