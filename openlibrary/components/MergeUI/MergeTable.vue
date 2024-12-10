@@ -128,7 +128,7 @@ export default {
             const enhanced_records = _.cloneDeep(this.records)
 
             for (const record of enhanced_records) {
-                for (const entry of record.authors) {
+                for (const entry of (record.authors || [])) {
                     entry.name = author_names[entry.author.key.slice('/authors/'.length)];
                 }
             }

@@ -240,6 +240,8 @@ export async function get_author_names(works) {
         (record.authors || []).map(authorEntry => authorEntry.author.key)
     )
 
+    if (!authorIds.length) return {};
+
     const queryParams = new URLSearchParams({
         q: `key:(${authorIds.join(' OR ')})`,
         mode: 'everything',
