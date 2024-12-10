@@ -3,7 +3,7 @@ $def with (work, editions=None, edition=None, editions_limit=None)
 $ book_keys = []
 $ edition_list_start = time()
 
-$if editions_limit or (len(editions) < work.edition_count):
+$if (editions_limit and len(editions) > editions_limit) or (len(editions) < work.edition_count):
   <p class="small sansserif featured-count">
 
     $ungettext('Showing %(count)d featured edition.', 'Showing %(count)d featured editions.', len(editions), count=len(editions))
