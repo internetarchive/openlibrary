@@ -34,7 +34,11 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $ announcement = ''
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
       $ cookie_name = ''
-      $if announcement and cookie_name:
+      $if cookies().get('fa'):
+        $ fa = cookies().get('fa')
+        $ new_account_msg = 'Welcome to your new account! <a href="$fa">Click here</a> to return to your book'
+        $:render_template('site/banner', new_account_msg, 'fa', cookie_duration_days=30)
+      $elif announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
   </div>
