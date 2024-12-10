@@ -22,17 +22,18 @@
   "publish_country": "nyu",
   "authors": [
     {
-      "personal_name": "Pollan, Stephen M.",
       "name": "Pollan, Stephen M.",
+      "entity_type": "person"
+    },
+    {
+      "name": "Levine, Mark",
+      "birth_date": "1958",
       "entity_type": "person"
     }
   ],
   "by_statement": "Stephen M. Pollan and Mark Levine",
   "publish_places": [
     "New York"
-  ],
-  "contributions": [
-    "Levine, Mark, 1958-"
   ],
   "isbn_10": [
     "0887308678"
