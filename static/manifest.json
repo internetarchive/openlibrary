@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
     "name": "Open Library: A page for every book published",
-    "description": "An open, editable library catalog for every book published.",
+    "description": "An open, editable library catalog for every book published. Access millions of books instantly! Search, read, and borrow on the go!",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
@@ -38,6 +38,78 @@
             "text": "q"
         }
     },
+    "screenshots": [
+      {
+        "src": "./images/MainPageDesktop.jpeg",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Main Page Desktop"
+      },
+      {
+        "src": "./images/SearchBooksDesktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Search Books Desktop"
+      },
+      {
+        "src": "./images/StudentLibraryDesktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Student Library Desktop"
+      },
+      {
+        "src": "./images/TrendingDesktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Trending Desktop"
+      },
+      {
+        "src": "./images/ListsDesktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Lists Desktop"
+      },
+      {
+        "src": "./images/MainPageMobile.jpg",
+        "sizes": "360x640",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Main Page Mobile"
+      },
+      {
+        "src": "./images/SearchMobile.jpg",
+        "sizes": "360x640",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Search Books Mobile"
+      },
+      {
+        "src": "./images/StudentLibraryMobile.jpg",
+        "sizes": "360x640",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Student Library Mobile"
+      },
+      {
+        "src": "./images/TrendingMobile.jpg",
+        "sizes": "360x640",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Trending Mobile"
+      },
+      {
+        "src": "./images/ListsMobile.jpg",
+        "sizes": "360x640",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Lists Mobile"
+      }
+    ],
     "shortcuts": [
       {
         "name": "My Books",
