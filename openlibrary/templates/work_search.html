@@ -57,7 +57,10 @@ $def with (q_param, search_response, get_doc, param, page, rows)
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-          <div class="red">$:_('No <strong>%(path_id)s</strong> directly matched your search', path_id=path_id)</div>
+          <div class="red">
+            $:_('No <strong>%(path_id)s</strong> directly matched your search.', path_id=path_id)
+            <a href="/books/add">$_('Add a new book?')</a>
+        </div>
           <hr>
         </center>
         <div id="fulltext-search-suggestion" data-query="$query">
