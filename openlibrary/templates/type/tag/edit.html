@@ -14,7 +14,7 @@ $putctx("robots", "noindex,nofollow")
 <div id="contentBody">
 
     <form id="edittag" name="edit" method="post" action="" class="olform">
-        $:render_template("type/tag/tag_form_inputs", tag_name=page.name, tag_type=page.tag_type, tag_description=page.tag_description)
+        $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": False})
         <div class="clearfix"></div>
 
         <div class="formElement bottom">

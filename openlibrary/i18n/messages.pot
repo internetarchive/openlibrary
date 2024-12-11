@@ -37,8 +37,8 @@ msgstr ""
 
 #: account.html check_ins/check_in_prompt.html
 #: check_ins/reading_goal_progress.html databarHistory.html
-#: databarTemplate.html databarView.html subjects.html
-#: type/edition/compact_title.html type/user/view.html
+#: databarTemplate.html databarView.html type/edition/compact_title.html
+#: type/user/view.html
 msgid "Edit"
 msgstr ""
 
@@ -706,7 +706,11 @@ msgid "Name"
 msgstr ""
 
 #: subjects.html
-msgid "Edit Subject Tag"
+msgid "Tag"
+msgstr ""
+
+#: subjects.html
+msgid "Link this subject to a tag"
 msgstr ""
 
 #: subjects.html
@@ -722,7 +726,16 @@ msgstr[1] ""
 
 #: subjects.html
 #, python-format
+msgid "See <a href=\"%(tag_url)s\">tag page</a> to edit description."
+msgstr ""
+
+#: subjects.html
+#, python-format
 msgid "Search for books with subject %(name)s."
+msgstr ""
+
+#: subjects.html
+msgid "Disambiguations"
 msgstr ""
 
 #: support.html
@@ -787,6 +800,7 @@ msgstr ""
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html merge/authors.html
 #: my_books/dropdown_content.html support.html tag/add.html
+#: type/tag/collection/edit.html type/tag/subject/edit.html
 msgid "Cancel"
 msgstr ""
 
@@ -1988,6 +2002,7 @@ msgstr ""
 
 #: admin/imports-add.html books/add.html books/edit/edition.html
 #: books/edit/excerpts.html covers/change.html tag/add.html
+#: type/tag/collection/edit.html type/tag/subject/edit.html
 msgid "Add"
 msgstr ""
 
@@ -3263,7 +3278,8 @@ msgstr ""
 msgid "Only fill this out if this is a web book"
 msgstr ""
 
-#: EditButtons.html books/add.html tag/add.html
+#: EditButtons.html books/add.html tag/add.html type/tag/collection/edit.html
+#: type/tag/subject/edit.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -6257,7 +6273,7 @@ msgstr ""
 msgid "Add a tag to Open Library"
 msgstr ""
 
-#: tag/add.html
+#: tag/add.html type/tag/collection/edit.html type/tag/subject/edit.html
 msgid "Add this tag now"
 msgstr ""
 
@@ -6909,6 +6925,42 @@ msgstr ""
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
+msgstr ""
+
+#: type/tag/collection/edit.html
+msgid "Edit collection tag"
+msgstr ""
+
+#: type/tag/collection/edit.html
+msgid "Add a collection tag"
+msgstr ""
+
+#: type/tag/collection/edit.html
+msgid "Add a collection tag to Open Library"
+msgstr ""
+
+#: type/tag/collection/edit.html
+msgid "We require a minimum set of fields to create a new collection tag."
+msgstr ""
+
+#: type/tag/subject/edit.html
+msgid "Edit subject tag"
+msgstr ""
+
+#: type/tag/subject/edit.html
+msgid "Add a subject tag"
+msgstr ""
+
+#: type/tag/subject/edit.html
+msgid "Add a subject tag to Open Library"
+msgstr ""
+
+#: type/tag/subject/edit.html
+msgid "We require a minimum set of fields to create a new subject tag."
+msgstr ""
+
+#: type/tag/subject/edit_form_inputs.html
+msgid "Page Body"
 msgstr ""
 
 #: type/template/edit.html
