@@ -6,7 +6,11 @@
       </template>
 
       <template v-slot:cover="{book}">
-        <slot name="cover" v-bind:book="book"/>
+        <div class="cover-container">
+          <slot name="cover" v-bind:book="book">
+            <img :src="`https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`" alt="Cover" class="cover"/>
+          </slot>
+        </div>
       </template>
 
       <template #book-end-start>
@@ -251,7 +255,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .load-books {
   width: 100%;
@@ -319,4 +322,42 @@ export default {
   overflow: clip;
   position: relative;
 }
+
+.cover-container {
+  width: 180px;
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+img.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .cover-container {
+    width: 100px;
+    height: 150px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1200px) {
+  .cover-container {
+    width: 120px;
+    height: 180px;
+  }
+}
+
+@media (min-width: 1201px) {
+  .cover-container {
+    width: 150px;
+    height: 200px;
+  }
+}
+
 </style>
