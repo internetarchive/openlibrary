@@ -155,7 +155,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("key")) and (
+    if (key := author.get("ol_id")) and (
         reply := list(web.ctx.site.things({"type": "/type/author", "key~": key}))
     ):
         # Always match on OL ID, even if remote identifiers don't match.
