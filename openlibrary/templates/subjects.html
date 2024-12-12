@@ -50,9 +50,9 @@ $if 'disambiguations' in page:
         <h3>$_("Disambiguations")</h3>
         <ul>
             $for i in page.disambiguations:
-            <li>
-                <a href="$i.key">$i.name ($i.tag_type)</a>
-            </li>
+                <li>
+                    <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                </li>
         </ul>
     </div>
 <div class="contentBody">
