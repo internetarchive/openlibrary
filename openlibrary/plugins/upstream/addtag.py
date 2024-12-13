@@ -1,13 +1,13 @@
 """Handlers for adding and editing tags."""
 
-from typing import NoReturn
-
 import web
 
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, public
+from web.template import TemplateResult
+
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
@@ -30,11 +30,11 @@ TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 def validate_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '') in get_tag_types()
+    return tag.get('name', '') and tag.get('tag_type', '') in get_tag_types() and tag.get('body')
 
 
 def validate_subject_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '') in get_subject_tag_types() and tag.get('body')
+    return validate_tag(tag) and tag.get('tag_type', '') in get_subject_tag_types()
 
 
 def create_tag(tag: dict):
@@ -59,9 +59,17 @@ def create_subject_tag(tag: dict):
         **tag,
     }
 
-    # TODO : handle case where body is empty string
     tag = Tag.create(trim_doc(d))
     return tag
+
+
+def find_match(name: str, tag_type: str) -> str:
+    """
+    Tries to find an existing tag that matches the data provided by the user.
+    Returns the key of the matching tag, or an empty string if no such tag exists.
+    """
+    matches =  Tag.find(name, tag_type=tag_type)
+    return matches[0] if matches else ''
 
 
 class addtag(delegate.page):
@@ -70,6 +78,7 @@ class addtag(delegate.page):
     def GET(self):
         """Main user interface for adding a tag to Open Library."""
         if not (patron := get_current_user()):
+            # NOTE : will lose any query params on login redirect
             raise web.seeother(f'/account/login?redirect={self.path}')
 
         if not self.has_permission(patron):
@@ -109,36 +118,14 @@ class addtag(delegate.page):
         if not validate_tag(i):
             raise web.badrequest()
 
-        match = self.find_match(i)  # returns None or Tag (if match found)
+        if match := find_match(i.name, i.tag_type):
+            # A tag with the same name and type already exists
+            add_flash_message(
+                'error',
+                f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
+            )
+            return render_template('tag/add', i)
 
-        if match:
-            # tag match
-            return self.tag_match(match)
-        else:
-            # no match
-            return self.no_match(i)
-
-    def find_match(self, i: web.utils.Storage):
-        """
-        Tries to find an existing tag that matches the data provided by the user.
-        """
-        matches =  Tag.find(i.name, tag_type=i.tag_type)
-        return matches[0] if matches else None
-
-    def tag_match(self, match: list) -> NoReturn:
-        """
-        Action for when an existing tag has been found.
-        Redirect user to the found tag's edit page to add any missing details.
-        """
-        tag = web.ctx.site.get(match[0])
-        raise safe_seeother(tag.key + "/edit")
-
-    def no_match(self, i: web.utils.Storage) -> NoReturn:
-        """
-        Action to take when no tags are found.
-        Creates a new Tag.
-        Redirects the user to the tag's home page
-        """
         tag = create_tag(i)
         raise safe_seeother(tag.key)
 
@@ -158,40 +145,46 @@ class tag_edit(delegate.page):
         if tag is None:
             raise web.notfound()
 
-        if tag.tag_type in SUBJECT_SUB_TYPES:
-            return render_template("type/tag/subject/edit", tag, redirect=i.redir)
-        elif tag.tag_type == "collection":
-            return render_template("type/tag/collection/edit", tag)
-
-        return render_template('type/tag/edit', tag, redirect=i.redir)
+        return self.get_template_for_type(tag, i)
 
     def POST(self, key):
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                "Permission denied to edit " + key + ".",
+            )
         tag = web.ctx.site.get(key)
         if tag is None:
             raise web.notfound()
 
         i = web.input(_comment=None, redir=None)
-        formdata = self.process_input(i)
+        formdata = trim_doc(i)
+        if not formdata or not self.validate(formdata, tag.tag_type):
+            raise web.badrequest()
+        if tag.tag_type != formdata.tag_type:
+            match = find_match(formdata.name, formdata.tag_type)
+            if match:
+                # A tag with the same name and type already exists
+                add_flash_message(
+                    'error',
+                    f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
+                )
+                return self.get_template_for_type(formdata, formdata)
+
         try:
-            if not formdata or not self.validate(formdata, tag.tag_type):
-                raise web.badrequest()
-            elif "_delete" in i:
+            if "_delete" in i:
                 tag = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
                 tag._save(comment=i._comment)
                 raise safe_seeother(key)
-            else:
-                tag.update(formdata)
-                tag._save(comment=i._comment)
-                raise safe_seeother(i.redir if i.redir else key)
+            tag.update(formdata)
+            tag._save(comment=i._comment)
+            raise safe_seeother(i.redir if i.redir else key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             return render_template("type/tag/edit", tag, redirect=i.redir)
-
-    def process_input(self, i):
-        tag = trim_doc(i)
-        return tag
 
     def validate(self, data, tag_type):
         if tag_type in SUBJECT_SUB_TYPES:
@@ -199,12 +192,20 @@ class tag_edit(delegate.page):
         else:
             return validate_tag(data)
 
+    def get_template_for_type(self, tag, web_input) -> TemplateResult:
+        if tag.tag_type in SUBJECT_SUB_TYPES:
+            return render_template("type/tag/subject/edit", tag, redirect=web_input.redir)
+        elif tag.tag_type == "collection":
+            return render_template("type/tag/collection/edit", tag)
+
+        return render_template('type/tag/edit', tag, redirect=web_input.redir)
+
 
 class add_typed_tag(delegate.page):
     path = "/tag/([^/]+)/add"
 
     def GET(self, tag_type):
-        if not self.validate_type(tag_type):
+        if not tag_type in get_tag_types():
             raise web.badrequest()
         if not (patron := get_current_user()):
             # NOTE : will lose any query params on login redirect
@@ -219,7 +220,7 @@ class add_typed_tag(delegate.page):
 
     def POST(self, tag_type):
         i = web.input(tag_type=tag_type, redir=None)
-        if not self.validate_type(i.tag_type) or not self.validate_input(i):
+        if not self.validate_input(i):
             raise web.badrequest()
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
@@ -229,6 +230,17 @@ class add_typed_tag(delegate.page):
             raise web.seeother('/account/login')
         if not self.has_permission(patron):
             raise web.unauthorized()
+
+        i = trim_doc(i)
+        if match := find_match(i.name, i.tag_type):
+            # A tag with this name and type already exists
+            add_flash_message(
+                'error',
+                f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
+            )
+            if tag_type in get_subject_tag_types():
+                return render_template("type/tag/subject/edit", i, redirect=i.redir)
+            return render_template(f"type/tag/{tag_type}/edit", i)
 
         if i.tag_type in get_subject_tag_types():
             tag = create_subject_tag(i)
@@ -240,9 +252,6 @@ class add_typed_tag(delegate.page):
         return user and (
             user.is_librarian() or user.is_super_librarian() or user.is_admin()
         )
-
-    def validate_type(self, tag_type):
-        return tag_type in get_tag_types()
 
     def validate_input(self, i):
         if i.tag_type in get_subject_tag_types():
