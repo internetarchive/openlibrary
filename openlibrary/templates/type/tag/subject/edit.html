@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, redirect=None)
 
 $ is_editing = page and page.get("key", "")
 
@@ -15,6 +15,8 @@ $ heading = _("Edit subject tag") if is_editing else _("Add a subject tag to Ope
 
 <div id="contentBody">
     <form method="post" action="" id="addtag" class="olform addtag1">
+        $if redirect:
+            <input type="hidden" name="redir" value="$redirect">
         $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": True, "subjects_only": True})
         <div class="formElement bottom">
             <br/>

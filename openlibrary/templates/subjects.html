@@ -8,12 +8,12 @@ $ q = query_param('q')
 
 <div id="scrollHere"></div>
 <div class="page-heading-search-box">
-    $if can_add_tag and not has_tag:
+    $if can_add_tag:
       <div class="subjectTagEdit">
-        $ link_url = "/tag/%s/add?name=%s" % (page.subject_type, page.name)
-        $ link_cta = _("Tag")
-        $ elem_title = _("Link this subject to a tag")
-        $ link_track = "CTAClick|SubjectPageTag"
+        $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/%s/add?name=%s&redir=%s" % (page.subject_type, page.name, ctx.path)
+        $ link_cta = _("Edit")
+        $ elem_title = _("Edit tag for this subject") if has_tag else _("Create tag for this subject")
+        $ link_track = "CTAClick|SubjectPageTagEdit"
         <a
           class="editTagButton"
           href="$link_url"

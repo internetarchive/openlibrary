@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, redirect=None)
 
 $var title: $page.name
 
@@ -14,6 +14,8 @@ $putctx("robots", "noindex,nofollow")
 <div id="contentBody">
 
     <form id="edittag" name="edit" method="post" action="" class="olform">
+        $if redirect:
+            <input type="hidden" name="redir" value="$redirect">
         $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": False})
         <div class="clearfix"></div>
 

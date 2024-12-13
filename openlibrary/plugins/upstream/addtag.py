@@ -153,24 +153,24 @@ class tag_edit(delegate.page):
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
-
+        i = web.input(redir=None)
         tag = web.ctx.site.get(key)
         if tag is None:
             raise web.notfound()
 
         if tag.tag_type in SUBJECT_SUB_TYPES:
-            return render_template("type/tag/subject/edit", tag)
+            return render_template("type/tag/subject/edit", tag, redirect=i.redir)
         elif tag.tag_type == "collection":
             return render_template("type/tag/collection/edit", tag)
 
-        return render_template('type/tag/edit', tag)
+        return render_template('type/tag/edit', tag, redirect=i.redir)
 
     def POST(self, key):
         tag = web.ctx.site.get(key)
         if tag is None:
             raise web.notfound()
 
-        i = web.input(_comment=None)
+        i = web.input(_comment=None, redir=None)
         formdata = self.process_input(i)
         try:
             if not formdata or not self.validate(formdata, tag.tag_type):
@@ -184,10 +184,10 @@ class tag_edit(delegate.page):
             else:
                 tag.update(formdata)
                 tag._save(comment=i._comment)
-                raise safe_seeother(key)
+                raise safe_seeother(i.redir if i.redir else key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
-            return render_template("type/tag/edit", tag)
+            return render_template("type/tag/edit", tag, redirect=i.redir)
 
     def process_input(self, i):
         tag = trim_doc(i)
@@ -212,13 +212,13 @@ class add_typed_tag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized()
 
-        i = web.input(tag_type=tag_type)
+        i = web.input(tag_type=tag_type, redir=None)
         if tag_type in get_subject_tag_types():
-            return render_template("type/tag/subject/edit", i)
+            return render_template("type/tag/subject/edit", i, redirect=i.redir)
         return render_template(f"type/tag/{tag_type}/edit", i)
 
     def POST(self, tag_type):
-        i = web.input(tag_type=tag_type)
+        i = web.input(tag_type=tag_type, redir=None)
         if not self.validate_type(i.tag_type) or not self.validate_input(i):
             raise web.badrequest()
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -234,7 +234,7 @@ class add_typed_tag(delegate.page):
             tag = create_subject_tag(i)
         else:
             tag = create_tag(i)
-        raise safe_seeother(tag.key)
+        raise safe_seeother(i.redir if i.redir else tag.key)
 
     def has_permission(self, user):
         return user and (
