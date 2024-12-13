@@ -91,7 +91,7 @@ class FakeDataProvider(DataProvider):
     def get_metadata(self, id):
         return {}
 
-    def get_solr_record(self, work_key: str) -> dict | None:
+    def get_solr_trending_scores(self, work_key: str) -> dict | None:
         doc: dict = {f'trending_score_hourly_{index}': 0 for index in range(24)}
         doc |= {"trending_score_hourly_sum": 0}
         doc |= {f'trending_score_daily_{index}': 0 for index in range(7)}
@@ -110,7 +110,7 @@ class Test_update_keys:
     def setup_class(cls):
         update.data_provider = FakeDataProvider()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete(self):
         update.data_provider.add_docs(
             [
@@ -134,7 +134,7 @@ class Test_update_keys:
         }
         assert update_state.adds == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_redirects(self):
         update.data_provider.add_docs(
             [

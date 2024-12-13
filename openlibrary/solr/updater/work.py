@@ -277,7 +277,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         doc |= self.build_legacy_ia_fields()
         doc |= self.build_ratings() or {}
         doc |= self.build_reading_log() or {}
-        doc |= self.build_trending_scores() or {}
+        doc |= self._data_provider.get_solr_trending_scores(self.key) or {}
         return cast(SolrDocument, doc)
 
     @property
@@ -677,25 +677,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 f'{subject_type}_facet': self._work[work_field],
                 f'{subject_type}_key': [str_to_key(s) for s in self._work[work_field]],
             }
-        return doc
-
-    def build_trending_scores(self) -> dict:
-        record = self._data_provider.get_solr_record(self.key)
-        reply = record.get('docs', {}) if record else {}
-        reply = reply[0] if reply else {}
-        doc: dict = {
-            f'trending_score_hourly_{index}': reply.get(
-                f'trending_score_hourly_{index}', 0
-            )
-            for index in range(24)
-        }
-        doc |= {"trending_score_hourly_sum": reply.get("trending_score_hourly_sum", 0)}
-        doc |= {
-            f'trending_score_daily_{index}': reply.get(
-                f'trending_score_daily_{index}', 0
-            )
-            for index in range(7)
-        }
         return doc
 
 

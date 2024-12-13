@@ -8,7 +8,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
-def fetch_works(current_day: int):
+def fetch_works_trending_scores(current_day: int):
     resp = execute_solr_query(
         '/export',
         {
@@ -37,7 +37,7 @@ def main(openlibrary_yml: str):
     if openlibrary_yml:
         load_config(openlibrary_yml)
         current_day = datetime.datetime.now().weekday()
-        work_data = fetch_works(current_day)
+        work_data = fetch_works_trending_scores(current_day)
 
         request_body = [
             form_inplace_updates(work_id, current_day, work_data[work_id])
@@ -45,7 +45,7 @@ def main(openlibrary_yml: str):
         ]
         print("Daily update completed.")
 
-        resp = get_solr().update_in_place(request_body)
+        resp = get_solr().update_in_place(request_body, commit=True)
     else:
         print("Error: OL_Config could not be found.")
 

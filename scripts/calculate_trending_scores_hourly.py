@@ -22,11 +22,12 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 #         0 events to 1 event.
 
 
-def fetch_works(current_hour: int):
+def fetch_works_trending_scores(current_hour: int):
     ol_db = db.get_db()
-    query = "select work_id, Count(updated)"
-    query += "from bookshelves_books group by bookshelves_books.updated, work_id "
-    query += "having updated >= localtimestamp - interval '1 hour'"
+    query = "SELECT work_id, Count(updated)"
+    query += "FROM bookshelves_books "
+    query += "WHERE updated >= localtimestamp - interval '1 hour'"
+    query += "GROUP BY work_id"
     db_data = {
         f'/works/OL{storage.work_id}W': storage.count
         for storage in list(ol_db.query(query))
@@ -50,17 +51,13 @@ def fetch_works(current_hour: int):
                     "trending_score_daily_*",
                 ]
             ),
-            "sort": "trending_score_hourly_sum desc",
+            "sort": "key asc",
         },
     )
     doc_data = {}
     if resp:
         data = resp.json()
-        try:
-            docs = data["response"]["docs"]
-
-        except KeyError:
-            raise KeyError
+        docs = data["response"]["docs"]
         print(docs)
         doc_data = {
             doc["key"]: {"count": db_data.get(doc["key"], 0), "solr_doc": doc}
@@ -119,7 +116,7 @@ def main(openlibrary_yml: str):
         load_config(openlibrary_yml)
 
         current_hour = datetime.datetime.now().hour
-        work_data = fetch_works(current_hour)
+        work_data = fetch_works_trending_scores(current_hour)
         if work_data:
             request_body = [
                 form_inplace_updates(
@@ -131,7 +128,7 @@ def main(openlibrary_yml: str):
                 for work_id in work_data
             ]
             print(request_body)
-            resp = get_solr().update_in_place(request_body)
+            resp = get_solr().update_in_place(request_body, commit=True)
             print(resp)
             print("Hourly update completed.")
     else:
