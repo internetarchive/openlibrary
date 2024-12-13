@@ -32,11 +32,8 @@ $ q = query_param('q')
         </span>
     </span>
     $if has_tag:
-      <h3 itemprop="description">
-        $page.tag['description']
-      </h3>
-      <p>
-        $:_('See <a href="%(tag_url)s">tag page</a> to edit description.', tag_url=page.tag.get('key'))
+      <p class="tag-description" itemprop="description">
+        $:sanitize(format(page.tag['tag_description']))
       </p>
     <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
@@ -44,19 +41,20 @@ $ q = query_param('q')
       $:render_template("search/searchbox", q=q)
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
+    $if 'disambiguations' in page:
+        <div class="disambiguations">
+            <h3>$_("Disambiguations")</h3>
+            <ul>
+                $for i in page.disambiguations:
+                    <li>
+                        <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                    </li>
+            </ul>
+        </div>
 </div>
-$if 'disambiguations' in page:
-    <div>
-        <h3>$_("Disambiguations")</h3>
-        <ul>
-            $for i in page.disambiguations:
-                <li>
-                    <a href="$i.subject_key">$i.name ($i.tag_type)</a>
-                </li>
-        </ul>
-    </div>
 <div class="contentBody">
-
+    $if has_tag:
+      $:sanitize(format(page.tag.body))
     $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
     $:macros.PublishingHistory(page.publishing_history)
 
