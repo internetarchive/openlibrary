@@ -1,4 +1,4 @@
-$def with (page, num_found, results_per_page=20)
+$def with (page, num_found, results_per_page=1)
 
 $ pages = ceil(num_found / results_per_page)
 $if pages != 1:
@@ -25,7 +25,7 @@ $if pages != 1:
         $if p == page:
             <span class="this">$p</span>
         $else:
-            <a href="$changequery(page=p)" class="ChoosePage" data-ol-link-track="Pager|$p">$p</a>
+            <a href="$changequery(page=p)" class="ChoosePage" data-ol-link-track="Pager|Offset$(p - page)">$p</a>
     $if last_page_in_set != pages:
         $if last_page_in_set != pages-1:
             <span class="ellipsis">...</span>
