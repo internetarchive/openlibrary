@@ -289,11 +289,10 @@ class DataProvider:
         """
         raise NotImplementedError
 
-    def get_solr_record(self, work_key: str) -> dict | None:
+    def get_solr_trending_scores(self, work_key: str) -> dict | None:
         """
         Fetches the record's information from Solr.
-        :param str work_key:type-prefixed key
-        :rtype: dict of str
+         :param work_key: type-prefixed key
         """
 
         response = requests.post(
@@ -312,7 +311,22 @@ class DataProvider:
                 }
             },
         )
-        return response.json()
+        reply = response.json().get('docs', {}) if response.json() else {}
+        reply = reply[0] if reply else {}
+        doc: dict = {
+            f'trending_score_hourly_{index}': reply.get(
+                f'trending_score_hourly_{index}', 0
+            )
+            for index in range(24)
+        }
+        doc |= {"trending_score_hourly_sum": reply.get("trending_score_hourly_sum", 0)}
+        doc |= {
+            f'trending_score_daily_{index}': reply.get(
+                f'trending_score_daily_{index}', 0
+            )
+            for index in range(7)
+        }
+        return doc
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         raise NotImplementedError
