@@ -18,7 +18,7 @@ from openlibrary.plugins.upstream import (
     borrow,
 )
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
-from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config, get_work_config
+from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
@@ -124,7 +124,7 @@ class Edition(models.Edition):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(
-            get_edition_config().identifiers, names, self.identifiers
+            get_identifier_config('edition').identifiers, names, self.identifiers
         )
 
     def get_ia_meta_fields(self):
@@ -361,7 +361,7 @@ class Edition(models.Edition):
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
-            get_edition_config().classifications, names, self.classifications
+            get_identifier_config('edition').classifications, names, self.classifications
         )
 
     def set_classifications(self, classifications):
@@ -772,8 +772,29 @@ class Work(models.Work):
         """Returns (name, value) pairs of all available identifiers."""
         names = []
         return self._process_identifiers(
-            get_work_config().identifiers, names, self.identifiers
+            get_identifier_config('work').identifiers, names, self.identifiers
         )
+
+    def set_identifiers(self, identifiers):
+        """Updates the work from identifiers specified as (name, value) pairs."""
+        names = ()
+
+        d = {}
+        if identifiers:
+            for id in identifiers:
+                if 'name' not in id or 'value' not in id:
+                    continue
+                name, value = id['name'], id['value']
+                if value is not None:
+                    d.setdefault(name, []).append(value)
+
+        self.identifiers = {}
+
+        for name, value in d.items():
+            if name in names:
+                self[name] = value
+            else:
+                self.identifiers[name] = value
 
     def _process_identifiers(self, config_, names, values):
         id_map = {}

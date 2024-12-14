@@ -180,7 +180,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             <ul class="booklinks sansserif">
                 <li>$_('OLID'): $olid</li>
                 $if page.remote_ids:
-                    $ configured_ids = get_author_config()['identifiers']
+                    $ configured_ids = get_identifier_config('author')['identifiers']
                     $for id in configured_ids:
                         $if id.name in page.remote_ids:
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
