@@ -11,7 +11,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, Literal
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
     urlparse,
@@ -28,9 +28,6 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
-from web.template import TemplateResult
-from web.utils import Storage
-
 from infogami import config
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
 from infogami.utils import delegate, stats, view
@@ -41,6 +38,9 @@ from infogami.utils.view import (
     public,
     render,
 )
+from web.template import TemplateResult
+from web.utils import Storage
+
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -1166,9 +1166,11 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
             return lang.code
     return None
 
+
 @public
 def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     return _get_identifier_config(identifier)
+
 
 @web.memoize
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
@@ -1189,9 +1191,13 @@ def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> 
 
     if identifier == 'edition':
         thing = web.ctx.site.get('/config/edition')
-        classifications= [Storage(t.dict()) for t in thing.classifications if 'name in t']
+        classifications = [
+            Storage(t.dict()) for t in thing.classifications if 'name in t'
+        ]
         roles = thing.roles
-        return Storage(classifications=classifications, identifiers=identifiers, roles=roles)
+        return Storage(
+            classifications=classifications, identifiers=identifiers, roles=roles
+        )
 
     return Storage(identifiers=identifiers)
 
