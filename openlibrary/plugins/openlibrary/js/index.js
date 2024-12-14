@@ -559,11 +559,4 @@ jQuery(function () {
         import (/* webpackChunkName: "go-back-links" */ './go-back-links')
             .then(module => module.initGoBackLinks(backLinks))
     }
-
-    const tagTypeSelector = document.querySelector('#tag_type')
-    if (tagTypeSelector) {
-        import(/* webpackChunkName: "tag-form" */ "./tag-form")
-            .then(module => module.initTagTypeSelector(tagTypeSelector))
-    }
 });
-

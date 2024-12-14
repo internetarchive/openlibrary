@@ -22,12 +22,24 @@ $ tag_description = page and page.get('tag_description', '')
     </div>
 </fieldset>
 
+$ body = page and page.get('body', '')
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">$_("Page Body")</label>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="body" rows="5" cols="50" class="markdown" required>$body</textarea>
+        </div>
+    </div>
+</fieldset>
+
 $ hidden = 'hidden' if not type_picker_options.get("show_picker") else ''
 $ tag_type = page and page.get('tag_type', '')
 <div class="formElement $hidden">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>
     <div class="input">
-        <select name="tag_type" id="tag_type" required>
+        <select name="tag_type" required>
             <option value="">$_("Select")</option>
             $ subjects_only = type_picker_options.get("subjects_only")
             $ tag_types = get_subject_tag_types() if subjects_only else get_tag_types()
@@ -38,15 +50,4 @@ $ tag_type = page and page.get('tag_type', '')
                     <option value="$t_type">$t_type</option>
         </select>
     </div>
-</div>
-
-<div class="sub-type-inputs">
-    <div class="sub-type-inputs__input-set" data-input-type="subject">
-        $:render_template("type/tag/subject/edit_form_inputs", page)
-    </div>
-
-    $if not type_picker_options.get("subjects_only", False):
-        <div class="sub-type-inputs__input-set" data-input-type="collection">
-            $:render_template("type/tag/collection/edit_form_inputs", page)
-        </div>
 </div>

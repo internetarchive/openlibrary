@@ -16,7 +16,6 @@ $ heading = _("Edit collection tag") if is_editing else _("Add a collection tag 
 <div id="contentBody">
     <form method="post" action="" id="addtag" class="olform addtag1">
         $:render_template("type/tag/tag_form_inputs", page, type_picker_options={"show_picker": False})
-        $:render_template("type/tag/collection/edit_form_inputs", page)
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">
