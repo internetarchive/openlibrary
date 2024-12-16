@@ -28,6 +28,9 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
+from web.template import TemplateResult
+from web.utils import Storage
+
 from infogami import config
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
 from infogami.utils import delegate, stats, view
@@ -38,9 +41,6 @@ from infogami.utils.view import (
     public,
     render,
 )
-from web.template import TemplateResult
-from web.utils import Storage
-
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -190,7 +190,7 @@ def render_component(
     attrs = attrs or {}
     attrs_str = ''
     for key, val in attrs.items():
-        if json_encode and isinstance(val, dict) or isinstance(val, list):
+        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
             val = json.dumps(val)
             # On the Vue side use decodeURIComponent to decode
             val = urllib.parse.quote(val)
@@ -544,6 +544,7 @@ def get_locale():
 
 
 class HasGetKeyRevision(Protocol):
+    comment: str
     key: str
     revision: int
 
@@ -560,11 +561,9 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
 
     if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if (
-            thing.source_records
-            and v.revision == 1
-            or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
-        ):
+        if (thing.source_records and v.revision == 1) or (
+            v.comment and v.comment.lower() in comments
+        ):  # type: ignore [attr-defined]
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
                 v.machine_comment = marc[len("marc:") :]  # type: ignore [attr-defined]

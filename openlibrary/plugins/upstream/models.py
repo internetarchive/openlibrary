@@ -5,12 +5,12 @@ from collections import defaultdict
 from functools import cached_property
 
 import web
+from isbnlib import NotValidISBNError, canonical, mask
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
 from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
-from isbnlib import NotValidISBNError, canonical, mask
-
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import (
@@ -69,7 +69,7 @@ class Edition(models.Edition):
 
     def get_cover(self):
         covers = self.get_covers()
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size):
         if cover := self.get_cover():
@@ -498,7 +498,7 @@ class Author(models.Author):
 
     def get_photo(self):
         photos = self.get_photos()
-        return photos and photos[0] or None
+        return (photos and photos[0]) or None
 
     def get_photo_url(self, size):
         photo = self.get_photo()
@@ -604,7 +604,7 @@ class Work(models.Work):
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size, use_solr=True):
         cover = self.get_cover(use_solr=use_solr)
@@ -963,7 +963,7 @@ class Changeset(client.Changeset):
             {"kind": "undo", "data": {"parent_changeset": self.id}}
         )
         # return the first undo changeset
-        self._undo_changeset = changesets and changesets[-1] or None
+        self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
 
 
