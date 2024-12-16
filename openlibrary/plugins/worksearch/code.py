@@ -533,6 +533,9 @@ class search(delegate.page):
         if list(param) == ['has_fulltext']:
             param = {}
 
+        if web_input.get('mode') != 'printdisabled' and not web.cookies().get('pd'):
+            param['q'] += ' AND -ebook_access:printdisabled'
+
         page = int(param.get('page', 1))
         sort = param.get('sort', None)
         rows = 20
