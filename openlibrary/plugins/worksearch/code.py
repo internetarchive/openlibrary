@@ -9,6 +9,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, cast
 from unicodedata import normalize
+from openlibrary.core.cache import memcache_memoize
+
 
 import requests
 import web
@@ -262,6 +264,18 @@ def run_solr_query(  # noqa: PLR0912
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
 
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
+
+from openlibrary.core import cache
+
+def run_solr_query_with_cache(scheme, param=None, rows=100, page=1, sort=None, spellcheck_count=None, offset=None, fields=None, facet=True):
+    return cache.memcache_memoize(
+        lambda: run_solr_query(
+            scheme, param, rows, page, sort, spellcheck_count, offset, fields, facet
+        ),
+        key=cache.key_from_args(run_solr_query, scheme, param, rows, page, sort),
+        timeout=300  # Cache for 5 minutes
+    )
+
 
 
 @dataclass
@@ -544,14 +558,31 @@ class search(delegate.page):
             search_response = SearchResponse(
                 facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
             )
+        if not search_response.docs:
+        # Try "search inside" and cache the result
+            cache_key = f"search_inside:{i.get('q', '').strip()}"
+            search_inside_response = cache.memcache_memoize(
+    lambda: run_solr_query_with_cache(
+        WorkSearchScheme(), {'q': i.get('q', '')}, rows=20, page=1
+    ),
+    
+    timeout=300  # Cache for 5 minutes
+)
+
+        # Pass the "search inside" response to the template
+            return render.no_results(
+             query=i.get('q', ''), search_inside_results=search_inside_response
+                 )
+
+# Render the regular search results page if results are found
         return render.work_search(
-            ' '.join(q_list),
-            search_response,
-            get_doc,
-            param,
-            page,
-            rows,
-        )
+    ' '.join(q_list),
+    search_response,
+    get_doc,
+    param,
+    page,
+    rows,
+)
 
 
 def works_by_author(

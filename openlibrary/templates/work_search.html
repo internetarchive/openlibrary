@@ -1,110 +1,117 @@
-$def with (q_param, search_response, get_doc, param, page, rows)
-
 <div>
     <div id="contentHead">
-      <h1>$_("Search Books")</h1>
+        <h1>$_("Search Books")</h1>
     </div>
-
-<div id="contentBody">
-  $:macros.SearchNavigation()
-  <div class="section">
-
-    <form method="get" action="/search" class="siteSearch olform">
-      <label for="q" class="hidden">$_('Keywords')</label>
-      $:render_template("search/searchbox", q=q_param)
-      <span class="mode-options">
-        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-        <label for="mode-search-everything">$_('Everything')</label>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
-        <label for="mode-search-ebooks">$_('Ebooks')</label>
-        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-        <label for="mode-search-printdisabled">$_('Print Disabled')</label>
-      </span>
-      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
-        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
-            <label
-            style="padding: 4px; display: inline-block;"
-            onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
-            >
-                <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
-                $:_('Solr Editions')
-            </label>
+  
+    <div id="contentBody">
+        $:macros.SearchNavigation()
+        <div class="section">
+  
+            <form method="get" action="/search" class="siteSearch olform">
+                <label for="q" class="hidden">$_('Keywords')</label>
+                $:render_template("search/searchbox", q=q_param)
+                <span class="mode-options">
+                    <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
+                    <label for="mode-search-everything">$_('Everything')</label>
+                    <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
+                    <label for="mode-search-ebooks">$_('Ebooks')</label>
+                    <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
+                    <label for="mode-search-printdisabled">$_('Print Disabled')</label>
+                </span>
+                $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
+                    <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
+                        <label style="padding: 4px; display: inline-block;"
+                            onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()">
+                            <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
+                            $:_('Solr Editions')
+                        </label>
+                    </div>
+                $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet', 'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+                $for k, values in param.items():
+                    $if k not in sticky:
+                        $continue
+                    $for v in values if isinstance(values, list) else [values]:
+                        <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+            </form>
+            <span class="selected-search-facets-container">
+                $if search_response.facet_counts:
+                    $:render_template('search/work_search_selected_facets', param, search_response, q_param)
+            </span>
         </div>
-      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
-
-      $for k, values in param.items():
-        $if k not in sticky:
-          $continue
-        $for v in values if isinstance(values, list) else [values]:
-          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
-    </form>
-        <span class="selected-search-facets-container">
-            $if search_response.facet_counts:
-              $:render_template('search/work_search_selected_facets', param, search_response, q_param)
-        </span>
+  
+        <!-- results -->
+  
+        $if param and not search_response.docs:
+            $if ctx.path == '/search':
+                $ path_id = 'books'
+            $else:
+                $ path_id = ctx.path.split('/')
+  
+            <center>
+                <div class="red">$:_('No <strong>%(path_id)s</strong> directly matched your search', path_id=path_id)</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$query">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
+  
+            <!-- Display cached "search inside" results -->
+            $if search_inside_results:
+                <h3>$_('Results found in "Search Inside"')</h3>
+                <ul class="list-books">
+                    $for result in search_inside_results.docs:
+                        <li>
+                            <a href="{{ result.key }}">{{ result.title }}</a>
+                            $if result.authors:
+                                by {{ result.authors|join(", ") }}
+                        </li>
+                    $endfor
+                </ul>
+            $else:
+                <p>$_("No matches were found in 'Search Inside' either.")</p>
+            $endif
+  
+        $elif param and not search_response.error and len(search_response.docs):
+            <div class="search-results-stats">
+                $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
+                $if search_response.num_found > 1:
+                    $:render_template("search/sort_options.html", search_response.sort)
+            </div>
+            <div class="resultsContainer search-results-container">
+                <div id="searchResults">
+                    <ul class="list-books">
+                        $ works = [get_doc(d) for d in search_response.docs]
+                        $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
+                        $ username = ctx.user and ctx.user.key.split('/')[-1]
+                        $if username:
+                            $ works = add_read_statuses(username, works)
+                        $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+  
+                        $ subject_keys = [d.get('subject', []) for d in search_response.docs]
+                        $for work, subjects in zip(works, subject_keys):
+                            $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
+                            $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
+                    </ul>
+                    $:macros.Pager(page, search_response.num_found, rows)
+                </div>
+            </div>
+  
+        <!-- /results -->
+  
+        <!-- facets -->
+  
+        $if search_response.error:
+            <h3>$_("BARF! Search engine ERROR!")</h3>
+            <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
+        $elif param and len(search_response.docs):
+            $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
+        <!-- /facets -->
     </div>
-
-
-<!-- results -->
-
-    $if param and not search_response.docs:
-        $if ctx.path == '/search':
-            $ path_id = 'books'
-        $else:
-            $ path_id = ctx.path.split('/')
-        $ query = query_param('q')
-        $# Temporarily (2020-03-26) disable automatically showing full-text
-        $# results because of performance issues due to increased load. See
-        $# this commit to revert.
-        <center>
-          <div class="red">$:_('No <strong>%(path_id)s</strong> directly matched your search', path_id=path_id)</div>
-          <hr>
-        </center>
-        <div id="fulltext-search-suggestion" data-query="$query">
-            $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-        </div>
-
-    $elif param and not search_response.error and len(search_response.docs):
-        <div class="search-results-stats">
-          $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
-
-          $if search_response.num_found > 1:
-            $:render_template("search/sort_options.html", search_response.sort)
-        </div>
-        <div class="resultsContainer search-results-container">
-        <div id="searchResults">
-          <ul class="list-books">
-            $ works = [get_doc(d) for d in search_response.docs]
-            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
-            $ username = ctx.user and ctx.user.key.split('/')[-1]
-            $if username:
-                $ works = add_read_statuses(username, works)
-            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
-
-            $# Subject key list will only be included in each doc if the patron has a sfw cookie
-            $ subject_keys = [d.get('subject', []) for d in search_response.docs]
-            $for work, subjects in zip(works, subject_keys):
-                $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
-          </ul>
-          $:macros.Pager(page, search_response.num_found, rows)
-        </div>
-<!-- /results -->
-
-<!-- facets -->
-
-$if search_response.error:
-    <h3>$_("BARF! Search engine ERROR!")</h3>
-    <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
-$elif param and len(search_response.docs):
-    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
-<!-- /facets -->
-    </div>
-
+  
     $if param and not search_response.error and len(search_response.docs):
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix">
                 <br/><span class="adminOnly">$_('Searching solr took %(count)s seconds', count="%.2f" % search_response.time)</span>
             </div>
   </div>
-</div>
+  

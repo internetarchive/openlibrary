@@ -18,17 +18,9 @@ services:
 
   solr:
     image: solr:9.5.0
-    expose:
-      - 8983
+    ports:
+      - "8983:8983"  # Map Solr to host for debugging
     environment:
-      # Soft commit frequently to make sure changes are visible in search
-      # Hard commit less frequently to avoid performance impact, but avoid
-      # having very large transaction log
-      # https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
-      # Enlarge the max boolean clauses so that we can large intersections
-      # between books in reading logs and solr.
-      # Should be in sync with the value in openlibrary/core/bookshelves.py ,
-      # eg key:(/works/OL1W OR /works/OL2W OR ...)
       - SOLR_OPTS=
         -Dsolr.autoSoftCommit.maxTime=60000
         -Dsolr.autoCommit.maxTime=120000
@@ -38,31 +30,23 @@ services:
       - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - webnet
-    logging:
-      options:
-        max-size: "512m"
-        max-file: "4"
-    # Create (or use if already existing) a core called "openlibrary" with our config & schema
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
-
-  solr-updater:
-    image: "${OLIMAGE:-oldev:latest}"
-    command: docker/ol-solr-updater-start.sh
-    hostname: "$HOSTNAME"
-    environment:
-      - OL_CONFIG=conf/openlibrary.yml
-      - OL_URL=http://web:8080/
-      - STATE_FILE=solr-update.offset
-    volumes:
-      - solr-updater-data:/solr-updater-data
-    networks:
-      - webnet
-      - dbnet
 
   memcached:
     image: memcached
+    command: memcached -m 256  # Increase memory allocation
     networks:
       - webnet
+    healthcheck:
+      test: ["CMD", "echo", "stats | nc localhost 11211"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   covers:
     image: "${OLIMAGE:-oldev:latest}"
