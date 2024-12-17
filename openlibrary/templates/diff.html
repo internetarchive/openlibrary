@@ -87,6 +87,7 @@ $def diff_display(name, value):
             <span>$value.excerpt</span>
         $elif value.key:
             <a href="$value.key">$(value.name or value.title or value.key)</a>
+            <span class="smallest sansserif"> - <a href="$value.key?m=history" style="text-decoration: none;">$_("history")</a></span>
             <span style="display: block" class="link wrap">$value.key</span>
         $else:
             $ value = value.dict()
