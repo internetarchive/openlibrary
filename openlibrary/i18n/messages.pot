@@ -337,6 +337,10 @@ msgid "by Anonymous"
 msgstr ""
 
 #: diff.html
+msgid "history"
+msgstr ""
+
+#: diff.html
 msgid "Differences"
 msgstr ""
 
