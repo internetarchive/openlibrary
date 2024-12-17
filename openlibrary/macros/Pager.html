@@ -16,7 +16,7 @@ $if pages != 1:
     $else:
         $ first_page_in_set = max((page-half, 1))
         $ last_page_in_set = page+half
-    <div class="clearfix"></div>
+
     <div class="pagination">
     $if page != 1:
         <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;$_('First')</a>
