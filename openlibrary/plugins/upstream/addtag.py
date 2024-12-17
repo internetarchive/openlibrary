@@ -6,7 +6,6 @@ from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, public
-from web.template import TemplateResult
 
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck
@@ -86,7 +85,7 @@ class addtag(delegate.page):
 
         i = web.input(name=None, type=None, sub_type=None)
 
-        return render_template('tag/add', i)
+        return render_template('type/tag/form', i)
 
     def has_permission(self, user) -> bool:
         """
@@ -115,7 +114,7 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message='Permission denied to add tags')
 
-        if not validate_tag(i):
+        if not self.validate_input(i):
             raise web.badrequest()
 
         if match := find_match(i.name, i.tag_type):
@@ -124,10 +123,15 @@ class addtag(delegate.page):
                 'error',
                 f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
             )
-            return render_template('tag/add', i)
+            return render_template('type/tag/form', i)
 
         tag = create_tag(i)
         raise safe_seeother(tag.key)
+
+    def validate_input(self, i):
+        if i.tag_type in get_subject_tag_types():
+            return validate_subject_tag(i)
+        return validate_tag(i)
 
 
 class tag_edit(delegate.page):
@@ -145,7 +149,7 @@ class tag_edit(delegate.page):
         if tag is None:
             raise web.notfound()
 
-        return self.get_template_for_type(tag, i)
+        return render_template("type/tag/form", tag, redirect=i.redir)
 
     def POST(self, key):
         if not web.ctx.site.can_write(key):
@@ -160,7 +164,7 @@ class tag_edit(delegate.page):
 
         i = web.input(_comment=None, redir=None)
         formdata = trim_doc(i)
-        if not formdata or not self.validate(formdata, tag.tag_type):
+        if not formdata or not self.validate(formdata, formdata.tag_type):
             raise web.badrequest()
         if tag.tag_type != formdata.tag_type:
             match = find_match(formdata.name, formdata.tag_type)
@@ -170,7 +174,7 @@ class tag_edit(delegate.page):
                     'error',
                     f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
                 )
-                return self.get_template_for_type(formdata, formdata)
+                return render_template("type/tag/form", formdata, redirect=i.redir)
 
         try:
             if "_delete" in i:
@@ -184,79 +188,13 @@ class tag_edit(delegate.page):
             raise safe_seeother(i.redir if i.redir else key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
-            return render_template("type/tag/edit", tag, redirect=i.redir)
+            return render_template("type/tag/form", tag, redirect=i.redir)
 
     def validate(self, data, tag_type):
         if tag_type in SUBJECT_SUB_TYPES:
             return validate_subject_tag(data)
         else:
             return validate_tag(data)
-
-    def get_template_for_type(self, tag, web_input) -> TemplateResult:
-        if tag.tag_type in SUBJECT_SUB_TYPES:
-            return render_template("type/tag/subject/edit", tag, redirect=web_input.redir)
-        elif tag.tag_type == "collection":
-            return render_template("type/tag/collection/edit", tag)
-
-        return render_template('type/tag/edit', tag, redirect=web_input.redir)
-
-
-class add_typed_tag(delegate.page):
-    path = "/tag/([^/]+)/add"
-
-    def GET(self, tag_type):
-        if not tag_type in get_tag_types():
-            raise web.badrequest()
-        if not (patron := get_current_user()):
-            # NOTE : will lose any query params on login redirect
-            raise web.seeother(f'/account/login?redirect={self.path}')
-        if not self.has_permission(patron):
-            raise web.unauthorized()
-
-        i = web.input(tag_type=tag_type, redir=None)
-        if tag_type in get_subject_tag_types():
-            return render_template("type/tag/subject/edit", i, redirect=i.redir)
-        return render_template(f"type/tag/{tag_type}/edit", i)
-
-    def POST(self, tag_type):
-        i = web.input(tag_type=tag_type, redir=None)
-        if not self.validate_input(i):
-            raise web.badrequest()
-        if spamcheck.is_spam(i, allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
-        if not (patron := get_current_user()):
-            raise web.seeother('/account/login')
-        if not self.has_permission(patron):
-            raise web.unauthorized()
-
-        i = trim_doc(i)
-        if match := find_match(i.name, i.tag_type):
-            # A tag with this name and type already exists
-            add_flash_message(
-                'error',
-                f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
-            )
-            if tag_type in get_subject_tag_types():
-                return render_template("type/tag/subject/edit", i, redirect=i.redir)
-            return render_template(f"type/tag/{tag_type}/edit", i)
-
-        if i.tag_type in get_subject_tag_types():
-            tag = create_subject_tag(i)
-        else:
-            tag = create_tag(i)
-        raise safe_seeother(i.redir if i.redir else tag.key)
-
-    def has_permission(self, user):
-        return user and (
-            user.is_librarian() or user.is_super_librarian() or user.is_admin()
-        )
-
-    def validate_input(self, i):
-        if i.tag_type in get_subject_tag_types():
-            return validate_subject_tag(i)
-        return validate_tag(i)
 
 
 class tag_search(delegate.page):

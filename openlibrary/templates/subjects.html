@@ -10,7 +10,7 @@ $ q = query_param('q')
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">
-        $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/%s/add?name=%s&redir=%s" % (page.subject_type, page.name, ctx.path)
+        $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/add?name=%s&redir=%s&tag_type=%s" % (page.name, ctx.path, page.subject_type)
         $ link_cta = _("Edit")
         $ elem_title = _("Edit tag for this subject") if has_tag else _("Create tag for this subject")
         $ link_track = "CTAClick|SubjectPageTagEdit"

@@ -1,4 +1,4 @@
-$def with (page, type_picker_options={"show_picker": True, "subjects_only": False})
+$def with (page)
 
 $ tag_name = page and page.get('name', '')
 <div class="formElement">
@@ -34,15 +34,13 @@ $ body = page and page.get('body', '')
     </div>
 </fieldset>
 
-$ hidden = 'hidden' if not type_picker_options.get("show_picker") else ''
 $ tag_type = page and page.get('tag_type', '')
-<div class="formElement $hidden">
+<div class="formElement">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>
     <div class="input">
         <select name="tag_type" required>
             <option value="">$_("Select")</option>
-            $ subjects_only = type_picker_options.get("subjects_only")
-            $ tag_types = get_subject_tag_types() if subjects_only else get_tag_types()
+            $ tag_types = get_tag_types()
             $for t_type in tag_types:
                 $if t_type == tag_type:
                     <option value="$t_type" selected>$t_type</option>
