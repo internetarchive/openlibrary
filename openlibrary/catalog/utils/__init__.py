@@ -322,10 +322,20 @@ def publication_too_old_and_not_exempt(rec: dict) -> bool:
 def is_independently_published(publishers: list[str]) -> bool:
     """
     Return True if the book is independently published.
+
     """
-    independent_publisher_names = ['independently published', 'independent publisher']
+    independent_publisher_names = [
+        'independently published',
+        'independent publisher',
+        'createspace independent publishing platform',
+    ]
+
+    independent_publisher_names_casefolded = [
+        name.casefold() for name in independent_publisher_names
+    ]
     return any(
-        publisher.casefold() in independent_publisher_names for publisher in publishers
+        publisher.casefold() in independent_publisher_names_casefolded
+        for publisher in publishers
     )
 
 
