@@ -291,8 +291,10 @@ def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
     [
         (['INDEPENDENTLY PUBLISHED'], True),
         (['Independent publisher'], True),
+        (['createspace independent publishing platform'], True),
         (['Another Publisher', 'independently published'], True),
         (['Another Publisher', 'independent publisher'], True),
+        (['Another Publisher', 'createspace independent publishing platform'], True),
         (['Another Publisher'], False),
     ],
 )
