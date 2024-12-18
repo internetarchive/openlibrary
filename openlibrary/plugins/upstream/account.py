@@ -4,6 +4,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
+from urllib.parse import urlparse
 
 import requests
 import web
@@ -413,7 +414,12 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if 'openlibrary.org' not in referer or referer.endswith('openlibrary.org/'):
+        parsed_referer = urlparse(referer)
+        this_host = web.ctx.host
+        if ':' in this_host:
+            # Remove port number
+            this_host = this_host.split(':', 1)[0]
+        if parsed_referer.hostname != this_host:
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
