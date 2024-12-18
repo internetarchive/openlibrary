@@ -52,12 +52,47 @@ $code:
   <div class="sri__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-      <a href="$work_edition_url"><img
+      $ cover_dimensions = get_dimensions_cover(cover)
+      $ aspect_ratio = 1
+      $if cover_dimensions:
+        $ cover_height = cover_dimensions[1]
+        $ cover_width = cover_dimensions[0]
+      $else:
+        $ cover_height = 360
+        $ cover_width = 180
+      $ aspect_ratio = cover_width / cover_height
+
+      $ fixed_width = 175
+      $ desired_height_for_fixed_width = fixed_width / aspect_ratio
+      <a href="$work_edition_url">
+        <img
               itemprop="image"
               src="$cover"
               alt="$_('Cover of: %(title)s', title=full_title)"
               title="$_('Cover of: %(title)s', title=full_title)"
-      /></a>
+        />
+        <style>
+          .searchResultItem {
+            .bookcover {
+              img {
+                width: 100%;
+                aspect-ratio: $aspect_ratio;
+                object-fit: cover;
+              }
+            }
+          }
+          @media only screen and (max-width: 768px) {
+            .searchResultItem {
+              .bookcover {
+                img {
+                  width: ${fixed_width}px;
+                  height: ${desired_height_for_fixed_width}px;
+                }
+              }
+            }
+          }
+        </style>
+      </a>
     </span>
 
     <div class="details">
