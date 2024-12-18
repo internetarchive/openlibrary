@@ -4,13 +4,17 @@ from dataclasses import dataclass
 from typing import Generic, Literal, TypedDict, TypeVar, cast
 from urllib import parse
 
+import requests
 import web
 from web import uniq
 from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
-from openlibrary.plugins.upstream.utils import get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import (
+    get_coverstore_public_url,
+    get_coverstore_url,
+)
 from openlibrary.utils import OrderedEnum, multisort_best
 
 logger = logging.getLogger("openlibrary.book_providers")
@@ -575,6 +579,24 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
 
     # No luck
     return None
+
+
+def get_dimensions_cover(url: str) -> tuple[int, int] | None:
+    """
+    Get the dimensions of the cover image at a given URL
+    """
+    url = url.replace(url.split("/b/")[0], get_coverstore_url())
+
+    # replace -M.jpg or -S.jpg or -L.jpg to .json
+    url = url.replace("-M.jpg", ".json")
+    url = url.replace("-S.jpg", ".json")
+    url = url.replace("-L.jpg", ".json")
+
+    try:
+        d = requests.get(url).json()
+        return d['width'], d['height']
+    except OSError:
+        return None
 
 
 def is_non_ia_ocaid(ocaid: str) -> bool:
