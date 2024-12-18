@@ -1,6 +1,6 @@
 $def with (work, book)
 
-$ edition_config = get_edition_config()
+$ edition_config = get_identifier_config('edition')
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 $ is_admin = ctx.user and ctx.user.is_admin()
 $ is_privileged_user = is_librarian or is_admin
@@ -428,13 +428,13 @@ $ })
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
-        <div id="id-errors" class="note" style="display: none"></div>
+        <div id="id-errors-edition" class="note" style="display: none"></div>
         <div class="formElement">
             <div class="label">
                 <label for="select-id">$_("Do you know any identifiers for this edition?")</label>
                 <span class="tip">$_("Like, ISBN?")</span>
             </div>
-            <div id="hiddenIdentifiers"></div>
+            <div id="hiddenEditionIdentifiers"></div>
             <div class="identifiers-display">
                 $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                 $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
@@ -447,7 +447,7 @@ $ })
                 $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
                 $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
 
-                $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenIdentifiers', multiple='true', admin=str(is_privileged_user), edition_popular=set1,secondary_identifiers=set2))
+                $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenEditionIdentifiers', multiple='true', admin=str(is_privileged_user), edition_popular=set1,secondary_identifiers=set2))
             </div>
         </div>
     </div>
