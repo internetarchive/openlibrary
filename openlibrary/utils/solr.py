@@ -77,6 +77,13 @@ class Solr:
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
+    def update_in_place(self, request, commit: bool = False):
+        resp = requests.post(
+            f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
+            json=request,
+        ).json()
+        return resp
+
     def select(
         self,
         query,
