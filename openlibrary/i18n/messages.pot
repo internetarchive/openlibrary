@@ -558,6 +558,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -848,6 +849,7 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -2861,6 +2863,7 @@ msgstr ""
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -2891,6 +2894,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
 msgid "Learn more"
@@ -2912,6 +2916,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr ""
@@ -3037,6 +3042,57 @@ msgid ""
 "book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
 "to providing free high-quality, peer-reviewed, openly licensed textbooks "
 "online."
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid "Read eBook from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid ""
+"This book is available from <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
+"Nordic (Scandinavian) literature in electronic form."
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html
