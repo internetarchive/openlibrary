@@ -7716,6 +7716,12 @@ msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
 
 #: account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
+msgstr ""
+
+#: account.py
 msgid "A problem occurred and we were unable to log you in"
 msgstr ""
 
