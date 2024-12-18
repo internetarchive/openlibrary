@@ -41,5 +41,16 @@ class search_inside_json(delegate.page):
         query = i.q
         page = int(i.page)
         results = fulltext_search(query, page=page, limit=limit, js=True, facets=True)
+
+        # Add caching headers only if there's no error
+        if 'error' not in results:
+            # Cache for 5 minutes (300 seconds)
+            web.header('Cache-Control', 'public, max-age=300')
+            web.header('Expires', web.http.expires(300))
+        else:
+            # No caching for error responses
+            web.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            web.header('Pragma', 'no-cache')
+
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(results, indent=4))
