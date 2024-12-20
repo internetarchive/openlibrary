@@ -5,17 +5,17 @@ $for k, v in data.items():
   $if v:
     $ data_str += "data-%s=%s " % (k, v)
 
-<div class="generic-dropper-wrapper $(classes)"  $data_str>
+<div class="generic-dropper-wrapper $(classes)" $data_str>
   <div class="generic-dropper">
     <div class="generic-dropper__actions">
       <div class="generic-dropper__primary">
         $:primary_button
       </div>
-      <a class="generic-dropper__dropclick" href="javascript:;">
+      <a class="generic-dropper__dropclick" href="#" role="button" aria-controls="dropdown-content" aria-expanded="false">
         <div class="arrow"></div>
       </a>
     </div>
-    <div class="generic-dropper__dropdown">
+    <div id="dropdown-content" class="generic-dropper__dropdown" aria-hidden="true">
       $:dropdown_content
     </div>
   </div>
