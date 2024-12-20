@@ -1,4 +1,24 @@
-#!/bin/bash -e
+#!/bin/bash
+
+handle_error() {
+    echo -e "\n\nERR" >&2
+    if [ -n "$TMP_DIR" ]; then
+        cleanup "$TMP_DIR"
+    fi
+    exit 1
+}
+
+handle_exit() {
+    echo -e "\n\nSIGINT" >&2
+    if [ -n "$TMP_DIR" ]; then
+        cleanup "$TMP_DIR"
+    fi
+    exit 1
+}
+
+trap 'handle_error' ERR
+trap 'handle_exit' SIGINT
+set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
@@ -50,8 +70,9 @@ check_server_access() {
     echo "Checking server access..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
-        if ssh -o ConnectTimeout=5 $SERVER "echo '✓'"; then
-            :
+        DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
+        if [ "$DOCKER_ACCESS" == "✓" ]; then
+            echo "✓"
         else
             echo "⚠"
             echo "Could not access $SERVER."
@@ -95,6 +116,7 @@ copy_to_servers() {
         DESTINATION_FINAL=$(basename $DESTINATION)
         if [ "$DIR_IN_TAR" != "$DESTINATION_FINAL" ]; then
             ssh "$SERVER" "
+                set -e
                 sudo rm -rf $DESTINATION || true
                 sudo mv '$DESTINATION_PARENT/$DIR_IN_TAR' $DESTINATION
             " 2>&1
@@ -105,6 +127,11 @@ copy_to_servers() {
 }
 
 deploy_olsystem() {
+    echo "Starting $REPO deployment at $(date)"
+    echo "Deploying to: $SERVERS"
+
+    check_server_access
+
     TMP_DIR=${TMP_DIR:-$(mktemp -d)}
     cd $TMP_DIR
 
@@ -113,11 +140,6 @@ deploy_olsystem() {
     REPO=${REPO:-"olsystem"}
     REPO_NEW="${REPO}_new"
     REPO_PREVIOUS="${REPO}_previous"
-
-    echo "Starting $REPO deployment at $(date)"
-    echo "Deploying to: $SERVERS"
-
-    check_server_access
 
     echo ""
     echo "Checking for changes in the $REPO repo on the servers..."
@@ -145,12 +167,13 @@ deploy_olsystem() {
         echo -n "   $SERVER ... "
 
         if OUTPUT=$(ssh $SERVER "
-            sudo chown -R root:staff /opt/$REPO_NEW;
-            sudo chmod -R g+rwX /opt/$REPO_NEW;
+            set -e
+            sudo chown -R root:staff /opt/$REPO_NEW
+            sudo chmod -R g+rwX /opt/$REPO_NEW
 
-            sudo rm -rf /opt/$REPO_PREVIOUS || true;
-            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS;
-            sudo mv /opt/$REPO_NEW /opt/$REPO;
+            sudo rm -rf /opt/$REPO_PREVIOUS || true
+            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
             echo "✓"
         else
@@ -168,11 +191,25 @@ deploy_olsystem() {
     fi
 }
 
+date_to_timestamp() {
+    # Check if Mac
+    if [ "$(uname)" == "Darwin" ]; then
+        # Remove the milliseconds
+        DATE_STRING=$(echo $1 | sed 's/\.[0-9]*//')
+        # Replace the Z with +0000
+        DATE_STRING=$(echo $DATE_STRING | sed 's/Z/+0000/')
+        # Replace a colon in the timezone with nothing
+        DATE_STRING=$(echo $DATE_STRING | sed 's/:\([0-9][0-9]\)$/\1/')
+
+        date -j -f "%FT%T%z" "$DATE_STRING" +%s
+    else
+        date -d "$1" +%s
+    fi
+}
+
 deploy_openlibrary() {
     COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
     TMP_DIR=$(mktemp -d)
-
-    check_server_access
 
     cd $TMP_DIR
     echo -ne "Cloning openlibrary repo ... "
@@ -183,27 +220,29 @@ deploy_openlibrary() {
 
     # Assert latest docker image is up-to-date
     IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
+    # eg 2024-11-26T19:28:20.054992Z
     IMAGE_LAST_UPDATED=$(echo $IMAGE_META | jq -r '.last_updated')
+    # eg 2024-11-27T16:38:13-08:00
     GIT_LAST_UPDATED=$(git -C openlibrary log -1 --format=%cd --date=iso-strict)
-    IMAGE_LAST_UPDATED_TS=$(date -d $IMAGE_LAST_UPDATED +%s)
-    GIT_LAST_UPDATED_TS=$(date -d $GIT_LAST_UPDATED +%s)
+    IMAGE_LAST_UPDATED_TS=$(date_to_timestamp $IMAGE_LAST_UPDATED)
+    GIT_LAST_UPDATED_TS=$(date_to_timestamp $GIT_LAST_UPDATED)
 
     if [ $GIT_LAST_UPDATED_TS -gt $IMAGE_LAST_UPDATED_TS ]; then
         echo "✗ Docker image is not up-to-date"
-        echo "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image for the master branch"
+        echo -e "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image for the master branch.\n\nThen run this script again."
         cleanup $TMP_DIR
         exit 1
     else
         echo "✓ Docker image is up-to-date"
-        echo ""
     fi
+
+    check_server_access
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do
         check_for_local_changes $SERVER "/opt/openlibrary"
     done
     echo -e "No changes found in the openlibrary repo on the servers.\n"
-    echo ""
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
@@ -218,20 +257,21 @@ deploy_openlibrary() {
     # Fix file ownership + Make into a git repo so can easily track local mods
     for SERVER in $SERVERS; do
         ssh $SERVER "
+            set -e
             sudo chown -R root:staff /opt/openlibrary
             sudo chmod -R g+rwX /opt/openlibrary
             cd /opt/openlibrary
-            sudo git init > /dev/null
+            sudo git init 2>&1 > /dev/null
             sudo git add . > /dev/null
             sudo git commit -m 'Deployed openlibrary' > /dev/null
         "
     done
 
-    echo "Prune old images..."
+    echo "Prune docker images/cache..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
         # ssh $SERVER "docker image prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
+        if OUTPUT=$(ssh $SERVER "docker image prune -f && docker builder prune -f" 2>&1); then
             echo "✓"
         else
             echo "⚠"
@@ -245,15 +285,16 @@ deploy_openlibrary() {
     echo "Pull the latest docker images..."
     # We need to fetch by the exact image sha, since the registry mirror on the prod servers
     # has a cache which means fetching the `latest` image could be stale.
-    OLBASE_SHA=$(echo $IMAGE_META | jq -r '.images[0].digest')
+    OLBASE_DIGEST=$(echo $IMAGE_META | jq -r '.images[0].digest')
     for SERVER in $SERVERS; do
-        echo -n "   $SERVER ... "
+        echo "   $SERVER ... "
         ssh -t $SERVER "
-            docker pull openlibrary/olbase@$OLBASE_SHA
-            echo 'FROM openlibrary/olbase@$OLBASE_SHA' | docker build --tag openlibrary/olbase:latest -f - .
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME='\$HOSTNAME' docker compose --profile $SERVER pull
+            set -e;
+            docker pull openlibrary/olbase@$OLBASE_DIGEST
+            echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
         "
-        echo "✓"
+        echo "   ... $SERVER ✓"
     done
 
     echo "Finished production deployment at $(date)"
