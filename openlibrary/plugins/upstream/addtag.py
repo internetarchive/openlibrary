@@ -28,7 +28,7 @@ TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 def validate_tag(tag):
-    return tag.get('name', '') and tag.get('tag_type', '') in get_tag_types() and tag.get('body')
+    return tag.get('name', '') and tag.get('tag_description', '') and tag.get('tag_type', '') in get_tag_types() and tag.get('body')
 
 
 def validate_subject_tag(tag):
