@@ -30,6 +30,6 @@ for SERVER in $SERVERS; do
         set -e
         HOSTNAME=\$(host $SERVER | cut -d ' ' -f 1)
         cd /opt/openlibrary
-        COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') up --build --no-deps -d
+        COMPOSE_FILE=$PRODUCTION HOSTNAME=\$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') up --build --no-deps -d
     "
 done
