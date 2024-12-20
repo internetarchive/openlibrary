@@ -7535,7 +7535,7 @@ msgstr[1] "Ammustrende %(count)d editziones in evidèntzia."
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr "Boles pompiare totu sas %(count)d sas editziones?"
+msgstr "Boles pompiare totu sas %(count)d editziones?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
