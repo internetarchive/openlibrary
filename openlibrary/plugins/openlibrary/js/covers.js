@@ -112,3 +112,68 @@ export function initCoversSaved() {
         parent.$(cover_selector).attr('src', cover_url);
     }
 }
+
+// This function will be triggered when the user clicks the "Paste" button
+export async function pasteImage() {
+    let formData = null;
+    try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg') && !item.types.includes('image/jpg')) {
+                continue;
+            }
+
+            const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
+            const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
+            const blob = await item.getType(mimeType);
+            const image = document.getElementById('image');
+            image.src = URL.createObjectURL(blob);
+            image.style.display = 'block';
+
+            // Update the global formData with the new image blob
+            formData = new FormData();
+            formData.append('file', blob, `pasted-image.${fileExtension}`);
+
+            // Automatically fill in the hidden file input with the FormData
+            const fileInput = document.getElementById('hiddenFileInput');
+            const file = new File([blob], `pasted-image.${fileExtension}`, { type: mimeType });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files; // This sets the file input with the image
+
+            // Show the upload button and update its text
+            const uploadButton = document.getElementById('uploadButtonPaste');
+            uploadButton.style.display = 'inline';
+            uploadButton.innerText = 'Use this image';
+
+            // Update the paste button text
+            document.getElementById('pasteButton').innerText = 'Change Image';
+
+            return formData;
+        }
+        alert('No image found in clipboard');
+    } catch (error) {
+
+    }
+}
+
+export function initPasteForm(formData) {
+    document.getElementById('uploadButtonPaste').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const form = document.getElementById('clipboardForm');
+        if (formData) {
+            // Show the loading indicator
+            const loadingIndicator = document.querySelector('.loadingIndicator');
+            const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
+
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('hidden');
+                formDivs.forEach(div => div.classList.add('hidden'));
+            }
+
+            // Submit the form
+            form.submit();
+        }
+    });
+}
