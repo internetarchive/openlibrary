@@ -28,7 +28,12 @@ TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 def validate_tag(tag):
-    return tag.get('name', '') and tag.get('tag_description', '') and tag.get('tag_type', '') in get_tag_types() and tag.get('body')
+    return (
+        tag.get('name', '')
+        and tag.get('tag_description', '')
+        and tag.get('tag_type', '') in get_tag_types()
+        and tag.get('body')
+    )
 
 
 def validate_subject_tag(tag):
@@ -66,7 +71,7 @@ def find_match(name: str, tag_type: str) -> str:
     Tries to find an existing tag that matches the data provided by the user.
     Returns the key of the matching tag, or an empty string if no such tag exists.
     """
-    matches =  Tag.find(name, tag_type=tag_type)
+    matches = Tag.find(name, tag_type=tag_type)
     return matches[0] if matches else ''
 
 
@@ -120,7 +125,7 @@ class addtag(delegate.page):
             # A tag with the same name and type already exists
             add_flash_message(
                 'error',
-                f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
+                f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>',
             )
             return render_template('type/tag/form', i)
 
@@ -171,7 +176,7 @@ class tag_edit(delegate.page):
                 # A tag with the same name and type already exists
                 add_flash_message(
                     'error',
-                    f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>'
+                    f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>',
                 )
                 return render_template("type/tag/form", formdata, redirect=i.redir)
 
