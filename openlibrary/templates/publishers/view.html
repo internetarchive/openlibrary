@@ -1,0 +1,113 @@
+$def with (page)
+
+$var title: $_('Publisher: %(name)s', name=page.name)
+
+$ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
+
+<div id="scrollHere"></div>
+
+<div id="contentHead">
+    <h1>
+        $page.name
+        <span class="count" id="coversCount">
+            <em>$_("Publisher")</em> - <strong><span>$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
+            $if page.ebook_count > 0:
+                / <span class="ebookcount"><span id="ebooks">$ungettext("%(count)s ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
+            $else:
+                / $_("0 ebooks")
+            <span class="clickdata"></span>
+        </span>
+    </h1>
+</div>
+
+<div class="contentBody">
+  $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
+
+	<div class="head">
+	    <h2>
+	        $_("Publishing History")
+                <span class="shift">$:_('This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions from this publisher over time. Click to view a single year, or drag across a range.")</span>
+	    </h2>
+	</div>
+
+    <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(page.publishing_history)</script>
+
+    <div class="chart">
+        <div class="chartYaxis">$_("Editions Published")</div>
+        <div id="chartPubHistory" class="thisChart">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartXaxis">$_("Year of Publication")</div>
+    </div>
+
+    <div class="clearfix"></div>
+
+        <div class="head" id="subjectRelated">
+            <h2>$_("Common Subjects")
+                <span class="count"><a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">$_('Search for books published by %(publisher)s', publisher=page.name)</a></span>
+            </h2>
+        </div>
+
+	$jsdef renderSubjects(subjects):
+	    $if len(subjects) > 0:
+	        <span class="subject">
+	        $for s in subjects:
+	            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+	        </span>
+	    $else:
+	        <span class="title"><em>$_("None found.")</em></span>
+
+    $for s, limit in subject_list:
+        <div class="contentQuarter link-box link-box--with-header">
+            <h3>$s</h3>
+            $:renderSubjects(page[s][:limit])
+        </div>
+        $if s != 'times':
+            <div class="contentSpacer"></div>
+
+    <div class="clearfix"></div>
+
+$jsdef renderAuthors(authors):
+    $for a in page.authors:
+        <span class="tag">
+            <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
+        </span>
+        <span class="count">$ungettext("%(count)d book", "%(count)d books", a.count, count=a.count)</span>
+        <br/>
+<div id="resultsAuthors" class="widget-box">
+    <div class="head">
+        <h3>$_("Authors")</h3>
+        <div class="smallest lightgreen sansserif">$_("published most by this publisher")</div>
+    </div>
+    <div class="unordered">
+        $:renderAuthors(page.authors)
+    </div>
+</div>
+<div class="spacer"></div>
+
+$ publishers_feature_enabled = "publishers" in ctx.features
+
+$jsdef renderPublishers(publishers):
+    $for p in publishers:
+        <span class="tag">
+            $if publishers_feature_enabled:
+                <a href="$p.key">$p.name</a>,
+            $else:
+                <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
+        </span>
+        <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
+         <br/>
+
+<div class="section clearfix"></div>
+
+<form action="/search/publishers" class="olform">
+    <h2 class="collapse"><label for="searchSubjects">$_("Publisher Search")</label>  <span class="sansserif grey smaller">$_("Try a keyword.")</span></h2>
+    <p>
+        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
+        <button type="submit" class="larger">$_("Search")</button>
+    </p>
+</form>
+
+</div>

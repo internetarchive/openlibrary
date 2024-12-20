@@ -1,0 +1,19 @@
+$def with (languages)
+
+$var title: $_("Languages")
+
+<div id="contentHead">
+    <h1>$_("Languages")</h1>
+</div>
+<div id="contentBody">
+    <ul class="subjectList">
+        $for lang in languages:
+            <li>
+                <a href="$lang.key">$lang.name</a>
+                <span class="count">
+                    $ pattern = ungettext("%s book", "%s books", lang.count)
+                    <b>$sprintf(pattern, commify(lang.count))</b>
+                </span>
+            </li>
+    </ul>
+</div>

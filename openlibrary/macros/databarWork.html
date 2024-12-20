@@ -1,0 +1,80 @@
+$def with (page, worldcat_links, affiliate_links, editions_page=False, render_times={})
+
+$ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+
+<div class="Tools">
+  <div id="read">
+    $if page.volumes:
+      <h3 class="header">
+        <span class="icon read"></span>
+        <span class="head">$_("Browse")</span>
+      </h3>
+      $for v in page.volumes:
+        $if v.ia_id != "-":
+          <div class="panel">
+            <p><a href="$viewbook.replace('XXX', v.ia_id)">$_('View Volume %(num)d', num=v.volume_number)</a></p>
+          </div>
+
+    <div class="panel">
+      <div class="btn-notice read-options" id="read-options">
+
+        <div class="illustration edition-cover">
+          $:render_template('covers/book_cover', page, preload=True)
+          $# Don't display add/change cover link for /books/ia:foo00bar pages
+          $if not page.is_fake_record():
+              $:render_template('covers/change', page, ".edition-cover .bookCover img")
+        </div>
+
+        $ work = (page.works and page.works[0]) or page
+        $ edition = page.works and page
+
+        $ render_times['databarWork: List widget'] = time()
+        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, async_load=True, show_active_lists=True)
+        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
+
+        $# For the Works & Editions page, only use ground_truth_availability API for selected Edition
+        $# if edition availability status is error
+        $ render_times['databarWork: LoanStatus'] = time()
+        $ expensive_check = page.get('availability', {}).get('status') in ['error']
+        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget)
+        $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
+
+        <hr>
+        $ share_url = request.home + (edition or work).key
+
+        $ render_times['databarWork: Modal Links - Desktop'] = time()
+        $:render_template("type/edition/modal_links", work, edition, share_url)
+        $ render_times['databarWork: Modal Links - Desktop'] = time() - render_times['databarWork: Modal Links - Desktop']
+
+        <div class="readers-stats__wrapper mobile">
+          $ star_ratings_stats = macros.StarRatingsStats(work, mobile=True)
+          $:star_ratings_stats
+
+          <hr>
+          $ render_times['databarWork: Modal Links - Mobile'] = time()
+          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True)
+          $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
+        </div>
+
+        $if editions_page:
+          $ render_times['databarWork: Book provider'] = time()
+          $ book_provider = get_book_provider(page)
+          $ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
+          $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
+            $:book_provider.render_download_options(page)
+          $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
+      </div>
+    </div>
+
+    <div class="panel desktop-vendor">
+      <div class="btn-notice">
+        $:worldcat_links
+
+        <div class="cta-section">
+          <p class="cta-section-title">$_('Buy this book')</p>
+          $:affiliate_links
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

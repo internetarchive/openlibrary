@@ -1,0 +1,81 @@
+$def with (author)
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'
+  xmlns:bio='http://purl.org/vocab/bio/0.1/'
+  xmlns:rdg2='http://rdvocab.info/ElementsGr2/'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:foaf='http://xmlns.com/foaf/0.1/'
+  xmlns:ov='http://open.vocab.org/terms/'
+  xmlns:owl='http://www.w3.org/2002/07/owl#'
+>
+    $if author.enumeration:
+        $ name = author.name + ", " + author.enumeration
+    $else:
+        $ name = author.name
+
+    $ auri = "http://openlibrary.org" + author.key
+    $ agent_type = author.foaf_agent()
+
+    $def display(tag, value):
+        $if isinstance(value, list):
+            $for x in value:
+                <$tag>$x</$tag>
+        $elif value:
+            <$tag>$value</$tag>
+
+    <foaf:$agent_type rdf:about="$auri">
+        $:display("foaf:name", name)
+        $:display("rdg2:variantNameForThePerson", author.alternate_names)
+        $:display("rdg2:biographicalInformation", author.bio)
+        $:display("rdg2:titleOfThePerson", author.title)
+
+      $if author.birth_date:
+        <bio:event>
+            <bio:Birth>
+                 <dcterms:date>$author.birth_date</dcterms:date>
+            </bio:Birth>
+        </bio:event>
+
+      $if author.death_date:
+        <bio:event>
+            <bio:Death>
+                <dcterms:date>$author.death_date</dcterms:date>
+            </bio:Death>
+        </bio:event>
+      $if 'isni' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://isni.org/isni/$author.remote_ids['isni']"/>
+      $if 'wikidata' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://www.wikidata.org/entity/$author.remote_ids['wikidata']"/>
+      $if 'viaf' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://viaf.org/viaf/$author.remote_ids['viaf']"/>
+      $if author.wikipedia:
+        <foaf:isPrimaryTopicOf>
+            <foaf:Document rdf:about="$author.wikipedia">
+                <rdfs:label>Wikipedia</rdfs:label> $# detect-missing-i18n-skip-line
+            </foaf:Document>
+        </foaf:isPrimaryTopicOf>
+
+      $for link in author.links:
+        <foaf:page>
+            <foaf:Document rdf:about="$link.url">
+                <rdfs:label>$link.title</rdfs:label>
+            </foaf:Document>
+        </foaf:page>
+
+      $ photos = [p for p in author.photos if p > 0]
+      $for photo in photos:
+        $ auphoto = "https://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
+        <foaf:depiction>
+            <foaf:Image rdf:about="$auphoto" />
+        </foaf:depiction>
+    </foaf:$agent_type>
+
+    <!-- administrative -->
+    <rdf:Description rdf:about="">
+        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.last_modified.isoformat()</dcterms:modified>
+        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.created.isoformat()</dcterms:created>
+        <ov:versionnumber>$author.revision</ov:versionnumber>
+    </rdf:Description>
+</rdf:RDF>

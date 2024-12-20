@@ -1,0 +1,33 @@
+#test-body-mobile {
+  box-sizing: border-box;
+  max-width: 1060px;
+  width: 100%;
+  margin: 0 auto;
+  background-color: @white;
+  border-radius: 5px;
+  border: 1px solid @dark-beige;
+  z-index: @z-index-level-1;
+  position: relative;
+}
+
+// stylelint-disable-next-line no-descending-specificity
+body.full-width #test-body-mobile {
+  max-width: initial;
+  border: 0;
+  border-radius: 0;
+}
+
+// The border-box padding model is much more friendly for responsive layouts
+// so we adopt it in all pages
+// https://www.paulirish.com/2012/box-sizing-border-box-ftw/
+* {
+  box-sizing: border-box;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .contentQuarter {
+    float: left;
+    width: 25%;
+    padding-right: 19px;
+  }
+}

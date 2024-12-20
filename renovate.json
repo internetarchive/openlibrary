@@ -1,0 +1,51 @@
+{
+  "extends": [
+    "config:recommended"
+  ],
+  "git-submodules": {
+    "enabled": true
+  },
+  "pip_requirements": {
+    "fileMatch": [
+      "(^|/)requirements[^/]*\\.txt$"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "eslint",
+        "@babel/eslint-parser",
+        "eslint-plugin-no-jquery",
+        "eslint-plugin-vue"
+      ],
+      "groupName": "eslint",
+      "automerge": true
+    },
+    {
+      "matchPackageNames": [
+        "jest",
+        "bundlesize",
+        "sinon",
+        "stylelint",
+        "stylelint-declaration-strict-value"
+      ],
+      "automerge": true
+    },
+    {
+      "automerge": true,
+      "matchPackageNames": [
+        "mypy",
+        "pytest",
+        "pytest-asyncio",
+        "ruff",
+        "safety"
+      ]
+    },
+    {
+      "automerge": true,
+      "matchPackageNames": [
+        "/^actions//"
+      ]
+    }
+  ]
+}

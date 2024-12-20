@@ -1,0 +1,50 @@
+$def with(total, librarians, merge_requests=None)
+
+$# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
+$# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
+$# merge_requests : list : Merge requests to be displayed in the table
+
+$ i18n_strings = {
+  $ 'comment_submission_failure_message': _('Failed to submit comment. Please try again in a few moments.'),
+  $ 'close_request_comment_prompt': _('(Optional) Why are you closing this request?')
+  $ }
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ can_merge = ctx.user and (ctx.user.is_super_librarian())
+
+$ reviewer = query_param('reviewer', None)
+$ submitter = query_param('submitter', None)
+$ mode = query_param('mode', 'open')
+$ status = query_param('status', None)
+
+$if submitter:
+  $ desc = _("Showing %(username)s's requests only.", username=submitter)
+  $ link_text = _('Show all requests')
+  $ href = changequery(submitter=None, page=None)
+$else:
+  $ desc = _('Showing all requests.')
+  $ link_text = _('Show my requests') if username else ''
+  $ href = changequery(submitter=username, page=None) if username else changequery(submitter=None, page=None)
+
+<div class="librarian-queue-page">
+  <h1>$_('Community Edit Requests')</h1>
+
+  $ page = int(input(page=1).page)
+  <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
+    $:render_template('merge_request_table/table_header', total, librarians, mode, username, submitter, reviewer, status)
+    <table class="mr-table">
+      <tbody>
+      $if not merge_requests:
+        <tr>
+          <td colspan="5">$_('No entries here!')</td>
+        </tr>
+
+      $for r in merge_requests:
+        $:render_template('merge_request_table/table_row', r, username, can_merge)
+      </tbody>
+    </table>
+  </div>
+  <div class="pager">
+    $:macros.Pager(page, total[mode], results_per_page=25)
+  </div>
+</div>

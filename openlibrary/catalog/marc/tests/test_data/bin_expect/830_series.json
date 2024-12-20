@@ -1,0 +1,42 @@
+{
+  "publish_date": "1969",
+  "publish_country": "ja",
+  "languages": [
+    "eng"
+  ],
+  "title": "Capital versus labour under high growth",
+  "lccn": [
+    "75577579"
+  ],
+  "authors": [
+    {
+      "birth_date": "1921",
+      "name": "Kimizuka, Yoshiro",
+      "entity_type": "person",
+      "personal_name": "Kimizuka, Yoshiro"
+    }
+  ],
+  "lc_classifications": [
+    "HD2907 .K55"
+  ],
+  "series": [
+    "The Science Council of Japan. Division of Economics, Commerce & Business Administration. Economic series no. 46",
+    "Economic series (Nihon Gakujutsu Kaigi. Dai 3-bu) -- no. 46"
+  ],
+  "notes": "Includes bibliographical references.",
+  "subject_places": [
+    "Japan"
+  ],
+  "subjects": [
+    "Corporations",
+    "Labor supply"
+  ],
+  "publishers": [
+    "Science Council of Japan"
+  ],
+  "publish_places": [
+    "Tokyo"
+  ],
+  "pagination": "58 p.",
+  "number_of_pages": 58
+}

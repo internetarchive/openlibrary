@@ -1,0 +1,191 @@
+/**
+ * CtaBtn
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
+ */
+@import "../less/index.less";
+
+// `a` specificity is needed to override default anchor styles
+.cta-btn,
+a.cta-btn {
+  font-size: 16px;
+  color: @white;
+  width: 100%;
+  display: block;
+  border: 0;
+  border-radius: 5px;
+  margin-top: 5px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: @lucida_sans_serif-1;
+  text-align: center;
+  padding: 7px;
+  white-space: nowrap;
+  background-color: @grey;
+  line-height: 1.5em;
+  text-decoration: none;
+
+  transition: background-color .2s;
+
+  .btn-icon {
+    width: 40px;
+    flex-shrink: 0;
+  }
+  // stylelint-disable-next-line selector-max-specificity
+  .btn-icon.read-aloud {
+    background-image: url(/static/images/icons/read%20aloud.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+
+  .btn-label { padding: 0 10px; }
+
+  &:link, &:visited {
+    color: @white;
+    text-decoration: none;
+  }
+
+  &--no-pointer {
+    cursor: default;
+  }
+
+  &--available, &--preview, &--primary {
+    background-color: @primary-blue;
+    color: @white;
+    &:hover { background-color: darken(@primary-blue, 20%); }
+  }
+
+  &--available:disabled, &--preview:disabled, &--primary:disabled {
+    background-color: @grey;
+    cursor: default;
+  }
+
+  &--external {
+    background-image: url(/static/images/icons/octicon-link-external-24.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center right 8px;
+    justify-content: center;
+  }
+
+  &--unavailable {
+    background-color: @primary-blue;
+    color: @white;
+    &:hover { background-color: darken(@primary-blue, 20%); }
+  }
+
+  &--shell&--external {
+    background-blend-mode: difference;
+  }
+
+  &--shell, &--shell:link, &--shell:visited {
+    .shell-btn--active();
+  }
+  &--shell:disabled {
+    border: 2px solid @light-grey;
+    color: @light-grey;
+    cursor: default;
+  }
+  &--sponsor {
+    border: 2px solid @link-blue;
+    background: lighten(desaturate(@link-blue, 56%), 67%);
+  }
+  &--vanilla, &--vanilla:visited, &--vanilla:link {
+    padding: 5px;
+    border: 2px solid @light-grey;
+    background: @white;
+    color: @grey;
+    border-radius: 6px;
+  }
+
+  &--unstyled, &--unstyled:visited, &--unstyled:link {
+    padding: 7px;
+    background: @white;
+    color: @grey;
+    border-radius: 6px;
+  }
+
+  &--delete, &--cancel {
+    background-color: @red;
+
+    &:visited {
+      color: @grey;
+    }
+    &:hover {
+      background-color: darken(@red, 20%);
+    }
+  }
+
+  &--sponsor:link, &--sponsor:visited {
+    color: @link-blue;
+  }
+
+  &--sponsor:hover {
+    border: 2px solid @link-blue;
+    background-color: @link-blue;
+    color: @white;
+  }
+
+  &__badge {
+    background-color: darken(@burnt-sienna, 20%);
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: .7em;
+  }
+}
+
+// Top margin to button coming after another button
+.cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
+  margin-top: 5px;
+}
+
+.cta-btn--small {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.cta-btn--search {
+  width: auto;
+  display: inline-block;
+  margin: 0;
+  border: 1px solid @dark-beige;
+  background-color: @light-beige;
+  color: @grey;
+}
+
+.waitinglist-message {
+  text-align: center;
+}
+
+.cta-button-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+
+  .cta-btn--w-icon {
+    display: flex;
+  }
+
+  .cta-btn {
+    margin: 0;
+    padding: 8px 0;
+
+    &:first-child {
+      flex: 1;
+      padding: 8px;
+      overflow: hidden;
+    }
+
+    &:not(:first-child) {
+      margin-left: 1px;
+      width: 40px;
+      transition: width .2s;
+      overflow: hidden;
+      border-radius: 2px 6px 6px 2px;
+    }
+
+    &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
+    // stylelint-disable-next-line selector-max-specificity
+    &:not(:first-child):hover { width: 100%; }
+  }
+}

@@ -1,0 +1,38 @@
+ports:
+- name: Web App
+  port: 8080
+# ignore these ports by default to avoid extra notifications
+- name: Solr
+  port: 8983
+  onOpen: ignore
+- name: Covers
+  port: 7075
+  onOpen: ignore
+- name: Infobase
+  port: 7000
+  onOpen: ignore
+- name: Debugger
+  port: 3000
+  onOpen: ignore
+tasks:
+- name: watch
+  # This task watches for changes to JS/CSS files and automatically builds
+  init: gp sync-await docker-up && docker compose run --rm home npx concurrently npm:watch npm:watch-css
+- name: Start App
+  before: |
+    # run chown because https://github.com/gitpod-io/gitpod/issues/4851
+    sudo chown -R gitpod:999 $GITPOD_REPO_ROOT
+    # Give container (ie group) write access to this volume
+    sudo chmod g+w -R $GITPOD_REPO_ROOT
+    # because: https://github.com/gitpod-io/gitpod/issues/9311
+    chmod o+rx $GITPOD_REPO_ROOT
+  # init runs once for each commit to the default branch
+  init: docker compose up --no-start && gp sync-done docker-up
+  # command runs each time a user starts their workspace
+  command: |
+    export OL_COVERSTORE_PUBLIC_URL="https://7075-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+    docker compose up
+- name: dev shell
+  # init runs once for each commit to the default branch
+  init: ./scripts/setup_gitpod.sh
+  openMode: split-right

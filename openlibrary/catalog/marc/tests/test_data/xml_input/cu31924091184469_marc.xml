@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" xmlns="http://www.loc.gov/MARC21/slim">
+  <record>
+    <leader>00957cam  2200313   4500</leader>
+    <controlfield tag="001">4291884</controlfield>
+    <controlfield tag="005">20071008115737.0</controlfield>
+    <controlfield tag="008">781010s1896    nyu      b    000 0 eng d</controlfield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">4291884</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)4282700</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">OKD</subfield>
+      <subfield code="c">OKD</subfield>
+      <subfield code="d">NIC</subfield>
+    </datafield>
+    <datafield tag="092" ind1=" " ind2=" ">
+      <subfield code="a">880</subfield>
+      <subfield code="b">H752i</subfield>
+    </datafield>
+    <datafield tag="049" ind1=" " ind2=" ">
+      <subfield code="a">COOO</subfield>
+    </datafield>
+    <datafield tag="050" ind1=" " ind2="4">
+      <subfield code="a">PA4025.A2</subfield>
+      <subfield code="b">B83 1896</subfield>
+    </datafield>
+    <datafield tag="100" ind1="0" ind2=" ">
+      <subfield code="a">Homer.</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="a">Iliad.</subfield>
+      <subfield code="l">English</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="4">
+      <subfield code="a">The Iliad of Homer /</subfield>
+      <subfield code="c">literally translated, with explanatory notes, by Theodore Alois Buckley.</subfield>
+    </datafield>
+    <datafield tag="260" ind1=" " ind2=" ">
+      <subfield code="a">New York :</subfield>
+      <subfield code="b">Harper,</subfield>
+      <subfield code="c">1896.</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">466 p. ;</subfield>
+      <subfield code="c">19 cm.</subfield>
+    </datafield>
+    <datafield tag="440" ind1=" " ind2="0">
+      <subfield code="a">Harper's new classical library</subfield>
+    </datafield>
+    <datafield tag="504" ind1=" " ind2=" ">
+      <subfield code="a">Includes bibliographical references.</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Buckley, Theodore William Aldis,</subfield>
+      <subfield code="d">1825-1856.</subfield>
+    </datafield>
+    <datafield tag="902" ind1=" " ind2=" ">
+      <subfield code="a">pfnd</subfield>
+      <subfield code="b">Pumpelly</subfield>
+    </datafield>
+    <datafield tag="903" ind1=" " ind2=" ">
+      <subfield code="a">Kirtas</subfield>
+      <subfield code="d">20071008</subfield>
+      <subfield code="p">31924091184469</subfield>
+    </datafield>
+    <datafield tag="948" ind1="0" ind2=" ">
+      <subfield code="a">20020723</subfield>
+      <subfield code="b">m</subfield>
+      <subfield code="d">lms6</subfield>
+      <subfield code="e">cts</subfield>
+      <subfield code="h">?</subfield>
+    </datafield>
+    <datafield tag="948" ind1="1" ind2=" ">
+      <subfield code="a">20020725</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="d">sok1</subfield>
+      <subfield code="e">cts</subfield>
+    </datafield>
+    <datafield tag="948" ind1="2" ind2=" ">
+      <subfield code="a">20031103</subfield>
+      <subfield code="b">m</subfield>
+      <subfield code="d">si25</subfield>
+      <subfield code="e">cts</subfield>
+    </datafield>
+    <datafield tag="994" ind1=" " ind2=" ">
+      <subfield code="a">X0</subfield>
+      <subfield code="b">COO</subfield>
+    </datafield>
+    <datafield tag="995" ind1=" " ind2=" ">
+      <subfield code="a">Hivolm</subfield>
+      <subfield code="d">20070405</subfield>
+    </datafield>
+  </record>
+</collection>

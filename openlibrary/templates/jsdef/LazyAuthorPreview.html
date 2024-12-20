@@ -1,0 +1,29 @@
+$def with (author)
+
+$jsdef render_lazy_author_preview(item):
+    $if item:
+        $# The autocomplete plugin moves `top_work` into `works`, but we should support both fields.
+        $ top_work = item['top_work'] or item['works'][0]
+
+        <div class="ac_author" title="Select this author">
+            <div class="olid">$item['key']</div>
+            <span class="name">
+                $item['name']
+                $if item['birth_date'] or item['death_date']:
+                    ($(item['birth_date'] or ' ')&ndash;$(item['death_date'] or ' '))
+            </span>
+            $if item['work_count'] == 0:
+                <span class="work">No books associated with $item['name']</span>
+            $elif item['work_count'] == 1:
+                <span class="books">1 book</span>
+                <span class="work">titled <i>$top_work</i></span>
+            $else:
+                <span class="books">$item['work_count'] books</span>
+                <span class="work">including <i>$top_work</i></span>
+
+            $if item['work_count'] and item['subjects']:
+                <span class="subject">Subjects: $(', '.join(item['subjects']))</span>
+        </div>
+
+$if author:
+    $:render_lazy_author_preview(author)

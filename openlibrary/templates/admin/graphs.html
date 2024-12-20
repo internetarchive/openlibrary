@@ -1,0 +1,48 @@
+
+$var title: $_("Performance Graphs")
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>$_("Performance Graphs")</h1>
+</div>
+
+$def render_graph_page(days):
+    $ defaults = {"width": 850, "height": 303, "from": days, "yMin": 0}
+
+    <h2>$_("Number of Hits")</h2>
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.total.count").apply("movingAverage", 20).alias("#hits")
+    $:g.render(**defaults)
+
+    <h2>$_("Page Load Times")</h2>
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.pageload.all.mean").apply("movingAverage", 20).alias("all")
+    $g.add("stats.timers.ol.pageload.all.loggedin.mean").apply("movingAverage", 20).alias("logged-in")
+    $g.add("stats.timers.ol.pageload.all.not_loggedin.mean").apply("movingAverage", 20).alias("not logged-in")
+    $:g.render(yLimit=100, **defaults)
+
+    <h2>$_("Page Load Times Split")</h2>
+
+    $ g = GraphiteGraph()
+    $for name in ["authors", "books", "works", "home", "search", "subjects"]:
+        $g.add("stats.timers.ol.pageload.%s.mean" % name).apply("movingAverage", 20).alias(name)
+    $:g.render(yLimit=100, **defaults)
+
+    <h2>$_("Infobase Mean")</h2>
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.infobase.mean").apply("movingAverage", 20).alias("infobase.mean")
+    $:g.render(yLimit=300, **defaults)
+
+<div id="contentBody">
+<div class="ol-tabs">
+    <ul>
+        <li><a href="#day" id="link_day">$_("Today")</a></li>
+        <li><a href="#week" id="link_week">$_("This Week")</a></li>
+        <li><a href="#month" id="link_month">$_("This Month")</a></li>
+    </ul>
+    <div id="day">$:render_graph_page("-1days")</div>
+    <div id="week">$:render_graph_page("-7days")</div>
+    <div id="month">$:render_graph_page("-30days")</div>
+</div>
+
+</div>

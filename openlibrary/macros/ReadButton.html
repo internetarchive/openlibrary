@@ -1,0 +1,35 @@
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False)
+
+$ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
+
+$if printdisabled:
+  $ action = "read"
+  $ label = _("Special Access")
+  $ title = _("Special ebook access from the Internet Archive for patrons with qualifying print disabilities")
+  $ analytics_action = "PrintDisabled"
+$elif (borrow and not loan):
+  $ action = "borrow"
+  $ label = label or _("Borrow")
+  $ title = _("Borrow ebook from Internet Archive")
+  $ analytics_action = "Borrow"
+$else:
+  $ action = "read"
+  $ label = _("Read")
+  $ title = _("Read ebook from Internet Archive")
+  $ analytics_action = "Read"
+
+<div class="cta-button-group">
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+      $:analytics_attr(analytics_action)
+      $if loan:
+        data-userid="$(loan['userid'])"
+      >$label</a>
+  $if listen:
+    <a href="$(stream_url)&_autoReadAloud=show"
+       title="$title using Read Aloud"
+       $:analytics_attr(action.capitalize() + 'Listen')
+       class="cta-btn cta-btn--available cta-btn--w-icon">
+      <span class="btn-icon read-aloud"></span>
+      <span class="btn-label">$_("Listen")</span>
+    </a>
+</div>

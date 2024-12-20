@@ -1,0 +1,31 @@
+{
+  "pagination": "iv, 291 leaves",
+  "title": "1,3-Dipolar cycloadditions of fluorinated allenes and studies of fluorinated trimethylenemethanes",
+  "notes": "Typescript.\n\nVita.\n\nThesis (Ph. D.)--University of Florida, 1984.\n\nBibliography: leaves 284-290.",
+  "number_of_pages": 291,
+  "languages": [
+    "eng"
+  ],
+  "subjects": [
+    "Allene",
+    "Ring formation (Chemistry)",
+    "Trimethylenemethane"
+  ],
+  "publish_date": "1984",
+  "publish_country": "xx",
+  "authors": [
+    {
+      "birth_date": "1954",
+      "personal_name": "Burkholder, Conrad",
+      "name": "Burkholder, Conrad",
+      "entity_type": "person"
+    }
+  ],
+  "by_statement": "by Conrad Burkholder",
+  "oclc_numbers": [
+    "14236343"
+  ],
+  "location": [
+    "FU"
+  ]
+}

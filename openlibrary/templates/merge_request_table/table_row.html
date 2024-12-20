@@ -1,0 +1,89 @@
+$def with (request, username, can_merge)
+$# request : dict : Dict containing information about a single merge request.
+$# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
+$# can_merge : boolean : `True` if patron has merge privileges.
+
+$ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
+$ comments = request.get('comments', {}).get('comments', [])
+$ is_open = request['status'] == 1
+$ review_url = "%s&mrid=%s" % (request['url'], request['id'])
+$ is_submitter = username == request['submitter']
+
+$code:
+  # Maps request statuses to status dot class names
+  status_dot_mapping = {
+    0: 'dot--closed',
+    1: 'dot--open',
+    2: 'dot--merged'
+  }
+
+<tr id="mrid-$(request['id'])" class="mr-table-row" data-mrid="$(request['id'])">
+    <td class="mr-info">
+        $# Start : Status dot indicator
+        $ dot_status_class = status_dot_mapping[request['status']]
+        $ status = _('Open request') if is_open else _('Closed request')
+        <div class="dot $dot_status_class" title="$status"></div>
+        $# End : Status dot indicator
+
+        <div class="mr-details">
+        <span class="mr-details__request-title">$request_title</span>
+
+        $# Start : Most recent comment preview
+        <div class="mr-details__comment-preview">
+            $ latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
+            $latest_comment
+        </div>
+        $# End : Most recent comment preview
+
+        $# Start : Comment section
+        $# XXX : Replace this with a modal form
+        <div class="comment-panel hidden">
+            <div class="comment-panel__comment-display">
+            $for c in comments:
+                <div class="comment-panel__comment"><span class="commenter">@$c['username']</span> $c['message']</div>
+            </div>
+            $if is_submitter or can_merge:
+            <div class="comment-panel__input">
+                $# XXX: Ensure that this has a drag handle
+                <textarea class="comment-panel__reply-input" rows="1" placeholder="$_('Add a comment...')"></textarea>
+                <input class="comment-panel__reply-btn" type="button" value="$_('Reply')">
+            </div>
+        </div>
+        $# End : Comment section
+
+        $# Start : Submitted by line
+        <span class="mr-details__opened-by">
+            $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
+            $if is_open and is_submitter:
+            <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
+        </span>
+        $# End : Submitted by line
+        </div>
+    </td>
+    <td class="mr-review-actions">
+        $ show_review_button = is_open and can_merge and not request.get('reviewer', '')
+        <div class="mr-review-actions__assignee $('hidden' if show_review_button else '')">
+        $ request_reviewer = request.get('reviewer', '')
+        $if request_reviewer:
+            $ request_reviewer = '@' + request_reviewer
+        $if is_open:
+            $ icon_classes = 'mr-review-actions__unassign'
+            $if not can_merge:
+                $ icon_classes = '%s hidden' % icon_classes
+            $ icon_content = '&times;'
+        $else:
+            $ icon_classes = 'mr-review-actions__checkmark'
+            $ icon_content = '✓'
+
+        <span class="mr-review-actions__assignee-name">$request_reviewer</span>
+        <span class="$icon_classes">$:icon_content</span>
+        </div>
+        <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$_('Review')</a>
+    </td>
+    <td class="mr-comment-toggle">
+        <a href="javascript:;" class="mr-comment-toggle__comment-expand cta-btn">
+        <span class="mr-comment-toggle__comment-count">$len(comments)</span>
+        <img class="mr-comment-review-cell__speech mr-comment-toggle__speech-bubble" src="/static/images/speech-bubble.svg" alt="$_('comments')">
+        </a>
+    </td>
+</tr>

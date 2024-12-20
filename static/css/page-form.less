@@ -1,0 +1,146 @@
+/**
+ * Stylesheet entry point for pages with body-form
+ * See
+ * - openlibrary/templates/covers/saved.html
+ * - openlibrary/templates/covers/manage.html
+ * Pages:
+ * - /books/OL9737752M/The_Odyssey/add-cover
+ * - /books/OL9737752M/The_Odyssey/manage-covers
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+// TODO: Only formElement and a few common styles are actually needed in this file
+// to render this simple page. We should list them explicitly once that's possible.
+@import (less) "legacy.less";
+
+body {
+  text-align: left;
+  background-color: @white !important;
+  overflow: hidden;
+}
+
+/* stylelint-disable selector-max-specificity */
+div#revertNotice,
+div#revertLink,
+#bottom {
+  display: none;
+}
+/* stylelint-enable selector-max-specificity */
+.formButtons {
+  position: absolute;
+  height: 50px;
+  bottom: 0;
+  left: 0;
+  text-align: center;
+  cursor: pointer;
+}
+.column {
+  min-height: 90px;
+  margin: 10px;
+  background-image: url(/images/back_sortable.png);
+  background-repeat: no-repeat;
+}
+.trashCan {
+  position: absolute;
+  top: 20px;
+  right: 32px;
+  width: 32px;
+  height: 42px;
+  background-image: url(/images/back_sort-trash.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  cursor: pointer;
+}
+.trashPosition {
+  position: relative;
+  height: 90px;
+  &:hover .trashCan {
+    background-position: -32px 0;
+  }
+}
+.trash {
+  height: 90px;
+  overflow: hidden;
+  background-color: @light-yellow;
+  margin: 0 10px;
+  border-radius: 8px;
+  border: 1px solid @dark-yellow;
+}
+.portlet {
+  margin: 7px 13px 13px 7px;
+  float: left;
+  width: 70px;
+  height: 70px;
+  overflow: hidden;
+  border: 1px solid @lighter-grey;
+  border-radius: 6px;
+  cursor: move;
+  td {
+    width: 70px;
+    height: 70px;
+    text-align: center;
+    vertical-align: middle;
+    cursor: move;
+  }
+  img {
+    cursor: move;
+  }
+}
+.portlet-content {
+  padding: .4em;
+}
+.imagePost {
+  width: 300px;
+  text-align: center;
+}
+.imageSaved {
+  width: 300px;
+  font-size: .75em;
+  color: @grey;
+
+  .imageSaved__button {
+    text-decoration: none;
+  }
+}
+.saved {
+  background: url(/images/icons/icon_saved.png) no-repeat;
+  font-size: 1.5em;
+  font-weight: 700;
+  color: @black;
+  padding: 6px 0 0 40px;
+  min-height: 30px;
+  margin: 25px 0 15px;
+}
+.saved-image-container {
+  display: flex;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  body {
+    width: 600px;
+    min-height: 440px;
+  }
+  /* stylelint-disable selector-max-specificity */
+  #placement,
+  #position,
+  #content {
+    width: 600px;
+    min-height: 440px;
+  }
+  /* stylelint-enable selector-max-specificity */
+  .formButtons {
+    width: 600px;
+  }
+  .column {
+    width: 560px;
+  }
+  .trashPosition {
+    width: 580px;
+    float: left;
+  }
+  .trash {
+    width: 560px;
+    float: left;
+  }
+}

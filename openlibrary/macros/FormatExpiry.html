@@ -1,0 +1,11 @@
+$def with(expiry)
+
+$if expiry:
+    $ expiry_datetime = datetime_from_isoformat(expiry)
+    <div class="local-date-time">
+      $_('Expires')
+      <time datetime="$datetimestr_utc(expiry_datetime)"
+            title="$datetimestr_utc(expiry_datetime)">
+	    $datestr(expiry_datetime)
+      </time>
+    </div>

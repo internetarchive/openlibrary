@@ -1,0 +1,6 @@
+$def with(ocaid)
+
+<form class="LoanReadForm" method="POST" action="/borrow/ia/$ocaid">
+  <input type="hidden" name="action" value="read" />
+  <input class="cta-btn cta-btn--available" type="submit" value="$_('Read')" />
+</form>

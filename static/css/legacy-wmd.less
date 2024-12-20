@@ -1,0 +1,188 @@
+/**
+ * Wmd (Weapons of Mass destruction aka Wikitext markdown)
+ * This file relates to Wikitext markdown styling.
+ * It will be refactored at the earliest opportunity but for now
+ * lives inside the legacy stylesheet.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ */
+@import (less) "less/font-families.less";
+
+.wmd-panel {
+  width: auto;
+}
+
+.wmd-editor {
+  background-color: @nagios-green;
+}
+
+.wmd-input {
+  height: 500px;
+  width: 100%;
+  background-color: @white;
+  border: 1px solid @darker-grey;
+}
+
+.wmd-preview {
+  background-color: @white;
+  border: 1px solid @lighter-grey;
+  font-family: @georgia_serif-1;
+  display: none;
+  overflow-wrap: anywhere;
+}
+
+.formElement .input .wmd-preview {
+  width: 100%;
+  min-height: 47px;
+  padding: 5px;
+  clear: both;
+}
+
+/* stylelint-disable no-descending-specificity */
+fieldset.major .wmd-preview,
+form#addAuthor.olform .wmd-preview,
+form.olform.books .formElement.librarian .input .wmd-preview,
+form.olform.books .formElement .input .wmd-preview {
+  min-height: 47px;
+  padding: 3px;
+}
+/* stylelint-enable no-descending-specificity */
+
+.wmd-output {
+  background-color: @white;
+}
+
+.wmd-button-row {
+  position: relative;
+  margin-bottom: 5px !important;
+  margin-left: 0 !important;
+  margin-top: 10px;
+  padding: 0;
+  height: 20px;
+}
+
+.wmd-spacer {
+  width: 1px;
+  height: 20px;
+  margin-left: 14px;
+  position: absolute;
+  display: inline-block;
+  list-style: none;
+}
+
+.wmd-button {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  position: absolute;
+  background-image: url(/images/wmd-buttons.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  display: inline-block;
+  list-style: none;
+}
+
+/* sprite button slicing style information */
+.wmd-bold-button {
+  left: 0;
+  background-position: 0 0;
+}
+
+.wmd-italic-button {
+  left: 25px;
+  background-position: -20px 0;
+}
+
+.wmd-spacer1 {
+  left: 50px;
+}
+
+.wmd-link-button {
+  left: 75px;
+  background-position: -40px 0;
+}
+
+.wmd-quote-button {
+  left: 100px;
+  background-position: -60px 0;
+}
+
+.wmd-code-button {
+  left: 125px;
+  background-position: -80px 0;
+}
+
+.wmd-image-button {
+  left: 150px;
+  background-position: -100px 0;
+}
+
+.wmd-spacer2 {
+  left: 175px;
+}
+
+.wmd-olist-button {
+  left: 200px;
+  background-position: -120px 0;
+}
+
+.wmd-ulist-button {
+  left: 225px;
+  background-position: -140px 0;
+}
+
+.wmd-heading-button {
+  left: 250px;
+  background-position: -160px 0;
+}
+
+.wmd-hr-button {
+  left: 275px;
+  background-position: -180px 0;
+}
+
+.wmd-spacer3 {
+  left: 300px;
+}
+
+.wmd-undo-button {
+  left: 325px;
+  background-position: -200px 0;
+}
+
+.wmd-redo-button {
+  left: 350px;
+  background-position: -220px 0;
+}
+
+.wmd-help-button {
+  margin-right: 0;
+  right: 0;
+  background-position: -240px 0;
+}
+
+.wmd-prompt-background {
+  background-color: @black;
+  opacity: .9;
+  filter: Alpha(Opacity=90);
+}
+
+@import (less) "components/wmd-button-bar.less";
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  // Styles are used on edit page
+  // e.g. http://localhost:8080/works/OL61982W/Odyssey/edit
+  form.olform.books .formElement.librarian .input .wmd-preview {
+    width: 798px;
+  }
+  form#addAuthor.olform .wmd-preview {
+    width: 623px;
+  }
+}

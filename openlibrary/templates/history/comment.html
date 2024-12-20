@@ -1,0 +1,21 @@
+$def with (v)
+
+$ get_source_html = render_template("history/sources").get_source_html
+
+$ v = process_version(v)
+$ record_id = v.get('machine_comment')
+$if record_id:
+    $if v.revision == 1:
+       $:_('Imported from')
+       $:get_source_html(record_id)
+    $else:
+       $:_('Found a matching')
+       $:get_source_html(record_id)
+$elif 'history_v2' in ctx.features:
+    $ kind = "merge" if v.kind.startswith('merge-') else v.kind
+    $ t = get_template('recentchanges/' + kind + '/comment') or get_template('recentchanges/default/comment')
+    $:t(v, v.thing)
+$elif v.comment:
+    $v.comment
+$else:
+    <em>$_("Edited without comment.")</em>

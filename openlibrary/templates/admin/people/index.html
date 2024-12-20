@@ -1,0 +1,89 @@
+$def with (email=None, ia_id=None)
+
+$var title: $_("[Admin Center] People")
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>$_("People")</h1>
+</div>
+
+<div id="contentBody">
+<div class="head">
+    <h2>$_("Find Account")</h2>
+</div>
+
+<style type="text/css">
+.user-search td {
+    font-size: 1.0em !important;
+}
+input#email,
+input#ia-id {
+    padding: 3px;
+    width: 400px;
+}
+</style>
+
+<table class="user-search" id="adminHistory" style="clear: both;">
+<tbody>
+    <tr>
+        <td>$_("Email Address:")</td>
+        <td>
+            <form method="GET" name="form-email" id="form-email">
+                <input type="email" name="email" id="email" value="$email"/>
+                <button type="submit" name="" value="find">$_("Find")</button>
+                <span class="invalid" htmlfor="email" generated="true">
+                    $if email:
+                        $_("No account found with this email.")
+                </span>
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("IA ID:")</td>
+        <td>
+            <form method="GET" name="form-ia-id">
+                <input type="text" name="ia_id" id="ia-id" pattern="^@.*\$" placeholder="$_('e.g. @foobar')">
+                <button type="submit">$_("Find")</button>
+                <span class="invalid">
+                    $if ia_id:
+                        $_("No account found with this ID.")
+                </span>
+            </form>
+        </td>
+    </tr>
+</tbody>
+</table>
+
+<p></p>
+
+
+<div class="head">
+    <h2>$_("Recent Accounts")</h2>
+</div>
+
+<table id="adminHistory">
+    <thead>
+    <tr>
+        <th>$_("Date/Time")</th>
+        <th>$_("Name")</th>
+        <th>$_("email")</th>
+        <th>$_("Edits")</th>
+    </tr>
+    </thead>
+    <tbody>
+    $for user in get_recent_accounts(limit=50):
+        <tr>
+            <td class="time">$datestr(user.created)</td>
+            <td class="displayname"><a href="/admin$user.key">$user.displayname</a> <a href="$user.key" style="color: #900; text-decoration: none;">$_("profile")</a></td>
+            <td class="displayname">$user.get_email()</td>
+            <td class="comment">$user.get_edit_count()</td>
+        </tr>
+    </tbody>
+    </table>
+
+<div class="head">
+    <h2>$_("Edit History")</h2>
+</div>
+$:render_template("admin/history", get_recent_changes(limit=5))
+
+</div>

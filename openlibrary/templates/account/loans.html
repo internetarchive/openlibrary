@@ -1,0 +1,205 @@
+$def with (user, loans, test=False)
+
+<style type="text/css">
+.date, .waitrank {
+    margin: 5px 0px;
+}
+.dialog .title {
+    font-weight: bold;
+}
+
+tr.expired {
+    background: #ffcdcd;
+}
+
+td.status, th.status {
+    padding: 15px;
+    text-align: center;
+}
+
+tr.row-available .status-value {
+    color: darkgreen;
+}
+
+tr.row-available {
+    background: #fffdcd;
+}
+
+td.actions form + form {
+    margin-top: 5px;
+}
+
+th.action {
+    width: 150px;
+}
+th.status {
+    width: 150px;
+}
+.loan-history {
+  margin-top: 1em;
+}
+
+.details-content>header{
+    padding-left: 0px;
+}
+
+</style>
+
+<div>
+  $if len(loans) == 0:
+    <div><em>$_("You've not checked out any books at this moment.")</em></div>
+    <br>
+$else:
+  $# Have current loans
+  <div class="borrow borrow-table collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $ungettext("%(count)d Current Loan", "%(count)d Current Loans", len(loans), count=len(loans))
+                </th>
+                <th class="expires">$_("Loan Expires")</th>
+                <th class="actions">$_("Loan actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+          $ book = get_document(loan['book'])
+          $if book:
+              <tr data-userid="$(loan['userid'])">
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                    <a href="$book.key" class="borrowResults">
+                    <strong>$book.title</strong>
+                    </a>
+                    </span>
+                    <span class="author">
+                    $:macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
+                    </span>
+                    <div class="date">
+                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                    </div>
+                    $ wlsize = book.get_waitinglist_size()
+                    $if wlsize:
+                        <div class="smallest lightgreen sansserif waitrank">
+                            $ungettext("There is %(count)d person waiting for this book.", "There are %(count)d people waiting for this book.", wlsize, count=wlsize)
+                        </div>
+                </td>
+                <td class="expires">
+                    $if loan['expiry'] is None:
+                        $# Not yet fulfilled
+                        <span class="red">$_("Not yet downloaded.") </span><br/>
+                        <a href="$loan['loan_link']">$_("Download Now")</a>
+                    $else:
+                        $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="actions">
+                    $if loan['resource_type'] == 'bookreader':
+                        $:macros.LoanReadForm(loan['ocaid'])
+                        $:macros.ReturnForm(loan['ocaid'])
+                    $else:
+                        <span class="smaller grey sansserif">$:_("Return via<br/>Adobe Digital Editions")</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+</div>
+
+<hr/>
+
+<header>
+    <h1 class="details-title">$_("Books You're Waiting For")</h1>
+</header>
+
+<div>
+
+    $ waitinglist = user.get_waitinglist()
+    $if len(waitinglist) == 0:
+        <div><em>$_('You are not waiting for any books at this moment.')</em></div>
+    $else:
+        <div id="leave-waitinglist-dialog" class="hidden dialog"
+             title="$_('Leave the Waiting List')">$:_('Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?')</div>
+        <div class="borrow borrow-table collapse waitinglist">
+          <table>
+              <thead>
+                  <tr>
+                      <th class="titles" colspan="2">
+                      $ungettext("%(count)d book", "%(count)d books", len(waitinglist), count=len(waitinglist))
+                      </th>
+                      <th class="status">$_("Status")</th>
+                      <th class="actions">$_("Actions")</th>
+                  </tr>
+              </thead>
+              <tbody>
+              <!-- FIXME: Not internationalized. Uses internal status string directly -->
+              $for record in waitinglist:
+                $ book = record.get_book()
+                $ status = record['status']
+                $if book:
+                  <tr class="row-$status">
+                      <td class="cover">
+                      $:render_template('covers/book_cover_small', book)
+                      </td>
+                      <td class="titles">
+                          <span class="book">
+                              <a href="$book.key" class="borrowResults"><strong>$book.title</strong></a>
+                          </span>
+                          <span class="author">
+                              $:macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
+                          </span>
+                          <div class="date">
+                              $ ndays = record.get_waiting_in_days()
+                              $ungettext("Waiting for 1 day", "Waiting for %(count)d days", ndays, count=ndays)
+                          </div>
+                          <div class="smallest lightgreen sansserif waitrank">
+                              $if status == "waiting":
+                                  $ wsize = book.get_waitinglist_size()
+                                  $ pos = record.get_position()
+                                  $if pos == 1:
+                                      $_("You are the next person to receive this book.")
+                                  $else:
+                                      $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)d people ahead of you in the waiting list.", pos-1, count=pos-1)
+                          </div>
+                      </td>
+                      <td class="status">
+                          <span class="status-value">$record['status'].title()</span><br/>
+                          $if status == "available":
+                              $ delta_hours = record.get_expiry_in_hours()
+                              <div class="smaller" style="padding-top: 5px;">
+                                  $if delta_hours == 0:
+                                      $_("You have less than an hour to borrow it.")
+                                  $else:
+                                      $ungettext("You have one more hour to borrow it.", "You have %(hours)d more hours to borrow it.", delta_hours, hours=delta_hours)
+                              </div>
+                      </td>
+                      <td class="actions">
+                          $if status == "available":
+                              <form action="$book.url('/borrow')" method="post">
+                                  <input type="hidden" name="action" value="borrow" />
+                                  <input type="submit" value="$_('Borrow Now')" />
+                              </form>
+                          <form action="$book.url('/borrow?redirect=/account/loans')"
+                                method="POST" class="wlform">
+                              <input type="hidden" name="action" value="leave-waitinglist"/>
+                              <a href="javascript:;" class="leave">$_("Leave the waiting list?")</a>
+                          </form>
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
+</div>
+
+<br/>
+<hr/>
+<br/>
+
+<div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
+     $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
+    $:render_template("home/categories", test=test)
+    $:_('Or, check out our <a href="/collections">special collections</a>.')

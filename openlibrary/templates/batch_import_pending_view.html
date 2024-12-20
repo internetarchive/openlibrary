@@ -1,0 +1,31 @@
+$def with (rows, page, limit)
+$var title: $_("Pending Batch Imports")
+
+<div id="contentHead">
+  <h1>$_("Pending Batch Imports")</h1>
+</div>
+<div id="contentBody" class="batchImportPendingStatus">
+  <table class="changeHistory">
+    <thead>
+      <tr>
+        <th>$_('batch_id')</th>
+        <th><a href="$changequery(page=None, sort='added_time asc')">$_('Added Time')</a></th>
+        <th>$_('Status')</th>
+        <th>$_('Submitter')</th>
+        <th>$_('Comments')</th>
+      </tr>
+    </thead>
+    <tbody>
+      $for row in rows:
+        <tr>
+          <td><a href="/import/batch/$row.batch_id">$row.batch_id</a></td>
+          <td>$datestr(row.added_time)</td>
+          <td>$row.status</td>
+          <td>$row.submitter</td>
+          <td>$row.comments</td>
+        </tr>
+    </tbody>
+  </table>
+
+    $:macros.Pager(page, limit)
+</div>

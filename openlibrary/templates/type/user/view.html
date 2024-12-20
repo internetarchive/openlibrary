@@ -1,0 +1,92 @@
+$def with (page)
+
+$var title: $page.displayname
+$ username = page.key.split('/')[-1]
+$ settings = page.get_users_settings()
+$ owners_page = ctx.user and ctx.user.key == page.key
+$ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
+$if days_since(page.created) < 30:
+  $ putctx('robots', 'noindex')
+
+$if "lists" in ctx.features:
+    $ lists = page.get_lists(limit=3)
+$else:
+    $ lists = []
+
+<div id="contentHead">
+    <h1>$settings.get('username')</h1>
+    $if is_public and not owners_page:
+        <div class="right">$:macros.Follow(username, following=is_subscribed)</div>
+    $:macros.databarView(page)
+    <h1>$page.displayname</h1>
+    <div class="small sansserif">
+    $if page.created:
+        <i>$_('Joined %(date)s', date=datestr(page.created))</i>
+    $if owners_page:
+        &bull;
+        <a href="$homepath()/account">$_("Settings")</a>
+        |
+        <a href="$homepath()/account/loans">$_("Loans")</a>
+    $elif ctx.user and ctx.user.is_admin():
+        &bull;
+        <span class="adminOnly"><a href="/admin$page.key">$_('admin page')</a></span>
+    $if "lists" in ctx.features and lists:
+        &bull;
+        <a href="$homepath()$page.key/lists">$_("Lists")</a>
+    </div>
+</div>
+
+<div id="contentBody">
+
+    $if page.website:
+        <p>
+        $for url in page.website:
+            <a href="$url" rel="nofollow">$url</a><br/>
+        </p>
+
+    $:sanitize(format(page.description))
+
+
+    <h2>$_('Reading Log')</h2>
+    $if owners_page:
+        $if is_public:
+            <p>$:_('You are publicly sharing the books you are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>.', username=page.key)</p>
+        $else:
+            <span>$_('You have chosen to make your') <a href="/account/books">$_('Reading Log')</a> $_('private').</span>
+
+        <a href="/account/privacy">$_('Manage your privacy settings')</a>
+    $else:
+        $if is_public:
+            <p>$:_('Here are the books %(user)s is <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key, user=page.displayname)</p>
+        $else:
+            <p>$_('This reader has chosen to make their Reading Log private.')</p>
+
+    $if "lists" in ctx.features and lists:
+        <div id="listsDisplay">
+            <h2>$(_('My Lists') if owners_page else _('Lists'))
+            <span class="sansserif small"><a href="$page.key/lists">$(_('Edit') if owners_page else _('See All'))</a></span>
+            </h2>
+            <div class="mybooks-list--clean mybooks-list">
+                <ul id="listResults">
+                    $for list in lists:
+                        <li class="searchResultItem">$:render_template("lists/snippet", list)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+
+    $ is_admin = ctx.user and ctx.user.is_admin()
+    $ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian())
+
+    $if owners_page or is_admin or is_librarian:
+        $if "recentchanges_v2" in ctx.features:
+            $ changes = render_template("recentchanges/render", author=page.key, limit=25)
+            $if changes.length > 1:
+                <h2>$_('Recent Activity')</h2>
+                $:changes
+            $else:
+                <p>$_("No edits. Yet.")</p>
+        $else:
+            $:macros.RecentChangesUsers(author=page, limit=25)
+</div>

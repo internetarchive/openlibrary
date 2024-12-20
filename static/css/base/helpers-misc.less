@@ -1,0 +1,249 @@
+// This file lists helper classes that transform content (usually via !important rules)
+// They are not components.
+// Helpers here should not be needed for most page views.
+// helpers-common provides a more standard set for usage.
+@import "../less/font-families.less";
+
+.small {
+  font-size: 12px !important;
+  font-weight: normal !important;
+  &er {
+    font-size: 11px;
+    font-weight: normal;
+  }
+  &est {
+    font-size: 10px;
+    font-weight: normal;
+  }
+}
+.reduce {
+  font-size: 50% !important;
+}
+.clear {
+  clear: both;
+}
+.large {
+  font-size: 14px !important;
+  &r {
+    font-size: 16px !important;
+  }
+  &st {
+    font-size: 18px !important;
+  }
+}
+button {
+  &.larger {
+    font-size: 18px !important;
+    cursor: pointer;
+  }
+}
+.average {
+  font-size: 13px;
+}
+.invisible {
+  visibility: hidden;
+}
+.relative {
+  position: relative;
+}
+
+.desktop-only {
+  display: none;
+}
+
+.adminOnly {
+  background-color: @orange !important;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.editFormHead {
+  display: flex;
+  padding-bottom: 0;
+}
+
+.editFormTitle{
+  flex: 1;
+  margin: 0;
+}
+
+.editFormBookTitle{
+  color: @black;
+  margin: 0;
+}
+
+.editFormBookAuthors{
+  margin-top: 0;
+}
+
+.valid {
+  padding: 5px 0 0 29px !important;
+}
+
+.noborder {
+  border: none;
+}
+
+.valid,
+.darkgreen,
+.pos {
+  color: @dark-green !important;
+}
+
+.black {
+  color: @black !important;
+}
+
+.highlight {
+  background-color: @light-yellow;
+}
+
+.orange {
+  color: @orange !important;
+}
+
+.brown {
+  color: @brown !important;
+}
+
+.teal {
+  color: @teal !important;
+}
+
+.light {
+  &green {
+    color: @olive !important;
+  }
+  &grey,
+  &gray {
+    color: @light-grey !important;
+  }
+}
+
+.blue {
+  color: @link-blue !important;
+}
+
+.invalid,
+.attn,
+.neg,
+.red {
+  color: @red !important;
+  &:not(input):empty {
+    display: none;
+  }
+}
+
+.yellow {
+  color: @light-yellow !important;
+}
+
+.lighter,
+.gray,
+.grey {
+  color: @grey !important;
+}
+
+.dark {
+  &gray,
+  &grey {
+    color: @dark-grey !important;
+  }
+}
+
+.plain {
+  text-decoration: none !important;
+}
+
+.right {
+  float: right;
+}
+
+.left {
+  float: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.adjust {
+  position: relative;
+  right: 4px;
+}
+
+.uppercase {
+  text-transform: uppercase !important;
+}
+
+.lowercase {
+  text-transform: lowercase !important;
+}
+
+.capitalize {
+  text-transform: capitalize !important;
+}
+
+.underline {
+  text-decoration: underline !important;
+}
+
+.bold {
+  font-weight: bold !important;
+}
+
+.headline,
+.sansserif {
+  font-family: @lucida_sans_serif-1 !important;
+}
+
+.arial {
+  font-family: @arial_sans_serif !important;
+}
+
+.nowrap {
+  white-space: nowrap !important;
+}
+
+.wrap {
+  white-space: normal !important;
+}
+
+.clearfix {
+  &:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+  }
+}
+
+.ui-helper {
+  &-hidden {
+    display: none;
+  }
+  &-hidden-accessible {
+    position: absolute;
+    left: -99999999px;
+  }
+  &-reset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    text-decoration: none;
+    font-size: 100%;
+    list-style: none;
+  }
+  &-clearfix {
+    display: block;
+    &:after {
+      content: ".";
+      display: block;
+      height: 0;
+      clear: both;
+      visibility: hidden;
+    }
+  }
+}

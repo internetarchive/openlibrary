@@ -1,0 +1,23 @@
+$def with (form)
+
+$var title: $_("Username/Password Reminder")
+
+<div id="contentHead">
+  <h2>$_("Forgot your Archive.org Password?")</h2>
+  <p class="instruct">$_("Forgot your Archive.org Password?") <a href="https://archive.org/account/login.forgotpw.php">$_("Click here.")</a></p>
+
+</div>
+
+<div id="contentBody">
+    <form id="register" class="reminder olform" name="register" method="post">
+
+        $:form.render()
+
+        <div class="formElement">
+            <div class="input">
+                <br/>
+                <button type="submit" class="larger" name="sendit" title="$_('Send It')">$_("Send It")</button>
+            </div>
+        </div>
+    </form>
+</div>

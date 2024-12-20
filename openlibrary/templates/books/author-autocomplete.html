@@ -1,0 +1,31 @@
+$def with (authors, name_path, dict_path, readonly=False)
+$# :param list[dict] authors: e.g. {name: str, key: str}
+$# :param str name_path: form path for the user-visible author name
+$# :param str dict_path: form path for the author dict
+
+$# Import for side-effect of defining jsdef functions
+$:render_template('jsdef/LazyAuthorPreview', None)
+
+$jsdef render_author_autocomplete_item(item):
+    $if item.key == "__new__":
+        <div class="ac_author ac_addnew" title="$_('Add a new author')">
+            <span class="action">$_("Create a new record for") </span>
+            <span class="name">$item.name</span>
+        </div>
+    $else:
+        $:render_lazy_author_preview(item)
+
+$jsdef render_author(name_path, dict_path, readonly, i, author):
+    <div class="input ac-input mia__input">
+        <div class="mia__reorder">≡</div>
+        <input class="ac-input__visible" name="$name_path--$i" type="text" value="$author.name" $cond(readonly, 'readonly', '')>
+        <input class="ac-input__value" name="$dict_path--$i--author--key" type="hidden" value="$author.key" />
+        <a class="mia__remove" href="javascript:;" title="$_('Remove this author')">[&times;]</a>&nbsp;
+    </div>
+
+$ config = {'name_path': name_path, 'dict_path': dict_path}
+<div class="multi-input-autocomplete multi-input-autocomplete--author" data-config="$dumps(config)">
+    $for author in (authors or [storage(name="", key="")]):
+        $:render_author(name_path, dict_path, readonly, loop.index0, author)
+    <a href="javascript:;" class="mia__add">$_("Add another author?")</a>
+</div>

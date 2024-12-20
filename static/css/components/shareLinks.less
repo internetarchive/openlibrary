@@ -1,0 +1,61 @@
+/**
+ * ShareLinks
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#sharelinks
+ * Provided by macro openlibrary/macros/SocialShare.html and
+ * openlibrary/macros/databarWork.html
+ * Used in templates:
+ * - openlibrary/templates/type/work/view.html
+ * - openlibrary/templates/type/edition/view.html
+ */
+
+.shareLinks-list {
+  .display-flex();
+  word-break: keep-all;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  li {
+    line-height: 24px;
+    // FIXME:
+    // Important can be removed when component/Tools has been removed
+    // The list styles clash with this component.
+    margin: 5px 0 0 !important;
+    padding: 0;
+    flex: 1;
+    cursor: pointer;
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+      flex: 0 0 calc(33.33%)
+    }
+  }
+  p {
+    margin: 0;
+  }
+  a {
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    line-height: 24px;
+    width: 80%;
+    margin: 0 auto;
+  }
+  img {
+    display: block;
+    margin: 0 auto;
+    cursor: pointer;
+    height: 30px;
+    aspect-ratio: 1;
+  }
+}
+
+.shareLinks {
+  li:hover {
+    cursor: pointer;
+  }
+  .share-source {
+    font-size: .8em;
+    text-align: center;
+    color: @grey;
+  }
+}

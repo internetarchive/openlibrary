@@ -1,0 +1,95 @@
+$def with (book, edition_sort_key, render_first=False)
+$# :param Edition book:
+$# :param str edition_sort_key:
+
+$ availability = book.get('availability', {})
+
+$ worldcat = "https://worldcat.org/isbn/XXX"
+$ worldcatoclc = "https://worldcat.org/oclc/XXX"
+
+$ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+$ detailbook = "//archive.org/details/XXX"
+$ downloadbook = "//archive.org/download/XXX/XXX.pdf"
+$ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
+$ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
+$ epub = "//archive.org/download/XXX/XXX.epub"
+$ mobi = "//archive.org/download/XXX/XXX.mobi"
+$ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
+
+$ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
+$ seeall = "//archive.org/download/XXX"
+
+$ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
+$ isbn_13 = book.get_isbn13()
+$ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
+$ isbn = isbn_10 or isbn_13
+$ asin = isbn_10 or None
+
+$ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+
+    <td class="book">
+      <span class="hidden sort-key">$edition_sort_key</span>
+      <div class="cover">
+          <a href="$book.url()"><img
+            src="$url"
+            alt="$_('Cover of: %(title)s', title=book.title)"
+            title="$_('Cover of: %(title)s', title=book.title)"
+            loading="lazy"
+          /></a>
+      </div>
+
+      <div class="title">
+        $if book.title:
+          <a href="$book.url()">
+            $if book.subtitle:
+              $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
+            $else:
+              $book.title
+          </a>
+
+
+        <div class="published">
+          $if book.publishers and book.publish_date:
+            $book.publish_date, $(', '.join(book.publishers))
+          $elif book.publish_date:
+            $book.publish_date
+          $elif book.publishers:
+            $_("Publish date unknown, %(publisher)s", publisher=', '.join(book.publishers))
+          $else:
+            $_("Publisher unknown")
+        </div>
+
+        <div class="format">
+          <!-- TODO: this section is going to be difficult to properly internationalize -->
+          <!-- Formats are store as a raw string -->
+          $book.physical_format.replace('[', '').replace(']','')
+          $if book.languages:
+            $:_('in %(languagelist)s', languagelist=commify_list(websafe(get_language_name(l.key)) for l in book.languages))
+          $if book.edition_name:
+            - $book.edition_name
+        </div>
+
+	<div class="hidden">
+		$isbn_10 $isbn_13
+	</div>
+
+      </div>
+    </td>
+
+    $ availability_class = ('aaaa' if render_first
+    $ else 'zzzz' if (not availability or availability.get('status') == 'error')
+    $ else 'bbbb' if (availability.get('status') == 'open')
+    $ else 'cccc' if (availability.get('status') == 'borrow_available')
+    $ else 'dddd' if (availability.get('status') == 'borrow_unavailable')
+    $ else 'eeee')
+    $ active = not (availability_class == 'zzzz')
+
+    <td class="icon read $('inact' if not active else '')">
+      <div class="hidden">$availability_class</div>
+      <div class="links">
+        <ul class="read">
+          $# render_first is only true on the book page for an edition.
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
+        </ul>
+      </div>
+    </td>

@@ -1,0 +1,30 @@
+$def with(author, size="M")
+
+$ author_thumbnail_url = author.get_photo_url(size)
+$ author_photo_url = author.get_photo_url("L")
+
+$if author_thumbnail_url:
+    <div class="author coverMagic">
+        <div class="SRPCover bookCover">
+            <a aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
+                <img src="$author_thumbnail_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
+            </a>
+        </div>
+    </div>
+    <div class="hidden">
+        <div class="coverFloat" id="seeImage">
+            <div class="coverFloatHead">
+                <h2>$truncate(author.name or "", 60)</h2>
+                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+            </div>
+            <a class="dialog--close" title="$_('Click to close')">
+                <img src="$author_photo_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
+            </a>
+        </div>
+    </div>
+$else:
+    <div class="author coverMagic">
+        <div class="SRPCover bookCover">
+            <img src="/images/icons/avatar_author-lg.png" class="cover" alt="$_('We need a photo of %(author)s', author=author.name)"/>
+        </div>
+    </div>

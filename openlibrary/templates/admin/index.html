@@ -1,0 +1,252 @@
+$def with (counts)
+
+$ _x = ctx.setdefault('cssfile', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$ stats = get_admin_stats()
+<script type="text/json+graph" id="graph-json-editgraph">$:json_encode(counts.human_edits.get_counts(80, True))</script>
+<script type="text/json+graph" id="graph-json-membergraph">$:json_encode(counts.members.get_counts(80, True))</script>
+
+<div id="contentHead">
+    $if ctx.user and ctx.user.is_admin():
+      $:render_template("admin/menu")
+      <div class="clearfix"></div>
+
+    <h1>$_("Stats")</h1>
+</div>
+
+<div id="contentBody">
+
+  <div class="contentLeft">
+    <div class="head rel"> <span class="caption"><a href="/recentchanges/">$_("Edits Per Day")</a></span>
+      <h2>$_("Edits")</h2>
+    </div>
+    <div class="chartHolder">
+      <div class="chartDisplay">
+	<div id="editgraph" class="canvas-graph">
+	  <!-- Edit graphs go here -->
+	</div>
+      </div>
+    </div>
+    <table class="measurements stripeEven" id="edits">
+      <thead>
+        <tr>
+          <th></th>
+          <th>$_("Today")</th>
+          <th>$_("Yesterday")</th>
+          <th>$_("Last 7 days")</th>
+          <th>$_("Last 28 days")</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="major">
+          <td class="type">$_("Human")</td>
+          <td class="amount"><strong>$commify(counts.human_edits.latest)</strong></td>
+          <td class="amount">$commify(counts.human_edits.previous)</td>
+          <td class="amount">$commify(counts.human_edits.get_summary(7))</td>
+          <td class="amount">$commify(counts.human_edits.get_summary(28))</td>
+        </tr>
+        <tr class="even">
+          <td class="type">$_("Bot")</td>
+          <td class="amount"><strong>$commify(counts.bot_edits.latest)</strong></td>
+          <td class="amount">$commify(counts.bot_edits.previous)</td>
+          <td class="amount">$commify(counts.bot_edits.get_summary(7))</td>
+          <td class="amount">$commify(counts.bot_edits.get_summary(28))</td>
+        </tr>
+        <tr class="totals">
+          <td class="type">$_("Total")</td>
+          <td class="amount">$commify(counts.bot_edits.latest + counts.human_edits.latest)</td>
+          <td class="amount">$commify(counts.bot_edits.previous + counts.human_edits.previous)</td>
+          $# detect-missing-i18n-skip-line
+          <td class="amount">$commify(counts.bot_edits.get_summary(7) + counts.human_edits.get_summary(7))</td>
+          $# detect-missing-i18n-skip-line
+          <td class="amount">$commify(counts.bot_edits.get_summary(28) + counts.human_edits.get_summary(28))</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="contentRight">
+    <div class="head rel">
+      $ acts_link = '/admin/people' if (ctx.user and ctx.user.is_admin()) else '/recentchanges/new-account'
+      <span class="caption"><a href="$acts_link">$_("New Accounts Per Day")</a></span>
+      <h2>$_("Members")</h2>
+    </div>
+    <div class="chartHolder">
+      <div class="chartDisplay">
+	<div id="membergraph" class="canvas-graph">
+	  <!-- Member graphs go here -->
+	</div>
+      </div>
+    </div>
+    <table class="measurements stripeEven" id="members">
+      <thead>
+        <tr>
+          <th>$_("Today")</th>
+          <th>$_("Yesterday")</th>
+          <th>$_("Last 7 days")</th>
+          <th>$_("Last 28 days")</th>
+          <th class="shift">$_("All Time")</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="major">
+          <td class="amount"><strong>$commify(counts.members.latest)</strong></td>
+          <td class="amount">$commify(counts.members.previous)</td>
+          <td class="amount">$commify(counts.members.get_summary(7))</td>
+          <td class="amount">$commify(counts.members.get_summary(28))</td>
+          <td class="amount shift"><strong>$commify(counts.members.total)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script type="text/json+graph" id="graph-json-works_minigraph">$:json_encode(counts.works.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-editions_minigraph">$:json_encode(counts.editions.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-covers_minigraph">$:json_encode(counts.covers.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-authors_minigraph">$:json_encode(counts.authors.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-lists_minigraph">$:json_encode(counts.lists.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-members_minigraph">$:json_encode(counts.members.get_counts(150, True))</script>
+
+  <table class="measurements stripeEven">
+    <tr>
+      <th><h2>$_("Items Added")</h2></th>
+      <th>$_("Last 7 days")</th>
+      <th>$_("Last 28 days")</th>
+      <th>$_("Trend")</th>
+      <th>$_("Total")</th>
+    </tr>
+    <tr class="major">
+      <td>$_("Works Added")</td>
+      <td class="amount">$commify(counts.works.get_summary(7))</td>
+      <td class="amount">$commify(counts.works.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="works_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.works.total)</td>
+    </tr>
+    <tr class="major">
+      <td>$_("Editions Added")</td>
+      <td class="amount">$commify(counts.editions.get_summary(7))</td>
+      <td class="amount">$commify(counts.editions.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="editions_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.editions.total)</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Authors Added")</td>
+      <td class="amount">$commify(counts.authors.get_summary(7))</td>
+      <td class="amount">$commify(counts.authors.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="authors_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.authors.total)</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Covers Added")</td>
+      <td class="amount">$commify(counts.covers.get_summary(7))</td>
+      <td class="amount">$commify(counts.covers.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="covers_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.covers.total)</td>
+    </tr>
+    <tr class="major">
+      <td>$_("New Members")</td>
+      <td class="amount">$commify(counts.members.get_summary(7))</td>
+      <td class="amount">$commify(counts.members.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="members_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.members.total)</td>
+    </tr>
+    <tr class="major">
+      <td>$_("Lists Added")</td>
+      <td class="amount">$commify(counts.lists.get_summary(7))</td>
+      <td class="amount">$commify(counts.lists.get_summary(28))</td>
+      <td><div class="sparkDisplay"><div id="lists_minigraph" class="stats-spacer"></div></div></td>
+      <td class="amount">$commify(counts.lists.total)</td>
+    </tr>
+    <tr class="major">
+      <td><a href="/stats/readinglog">$_("Books Logged")</a></td>
+      <td class="amount">$commify(counts.reading_log['total_books_logged']['week']['count'])</td>
+      <td class="amount">$commify(counts.reading_log['total_books_logged']['month']['count'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_books_logged']['total']['count'])</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Users Logging")</td>
+      <td class="amount">$commify(counts.reading_log['total_users_logged']['week']['count'])</td>
+      <td class="amount">$commify(counts.reading_log['total_users_logged']['month']['count'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_users_logged']['total']['count'])</td>
+    </tr>
+    <tr class="major even">
+        <td>$_("Yearly Reading Goals")</td>
+        <td class="amount">$commify(counts.reading_log['total_yearly_reading_goals']['week'])</td>
+        <td class="amount">$commify(counts.reading_log['total_yearly_reading_goals']['month'])</td>
+        <td></td>
+        <td class="amount">$commify(counts.reading_log['total_yearly_reading_goals']['total'])</td>
+      </tr>
+    <tr class="major even">
+      <td>$_("Books Review Tags")</td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['total'])</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Books Reviewed")</td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['total'])</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Users Reviewing")</td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['total'])</td>
+    </tr>
+    <tr class="major even">
+      <td>$_("Patrons Following")</td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['total'])</td>
+    </tr>
+    <tr class="major">
+      <td>$_("Notes Created")</td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['total'])</td>
+    </tr>
+    <tr class="major">
+      <td>$_("Patrons Creating Notes")</td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['total'])</td>
+    </tr>
+
+    <tr class="major">
+      <td>$_("Books Starred")</td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['total'])</td>
+    </tr>
+    <tr class="major">
+      <td>$_("Star Rating Patrons")</td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['total'])</td>
+    </tr>
+  </table>
+
+  <div class="clearfix"></div>
+
+  <h2>$_("Unique Visitors")</h2>
+  <img alt="$_('Unique visitors IPs per day graph')" src="https://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
+
+  <h2>$_("Borrows")</h2>
+  <img alt="$_('Borrows, last 3 months graph')" src="https://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
+  <img alt="$_('Borrows, last 2 years graph')" src="https://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
+
+  <div class="contentSpacer"></div>
+
+</div>

@@ -1,0 +1,18 @@
+$def with (q, doc=None)
+
+$ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ ia_base_url = "https://archive.org"
+$ availability = doc.get('availability', {})
+$ snippets = doc.get('highlight', {}).get('text', [''])[:2]
+
+<ul class="fsi-snippet">
+  $for snippet in snippets:
+    $if snippet:
+      <li class="fsi-snippet__main fsi-snippet__full-results">
+        <div class="fsi-snippet__quotation-mark">$_('❝')</div>
+        <a class="fsi-snippet__link" href="$ia_base_url/stream/$(ia)?ref=ol&access=1#search/$(q)" data-ol-link-track="SearchInsideCard|QuoteClick">
+          &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+        </a>&nbsp;
+        <div class="fsi-snippet__quotation-mark">$_('❞')</div>
+      </li>
+</ul>

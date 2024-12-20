@@ -1,0 +1,43 @@
+$def with (selected="", options=None)
+    $if not options:
+        $selected
+    $elif len(options) == 1:
+        $if selected != options[0][0]:
+            <span class="crumb">
+                <span class="crumbicon">
+                    <div class="dropdown">
+                        <h2 class="breadcrumb-title">$selected</h2>
+                        <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                    </div>
+                    <select class="disguised-select">
+                        <option selected>$selected</option>
+                        <option value="$options[0][1]">$options[0][0]</option>
+                    </select>
+                </span>
+            </span>
+        $else:
+            <h1>$selected</h1>
+    $else:
+        $ breadcrumb_title = ""
+        $for (title, url) in options:
+            $if '(' in title and title[:title.index('(')-1] == selected:
+                $ breadcrumb_title = title
+            $elif title == selected:
+                $ breadcrumb_title = title;
+        <span class="crumb">
+            <span class="crumbicon">
+                <div class="dropdown">
+                    <h2 class="breadcrumb-title">$breadcrumb_title</h2>
+                    <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                </div>
+                <select class="disguised-select">
+                    $for (title, url) in options:
+                        $if '(' in title and title[:title.index('(')-1] == selected:
+                            <option selected>$title</option>
+                        $elif title == selected:
+                            <option selected>$title</option>
+                        $else:
+                            <option value=$url>$title</option>
+                </select>
+            </span>
+        </span>

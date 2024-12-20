@@ -1,0 +1,18 @@
+$var title: $_('Library Explorer')
+
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('full-width')
+$ bodyclass.append('library-explorer')
+
+<style>
+    body.library-explorer {
+        background: linear-gradient(to bottom, #f6f1e6 50px, #ebdfc5 218px) !important;
+    }
+
+    /** Hide banner on this page */
+    body.library-explorer .page-banner-body {
+        display: none;
+    }
+</style>
+
+$:render_component('LibraryExplorer')

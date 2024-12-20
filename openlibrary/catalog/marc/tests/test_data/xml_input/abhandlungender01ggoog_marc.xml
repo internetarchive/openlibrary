@@ -1,0 +1,224 @@
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>^^^^^nas^a22002651^^4500</leader>
+  <datafield tag="FMT" ind1=" " ind2=" ">
+    <subfield code="a">SE</subfield>
+  </datafield>
+  <controlfield tag="001">000061367</controlfield>
+  <controlfield tag="005">19980302000000.0</controlfield>
+  <controlfield tag="006">m^^^^^^^^d^^^^^^^^</controlfield>
+  <controlfield tag="007">cr^bn^---auaua</controlfield>
+  <controlfield tag="008">880715u18279999ge^uu^^^^^^^^^1uuub0ger^^</controlfield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">18019463</subfield>
+  </datafield>
+  <datafield tag="022" ind1=" " ind2=" ">
+    <subfield code="a">0232-136X</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(CaOTULAS)159944435</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)ocm40368641</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(RLIN)MIUG83-S20669</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="c">MiU</subfield>
+    <subfield code="d">MiU</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2=" ">
+    <subfield code="a">QH5</subfield>
+    <subfield code="b">.N4</subfield>
+  </datafield>
+  <datafield tag="110" ind1="2" ind2=" ">
+    <subfield code="a">Naturforschende Gesellschaft zu Görlitz.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="a">Abhandlungen der Naturforschenden Gesellschaft zu Görlitz.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Görlitz.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">v.</subfield>
+    <subfield code="b">ill., plates (part col.) ports., maps, diagrs.</subfield>
+    <subfield code="c">21-24 cm.</subfield>
+  </datafield>
+  <datafield tag="362" ind1="0" ind2=" ">
+    <subfield code="a">1.- Bd.; 1827-</subfield>
+  </datafield>
+  <datafield tag="538" ind1=" " ind2=" ">
+    <subfield code="a">Mode of access: Internet.</subfield>
+  </datafield>
+  <datafield tag="515" ind1=" " ind2=" ">
+    <subfield code="a">Vols. 1-7 issued in 2 parts with separate t.p. and pagination; pt. 2 of vol. 7 never published.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Natural history</subfield>
+    <subfield code="z">Germany</subfield>
+    <subfield code="z">Lusatia.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Natural history</subfield>
+    <subfield code="x">Periodicals.</subfield>
+  </datafield>
+  <datafield tag="866" ind1="3" ind2="2">
+    <subfield code="b">Buhr Shelving Facility</subfield>
+    <subfield code="c">Ask at any library</subfield>
+    <subfield code="h">QH5 .N2</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="a">1827-1937</subfield>
+  </datafield>
+  <datafield tag="998" ind1=" " ind2=" ">
+    <subfield code="c">CAD</subfield>
+    <subfield code="s">9124</subfield>
+  </datafield>
+  <datafield tag="OWN" ind1=" " ind2=" ">
+    <subfield code="a">MiU</subfield>
+  </datafield>
+  <datafield tag="CAT" ind1=" " ind2=" ">
+    <subfield code="a">MDP</subfield>
+    <subfield code="b">20</subfield>
+    <subfield code="c">20060829</subfield>
+    <subfield code="l">MIU01</subfield>
+    <subfield code="h">0000</subfield>
+  </datafield>
+  <datafield tag="CAT" ind1=" " ind2=" ">
+    <subfield code="a">BATCH-UPD</subfield>
+    <subfield code="b">20</subfield>
+    <subfield code="c">20080811</subfield>
+    <subfield code="l">MIU01</subfield>
+    <subfield code="h">1059</subfield>
+  </datafield>
+  <datafield tag="CAT" ind1=" " ind2=" ">
+    <subfield code="a">CONV</subfield>
+    <subfield code="b">20</subfield>
+    <subfield code="c">20040624</subfield>
+    <subfield code="l">MIU01</subfield>
+    <subfield code="h">0000</subfield>
+  </datafield>
+  <datafield tag="TYP" ind1=" " ind2=" ">
+    <subfield code="a">SE</subfield>
+    <subfield code="b">Serial</subfield>
+  </datafield>
+  <datafield tag="TYP" ind1=" " ind2=" ">
+    <subfield code="a">CE</subfield>
+    <subfield code="b">Electronic Resource</subfield>
+  </datafield>
+  <datafield tag="TYP" ind1=" " ind2=" ">
+    <subfield code="a">SX</subfield>
+    <subfield code="b">All Serials</subfield>
+  </datafield>
+  <datafield tag="TYP" ind1=" " ind2=" ">
+    <subfield code="a">XC</subfield>
+    <subfield code="b">Conference</subfield>
+  </datafield>
+  <datafield tag="TYP" ind1=" " ind2=" ">
+    <subfield code="a">SE</subfield>
+    <subfield code="b">Serial</subfield>
+  </datafield>
+  <datafield tag="PST" ind1=" " ind2=" ">
+    <subfield code="0">Z30</subfield>
+    <subfield code="1">000061367000010</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">GRAD</subfield>
+    <subfield code="o">ISSUE</subfield>
+    <subfield code="d">01</subfield>
+    <subfield code="f">N</subfield>
+    <subfield code="r">MIU60-000380175</subfield>
+    <subfield code="n">M</subfield>
+    <subfield code="h">mdp.39015035557555</subfield>
+    <subfield code="r">pd</subfield>
+    <subfield code="a">MiU</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="3">Serial</subfield>
+    <subfield code="4">Buhr Shelving Facility</subfield>
+    <subfield code="5">Ask at any library</subfield>
+  </datafield>
+  <datafield tag="PST" ind1=" " ind2=" ">
+    <subfield code="0">Z30</subfield>
+    <subfield code="1">000061367000060</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">GRAD</subfield>
+    <subfield code="o">ISSUE</subfield>
+    <subfield code="d">04</subfield>
+    <subfield code="f">N</subfield>
+    <subfield code="r">MIU60-000380175</subfield>
+    <subfield code="n">M</subfield>
+    <subfield code="h">mdp.39015035557506</subfield>
+    <subfield code="r">pd</subfield>
+    <subfield code="a">MiU</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="3">Serial</subfield>
+    <subfield code="4">Buhr Shelving Facility</subfield>
+    <subfield code="5">Ask at any library</subfield>
+  </datafield>
+  <datafield tag="PST" ind1=" " ind2=" ">
+    <subfield code="0">Z30</subfield>
+    <subfield code="1">000061367000020</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">GRAD</subfield>
+    <subfield code="o">ISSUE</subfield>
+    <subfield code="d">04</subfield>
+    <subfield code="f">N</subfield>
+    <subfield code="r">MIU60-000380175</subfield>
+    <subfield code="n">M</subfield>
+    <subfield code="h">mdp.39015035557548</subfield>
+    <subfield code="r">pd</subfield>
+    <subfield code="a">MiU</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="3">Serial</subfield>
+    <subfield code="4">Buhr Shelving Facility</subfield>
+    <subfield code="5">Ask at any library</subfield>
+  </datafield>
+  <datafield tag="PST" ind1="0" ind2=" ">
+    <subfield code="0">Z30</subfield>
+    <subfield code="1">000061367000030</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">GRAD</subfield>
+    <subfield code="o">ISSUE</subfield>
+    <subfield code="f">N</subfield>
+    <subfield code="r">MIU60-000380175</subfield>
+    <subfield code="n">0</subfield>
+    <subfield code="h">QH5 .N2</subfield>
+    <subfield code="a">MiU</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="3">Serial</subfield>
+    <subfield code="4">Buhr Shelving Facility</subfield>
+    <subfield code="5">Ask at any library</subfield>
+  </datafield>
+  <datafield tag="PST" ind1=" " ind2=" ">
+    <subfield code="0">Z30</subfield>
+    <subfield code="1">000061367000030</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">GRAD</subfield>
+    <subfield code="o">ISSUE</subfield>
+    <subfield code="d">01</subfield>
+    <subfield code="f">N</subfield>
+    <subfield code="r">MIU60-000380175</subfield>
+    <subfield code="n">M</subfield>
+    <subfield code="h">mdp.39015035557530</subfield>
+    <subfield code="r">pd</subfield>
+    <subfield code="a">MiU</subfield>
+    <subfield code="z">All vols. in Buhr</subfield>
+    <subfield code="3">Serial</subfield>
+    <subfield code="4">Buhr Shelving Facility</subfield>
+    <subfield code="5">Ask at any library</subfield>
+  </datafield>
+  <datafield tag="AVA" ind1=" " ind2=" ">
+    <subfield code="a">MIU50</subfield>
+    <subfield code="b">BUHR</subfield>
+    <subfield code="c">Ask at any library</subfield>
+    <subfield code="d">QH5 .N2</subfield>
+    <subfield code="e">check_holdings</subfield>
+    <subfield code="h">Y</subfield>
+    <subfield code="j">GRAD</subfield>
+  </datafield>
+  <datafield tag="m01" ind1=" " ind2=" ">
+    <subfield code="a">ULAAG3935</subfield>
+  </datafield>
+  <datafield tag="MDM" ind1="9" ind2=" ">
+    <subfield code="a">Multiple digitized volumes exist for this title--see holdings for URLs</subfield>
+  </datafield>
+</record>

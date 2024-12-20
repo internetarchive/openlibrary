@@ -1,0 +1,40 @@
+$def with ()
+
+$ q = query_param('q', '')
+$ results = random_author_search()
+$var title: $_('Authors')
+
+<div id="contentHead">
+    <h1>$_('Authors')</h1>
+</div>
+
+
+<div id="contentBody">
+	<form action="/search/authors" class="olform">
+	    <h2 class="collapse"><label for="searchAuthor">$_('Search for an Author')</label></h2>
+	    <p>
+	        <input type="text" name="q" id="searchAuthor" size="100" class="larger" value="$q"/>
+	        <input type="submit" value="$_('Search')" class="large"/>
+	    </p>
+	</form>
+	<ul class="authorList">
+        $for doc in results.docs:
+            $ name = doc['name']
+            $ work_count = doc['work_count']
+            $ work_count_str = ungettext("%(count)d book", "%(count)d books", work_count, count=work_count)
+            $ date = ''
+            $if 'birth_date' in doc or 'death_date' in doc:
+                $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')
+            $elif 'date' in doc:
+                $ date = doc['date']
+            <li class="sansserif">
+            <a href="$doc['key']" class="larger">$name</a>&nbsp;<span class="brown small">$date</span><br />
+            <span class="small grey"><b>$work_count_str</b>
+            $if work_count:
+                $if 'top_subjects' in doc:
+                    $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
+                $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))
+            </span>
+            </li>
+        </ul>
+</div>

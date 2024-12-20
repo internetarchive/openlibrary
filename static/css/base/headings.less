@@ -1,0 +1,167 @@
+@import "../less/font-families.less";
+
+h1 {
+  font-size: 1.875em;
+  &.title {
+    font-size: 1.25em;
+  }
+  span.subtitle {
+    font-size: .65em;
+    font-weight: normal;
+  }
+  &.publisher {
+    color: @brown;
+    font-size: 1.375em;
+    font-family: @georgia_serif-1 !important;
+    font-weight: normal !important;
+    margin: 0;
+  }
+  span.count {
+    font-size: 14px !important;
+  }
+}
+
+h2 {
+  font-size: @font-size-title-large;
+  &.author {
+    color: @brown;
+    font-size: 1.125em;
+    font-weight: normal;
+  }
+  &.authorEdition {
+    color: @brown;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+  }
+  &.publisher {
+    background-color: @lightest-grey;
+  }
+  &.edition-title {
+    margin: 7px 0 0;
+    color: @grey;
+    font-family: @georgia_serif-1;
+    font-weight: normal;
+    font-size: 1.1em;
+  }
+  a {
+    color: @link-blue;
+    text-decoration: none;
+    &:hover {
+      color: @dark-green;
+      text-decoration: underline;
+    }
+  }
+}
+
+h1,
+h2 {
+  &.edition {
+    color: @black;
+    font-family: @lucida_sans_serif-2;
+    font-size: 1.125em;
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+  }
+}
+
+h3 {
+  font-size: @font-size-label-medium;
+  &.Question {
+    font-family: @georgia_serif-1;
+    font-size: 1.2em;
+    font-weight: normal;
+    color: @brown;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dotted @lighter-grey;
+  }
+}
+
+h4 {
+  font-size: .8125em;
+  &.publisher,
+  &.observer-count {
+    font-family: @lucida_sans_serif-1;
+    font-weight: normal;
+  }
+  &.facetHead {
+    font-family: @lucida_sans_serif-1;
+    font-size: .6875em;
+    font-weight: 700;
+    color: @black;
+    text-transform: uppercase;
+    margin: 0 0 5px;
+    padding: 0;
+    span.merge {
+      font-family: @lucida_sans_serif-3;
+      font-size: 11px;
+      font-weight: normal !important;
+      text-transform: none !important;
+      padding-left: 22px;
+      background: url(/images/icons/icon_merge-sm.png) no-repeat 0 0;
+      min-height: 16px;
+    }
+  }
+}
+
+h5 {
+  font-size: .875em;
+  font-family: @georgia_serif-1 !important;
+  font-weight: normal !important;
+}
+
+h6 {
+  font-size: .6875em;
+}
+
+.head {
+  h2 {
+    a {
+      color: inherit !important;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+div.head {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    padding: 0;
+  }
+  &.rel {
+    position: relative;
+  }
+}
+
+dt,
+span.title,
+h6.title {
+  font-size: 12px;
+  font-weight: normal !important;
+  font-family: @lucida_sans_serif-2;
+  color: @grey;
+  margin: 0;
+  padding: 0;
+}
+
+.titleSmall {
+  font-family: @lucida_sans_serif-2;
+  font-size: 11px;
+  font-weight: 600;
+}
+.heading {
+  span.count {
+    font-size: 14px !important;
+  }
+}

@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+"""Utility script to extract all translatable messages from templates and
+macros and write to openlibrary/i18n/messages.pot file.
+"""
+import sys
+
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+
+from openlibrary import i18n
+
+
+def help():
+    print("utility to manage i18n messages")
+    print()
+    print("USAGE: %s [extract|compile|update|validate]" % sys.argv[0])
+    print()
+    print("Available Commands:")
+    print("  compile  - compile the message files (.po) to .mo")
+    print("  extract  - extract i18n messages from templates and macros")
+    print(
+        "  update   - update the existing translations by adding newly added string to it."
+    )
+    print("  status   - check completeness and warnings/error summary of translations")
+    print("  validate - check message file for errors")
+    print("  help     - display this help message")
+
+
+def main(cmd, args):
+    if cmd == 'extract':
+        message_sources = [
+            'openlibrary/templates/',
+            'openlibrary/macros/',
+            # TODO: We should check all python files somehow, but too slow
+            'openlibrary/plugins/upstream',
+        ]
+        i18n.extract_messages(
+            message_sources,
+            verbose='--verbose' in args,
+            skip_untracked='--skip-untracked' in args,
+        )
+    elif cmd == 'compile':
+        i18n.compile_translations(args)
+    elif cmd == 'update':
+        i18n.update_translations(args)
+    elif cmd == 'add':
+        i18n.generate_po(args)
+    elif cmd == 'status':
+        i18n.check_status(args)
+    elif cmd == 'validate':
+        results = i18n.validate_translations(args)
+
+        num_errors = 0
+        for error_count in results.values():
+            num_errors = num_errors + error_count
+
+        if num_errors == 0:
+            print("Validation passed!")
+        else:
+            print(f'Validation failed.\n{num_errors} errors found...')
+            sys.exit(1)
+
+        sys.exit(0)
+    elif cmd == 'help':
+        help()
+    else:
+        print("unknown command: %s" % repr(cmd), file=sys.stderr)
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) >= 2:
+        main(sys.argv[1], sys.argv[2:])
+    else:
+        help()
+        sys.exit(1)

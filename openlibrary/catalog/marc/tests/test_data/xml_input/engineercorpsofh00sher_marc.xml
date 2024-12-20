@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+<!-- Length implementation at offset 22 should hold a digit. Assuming 0 -->
+  <leader>01231cam a2200277I  4500</leader>
+  <controlfield tag="001">2589730</controlfield>
+  <controlfield tag="005">20030805043821.0</controlfield>
+  <controlfield tag="008">900530s1883    cau           000 0 eng d</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)ocm11931583</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">FKS</subfield>
+    <subfield code="c">FKS</subfield>
+    <subfield code="d">UIU</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="9">ARV-0059</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="9">UC 03072084</subfield>
+  </datafield>
+  <datafield tag="090" ind1=" " ind2=" ">
+    <subfield code="a">BX3705</subfield>
+    <subfield code="b">.S56</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+    <subfield code="a">UIUU</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="a">Sherman, Edwin Allen,</subfield>
+    <subfield code="d">1829-1914.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="4">
+    <subfield code="a">The Engineer Corps of Hell; or, Rome&apos;s sappers and miners.</subfield>
+    <subfield code="b">Containing the tactics of the &quot;militia of the Pope,&quot; of the Secret manual of the Jesuits, and other matter intensely interesting, especially to the Freemasons and lovers of civil and religious liberty, whithersoever dispersed throughout the globe.</subfield>
+    <subfield code="c">Compiled and translated by Edwin A. Sherman.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">[San Francisco?,</subfield>
+    <subfield code="c">1883]</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">320, 11 p.</subfield>
+    <subfield code="c">18 cm.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">&quot;Sold by private subscription only, and under stipulated conditions.&quot;</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Includes the Papal syllabus of errors by Pope Pius IX.</subfield>
+  </datafield>
+  <datafield tag="610" ind1="2" ind2="0">
+    <subfield code="a">Jesuits</subfield>
+    <subfield code="v">Controversial literature.</subfield>
+  </datafield>
+  <datafield tag="730" ind1="0" ind2=" ">
+    <subfield code="a">Monita Secreta Societatis Jesu.</subfield>
+    <subfield code="l">English.</subfield>
+  </datafield>
+  <datafield tag="710" ind1="2" ind2=" ">
+    <subfield code="a">Catholic Church.</subfield>
+    <subfield code="b">Pope (1846-1878 : Pius IX).</subfield>
+    <subfield code="t">Syllabus errorum (8 Dec. 1864).</subfield>
+    <subfield code="l">English.</subfield>
+  </datafield>
+  <datafield tag="910" ind1=" " ind2=" ">
+    <subfield code="a">rcp1658</subfield>
+  </datafield>
+  <datafield tag="994" ind1=" " ind2=" ">
+    <subfield code="a">02</subfield>
+    <subfield code="b">UIU</subfield>
+  </datafield>
+  <datafield tag="910" ind1=" " ind2=" ">
+    <subfield code="a">MARS</subfield>
+  </datafield>
+</record>

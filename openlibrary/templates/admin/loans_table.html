@@ -1,0 +1,100 @@
+$def with (loans, show_percent=False, stats={}, waiting_loan=False)
+
+$def render_percents():
+    $ total_loans = stats.get("total_loans") or len(loans)
+    $ pdf_loans = stats.get("pdf_loans") or len([loan for loan in loans if loan['resource_type'] == 'pdf'])
+    $ epub_loans = stats.get("epub_loans") or len([loan for loan in loans if loan['resource_type'] == 'epub'])
+    $ bookreader_loans = stats.get("bookreader_loans") or len([loan for loan in loans if loan['resource_type'] == 'bookreader'])
+    $ pdf_percent = "%d" % percentage(pdf_loans, total_loans + 0.0)
+    $ epub_percent = "%d" % percentage(epub_loans, total_loans + 0.0)
+    $ bookreader_percent = "%d" % percentage(bookreader_loans, total_loans + 0.0)
+    $bookreader_loans ($bookreader_percent%) $_("BookReader")
+    - $pdf_loans ($pdf_percent%) $_("PDF")
+    - $epub_loans ($epub_percent%) $_("ePub")
+
+$if not loans:
+    <em>$_("No current loans.")</em>
+$else:
+    <div class="borrow borrow-table collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $ total_loans = stats.get("total_loans", len(loans))
+                $ msg = ungettext("%d Current Loan", "%d Current Loans", total_loans)
+                $sprintf(msg, total_loans)
+
+                $if total_loans > len(loans):
+                    (Showing $stats["begin"]-$stats["end"])
+
+                $if show_percent:
+                    <br/>
+                    $:render_percents()
+                </th>
+                <th class="expires">$_("Loan Expires")</th>
+                $if waiting_loan:
+                    <th class="what">$_("Status")</th>
+                $else:
+                    <th class="what">$_("What")</th>
+                <th class="user">$_("Who")</th>
+                <th>$_("Actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+            $if waiting_loan:
+                $ book = loan.get_book()
+                $ user = loan.get_user()
+            $else:
+                $ book_key = loan['book']
+                $ user_key = loan['user']
+                $ book = get_document(book_key)
+                $ user = get_document(user_key)
+            <tr>
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                    <a href="$book.key" class="borrowResults">
+                    <strong>$book.title</strong>
+                    </a>
+                    </span>
+
+                    <span class="author">
+                    $# :macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
+                    </span>
+                    <div class="date">
+                    $if waiting_loan:
+                        $_('Waiting since %(date)s', date=datestr(parse_datetime(loan['since'])))<br/>
+                        $_('#%(num_position)d among %(num_waitlist)d people waiting for this book', num_position=loan['position'], num_waitlist=loan['wl_size'])<br/>
+                    $else:
+                        $_('Borrowed %(date)s', date=datestr(datetime_from_utc_timestamp(loan['loaned_at'])))
+                    </div>
+                </td>
+                <td class="expires">
+                    $if 'expiry' in loan:
+                        $:macros.FormatExpiry(loan['expiry'])
+                    $else:
+                        -
+                </td>
+                <td class="what">
+                    $if waiting_loan:
+                        $loan['status']
+                    $elif loan['resource_type'] == 'pdf':
+                        $_('PDF')
+                    $elif loan['resource_type'] == 'epub':
+                        $_('ePub')
+                    $elif loan['resource_type'] == 'bookreader':
+                        $_('BookReader')
+                    $else:
+                        $loan['resource_type']
+                </td>
+                <td class="user">
+                    <a href="$user.key">$user.key</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>

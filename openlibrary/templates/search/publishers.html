@@ -1,0 +1,29 @@
+$def with (q, result)
+
+<div id="contentHead">
+    <h1>
+        $_("Publishers Search")
+    </h1>
+</div>
+
+<div id="contentBody">
+
+    <div class="section">
+
+    <form class="siteSearch olform" action="">
+        <input type="text" class="larger" name="q" size="100" value="$q"/>
+        <button type="submit" class="larger">$_('Search')</button>
+    </form>
+
+    </div>
+    <ul class="subjectList">
+        $for p in result:
+            <li>
+                <a href="$p.key">$p.name</a>
+
+                <span class="count">
+                    <b>$ungettext("%(count)d book", "%(count)d books", p.count, count=p.count)</b>
+                </span>
+            </li>
+    </ul>
+</div>

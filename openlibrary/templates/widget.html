@@ -1,0 +1,50 @@
+$def with (item=None)
+$# Template for widget displayed at /books/OL9737752M/The_Odyssey/widget
+$ cover_url = ("//covers.openlibrary.org/w/id/%s-M.jpg" % item['covers'][0]) if len(item.get('covers', [])) else ""
+$ canonical_url = lambda uri: '//%s%s' % (ctx.site, uri)
+$ book_status = item["availability"]["status"]
+$ book_title = item.get('title', '')
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>$book_title</title>
+    <link rel="stylesheet" type="text/css" href="$(canonical_url('/static/build/page-book-widget.css'))">
+    <link rel="canonical" href="$request.canonical_url[:request.canonical_url.rfind('/')]"/>
+  </head>
+  <body id="book-widget">
+    <div class="widget">
+      <a href="$(canonical_url(item['key']))" target="_blank" class="noshow">
+        <img class="bookcover" src="$cover_url" alt="$book_title"/>
+        <h1 class="title">$book_title</h1>
+      </a>
+      $if item.get('authors'):
+        <h2 class="author">
+          $ primary_author = item.get('authors')[0]
+          by <a target="_blank" href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
+        </h2>
+      $if book_status == "open" :
+        $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
+        <div class="cta open" type="submit">
+          <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="$_('Read "%(title)s"', title=book_title)">$_("Read")</a>
+	</div>
+      $elif book_status == "borrow_available" :
+        $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
+        <div class="cta available" type="submit">
+          <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="$_('Borrow "%(title)s"', title=book_title)">$_("Borrow")</a>
+	</div>
+      $elif book_status == "borrow_unavailable":
+        $ waitlist_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"] + "?action=join-waitinglist")
+        <form class="cta waitlist" method="POST" action="$waitlist_url" target="_blank">
+          <input type="hidden" name="action" value="join-waitinglist">
+          <button data-ol-link-track="Embed|JoinWaitlist" type="submit" title="$_('Join waitlist for "%(title)s"', title=book_title)">$_("Join Waitlist")</button>
+        </form>
+      $else:
+        <div class="cta open">
+          <a data-ol-link-track="Embed|Learn" target="_blank" href="$(canonical_url(item['key']))" title="$_('Learn more about "%(title)s" at OpenLibrary', title=book_title)">$_("Learn More")</a>
+	</div>
+      <p class="service">$:_('on <a target="_blank" href="%(link)s">openlibrary.org</a>', link=canonical_url('/'))</p>
+    </div>
+  </body>
+</html>

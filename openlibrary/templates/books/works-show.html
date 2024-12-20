@@ -1,0 +1,38 @@
+$def with (book)
+
+<span itemscope itemtype="https://schema.org/Book">
+  <span class="bookcover">
+    $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+    <a href="$book.key"><img itemprop="image" src="$url" height="60"/></a>
+  </span>
+  <span class="resultTitle">
+    <span class="details">
+        <span class="booktitle">
+            <a itemprop="name" href="$book.url()">$book.title</a>
+            <span class="brown smaller sansserif">
+                $book.physical_format.replace('[', '').replace(']','')
+            </span>
+        </span>
+        <br/>
+        <span class="resultPublisher">
+
+        $if book.publishers and book.publish_date:
+            <span itemprop="datePublished">$book.publish_date</span>, $(', '.join(['<span itemprop="publisher">%s</span>' % publisher for publisher in book.publishers]))
+        $elif book.publish_date:
+            <span itemprop="datePublished">$book.publish_date</span>
+        $elif book.publishers:
+            $(', '.join(['<span itemprop="publisher">%s</span>' % publisher for publisher in book.publishers]))
+        $else:
+            <em>$_('Publisher unknown')</em>
+        </span>
+    </span>
+  </span>
+</span>
+
+$if book.ocaid:
+    <span class="actions">
+        <a href="//archive.org/stream/$book.ocaid">
+            <span class="image read"></span>
+            <span class="label">$_("Read")</span>
+        </a>
+    </span>

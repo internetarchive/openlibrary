@@ -1,0 +1,26 @@
+{
+    'key': '/type/usergroup',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/user'
+        },
+        'name': 'members',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

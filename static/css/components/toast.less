@@ -1,0 +1,46 @@
+@import (reference) "../less/z-index.less";
+@import (reference) "../less/colors.less";
+@import (reference) "../less/breakpoints.less";
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: @z-index-level-17;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 10%;
+  max-width: 50%;
+  width: max-content;
+  margin: 0 auto 20px;
+  padding: 1em;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: auto;
+
+  background-color: @light-beige;
+  border: 1px solid @mid-grey;
+  box-shadow: 0 .5rem 1rem @boxshadow-black;
+
+  .toast__close {
+    padding-left: .75em;
+  }
+
+  .toast__close:hover {
+    cursor: pointer;
+    text-decoration: none;
+  }
+}
+
+.light-yellow {
+  background-color: @light-yellow;
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+  .toast {
+    max-width: 80%;
+  }
+}

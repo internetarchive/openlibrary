@@ -1,0 +1,17 @@
+[
+    {"type": "/type/type", "key": "/type/edition"},
+    {"type": "/type/type", "key": "/type/author"},
+    {"type": "/type/type", "key": "/type/work"},
+    {"type": "/type/type", "key": "/type/publisher"},
+    {"type": "/type/type", "key": "/type/subject"},
+    {"type": "/type/type", "key": "/type/collection"},
+    {"type": "/type/type", "key": "/type/place"},
+    {"type": "/type/type", "key": "/type/toc_item"},
+    {"type": "/type/type", "key": "/type/language"},
+    {"type": "/type/type", "key": "/type/volume"},
+    {"type": "/type/type", "key": "/type/link"},
+]
+
+
+
+

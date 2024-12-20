@@ -1,0 +1,33 @@
+$def with (data)
+
+$var title: [Admin Center] Block IP
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>$_("Block IP address")</h1>
+</div>
+
+<div id="contentBody">
+    $if query_param("ip") != None:
+        <div>$_('IP address %(address)s has been added to the textarea. Please click Save to block that IP.', address=query_param("ip"))
+            <br/>
+            <br/>
+        </div>
+
+    <form method="POST">
+    <b>Blocked IP Addresses</b>
+    <div id="ips">
+    <textarea rows="60" name="ips">
+    $ ip_list = data.ips
+    $ ip_list.sort(key=lambda d:d.ip)
+    $for d in ip_list:
+        $d.ip
+    $if query_param("ip") != None:
+        $:query_param("ip")
+    </textarea>
+    </div>
+    <input type="submit" name="_submit" value="$_('Save')"/>
+    </form>
+
+
+</div>

@@ -1,0 +1,30 @@
+$def with ()
+
+$ q = query_param("q", "")
+
+<ul class="nav-bar">
+  <li class="$('selected' if ctx.path=='/search' else '')">
+    <a data-ol-link-track="SearchNav|SearchBooks"
+       href="/search?$urlencode(dict(q=q))">$_("Books")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/authors' else '')">
+    <a data-ol-link-track="SearchNav|SearchAuthors"
+       href="/search/authors?$urlencode(dict(q=q))">$_("Authors")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/inside' else '')">
+    <a data-ol-link-track="SearchNav|SearchFulltext"
+       href="/search/inside?$urlencode(dict(q=q))">$_("Search Inside")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/subjects' else '')">
+    <a data-ol-link-track="SearchNav|SearchSubjects"
+       href="/search/subjects?$urlencode(dict(q=q))">$_("Subjects")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/lists' else '')">
+    <a data-ol-link-track="SearchNav|SearchLists"
+       href="/search/lists?$urlencode(dict(q=q))">$_("Lists")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/advancedsearch' else '')">
+    <a data-ol-link-track="SearchNav|SearchAdvanced"
+       href="/advancedsearch">$_("Advanced Search")</a>
+  </li>
+</ul>

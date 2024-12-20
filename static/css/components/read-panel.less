@@ -1,0 +1,269 @@
+/**
+ * Read Options Panel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#read-panel
+ */
+
+// .Tools .btn-notice is a legacy selector. Remove at earliest opportunity.
+.waitinglist-message {
+  white-space: nowrap;
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+
+.mobile-vendor {
+  display: none;
+}
+
+.read-options,
+.Tools .btn-notice {
+  font-size: 1em;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: @white;
+  border-radius: 5px;
+  border: 1px solid @lighter-grey;
+  margin-top: 0;
+
+  .cta-btn {
+    margin-bottom: 10px;
+  }
+
+  // Preview button appears styled as a text link with a book icon
+  .cta-btn--preview {
+    color: @primary-blue;
+    text-decoration: none;
+    position: relative;
+    margin-top: -15px; // offsets Illustration margin-bottom: 10px
+    margin-bottom: 5px;
+    padding: 5px 20px 10px; // Increasing click area for mobile text link
+    background-color: transparent;
+
+    // When Preview button is a text link, have it take up only the width
+    // of the content (not full 100% width)
+    flex-basis: content;
+    flex-grow: 0;
+    width: auto;
+
+    /* stylelint-disable selector-max-specificity */
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &::before {
+      width: 22px;
+      height: 18px;
+      display: inline-block;
+      margin-right: 6px;
+      position: relative;
+      top: 2px;
+
+      // Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color
+      content: "";
+      -webkit-mask: url(../images/icons/open-book.svg);
+      mask: url(../images/icons/open-book.svg);
+      -webkit-mask-size: cover;
+      mask-size: cover;
+      background-color: @primary-blue;
+    }
+    /* stylelint-enable selector-max-specificity */
+  }
+
+  .waitinglist-message {
+    margin: 0 0 10px;
+    font-size: 12px;
+    text-wrap: auto;
+  }
+  .cta-section {
+    font-size: .78em;
+  }
+
+  summary {
+    margin: 5px -5px 0;
+  }
+
+  .check-availability {
+    font-size: 14px;
+    border-top: 1px solid @lightest-grey;
+  }
+
+  .check-other-editions {
+    text-align: center;
+  }
+
+  &-panel__print-disabled-download {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  strong {
+    font-size: 12.5px;
+    font-weight: bold;
+  }
+
+  .cta-section-title {
+    font-size: 12.5px;
+    display: block;
+    font-weight: bold;
+  }
+  ul {
+    margin-left: 8px;
+  }
+  li {
+    list-style: disc;
+    margin: 5px 10px 0;
+  }
+  // stylelint-disable selector-max-specificity
+  table {
+    width: 100%;
+  }
+  td {
+    text-align: left;
+    width: 49%;
+  }
+  // stylelint-enable selector-max-specificity
+}
+
+.buy-options-table {
+  .more {
+    margin-left: 0;
+    cursor: pointer;
+
+    &::marker {
+      content: "";
+    }
+  }
+}
+
+.cta-section-title.world-cat-link{
+  margin-top: 0;
+}
+
+.sponsorship-card {
+  border-radius: 5px;
+  padding: 10px;
+  border: 2px solid fade(@link-blue, 20%);
+  background: fade(lighten(desaturate(@link-blue, 56%), 67%), 50%);
+  font-size: .8em;
+  text-align: center;
+
+  q {
+    display: block;
+    font-style: oblique;
+    text-align: center;
+  }
+
+  hr { background: fade(@link-blue, 35%); }
+  a.learn-more { font-size: .9em; }
+}
+
+.Tools .booklinks li {
+  list-style: none;
+  font-size: 12px;
+}
+
+// desktop
+@media only screen and (min-width: @width-breakpoint-desktop){
+  /* stylelint-disable selector-max-specificity */
+  .mobile-vendor,
+  .cta-button-group.mobile,
+  .readers-stats__wrapper.mobile {
+    display: none;
+  }
+  .desktop-vendor {
+    display: inline;
+  }
+  .cta-button-group.desktop {
+    display: flex;
+  }
+  /* stylelint-enable selector-max-specificity */
+}
+
+// mobile
+@media only screen and (max-width: @width-breakpoint-desktop){
+  .desktop-vendor,
+  .cta-button-group.desktop {
+    display: none;
+  }
+  .mobile-vendor {
+    display: inline;
+  }
+  .Tools .btn-notice,
+  .read-options {
+    border: none;
+    // Hide border for desktop version of modal links and ratings form on mobile
+    /* stylelint-disable no-descending-specificity */
+    &> hr {
+      display: none;
+    }
+    /* stylelint-enable no-descending-specificity */
+  }
+
+  .star-rating-form.desktop, .modal-links.desktop {
+    display: none;
+  }
+
+  .cta-button-group.mobile {
+    display: flex;
+  }
+
+  .readers-stats__wrapper.mobile {
+    border: 1px solid @lighter-grey;
+    border-radius: 5px;
+    padding: 10px 0;
+
+    .share-modal-wrapper {
+      display: none;
+    }
+
+    &> hr {
+      margin: 0 20px;
+    }
+
+    .readers-stats {
+      display: flex;
+      justify-content: space-between;
+      margin: 0;
+      width: 100%;
+      /* stylelint-disable max-nesting-depth*/
+      /* stylelint-disable selector-max-specificity */
+      li {
+        border-right: 1px solid @lighter-grey;
+        display: flex;
+        flex-direction: column-reverse;
+        flex: 1 1 auto;
+        margin: 0;
+        position: relative;
+        text-align: center;
+
+        .readers-stats__label {
+          font-size: .85em;
+        }
+
+        & + li {
+          border-right: solid 1px @lighter-grey;
+        }
+
+        &:last-child {
+          border-right: none;
+        }
+
+        // Clearing out the 'dot' spacer content used on desktop
+        &::after {
+          content: "";
+        }
+      }
+
+      li.avg-ratings, li.readers-stats__review-count {
+        display: none;
+      }
+      /* stylelint-enable selector-max-specificity */
+      /* stylelint-enable max-nesting-depth */
+    }
+  }
+}
+
+// For the button at the top
+@import (less) "components/buttonCta.less";
+// for the share links at the bottom
+@import (less) "components/shareLinks.less";
+@import (less) "components/preview.less";

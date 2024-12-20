@@ -1,0 +1,46 @@
+$def with (stats=None, blog_posts=None, test=False)
+
+$ _x = ctx.setdefault('cssfile', 'home')
+$var title: $_("Welcome to Open Library")
+
+$ meta_description = "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
+$ meta_image_url = "https://openlibrary.org/static/images/ol-banner.png"
+
+$add_metatag(property="og:title", content="OpenLibrary.org")
+$add_metatag(property="og:description", content=meta_description)
+$add_metatag(property="og:image", content=meta_image_url)
+$add_metatag(property="og:url", content="https://openlibrary.org")
+$add_metatag(property="og:site_name", content="Open Library")
+
+$add_metatag(name="twitter:image:alt", content="Open Library Logo")
+$add_metatag(name="twitter:card", content="homepage_summary")
+
+<div id="contentBody">
+
+  $:render_template("home/welcome", test=test)
+
+  $if not test:
+    $:render_template("books/custom_carousel", key="trending", books=get_trending_books(books_only=True, since_days=0, since_hours=24, minimum=3, sort_by_count=False), title=_('Trending Books'), url="/trending/daily", test=test, load_more={"url": "/trending/hours.json?hours=24&minimum=3&sort_by_count=false", "mode": "page", "limit": 18})
+
+    $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", url="/read", sort='random.hourly', use_cache=False)
+
+  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["lending___last_browse desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["lending___last_browse desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title=_('Thrillers'), key="thrillers", query="preset:thrillers", sorts=["downloads desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title=_('Textbooks'), key="textbooks", subject="textbooks", sorts=["lending___last_browse desc"], limit=18, test=test)
+
+  $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", limit=18, test=test)
+
+  $:render_template("home/categories", test=test)
+
+  $:render_template("home/stats", stats)
+
+  $:render_template("home/about", blog_posts)
+ </div>

@@ -1,0 +1,11 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Standard to msysgit
+*.doc	diff=astextplain
+*.docx	diff=astextplain
+*.pdf	diff=astextplain
+*.rtf	diff=astextplain
+
+# MARC binary
+*.mrc	binary -linguist-detectable

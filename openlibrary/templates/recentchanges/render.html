@@ -1,0 +1,65 @@
+$def with (limit=25, hash="", paginate=True, **query)
+
+$if paginate:
+    $ page = safeint(query_param('page', '1'))
+$else:
+    $ page = 1
+
+$def call_template(name, change):
+    $ kind = "merge" if change.kind.startswith('merge-') else change.kind
+    $ t = get_template("recentchanges/" + kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+
+$ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
+$var length = len(changes)
+
+$if "ip" in query and ctx.user and ctx.user.is_admin():
+    <div class="adminOnly">
+        <a href="/admin/ip/$query['ip']">$_("Admin view")</a>
+    </div>
+
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>$_("Who")</th>
+            <th>$_("Comment")</th>
+        </tr>
+    </thead>
+    <tbody>
+    $for c in changes:
+        $if not c.get_changes()[0].key.endswith("/preferences"):
+            <tr>
+                <td class="time">$datestr(c.timestamp)</td>
+                <td class="path">$:call_template("path", c)</td>
+                $if c.author:
+                    <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
+                $elif c.ip and c.ip != '127.0.0.1':
+                    $if ctx.user and ctx.user.is_admin():
+                        $ ip_url = "/admin/ip/%s" % c.ip
+                        $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
+                    $else:
+                        $ ip_url = changequery(ip=c.ip)
+                        $ klass = ""
+                    <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
+                $else:
+                    <td class="history">$c.ip</td>
+                <td class="comment">
+                    $if c.kind == 'add-cover':
+                        Added new cover <img class="comment__cover" src='$:call_template("comment", c)' alt=""/>
+                    $else:
+                        $:call_template("comment", c)
+                </td>
+            </tr>
+    </tbody>
+</table>
+
+$if paginate:
+    <div class="historyPager small sansserif gray">
+        $if len(changes) == limit:
+            <a href="$changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+        $if page > 1:
+             &nbsp;|&nbsp;
+            <a href="$changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
+    </div>

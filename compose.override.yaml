@@ -1,0 +1,108 @@
+# This file is applied "on top" of compose.yaml when docker compose
+# is used without the -f parameter. It contains local development specific
+# configuration options which we don't want to apply to production/staging
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    ports:
+      # Debugger
+      - 3000:3000
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for generated css and js
+      - ol-build:/openlibrary/static/build
+      # Persistent volume mount for node_modules
+      - ol-nodemodules:/openlibrary/node_modules
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - .:/openlibrary
+    environment:
+      - LOCAL_DEV=true
+    depends_on:
+      - db
+      - infobase
+
+  solr:
+    ports:
+      - 8983:8983
+
+  solr-updater:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    environment:
+      - EXTRA_OPTS=--solr-next
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+
+  db:
+    image: postgres:${POSTGRES_VERSION:-9.3}
+    networks:
+      - dbnet
+    environment:
+      # This is okay for dev, but may need to be explored for prod
+      # This allows postgres access for psql user w/o password required
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - .:/openlibrary
+      # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
+      # if the db is empty (which as of now is always, since we don't store the
+      # postgres data anywhere).
+      - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
+
+  covers:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    ports:
+      - 7075:7075
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+
+  infobase:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    # Commented out because not needed for most dev work, and 7000 conflicts
+    # with OS port on Mac. Uncomment if you need to test infobase directly.
+    # Mac users can do eg "7070:7000" to change the port used on the host
+    # machine to avoid conflicts.
+    # See https://github.com/internetarchive/openlibrary/issues/6315
+    # ports:
+    #  - 7000:7000
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+    depends_on:
+      - db
+
+  home:
+    image: "${OLIMAGE:-oldev:latest}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-home-start.sh
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ol-build:/openlibrary/static/build
+      - ol-nodemodules:/openlibrary/node_modules
+      - .:/openlibrary
+
+volumes:
+  ol-vendor:
+  ol-build:
+  ol-nodemodules:

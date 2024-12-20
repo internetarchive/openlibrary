@@ -1,0 +1,25 @@
+$def with (work=None, edition=None, ocaid=None)
+
+$ work_id = work and work.key and work.key.split('/')[2]
+$ edition_id = edition and edition.key.split('/')[2]
+
+  <!-- Don't need to translate admin only buttons (at least initially)-->
+  <div class="admin-bar">
+    $if work_id:
+      <!-- Add this whole work to staff picks -->
+      <form action="/admin/staffpicks" method="POST">
+        <input type="hidden" value="add" name="action"/>
+        <input type="hidden" name="work_id" value="$work_id"/>
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('Add to Staff Picks')"/>
+      </form>
+    $if ocaid:
+      <form method="GET" action="/admin/sync">
+        <input type="hidden" name="edition_id" value="$edition_id"/>
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('Sync Archive.org ID')"/>
+      </form>
+      <form method="GET" action="https://archive.org/details/$ocaid">
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('View Book on Archive.org')"/>
+      </form>
+    $if not work_id:
+      <strong>$_("Orphaned Edition")</strong>
+  </div>

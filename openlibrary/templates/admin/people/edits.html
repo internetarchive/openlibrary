@@ -1,0 +1,98 @@
+$def with (account, paginate=True)
+
+$var title: $_('[Admin Center] Edits of %(user)s', user=account.displayname)
+
+$if paginate:
+    $ page = safeint(query_param('page', '1'))
+$else:
+    $ page = 1
+
+$ limit = safeint(query_param('limit', '100'))
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/people">$_("people")</a> / <a class="plain" href="/admin/people/$account.username">$account.username</a> / $_("edits") </h1>
+</div>
+
+<div id="contentBody">
+
+<p>
+$_("Please select the changesets to revert.")
+</p>
+
+$ changes = recentchanges(dict(author=account.get_user().key, limit=limit, offset=(page-1) * limit))
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+
+<form method="POST" name="revert" class="olform">
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="checkall"></th>
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>$_("Who")</th>
+            <th>$_("Comment")</th>
+        </tr>
+    </thead>
+    <tbody>
+    $for c in changes:
+        $ reverts = recentchanges({"kind": "revert", "data": {"reverted_changesets": c.id}})
+        $ revert = reverts and reverts[0]
+        $if revert:
+            $if revert.author:
+                $ revert_author = reverts[0].author.displayname
+            $else:
+                $ revert_author = reverts[0].ip
+        <tr>
+            <td>
+                $if not revert:
+                    <input type="checkbox" name="changesets" value="$c.id" checked="checked"/>
+            </td>
+            <td class="time">$datestr(c.timestamp)</td>
+            <td class="path">$:call_template("path", c)</td>
+            $if c.author:
+                <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
+            $elif c.ip and c.ip != '127.0.0.1':
+                $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
+                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
+            $else:
+                <td class="history">$c.ip</td>
+            <td class="comment">
+                $:call_template("comment", c)
+                $if revert:
+                    <b>-- <a href="$revert.url()">$_('Reverted by %(revert_author)s', revert_author=revert_author)</a></b>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br/>
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$:_('Please, leave a short note about what you changed: <span class="small gray">(Optional, but very useful!)</span>')</label>
+    </div>
+    <div class="input">
+        <input type="text" name="comment" id="comment" value="$_('Reverted spam')" style="width:900px;"/>
+    </div>
+</div>
+
+<div class="formElement collapse" style="position:relative;">
+    <div class="input">
+        <button type="submit" class="larger" name="submit" title="$_('Submit')">$_("Submit")</button>
+    </div>
+</div>
+
+</form>
+$if paginate:
+    <div class="historyPager small sansserif gray">
+        $if len(changes) == limit:
+            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
+        $if page > 1:
+             &nbsp;|&nbsp;
+            <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+    </div>
+</div>

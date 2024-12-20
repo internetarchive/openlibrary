@@ -1,0 +1,37 @@
+$def with (table_of_contents, ocaid=None, cls='', attrs='')
+
+<div class="toc $cls" $:attrs>
+  $for chapter in table_of_contents.entries:
+    <div
+      class="toc__entry"
+      data-level="$chapter.level"
+      style="margin-left:$((chapter.level - table_of_contents.min_level) * 2)ch"
+    >
+      $ is_link = ocaid and chapter.pagenum and chapter.pagenum.isdigit()
+      $ tag = 'a' if is_link else 'div'
+      <$tag
+        class="toc__main"
+        $:cond(is_link, 'href="//archive.org/details/%s/page/%s"' % (ocaid, chapter.pagenum))
+        $:cond(is_link, 'data-ol-link-track="BookPage|TOCClick"')
+      >
+        <div class="toc__name">
+          $ label = chapter.label
+          $if label and not label.endswith('.'):
+            $ label = label.strip() + '. '
+
+          <div class="toc__title">$label $chapter.title</div>
+
+          $if chapter.subtitle:
+            <div class="toc__subtitle">$chapter.subtitle</div>
+          $if chapter.authors:
+            <div class="toc__authors">$:macros.BookByline(chapter.authors)</div>
+        </div>
+        $if chapter.pagenum:
+          <span class="toc__dots"></span>
+          <span class="toc__pagenum">$_('Page %s', chapter.pagenum)</span>
+      </$tag>
+
+      $if chapter.description:
+        <div class="toc__description">$chapter.description</div>
+    </div>
+</div>

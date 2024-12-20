@@ -1,0 +1,161 @@
+$def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, lang='en')
+
+$ reading_log_stats_config = {
+$    'works': works_json,
+$    'authors': authors_json,
+$    'lang': lang,
+$    'charts_selector': '.readinglog-stats-chart'
+$ }
+
+$ shelf_name = unicode(render_template('account/readinglog_shelf_name', shelf_key)).strip();
+$var title: $_('My %(shelf_name)s Stats', shelf_name=shelf_name)
+
+$jsdef render_works_list(works):
+    <ul class="works-list">
+    $for work in works:
+        $ full_title = work.title
+        $if work.subtitle:
+            $ full_title = work.title + ': ' + work.subtitle
+        <li>
+            <a href="$work.key" style="font-style: oblique">$full_title</a>
+            $ first_publish_year = work.first_publish_year or '????'
+            $# detect-missing-i18n-skip-line
+            <span title="First published in $first_publish_year">($first_publish_year)</span>
+            by
+            $for author in work.authors:
+                <a href="$author.key">$author.name</a>$cond(not loop.last, ', ', '')
+        </li>
+    </ul>
+
+$jsdef render_excluded_works_list(works, total):
+    <details>
+        <summary><meter value="$(total - len(works))" max="$total"></meter> $len(works) works excluded due to missing data</summary>
+        $:render_works_list(works)
+    </details>
+
+<style>
+    canvas { width: 100% !important; object-fit: contain; }
+
+    .charts-flow {
+      display: flex;
+      flex-wrap: wrap;
+      border-top: 1px dotted #aaa;
+    }
+
+    section.readinglog-chart-container {
+      width: 50%;
+      padding: 10px;
+      margin: 0;
+    }
+
+    .selected-works {
+        position: sticky;
+        bottom: 0;
+        max-height: 160px;
+        background: white;
+        border-top: 1px dotted;
+        overflow: auto;
+    }
+    .selected-works summary {
+        padding: 5px;
+        background: #EEE;
+        position: sticky;
+        top: 0;
+    }
+    .selected-works main { padding: 5px 10px 10px 10px; }
+    .selected-works--empty { display: none; }
+    .selected-works--list:empty+.selected-works--empty {
+        display: block;
+    }
+
+    /* Hanging indent */
+    .works-list > li {
+        padding-left: 22px;
+        text-indent: -22px;
+    }
+
+    @media (min-width: 750px) {
+        .readinglog-chart-container:nth-child(2n+1) {
+            border-right: 1px dotted #aaa;
+        }
+
+        .readinglog-chart-container:nth-child(n) {
+            border-bottom: 1px dotted #aaa;
+        }
+    }
+    @media (max-width: 750px) {
+        section.readinglog-chart-container {
+            width: 100%;
+        }
+
+        .readinglog-chart-container {
+            border-bottom: 1px dotted #aaa;
+        }
+    }
+</style>
+
+<div id="contentHead">
+    <div class="small sansserif grey account-settings-menu" style="font-size: 16px!important">
+        <a href="/account/books" style="text-decoration: none">
+            ←
+           <span style="text-decoration: underline">$_("My Books")</span>
+         </a>
+        &raquo; <a href="$shelf_path">$shelf_name</a>
+        &raquo;
+    </div>
+    <h1>$_('My %(shelf_name)s Stats', shelf_name=shelf_name)</h1>
+
+    <p>$:_('Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count=works_count)</p>
+</div>
+
+<div class="readinglog-charts" data-config="$dumps(reading_log_stats_config)" style="padding: 12px;">
+
+    <h2>$_("Author Stats")</h2>
+
+    <section class="charts-flow">
+        $code:
+            charts = [
+                { 'title': _('Most Read Authors'), 'type': 'work-chart', 'key': 'authors[].name' },
+                { 'title': _('Works by Author Sex'), 'type': 'wd-chart', 'key': 'authors[].wd.sexLabel[].value' },
+                { 'title': _('Works by Author Country of Citizenship'), 'type': 'wd-chart', 'key': 'authors[].wd.country_of_citizenshipLabel[].value' },
+                { 'title': _('Works by Author Country of Birth'), 'type': 'wd-chart', 'key': 'authors[].wd.country_of_birthLabel[].value' },
+            ]
+
+        $for chart in charts:
+            <section class="readinglog-chart-container">
+                <h3>$chart['title']</h3>
+                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+            </section>
+    </section>
+
+    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>. Here\'s a <a id="wd-query-sample" href="">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href="https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose">these instructions</a>.')</small>
+
+    <h2>$_("Work Stats")</h2>
+
+    <section class="charts-flow">
+
+        $code:
+            charts = [
+                { 'title': _('Works by Subject'), 'type': 'work-chart', 'key': 'subjects', 'exclude': ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
+                { 'title': _('Works by People'), 'type': 'work-chart', 'key': 'subject_people' },
+                { 'title': _('Works by Places'), 'type': 'work-chart', 'key': 'subject_places' },
+                { 'title': _('Works by Time Period'), 'type': 'work-chart', 'key': 'subject_times' },
+            ]
+
+        $for chart in charts:
+            <section class="readinglog-chart-container">
+                <h3>$chart['title']</h3>
+                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+            </section>
+    </section>
+</div>
+
+<details class="selected-works" open>
+    <summary>$_("Matching works")</summary>
+    <main>
+        <div class="selected-works--list"></div>
+        <div class="selected-works--empty">
+            $_("Click on a bar to see matching works")
+        </div>
+    </main>
+</details>

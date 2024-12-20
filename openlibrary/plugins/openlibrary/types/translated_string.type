@@ -1,0 +1,26 @@
+{
+    'key': '/type/translated_string',
+    'kind': 'embeddable',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/language'
+        },
+        'name': 'language',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'text',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

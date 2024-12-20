@@ -1,0 +1,60 @@
+$def with (author=None, type=None, limit=25)
+
+$# _ = i18n.get_namespace('/macros/RecentChanges')
+
+$ page = safeint(query_param('page', '0'))
+$ ip = query_param('ip', None)
+$ changes = get_recent_changes(author=author, type=type, ip=ip, limit=limit, offset=page * limit)
+
+$ show_users = (query_param('show_users', 'false').lower() == 'true')
+
+$if len(changes) > 1:
+    <h2>$_("Recent Activity")</h2>
+    <table class="changeHistory" style="width:100%;">
+        <thead>
+            <tr>
+                <th>$_("When")</th>
+                <th>$_("What")</th>
+                <th>$_("Comment")</th>
+            </tr>
+        </thead>
+
+        $for v in changes:
+            <tbody>
+            $if show_users or not v.key.startswith('/user/'):
+                <tr>
+                    <td class="time">$datestr(v.created)</td>
+                    $if v.thing.type.key == '/type/edition':
+                        $ name = v.thing.title or v.thing.key
+                    $elif v.thing.type.key == '/type/work':
+                        $ name = v.thing.title or v.thing.key
+                    $elif v.thing.type.key == '/type/author':
+                        $ name = v.thing.name or v.thing.key
+                    $else:
+                        $ name = v.key
+                    <td class="path">
+                        <div class="truncatepath">
+                            <a href="$homepath()$v.key" title="$v.key">$name</a>
+                            $if v.revision != 1:
+                               <span class="smallest sansserif"> - <a class="plain" href="$homepath()$v.key?m=diff&amp;b=$v.revision" title="$_('Review what\'s changed from the previous revision')">$_("diff")</a></span>
+                        </div>
+                    </td>
+                    <td class="comment">$v.comment</td>
+                </tr>
+            $else:
+                <tr>
+                    <td colspan="3" class="comment"><em>$_("No edit history available.")</em></td>
+                </tr>
+            </tbody>
+
+    </table>
+
+    <div class="historyPager small sansserif gray" style="width:100%;">
+    $if len(changes) == limit:
+        <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
+    $if page != 0:
+         &nbsp;|&nbsp;
+         <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+    </div>
+$else:
+    <p>$_("No edits. Yet.")</p>

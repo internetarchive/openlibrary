@@ -1,0 +1,82 @@
+$def with (form)
+
+$ i18n_strings = {
+    $ "loading_text": _("Loading...")
+    $ }
+
+$putctx("cssfile", "signup")
+
+$var title: $_("Log In")
+
+$if "dev" in ctx.features:
+    <div class="flash-messages" id="autofill-dev-credentials">
+        <div class="info ol-signup-form__info-box">
+            <span>
+                $_("This is a development instance, the default credentials are automatically filled.")
+                <br>
+                $_("email:") openlibrary@example.com $_("password:") admin123
+            </span>
+        </div>
+    </div>
+
+<div class="ol-page-signup">
+    <div id="contentHead" class="ol-signup-hero">
+        <h1 class="ol-signup-hero__title">$_("Log In")</h1>
+        <p class="ol-signup-hero__subtitle">$_("Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive")</p>
+    </div>
+
+    <div id="contentBody" class="ol-signup-form">
+    $if not ctx.user:
+        $:render_template("account/ia_thirdparty_logins")
+        <div class="ol-signup-form__big-or">$_('OR')</div>
+        <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
+
+    $if ctx.user:
+        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+        <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
+
+    $else:
+        <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
+            $if form.note:
+                <div class="note">$form.note</div>
+
+            <div class="formElement ol-signup-form__input">
+                <div class="label">
+                <label for="username">$_("Email")</label>
+                <a class="ol-signup-form__note" href="/account/email/forgot-ia">$_("Forgot your Internet Archive email?")</a>
+                </div>
+
+                <div class="input">
+                <input type="email" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
+                </div>
+            </div>
+
+            <div class="formElement ol-signup-form__input">
+                <div class="label">
+                    <label for="password">$_("Password")</label>
+                    <a class="ol-signup-form__note" href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
+                </div>
+                <div class="input">
+                    <input type="password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
+                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
+                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                    </a>
+                </div>
+            </div>
+
+            <div class="formElement ol-signup-form__checkbox">
+                    <input name="remember" type="checkbox" id="remember" />
+                    <label for="remember" class="small">$_("Remember me")</label>
+            </div>
+
+            <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
+            <input type="hidden" id="debug_token" value="" name="debug_token"/>
+
+            <div class="formElement bottom">
+                <br/>
+                <button value="$_('Log In')" type="submit" class="cta-btn cta-btn--primary" name="login" title="$_('Log In')">$_("Log In")</button>
+            </div>
+            <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
+        </form>
+    </div>
+</div>

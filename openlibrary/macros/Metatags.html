@@ -1,0 +1,15 @@
+$def with(title, image, description)
+
+<!-- Open graph tags handle card for both twitter and facebook -->
+
+$putctx("description", description)
+
+$add_metatag(property="og:title", content=title)
+$add_metatag(property="og:type", content="books.book")
+$add_metatag(property="og:image", content=image)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=description)
+
+$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+

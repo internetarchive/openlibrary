@@ -1,0 +1,43 @@
+$def with(email=None, err="")
+
+$var title: $("Forgot Your Email?")
+
+<div id="contentHead">
+    <h2>$_('Forgot Your Internet Archive Email?')</h2>
+    $if not email:
+        <p class="instruct">$_('Please enter your Open Library email and password, and we’ll retrieve your Archive.org email.')</p>
+</div>
+
+<div id="contentBody" class="defaultstyling">
+  $if email:
+    <p>$_('Your email is:') <strong>$email</strong></p>
+    <p><a href="/account/login">&larr; $_('Return to Log In?')</a></p>
+
+  $else:
+    $if err:
+      <div class="note">$err</div>
+
+    <form class="forgot-email-form"  action="/account/email/forgot-ia" method="POST">
+      <div class="form-row">
+	<div>
+	  <label>$_('Open Library Email')</label>
+	</div>
+	<input type="text" name="email"/>
+      </div>
+      <div class="form-row">
+	<div>
+	  <label>$_('Password')</label>
+	</div>
+	<input type="password" name="password"/>
+      </div>
+      <div>
+	<input type="submit" value="$_('Retrieve Archive.org Email')"/>
+      </div>
+      <div class="formElement">
+        <div class="label"></div>
+        <div class="input smaller padtop">
+	  <a href="https://archive.org/account/login.forgotpw.php">$_('Forgot your Archive.org Password?')</a>
+	</div>
+      </div>
+    </form>
+</div>

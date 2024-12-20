@@ -1,0 +1,35 @@
+/**
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ */
+.ui-widget-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: @black;
+  opacity: .5;
+  filter: alpha(opacity=50);
+  z-index: @z-index-level-13 !important;
+}
+.ui-sortable-placeholder {
+  border: 1px dotted @mid-grey;
+  visibility: visible !important;
+  filter: brightness(.85);
+  border-radius: 6px;
+  *, &:before, &:after {
+    visibility: hidden;
+  }
+}
+.ui-sortable--covers {
+  max-height: 270px;
+  overflow: auto;
+}

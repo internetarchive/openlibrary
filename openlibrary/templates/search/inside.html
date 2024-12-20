@@ -1,0 +1,37 @@
+$def with (q, results, search_time, page=1, results_per_page=20)
+
+$var title: $_('Search Open Library for %s', q)
+
+<div id="contentHead">
+  <h1>$_("Search Inside")</h1>
+</div>
+
+<div id="contentBody">
+  $:macros.SearchNavigation()
+  <div class="section">
+    <form class="siteSearch olform" action="/search/inside">
+      $:render_template("search/searchbox", q=q)
+    </form>
+  </div>
+    $ num_found = 0
+    $if q:
+        $if results and 'error' not in results and results['hits']:
+            $ hits = results['hits'].get('hits', [])
+            $ num_found = results['hits'].get('total', 0)
+
+        $if 'error' in results:
+            <div class="searchResultsError">$results['error']</div>
+
+        $if not num_found:
+            $def escaped_query(): <strong>$q</strong>
+            <center>
+              <div class="red">$:_('No <strong>Search Inside</strong> text matched your search')</div>
+              <hr>
+            </center>
+
+        $else:
+            <p class="search-results-stats">$ungettext('About %(count)s result found', 'About %(count)s results found', num_found, count=commify(num_found)) $ungettext('in %(seconds)s second', 'in %(seconds)s seconds', search_time, seconds="%.2f" % search_time)</p>
+
+        $:macros.FulltextResults(q, results, page=page)
+</div>
+

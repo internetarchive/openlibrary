@@ -1,0 +1,91 @@
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, exclude_own_lists=False, async_load=False, show_active_lists=False)
+
+$ edition = page if page.key.startswith("/books/") else None
+$ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
+
+<div class="lists-widget-container">
+$if "lists" not in ctx.features:
+    $return
+
+$code:
+    def get_page_lists(page, seed_info):
+        return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
+
+$ seed_info = get_seed_info(page)
+$ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
+$ page_lists = get_page_lists(page, seed_info)
+$ user_key = ctx.user and ctx.user.key
+$ page_url = page.url()
+
+$var page_lists = page_lists
+
+$def render_already_lists(lists, user_key):
+    $for list in lists:
+        $if list['active']:
+            $:render_template('lists/list_overview', list, user_key, seed_info)
+
+$def render_widget_display(lists, limit, user_key, exclude_own_lists):
+    $ count = 0
+    $for i, list in enumerate(lists):
+        $if count < limit:
+            $if exclude_own_lists:
+                $ own_list = list.owner and list.owner.key == user_key
+                $if not own_list:
+                    $:render_template('lists/list_overview', list, user_key, seed_info)
+                    $ count = count + 1
+            $else:
+                $:render_template('lists/list_overview', list, user_key, seed_info)
+                $ count = count + 1
+
+$def render_head(page_lists, page_url):
+    <div>
+      <h3 class="header">
+        <span class="icon list heart-adjust"></span>
+        $if len(page_lists) > 0:
+            <span class="head"><a href="$page_url/lists">$ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))</a></span>
+        $else:
+            <span class="head">$_("Lists")</span>
+      </h3>
+    </div>
+
+$if include_header:
+  <div class="lists-widget-head">
+    $:render_head(page_lists, page_url)
+  </div>
+
+$ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
+
+$def i18n_input():
+  $ show_list_i18n_strings = {
+    $ "cover_of": _('Cover of: %(title)s', title=''),
+    $ "see_this_list": _('See this list'),
+    $ "remove_from_list": _('Remove from your list?'),
+    $ "from": _('from'),
+    $ "you": _('You')
+    $ }
+  <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
+
+$if include_widget:
+  $if render_once('lists/widget.i18n-strings'):
+    $:i18n_input()
+
+  $:render_template('my_books/dropper', page, async_load=async_load)
+
+  $if username and show_active_lists:
+    <ul class="listLists already-lists">
+        $if async_load:
+          <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
+        $else:
+          $:render_already_lists(user_lists, user_key)
+    </ul>
+  $if work and include_rating:
+    $:macros.StarRatings(work, edition)
+
+$if include_showcase:
+  <ul id="list-lists" class="listLists">
+    $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
+  </ul>
+
+</div>

@@ -1,0 +1,181 @@
+/**
+ * Search Result Item
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ */
+@import "buttonBtn.less";
+@import "buttonCta.less";
+
+.bookauthor {
+  font-family: @lucida_sans_serif-6;
+}
+
+.searchResultItem {
+  list-style-type: none;
+  line-height: 1.5em;
+  background-color: @grey-fafafa;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid @light-beige;
+
+  &, .sri__main {
+    .display-flex();
+    align-items: center;
+    flex-direction: column;
+
+    @media (min-width: @width-breakpoint-tablet) {
+      flex-direction: row;
+    }
+  }
+
+  &.sri--w-main {
+    display: block;
+  }
+
+  a[href] {
+    text-decoration: none;
+  }
+  h3 {
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: @dark-grey;
+    font-size: 1.1em;
+    font-weight: 700;
+    font-family: @georgia_serif-1;
+    overflow: auto;
+  }
+  .details {
+    overflow: auto;
+    display: inline;
+    width: 100%;
+    padding: 5px;
+    margin: 0;
+  }
+
+  .resultStats {
+    font-size: .75em;
+    color: @grey;
+    font-family: @lucida_sans_serif-6;
+    display: block;
+  }
+  span.resultType {
+    font-size: .6875em;
+  }
+  .resultDetails {
+    display: block;
+  }
+  .ratingsByline {
+    color: @black;
+  }
+  .preview-covers {
+    display: block;
+    height: 45px;
+    overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+  .preview-covers img {
+    border-radius: 4px;
+    opacity: .7;
+  }
+  .preview-covers--blur {
+    img {
+      filter: blur(2px);
+    }
+  }
+  .bookcover {
+    width: 100%;
+    margin: 10px 10px 0 5px;
+    text-align: center;
+    overflow: hidden;
+    img {
+      border-radius: 4px;
+      max-width: 100%;
+      max-height: 300px;
+      width: 175px;
+    }
+  }
+  .bookcover--blur {
+    img {
+      filter: blur(4px);
+    }
+  }
+  .imageLg {
+    text-align: center;
+    width: 100%;
+    margin: 10px 10px 0 5px;
+    img {
+      max-width: 100%;
+      max-height: 110px;
+    }
+  }
+}
+
+.searchResultItem__librarian-extras {
+  font-size: .7em;
+  border-top: 1px dashed currentColor;
+  margin-top: 8px;
+  margin-bottom: -5px;
+  color: @grey;
+  padding: 7px 0;
+  line-height: 1em;
+  transition: color .2s;
+  text-decoration: dotted underline;
+
+  &:hover {
+    color: @primary-blue;
+  }
+}
+
+.preview-covers img:hover {
+  opacity: 1;
+}
+
+// Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists
+.listDelete {
+  white-space: nowrap;
+  max-width: 150px;
+  line-height: 28px;
+  .display-flex();
+  margin-bottom: 5px;
+  a {
+    span {
+      margin-right: 5px;
+      background-image: url(/images/back_list-trash.png);
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      height: 28px;
+      width: 21px;
+      display: inline-block;
+      position: relative;
+      top: 5px;
+    }
+  }
+  a:hover span {
+    background-position: -21px 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .list-books {
+    .searchResultItem {
+      .bookcover {
+        width: 175px;
+        text-align: right;
+      }
+      .imageLg {
+        width: 175px;
+        text-align: center;
+      }
+    }
+  }
+  .list-results {
+    .searchResultItem {
+      .imageLg {
+        width: 175px;
+        text-align: right;
+      }
+    }
+  }
+}

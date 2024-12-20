@@ -1,0 +1,32 @@
+$def with (test=False)
+
+$ subjects = get_cached_featured_subjects() if not test else []
+$if subjects:
+  <div class="carousel-section">
+    <div class="carousel-section-header">
+      <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
+    </div>
+    <div class="carousel-container">
+      <div class="carousel carousel--progressively-enhanced"
+        data-config="$json_encode({'carouselKey': 'categories', 'booksPerBreakpoint': [6, 5, 4, 3, 2, 2]})">
+        $for subject in subjects:
+          $ presentable_subject_name = subject['presentable_name']
+          $ icon = subject['key'].split('/')[-1]
+          <div class="category-item carousel__item">
+            <a class="category-nostyle" data-ol-link-track="CarouselCategories"
+               href="$subject['key']#sort=date_published&ebooks=true">
+              <div class="category-icon">
+                <img class="category-img" src="/static/images/categories/$(icon).svg"
+                    width="30" height="30"
+                    loading="lazy"
+                    alt="$_('browse %(subject)s books', subject=presentable_subject_name)"/>
+              </div>
+              <p class="category-title">$presentable_subject_name</p>
+              $if 'work_count' in subject:
+                $ count = commify(subject['work_count'])
+                <p class="category-count">$ungettext('%(count)s Book', '%(count)s Books', subject['work_count'], count=count)</p>
+            </a>
+          </div>
+      </div>
+    </div>
+  </div>

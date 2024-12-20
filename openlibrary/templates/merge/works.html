@@ -1,0 +1,16 @@
+$def with (mrid=None, can_merge='true', primary=None)
+$# mrid : int : Reference to entry in merge requests table
+$# primary : string : Specifies a specific work as the primary record
+
+$var title: $_('Merge Works')
+
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('full-width')
+
+$ attrs = dict(canmerge=can_merge)
+$if mrid:
+  $ attrs['mrid'] = mrid
+$if primary:
+  $ attrs['primary'] = primary
+
+$:render_component('MergeUI', attrs=attrs)

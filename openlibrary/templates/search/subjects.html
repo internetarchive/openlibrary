@@ -1,0 +1,79 @@
+$def with (get_results)
+
+$ q = query_param('q', '').strip()
+$ results_per_page = 100
+$ page = query_param('page')
+$if page:
+    $ page = int(page)
+$else:
+    $ page = 1
+$ offset = (page - 1) * results_per_page
+$ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
+
+<div id="contentHead">
+    <h1>
+        $_("Search Subjects")
+    </h1>
+</div>
+
+<div id="contentBody">
+  $:macros.SearchNavigation()
+    <div class="section">
+        <form class="siteSearch olform" action="">
+            $:render_template("search/searchbox", q=q)
+        </form>
+    </div>
+
+$if q:
+    $ response = get_results(q, offset=offset, limit=results_per_page)
+    $if not response.error:
+        $if response.num_found:
+            <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $else:
+            <center>
+                <div class="red">$:_('No <strong>subjects</strong> directly matched your search')</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$q">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
+
+$if q and response.error:
+    <strong>
+        $for line in response.error.splitlines():
+            $line
+            $if not loop.last:
+                <br>
+    </strong>
+
+$if q and not response.error:
+    <ul class="subjectList">
+    $for doc in response.docs:
+        $ n = doc['name']
+        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
+
+        <li>
+            <a href="$key">$n</a>
+            $def render_type(subject_type):
+                $if subject_type == "time":
+                    <span class="teal">$_("time")</span>
+                $elif subject_type == "subject":
+                    <span class="darkgreen">$_("subject")</span>
+                $elif subject_type == "place":
+                    <span class="orange">$_("place")</span>
+                $elif subject_type == "org":
+                    <span class="blue">$_("org")</span>
+                $elif subject_type == "event":
+                    <span class="grey">$_("event")</span>
+                $elif subject_type == "person":
+                    <span class="red">$_("person")</span>
+                $elif subject_type == "work":
+                    <span class="black">$_("work")</span>
+                $else:
+                    $doc['subject_type']
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('%(count)d book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
+        </li>
+    </ul>
+    $:macros.Pager(page, response.num_found, results_per_page)
+
+</div>

@@ -1,0 +1,57 @@
+$def with (email=None, url=None, done=False, recaptcha=None)
+$# Template entry point for /contact page
+$var title: $_('How can we help?')
+
+<div id="contentHead">
+ <h1>$_("How can we help?")</h1>
+</div>
+
+<div id="contentBody">
+
+ $if done:
+   <em>$:_('Your question has been sent to our support team. We\'ll get back to you shortly. You can also <a href="https://twitter.com/openlibrary">contact us on Twitter</a>.')</em>
+
+ <form action="" method="post" name="spamForm" class="olform">
+<p>$:_('Please check our <a href="/help/">Help Pages</a> and <a href="/help/faq">Frequently Asked Questions</a> (FAQ) to see if your question is answered there. Thank you.')</p>
+
+ <div class="formElement">
+ <div class="label"><label for="name">$_("Your Name")</label></div>
+ <div class="input"><input type="text" class="input" name="name" id="name"/></div>
+ </div>
+
+ <div class="formElement">
+ <div class="label"><label for="email">$_("Your Email Address")</label></div>
+ <div class="input"><input type="email" name="email" id="email" value="$email" required/> ($_('We\'ll need this if you want a reply'))</div>
+ <p>$_("If you wish to be contacted by other means, please add your contact preference and details to your question.")</p>
+ </div>
+
+ <div class="formElement">
+  <div class="label"><label for="subject">$_("Subject")</label></div>
+  <div class="input">
+    <input type="text" name="subject">
+  </div>
+ </div>
+
+ <div class="formElement">
+   <div class="label"><label for="question">$_("Your Question")</label></div>
+   <p><strong>$_("Note: our staff will likely only be able respond in English.")</strong></p>
+   <div class="input">
+     <textarea id="question" name="question" cols="40" rows="5" required></textarea>
+   </div>
+   <p>$_("If you encounter an error message, please include it. For questions about our books, please provide the title/author or Open Library ID.")</p>
+ </div>
+
+ <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
+
+ $if recaptcha:
+    $:render_template("recaptcha", recaptcha.public_key, error=None)
+
+ <div class="formElement bottom">
+ <div class="input">
+ <input type="submit" class="largest" value="$_('Send')" name="send" title="$_('Send')"/>
+ &nbsp; &nbsp;
+ <a href="javascript:;" class="red go-back-link">$_("Cancel")</a>
+ </div>
+ </div>
+ </form>
+</div>

@@ -1,0 +1,51 @@
+$def with (stats, date)
+$var title: $_("Imports") / $date
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1><a href="/admin/imports">$_("Imports")</a> / $date</h1>
+
+<h2>$_("Summary")</h2>
+$ summary = stats.get_items_summary(date)
+
+<table class="changeHistory" style="width: 300px;">
+    <tr><td>$_("Total")</td><td>$sum(summary['counts'].values())</td></tr>
+    <tr><td>$_("Created")</td><td>$summary['counts'].get('created', 0)</td></tr>
+    <tr><td>$_("Found")</td><td>$summary['counts'].get('found', 0)</td></tr>
+    <tr><td>$_("Modified")</td><td>$summary['counts'].get('modified', 0)</td></tr>
+    <tr><td>$_("Failed")</td><td>$summary['counts'].get('failed', 0)</td></tr>
+    <tr><td>$_("Pending")</td><td>$summary['counts'].get('pending', 0)</td></tr>
+</table>
+
+<h2>$_("Items")</h2>
+
+<div id="contentBody">
+    <table class="changeHistory">
+        <tr>
+            <th>#</th>
+            <th>$_("Identifier")</th>
+            <th>$_("OL Key")</th>
+            <th>$_("Status")</th>
+            <th>$_("Error")</th>
+            <th>$_("Added Time")</th>
+            <th>$_("Imported Time")</th>
+        </tr>
+        $for row in stats.get_items(date):
+            <tr>
+                <td>$loop.index</td>
+                <td><a href="//archive.org/details/$row.ia_id">$truncate(row.ia_id, 40)</a></td>
+                <td>
+                    $if row.ol_key:
+                        <a href="$row.ol_key">$row.ol_key.split("/")[-1]</a>
+                    $else:
+                        -
+                </td>
+                <td>$row.status</td>
+                <td>${row.error or '-'}</td>
+                <td>$row.added_time</td>
+                <td>$row.import_time</td>
+            </tr>
+    </table>
+</div>
+
+</div>

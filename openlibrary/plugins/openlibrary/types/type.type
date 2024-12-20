@@ -1,0 +1,64 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Metatype.\nThis is the type of all types including it self.'
+    },
+    'key': '/type/type',
+    'kind': 'regular',
+    'name': 'Type',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'index': '0',
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'index': '1',
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/property'
+        },
+        'index': '2',
+        'name': 'properties',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/backreference'
+        },
+        'index': '3',
+        'name': 'backreferences',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'kind',
+        'options': ['primitive', 'regular', 'embeddable'],
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

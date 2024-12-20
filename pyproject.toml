@@ -1,0 +1,189 @@
+# NOTE: You have to use single-quoted strings in TOML for regular expressions.
+# It's the equivalent of r-strings in Python.  Multiline strings are treated as
+# verbose regular expressions by Black.  Use [ ] to denote a significant space
+# character.
+
+[project]
+name = "openlibrary"
+version = "1.0.0"
+requires-python = ">=3.12.2,<3.12.3"
+
+[tool.black]
+skip-string-normalization = true
+target-version = ["py311"]
+
+[tool.codespell]
+ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
+skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
+
+[tool.mypy]
+ignore_missing_imports = true
+pretty = true
+scripts_are_modules = true
+show_error_codes = true
+show_error_context = true
+exclude = "(vendor*|venv*)/$"
+
+[[tool.mypy.overrides]]
+module = [
+  "infogami.*",
+  "openlibrary.plugins.worksearch.code"
+]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+
+[tool.ruff]
+target-version = "py312"
+extend-exclude = [
+  "./.*",
+  "vendor",
+]
+ignore = [
+  "B007",
+  "B023",
+  "B904",
+  "B905",
+  "E402",
+  "F841",
+  "PERF401",
+  "PIE790",
+  "PLC1901",
+  "PLR5501",
+  "PLW0602",
+  "PLW0603",
+  "PLW2901",
+  "PT004",
+  "PT006",
+  "PT021",
+  "RSE102",
+  "RUF001",
+  "RUF005",
+  "RUF012",
+  "RUF100",
+  "SIM108",
+  "SIM115",
+  "SLF001",
+  "UP031",
+  "UP038",
+]
+line-length = 162
+select = [
+  "ASYNC",   # flake8-async
+  "B",       # flake8-bugbear
+  "BLE",     # flake8-blind-except
+  "C4",      # flake8-comprehensions
+  "C90",     # McCabe cyclomatic complexity
+  "E",       # pycodestyle
+  "F",       # Pyflakes
+  "FA",      # flake8-future-annotations
+  "FLY",     # flynt
+  "G010",    # flake8-logging-format
+  "I",       # isort
+  "ICN",     # flake8-import-conventions
+  "INT",     # flake8-gettext
+  "ISC",     # flake8-implicit-str-concat
+  "PERF",    # Perflint
+  "PIE",     # flake8-pie
+  "PL",      # Pylint
+  "PT",      # flake8-pytest-style
+  "PYI",     # flake8-pyi
+  "RSE",     # flake8-raise
+  "RUF",     # Ruff-specific rules
+  "SIM",     # flake8-simplify
+  "SLF",     # flake8-self
+  "SLOT",    # flake8-slots
+  "T10",     # flake8-debugger
+  "UP",      # pyupgrade
+  "W",       # pycodestyle
+  "YTT",     # flake8-2020
+  # "A",     # flake8-builtins
+  # "AIR",   # Airflow
+  # "ANN",   # flake8-annotations
+  # "ARG",   # flake8-unused-arguments
+  # "COM",   # flake8-commas
+  # "CPY",   # Copyright-related rules
+  # "D",     # pydocstyle
+  # "DJ",    # flake8-django
+  # "DTZ",   # flake8-datetimez
+  # "EM",    # flake8-errmsg
+  # "ERA",   # eradicate
+  # "EXE",   # flake8-executable
+  # "FBT",   # flake8-boolean-trap
+  # "FIX",   # flake8-fixme
+  # "G",     # flake8-logging-format
+  # "INP",   # flake8-no-pep420
+  # "N",     # pep8-naming
+  # "NPY",   # NumPy-specific rules
+  # "PD",    # pandas-vet
+  # "PGH",   # pygrep-hooks
+  # "PTH",   # flake8-use-pathlib
+  # "Q",     # flake8-quotes
+  # "RET",   # flake8-return
+  # "S",     # flake8-bandit
+  # "T20",   # flake8-print
+  # "TCH",   # flake8-type-checking
+  # "TD",    # flake8-todos
+  # "TID",   # flake8-tidy-imports
+  # "TRY",   # tryceratops
+]
+
+[tool.ruff.mccabe]
+max-complexity = 28
+
+[tool.ruff.pylint]
+allow-magic-value-types = ["bytes", "float", "int", "str"]
+max-args = 15
+max-branches = 23
+max-returns = 14
+max-statements = 70
+
+[tool.ruff.per-file-ignores]
+"openlibrary/admin/stats.py" = ["BLE001"]
+"openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]
+"openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]
+"openlibrary/catalog/utils/edit.py" = ["E722"]
+"openlibrary/catalog/utils/query.py" = ["E722"]
+"openlibrary/core/booknotes.py" = ["E722"]
+"openlibrary/core/bookshelves.py" = ["BLE001"]
+"openlibrary/core/db.py" = ["SIM105"]
+"openlibrary/core/helpers.py" = ["BLE001"]
+"openlibrary/core/observations.py" = ["PYI024"]
+"openlibrary/core/processors/invalidation.py" = ["BLE001"]
+"openlibrary/core/ratings.py" = ["E722"]
+"openlibrary/core/sponsorships.py" = ["E722"]
+"openlibrary/core/stats.py" = ["BLE001"]
+"openlibrary/core/vendors.py" = ["B009"]
+"openlibrary/coverstore/code.py" = ["E722"]
+"openlibrary/i18n/__init__.py" = ["BLE001"]
+"openlibrary/plugins/admin/code.py" = ["E722"]
+"openlibrary/plugins/admin/mem.py" = ["E722"]
+"openlibrary/plugins/admin/memory.py" = ["E722"]
+"openlibrary/plugins/admin/services.py" = ["BLE001"]
+"openlibrary/plugins/books/dynlinks.py" = ["E722"]
+"openlibrary/plugins/books/readlinks.py" = ["E722"]
+"openlibrary/plugins/importapi/code.py" = ["BLE001"]
+"openlibrary/plugins/ol_infobase.py" = ["BLE001"]
+"openlibrary/plugins/openlibrary/code.py" = ["BLE001", "E722"]
+"openlibrary/plugins/openlibrary/connection.py" = ["E722"]
+"openlibrary/plugins/openlibrary/stats.py" = ["BLE001"]
+"openlibrary/plugins/upstream/account.py" = ["BLE001"]
+"openlibrary/plugins/upstream/borrow.py" = ["BLE001", "E722"]
+"openlibrary/plugins/upstream/models.py" = ["BLE001"]
+"openlibrary/plugins/upstream/utils.py" = ["BLE001"]
+"openlibrary/solr/solr_types.py" = ["UP007"]
+"openlibrary/utils/retry.py" = ["BLE001"]
+"openlibrary/utils/open_syllabus_project.py" = ["BLE001"]
+"openlibrary/utils/schema.py" = ["PERF402"]
+"openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]
+"scripts/affiliate_server*.py" = ["SIM105"]
+"scripts/copydocs.py" = ["BLE001", "PYI024"]
+"scripts/delete_import_items.py" = ["BLE001"]
+"scripts/import_book_covers.py" = ["BLE001"]
+"scripts/lc_marc_update.py" = ["E722"]
+"scripts/manage-imports.py" = ["BLE001"]
+"scripts/sitemaps/sitemap.py" = ["BLE001"]
+"scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
+"scripts/tests/test_obfi.py" = ["E501"]
+"tests/*" = ["S101"]

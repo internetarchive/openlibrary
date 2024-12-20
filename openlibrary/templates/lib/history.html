@@ -1,0 +1,92 @@
+$def with (page)
+
+$ h = None
+$if "superfast" in ctx.features and "history_v2" not in ctx.features:
+    $ h = page.get_history_preview()
+$if not h:
+    $ h = get_history(page)
+
+$ versions = h.recent + h.initial
+$ cur_v = query_param("v", None)
+$ show_wikipedia_citation_link = page.wp_citation_fields
+
+<div class="clearfix"></div>
+<div id="pageHistory">
+    <div class="head">
+        <h2 class="collapse inline">
+            $_("History")
+        </h2>
+        <ul class="pageHistory__list inline">
+        $if h.initial:
+            <li class="title inline">$_("Created %(date)s", date=datestr(h.initial[0].created))</li>
+        $if page.url:
+            $ url = page.url(m='history')
+        $else:
+            $ url = changequery(m='history')
+
+        $ latest = versions[0]
+        <li class="link inline"><a rel="nofollow" href="$url">$ungettext('%(count)d revision', '%(count)d revisions', latest.revision, count=latest.revision)</a></li>
+        </ul>
+        $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"):
+            $if cur_v:
+                $ hist_addition = "?v=" + cur_v
+            $else:
+                $ hist_addition = ""
+
+            $ rdf = page.key + ".rdf" + hist_addition
+            $ json = page.key + ".json" + hist_addition
+            $ opds = page.key + ".opds" + hist_addition
+            <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
+                $_('Download catalog record:')
+                <a rel="nofollow" href="$rdf">$_("RDF")</a>
+                /
+                <a rel="nofollow" href="$json">$_("JSON")</a>
+                $if page.key.startswith("/books"):
+                    /
+                    <a rel="nofollow" href="$opds">$_("OPDS")</a>
+                $if show_wikipedia_citation_link:
+                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
+            </span>
+
+            $if show_wikipedia_citation_link:
+                <div class="hidden">
+                    <div class="coverFloat" id="wikicode">
+                        <div class="coverFloatHead">
+                          <h2>$_("Wikipedia citation")</h2>
+                          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+                        </div>
+                        <p>$_("Copy and paste this code into your Wikipedia page.") <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" title="$_('Get instructions at Wikipedia in a new window')">$_('Need help?')</a></p>
+                        <form method="get">
+                          $ cite = " |".join([k + '=' + v for k, v in page.wp_citation_fields.items() if v])
+                          <textarea cols="70" rows="10" readonly="readonly" id="wikiselect">{{cite book|$cite}}</textarea>
+                        </form>
+                    </div>
+                </div>
+    </div>
+
+    <table class="history">
+        <tbody>
+            $def render_row(v,):
+                <td class="timestamp"><a rel="nofollow" href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                <td class="timestamp">
+                    $if v.author:
+                        $ author_link = v.author.render_link(cls="truncate")
+                    $elif v.ip and v.ip != "127.0.0.1":
+                        $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
+                    $else:
+                        $ author_link = '<span>%s</span>' % (_('an anonymous user'))
+                    $if v.revision == 1:
+                        $:_("Created by %(user)s", user=author_link)
+                    $else:
+                        $:_("Edited by %(user)s", user=author_link)
+                </td>
+                <td class="detail">$:render_template("history/comment", v)</td>
+
+            $for v in h.recent:
+                <tr>$:render_row(v)</tr>
+            $if h.initial:
+                $for v in h.initial:
+                    <tr>$:render_row(v)</tr>
+        </tbody>
+    </table>
+</div>
