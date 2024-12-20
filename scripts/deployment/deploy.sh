@@ -292,7 +292,7 @@ deploy_openlibrary() {
             set -e;
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME='\$HOSTNAME' docker compose --profile $SERVER pull
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
         "
         echo "   ... $SERVER ✓"
     done
