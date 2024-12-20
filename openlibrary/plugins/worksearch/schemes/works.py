@@ -185,6 +185,7 @@ class WorkSearchScheme(SearchScheme):
         # FIXME: These should be fetched from book_providers, but can't cause circular
         # dep
         'id_project_gutenberg',
+        'id_project_runeberg',
         'id_librivox',
         'id_standard_ebooks',
         'id_openstax',
