@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2024-12-09 12:52+0100\n"
+"PO-Revision-Date: 2024-12-20 18:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sc\n"
@@ -348,6 +348,10 @@ msgid "by Anonymous"
 msgstr "de Anònimu"
 
 #: diff.html
+msgid "history"
+msgstr "cronologia"
+
+#: diff.html
 msgid "Differences"
 msgstr "Diferèntzias"
 
@@ -579,6 +583,7 @@ msgstr "Gràtzias medas pro àere megioradu cussu registru!"
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -893,6 +898,7 @@ msgstr "So leghende"
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -986,10 +992,14 @@ msgstr "Editziones Solr"
 
 #: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgid "No <strong>%(path_id)s</strong> directly matched your search."
 msgstr ""
 "Non b'at àpidu <strong>%(path_id)s</strong> cun una currispondèntzia direta "
-"cun sa chirca tua"
+"cun sa chirca tua."
+
+#: work_search.html
+msgid "Add a new book?"
+msgstr "Annànghere unu libru nou?"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
@@ -1816,7 +1826,7 @@ msgstr "Su flussu meu"
 #: account/sidebar.html
 #, python-format
 msgid "%(year)d Reading Goal"
-msgstr "Obietivu de letura pro su %(year)d:"
+msgstr "Obietivu de letura pro su %(year)d"
 
 #: account/sidebar.html
 #, python-format
@@ -2931,7 +2941,7 @@ msgstr "Anonimiza su contu:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Esecutzione de anteprima"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
@@ -3003,7 +3013,7 @@ msgstr "Abbista in %(site)s"
 
 #: authors/infobox.html
 msgid "Born"
-msgstr "Naschimentu"
+msgstr "Nàschida"
 
 #: authors/infobox.html
 msgid "Died"
@@ -3014,6 +3024,7 @@ msgstr "Morte"
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -3049,6 +3060,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
 msgid "Learn more"
@@ -3072,6 +3084,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr "Iscàrriga unu HTML dae su Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr "HTML"
@@ -3210,6 +3223,62 @@ msgstr ""
 "benefitzèntzia chene punna de lucru chi si dèdicat a frunire de badas e in "
 "lìnia libros de testu de calidade arta, chi ant tentu una revisione "
 "paritària e cun litzèntzia aberta."
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr "Iscàrriga totu sas immàgines iscansidas dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr "Immàgines iscansidas"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr "Iscàrriga totu sas immàgines a colores dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr "Immàgines a colores"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr "Iscàrriga totu sos documentos HTML dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+"Iscàrriga totu sos testos e sos documentos de inditzizatzione dae Project "
+"Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr "ITestos e sos documentos de inditzizatzione"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr "Iscàrriga totu sos testos OCR dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr "Testu OCR"
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
+msgstr "De prus in Project Runeberg"
+
+#: book_providers/runeberg_read_button.html
+msgid "Read eBook from Project Runeberg"
+msgstr "Leghe libros digitales de Project Runeberg"
+
+#: book_providers/runeberg_read_button.html
+msgid ""
+"This book is available from <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Runeberg is a trusted book provider of classic Nordic "
+"(Scandinavian) literature in electronic form."
+msgstr ""
+"Custu libru est a disponimentu in <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Gutenberg est unu frunidore fidadu libros de "
+"literadura nòrdica (iscandìnava) clàssica in formadu eletrònicu."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
@@ -7466,7 +7535,7 @@ msgstr[1] "Ammustrende %(count)d editziones in evidèntzia."
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr "Boles pompiare totu sas %(count)d editziones?"
+msgstr "Boles pompiare totu sas %(count)d sas editziones?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
@@ -8180,6 +8249,15 @@ msgstr "B'at àpidu unu problema e non t'amus pòdidu fàghere intrare."
 msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
 "Atzessu intentadu cun credentziales s3 de s'Internet Archive non vàlidas."
+
+#: account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later or "
+"email openlibrary@archive.org for help."
+msgstr ""
+"Sos webidores sunt tenende unu tràficu prus artu de su sòlitu, torra a "
+"proare prus a tardu o imbia unu messàgiu de posta eletrònica a "
+"openlibrary@archive.org pro pedire agiudu."
 
 #: account.py
 msgid "A problem occurred and we were unable to log you in"
