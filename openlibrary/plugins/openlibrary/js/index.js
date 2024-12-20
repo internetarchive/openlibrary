@@ -560,4 +560,3 @@ jQuery(function () {
             .then(module => module.initGoBackLinks(backLinks))
     }
 });
-
