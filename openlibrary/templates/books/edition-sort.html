@@ -26,16 +26,28 @@ $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+$ cover_dimensions = get_dimensions_cover(url) or (44, 60)
+$ aspect_ratio = cover_dimensions and cover_dimensions[0] / cover_dimensions[1] or 1
 
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
-          <a href="$book.url()"><img
-            src="$url"
-            alt="$_('Cover of: %(title)s', title=book.title)"
-            title="$_('Cover of: %(title)s', title=book.title)"
-            loading="lazy"
-          /></a>
+          <a href="$book.url()">
+            <img
+              src="$url"
+              alt="$_('Cover of: %(title)s', title=book.title)"
+              title="$_('Cover of: %(title)s', title=book.title)"
+              loading="lazy"
+              class="aspect-ratio-covers-in-editions"
+            />
+            <style>
+              .aspect-ratio-covers-in-editions {
+                width: 100%;
+                aspect-ratio: $aspect_ratio;
+                object-fit: contain;
+              }
+            </style>
+          </a>
       </div>
 
       <div class="title">
