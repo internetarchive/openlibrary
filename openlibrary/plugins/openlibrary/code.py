@@ -1252,7 +1252,10 @@ class Partials(delegate.page):
                 ].FulltextSearchSuggestion(query, data)
             partial = {"partials": str(macro)}
 
-        return delegate.RawText(json.dumps(partial))
+            # Add caching headers specifically for "no results" case
+            web.header('Cache-Control', 'public, max-age=300')
+
+            return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
