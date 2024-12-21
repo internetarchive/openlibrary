@@ -38,6 +38,8 @@ msgstr "ছেটিংছ আৰু প্ৰাইভেছি"
 #: account.html databarDiff.html
 msgid "View"
 msgstr " চাওক"
+#note - "view" as in "to see" , and not "model view/ architecture view".
+the word would be different in that instance
 
 #: account.html
 msgid "or"
@@ -57,57 +59,66 @@ msgstr "আপোনাৰ প্ৰফাইল পৃষ্ঠা"
 
 #: account.html
 msgid "View or Edit your Reading Log"
-msgstr ""
+msgstr "আপোনাৰ ৰিডিং লগ চাওক অথবা বোডলাউক"
+# Note - is reading log the same as history? Perhaps a better
+translation can be provided based on the meaning of reading log.
 
 #: account.html
 msgid "View or Edit your Lists"
-msgstr ""
+msgstr "আপোনাৰ তালিকা চাওক অথবা বোডলাউক"
 
 #: account.html
 msgid "Import and Export Options"
-msgstr ""
+msgstr "আমদানি আৰু ৰপ্তানি কৰিবলৈ নিৰ্বাচন কৰিবলৈ বিকল্প"
 
 #: account.html
 msgid "Manage Privacy & Content Moderation Settings"
-msgstr ""
+msgstr "আপোনাৰ গোপনীয়তা আৰু বিষয় মডাৰেট কৰিবলৈ ছেটিংছ"
 
 #: account.html
 msgid "Manage Notifications Settings"
-msgstr ""
+msgstr "জাননী ছেটিংছ চম্ভাল'ক"
+#note - check whether the apostrophe in the last word works with Malaya Khaund, Ph.D.
 
 #: account.html
 msgid "Manage Mailing List Subscriptions"
-msgstr ""
+msgstr "মেইলিং তালিকাৰ চাবস্ক্ৰিপচনসমূহ চম্ভাল'ক"
 
 #: account.html
 msgid "Change Password"
-msgstr ""
+msgstr "পাছৱৰ্ড পৰিৱৰ্তন"
+# note - check if "bodolauk" works better than "poriborton" (last word)
 
 #: account.html
 msgid "Update Email Address"
-msgstr ""
+msgstr "ইমেইল আইডি আপডেট কৰক"
 
 #: account.html
 msgid "Deactivate Account"
-msgstr ""
+msgstr "একাউণ্ট নিষ্ক্ৰিয় কৰক"
 
 #: account.html
 msgid "Please contact us if you need help with anything else."
-msgstr ""
+msgstr "প্ৰয়োজনীয় যিকোনো সহায়ৰ ক্ষেত্ৰত আমাৰ সৈতে যোগাযোগ কৰক ।"
 
 #: barcodescanner.html
 msgid "Barcode Scanner (Beta)"
-msgstr ""
+msgstr "বাৰক'ড স্ক্যানাৰ (এতিয়াও উন্নয়নত আছে)"
+#note - here, instead of the word beta, used the concept of beta, as in
+under development. To change, replace words in parentheses with - বিটা
 
 #: batch_import.html
 msgid "Batch Imports"
-msgstr ""
+msgstr "বেচ ইম্প'ৰতচ"
 
 #: batch_import.html
 msgid ""
 "Attach a JSONL formatted document with import records or copy/paste the "
 "JSONL text into the textarea."
 msgstr ""
+"আমদানি ৰেকৰ্ডসমূহৰ সৈতে JSONL ফৰ্মেট কৰা দস্তাবেজ ইয়াত সংলগ্ন কৰক অথবা"
+"সকলো JSONL টেক্সট, এই টেক্সট-এলেকা কপি/পেষ্ট কৰক ।"
+#note - check the textarea translation
 
 #: batch_import.html
 msgid ""
@@ -115,143 +126,154 @@ msgid ""
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
 msgstr ""
+"অধিক তথ্যৰ বাবে <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a>"
+"চাওক ।"
 
 #: batch_import.html
 msgid "Attach a file:"
-msgstr ""
+msgstr "ফাইল সংলগ্ন কৰক:"
 
 #: batch_import.html
 msgid "Or copy/paste JSONL text:"
-msgstr ""
+msgstr "অথবা JSONL টেক্সট কপি/পেষ্ট কৰক:"
 
 #: batch_import.html
 msgid "Import"
-msgstr ""
+msgstr "আমদানি কৰক"
 
 #: batch_import.html
 msgid "Import failed."
-msgstr ""
+msgstr "আমদানি বিফল হৈছে ।"
 
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
-msgstr ""
+msgstr "যেতিয়ালৈকে প্ৰতিটো ৰেকৰ্ড সফলতাৰে বৈধ নহয়, কোনো আমদানি মুক্তিৰ বাবে শাৰীত ৰখা নহ'ব"
 
 #: batch_import.html
 msgid ""
 "Please update the JSONL file and reload this page (there should be no "
 "need to reattach the file)."
 msgstr ""
+"আপোনাক অনুগ্ৰহ কৰি অনুৰোধ কৰিছো - JSONL ফাইলটো আপডেইট কৰক"
+"আৰু এই ৱেবপেজটো পুনৰ লোড কৰক (ফাইলটো পুনৰ সংলগ্ন কৰাৰ "
+"প্ৰয়োজন নাই) ।"
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "ফাইলৰ বৈধকৰণত ভুল আছে"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "শাৰী %d:"
+#note - could not find this (Line %d) in Hindi messages.po, request help
+
 
 #: batch_import.html
 msgid "Import results for batch:"
-msgstr ""
+msgstr "বেচৰ বাবে ফলাফলসমূহ আমদানি কৰক:"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "জমা দিয়া ৰেকৰ্ডসমূহ"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "শাৰীত থকা মুঠ:"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "এৰি দিয়া মুঠ:"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "ইতিমধ্যে শাৰীত থকাৰ বাবে শাৰীত ৰখা হোৱা নাই মুঠ:"
 
 #: batch_import.html
 msgid "View Batch Status"
-msgstr ""
+msgstr "বেচৰ অৱস্থা চাওক"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "বেচ আমদানি যিবোৰ বাকী আছে"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "বেচ_আইডি"
+#note - another one i had confusion with...
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
 #: batch_import_view.html
 msgid "Added Time"
-msgstr ""
+msgstr "আমদানিৰ সময় যোগ কৰা হৈছে"
 
 #: account/import.html account/loans.html admin/imports.html
 #: admin/imports_by_date.html admin/loans_table.html admin/menu.html
 #: batch_import_pending_view.html batch_import_view.html status.html
 msgid "Status"
-msgstr ""
+msgstr "অৱস্থা"
 
 #: batch_import_pending_view.html batch_import_view.html
 #: merge_request_table/table_header.html
 msgid "Submitter"
-msgstr ""
+msgstr "দাখিল কৰা ব্যক্তি"
 
 #: RecentChangesAdmin.html batch_import_pending_view.html
 #: batch_import_view.html
 msgid "Comments"
-msgstr ""
+msgstr "মন্তব্য"
+#note - should we transliterate the word "Comments" itself? Who is the target audience?
 
 #: batch_import_view.html
 msgid "Batch Import Status"
-msgstr ""
+msgstr "বেচ আমদানিৰ অৱস্থা"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "বেচ ID:"
 
 #: batch_import_view.html
 msgid "Batch Name:"
-msgstr ""
+msgstr "বেচৰ নাম"
 
 #: batch_import_view.html
 msgid "Submitter:"
-msgstr ""
+msgstr "দাখিল কৰা ব্যক্তি:"
 
 #: batch_import_view.html
 msgid "Submit Time:"
-msgstr ""
+msgstr "দাখিল কৰা সময়:"
 
 #: batch_import_view.html
 msgid "Status Summary"
-msgstr ""
+msgstr "অৱস্থাৰ সাৰাংশ"
 
 #: batch_import_view.html
 msgid "Approve"
-msgstr ""
+msgstr "অনুমোদন কৰক"
 
 #: batch_import_view.html
 msgid "Import Items"
-msgstr ""
+msgstr "আইটেম আমদানি কৰক"
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
+msgstr "আমদানি কৰা সময়"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
 #: batch_import_view.html
 msgid "Error"
-msgstr ""
+msgstr "ভুল"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "IA ID"
+#note - keeping this as is, would require information
 
 #: batch_import_view.html
 msgid "Data"
-msgstr ""
+msgstr "তথ্য"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
