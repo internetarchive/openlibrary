@@ -85,6 +85,7 @@ SCHEMA_URL = (
 
 required_fields = None
 
+
 class Biblio:
     ACTIVE_FIELDS = [
         'title',
