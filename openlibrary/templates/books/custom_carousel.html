@@ -55,11 +55,14 @@ $def render_carousel_cover(book, lazy, layout):
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
 
+  $ cover_dimensions = (180, 360)
+  $ aspect_ratio = cover_dimensions and cover_dimensions[0] / cover_dimensions[1] or 1
+
   <div class="book carousel__item">
     <div class="book-cover">
       <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
         $if cover_url:
-          <img class="bookcover" loading="lazy"
+          <img class="bookcover covers-in-carousel" loading="lazy"
             title="$('%s%s'%(title,byline))"
             alt="$('%s%s'%(title,byline))"
           $if lazy and layout == 'carousel':
@@ -67,6 +70,12 @@ $def render_carousel_cover(book, lazy, layout):
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
           $else:
             src="$(cover_url)"/>
+          <style>
+            .covers-in-carousel {
+              aspect-ratio: $aspect_ratio;
+              object-fit: contain;
+            }
+          </style>
         $else:
           <div class="carousel__item__blankcover"  title="$(title)">
             <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
