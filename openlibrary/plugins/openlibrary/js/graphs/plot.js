@@ -217,7 +217,8 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
             fontSize: '11px',
             webkitBoxShadow: '1px 1px 3px #333',
             mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
+            boxShadow: '1px 1px 1px #000',
+            'z-index': 100
         }).appendTo('body').fadeIn(200);
     }
     node.bind('plothover', function (event, pos, item) {

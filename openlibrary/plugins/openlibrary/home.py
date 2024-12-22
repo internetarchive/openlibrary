@@ -39,11 +39,14 @@ CAROUSELS_PRESETS = {
 
 
 def get_homepage():
-    try:
-        stats = admin.get_stats()
-    except Exception:
-        logger.error("Error in getting stats", exc_info=True)
-        stats = None
+    if "dev" in web.ctx.features:
+        stats = admin.get_stats(dev_prod=True)
+    else:
+        try:
+            stats = admin.get_stats()
+        except Exception:
+            logger.error("Error in getting stats", exc_info=True)
+            stats = None
     blog_posts = get_blog_feeds()
 
     # render template should be setting ctx.cssfile
