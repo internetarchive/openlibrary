@@ -726,14 +726,14 @@ class permissions:
     def get_permission(self, key):
         doc = web.ctx.site.get(key)
         perm = doc and doc.child_permission
-        return perm and perm.key or "/permission/open"
+        return (perm and perm.key) or "/permission/open"
 
     def set_permission(self, key, permission):
         """Returns the doc with permission set.
         The caller must save the doc.
         """
         doc = web.ctx.site.get(key)
-        doc = doc and doc.dict() or {"key": key, "type": {"key": "/type/page"}}
+        doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
         doc["permission"] = {"key": "/permission/restricted"}
