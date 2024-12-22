@@ -1245,7 +1245,7 @@ class Partials(delegate.page):
             data = fulltext_search(query)
             # Add caching headers only if there were no errors in the search results
             if 'error' not in data:
-                # Cache for 5 minutes (300 seconds) 
+                # Cache for 5 minutes (300 seconds)
                 web.header('Cache-Control', 'public, max-age=300')
             hits = data.get('hits', [])
             if not hits['hits']:
