@@ -22,14 +22,14 @@ from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
-    "cached_property",
     "Cache",
-    "MemoryCache",
     "MemcacheCache",
+    "MemoryCache",
     "RequestCache",
-    "memoize",
-    "memcache_memoize",
+    "cached_property",
     "get_memcache",
+    "memcache_memoize",
+    "memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS

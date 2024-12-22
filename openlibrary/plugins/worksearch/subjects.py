@@ -16,7 +16,7 @@ from openlibrary.core.models import Subject
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 
-__all__ = ["SubjectEngine", "get_subject", "SubjectMeta"]
+__all__ = ["SubjectEngine", "SubjectMeta", "get_subject"]
 
 
 DEFAULT_RESULTS = 12
