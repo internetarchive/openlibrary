@@ -622,8 +622,8 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def create(
