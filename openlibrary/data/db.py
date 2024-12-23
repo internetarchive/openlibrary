@@ -122,7 +122,7 @@ def _fill_data(docs):
 
     keys = [doc.key for doc in docs]
 
-    d = mc and mc.get_multi(keys) or {}
+    d = (mc and mc.get_multi(keys)) or {}
     debug(f"{len(d)}/{len(keys)} found in memcache")
 
     keys = [doc.key for doc in docs if doc.key not in d]
