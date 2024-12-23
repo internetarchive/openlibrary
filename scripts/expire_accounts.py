@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import web
 
@@ -6,13 +6,13 @@ import web
 def delete_old_links():
     for doc in web.ctx.site.store.values(type="account-link"):
         expiry_date = datetime.strptime(doc["expires_on"], "%Y-%m-%dT%H:%M:%S.%f")
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         key = doc["_key"]
         if expiry_date > now:
-            print("Deleting link %s" % (key))
+            print(f'Deleting link {key}')
             del web.ctx.site.store[key]
         else:
-            print("Retaining link %s" % (key))
+            print(f'Retaining link {key}')
 
 
 def main():
