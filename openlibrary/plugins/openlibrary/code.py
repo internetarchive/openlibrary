@@ -1255,7 +1255,8 @@ class Partials(delegate.page):
                     'macros'
                 ].FulltextSearchSuggestion(query, data)
             partial = {"partials": str(macro)}
-            return delegate.RawText(json.dumps(partial))
+
+        return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
