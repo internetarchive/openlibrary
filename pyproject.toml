@@ -35,6 +35,13 @@ ignore_errors = true
 asyncio_mode = "strict"
 
 
+[tool.ruff]
+target-version = "py312"
+extend-exclude = [
+  "./.*",
+  "vendor",
+]
+
 ignore = [
   "B007",
   "B023",

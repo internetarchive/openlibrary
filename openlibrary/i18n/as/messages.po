@@ -11,40 +11,49 @@ msgstr ""
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: as\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural = 1"
+# Note - The Assamese language has no noun,
+# verb, etcetera extensions coincinding against
+# singulars or plurals. Eg- One hour has passed
+# Tr. : "Ek ghonta hoi gol"; Two hours have passed
+# Tr. : :"Dui ghonta hoi gol".
 "Generated-By: Babel 2.12.1\n"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
 msgid "Settings"
-msgstr ""
+msgstr "ছেটিংছ"
 
 #: account.html
 msgid "Settings & Privacy"
-msgstr ""
+msgstr "ছেটিংছ আৰু প্ৰাইভেছি"
+# There's a different translation for the term privacy, however here I've transliterated
 
 #: account.html databarDiff.html
 msgid "View"
-msgstr ""
+msgstr " চাওক"
 
 #: account.html
 msgid "or"
-msgstr ""
+msgstr "অথবা"
 
 #: account.html check_ins/check_in_prompt.html
 #: check_ins/reading_goal_progress.html databarHistory.html
 #: databarTemplate.html databarView.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
-msgstr ""
+msgstr "বোডলাউক"
 
 #: account.html
 msgid "Your Profile Page"
-msgstr ""
+msgstr "আপোনাৰ প্ৰফাইল পৃষ্ঠা"
+# Note - change the last word to assamese transliteration of page
 
 #: account.html
 msgid "View or Edit your Reading Log"
@@ -337,10 +346,6 @@ msgid "by Anonymous"
 msgstr ""
 
 #: diff.html
-msgid "history"
-msgstr ""
-
-#: diff.html
 msgid "Differences"
 msgstr ""
 
@@ -558,7 +563,6 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -849,7 +853,6 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -904,7 +907,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: check_ins/reading_goal_form.html widget.html
+#: widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -943,11 +946,7 @@ msgstr ""
 
 #: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
-
-#: work_search.html
-msgid "Add a new book?"
+msgid "No <strong>%(path_id)s</strong> directly matched your search"
 msgstr ""
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
@@ -1319,6 +1318,15 @@ msgstr ""
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
+msgstr ""
+
+#: account/mybooks.html
+#, python-format
+msgid "Set %(year_span)s reading goal"
+msgstr ""
+
+#: account/mybooks.html
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/mybooks.html
@@ -1709,20 +1717,6 @@ msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html mybooks.py
 msgid "My Feed"
-msgstr ""
-
-#: account/sidebar.html
-#, python-format
-msgid "%(year)d Reading Goal"
-msgstr ""
-
-#: account/sidebar.html
-#, python-format
-msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
@@ -2863,7 +2857,6 @@ msgstr ""
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
-#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -2894,9 +2887,9 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
+#: check_ins/reading_goal_progress.html
 msgid "Learn more"
 msgstr ""
 
@@ -2916,7 +2909,6 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
-#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr ""
@@ -3042,57 +3034,6 @@ msgid ""
 "book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
 "to providing free high-quality, peer-reviewed, openly licensed textbooks "
 "online."
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all scanned images from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Scanned images"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all color images from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Color images"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all HTML files from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all text and index files from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Text and index files"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all OCR text from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "OCR text"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "More at Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_read_button.html
-msgid "Read eBook from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_read_button.html
-msgid ""
-"This book is available from <a href=\"https://runeberg.org/\">Project "
-"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
-"Nordic (Scandinavian) literature in electronic form."
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html
@@ -4316,10 +4257,15 @@ msgstr ""
 
 #: check_ins/reading_goal_progress.html
 #, python-format
+msgid "%(year)d Reading Goal:"
+msgstr ""
+
+#: check_ins/reading_goal_progress.html
+#, python-format
 msgid ""
 "<span class=\"reading-goal-progress__books-"
 "read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> Books"
+"progress__goal\">%(goal)d</span> books"
 msgstr ""
 
 #: check_ins/reading_goal_progress.html
@@ -7772,12 +7718,6 @@ msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
 
 #: account.py
-msgid ""
-"Servers are experiencing unusually high traffic, please try again later "
-"or email openlibrary@archive.org for help."
-msgstr ""
-
-#: account.py
 msgid "A problem occurred and we were unable to log you in"
 msgstr ""
 
@@ -7894,4 +7834,3 @@ msgstr ""
 #: forms.py
 msgid "Choose a password"
 msgstr ""
-
