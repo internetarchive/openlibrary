@@ -161,7 +161,7 @@ class List(Thing):
             "full_url": self.url(),
             "name": self.name or "",
             "seed_count": self.seed_count,
-            "last_update": self.last_update and self.last_update.isoformat() or None,
+            "last_update": (self.last_update and self.last_update.isoformat()) or None,
         }
 
     def get_work_keys(self) -> Iterable[ThingKey]:
@@ -585,7 +585,7 @@ class Seed:
             "full_url": full_url,
             "type": self.type,
             "title": self.title,
-            "last_update": self.last_update and self.last_update.isoformat() or None,
+            "last_update": (self.last_update and self.last_update.isoformat()) or None,
         }
         if cover := self.get_cover():
             d['picture'] = {"url": cover.url("S")}
