@@ -30,11 +30,10 @@ import web
 from openlibrary.utils import olmemcache
 
 __all__ = [
+    "iterdocs",
+    "longquery",
     "setup_database",
     "setup_memcache",
-    "longquery",
-    "iterdocs",
-    # "get_docs",  # "get_docs()" is not defined.
     "update_docs",
 ]
 
