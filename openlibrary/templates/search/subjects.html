@@ -46,7 +46,7 @@ $if q and response.error:
                 <br>
     </strong>
 
-$if q and not response.error:
+$if q and not response.error and response.num_found:
     <ul class="subjectList">
     $for doc in response.docs:
         $ n = doc['name']
