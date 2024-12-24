@@ -1,6 +1,6 @@
 {
   "other_titles": [
-    "Pami\ufe20a\ufe21tniki mirovo\u012d \u0117stetichesko\u012d mysli."
+    "Pami︠a︡tniki mirovoĭ ėsteticheskoĭ mysli."
   ],
   "publishers": [
     "Izd-vo akademii khudozhestv SSSR"
@@ -13,19 +13,19 @@
     },
     {
       "type": "/type/toc_item",
-      "title": "Antichnost\u02b9 ; Srednie veka ; Vozrozhdenie -- -- t. 2."
+      "title": "Antichnostʹ ; Srednie veka ; Vozrozhdenie -- -- t. 2."
     },
     {
       "type": "/type/toc_item",
-      "title": "\u0116steticheskie uchenii\ufe20a\ufe21 XVII-XVIII vekov -- -- t. 3."
+      "title": "Ėsteticheskie uchenii︠a︡ XVII-XVIII vekov -- -- t. 3."
     },
     {
       "type": "/type/toc_item",
-      "title": "\u0116steticheskie uchenii\ufe20a\ufe21 zapadno\u012d Evropy i SSHA (1789-1871)."
+      "title": "Ėsteticheskie uchenii︠a︡ zapadnoĭ Evropy i SSHA (1789-1871)."
     }
   ],
-  "subtitle": "pami\ufe20a\ufe21tniki mirovo\u012d \u0117stetichesko\u012d mysli",
-  "title": "Istorii\ufe20a\ufe21 \u0117stetiki",
+  "subtitle": "pami︠a︡tniki mirovoĭ ėsteticheskoĭ mysli",
+  "title": "Istorii︠a︡ ėstetiki",
   "notes": "Includes bibliographical references.",
   "languages": ["rus"],
   "lc_classifications": [
@@ -35,19 +35,25 @@
   "publish_country": "ru",
   "authors": [
     {
-      "personal_name": "Ovsi\ufe20a\ufe21nnikov, Mikhail Fedotovich",
-      "name": "Ovsi\ufe20a\ufe21nnikov, Mikhail Fedotovich",
+      "name": "Ovsi︠a︡nnikov, Mikhail Fedotovich",
       "entity_type": "person"
+    },
+    {
+      "name": "Akademii︠a︡ khudozhestv SSSR",
+      "entity_type": "org"
+    },
+    {
+      "name": "Institut teorii i istorii izobrazitelʹnykh iskusstv (Akademii︠a︡ khudozhestv SSSR)",
+      "entity_type": "org"
+    },
+    {
+      "name": "Nauchno-issledovatelʹskiĭ institut teorii i istorii izobrazitelʹnykh iskusstv (Rossiĭskai︠a︡ akademii︠a︡ khudozhestv)",
+      "entity_type": "org"
     }
   ],
-  "by_statement": "Nauchno-issledovatel\u02b9ski\u012d institut teorii i istorii izobrazitel'nykh iskusstv",
+  "by_statement": "Nauchno-issledovatelʹskiĭ institut teorii i istorii izobrazitel'nykh iskusstv",
   "publish_places": [
     "Moskva"
-  ],
-  "contributions": [
-    "Akademii\ufe20a\ufe21 khudozhestv SSSR",
-    "Institut teorii i istorii izobrazitel\u02b9nykh iskusstv (Akademii\ufe20a\ufe21 khudozhestv SSSR)",
-    "Nauchno-issledovatel\u02b9ski\u012d institut teorii i istorii izobrazitel\u02b9nykh iskusstv (Rossi\u012dskai\ufe20a\ufe21 akademii\ufe20a\ufe21 khudozhestv)"
   ],
   "subjects": ["Aesthetics", "History and criticism"]
 }

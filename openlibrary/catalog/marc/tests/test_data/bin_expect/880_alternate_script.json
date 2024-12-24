@@ -8,8 +8,14 @@
     {
       "birth_date": "1960",
       "name": "Lyons, Daniel",
+      "entity_type": "person"
+    },
+    {
+      "name": "刘宁",
       "entity_type": "person",
-      "personal_name": "Lyons, Daniel"
+      "alternate_names": [
+	      "Liu, Ning"
+      ]
     }
   ],
   "oclc_numbers": [
@@ -21,9 +27,6 @@
   "edition_name": "Di 1 ban.",
   "translated_from": [
     "eng"
-  ],
-  "contributions": [
-    "Liu, Ning"
   ],
   "subject_places": [
     "Santa Clara Valley (Santa Clara County, Calif.)"
