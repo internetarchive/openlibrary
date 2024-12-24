@@ -39,7 +39,7 @@ msgstr "ছেটিংছ আৰু প্ৰাইভেছি"
 msgid "View"
 msgstr " চাওক"
 #note - "view" as in "to see" , and not "model view/ architecture view".
-the word would be different in that instance
+#the word would be different in that instance
 
 #: account.html
 msgid "or"
@@ -61,7 +61,7 @@ msgstr "আপোনাৰ প্ৰফাইল পৃষ্ঠা"
 msgid "View or Edit your Reading Log"
 msgstr "আপোনাৰ ৰিডিং লগ চাওক অথবা বোডলাউক"
 # Note - is reading log the same as history? Perhaps a better
-translation can be provided based on the meaning of reading log.
+#translation can be provided based on the meaning of reading log.
 
 #: account.html
 msgid "View or Edit your Lists"
@@ -105,7 +105,7 @@ msgstr "প্ৰয়োজনীয় যিকোনো সহায়ৰ 
 msgid "Barcode Scanner (Beta)"
 msgstr "বাৰক'ড স্ক্যানাৰ (এতিয়াও উন্নয়নত আছে)"
 #note - here, instead of the word beta, used the concept of beta, as in
-under development. To change, replace words in parentheses with - বিটা
+#under development. To change, replace words in parentheses with - বিটা
 
 #: batch_import.html
 msgid "Batch Imports"
@@ -277,146 +277,151 @@ msgstr "তথ্য"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "OL কি"
 
 #: batch_import_view.html
 msgid "Not yet imported"
-msgstr ""
+msgstr "এতিয়াও আমদানি কৰা হোৱা নাই"
 
 #: design.html
 msgid "Design Pattern Library"
-msgstr ""
+msgstr "ডিজাইন পেটাৰ্ণ পুথিভঁৰাল"
 
 #: design.html
 msgid "Fonts"
-msgstr ""
+msgstr "ফন্ট"
 
 #: design.html
 msgid "Font-size"
-msgstr ""
+msgstr "ফন্টৰ আকাৰ"
 
 #: design.html
 msgid "Font-family"
-msgstr ""
+msgstr "যিটো গোটত ফন্টসমূহ আছে"
+#note - here I have gone ahead and explained the meaning - it reads as:
+# the group in which the font exists. 
 
 #: design.html
 msgid "Sans-serif: Verdana"
-msgstr ""
+msgstr "ছান্স-চেৰিফ: ভাৰ্ডানা"
 
 #: design.html
 msgid "Serif: Georgia"
-msgstr ""
+msgstr "চেৰিফ: জৰ্জিয়া"
 
 #: design.html
 msgid "Colors"
-msgstr ""
+msgstr "সকলো ৰং"
 
 #: design.html
 msgid "Defaults"
-msgstr ""
+msgstr "অবিকল্পিত"
 
 #: design.html
 msgid "Background"
-msgstr ""
+msgstr "পটভূমি"
 
 #: design.html
 msgid "Primary Call To Action"
-msgstr ""
+msgstr "প্ৰথমটো কাৰ্য্যৰ আহ্বান"
 
 #: design.html
 msgid "Link (unclicked)"
-msgstr ""
+msgstr "লিংক (ক্লিক কৰা হোৱা নাই)"
 
 #: design.html
 msgid "Link (clicked)"
-msgstr ""
+msgstr "লিংক (ক্লিক কৰা হৈছে)"
 
 #: diff.html
 #, python-format
 msgid "Diff on %s"
-msgstr ""
+msgstr "দিফ ওপৰত %s"
+# note - need some assitance on the meaning of this message;
+# as of now i have transliterated the word "diff"
 
 #: diff.html
 msgid "Added"
-msgstr ""
+msgstr "যোগ কৰা হৈছে"
 
 #: admin/imports_by_date.html diff.html
 msgid "Modified"
-msgstr ""
+msgstr "পৰিৱৰ্তিত হৈছে"
 
 #: diff.html
 msgid "Removed"
-msgstr ""
+msgstr "আঁতৰাই পেলোৱা হৈছে"
 
 #: diff.html
 msgid "Not changed"
-msgstr ""
+msgstr "সলনি কৰা হোৱা নাই"
 
 #: diff.html
 #, python-format
 msgid "Revision %d"
-msgstr ""
+msgstr "পুনৰীক্ষণ %d"
 
 #: books/check.html books/show.html covers/book_cover.html
 #: covers/book_cover_single_edition.html covers/book_cover_work.html diff.html
 #: jsdef/LazyWorkPreview.html lists/preview.html
 msgid "by"
-msgstr ""
+msgstr "সৃষ্টি কৰিছে"
 
 #: diff.html
 msgid "by Anonymous"
-msgstr ""
+msgstr "বেনামীৰ সৃষ্টি কৰিছে"
 
 #: diff.html
 msgid "Differences"
-msgstr ""
+msgstr "পাৰ্থক্য"
 
 #: diff.html
 msgid "Both the revisions are identical."
-msgstr ""
+msgstr "দুয়োটা পুনৰীক্ষণ একে"
 
 #: edit_yaml.html lib/edit_head.html
 msgid "You're in edit mode."
-msgstr ""
+msgstr "আপুনি সম্পাদনা দৰ্শনত আছে"
 
 #: edit_yaml.html lib/edit_head.html
 msgid "Cancel, and go back."
-msgstr ""
+msgstr "বাতিল কৰক, আৰু পূৰ্বৰলৈ উভতি যাওক"
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
+msgstr "YAML প্ৰতিনিধিত্ব"
 
 #: BookPreview.html book_providers/direct_read_button.html
 #: books/edit/edition.html editpage.html
 msgid "Preview"
-msgstr ""
+msgstr "প্ৰিভিউ"
 
 #: history.html
 msgid "History of edits to"
-msgstr ""
+msgstr "এই সম্পাদনাৰ ইতিহাস"
+# note - translates to "history of edits (to this)
 
 #: history.html
 msgid "Revision"
-msgstr ""
+msgstr "পুনৰীক্ষণ" 
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
 msgid "When"
-msgstr ""
+msgstr "কেতিয়া"
 
 #: RecentChanges.html admin/history.html admin/ip/view.html
 #: admin/loans_table.html admin/people/edits.html history.html
 #: recentchanges/render.html
 msgid "Who"
-msgstr ""
+msgstr "কোন"
 
 #: RecentChanges.html RecentChangesUsers.html admin/history.html
 #: admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
 msgid "Comment"
-msgstr ""
+msgstr "মন্তব্য"
 
 #: history.html
 msgid "Diff"
