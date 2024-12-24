@@ -52,10 +52,13 @@ export class ReadMoreComponent {
     }
 
     reset() {
-        this.fullHeight = this.$content.scrollHeight;
+        const fullHeight = this.$content.scrollHeight;
+        const collapsedHeight = this.collapsedHeight;
+        const readMoreButtonHeight = this.$readMoreButton ? this.$readMoreButton.offsetHeight : 0;
+
         // Fudge factor to account for non-significant read/more
         // (e.g missing a bit of padding)
-        if (this.$content.scrollHeight <= (this.collapsedHeight + 1)) {
+        if (fullHeight <= (collapsedHeight + readMoreButtonHeight + 1)) {
             this.expand();
             this.$container.classList.add('read-more--unnecessary');
         } else {
