@@ -299,7 +299,7 @@ msgstr "ফন্টৰ আকাৰ"
 msgid "Font-family"
 msgstr "যিটো গোটত ফন্টসমূহ আছে"
 #note - here I have gone ahead and explained the meaning - it reads as:
-# the group in which the font exists. 
+# the group in which the font exists.
 
 #: design.html
 msgid "Sans-serif: Verdana"
@@ -403,7 +403,7 @@ msgstr "এই সম্পাদনাৰ ইতিহাস"
 
 #: history.html
 msgid "Revision"
-msgstr "পুনৰীক্ষণ" 
+msgstr "পুনৰীক্ষণ"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/ip/view.html admin/people/edits.html history.html
