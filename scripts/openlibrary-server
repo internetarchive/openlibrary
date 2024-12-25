@@ -34,8 +34,7 @@ def setup_env():
 
 
 def start_server():
-    import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-
+    import _init_path  
     args = sys.argv[1:]
 
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
@@ -56,7 +55,7 @@ def start_server():
 def load_infogami(config_file):
     import infogami
     from infogami import config
-    from infogami.utils import delegate  # noqa: F401 side effects may be needed
+    from infogami.utils import delegate  
 
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
@@ -87,8 +86,7 @@ class BaseWSGIServer(Application):
         pass
 
     def load(self):
-        import _init_path  # noqa: F401  Imported for side effect of setting PYTHONPATH
-
+        import _init_path  
         load_infogami(self.config_file)
 
         import infogami
