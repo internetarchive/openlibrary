@@ -25,6 +25,6 @@ $ id = '--mobile' if mobile else ''
     <li class="reading-log-stat"><span class="readers-stats__stat">$already_read_count</span> <span class="readers-stats__label">$_("Have read")</span></li>
   <li class="readers-avatars">
     $for p in work.get_patrons_who_also_read(limit=3):
-      <a href="/people/$(p.key.split('/')[2])/books/already-read"><img src="/people/$(p.key.split('/')[2])/avatar" class="avatar"></a>
+      <a href="/people/$(p.key.split('/')[2])/books/already-read"><img alt="$_('Profile picture for %s', p.key.split('/'))" src="/people/$(p.key.split('/')[2])/avatar" class="avatar"></a>
   </li>
 </ul>
