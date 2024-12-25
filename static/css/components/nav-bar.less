@@ -40,7 +40,7 @@
 
 .nav-bar-wrapper {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 10px;
@@ -53,13 +53,18 @@
     top: 50px;
     margin-left: -20px;
     margin-right: -20px;
-    padding: 8px 20px 0;
   }
 
   .nav-arrow {
-    padding-left: 20px;
-    background: none;
     border: none;
+    position: absolute;
+    padding: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10000;
+    width: 44px;
+    background: linear-gradient(to right, transparent, white 10px);
 
     img {
       max-width: unset !important;
@@ -109,6 +114,10 @@
     /* stylelint-enable selector-max-specificity */
   }
 }
+
+.nav-bar-wrapper.sticky > .nav-bar{
+    padding: 8px 20px 0;
+  }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .nav-bar-wrapper.sticky {
