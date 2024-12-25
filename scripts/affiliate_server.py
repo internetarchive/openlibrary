@@ -47,12 +47,11 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Final
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+import infogami
 import requests
 import web
-
-import infogami
 from infogami import config
+
 from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
@@ -371,7 +370,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
         if field_value := book.get(book_field) and not edition.get(edition_field):
             needed_book_fields.append(book_field)
 
-    if needed_book_fields == ["authors"]:  # noqa: SIM102
+    if needed_book_fields == ["authors"]:
         if work_key := edition.get("works") and edition["work"][0].get("key"):
             work = web.ctx.site.get(work_key)
             if work.get("authors"):

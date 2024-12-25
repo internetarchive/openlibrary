@@ -9,16 +9,15 @@ import urllib
 from typing import Literal, NoReturn, overload
 
 import web
-from web.webapi import SeeOther
-
 from infogami import config
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
+from web.webapi import SeeOther
+
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import as_admin
@@ -164,7 +163,7 @@ def encode_url_path(url: str) -> str:
     '/'
     >>> encode_url_path('/books/OL11M/进入该海域?mode=add-work')
     '/books/OL11M/%E8%BF%9B%E5%85%A5%E8%AF%A5%E6%B5%B7%E5%9F%9F?mode=add-work'
-    """  # noqa: RUF002
+    """
     result = urllib.parse.urlparse(url)
     correct_path = "/".join(urllib.parse.quote(part) for part in result.path.split("/"))
     result = result._replace(path=correct_path)
@@ -408,7 +407,7 @@ class addbook(delegate.page):
                     or publish_year != self.extract_year(e.publish_date)
                 ):
                     continue
-                if id_value and id_name in mapping:  # noqa: SIM102
+                if id_value and id_name in mapping:
                     if id_name not in e or id_value not in e[id_name]:
                         continue
                 # return the first good likely matching Edition
@@ -487,7 +486,7 @@ delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
 
 
-class addbook(delegate.page):  # type: ignore[no-redef] # noqa: F811
+class addbook(delegate.page):  # type: ignore[no-redef]
     def GET(self):
         raise web.redirect("/books/add")
 

@@ -12,7 +12,6 @@ from lxml import etree
 
 from openlibrary import config
 from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc  # noqa: F401 side effects may be needed
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')

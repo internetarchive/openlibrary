@@ -1,12 +1,10 @@
 import pytest
 import web
 
-from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
-
 from .. import code
 
 
-def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:  # noqa F811
+def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:
     """
     Try to test every field that get_ia_record() reads.
     """
@@ -62,7 +60,7 @@ def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:  # noqa F
     [("Frisian", "Multiple language matches"), ("Fake Lang", "No language matches")],
 )
 def test_get_ia_record_logs_warning_when_language_has_multiple_matches(
-    mock_site, monkeypatch, add_languages, caplog, tc, exp  # noqa F811
+    mock_site, monkeypatch, add_languages, caplog, tc, exp
 ) -> None:
     """
     When the IA record uses the language name rather than the language code,

@@ -7,9 +7,9 @@ from urllib.parse import urlencode
 
 import requests
 import web
-
 from infogami import config
 from infogami.utils import stats
+
 from openlibrary.core import cache
 
 logger = logging.getLogger('openlibrary.ia')
@@ -309,9 +309,7 @@ def get_candidates_url(
             '!noindex:true',
         ]
     )
-    exempt_collections = ' OR '.join(  # noqa: FLY002
-        ["collection:thoth-archiving-network"]
-    )
+    exempt_collections = ' OR '.join(["collection:thoth-archiving-network"])
     params = {
         'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',

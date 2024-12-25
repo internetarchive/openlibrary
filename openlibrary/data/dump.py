@@ -177,7 +177,7 @@ def generate_dump(cdump_file=None):
     """
 
     def process(data):
-        revision = lambda cols: int(cols[2])  # noqa: E731
+        revision = lambda cols: int(cols[2])
         for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
             row = max(rows, key=revision)
             yield row

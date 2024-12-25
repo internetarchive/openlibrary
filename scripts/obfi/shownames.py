@@ -18,7 +18,7 @@ def add_name(match: Match) -> str:
     else:
         try:
             name = socket.gethostbyaddr(ip)[0]
-        except:  # noqa E722
+        except:
             name = None
 
     if name:

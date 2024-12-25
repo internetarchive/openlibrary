@@ -25,9 +25,6 @@ from collections import defaultdict
 
 import web
 
-from infogami import config  # noqa: F401 side effects may be needed
-from openlibrary.utils.solr import Solr  # noqa: F401 side effects may be needed
-
 logger = Logging.getLogger(__name__)
 
 

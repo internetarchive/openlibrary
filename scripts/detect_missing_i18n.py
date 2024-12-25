@@ -6,8 +6,6 @@ import sys
 from enum import Enum
 from pathlib import Path
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # This is a list of files that are intentionally excluded from the i18n process

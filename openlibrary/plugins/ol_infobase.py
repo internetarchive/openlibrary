@@ -13,8 +13,8 @@ import traceback
 
 import requests
 import web
-
 from infogami.infobase import cache, common, config, dbstore, server
+
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -47,7 +47,7 @@ def init_plugin():
     ib.add_event_listener(invalidate_most_recent_change)
     setup_logging()
 
-    if ol:  # noqa: SIM102
+    if ol:
         # install custom indexer
         # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()

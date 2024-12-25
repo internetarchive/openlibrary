@@ -14,8 +14,6 @@ from typing import Literal
 import lxml.etree
 import requests
 import web
-from lxml import etree
-
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -23,11 +21,12 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
+from lxml import etree
+
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import (
     lending,
-    models,  # noqa: F401 side effects may be needed
     stats,
     vendors,
     waitinglist,
@@ -113,7 +112,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):  # noqa: PLR0915
+    def POST(self, key):
         """Called when the user wants to borrow the edition"""
 
         i = web.input(

@@ -73,7 +73,7 @@ class MarcBase:
         control = self.read_fields([tag])
         _, v = next(control, (tag, None))
         assert isinstance(v, (str, type(None)))
-        if tag == '008' and v:  # noqa: SIM102
+        if tag == '008' and v:
             # Handle duplicate 008s, even though control fields are non-repeatable.
             if others := [str(d) for _, d in list(control) if len(str(d)) == 40]:
                 return min(others + [v], key=lambda s: s.count(' '))

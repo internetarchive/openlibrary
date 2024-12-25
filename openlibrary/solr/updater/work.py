@@ -110,7 +110,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 solr_doc = WorkSolrBuilder(
                     work, editions, authors, self.data_provider, ia_metadata
                 ).build()
-            except:  # noqa: E722
+            except:
                 logger.error("failed to update work %s", work['key'], exc_info=True)
             else:
                 if solr_doc is not None:

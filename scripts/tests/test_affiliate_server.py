@@ -14,8 +14,7 @@ import pytest
 
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
-from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
-from scripts.affiliate_server import (  # noqa: E402
+from scripts.affiliate_server import (
     PrioritizedIdentifier,
     Priority,
     get_editions_for_books,
@@ -67,7 +66,7 @@ def test_ol_editions_and_amz_books():
     assert len(ol_editions) == len(amz_books) == 8
 
 
-def test_get_editions_for_books(mock_site):  # noqa: F811
+def test_get_editions_for_books(mock_site):
     """
     Attempting to save many ol editions and then get them back...
     """
@@ -81,7 +80,7 @@ def test_get_editions_for_books(mock_site):  # noqa: F811
     ]
 
 
-def test_get_pending_books(mock_site):  # noqa: F811
+def test_get_pending_books(mock_site):
     """
     Testing get_pending_books() with no ol editions saved and then with ol editions.
     """

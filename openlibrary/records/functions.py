@@ -7,10 +7,6 @@ import copy
 
 import web
 
-import openlibrary.core.helpers as h  # noqa: F401 side effects may be needed
-from openlibrary.catalog.add_book import (
-    normalize,  # noqa: F401 side effects may be needed
-)
 from openlibrary.core.models import Thing
 
 

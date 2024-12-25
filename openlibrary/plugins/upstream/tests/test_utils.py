@@ -1,7 +1,6 @@
 import pytest
 import web
 
-from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import utils
@@ -175,7 +174,7 @@ def test_strip_accents():
 
 
 def test_get_abbrev_from_full_lang_name(
-    mock_site: MockSite, monkeypatch, add_languages  # noqa F811
+    mock_site: MockSite, monkeypatch, add_languages
 ) -> None:
     utils.get_languages.cache_clear()
 

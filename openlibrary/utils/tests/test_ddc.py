@@ -83,7 +83,7 @@ TESTS = [
     ("813.' 54", ['813.54'], 'Space and quote separate (real world)'),
     ("726. 6' 0945' 51 (ddc21)", ['726.6'], 'Random spaces (real world)'),
     (
-        '813./​54',  # noqa: PLE2515
+        '813./\u200b54',
         ['813.54'],
         'Random non-printable chars (real world)',
     ),

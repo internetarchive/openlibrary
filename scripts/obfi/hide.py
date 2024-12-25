@@ -30,7 +30,7 @@ class HashIP:
         try:
             with urllib.request.urlopen(SEED_PATH) as handle:
                 content = handle.read()
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print("Error retrieving seed:", e)
             sys.exit(1)
 
