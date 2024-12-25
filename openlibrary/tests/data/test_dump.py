@@ -1,6 +1,6 @@
 import json
 
-from openlibrary.data.dump import print_dump, pgdecode
+from openlibrary.data.dump import pgdecode, print_dump
 
 
 class TestPrintDump:

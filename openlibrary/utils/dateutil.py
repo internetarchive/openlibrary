@@ -9,7 +9,6 @@ from time import perf_counter
 
 from infogami.utils.view import public
 
-
 MINUTE_SECS = 60
 HALF_HOUR_SECS = MINUTE_SECS * 30
 HOUR_SECS = MINUTE_SECS * 60
@@ -59,7 +58,7 @@ def parse_date(datestr: str) -> datetime.date:
     _resize_list(tokens, 3)
 
     yyyy, mm, dd = tokens[:3]
-    return datetime.date(int(yyyy), mm and int(mm) or 1, dd and int(dd) or 1)
+    return datetime.date(int(yyyy), (mm and int(mm)) or 1, (dd and int(dd)) or 1)
 
 
 def parse_daterange(datestr: str) -> tuple[datetime.date, datetime.date]:

@@ -1,8 +1,9 @@
 """Recapcha Input to use in web.py forms."""
 
-import web
-import requests
 import logging
+
+import requests
+import web
 
 
 class Recaptcha(web.form.Input):

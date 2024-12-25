@@ -1,6 +1,7 @@
+from os.path import abspath, dirname, exists, join, pardir
+
 import pytest
 import web
-from os.path import abspath, exists, join, dirname, pardir
 
 from openlibrary.coverstore import config, coverlib, utils
 

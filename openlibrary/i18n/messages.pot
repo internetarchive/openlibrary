@@ -166,6 +166,35 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
+#: batch_import_pending_view.html
+msgid "Pending Batch Imports"
+msgstr ""
+
+#: batch_import_pending_view.html
+msgid "batch_id"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Added Time"
+msgstr ""
+
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: batch_import_pending_view.html batch_import_view.html status.html
+msgid "Status"
+msgstr ""
+
+#: batch_import_pending_view.html batch_import_view.html
+#: merge_request_table/table_header.html
+msgid "Submitter"
+msgstr ""
+
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Comments"
+msgstr ""
+
 #: batch_import_view.html
 msgid "Batch Import Status"
 msgstr ""
@@ -191,21 +220,15 @@ msgid "Status Summary"
 msgstr ""
 
 #: batch_import_view.html
-msgid "Import Items"
+msgid "Approve"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html batch_import_view.html
-msgid "Added Time"
+#: batch_import_view.html
+msgid "Import Items"
 msgstr ""
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
-
-#: account/import.html account/loans.html admin/imports.html
-#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: admin/sponsorship.html batch_import_view.html status.html
-msgid "Status"
 msgstr ""
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
@@ -223,14 +246,6 @@ msgstr ""
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
-
-#: RecentChangesAdmin.html batch_import_view.html
-msgid "Comments"
-msgstr ""
-
-#: batch_import_view.html merge_request_table/table_header.html
-msgid "Submitter"
 msgstr ""
 
 #: batch_import_view.html
@@ -319,6 +334,10 @@ msgstr ""
 
 #: diff.html
 msgid "by Anonymous"
+msgstr ""
+
+#: diff.html
+msgid "history"
 msgstr ""
 
 #: diff.html
@@ -429,7 +448,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: books/custom_carousel.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html login.html
+#: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -538,6 +558,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -828,6 +849,7 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -882,7 +904,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: widget.html
+#: check_ins/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -921,7 +943,11 @@ msgstr ""
 
 #: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgid "No <strong>%(path_id)s</strong> directly matched your search."
+msgstr ""
+
+#: work_search.html
+msgid "Add a new book?"
 msgstr ""
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
@@ -1031,6 +1057,10 @@ msgstr ""
 msgid ""
 "Get your free Open Library card and borrow digital books from the "
 "nonprofit Internet Archive"
+msgstr ""
+
+#: account/create.html type/author/view.html
+msgid "Success!"
 msgstr ""
 
 #: account/create.html
@@ -1292,15 +1322,6 @@ msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
 
 #: account/mybooks.html
-#, python-format
-msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/mybooks.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
-#: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr ""
 
@@ -1349,11 +1370,6 @@ msgstr ""
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
-msgid "Sponsorships"
 msgstr ""
 
 #: account/not_verified.html account/verify/failed.html
@@ -1569,11 +1585,6 @@ msgid "Books added by people %(username)s follows"
 msgstr ""
 
 #: account/reading_log.html
-#, python-format
-msgid "Books %(userdisplayname)s is sponsoring"
-msgstr ""
-
-#: account/reading_log.html
 msgid "Search your reading log"
 msgstr ""
 
@@ -1700,12 +1711,22 @@ msgstr ""
 msgid "My Feed"
 msgstr ""
 
-#: account/sidebar.html search/sort_options.html type/user/view.html
-msgid "Reading Log"
+#: account/sidebar.html
+#, python-format
+msgid "%(year)d Reading Goal"
 msgstr ""
 
 #: account/sidebar.html
-msgid "Sponsoring"
+#, python-format
+msgid "Set %(year_span)s reading goal"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Yearly Reading Goal"
+msgstr ""
+
+#: account/sidebar.html search/sort_options.html type/user/view.html
+msgid "Reading Log"
 msgstr ""
 
 #: account/sidebar.html
@@ -1714,8 +1735,8 @@ msgstr ""
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
 #: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/list/view_body.html
-#: type/user/view.html type/work/view.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -1990,7 +2011,7 @@ msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
 #: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html covers/add.html
+#: check_ins/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -2275,10 +2296,6 @@ msgid "People"
 msgstr ""
 
 #: admin/menu.html
-msgid "Sponsorship"
-msgstr ""
-
-#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -2403,101 +2420,6 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Book Sponsorship"
-msgstr ""
-
-#: admin/sponsorship.html
-#, python-format
-msgid "We've sponsored <strong>%(num)d</strong> books"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Internet Archive Revenue"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Better World Books Revenue"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Δ Book Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Δ Scanning Costs"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Profit/Los"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Total Unscanned Books"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Print Slips"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Average Scan Cost"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Est. Remaining Scanning Liability"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Projected Profit/Loss"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Cover"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Sponsor Date"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "IDs"
-msgstr ""
-
-#: admin/sponsorship.html books/add.html books/edit.html
-#: books/edit/edition.html lib/nav_head.html search/advancedsearch.html
-#: type/about/edit.html type/page/edit.html type/template/edit.html
-msgid "Title"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Donor"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Edit XML"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "BWB Link"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -2924,6 +2846,11 @@ msgid "including <i>%(topwork)s</i>"
 msgstr ""
 
 #: authors/infobox.html
+#, python-format
+msgid "View on %(site)s"
+msgstr ""
+
+#: authors/infobox.html
 msgid "Born"
 msgstr ""
 
@@ -2936,6 +2863,7 @@ msgstr ""
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -2966,9 +2894,9 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
-#: check_ins/reading_goal_progress.html
 msgid "Learn more"
 msgstr ""
 
@@ -2988,6 +2916,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr ""
@@ -3113,6 +3042,57 @@ msgid ""
 "book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
 "to providing free high-quality, peer-reviewed, openly licensed textbooks "
 "online."
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid "Read eBook from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid ""
+"This book is available from <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
+"Nordic (Scandinavian) literature in electronic form."
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html
@@ -3253,6 +3233,12 @@ msgstr ""
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html type/about/edit.html type/page/edit.html
+#: type/template/edit.html
+msgid "Title"
 msgstr ""
 
 #: books/add.html books/edit.html
@@ -3633,14 +3619,6 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: books/edition-sort.html
-msgid "Libraries near you:"
-msgstr ""
-
-#: books/edition-sort.html
-msgid "Look for this edition at WorldCat"
-msgstr ""
-
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: mybooks.py
 msgid "Books"
@@ -3886,6 +3864,13 @@ msgid ""
 msgstr ""
 
 #: books/edit/edition.html
+msgid ""
+"This table of contents contains extra information like authors or "
+"descriptions. We don't have a great user interface for this yet, so "
+"editing this data could be difficult. Watch out!"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Any notes about this specific edition?"
 msgstr ""
 
@@ -3980,18 +3965,6 @@ msgid "Like, ISBN?"
 msgstr ""
 
 #: books/edit/edition.html
-msgid "Select one of many..."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Remove this identifier"
-msgstr ""
-
-#: books/edit/edition.html lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
-#: books/edit/edition.html
 msgid "Please select a classification."
 msgstr ""
 
@@ -4009,6 +3982,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Select one of many..."
 msgstr ""
 
 #: books/edit/edition.html
@@ -4339,15 +4316,10 @@ msgstr ""
 
 #: check_ins/reading_goal_progress.html
 #, python-format
-msgid "%(year)d Reading Goal:"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
 msgid ""
 "<span class=\"reading-goal-progress__books-"
 "read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> books"
+"progress__goal\">%(goal)d</span> Books"
 msgstr ""
 
 #: check_ins/reading_goal_progress.html
@@ -4400,10 +4372,6 @@ msgstr ""
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
-
-#: covers/add.html
-msgid "Or, paste in the image URL if it's on the web"
 msgstr ""
 
 #: covers/add.html
@@ -4629,7 +4597,7 @@ msgid ""
 "something new."
 msgstr ""
 
-#: home/stats.html site/around_the_library.html
+#: home/stats.html
 msgid "Around the Library"
 msgstr ""
 
@@ -4969,6 +4937,10 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
+msgstr ""
+
+#: lib/nav_foot.html site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -5738,10 +5710,6 @@ msgid "Community Reviews"
 msgstr ""
 
 #: observations/review_component.html
-msgid "Feedback?"
-msgstr ""
-
-#: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
 msgstr ""
 
@@ -5903,7 +5871,6 @@ msgid "expand"
 msgstr ""
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
-#: site/around_the_library.html
 msgid "opened a new Open Library account!"
 msgstr ""
 
@@ -6076,15 +6043,7 @@ msgid "On leaf number %(page_num)d:"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sorted by"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Relevance"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -6116,11 +6075,15 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Any"
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Any"
 msgstr ""
 
 #: search/sort_options.html
@@ -6248,10 +6211,6 @@ msgstr ""
 
 #: site/alert.html
 msgid "Internet Archive logo"
-msgstr ""
-
-#: site/around_the_library.html
-msgid "View all recent changes"
 msgstr ""
 
 #: site/body.html
@@ -6477,10 +6436,6 @@ msgstr ""
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
-
-#: type/author/view.html
-msgid "Success!"
 msgstr ""
 
 #: type/author/view.html
@@ -7396,6 +7351,10 @@ msgstr ""
 msgid "Checked Out"
 msgstr ""
 
+#: LocateButton.html
+msgid "Locate"
+msgstr ""
+
 #: ManageLoansButtons.html
 #, python-format
 msgid "There is one person waiting for this book."
@@ -7588,10 +7547,6 @@ msgstr ""
 msgid "QR Code"
 msgstr ""
 
-#: SponsorCarousel.html
-msgid "Books to Sponsor"
-msgstr ""
-
 #: StarRatings.html
 msgid "Clear my rating"
 msgstr ""
@@ -7760,19 +7715,6 @@ msgstr ""
 msgid "View Volume %(num)d"
 msgstr ""
 
-#: databarWork.html
-#, python-format
-msgid "This book was generously donated by %(donor)s"
-msgstr ""
-
-#: databarWork.html
-msgid "This book was generously donated anonymously"
-msgstr ""
-
-#: databarWork.html
-msgid "Learn more about Book Sponsorship"
-msgstr ""
-
 #: account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -7823,6 +7765,12 @@ msgstr ""
 
 #: account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
+msgstr ""
+
+#: account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
 msgstr ""
 
 #: account.py

@@ -1,9 +1,10 @@
-import web
-import datetime
-from infogami.infobase import client
-
-from openlibrary.core import helpers as h
 import contextlib
+import datetime
+
+import web
+
+from infogami.infobase import client
+from openlibrary.core import helpers as h
 
 __all__ = ["InvalidationProcessor"]
 
@@ -74,7 +75,7 @@ class InvalidationProcessor:
         self.timeout = datetime.timedelta(0, timeout)
 
         self.cookie_name = cookie_name
-        self.last_poll_time = datetime.datetime.utcnow()
+        self.last_poll_time = datetime.datetime.now()
         self.last_update_time = self.last_poll_time
 
         # set expire_time slightly more than timeout
@@ -89,7 +90,7 @@ class InvalidationProcessor:
 
         cookie_time = self.get_cookie_time()
 
-        if self.is_timeout() or cookie_time and cookie_time > self.last_poll_time:
+        if self.is_timeout() or (cookie_time and cookie_time > self.last_poll_time):
             self.reload()
 
         # last update in recent timeout seconds?
@@ -106,7 +107,7 @@ class InvalidationProcessor:
         return handler()
 
     def is_timeout(self):
-        t = datetime.datetime.utcnow()
+        t = datetime.datetime.now()
         dt = t - self.last_poll_time
         return dt > self.timeout
 
@@ -124,7 +125,7 @@ class InvalidationProcessor:
 
     def reload(self):
         """Triggers on_new_version event for all the documents modified since last_poll_time."""
-        t = datetime.datetime.utcnow()
+        t = datetime.datetime.now()
         reloaded = False
 
         keys = []

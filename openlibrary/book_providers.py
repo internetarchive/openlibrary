@@ -1,7 +1,7 @@
-from dataclasses import dataclass
 import logging
 from collections.abc import Callable, Iterator
-from typing import TypedDict, Literal, cast, TypeVar, Generic
+from dataclasses import dataclass
+from typing import Generic, Literal, TypedDict, TypeVar, cast
 from urllib import parse
 
 import web
@@ -12,7 +12,6 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
-
 
 logger = logging.getLogger("openlibrary.book_providers")
 
@@ -367,6 +366,29 @@ class ProjectGutenbergProvider(AbstractBookProvider):
         ]
 
 
+class ProjectRunebergProvider(AbstractBookProvider):
+    short_name = 'runeberg'
+    identifier_key = 'project_runeberg'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        """Whether the ocaid (IA item ID) is an archive of content from Project Runeberg."""
+        return 'runeberg' in ocaid
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/{self.get_best_identifier(edition)}/',
+                provider_name=self.short_name,
+            )
+        ]
+
+
 class StandardEbooksProvider(AbstractBookProvider):
     short_name = 'standard_ebooks'
     identifier_key = 'standard_ebooks'
@@ -529,6 +551,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     DirectProvider(),
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
+    ProjectRunebergProvider(),
     StandardEbooksProvider(),
     OpenStaxProvider(),
     CitaPressProvider(),
@@ -550,14 +573,8 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
         return cover.url(size) if cover else None
 
     # Solr edition
-    elif ed_or_solr['key'].startswith('/books/'):
-        if ed_or_solr.get('cover_i'):
-            return (
-                get_coverstore_public_url()
-                + f'/b/id/{ed_or_solr["cover_i"]}-{size}.jpg'
-            )
-        else:
-            return None
+    elif ed_or_solr['key'].startswith('/books/') and ed_or_solr.get('cover_i'):
+        return get_coverstore_public_url() + f'/b/id/{ed_or_solr["cover_i"]}-{size}.jpg'
 
     # Solr document augmented with availability
     availability = ed_or_solr.get('availability', {}) or {}
@@ -567,7 +584,7 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
         return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
     if availability.get('identifier'):
         ocaid = ed_or_solr['availability']['identifier']
-        return f"//archive.org/services/img/{ocaid}"
+        return f"https://archive.org/download/{ocaid}/page/cover_w180_h360.jpg"
 
     # Plain solr - we don't know which edition is which here, so this is most
     # preferable

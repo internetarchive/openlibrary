@@ -1,5 +1,10 @@
 $def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
 
+  $def year_span(year, use_local_year=False):
+    $if use_local_year:
+      <span class="use-local-year" data-server-year="$year">$year</span>
+    $else:
+      <span>$year</span>
   $ component_times['Sidebar'] = time()
   <div class="mybooks-menu">
     $if owners_page:
@@ -14,6 +19,30 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
 	<li><a data-ol-link-track="MyBooksSidebar|MyFeed" $('class=selected' if key=='feed' else '') href="/people/$username/books/feed">$_('My Feed')</a></li>
       </ul>
     </ul>
+    $if owners_page:
+      $ year = current_year()
+      $ current_goal = get_reading_goals(year=year)
+      $ hidden = 'hidden' if current_goal else ''
+      <ul class="sidebar-section">
+        <li class="section-header">$_("%(year)d Reading Goal", year=year)</li>
+        <li>
+          <div class="yearly-goal-section">
+            <div class="chip-group $hidden">
+              <span class="">
+                $ year_markup = year_span(year)
+                <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
+              </span>
+              $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
+              $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
+            </div>
+            $if current_goal:
+            <span id="reading-goal-container">
+              $:render_template('check_ins/reading_goal_progress', [current_goal])
+            </span>
+          </div>
+        </li>
+      </ul>
+
     $if public or owners_page:
       <ul class="sidebar-section">
         <li class="section-header">$_('Reading Log')</li>
@@ -33,14 +62,6 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <hr>
         <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>
         <li><a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
-      </ul>
-    $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-      <ul class="sidebar-section">
-        <li class="section-header">$_('Sponsorships')</li>
-        $ sponsorship_count = ''
-        $if counts.get('sponsorships', None):
-          $ sponsorship_count = "%d" % counts['sponsorships']
-        <li><a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
       </ul>
     <ul class="sidebar-section">
       <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>

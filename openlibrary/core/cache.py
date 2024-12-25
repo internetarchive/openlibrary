@@ -1,37 +1,35 @@
 """Caching utilities.
 """
 
+import functools
 import hashlib
+import json
 import random
 import string
-import time
 import threading
-import functools
-from typing import Any, Literal, cast
+import time
 from collections.abc import Callable
+from typing import Any, Literal, cast
 
 import memcache
-import json
 import web
 
 from infogami import config
-from infogami.utils import stats
 from infogami.infobase.client import Nothing
-
+from infogami.utils import stats
+from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
-from openlibrary.core.helpers import NothingEncoder
-
 
 __all__ = [
-    "cached_property",
     "Cache",
-    "MemoryCache",
     "MemcacheCache",
+    "MemoryCache",
     "RequestCache",
-    "memoize",
-    "memcache_memoize",
+    "cached_property",
     "get_memcache",
+    "memcache_memoize",
+    "memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS

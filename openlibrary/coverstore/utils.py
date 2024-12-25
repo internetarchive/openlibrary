@@ -1,21 +1,20 @@
 """Utilities for coverstore"""
 
+import contextlib
 import json
 import mimetypes
 import os
 import random
 import socket
 import string
+from io import IOBase as file
+from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
+from urllib.parse import urlencode as real_urlencode
 
 import requests
 import web
-from urllib.parse import urlsplit, urlunsplit, parse_qsl, unquote, unquote_plus  # type: ignore[attr-defined]
-from urllib.parse import urlencode as real_urlencode
 
 from openlibrary.coverstore import config, oldb
-
-from io import IOBase as file
-import contextlib
 
 socket.setdefaulttimeout(10.0)
 

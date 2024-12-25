@@ -13,7 +13,10 @@ $var title: $_("Batch Import Status")
     <h2>$_('Status Summary')</h2>
     <ul>
         $for status_count in status_counts:
-            <li>$status_count.status: $status_count.count</li>
+            $if status_count.status == "needs_review":
+              <li>$status_count.status: $status_count.count (<a href="/import/batch/approve/$batch.id">$_('Approve')</a>)</li>
+            $else:
+              <li>$status_count.status: $status_count.count</li>
     </ul>
 
     <h2>$_('Import Items')</h2>

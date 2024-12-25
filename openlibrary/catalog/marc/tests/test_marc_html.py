@@ -1,6 +1,6 @@
 from pathlib import Path
-from openlibrary.catalog.marc.html import html_record
 
+from openlibrary.catalog.marc.html import html_record
 
 TEST_DATA = Path(__file__).with_name('test_data') / 'bin_input'
 

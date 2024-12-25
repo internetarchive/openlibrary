@@ -493,6 +493,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        href: olids => `/authors/merge?records=${olids.join(',')}`,
     },
 ];

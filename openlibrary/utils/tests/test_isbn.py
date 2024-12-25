@@ -1,12 +1,13 @@
 import pytest
+
 from openlibrary.utils.isbn import (
     get_isbn_10_and_13,
+    get_isbn_10s_and_13s,
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
     normalize_identifier,
     normalize_isbn,
     opposite_isbn,
-    get_isbn_10s_and_13s,
 )
 
 

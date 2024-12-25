@@ -1,6 +1,6 @@
-import web
-
 from functools import wraps
+
+import web
 
 from openlibrary.accounts import get_current_user
 

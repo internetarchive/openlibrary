@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2024-08-24 12:51+0200\n"
+"PO-Revision-Date: 2024-12-20 18:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sc\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.9.1\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Poedit 3.5\n"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
@@ -93,30 +93,17 @@ msgstr "Cuntata·nos si tenes bisòngiu de agiudu cun cale si siat àtera cosa."
 msgid "Barcode Scanner (Beta)"
 msgstr "Iscansidore de còdighes a istangas (Beta)"
 
-#: barcodescanner.html lib/nav_head.html
-msgid "Advanced"
-msgstr "Avantzadu"
-
-#: barcodescanner.html
-msgid "Read Text ISBN"
-msgstr "Leghe un'ISBN testuale"
-
-#: barcodescanner.html
-msgid "For books that print the ISBN without a barcode"
-msgstr "Pro libros chi imprentant s'ISBN chene unu còdighe a istangas"
-
-#: barcodescanner.html
-msgid "Point your camera at a barcode! 📷"
-msgstr "Punta sa fotocàmera tua a unu còdighe a istangas! 📷"
-
 #: batch_import.html
 msgid "Batch Imports"
 msgstr "Importatziones in lotos"
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records."
+msgid ""
+"Attach a JSONL formatted document with import records or copy/paste the "
+"JSONL text into the textarea."
 msgstr ""
-"Alliga unu documentu formatadu JSONL cun sos registros de importatzione."
+"Alliga unu documentu formatadu JSONL cun sos registros de importatzione o "
+"còpia/incolla su testu JSON a intro de s'àrea de testu."
 
 #: batch_import.html
 msgid ""
@@ -126,6 +113,14 @@ msgstr ""
 "Pòmpia·ti sos <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">ischemas de importatzione de olclient "
 "</a> pro nd'ischire de prus."
+
+#: batch_import.html
+msgid "Attach a file:"
+msgstr "Alliga unu documentu:"
+
+#: batch_import.html
+msgid "Or copy/paste JSONL text:"
+msgstr "O còpia/incolla testu JSONL:"
 
 #: batch_import.html
 msgid "Import"
@@ -182,6 +177,35 @@ msgstr "Non postos in fila ca bi sunt giai a intro:"
 msgid "View Batch Status"
 msgstr "Ammustra s'istadu de su lotu"
 
+#: batch_import_pending_view.html
+msgid "Pending Batch Imports"
+msgstr "Importatziones in lotos in isetu"
+
+#: batch_import_pending_view.html
+msgid "batch_id"
+msgstr "id_lotu"
+
+#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Added Time"
+msgstr "Momentu de annanta"
+
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: batch_import_pending_view.html batch_import_view.html status.html
+msgid "Status"
+msgstr "Istatus"
+
+#: batch_import_pending_view.html batch_import_view.html
+#: merge_request_table/table_header.html
+msgid "Submitter"
+msgstr "Imbiadore"
+
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Comments"
+msgstr "Cummentos"
+
 #: batch_import_view.html
 msgid "Batch Import Status"
 msgstr "Istatìsticas de importatzione de su lotu"
@@ -207,22 +231,16 @@ msgid "Status Summary"
 msgstr "Resumu de istadu"
 
 #: batch_import_view.html
+msgid "Approve"
+msgstr "Aprova"
+
+#: batch_import_view.html
 msgid "Import Items"
 msgstr "Elementos de importare"
-
-#: admin/imports.html admin/imports_by_date.html batch_import_view.html
-msgid "Added Time"
-msgstr "Momentu de annanta"
 
 #: batch_import_view.html
 msgid "Import Time"
 msgstr "Tempus de importatzione"
-
-#: account/import.html account/loans.html admin/imports.html
-#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: admin/sponsorship.html batch_import_view.html status.html
-msgid "Status"
-msgstr "Istatus"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
 #: batch_import_view.html
@@ -240,14 +258,6 @@ msgstr "Datos"
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
 msgstr "Crae de OL"
-
-#: RecentChangesAdmin.html batch_import_view.html
-msgid "Comments"
-msgstr "Cummentos"
-
-#: batch_import_view.html merge_request_table/table_header.html
-msgid "Submitter"
-msgstr "Imbiadore"
 
 #: batch_import_view.html
 msgid "Not yet imported"
@@ -336,6 +346,10 @@ msgstr "de"
 #: diff.html
 msgid "by Anonymous"
 msgstr "de Anònimu"
+
+#: diff.html
+msgid "history"
+msgstr "cronologia"
 
 #: diff.html
 msgid "Differences"
@@ -447,7 +461,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr "Esploradore de sa biblioteca"
 
-#: books/custom_carousel.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html login.html
+#: search/work_search_facets.html
 msgid "Loading..."
 msgstr "Carrighende..."
 
@@ -568,6 +583,7 @@ msgstr "Gràtzias medas pro àere megioradu cussu registru!"
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -658,11 +674,11 @@ msgstr ""
 msgid "Incorrect. Please try again."
 msgstr "Isballiadu. Torra a proare."
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
 msgstr "Detàllios de registru de"
 
-#: showamazon.html showbwb.html
+#: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
 msgstr "Custu registru benit dae"
 
@@ -727,27 +743,6 @@ msgstr "Mustra sos archìvios mudados"
 msgid "Name"
 msgstr "Nùmene"
 
-#: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
-#: subjects.html subjects/notfound.html type/author/view.html
-#: type/list/view_body.html
-msgid "Subjects"
-msgstr "Argumentos"
-
-#: SubjectTags.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "Places"
-msgstr "Logos"
-
-#: SubjectTags.html admin/menu.html admin/people/index.html
-#: admin/people/view.html subjects.html type/author/view.html
-#: type/list/view_body.html
-msgid "People"
-msgstr "Persones"
-
-#: SubjectTags.html subjects.html type/list/view_body.html
-msgid "Times"
-msgstr "Èpocas"
-
 #: subjects.html
 msgid "Edit Subject Tag"
 msgstr "Modìfica s'eticheta de s'argumentu"
@@ -767,95 +762,6 @@ msgstr[1] "%(count)d òperas"
 #, python-format
 msgid "Search for books with subject %(name)s."
 msgstr "Chirca libros cun argumentu %(name)s."
-
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
-#: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html subjects.html
-#: subjects/notfound.html type/local_id/view.html
-msgid "Search"
-msgstr "Chirca"
-
-#: publishers/view.html subjects.html
-msgid "Publishing History"
-msgstr "Cronologia de publicatzione"
-
-#: subjects.html
-msgid ""
-"This is a chart to show the publishing history of editions of works about "
-"this subject. Along the X axis is time, and on the y axis is the count of "
-"editions published. <a href=\"#subjectRelated\">Click here to skip the "
-"chart</a>."
-msgstr ""
-"Custu est unu gràficu pro mustrare sa cronologia de publicatzione de "
-"editziones de traballos subra de custu argumentu. In s'asse x b'at su "
-"tempus, ee in s'asse y b'at su nùmeru de editziones publicadas. <a "
-"href=\"#subjectRelated\">Incarca inoghe pro brincare su gràficu</a>."
-
-#: publishers/view.html subjects.html
-msgid "Reset chart"
-msgstr "Reseta su gràficu"
-
-#: publishers/view.html subjects.html
-msgid "or continue zooming in."
-msgstr "o sighi a ismanniare."
-
-#: subjects.html
-msgid "This graph charts editions published on this subject."
-msgstr ""
-"Custu gràficu mapat sas editziones publicadas subra de custu argumentu."
-
-#: publishers/view.html subjects.html
-msgid "Editions Published"
-msgstr "Editziones publicadas"
-
-#: admin/imports.html publishers/view.html subjects.html
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr "Depes tènnere JavaScript allutu pro bìdere custu gràficu galanu!"
-
-#: publishers/view.html subjects.html
-msgid "Year of Publication"
-msgstr "Annu de publicatzione"
-
-#: subjects.html
-msgid "Related..."
-msgstr "Ligados..."
-
-#: publishers/view.html subjects.html
-msgid "None found."
-msgstr "Perunu agatadu."
-
-#: publishers/view.html subjects.html
-msgid "See more books by, and learn about, this author"
-msgstr "Abbista prus libros de custu autore, e impara cosas subra de issu"
-
-#: account/loans.html authors/index.html lists/showcase.html
-#: publishers/view.html search/authors.html search/publishers.html
-#: search/subjects.html subjects.html
-#, python-format
-msgid "%(count)d book"
-msgid_plural "%(count)d books"
-msgstr[0] "%(count)d libru"
-msgstr[1] "%(count)d libros"
-
-#: subjects.html
-msgid "Prolific Authors"
-msgstr "Autores prolìficos"
-
-#: subjects.html
-msgid "who have written the most books on this subject"
-msgstr "chi ant iscritu sa parte manna de sos libros subra de custu argumentu"
-
-#: publishers/view.html subjects.html
-msgid "Get more information about this publisher"
-msgstr "Otene prus informatziones subra de custu editore"
-
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html subjects.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] "%(count)s editzione"
-msgstr[1] "%(count)s editziones"
 
 #: support.html
 msgid "How can we help?"
@@ -992,6 +898,7 @@ msgstr "So leghende"
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -1027,8 +934,8 @@ msgstr "Leghe \"%(title)s\""
 msgid "Borrow \"%(title)s\""
 msgstr "Piga in prèstidu \"%(title)s\""
 
-#: FulltextSnippet.html ReadButton.html books/custom_carousel.html
-#: books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html books/custom_carousel.html books/edit/edition.html
+#: type/list/embed.html widget.html
 msgid "Borrow"
 msgstr "Piga in prèstidu"
 
@@ -1046,7 +953,7 @@ msgstr "Auni·ti a sa lista de isetu"
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr "Impara de prus subra de \"%(title)s\" in s'OpenLibrary"
 
-#: widget.html
+#: check_ins/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr "Impara de prus"
 
@@ -1085,10 +992,14 @@ msgstr "Editziones Solr"
 
 #: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgid "No <strong>%(path_id)s</strong> directly matched your search."
 msgstr ""
 "Non b'at àpidu <strong>%(path_id)s</strong> cun una currispondèntzia direta "
-"cun sa chirca tua"
+"cun sa chirca tua."
+
+#: work_search.html
+msgid "Add a new book?"
+msgstr "Annànghere unu libru nou?"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
@@ -1205,6 +1116,10 @@ msgid ""
 msgstr ""
 "Otene sa carta tua a indonu de s'Open Library e piga in prèstidu libros "
 "digitales dae s'assòtziu chene punna de lucru Internet Archive"
+
+#: account/create.html type/author/view.html
+msgid "Success!"
+msgstr "Sutzessu!"
 
 #: account/create.html
 msgid "Your URL"
@@ -1408,6 +1323,15 @@ msgstr ""
 "Ses seguru de bòlere lassare sa lista de isetu pro<br/><strong>TITLE</"
 "strong>?"
 
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/showcase.html publishers/view.html search/authors.html
+#: search/publishers.html search/subjects.html
+#, python-format
+msgid "%(count)d book"
+msgid_plural "%(count)d books"
+msgstr[0] "%(count)d libru"
+msgstr[1] "%(count)d libros"
+
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr "Atziones"
@@ -1469,15 +1393,6 @@ msgstr ""
 "nostras."
 
 #: account/mybooks.html
-#, python-format
-msgid "Set %(year_span)s reading goal"
-msgstr "Cunfigura s' obietivu de letura pro su %(year_span)s"
-
-#: account/mybooks.html
-msgid "Yearly Reading Goal"
-msgstr "Obietivu de letura annuale"
-
-#: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr "Custu iscafale non tenet libros"
 
@@ -1528,11 +1443,6 @@ msgstr "Sas retzensiones meas"
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
 msgstr "Optziones de importatzione e esportatzione"
-
-#: account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
-msgid "Sponsorships"
-msgstr "Patrotzìnios"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
@@ -1774,11 +1684,6 @@ msgid "Books added by people %(username)s follows"
 msgstr "Libros annantos dae gente chi %(username)s sighit"
 
 #: account/reading_log.html
-#, python-format
-msgid "Books %(userdisplayname)s is sponsoring"
-msgstr "Libros chi %(userdisplayname)s est patrotzinende"
-
-#: account/reading_log.html
 msgid "Search your reading log"
 msgstr "Chirca in su registru de letura tuo"
 
@@ -1918,13 +1823,23 @@ msgstr "Incarca in un'istanga pro bìdere òperas currispondentes"
 msgid "My Feed"
 msgstr "Su flussu meu"
 
+#: account/sidebar.html
+#, python-format
+msgid "%(year)d Reading Goal"
+msgstr "Obietivu de letura pro su %(year)d"
+
+#: account/sidebar.html
+#, python-format
+msgid "Set %(year_span)s reading goal"
+msgstr "Cunfigura s' obietivu de letura pro su %(year_span)s"
+
+#: account/sidebar.html
+msgid "Yearly Reading Goal"
+msgstr "Obietivu de letura annuale"
+
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
 msgstr "Registru de letura"
-
-#: account/sidebar.html
-msgid "Sponsoring"
-msgstr "Patrotzinende"
 
 #: account/sidebar.html
 msgid "My lists"
@@ -1932,8 +1847,8 @@ msgstr "Sas listas meas"
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
 #: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/list/view_body.html
-#: type/user/view.html type/work/view.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
 msgid "Lists"
 msgstr "Listas"
 
@@ -2231,13 +2146,17 @@ msgstr "Annanghe sos identificadores IA de importare, unu pro lìnia."
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
 #: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html covers/add.html
+#: check_ins/reading_goal_form.html
 msgid "Submit"
 msgstr "Imbia"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
 msgstr "Libros noos importados pro die"
+
+#: PublishingHistory.html admin/imports.html publishers/view.html
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr "Depes tènnere JavaScript allutu pro bìdere custu gràficu galanu!"
 
 #: admin/imports.html admin/imports_by_date.html site/stats.html
 msgid "Summary"
@@ -2507,9 +2426,11 @@ msgstr "Pigadu in prèstidu su %(date)s"
 msgid "Admin Center"
 msgstr "Tzentru de amministratzione"
 
-#: admin/menu.html
-msgid "Sponsorship"
-msgstr "Isponsorizatzione"
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html type/author/view.html
+#: type/list/view_body.html
+msgid "People"
+msgstr "Persones"
 
 #: admin/menu.html
 msgid "Block IPs"
@@ -2572,6 +2493,8 @@ msgid ""
 "This updates  and  fields of /, /works, /books and /authors records in the "
 "database."
 msgstr ""
+"Custu annoat sos campos  e  fields de sos registros /, /works, /books e /"
+"authors in sa base de datos."
 
 #: admin/solr.html
 msgid "Solr Admin"
@@ -2649,101 +2572,6 @@ msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
 "Inserta sos domìnios de pònnere in sa lista niedda in s'àrea de testu inoghe "
 "in suta, unu pro lìnia."
-
-#: admin/sponsorship.html
-msgid "Book Sponsorship"
-msgstr "Patrotzìniu de libros"
-
-#: admin/sponsorship.html
-#, python-format
-msgid "We've sponsored <strong>%(num)d</strong> books"
-msgstr "Amus patrotzinadu <strong>%(num)d</strong> libros"
-
-#: admin/sponsorship.html
-msgid "Internet Archive Revenue"
-msgstr "Balàngiu de s'Internet Archive"
-
-#: admin/sponsorship.html
-msgid "Better World Books Revenue"
-msgstr "Balàngiu de Better World Books"
-
-#: admin/sponsorship.html
-msgid "Book Costs"
-msgstr "Costu de sos libros"
-
-#: admin/sponsorship.html
-msgid "Est. Book Costs"
-msgstr "Costu carculadu de sos libros"
-
-#: admin/sponsorship.html
-msgid "Δ Book Costs"
-msgstr "Δ Costu de sos libros"
-
-#: admin/sponsorship.html
-msgid "Scanning Costs"
-msgstr "Costos de iscansione"
-
-#: admin/sponsorship.html
-msgid "Est. Scanning Costs"
-msgstr "Costos de iscansione carculados"
-
-#: admin/sponsorship.html
-msgid "Δ Scanning Costs"
-msgstr "Δ Costos de iscansione"
-
-#: admin/sponsorship.html
-msgid "Profit/Los"
-msgstr "Profitu/Pèrdida"
-
-#: admin/sponsorship.html
-msgid "Total Unscanned Books"
-msgstr "Totale de libros no iscansidos"
-
-#: admin/sponsorship.html
-msgid "Print Slips"
-msgstr ""
-
-#: admin/sponsorship.html
-msgid "Average Scan Cost"
-msgstr "Costu mèdiu de iscansione"
-
-#: admin/sponsorship.html
-msgid "Est. Remaining Scanning Liability"
-msgstr "Passividade resìdua pro s'iscansione carculada"
-
-#: admin/sponsorship.html
-msgid "Projected Profit/Loss"
-msgstr "Balàngiu/pèrdida prevìdidos"
-
-#: admin/sponsorship.html
-msgid "Cover"
-msgstr "Coberteddas"
-
-#: admin/sponsorship.html
-msgid "Sponsor Date"
-msgstr "Data de patrotzìniu"
-
-#: admin/sponsorship.html
-msgid "IDs"
-msgstr "IDs"
-
-#: admin/sponsorship.html books/add.html books/edit.html
-#: books/edit/edition.html lib/nav_head.html search/advancedsearch.html
-#: type/about/edit.html type/page/edit.html type/template/edit.html
-msgid "Title"
-msgstr "Tìtulu"
-
-#: admin/sponsorship.html
-msgid "Donor"
-msgstr "Donadore"
-
-#: admin/sponsorship.html
-msgid "Edit XML"
-msgstr "Modìfica su XML"
-
-#: admin/sponsorship.html
-msgid "BWB Link"
-msgstr "Ligàmene BWB"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
@@ -3113,7 +2941,7 @@ msgstr "Anonimiza su contu:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Esecutzione de anteprima"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
@@ -3162,6 +2990,12 @@ msgstr "Autores"
 msgid "Search for an Author"
 msgstr "Chirca un'autore"
 
+#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: publishers/notfound.html publishers/view.html search/advancedsearch.html
+#: search/publishers.html search/searchbox.html type/local_id/view.html
+msgid "Search"
+msgstr "Chirca"
+
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
@@ -3171,6 +3005,11 @@ msgstr "subra de %(subjects)s"
 #, python-format
 msgid "including <i>%(topwork)s</i>"
 msgstr "includende <i>%(topwork)s</i>"
+
+#: authors/infobox.html
+#, python-format
+msgid "View on %(site)s"
+msgstr "Abbista in %(site)s"
 
 #: authors/infobox.html
 msgid "Born"
@@ -3185,6 +3024,7 @@ msgstr "Morte"
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -3220,9 +3060,9 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
-#: check_ins/reading_goal_progress.html
 msgid "Learn more"
 msgstr "Àteras informatziones"
 
@@ -3244,6 +3084,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr "Iscàrriga unu HTML dae su Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr "HTML"
@@ -3382,6 +3223,62 @@ msgstr ""
 "benefitzèntzia chene punna de lucru chi si dèdicat a frunire de badas e in "
 "lìnia libros de testu de calidade arta, chi ant tentu una revisione "
 "paritària e cun litzèntzia aberta."
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr "Iscàrriga totu sas immàgines iscansidas dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr "Immàgines iscansidas"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr "Iscàrriga totu sas immàgines a colores dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr "Immàgines a colores"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr "Iscàrriga totu sos documentos HTML dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+"Iscàrriga totu sos testos e sos documentos de inditzizatzione dae Project "
+"Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr "ITestos e sos documentos de inditzizatzione"
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr "Iscàrriga totu sos testos OCR dae Project Runeberg"
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr "Testu OCR"
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
+msgstr "De prus in Project Runeberg"
+
+#: book_providers/runeberg_read_button.html
+msgid "Read eBook from Project Runeberg"
+msgstr "Leghe libros digitales de Project Runeberg"
+
+#: book_providers/runeberg_read_button.html
+msgid ""
+"This book is available from <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Runeberg is a trusted book provider of classic Nordic "
+"(Scandinavian) literature in electronic form."
+msgstr ""
+"Custu libru est a disponimentu in <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Gutenberg est unu frunidore fidadu libros de "
+"literadura nòrdica (iscandìnava) clàssica in formadu eletrònicu."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
@@ -3539,12 +3436,18 @@ msgstr ""
 "Tenimus bisòngiu de un'annantu mìnimu de campos pro creare unu registru nou. "
 "Custos sunt cussos campos."
 
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html type/about/edit.html type/page/edit.html
+#: type/template/edit.html
+msgid "Title"
+msgstr "Tìtulu"
+
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr "Imprea <b><i>Tìtulu: Sutatìtulu</i></b> pro annànghere unu sutatìtulu."
 
-#: books/add.html books/edit.html tag/add.html type/author/edit.html
-#: type/tag/edit.html
+#: books/add.html books/edit.html type/author/edit.html
+#: type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr "Campu netzessàriu"
 
@@ -3598,7 +3501,7 @@ msgstr ""
 "S'ISBN diat pòdere èssere invàlidu. Torra a incarcare \"Annanghe\" pro "
 "imbiare."
 
-#: books/add.html tag/add.html
+#: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
 msgstr "Seletziona"
 
@@ -3686,6 +3589,14 @@ msgstr ""
 #: books/check.html
 msgid "Select this book"
 msgstr "Seletziona custu libru"
+
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] "%(count)s editzione"
+msgstr[1] "%(count)s editziones"
 
 #: books/check.html
 #, python-format
@@ -3968,14 +3879,6 @@ msgstr "Data de publicatzione disconnota, %(publisher)s"
 msgid "in %(languagelist)s"
 msgstr "in %(languagelist)s"
 
-#: books/edition-sort.html
-msgid "Libraries near you:"
-msgstr "Bibliotecas a curtzu a tie:"
-
-#: books/edition-sort.html
-msgid "Look for this edition at WorldCat"
-msgstr "Chirca cust'editzione in WorldCat"
-
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: mybooks.py
 msgid "Books"
@@ -4018,7 +3921,7 @@ msgstr "Seletziona custu argumentu"
 msgid "How would you describe this book?"
 msgstr "Comente dias bòlere descrìere custu libru?"
 
-#: books/edit/about.html tag/add.html
+#: books/edit/about.html
 msgid "There's no wrong answer here."
 msgstr "Non bi sunt rispostas isballiadas inoghe."
 
@@ -4235,6 +4138,17 @@ msgstr ""
 "e unu brincu de riga pro rigas noas. A tipu gasi:"
 
 #: books/edit/edition.html
+msgid ""
+"This table of contents contains extra information like authors or "
+"descriptions. We don't have a great user interface for this yet, so editing "
+"this data could be difficult. Watch out!"
+msgstr ""
+"Custu ìnditze cuntenet informatziones in prus che a sos autores o sas "
+"descritziones. Non tenimus galu una interfache de utente de primore pro "
+"custu, duncas a modificare custos datos diat pòdere èssere difìtzile. Dae "
+"cara!"
+
+#: books/edit/edition.html
 msgid "Any notes about this specific edition?"
 msgstr "Notas chi pertocant a custa editzione ispetzìfica?"
 
@@ -4292,6 +4206,14 @@ msgstr ""
 "ignorada."
 
 #: books/edit/edition.html
+msgid "Copy authors to new work"
+msgstr "Còpia sos autores cara a un'òpera noa"
+
+#: books/edit/edition.html
+msgid "Copy subjects to new work"
+msgstr "Còpia sos argumentos cara a un'òpera noa"
+
+#: books/edit/edition.html
 msgid "Please select an identifier."
 msgstr "Pro praghere seletziona un'identificadore."
 
@@ -4334,18 +4256,6 @@ msgid "Like, ISBN?"
 msgstr "Che a s'ISBN?"
 
 #: books/edit/edition.html
-msgid "Select one of many..."
-msgstr "Seletziona·nde unu de medas..."
-
-#: books/edit/edition.html
-msgid "Remove this identifier"
-msgstr "Boga custu identificadore"
-
-#: books/edit/edition.html lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr "Open Library"
-
-#: books/edit/edition.html
 msgid "Please select a classification."
 msgstr "Seletziona una classificatzione."
 
@@ -4364,6 +4274,10 @@ msgstr "Connosches carchi classificatzione pro custa editzione?"
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
 msgstr "Che a sa detzimale de Dewey?"
+
+#: books/edit/edition.html
+msgid "Select one of many..."
+msgstr "Seletziona·nde unu de medas..."
 
 #: books/edit/edition.html
 msgid "Add a new classification type"
@@ -4676,8 +4590,9 @@ msgid "Delete Event"
 msgstr "Iscantzella s'eventu"
 
 #: check_ins/check_in_prompt.html
-msgid "Read:"
-msgstr "Lèghidu:"
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
+msgstr "Lèghidu su <time class=\"check-in-date\">%(date)s</time>"
 
 #: check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
@@ -4704,14 +4619,9 @@ msgstr ""
 
 #: check_ins/reading_goal_progress.html
 #, python-format
-msgid "%(year)d Reading Goal:"
-msgstr "Obietivu de letura pro su %(year)d:"
-
-#: check_ins/reading_goal_progress.html
-#, python-format
 msgid ""
 "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/"
-"<span class=\"reading-goal-progress__goal\">%(goal)d</span> books"
+"<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
 msgstr ""
 "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/"
 "<span class=\"reading-goal-progress__goal\">%(goal)d</span> libros"
@@ -4771,10 +4681,6 @@ msgstr "Issèbera unu JPG, GIF o PNG in s'elaboradore tuo"
 #: covers/add.html
 msgid "Upload"
 msgstr "Càrriga"
-
-#: covers/add.html
-msgid "Or, paste in the image URL if it's on the web"
-msgstr "O incolla s'URL de s'immàgine si est in su web"
 
 #: covers/add.html
 msgid "Or, use the the cover from Internet Archive"
@@ -5018,7 +4924,7 @@ msgstr ""
 "Ses arribbadu a su lìmite de prèstidos. Pro praghere torra unu libru pro "
 "pigare carchi cosa de nou."
 
-#: home/stats.html site/around_the_library.html
+#: home/stats.html
 msgid "Around the Library"
 msgstr "A giru in sa biblioteca"
 
@@ -5371,6 +5277,10 @@ msgstr "Descrie de ite chistionat su libru"
 msgid "Just a sentence or two is good."
 msgstr "Petzi una o duas fràsias andant bene."
 
+#: lib/nav_foot.html site/neck.html
+msgid "Open Library"
+msgstr "Open Library"
+
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr "Visione"
@@ -5426,6 +5336,12 @@ msgstr "Esplora sos autores"
 #: lib/nav_foot.html
 msgid "Explore subjects"
 msgstr "Esplora sos argumentos"
+
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr "Argumentos"
 
 #: lib/nav_foot.html
 msgid "Explore collections"
@@ -5621,6 +5537,10 @@ msgstr "S'Open Library de s'Internet Archive: Una pàgina pro cada libru"
 #: lib/nav_head.html
 msgid "Text"
 msgstr "Testu"
+
+#: lib/nav_head.html
+msgid "Advanced"
+msgstr "Avantzadu"
 
 #: lib/nav_head.html
 msgid "Search by barcode"
@@ -6211,6 +6131,10 @@ msgstr[1] "%(count)s libros eletrònicos"
 msgid "0 ebooks"
 msgstr "0 libros eletrònicos"
 
+#: PublishingHistory.html publishers/view.html
+msgid "Publishing History"
+msgstr "Cronologia de publicatzione"
+
 #: publishers/view.html
 msgid ""
 "This is a chart to show the when this publisher published books. Along the X "
@@ -6222,6 +6146,14 @@ msgstr ""
 "editziones publicadas. <a href=\"#subjectRelated\">Incarca inoghe pro "
 "brincare su gràficu</a>."
 
+#: PublishingHistory.html publishers/view.html
+msgid "Reset chart"
+msgstr "Reseta su gràficu"
+
+#: PublishingHistory.html publishers/view.html
+msgid "or continue zooming in."
+msgstr "o sighi a ismanniare."
+
 #: publishers/view.html
 msgid ""
 "This graph charts editions from this publisher over time. Click to view a "
@@ -6229,6 +6161,14 @@ msgid ""
 msgstr ""
 "Custu gràficu mapat sas editziones de custu editore in su tempus. Incarca "
 "pro bìdere un'annu sìngulu, o trìsina in un'intervallu."
+
+#: PublishingHistory.html publishers/view.html
+msgid "Editions Published"
+msgstr "Editziones publicadas"
+
+#: PublishingHistory.html publishers/view.html
+msgid "Year of Publication"
+msgstr "Annu de publicatzione"
 
 #: publishers/view.html
 msgid "Common Subjects"
@@ -6239,9 +6179,21 @@ msgstr "Argumentos comunes"
 msgid "Search for books published by %(publisher)s"
 msgstr "Chirca libros publicados dae %(publisher)s"
 
+#: RelatedSubjects.html publishers/view.html
+msgid "None found."
+msgstr "Perunu agatadu."
+
+#: ProlificAuthors.html publishers/view.html
+msgid "See more books by, and learn about, this author"
+msgstr "Abbista prus libros de custu autore, e impara cosas subra de issu"
+
 #: publishers/view.html
 msgid "published most by this publisher"
 msgstr "publicadu mescamente dae custu editore"
+
+#: publishers/view.html
+msgid "Get more information about this publisher"
+msgstr "Otene prus informatziones subra de custu editore"
 
 #: recentchanges/header.html
 msgid "By"
@@ -6293,7 +6245,6 @@ msgid "expand"
 msgstr "ismànnia"
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
-#: site/around_the_library.html
 msgid "opened a new Open Library account!"
 msgstr "at abertu unu contu nou de s'Open Library!"
 
@@ -6474,16 +6425,8 @@ msgid "On leaf number %(page_num)d:"
 msgstr "In su fògiu nùmeru %(page_num)d:"
 
 #: search/sort_options.html
-msgid "Sorted by"
-msgstr "Ordinadu pro"
-
-#: search/sort_options.html
 msgid "Relevance"
 msgstr "Rilevàntzia"
-
-#: search/sort_options.html
-msgid "Work Count"
-msgstr "Nùmeru de òperas"
 
 #: search/sort_options.html
 msgid "Random"
@@ -6514,12 +6457,16 @@ msgid "Top Rated"
 msgstr "Votos prus artos"
 
 #: search/sort_options.html
-msgid "Any"
-msgstr "Cale si siat"
-
-#: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
 msgstr "Tìtulu de s'òpera (beta: bibliotecàrios ebbia)"
+
+#: search/sort_options.html
+msgid "Work Count"
+msgstr "Nùmeru de òperas"
+
+#: search/sort_options.html
+msgid "Any"
+msgstr "Cale si siat"
 
 #: search/sort_options.html
 msgid "Shuffle"
@@ -6652,10 +6599,6 @@ msgstr "%(title)s - chirca"
 msgid "Internet Archive logo"
 msgstr "Logotipu de s'Internet Archive"
 
-#: site/around_the_library.html
-msgid "View all recent changes"
-msgstr "Abbista totu sas modìficas reghentes"
-
 #: site/body.html
 msgid "It looks like you're offline."
 msgstr "Paret chi non sias in lìnia."
@@ -6767,18 +6710,6 @@ msgstr "Annanghe un'eticheta"
 #: tag/add.html
 msgid "Add a tag to Open Library"
 msgstr "Annanghe un'eticheta a s'Open Library"
-
-#: tag/add.html
-msgid "Name of Tag"
-msgstr "Nùmene de s'eticheta"
-
-#: tag/add.html
-msgid "How would you describe this tag?"
-msgstr "Comente dias descrìere cust'eticheta?"
-
-#: tag/add.html type/tag/edit.html
-msgid "Tag type"
-msgstr "Casta de eticheta"
 
 #: tag/add.html
 msgid "Add this tag now"
@@ -6914,10 +6845,6 @@ msgid "Refresh the page?"
 msgstr "Annoare sa pàgina?"
 
 #: type/author/view.html
-msgid "Success!"
-msgstr "Sutzessu!"
-
-#: type/author/view.html
 msgid ""
 "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> "
 "the update.</i>"
@@ -6964,6 +6891,11 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr "Chirca libros de %(author)s"
 
+#: RelatedSubjects.html SubjectTags.html type/author/view.html
+#: type/list/view_body.html
+msgid "Places"
+msgstr "Logos"
+
 #: Profile.html type/author/view.html
 msgid "Time"
 msgstr "Perìodu"
@@ -6976,10 +6908,10 @@ msgstr "OLID"
 msgid "Inventaire.io:"
 msgstr "Inventaire.io:"
 
-#: type/author/view.html
-msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
+#: type/author/view.html type/edition/view.html type/work/view.html
+msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
-"Ligàmenes <span class=\"gray small sansserif\">in foras de s'Open Library</"
+"Ligàmene <span class=\"gray small sansserif\">a foras de s'Open Library</"
 "span>"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
@@ -7185,12 +7117,6 @@ msgid "added anonymously."
 msgstr "annantu in anònimu."
 
 #: type/edition/view.html type/work/view.html
-msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
-"Ligàmene <span class=\"gray small sansserif\">a foras de s'Open Library</"
-"span>"
-
-#: type/edition/view.html type/work/view.html
 msgid "This work does not appear on any lists."
 msgstr "Cust'òpera no aparit in peruna lista."
 
@@ -7199,12 +7125,20 @@ msgid "Loading Related Books"
 msgstr "Carrighende libros ligados"
 
 #: type/language/view.html
+msgid "deprecated"
+msgstr "disusadu"
+
+#: type/language/view.html
 msgid "languages"
 msgstr "limbas"
 
 #: type/language/view.html
 msgid "Code"
 msgstr "Còdighe"
+
+#: type/language/view.html
+msgid "Current"
+msgstr "Atuale"
 
 #: type/language/view.html
 #, python-format
@@ -7397,6 +7331,10 @@ msgstr "Metadatos de sa lista"
 msgid "Derived from seed metadata"
 msgstr "Derivados dae sos metadatos de s'elementu"
 
+#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
+msgid "Times"
+msgstr "Èpocas"
+
 #: type/local_id/view.html
 msgid "Local IDs"
 msgstr "IDs locales"
@@ -7449,13 +7387,17 @@ msgstr "Iscritores"
 msgid "Edit Tag"
 msgstr "Modìfica eticheta"
 
-#: type/tag/edit.html
-msgid "Label"
-msgstr "Eticheta"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Name"
+msgstr "Nùmene de eticheta"
 
-#: type/tag/edit.html type/user/edit.html
-msgid "Description"
-msgstr "Descritzione"
+#: type/tag/tag_form_inputs.html
+msgid "Tag Description"
+msgstr "Descritzione de eticheta"
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag type"
+msgstr "Casta de eticheta"
 
 #: type/tag/view.html
 #, python-format
@@ -7506,6 +7448,10 @@ msgstr "Modifichende como:"
 #: type/user/edit.html
 msgid "Display Name"
 msgstr "Nùmene visualizadu"
+
+#: type/user/edit.html
+msgid "Description"
+msgstr "Descritzione"
 
 #: type/user/view.html
 msgid "admin page"
@@ -7589,7 +7535,7 @@ msgstr[1] "Ammustrende %(count)d editziones in evidèntzia."
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr "Boles pompiare totu sas %(count)d sas editziones?"
+msgstr "Boles pompiare totu sas %(count)d editziones?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
@@ -7775,6 +7721,10 @@ msgstr[1] "%(reviews)s retzensiones"
 msgid "Related Books"
 msgstr "Libros ligados"
 
+#: EditionNavBar.html
+msgid "Go to next section"
+msgstr "Bae a sa setzione imbeniente"
+
 #: Follow.html
 msgid "UnfollowFollow"
 msgstr "Acaba de sighire"
@@ -7802,7 +7752,7 @@ msgstr "icona de sa chirca a intro"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr "%(book_count)s libros atzaoados cun passàgios chi currispondent"
+msgstr "%(book_count)s libros atzapados cun passàgios chi currispondent"
 
 #: FulltextSearchSuggestion.html
 #, python-format
@@ -7814,15 +7764,11 @@ msgstr ""
 msgid "right chevron"
 msgstr "fritza cara a destra"
 
-#: FulltextSnippet.html
-msgid "See All Results"
-msgstr "Abbista totu sos resurtados"
-
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr "❝"
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
 msgstr "❞"
 
@@ -7870,6 +7816,10 @@ msgstr "Custu libru est in prèstidu, torra a averguare prus a tardu."
 msgid "Checked Out"
 msgstr "Pigadu in prèstidu"
 
+#: LocateButton.html
+msgid "Locate"
+msgstr "Atzapa"
+
 #: ManageLoansButtons.html
 #, python-format
 msgid "There is one person waiting for this book."
@@ -7911,7 +7861,32 @@ msgstr "Primu"
 msgid "Component"
 msgstr "Cumponente"
 
-#: QueryCarousel.html
+#: ProlificAuthors.html
+msgid "Prolific Authors"
+msgstr "Autores prolìficos"
+
+#: ProlificAuthors.html
+msgid "who have written the most books on this subject"
+msgstr "chi ant iscritu sa parte manna de sos libros subra de custu argumentu"
+
+#: PublishingHistory.html
+msgid ""
+"This is a chart to show the publishing history of editions of works about "
+"this subject. Along the X axis is time, and on the y axis is the count of "
+"editions published. <a href=\"#subjectRelated\">Click here to skip the "
+"chart</a>."
+msgstr ""
+"Custu est unu gràficu pro mustrare sa cronologia de publicatzione de "
+"editziones de traballos subra de custu argumentu. In s'asse x b'at su "
+"tempus, ee in s'asse y b'at su nùmeru de editziones publicadas. <a "
+"href=\"#subjectRelated\">Incarca inoghe pro brincare su gràficu</a>."
+
+#: PublishingHistory.html
+msgid "This graph charts editions published on this subject."
+msgstr ""
+"Custu gràficu mapat sas editziones publicadas subra de custu argumentu."
+
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr "Chirca una colletzione"
 
@@ -7967,6 +7942,10 @@ msgstr "modìfica"
 msgid "No edit history available."
 msgstr "Peruna cronologia de modìficas a disponimentu."
 
+#: RelatedSubjects.html
+msgid "Related..."
+msgstr "Ligados..."
+
 #: ReturnForm.html
 msgid "Really return this book?"
 msgstr "Boles torrare a beru custu libru?"
@@ -7981,21 +7960,16 @@ msgstr "annantu a"
 
 #: SearchResultsWork.html
 #, python-format
+msgid "Cover of edition %(id)s"
+msgstr "Cobertedda de s'editzione %(id)s"
+
+#: SearchResultsWork.html
+#, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural ""
 "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d limba</a>"
 msgstr[1] "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d limbas</a>"
-
-#: SearchResultsWork.html
-#, python-format
-msgid "%s previewable"
-msgstr "%s si podet bìdere in anteprima"
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr "Cobertedda de s'editzione %(id)s"
 
 #: SearchResultsWork.html
 msgid "This is only visible to librarians."
@@ -8046,19 +8020,27 @@ msgstr "Icona de su còdighe QR"
 msgid "QR Code"
 msgstr "Còdighe QR"
 
-#: SponsorCarousel.html
-msgid "Books to Sponsor"
-msgstr "Libros de isponsorizare"
-
 #: StarRatings.html
 msgid "Clear my rating"
 msgstr "Inneta sa valutatzione mea"
 
-#: StarRatingsStats.html
-msgid "Rating"
-msgid_plural "Ratings"
-msgstr[0] "Votu"
-msgstr[1] "Votos"
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr "votu"
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "ratings"
+msgstr "votos"
+
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr "%(want_to_read_count)s Chèrgio lèghere"
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #: StarRatingsStats.html
 msgid "Want to read"
@@ -8214,19 +8196,6 @@ msgstr "Modìfica custu modellu"
 msgid "View Volume %(num)d"
 msgstr "Abbista su volume %(num)d"
 
-#: databarWork.html
-#, python-format
-msgid "This book was generously donated by %(donor)s"
-msgstr "Custu libru l'at donadu cun generosidade %(donor)s"
-
-#: databarWork.html
-msgid "This book was generously donated anonymously"
-msgstr "Custu libru l'ant donadu cun generosidade e in anònimu"
-
-#: databarWork.html
-msgid "Learn more about Book Sponsorship"
-msgstr "Impara de prus subra de su patrotzìniu de libros"
-
 #: account.py
 msgid "The email address you entered is invalid"
 msgstr "S'indiritzu de posta chi as insertadu no est àlidu"
@@ -8280,6 +8249,15 @@ msgstr "B'at àpidu unu problema e non t'amus pòdidu fàghere intrare."
 msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
 "Atzessu intentadu cun credentziales s3 de s'Internet Archive non vàlidas."
+
+#: account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later or "
+"email openlibrary@archive.org for help."
+msgstr ""
+"Sos webidores sunt tenende unu tràficu prus artu de su sòlitu, torra a "
+"proare prus a tardu o imbia unu messàgiu de posta eletrònica a "
+"openlibrary@archive.org pro pedire agiudu."
 
 #: account.py
 msgid "A problem occurred and we were unable to log you in"
@@ -8414,6 +8392,147 @@ msgstr "S'indiritzu de posta eletrònica tuo"
 msgid "Choose a password"
 msgstr "Issèbera una crae de intrada"
 
+#~ msgid "Read Text ISBN"
+#~ msgstr "Leghe un'ISBN testuale"
+
+#~ msgid "For books that print the ISBN without a barcode"
+#~ msgstr "Pro libros chi imprentant s'ISBN chene unu còdighe a istangas"
+
+#~ msgid "Point your camera at a barcode! 📷"
+#~ msgstr "Punta sa fotocàmera tua a unu còdighe a istangas! 📷"
+
+#~ msgid "Sponsorships"
+#~ msgstr "Patrotzìnios"
+
+#, python-format
+#~ msgid "Books %(userdisplayname)s is sponsoring"
+#~ msgstr "Libros chi %(userdisplayname)s est patrotzinende"
+
+#~ msgid "Sponsoring"
+#~ msgstr "Patrotzinende"
+
+#~ msgid "Sponsorship"
+#~ msgstr "Isponsorizatzione"
+
+#~ msgid "Book Sponsorship"
+#~ msgstr "Patrotzìniu de libros"
+
+#, python-format
+#~ msgid "We've sponsored <strong>%(num)d</strong> books"
+#~ msgstr "Amus patrotzinadu <strong>%(num)d</strong> libros"
+
+#~ msgid "Internet Archive Revenue"
+#~ msgstr "Balàngiu de s'Internet Archive"
+
+#~ msgid "Better World Books Revenue"
+#~ msgstr "Balàngiu de Better World Books"
+
+#~ msgid "Book Costs"
+#~ msgstr "Costu de sos libros"
+
+#~ msgid "Est. Book Costs"
+#~ msgstr "Costu carculadu de sos libros"
+
+#~ msgid "Δ Book Costs"
+#~ msgstr "Δ Costu de sos libros"
+
+#~ msgid "Scanning Costs"
+#~ msgstr "Costos de iscansione"
+
+#~ msgid "Est. Scanning Costs"
+#~ msgstr "Costos de iscansione carculados"
+
+#~ msgid "Δ Scanning Costs"
+#~ msgstr "Δ Costos de iscansione"
+
+#~ msgid "Profit/Los"
+#~ msgstr "Profitu/Pèrdida"
+
+#~ msgid "Total Unscanned Books"
+#~ msgstr "Totale de libros no iscansidos"
+
+#~ msgid "Average Scan Cost"
+#~ msgstr "Costu mèdiu de iscansione"
+
+#~ msgid "Est. Remaining Scanning Liability"
+#~ msgstr "Passividade resìdua pro s'iscansione carculada"
+
+#~ msgid "Projected Profit/Loss"
+#~ msgstr "Balàngiu/pèrdida prevìdidos"
+
+#~ msgid "Cover"
+#~ msgstr "Coberteddas"
+
+#~ msgid "Sponsor Date"
+#~ msgstr "Data de patrotzìniu"
+
+#~ msgid "IDs"
+#~ msgstr "IDs"
+
+#~ msgid "Donor"
+#~ msgstr "Donadore"
+
+#~ msgid "Edit XML"
+#~ msgstr "Modìfica su XML"
+
+#~ msgid "BWB Link"
+#~ msgstr "Ligàmene BWB"
+
+#~ msgid "Libraries near you:"
+#~ msgstr "Bibliotecas a curtzu a tie:"
+
+#~ msgid "Look for this edition at WorldCat"
+#~ msgstr "Chirca cust'editzione in WorldCat"
+
+#~ msgid "Remove this identifier"
+#~ msgstr "Boga custu identificadore"
+
+#~ msgid "Read:"
+#~ msgstr "Lèghidu:"
+
+#~ msgid "Or, paste in the image URL if it's on the web"
+#~ msgstr "O incolla s'URL de s'immàgine si est in su web"
+
+#~ msgid "Sorted by"
+#~ msgstr "Ordinadu pro"
+
+#~ msgid "View all recent changes"
+#~ msgstr "Abbista totu sas modìficas reghentes"
+
+#~ msgid "Name of Tag"
+#~ msgstr "Nùmene de s'eticheta"
+
+#~ msgid "How would you describe this tag?"
+#~ msgstr "Comente dias descrìere cust'eticheta?"
+
+#~ msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
+#~ msgstr ""
+#~ "Ligàmenes <span class=\"gray small sansserif\">in foras de s'Open "
+#~ "Library</span>"
+
+#~ msgid "Label"
+#~ msgstr "Eticheta"
+
+#~ msgid "See All Results"
+#~ msgstr "Abbista totu sos resurtados"
+
+#, python-format
+#~ msgid "%s previewable"
+#~ msgstr "%s si podet bìdere in anteprima"
+
+#~ msgid "Books to Sponsor"
+#~ msgstr "Libros de isponsorizare"
+
+#, python-format
+#~ msgid "This book was generously donated by %(donor)s"
+#~ msgstr "Custu libru l'at donadu cun generosidade %(donor)s"
+
+#~ msgid "This book was generously donated anonymously"
+#~ msgstr "Custu libru l'ant donadu cun generosidade e in anònimu"
+
+#~ msgid "Learn more about Book Sponsorship"
+#~ msgstr "Impara de prus subra de su patrotzìniu de libros"
+
 #~ msgid "Topic"
 #~ msgstr "Argumentu"
 
@@ -8541,9 +8660,6 @@ msgstr "Issèbera una crae de intrada"
 
 #~ msgid "Websites"
 #~ msgstr "Sitos web"
-
-#~ msgid "Deprecated"
-#~ msgstr "Disusadu"
 
 #~ msgid "Website"
 #~ msgstr "Situ web"

@@ -1,9 +1,11 @@
-from .. import account
-import web
 import os
 import re
-import pytest
 import sys
+
+import pytest
+import web
+
+from .. import account
 
 
 def open_test_data(filename):

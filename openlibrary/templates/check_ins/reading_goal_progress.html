@@ -10,23 +10,20 @@ $# YearlyGoal.progress : int : Percent of goal achieved
 
 <div class="reading-goal-progress-container">
   $for goal in goals:
-    <div class="reading-goal-progress">
-      <div class="reading-goal-progress__heading">$_("%(year)d Reading Goal:", year=goal.year)</div>
-      <div class="reading-goal-progress__body">
-        <div class="reading-goal-progress__progress-bar">
-          $ completed = 100 if goal.progress > 100 else goal.progress
-          <span class="reading-goal-progress__completed" style="width: $(completed)%;"></span>
-        </div>
-        <div class="reading-goal-progress__details">
-          <a href="/account/books/already-read/year/$(goal.year)" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">$:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> books', books_read=goal.books_read, goal=goal.goal)</a>
-          <span class="reading-goal-progress__percentage">($goal.progress%)</span>
-          <a class="edit-reading-goal-link" href="javascript:;">$_('Edit')</a> or
-	  <a href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library">$_('Learn more')</a>
-        </div>
+  <div class="reading-goal-progress">
+    <div class="reading-goal-progress__body">
+      <div class="reading-goal-progress__progress-bar">
+        $ completed = 100 if goal.progress > 100 else goal.progress
+        <span class="reading-goal-progress__completed" style="width: $(completed)%;"></span>
+      </div>
+      <div class="reading-goal-progress__details">
+          <a href="/account/books/already-read/year/$(goal.year)" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">$:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=goal.books_read, goal=goal.goal)</a>
+          <a class="edit-reading-goal-link" href="javascript:;">$_('Edit')</a>
       </div>
       $ reading_goal_form = render_template('check_ins/reading_goal_form', goal=goal.goal, year=goal.year, update=True)
       $ id = 'yearly-goal-modal-%d' % loop.index
       $ title = _('Edit %(year)d Reading Goal', year=goal.year)
       $:render_template('native_dialog', id, reading_goal_form, title=title)
     </div>
+  </div>
 </div>

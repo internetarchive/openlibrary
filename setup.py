@@ -1,8 +1,8 @@
 # setup.py is only used by solrbuilder to cythonize some files See
 # scripts/solr_builder/build-cython.sh We might be able to remove
 # it entirely if we call cython directly from that script.
-from setuptools import find_packages, setup
 from Cython.Build import cythonize
+from setuptools import find_packages, setup
 
 setup(
     # Used to make solrbuilder faster

@@ -24,9 +24,7 @@ $ sort = query_param('sort', None)
         $:render_template("search/searchbox", q=q)
     </form>
   </div>
-</div>
 
-<div id="contentMeta">
     $ results = get_results(q, offset=offset, limit=results_per_page, sort=sort)
 
     $if q and results.error:
@@ -44,8 +42,8 @@ $ sort = query_param('sort', None)
                 $:render_template("search/sort_options.html", selected_sort=sort, search_scheme="authors")
               $ user_can_merge = ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin())
               $if results.num_found >= 2 and user_can_merge:
-                $ keys = '&'.join('key=%s' % doc['key'].split("/")[-1] for doc in results.docs)
-                <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a></div>
+                $ keys = ','.join(doc['key'].split("/")[-1] for doc in results.docs)
+                <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?records=$keys">$_('Merge authors')</a></div>
             </div>
         $else:
             <center>

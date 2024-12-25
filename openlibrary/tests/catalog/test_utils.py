@@ -1,6 +1,7 @@
+from datetime import datetime, timedelta
+
 import pytest
 
-from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,
@@ -289,7 +290,11 @@ def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
     'publishers, expected',
     [
         (['INDEPENDENTLY PUBLISHED'], True),
+        (['Independent publisher'], True),
+        (['createspace independent publishing platform'], True),
         (['Another Publisher', 'independently published'], True),
+        (['Another Publisher', 'independent publisher'], True),
+        (['Another Publisher', 'createspace independent publishing platform'], True),
         (['Another Publisher'], False),
     ],
 )

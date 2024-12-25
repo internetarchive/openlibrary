@@ -1,14 +1,12 @@
-from dataclasses import dataclass
-import json
 import hashlib
-
+import json
+from dataclasses import dataclass
 from json.decoder import JSONDecodeError
 
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
+
 from openlibrary import accounts
-from openlibrary.core.imports import Batch
-from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 from openlibrary.catalog.add_book import (
     IndependentlyPublished,
     PublicationYearTooOld,
@@ -16,6 +14,8 @@ from openlibrary.catalog.add_book import (
     SourceNeedsISBN,
     validate_record,
 )
+from openlibrary.core.imports import Batch
+from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
 
 def generate_hash(data: bytes, length: int = 20):
@@ -70,7 +70,7 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
-def batch_import(raw_data: bytes) -> BatchResult:
+def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
 
@@ -81,6 +81,8 @@ def batch_import(raw_data: bytes) -> BatchResult:
     access the batch and any errors, respectively. See BatchResult for more.
 
     The line numbers errors use 1-based counting because they are line numbers in a file.
+
+    import_status: "pending", "needs_review", etc.
     """
     user = accounts.get_current_user()
     username = user.get_username() if user else None
@@ -129,6 +131,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
             'ia_id': item['source_records'][0],
             'data': item,
             'submitter': username,
+            'status': import_status,
         }
         for item in raw_import_records
     ]

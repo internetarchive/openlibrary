@@ -1,19 +1,20 @@
 """Simple implementation of mock infogami site to use in testing.
 """
 
-import datetime
 import glob
 import itertools
 import json
 import re
+from datetime import datetime
+
 import pytest
 import web
 
-from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
+from infogami.infobase import account, client, common
+from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
-
 
 key_patterns = {
     'work': '/works/OL%dW',
@@ -79,7 +80,7 @@ class MockSite:
     def save(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
 
         if author:
             author = {"key": author.key}
@@ -102,7 +103,7 @@ class MockSite:
     def save_many(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:

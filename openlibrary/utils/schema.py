@@ -3,11 +3,11 @@
 """
 
 __all__ = [
+    "Column",
     "Schema",
     "Table",
-    "Column",
-    "register_datatype",
     "register_constant",
+    "register_datatype",
 ]
 
 _datatypes = {}

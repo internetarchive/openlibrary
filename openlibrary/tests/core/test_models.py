@@ -1,6 +1,6 @@
-from openlibrary.core import models
-
 import pytest
+
+from openlibrary.core import models
 
 
 class MockSite:
@@ -154,6 +154,7 @@ class TestWork:
         work4 = {"key": work4_key, "type": type_work}
 
         import web
+
         from openlibrary.mocks import mock_infobase
 
         site = mock_infobase.MockSite()

@@ -1,7 +1,7 @@
 import itertools
-import web
 import json
 
+import web
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint

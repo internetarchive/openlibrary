@@ -1,38 +1,38 @@
 """Plugin to provide admin interface.
 """
 
-import os
-from collections.abc import Iterable
-import requests
-import sys
-import web
-import subprocess
 import datetime
-import traceback
-import logging
 import json
+import logging
+import os
+import subprocess
+import sys
+import traceback
+from collections.abc import Iterable
 
+import requests
+import web
 from internetarchive.exceptions import ItemLocateError
 
-from infogami import config
-from infogami.utils import delegate
-from infogami.utils.view import render, public
-from infogami.utils.context import context
-from infogami.utils.view import add_flash_message
-from infogami.plugins.api.code import jsonapi
-
-from openlibrary.catalog.add_book import (
-    update_ia_metadata_for_ol_edition,
-    create_ol_subjects_for_ocaid,
-)
-
 import openlibrary
-
+from infogami import config
+from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
+from infogami.utils import delegate
+from infogami.utils.context import context
+from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
-from openlibrary.accounts.model import Account, clear_cookies
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
-from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
+from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
+from openlibrary.catalog.add_book import (
+    create_ol_subjects_for_ocaid,
+    update_ia_metadata_for_ol_edition,
+)
+from openlibrary.core import (
+    admin as admin_stats,
+)
+from openlibrary.core import (
+    cache,
+    imports,
+)
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -647,7 +647,7 @@ def get_admin_stats():
     return storify(xstats)
 
 
-from openlibrary.plugins.upstream import borrow
+from openlibrary.plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
 
 class inspect:
@@ -726,14 +726,14 @@ class permissions:
     def get_permission(self, key):
         doc = web.ctx.site.get(key)
         perm = doc and doc.child_permission
-        return perm and perm.key or "/permission/open"
+        return (perm and perm.key) or "/permission/open"
 
     def set_permission(self, key, permission):
         """Returns the doc with permission set.
         The caller must save the doc.
         """
         doc = web.ctx.site.get(key)
-        doc = doc and doc.dict() or {"key": key, "type": {"key": "/type/page"}}
+        doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
         doc["permission"] = {"key": "/permission/restricted"}
@@ -837,19 +837,6 @@ class show_log:
                 return f.read()
 
 
-class sponsorship_stats:
-    def GET(self):
-        return render_template("admin/sponsorship", summary())
-
-
-class sync_sponsored_books(delegate.page):
-    @jsonapi
-    def GET(self):
-        i = web.input(dryrun=None)
-        dryrun = i.dryrun == "true"
-        return sync_completed_sponsored_books(dryrun=dryrun)
-
-
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -883,10 +870,6 @@ def setup():
         r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label=""
     )
     register_admin_page('/admin/spamwords', spamwords, label="")
-    register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
-    register_admin_page(
-        '/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync"
-    )
 
     from openlibrary.plugins.admin import mem
 

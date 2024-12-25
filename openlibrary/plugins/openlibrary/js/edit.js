@@ -231,14 +231,6 @@ export function validateIdentifiers(data) {
     return true;
 }
 
-export function initIdentifierValidation() {
-    initJqueryRepeat();
-    $('#identifiers').repeat({
-        vars: {prefix: 'edition--'},
-        validate: function(data) {return validateIdentifiers(data)},
-    });
-}
-
 export function initClassificationValidation() {
     initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
