@@ -2,56 +2,61 @@
 Open Library Plugin.
 """
 
-from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
+import datetime
+import json
+import logging
+import math
+import os
+import random
+import socket
+from time import time
+from urllib.parse import parse_qs, urlencode
+
 import requests
 import web
-import json
-import os
-import socket
-import random
-import datetime
-import logging
-from time import time
-import math
+
 import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.i18n import gettext as _
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import openlibrary.core.stats
+from infogami.core.db import ValidationException
+from infogami.infobase import client
+from infogami.utils import delegate, features
 from infogami.utils.app import metapage
-from infogami.utils import delegate
-from openlibrary.utils import dateutil
 from infogami.utils.view import (
+    add_flash_message,
+    public,
     render,
     render_template,
-    public,
     safeint,
-    add_flash_message,
 )
-from infogami.infobase import client
-from infogami.core.db import ValidationException
-
 from openlibrary.core import cache
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
-from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_availability
 from openlibrary.core.fulltext import fulltext_search
-import openlibrary.core.stats
+from openlibrary.core.lending import get_availability
+from openlibrary.core.models import Edition
+from openlibrary.core.vendors import (
+    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
+)
+from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.worksearch.code import do_search
+from openlibrary.utils import dateutil
+from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.RequireLogoutProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -86,7 +91,7 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists, bulk_tag
+from openlibrary.plugins.openlibrary import bulk_tag, lists
 
 lists.setup()
 bulk_tag.setup()
@@ -297,7 +302,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit
+        from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -497,16 +502,24 @@ class batch_imports(delegate.page):
     def POST(self):
 
         user_key = delegate.context.user and delegate.context.user.key
-        if user_key not in _get_members_of_group("/usergroup/admin"):
-            raise Forbidden('Permission Denied.')
+        import_status = (
+            "pending"
+            if user_key in _get_members_of_group("/usergroup/admin")
+            else "needs_review"
+        )
 
         # Get the upload from web.py. See the template for the <form> used.
         batch_result = None
         form_data = web.input()
         if form_data.get("batchImportFile"):
-            batch_result = batch_import(form_data['batchImportFile'])
+            batch_result = batch_import(
+                form_data['batchImportFile'], import_status=import_status
+            )
         elif form_data.get("batchImportText"):
-            batch_result = batch_import(form_data['batchImportText'].encode("utf-8"))
+            batch_result = batch_import(
+                form_data['batchImportText'].encode("utf-8"),
+                import_status=import_status,
+            )
         else:
             add_flash_message(
                 'error',
@@ -562,6 +575,73 @@ class BatchImportView(delegate.page):
             limit=limit,
             sort=sort,
             status_counts=status_counts,
+        )
+
+
+class BatchImportApprove(delegate.page):
+    """
+    Approve `batch_id`, with a `status` of `needs_review`, for import.
+
+    Making a GET as an admin to this endpoint will change a batch's status from
+    `needs_review` to `pending`.
+    """
+
+    path = r'/import/batch/approve/(\d+)'
+
+    def GET(self, batch_id):
+
+        user_key = delegate.context.user and delegate.context.user.key
+        if user_key not in _get_members_of_group("/usergroup/admin"):
+            raise Forbidden('Permission Denied.')
+
+        db.query(
+            """
+            UPDATE import_item
+            SET status = 'pending'
+            WHERE batch_id = $1 AND status = 'needs_review';
+            """,
+            (batch_id,),
+        )
+
+        return web.found(f"/import/batch/{batch_id}")
+
+
+class BatchImportPendingView(delegate.page):
+    """
+    Endpoint for viewing `needs_review` batch imports.
+    """
+
+    path = r"/import/batch/pending"
+
+    def GET(self):
+        i = web.input(page=1, limit=10, sort='added_time asc')
+        page = int(i.page)
+        limit = int(i.limit)
+        sort = i.sort
+
+        valid_sort_fields = ['added_time', 'import_time', 'status']
+        sort_field, sort_order = sort.split()
+        if sort_field not in valid_sort_fields or sort_order not in ['asc', 'desc']:
+            sort_field = 'added_time'
+            sort_order = 'asc'
+
+        offset = (page - 1) * limit
+
+        rows = db.query(
+            """
+            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
+            FROM import_item
+            WHERE status = 'needs_review'
+            GROUP BY batch_id;
+            """,
+            vars=locals(),
+        )
+
+        return render_template(
+            "batch_import_pending_view",
+            rows=rows,
+            page=page,
+            limit=limit,
         )
 
 
@@ -640,8 +720,8 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
 
             # Perform import, if possible
-            from openlibrary.plugins.importapi.code import ia_importapi, BookImportError
             from openlibrary import accounts
+            from openlibrary.plugins.importapi.code import BookImportError, ia_importapi
 
             with accounts.RunAs('ImportBot'):
                 try:
@@ -959,9 +1039,9 @@ def changequery(query=None, _path=None, **kw):
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
 
-from infogami.core.db import get_recent_changes as _get_recentchanges
-
 import urllib
+
+from infogami.core.db import get_recent_changes as _get_recentchanges
 
 
 @public
@@ -1048,7 +1128,6 @@ def save_error():
 
 
 def internalerror():
-    i = web.input(_method='GET', debug='false')
     name = save_error()
 
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
@@ -1062,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if i.debug.lower() == 'true':
+    if features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(render.internalerror(name))
@@ -1164,6 +1243,10 @@ class Partials(delegate.page):
         elif component == "FulltextSearchSuggestion":
             query = i.get('data', '')
             data = fulltext_search(query)
+            # Add caching headers only if there were no errors in the search results
+            if 'error' not in data:
+                # Cache for 5 minutes (300 seconds)
+                web.header('Cache-Control', 'public, max-age=300')
             hits = data.get('hits', [])
             if not hits['hits']:
                 macro = '<div></div>'
@@ -1252,21 +1335,22 @@ def setup_template_globals():
         get_cover_url,
     )
 
-    SUPPORTED_LANGUAGES = {
-        "cs": {"localized": 'Czech', "native": "Čeština"},
-        "de": {"localized": 'German', "native": "Deutsch"},
-        "en": {"localized": 'English', "native": "English"},
-        "es": {"localized": 'Spanish', "native": "Español"},
-        "fr": {"localized": 'French', "native": "Français"},
-        "hr": {"localized": 'Croatian', "native": "Hrvatski"},
-        "it": {"localized": 'Italian', "native": "Italiano"},
-        "pt": {"localized": 'Portuguese', "native": "Português"},
-        "hi": {"localized": 'Hindi', "native": "हिंदी"},
-        "sc": {"localized": 'Sardinian', "native": "Sardu"},
-        "te": {"localized": 'Telugu', "native": "తెలుగు"},
-        "uk": {"localized": 'Ukrainian', "native": "Українська"},
-        "zh": {"localized": 'Chinese', "native": "中文"},
-    }
+    def get_supported_languages():
+        return {
+            "cs": {"code": "cs", "localized": _('Czech'), "native": "Čeština"},
+            "de": {"code": "de", "localized": _('German'), "native": "Deutsch"},
+            "en": {"code": "en", "localized": _('English'), "native": "English"},
+            "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
+            "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
+            "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
+            "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
+            "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
+            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
+            "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
+        }
 
     web.template.Template.globals.update(
         {
@@ -1283,7 +1367,7 @@ def setup_template_globals():
             'random': random.Random(),
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
-            'supported_langs': SUPPORTED_LANGUAGES,
+            'get_supported_languages': get_supported_languages,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,
@@ -1304,17 +1388,42 @@ def setup_context_defaults():
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
+def setup_requests():
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if infogami.config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get(
+            'http_proxy'
+        )
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if infogami.config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(infogami.config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
+
+
 def setup():
     from openlibrary.plugins.openlibrary import (
-        sentry,
-        home,
-        borrow_home,
-        stats,
-        support,
-        events,
-        design,
-        status,
         authors,
+        borrow_home,
+        design,
+        events,
+        home,
+        sentry,
+        stats,
+        status,
         swagger,
     )
 
@@ -1323,13 +1432,14 @@ def setup():
     design.setup()
     borrow_home.setup()
     stats.setup()
-    support.setup()
     events.setup()
     status.setup()
     authors.setup()
     swagger.setup()
 
-    from openlibrary.plugins.openlibrary import api
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 side effects may be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
@@ -1340,6 +1450,7 @@ def setup():
 
     setup_context_defaults()
     setup_template_globals()
+    setup_requests()
 
 
 setup()

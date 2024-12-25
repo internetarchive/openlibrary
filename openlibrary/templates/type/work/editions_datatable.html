@@ -3,7 +3,7 @@ $def with (work, editions=None, edition=None, editions_limit=None)
 $ book_keys = []
 $ edition_list_start = time()
 
-$if editions_limit or (len(editions) < work.edition_count):
+$if (editions_limit and len(editions) > editions_limit) or (len(editions) < work.edition_count):
   <p class="small sansserif featured-count">
 
     $ungettext('Showing %(count)d featured edition.', 'Showing %(count)d featured editions.', len(editions), count=len(editions))
@@ -13,8 +13,8 @@ $if editions and len(editions):
   <table id="editions" class="editions-table editions-table--progressively-enhanced">
       <thead>
       <tr>
-          <th class="title" title=""><a href="javascript:;">$_('Edition')<span></span></a></th>
-          <th class="read" title=""><a href="javascript:;">$_('Availability')<span></span></a></th>
+          <th class="title" title=""><a tabindex="-1" href="javascript:;">$_('Edition')<span></span></a></th>
+          <th class="read" title=""><a tabindex="-1" href="javascript:;">$_('Availability')<span></span></a></th>
       </tr>
       </thead>
       <tbody>

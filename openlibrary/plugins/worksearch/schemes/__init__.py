@@ -3,6 +3,7 @@ from collections.abc import Callable
 
 import luqum.tree
 from luqum.exceptions import ParseError
+
 from openlibrary.solr.query_utils import (
     escape_unknown_fields,
     fully_escape_query,

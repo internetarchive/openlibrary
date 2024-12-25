@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Any, Final
+
 import web
-from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
+
+from openlibrary.catalog.utils import author_dates_match, flip_name, key_int
 from openlibrary.core.helpers import extract_year
 
 if TYPE_CHECKING:

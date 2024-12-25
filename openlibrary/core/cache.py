@@ -1,36 +1,35 @@
 """Caching utilities.
 """
 
+import functools
+import hashlib
+import json
 import random
 import string
-import time
 import threading
-import functools
-from typing import Any, Literal, cast
+import time
 from collections.abc import Callable
+from typing import Any, Literal, cast
 
 import memcache
-import json
 import web
 
 from infogami import config
-from infogami.utils import stats
 from infogami.infobase.client import Nothing
-
+from infogami.utils import stats
+from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
-from openlibrary.core.helpers import NothingEncoder
-
 
 __all__ = [
-    "cached_property",
     "Cache",
-    "MemoryCache",
     "MemcacheCache",
+    "MemoryCache",
     "RequestCache",
-    "memoize",
-    "memcache_memoize",
+    "cached_property",
     "get_memcache",
+    "memcache_memoize",
+    "memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -59,6 +58,7 @@ class memcache_memoize:
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
         prethread: Callable | None = None,
+        hash_args: bool = False,
     ):
         """Creates a new memoized function for ``f``."""
         self.f = f
@@ -70,6 +70,7 @@ class memcache_memoize:
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads: dict = {}
         self.prethread = prethread
+        self.hash_args = hash_args
 
     def _get_memcache(self):
         if self._memcache is None:
@@ -177,20 +178,21 @@ class memcache_memoize:
             thread.join()
 
     def encode_args(self, args, kw=None):
+        """Encodes arguments to construct the memcache key."""
         kw = kw or {}
-        """Encodes arguments to construct the memcache key.
-        """
+
         # strip [ and ] from key
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return a + "-" + self.json_encode(kw)
-        else:
-            return a
+            a = a + "-" + self.json_encode(kw)
+        if self.hash_args:
+            return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
+        return a
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "-" + self.encode_args(args, kw)
+        key = self.key_prefix + "$" + self.encode_args(args, kw)
         return key.replace(
             " ", "_"
         )  # XXX: temporary fix to handle spaces in the arguments

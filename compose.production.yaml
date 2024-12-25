@@ -73,6 +73,8 @@ services:
       - ../olsystem:/olsystem
       - /1:/1
     deploy:
+      # Note: the replicas here must be kept in sync with the `upstream covers_backend`
+      # value in `docker/covers_nginx.conf`.
       replicas: 2
 
   covers_nginx:

@@ -2,20 +2,21 @@
 """
 
 import json
-import web
-
 from datetime import datetime
 from math import floor
 
+import web
+
 from infogami.utils import delegate
 from infogami.utils.view import public
-
 from openlibrary.accounts import get_current_user
 from openlibrary.app import render_template
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
-from openlibrary.utils.decorators import authorized_for
+from openlibrary.utils.decorators import (
+    authorized_for,  # noqa: F401 side effects may be needed
+)
 
 MAX_READING_GOAL = 10_000
 

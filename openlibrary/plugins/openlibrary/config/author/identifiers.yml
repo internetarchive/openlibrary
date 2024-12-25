@@ -17,6 +17,11 @@ identifiers:
     notes: ''
     url: https://isni.org/isni/@@@
     website: https://isni.org/
+-   label: Integrated Authority File (GND)
+    name: gnd
+    notes: ''
+    url: https://d-nb.info/gnd/@@@
+    website: https://gnd.network/
 -   label: IMDb
     name: imdb
     notes: Should be something like nm0393654
@@ -50,6 +55,11 @@ identifiers:
     notes: Should be a number
     url: https://www.gutenberg.org/ebooks/author/@@@
     website: https://www.gutenberg.org
+-   label: Project Runeberg
+    name: project_runeberg
+    notes: Should be a string of alphanumeric characters (/[0-9a-z/.-]+/)
+    url: https://runeberg.org/authors/@@@.html
+    website: https://runeberg.org/
 -   label: SBN/ICCU (National Library Service of Italy)
     name: opac_sbn
     notes: format is /^\D{2}[A-Z0-3]V\d{6}$/

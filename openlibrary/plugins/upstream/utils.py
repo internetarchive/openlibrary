@@ -1,56 +1,55 @@
-import functools
-import os
-from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Generator, Iterable, Iterator
-import unicodedata
-
-import web
-import json
-import babel
-import babel.core
-import babel.dates
-from babel.lists import format_list
-from collections import defaultdict
-import re
-import random
-import xml.etree.ElementTree as ET
 import datetime
+import functools
+import json
 import logging
-from html.parser import HTMLParser
-from pathlib import Path
-import yaml
-
-import requests
-
-from html import unescape
+import os
+import re
+import unicodedata
 import urllib
-from collections.abc import MutableMapping
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
+from html import unescape
+from html.parser import HTMLParser
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
-    urlencode as parse_urlencode,
     urlparse,
     urlunparse,
 )
+from urllib.parse import (
+    urlencode as parse_urlencode,
+)
+
+import babel
+import babel.core
+import babel.dates
+import requests
+import web
+import yaml
+from babel.lists import format_list
+from web.template import TemplateResult
+from web.utils import Storage
 
 from infogami import config
-from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public, query_param
-from infogami.utils.macro import macro
-from infogami.utils.context import InfogamiContext, context
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
-
+from infogami.utils import delegate, stats, view
+from infogami.utils.context import InfogamiContext, context
+from infogami.utils.macro import macro
+from infogami.utils.view import (
+    get_template,
+    public,
+    render,
+)
+from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
-
-from web.utils import Storage
-from web.template import TemplateResult
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
-        Work,
         Author,
         Edition,
+        Work,
     )
 
 
@@ -191,7 +190,7 @@ def render_component(
     attrs = attrs or {}
     attrs_str = ''
     for key, val in attrs.items():
-        if json_encode and isinstance(val, dict) or isinstance(val, list):
+        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
             val = json.dumps(val)
             # On the Vue side use decodeURIComponent to decode
             val = urllib.parse.quote(val)
@@ -218,25 +217,26 @@ def render_macro(name, args, **kwargs):
 
 
 @public
-def render_cached_macro(name, args: tuple, **kwargs):
+def render_cached_macro(name: str, args: tuple, **kwargs):
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
-    def get_key():
+    def get_key_prefix():
         lang = web.ctx.lang
-        pd = web.cookies().get('pd', False)
-        key = f'{name}.{lang}'
-        if pd:
-            key += '.pd'
-        for arg in args:
-            key += f'.{arg}'
-        for k, v in kwargs.items():
-            key += f'.{k}:{v}'
-        return key
+        key_prefix = f'{name}.{lang}'
+        if web.cookies().get('pd', False):
+            key_prefix += '.pd'
+        if web.cookies().get('sfw', ''):
+            key_prefix += '.sfw'
+        return key_prefix
 
     five_minutes = 5 * 60
-    key = get_key()
+    key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
-        render_macro, key, timeout=five_minutes, prethread=caching_prethread()
+        render_macro,
+        key_prefix=key_prefix,
+        timeout=five_minutes,
+        prethread=caching_prethread(),
+        hash_args=True,  # this avoids cache key length overflow
     )
 
     try:
@@ -560,10 +560,8 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
 
     if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if (
-            thing.source_records
-            and v.revision == 1
-            or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
+        if (thing.source_records and v.revision == 1) or (
+            v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
@@ -661,57 +659,6 @@ def set_share_links(
     ]
     if view_context is not None:
         view_context.share_links = links
-
-
-def pad(seq: list, size: int, e=None) -> list:
-    """
-    >>> pad([1, 2], 4, 0)
-    [1, 2, 0, 0]
-    """
-    seq = seq[:]
-    while len(seq) < size:
-        seq.append(e)
-    return seq
-
-
-def parse_toc_row(line):
-    """Parse one row of table of contents.
-
-    >>> def f(text):
-    ...     d = parse_toc_row(text)
-    ...     return (d['level'], d['label'], d['title'], d['pagenum'])
-    ...
-    >>> f("* chapter 1 | Welcome to the real world! | 2")
-    (1, 'chapter 1', 'Welcome to the real world!', '2')
-    >>> f("Welcome to the real world!")
-    (0, '', 'Welcome to the real world!', '')
-    >>> f("** | Welcome to the real world! | 2")
-    (2, '', 'Welcome to the real world!', '2')
-    >>> f("|Preface | 1")
-    (0, '', 'Preface', '1')
-    >>> f("1.1 | Apple")
-    (0, '1.1', 'Apple', '')
-    """
-    RE_LEVEL = web.re_compile(r"(\**)(.*)")
-    level, text = RE_LEVEL.match(line.strip()).groups()
-
-    if "|" in text:
-        tokens = text.split("|", 2)
-        label, title, page = pad(tokens, 3, '')
-    else:
-        title = text
-        label = page = ""
-
-    return Storage(
-        level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
-    )
-
-
-def parse_toc(text: str | None) -> list[Any]:
-    """Parses each line of toc"""
-    if text is None:
-        return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
 T = TypeVar('T')
@@ -1302,10 +1249,11 @@ def websafe(text: str) -> str:
         return _websafe(text)
 
 
-from openlibrary.plugins.upstream import adapter
-from openlibrary.utils.olcompress import OLCompressor
-from openlibrary.utils import olmemcache
 import memcache
+
+from openlibrary.plugins.upstream import adapter
+from openlibrary.utils import olmemcache
+from openlibrary.utils.olcompress import OLCompressor
 
 
 class UpstreamMemcacheClient:
@@ -1435,20 +1383,6 @@ _get_recent_changes2 = web.memoize(
 
 
 @public
-def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.get("features", []):
-        changes = _get_recent_changes2()
-    else:
-        changes = _get_recent_changes()
-
-    _changes = random.sample(changes, n) if len(changes) > n else changes
-    for _, change in enumerate(_changes):
-        change['__body__'] = (
-            change['__body__'].replace('<script>', '').replace('</script>', '')
-        )
-    return _changes
-
-
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
@@ -1494,33 +1428,6 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
-
-
-@public
-def get_donation_include() -> str:
-    ia_host = get_ia_host(allow_dev=True)
-    # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services
-    if ia_host != "archive.org":
-        script_src = f"https://{ia_host}/includes/donate.js"
-    else:
-        script_src = "/cdn/archive.org/donate.js"
-
-    if 'ymd' in (web_input := web.input()):
-        # Should be eg 20220101 (YYYYMMDD)
-        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
-            script_src += '?' + urllib.parse.urlencode({'ymd': web_input.ymd})
-        else:
-            raise ValueError('?ymd should be 8 digits (eg 20220101)')
-
-    html = (
-        """
-    <div id="donato"></div>
-    <script src="%s" data-platform="ol"></script>
-    """
-        % script_src
-    )
-    return html
 
 
 @public

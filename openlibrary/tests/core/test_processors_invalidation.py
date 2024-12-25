@@ -1,5 +1,6 @@
-import web
 import datetime
+
+import web
 
 from infogami.infobase import client
 from openlibrary.core.processors import invalidation
@@ -17,12 +18,12 @@ class MockHook:
 
 
 class MockDatetime:
-    """Class to mock datetime.datetime to overwrite utcnow method."""
+    """Class to mock datetime.datetime to overwrite now() method."""
 
-    def __init__(self, utcnow):
-        self._now = utcnow
+    def __init__(self, mock_now):
+        self._now = mock_now
 
-    def utcnow(self):
+    def now(self):
         return self._now
 
 
@@ -73,7 +74,7 @@ class TestInvalidationProcessor:
 
     def test_reload_on_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
-        mock_now = datetime.datetime.utcnow() - datetime.timedelta(seconds=60)
+        mock_now = datetime.datetime.now() - datetime.timedelta(seconds=60)
         monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=['/templates'], timeout=60)
@@ -99,7 +100,7 @@ class TestInvalidationProcessor:
 
     def test_is_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
-        mock_now = datetime.datetime.utcnow() - datetime.timedelta(seconds=60)
+        mock_now = datetime.datetime.now() - datetime.timedelta(seconds=60)
         monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=['/templates'], timeout=60)
@@ -135,7 +136,7 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 0
 
         web.ctx.env['HTTP_COOKIE'] = (
-            "invalidation_cookie=" + datetime.datetime.utcnow().isoformat()
+            "invalidation_cookie=" + datetime.datetime.now().isoformat()
         )
         # Clear parsed cookie cache to force our new value to be parsed
         if "_parsed_cookies" in web.ctx:

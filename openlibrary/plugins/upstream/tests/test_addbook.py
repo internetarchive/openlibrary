@@ -1,9 +1,11 @@
 """py.test tests for addbook"""
 
 import web
-from .. import addbook
+
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
+
+from .. import addbook
 
 
 def strip_nones(d):

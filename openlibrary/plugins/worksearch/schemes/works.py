@@ -1,13 +1,14 @@
-from copy import deepcopy
-from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, cast
 from collections.abc import Callable
+from copy import deepcopy
+from datetime import datetime
+from typing import Any, cast
 
 import luqum.tree
 import web
+
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -18,8 +19,8 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_remove_field,
     luqum_replace_child,
-    luqum_traverse,
     luqum_replace_field,
+    luqum_traverse,
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -184,6 +185,7 @@ class WorkSearchScheme(SearchScheme):
         # FIXME: These should be fetched from book_providers, but can't cause circular
         # dep
         'id_project_gutenberg',
+        'id_project_runeberg',
         'id_librivox',
         'id_standard_ebooks',
         'id_openstax',
@@ -344,10 +346,11 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Duplicate author fields
-                'author_name': 'author_name',
-                'author_key': 'author_key',
-                'author_alternative_name': 'author_alternative_name',
-                'author_facet': 'author_facet',
+                # Disabled until the next full reindex
+                # 'author_name': 'author_name',
+                # 'author_key': 'author_key',
+                # 'author_alternative_name': 'author_alternative_name',
+                # 'author_facet': 'author_facet',
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',

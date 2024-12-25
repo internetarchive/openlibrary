@@ -93,7 +93,6 @@ $:macros.HiddenSaveButton("addAuthor")
                             </div>
 
                         <div class="clearfix"></div>
-
                         <div class="formElement">
                             <div class="label">
                                 <label for="alternate_names">$_("Does this author go by any other names?")</label>
@@ -104,9 +103,11 @@ $:macros.HiddenSaveButton("addAuthor")
                             </div>
                         </div>
                         <div class="label">$_("Identifiers") <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
+                        <div id="id-errors" class="note" style="display: none"></div>
                         <div id="hiddenIdentifierInputs"></div>
                         <div id="identifiers-display">
-                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
+                            $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian()
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs', admin=str(admin), input_prefix='author--remote_ids', id_config_string=dict(get_author_config())))
                         </div>
                         <br>
                         <fieldset class="major">

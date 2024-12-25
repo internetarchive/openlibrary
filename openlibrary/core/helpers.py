@@ -3,19 +3,17 @@
 
 import json
 import re
-from datetime import datetime, date
+from collections.abc import Callable, Iterable
+from datetime import date, datetime
+from typing import Any
 from urllib.parse import urlsplit
-
-import web
 
 import babel
 import babel.core
 import babel.dates
 import babel.numbers
-
+import web
 from babel.core import Locale
-from collections.abc import Callable, Iterable
-from typing import Any
 
 try:
     import genshi
@@ -35,32 +33,30 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
-
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
 __all__ = [
-    "sanitize",
-    "json_encode",
-    "safesort",
-    "days_since",
-    "datestr",
-    "format_date",
-    "sprintf",
-    "cond",
-    "commify",
-    "truncate",
-    "datetimestr_utc",
-    "urlsafe",
-    "texsafe",
-    "percentage",
     "affiliate_id",
     "bookreader_host",
-    "private_collections",
-    "private_collection_in",
+    "commify",
+    "cond",
+    "datestr",
+    "datetimestr_utc",
+    "days_since",
     "extract_year",
-    # functions imported from elsewhere
-    "parse_datetime",
-    "safeint",
+    "format_date",
+    "json_encode",
+    "parse_datetime",  # function imported from elsewhere
+    "percentage",
+    "private_collection_in",
+    "private_collections",
+    "safeint",  # function imported from elsewhere
+    "safesort",
+    "sanitize",
+    "sprintf",
+    "texsafe",
+    "truncate",
+    "urlsafe",
 ]
 __docformat__ = "restructuredtext en"
 

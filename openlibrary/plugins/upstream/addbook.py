@@ -1,35 +1,30 @@
 """Handlers for adding and editing books."""
 
-import io
-import web
-import json
 import csv
 import datetime
+import io
+import json
+import logging
+import urllib
+from typing import Literal, NoReturn, overload
 
-from typing import Literal, overload, NoReturn
+import web
+from web.webapi import SeeOther
 
 from infogami import config
 from infogami.core.db import ValidationException
-from infogami.utils import delegate
-from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
-
-from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _
+from infogami.utils import delegate
+from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
-import logging
-
-from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.models import Author, Edition, Work
-from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
-
-from openlibrary.plugins.upstream.account import as_admin
+from openlibrary.core.helpers import uniq
+from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary.plugins.recaptcha import recaptcha
-
-import urllib
-from web.webapi import SeeOther
-
+from openlibrary.plugins.upstream import spamcheck, utils
+from openlibrary.plugins.upstream.account import as_admin
+from openlibrary.plugins.upstream.models import Author, Edition, Work
+from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
+from openlibrary.plugins.worksearch.search import get_solr
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -648,7 +643,7 @@ class SaveBookHelper:
                 edition_data.pop('physical_dimensions', None)
             )
             self.edition.set_weight(edition_data.pop('weight', None))
-            self.edition.set_toc_text(edition_data.pop('table_of_contents', ''))
+            self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
 
             if edition_data.pop('translation', None) != 'yes':
                 edition_data.translation_of = None
@@ -874,10 +869,8 @@ class book_edit(delegate.page):
             raise web.notfound()
 
         work = (
-            edition.works
-            and edition.works[0]
-            or edition.make_work_from_orphaned_edition()
-        )
+            edition.works and edition.works[0]
+        ) or edition.make_work_from_orphaned_edition()
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 

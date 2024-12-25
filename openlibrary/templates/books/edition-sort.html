@@ -91,11 +91,5 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $# render_first is only true on the book page for an edition.
           <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
         </ul>
-        $if oclc_numbers or isbn:
-          <div class="editions-table__links">
-              <span>$_('Libraries near you:')</span>
-              <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                 title="$_('Look for this edition at WorldCat')">WorldCat</a>
-          </div>
       </div>
     </td>

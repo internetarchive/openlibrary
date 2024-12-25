@@ -21,6 +21,7 @@
         target="_blank"
       >
         <img
+          loading="lazy"
           :src="`https://covers.openlibrary.org/b/id/${id}-M.jpg`"
           :srcset="`https://covers.openlibrary.org/b/id/${id}-M.jpg, https://covers.openlibrary.org/b/id/${id}-L.jpg 1.5x, https://covers.openlibrary.org/b/id/${id}.jpg 2x`"
         />
@@ -120,3 +121,11 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.cover img {
+  min-height: 80px; /* Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Prevent distortion */
+}
+</style>

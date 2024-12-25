@@ -1,29 +1,27 @@
 import logging
 import re
+import sys
+from collections import defaultdict
 from functools import cached_property
 
-import sys
 import web
+from isbnlib import NotValidISBNError, canonical, mask
 
-from collections import defaultdict
-from isbnlib import canonical, mask, NotValidISBNError
-
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
-from infogami.utils.view import safeint
 from infogami.utils import stats
-
-from openlibrary.core import models, ia
+from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
+from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
-from openlibrary.core import lending
-
-from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
-from openlibrary.plugins.upstream import account
-from openlibrary.plugins.upstream import borrow
+from openlibrary.plugins.upstream import (
+    account,  # noqa: F401 side effects may be needed
+    borrow,
+)
+from openlibrary.plugins.upstream.table_of_contents import TableOfContents
+from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
-
-from openlibrary.utils import dateutil
+from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.lccn import normalize_lccn
 
@@ -71,7 +69,7 @@ class Edition(models.Edition):
 
     def get_cover(self):
         covers = self.get_covers()
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size):
         if cover := self.get_cover():
@@ -408,33 +406,22 @@ class Edition(models.Edition):
                 d
             )
 
-    def get_toc_text(self):
-        def format_row(r):
-            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
+    def get_toc_text(self) -> str:
+        if toc := self.get_table_of_contents():
+            return toc.to_markdown()
+        return ""
 
-        return "\n".join(format_row(r) for r in self.get_table_of_contents())
+    def get_table_of_contents(self) -> TableOfContents | None:
+        if not self.table_of_contents:
+            return None
 
-    def get_table_of_contents(self):
-        def row(r):
-            if isinstance(r, str):
-                level = 0
-                label = ""
-                title = r
-                pagenum = ""
-            else:
-                level = safeint(r.get('level', '0'), 0)
-                label = r.get('label', '')
-                title = r.get('title', '')
-                pagenum = r.get('pagenum', '')
+        return TableOfContents.from_db(self.table_of_contents)
 
-            r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
-            return r
-
-        d = [row(r) for r in self.table_of_contents]
-        return [row for row in d if any(row.values())]
-
-    def set_toc_text(self, text):
-        self.table_of_contents = parse_toc(text)
+    def set_toc_text(self, text: str | None):
+        if text:
+            self.table_of_contents = TableOfContents.from_markdown(text).to_db()
+        else:
+            self.table_of_contents = None
 
     def get_links(self):
         links1 = [
@@ -509,7 +496,7 @@ class Author(models.Author):
 
     def get_photo(self):
         photos = self.get_photos()
-        return photos and photos[0] or None
+        return (photos and photos[0]) or None
 
     def get_photo_url(self, size):
         photo = self.get_photo()
@@ -615,7 +602,7 @@ class Work(models.Work):
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size, use_solr=True):
         cover = self.get_cover(use_solr=use_solr)
@@ -913,7 +900,7 @@ class Changeset(client.Changeset):
             {"kind": "undo", "data": {"parent_changeset": self.id}}
         )
         # return the first undo changeset
-        self._undo_changeset = changesets and changesets[-1] or None
+        self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
 
 

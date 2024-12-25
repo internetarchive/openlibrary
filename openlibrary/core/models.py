@@ -1,45 +1,45 @@
 """Models of various OL objects.
 """
 
-from datetime import datetime, timedelta
-import logging
-from openlibrary.core.vendors import get_amazon_metadata
-
-import web
 import json
-import requests
-from typing import Any
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, TypedDict
+from urllib.parse import urlencode
+
+import requests
+import web
 
 from infogami.infobase import client
 
-from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
-
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
+from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core import lending
-from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
-from openlibrary.core.helpers import private_collection_in
+from openlibrary.core.helpers import (
+    parse_datetime,
+    private_collection_in,
+    safesort,
+    urlsafe,
+)
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils import extract_numeric_id_from_olid, dateutil
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
+from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
+from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
 from . import cache, waitinglist
-
-from urllib.parse import urlencode
-from pydantic import ValidationError
-
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
-from ..accounts import OpenLibraryAccount
-from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -219,8 +219,17 @@ class Thing(client.Thing):
         }
 
 
+class ThingReferenceDict(TypedDict):
+    key: ThingKey
+
+
 class Edition(Thing):
     """Class to represent /type/edition objects in OL."""
+
+    table_of_contents: list[dict] | list[str] | list[str | dict] | None
+    """
+    Should be a list of dict; the other types are legacy
+    """
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -321,27 +330,6 @@ class Edition(Thing):
     def ia_metadata(self):
         ocaid = self.get('ocaid')
         return get_metadata(ocaid) if ocaid else {}
-
-    @property  # type: ignore[misc]
-    @cache.method_memoize
-    def sponsorship_data(self):
-        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get(
-            'collection', []
-        )
-        if not was_sponsored:
-            return None
-
-        donor = self.ia_metadata.get('donor')
-
-        return web.storage(
-            {
-                'donor': donor,
-                'donor_account': (
-                    OpenLibraryAccount.get_by_link(donor) if donor else None
-                ),
-                'donor_msg': self.ia_metadata.get('donor_msg'),
-            }
-        )
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book."""
@@ -898,9 +886,6 @@ class User(Thing):
     def is_super_librarian(self):
         return self.is_usergroup_member('/usergroup/super-librarians')
 
-    def in_sponsorship_beta(self):
-        return self.is_usergroup_member('/usergroup/sponsors')
-
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
 
@@ -1004,7 +989,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow
+        from ..plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
         loans = (
             lending.get_cached_loans_of_user(self.key)
@@ -1070,7 +1055,7 @@ class UserGroup(Thing):
     @classmethod
     def from_key(cls, key: str):
         """
-        :param str key: e.g. /usergroup/sponsor-waitlist
+        :param str key: e.g. /usergroup/foo
         :rtype: UserGroup | None
         """
         if not key.startswith('/usergroup/'):
@@ -1162,7 +1147,7 @@ class Tag(Thing):
 
     @classmethod
     def find(cls, tag_name, tag_type):
-        """Returns a Tag object for a given tag name and tag type."""
+        """Returns a Tag key for a given tag name and tag type."""
         q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
         match = list(web.ctx.site.things(q))
         return match[0] if match else None
