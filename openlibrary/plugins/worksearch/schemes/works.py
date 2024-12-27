@@ -6,10 +6,10 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any, cast
 
-import infogami
 import luqum.tree
 import web
 
+import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -277,7 +277,7 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(
+    def q_to_solr_params(  # noqa: C901, PLR0915
         self,
         q: str,
         solr_fields: set[str],

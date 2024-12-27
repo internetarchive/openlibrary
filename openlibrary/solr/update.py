@@ -116,7 +116,7 @@ async def update_keys(
                     new_update_state, new_keys = await updater.update_key(thing)
                     update_state += new_update_state
                     keys += new_keys
-            except:
+            except:  # noqa: E722
                 logger.error("Failed to update %r", key, exc_info=True)
 
         if update_state.has_changes():

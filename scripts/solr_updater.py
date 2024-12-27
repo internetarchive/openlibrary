@@ -18,10 +18,11 @@ import urllib
 from collections.abc import Iterator
 from pathlib import Path
 
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
@@ -260,12 +261,12 @@ async def main(
     logger.info("BEGIN solr_updater")
 
     if debugger:
-        import debugpy
+        import debugpy  # noqa: T100
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
-        debugpy.listen(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100
         logger.info("Waiting for debugger to attach...")
-        debugpy.wait_for_client()
+        debugpy.wait_for_client()  # noqa: T100
         logger.info("Debugger attached to port 3000")
 
     # Sometimes archive.org requests blocks forever.

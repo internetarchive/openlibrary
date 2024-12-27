@@ -12,11 +12,11 @@ from unicodedata import normalize
 
 import requests
 import web
+from requests import Response
+
 from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
-from requests import Response
-
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
@@ -147,7 +147,7 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
-def run_solr_query(
+def run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -191,7 +191,7 @@ def run_solr_query(
     facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
     if facet and facet_fields:
         params.append(('facet', 'true'))
-        for facet in facet_fields:
+        for facet in facet_fields:  # noqa: PLR1704
             if isinstance(facet, str):
                 params.append(('facet.field', facet))
             elif isinstance(facet, dict):

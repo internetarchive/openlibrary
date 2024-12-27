@@ -1,3 +1,3 @@
 from openlibrary.core.processors.readableurls import (
-    ReadableUrlProcessor,  # # side effects may be needed
+    ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )

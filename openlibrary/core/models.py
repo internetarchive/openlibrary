@@ -11,10 +11,12 @@ from urllib.parse import urlencode
 
 import requests
 import web
+
 from infogami.infobase import client
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
+from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core import lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -33,6 +35,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
+from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
 from . import cache, waitinglist
 from .ia import get_metadata
@@ -985,6 +988,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
+        from ..plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
         loans = (
             lending.get_cached_loans_of_user(self.key)

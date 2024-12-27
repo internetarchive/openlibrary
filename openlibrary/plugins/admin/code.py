@@ -12,13 +12,14 @@ from collections.abc import Iterable
 
 import requests
 import web
-from infogami import config
-from infogami.utils import delegate
-from infogami.utils.context import context
-from infogami.utils.view import add_flash_message, public, render
 from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
+from infogami import config
+from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
+from infogami.utils import delegate
+from infogami.utils.context import context
+from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
 from openlibrary.catalog.add_book import (
@@ -646,6 +647,9 @@ def get_admin_stats():
     return storify(xstats)
 
 
+from openlibrary.plugins.upstream import borrow  # noqa: F401 side effects may be needed
+
+
 class inspect:
     def GET(self, section):
         if section == "/store":
@@ -761,13 +765,13 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import debugpy
+        import debugpy  # noqa: T100
 
         # Allow other computers to attach to ptvsd at this IP address and port.
         web.debug("Enabling debugger attachment")
-        debugpy.listen(('0.0.0.0', 3000))
+        debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
         web.debug("Waiting for debugger to attach...")
-        debugpy.wait_for_client()
+        debugpy.wait_for_client()  # noqa: T100
         web.debug("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 

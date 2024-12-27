@@ -22,9 +22,11 @@ import logging
 from typing import Any
 from urllib.parse import urlencode
 
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import ijson
 import requests
 
+from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch

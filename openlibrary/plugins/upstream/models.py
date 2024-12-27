@@ -5,19 +5,23 @@ from collections import defaultdict
 from functools import cached_property
 
 import web
-from infogami.infobase import client
-from infogami.utils import stats
 from isbnlib import NotValidISBNError, canonical, mask
 
+from infogami import config  # noqa: F401 side effects may be needed
+from infogami.infobase import client
+from infogami.utils import stats
+from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import (
+    account,  # noqa: F401 side effects may be needed
     borrow,
 )
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.lccn import normalize_lccn
 

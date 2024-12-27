@@ -12,10 +12,10 @@ import socket
 from time import time
 from urllib.parse import parse_qs, urlencode
 
-import infogami
 import requests
 import web
 
+import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -26,6 +26,7 @@ from openlibrary.i18n import gettext as _
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -37,12 +38,13 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-
-import openlibrary.core.stats
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
+from openlibrary.core.vendors import (
+    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
+)
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
@@ -300,6 +302,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
+        from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -1433,6 +1436,10 @@ def setup():
     status.setup()
     authors.setup()
     swagger.setup()
+
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 side effects may be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 

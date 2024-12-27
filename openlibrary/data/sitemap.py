@@ -20,6 +20,10 @@ from gzip import open as gzopen
 
 import web
 
+from openlibrary.plugins.openlibrary.processors import (
+    urlsafe,  # noqa: F401 side effects may be needed
+)
+
 t = web.template.Template
 
 t_sitemap = t(

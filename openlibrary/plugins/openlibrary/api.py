@@ -10,10 +10,18 @@ from collections import defaultdict
 
 import qrcode
 import web
+
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
-
+from infogami.utils.view import (
+    add_flash_message,  # noqa: F401 side effects may be needed
+    render_template,  # noqa: F401 used for its side effects
+)
 from openlibrary import accounts
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+)
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
@@ -27,6 +35,9 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.worksearch.subjects import (
+    get_subject,  # noqa: F401 side effects may be needed
+)
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
@@ -475,7 +486,7 @@ class price_api(delegate.page):
             ed = web.ctx.site.get(book_key)
             if ed:
                 metadata['key'] = ed.key
-                if ed.ocaid:
+                if getattr(ed, 'ocaid'):  # noqa: B009
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)

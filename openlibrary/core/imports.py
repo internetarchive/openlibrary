@@ -212,7 +212,7 @@ class ImportItem(web.storage):
             item: ImportItem = ImportItem(in_process_items[0])
             try:
                 return item.single_import()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
             finally:
                 db.query(query_finish_processing, vars={'ia_ids': ia_ids})
@@ -239,7 +239,7 @@ class ImportItem(web.storage):
         except ValidationError:
             self.set_status("failed", error="invalid-value")
             return None
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.set_status("failed", error="unknown-error")
             return None
 

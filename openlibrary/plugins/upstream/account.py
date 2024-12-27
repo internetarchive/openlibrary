@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
@@ -17,7 +19,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -345,6 +346,9 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
+        from openlibrary.plugins.openlibrary.code import (
+            BadRequest,  # noqa: F401 side effects may be needed
+        )
 
         d = json.loads(web.data())
         email = d.get('email', "")

@@ -5,6 +5,8 @@ import os
 import sys
 from datetime import datetime
 
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
+
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
@@ -20,7 +22,6 @@ if __name__ == "__main__":
     from contextlib import redirect_stdout
 
     from infogami import config
-
     from openlibrary.config import load_config
     from openlibrary.data import dump
     from openlibrary.utils.sentry import Sentry

@@ -7,7 +7,6 @@ from typing import Any, Literal
 
 import requests
 from dateutil import parser as isoparser
-from infogami.utils.view import public
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
@@ -15,6 +14,7 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
+from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -52,7 +52,7 @@ def get_lexile(isbn):
         lexile.raise_for_status()  # this will raise an error for us if the http status returned is not 200 OK
         data = lexile.json()
         return data, data.get("error_msg")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if e.response.status_code not in [200, 404]:
             raise Exception(f"Got bad response back from server: {e}")
         return {}, e

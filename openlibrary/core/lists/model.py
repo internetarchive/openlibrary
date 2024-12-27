@@ -8,8 +8,10 @@ from functools import cached_property
 from typing import TypedDict, cast
 
 import web
-from infogami.infobase import client  # # side effects may be needed
 
+from infogami import config  # noqa: F401 side effects may be needed
+from infogami.infobase import client, common  # noqa: F401 side effects may be needed
+from infogami.utils import stats  # noqa: F401 side effects may be needed
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict

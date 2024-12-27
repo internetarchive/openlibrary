@@ -4,6 +4,7 @@
 import os
 from optparse import OptionParser
 
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.api import OpenLibrary, marshal

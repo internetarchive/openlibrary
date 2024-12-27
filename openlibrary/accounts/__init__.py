@@ -4,7 +4,7 @@ import web
 
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
-from .model import *
+from .model import *  # noqa: F403
 from .model import Account, Link
 
 if TYPE_CHECKING:
