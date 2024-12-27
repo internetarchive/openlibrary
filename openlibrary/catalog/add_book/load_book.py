@@ -271,6 +271,9 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     suitable for saving.
     :return: Open Library style edition dict representation
     """
+    # import format_languages function from __init__.py to avoid circular import
+    from . import format_languages
+    
     book: dict[str, Any] = {
         'type': {'key': '/type/edition'},
     }
@@ -283,12 +286,24 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
-        if k in ('languages', 'translated_from'):
+        
+        if k == 'languages':  # Special handling for languages
+            if not v:
+                continue
+            formatted_languages = format_languages(v)
             for language in v:
                 if web.ctx.site.get('/languages/' + language.lower()) is None:
                     raise InvalidLanguage(language.lower())
-            book[k] = [{'key': '/languages/' + language.lower()} for language in v]
+            book[k] = formatted_languages
             continue
+        
+        if k in ('translated_from',):  # Handle translated_from if necessary
+            if not v:
+                continue
+            formatted_languages = format_languages(v)
+            book[k] = formatted_languages
+            continue
+        
         if k in type_map:
             t = '/type/' + type_map[k]
             if isinstance(v, list):
