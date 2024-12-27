@@ -787,6 +787,14 @@ def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
 
+def format_languages(languages):
+    """Format language data to match Open Library's expected format."""
+    if not languages:
+        return []
+    formatted_languages = []
+    for language in languages:
+        formatted_languages.append({'key': f'/languages/{language.lower()}'})
+    return formatted_languages
 
 def update_edition_with_rec_data(
     rec: dict, account_key: str | None, edition: "Edition"
@@ -796,7 +804,7 @@ def update_edition_with_rec_data(
     in edition.
 
     NOTE: This modifies the passed-in Edition in place.
-    """
+    """   
     need_edition_save = False
     # Add cover to edition
     if 'cover' in rec and not edition.get_covers():
@@ -818,19 +826,33 @@ def update_edition_with_rec_data(
         'lc_classifications',
         'oclc_numbers',
         'source_records',
+        'languages',
     ]
     for f in edition_list_fields:
         if f not in rec or not rec[f]:
             continue
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        if f in edition:
-            # get values from rec field that are not currently on the edition
-            case_folded_values = {v.casefold() for v in edition[f]}
-            to_add = [v for v in values if v.casefold() not in case_folded_values]
-            edition[f] += to_add
-        else:
-            edition[f] = to_add = values
+        
+        if f == 'languages':
+            formatted_languages = format_languages(values)
+            
+            if f in edition:
+                # get values from rec field that are not currently on the edition
+                case_folded_values = {v['key'].casefold() for v in edition[f]}
+                to_add = [v for v in formatted_languages if v['key'].casefold() not in case_folded_values]
+                edition[f] += to_add
+            else:
+                edition[f] = to_add = formatted_languages
+        else: 
+            if f in edition:
+                # get values from rec field that are not currently on the edition
+                case_folded_values = {v.casefold() for v in edition[f]}
+                to_add = [v for v in values if v.casefold() not in case_folded_values]
+                edition[f] += to_add
+            else:
+                edition[f] = to_add = values
+                
         if to_add:
             need_edition_save = True
 
