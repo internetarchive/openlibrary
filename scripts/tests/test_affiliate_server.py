@@ -15,7 +15,7 @@ import pytest
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
-from scripts.affiliate_server import (  # noqa: E402
+from scripts.affiliate_server import (
     PrioritizedIdentifier,
     Priority,
     get_editions_for_books,
