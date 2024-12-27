@@ -1339,6 +1339,15 @@ msgstr ""
 msgid "This reader has chosen to make their Reading Log private."
 msgstr ""
 
+#: account/mybooks.html
+#, python-format
+msgid "%(year_span)s reading goal"
+msgstr ""
+
+#: account/mybooks.html account/sidebar.html
+msgid "Yearly Reading Goal"
+msgstr ""
+
 #: account/mybooks.html account/sidebar.html
 msgid "Untitled list"
 msgstr ""
@@ -1719,10 +1728,6 @@ msgstr ""
 #: account/sidebar.html
 #, python-format
 msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
