@@ -5710,10 +5710,6 @@ msgid "Community Reviews"
 msgstr ""
 
 #: observations/review_component.html
-msgid "Feedback?"
-msgstr ""
-
-#: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
 msgstr ""
 
