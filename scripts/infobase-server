@@ -16,7 +16,7 @@ import logging
 import os
 import sys
 
-import _init_path  
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.utils.sentry import Sentry
