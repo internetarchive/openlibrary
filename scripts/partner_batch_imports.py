@@ -18,8 +18,8 @@ from collections.abc import Mapping
 from typing import cast
 
 import requests
-
 from infogami import config  # noqa: F401 side effects may be needed
+
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI

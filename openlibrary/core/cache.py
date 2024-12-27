@@ -13,10 +13,10 @@ from typing import Any, Literal, cast
 
 import memcache
 import web
-
 from infogami import config
 from infogami.infobase.client import Nothing
 from infogami.utils import stats
+
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS

@@ -4,7 +4,6 @@ A lightweight version of github.com/internetarchive/bookserver
 """
 
 import lxml.etree as ET
-
 from infogami.infobase.utils import parse_datetime
 
 
