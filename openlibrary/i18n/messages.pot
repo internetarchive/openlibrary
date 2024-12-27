@@ -5067,11 +5067,11 @@ msgid "Help Center"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Problems"
+msgid "Contact"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Report A Problem"
+msgid "Contact Us"
 msgstr ""
 
 #: lib/nav_foot.html
