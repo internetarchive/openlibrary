@@ -89,7 +89,7 @@ class TestImportAuthor:
             mock_site.save(existing_author)
 
     @pytest.mark.parametrize(
-        ["name", "expected"],
+        ('name', 'expected'),
         [
             ("Drake von Drake", "Drake von Drake"),
             ("Dr. Seuss", "Dr. Seuss"),
