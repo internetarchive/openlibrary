@@ -254,7 +254,6 @@ class borrow_status(delegate.page):
 
     def GET(self, key):
 
-
         i = web.input(callback=None)
 
         edition = web.ctx.site.get(key)
@@ -522,7 +521,6 @@ def get_loan_status(resource_id: str):
     ]
     """
 
-
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
 
@@ -551,7 +549,6 @@ def get_loan_status(resource_id: str):
 
 def get_all_loaned_out():
     """Returns array of BSS status for all resources currently loaned out (according to BSS)"""
-
 
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')

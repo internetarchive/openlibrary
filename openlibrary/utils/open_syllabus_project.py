@@ -6,11 +6,12 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-osp_config:dict = {
- "osp_dump_location": None # dict config for keeping the original osp_dump_location: Path | None = None
+osp_config: dict = {
+    "osp_dump_location": None  # dict config for keeping the original osp_dump_location: Path | None = None
 }
 
 logger = logging.getLogger("openlibrary.open_syllabus_project")
+
 
 def get_osp_dump_location() -> Path | None:
     """
@@ -18,10 +19,9 @@ def get_osp_dump_location() -> Path | None:
     """
     return osp_config["osp_dump_location"]
 
+
 def set_osp_dump_location(val: Path | None):
     osp_config["osp_dump_location"] = val
-
-
 
 
 # Function to get the total based on OLID

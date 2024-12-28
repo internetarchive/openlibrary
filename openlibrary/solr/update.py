@@ -57,7 +57,7 @@ async def update_keys(
     output_file=None,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-    data_provider: DataProvider = None
+    data_provider: DataProvider = None,
 ) -> SolrUpdateRequest:
     """
     Insert/update the documents with the provided keys in Solr.
@@ -79,7 +79,6 @@ async def update_keys(
             print(update_state.to_solr_requests_json(sep='\n'))
         elif update == 'quiet':
             pass
-
 
     if data_provider is None:
         data_provider = get_data_provider('default')
@@ -145,13 +144,12 @@ def load_configs(
     c_data_provider: (
         DataProvider | Literal["default", "legacy", "external"]
     ) = 'default',
-    data_provider: DataProvider = None
+    data_provider: DataProvider = None,
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
 
     load_config(c_config)
-
 
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
