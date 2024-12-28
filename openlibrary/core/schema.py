@@ -2,7 +2,6 @@
 """
 
 import web
-
 from infogami.infobase import dbstore
 
 

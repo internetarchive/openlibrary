@@ -1,8 +1,8 @@
 import datetime
 
 import web
-
 from infogami.infobase import client
+
 from openlibrary.core.processors import invalidation
 from openlibrary.mocks.mock_infobase import MockSite
 

@@ -5,10 +5,10 @@ import json
 import logging
 
 import web
-
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.plugins.upstream.utils import get_language_name
 
 from . import search, subjects
