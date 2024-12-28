@@ -280,10 +280,24 @@ class Classifications:
 
 
 @dataclass
+class Contributor:
+    locale: str | None
+    name: str | None
+    role: str | None
+
+
+@dataclass
+class ByLineInfo:
+    brand: str | None
+    contributors: list[Contributor] | None
+    manufacturer: str | None
+
+
+@dataclass
 class ItemInfo:
     classifications: Classifications | None
     content_info: str
-    by_line_info: str
+    by_line_info: ByLineInfo | None
     title: str
 
 
@@ -312,7 +326,7 @@ def test_clean_amazon_metadata_does_not_load_DVDS_product_group(
         product_group=dvd_product_group, binding=Binding('')
     )
     item_info = ItemInfo(
-        classifications=classification, content_info='', by_line_info='', title=''
+        classifications=classification, content_info='', by_line_info=None, title=''
     )
     amazon_metadata = AmazonAPIReply(
         item_info=item_info,
@@ -321,6 +335,48 @@ def test_clean_amazon_metadata_does_not_load_DVDS_product_group(
         asin='',
     )
     result = AmazonAPI.serialize(amazon_metadata)
+    assert result == expected
+
+
+def test_serialize_does_not_load_translators_as_authors() -> None:
+    """Ensure data load does not load translators as author and relies on fake API response objects"""
+    classification = None
+    contributors = [
+        Contributor(None, 'Rachel Kushner', 'Author'),
+        Contributor(None, 'Suat Ertüzün', 'Translator'),
+    ]
+    by_line_info = ByLineInfo(None, contributors, None)
+    item_info = ItemInfo(
+        classifications=classification,
+        content_info='',
+        by_line_info=by_line_info,
+        title='',
+    )
+    amazon_metadata = AmazonAPIReply(
+        item_info=item_info,
+        images='',
+        offers='',
+        asin='',
+    )
+    result = AmazonAPI.serialize(amazon_metadata)
+    expected = {
+        'url': 'https://www.amazon.com/dp//?tag=',
+        'source_records': ['amazon:'],
+        'isbn_10': [''],
+        'isbn_13': [],
+        'price': '',
+        'price_amt': '',
+        'title': '',
+        'cover': None,
+        'authors': [{'name': 'Rachel Kushner'}],
+        'translators': [{'name': 'Suat Ertüzün'}],
+        'publishers': [],
+        'number_of_pages': '',
+        'edition_num': '',
+        'publish_date': '',
+        'product_group': None,
+        'physical_format': None,
+    }
     assert result == expected
 
 
@@ -339,7 +395,7 @@ def test_clean_amazon_metadata_does_not_load_DVDS_physical_format(
     binding = Binding(physical_format)
     classification = Classifications(product_group=dvd_product_group, binding=binding)
     item_info = ItemInfo(
-        classifications=classification, content_info='', by_line_info='', title=''
+        classifications=classification, content_info='', by_line_info=None, title=''
     )
     amazon_metadata = AmazonAPIReply(
         item_info=item_info,
