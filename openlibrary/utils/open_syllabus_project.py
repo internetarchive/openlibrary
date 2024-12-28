@@ -6,21 +6,22 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-osp_dump_location: Path | None = None
-logger = logging.getLogger("openlibrary.open_syllabus_project")
+osp_config:dict = {
+ "osp_dump_location": None # dict config for keeping the original osp_dump_location: Path | None = None
+}
 
+logger = logging.getLogger("openlibrary.open_syllabus_project")
 
 def get_osp_dump_location() -> Path | None:
     """
     Get whether the location of the Open Syllabus project counts dump
     """
-    global osp_dump_location
-    return osp_dump_location
-
+    return osp_config["osp_dump_location"]
 
 def set_osp_dump_location(val: Path | None):
-    global osp_dump_location
-    osp_dump_location = val
+    osp_config["osp_dump_location"] = val
+
+
 
 
 # Function to get the total based on OLID

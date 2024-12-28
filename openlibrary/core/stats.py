@@ -38,7 +38,7 @@ def create_stats_client(cfg=config):
 
 def put(key, value, rate=1.0):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
-    global client
+
     if client:
         pystats_logger.debug(f"Putting {value} as {key}")
         client.timing(key, value, rate)
@@ -46,7 +46,7 @@ def put(key, value, rate=1.0):
 
 def increment(key, n=1, rate=1.0):
     "Increments the value of ``key`` by ``n``"
-    global client
+
     if client:
         pystats_logger.debug("Incrementing %s" % key)
         for i in range(n):
@@ -62,7 +62,7 @@ def gauge(key: str, value: int, rate: float = 1.0) -> None:
 
     See https://statsd.readthedocs.io/en/v3.3/types.html#gauges
     """
-    global client
+
     if client:
         pystats_logger.debug(f"Updating gauge {key} to {value}")
         client.gauge(key, value, rate=rate)
