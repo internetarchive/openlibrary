@@ -21,8 +21,8 @@ from pathlib import Path
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
