@@ -2690,10 +2690,6 @@ msgid "block this account"
 msgstr ""
 
 #: admin/people/view.html
-msgid "send password reset email"
-msgstr ""
-
-#: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
 msgstr ""
