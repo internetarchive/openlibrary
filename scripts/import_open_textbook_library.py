@@ -65,7 +65,6 @@ def map_data(data) -> dict[str, Any]:
         else:
             pass
 
-
     if data.get('publishers'):
         import_record['publishers'] = [
             publisher["name"] for publisher in data["publishers"]
