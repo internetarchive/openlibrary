@@ -40,6 +40,7 @@ def find_last_months_dumps_on_ia(yyyy_mm: str = yyyy_mm) -> bool:
                 break  # Exit the inner loop as soon as a match is found for this prefix
     return False
 
+
 if __name__ == "__main__":
     import sys
 

@@ -158,7 +158,7 @@ def parse_log(records, load_ia_scans: bool):
                     # also need to be updated
                     yield from before_keys - after_keys
                 elif not before:
-                    pass    
+                    pass
 
         elif action == 'store.put':
             # A sample record looks like this:
@@ -173,13 +173,22 @@ def parse_log(records, load_ia_scans: bool):
             # }
             data = rec.get('data', {}).get("data", {})
             key = data.get("_key", "")
-            
-            if data.get("type") == "ebook" and key.startswith("ebooks/books/") and (edition_key := data.get('book_key')):
+
+            if (
+                data.get("type") == "ebook"
+                and key.startswith("ebooks/books/")
+                and (edition_key := data.get('book_key'))
+            ):
                 yield edition_key
 
-            elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/") and (identifier := data.get('identifier')) and is_allowed_itemid(identifier):
+            elif (
+                load_ia_scans
+                and data.get("type") == "ia-scan"
+                and key.startswith("ia-scan/")
+                and (identifier := data.get('identifier'))
+                and is_allowed_itemid(identifier)
+            ):
                 yield "/books/ia:" + identifier
-
 
             # Hack to force updating something from admin interface
             # The admin interface writes the keys to update to a document named
@@ -187,7 +196,6 @@ def parse_log(records, load_ia_scans: bool):
             # are picked by this script
             elif key == 'solr-force-update' and (keys := data.get('keys')):
                 yield from keys
-
 
         elif action == 'store.delete':
             key = rec.get("data", {}).get("key")

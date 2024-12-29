@@ -396,7 +396,9 @@ def update_record_with_wikisource_metadata(
             author = template.get("author").value.strip()
             if author:
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
-                book.add_authors([Author(friendly_name=format_contributor(a)) for a in authors])
+                book.add_authors(
+                    [Author(friendly_name=format_contributor(a)) for a in authors]
+                )
         except ValueError:
             pass
 
