@@ -350,8 +350,6 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
-        elif i.action == "send_password_reset_email":
-            return self.POST_send_password_reset_email(user)
         elif i.action == "block_account":
             return self.POST_block_account(user)
         elif i.action == "block_account_and_revert":
@@ -374,10 +372,6 @@ class people_view:
 
     def POST_activate_account(self, user):
         user.activate()
-        raise web.seeother(web.ctx.path)
-
-    def POST_send_password_reset_email(self, user):
-        send_forgot_password_email(user.username, user.email)
         raise web.seeother(web.ctx.path)
 
     def POST_block_account(self, account):
