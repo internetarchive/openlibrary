@@ -415,7 +415,7 @@ def start_job():
     if not args.no_labels:
         print('Labeling issues as "Needs: Response"...')
         all_issues_labeled = add_label_to_issues(filtered_issues)
-    
+
         if all_issues_labeled:
             print('All issues labeled successfully.')
         else:

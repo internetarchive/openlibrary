@@ -266,7 +266,7 @@ def copy(
             print("found references", refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
         else:
-            print("No valid references found.")    
+            print("No valid references found.")
 
     docs = [doc for doc in docs if doc['key'] not in saved]
 

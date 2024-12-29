@@ -55,12 +55,12 @@ def do_import(item, servername=None, require_marc=True):
 
     logger.info(f"do_import START (pid:{os.getpid()})")
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    
+
     if response and response.startswith('{'):
         d = json.loads(response)
         edition = d.get('edition')
         success = d.get('success', False)
-        
+
         if success and edition:
             edition = d['edition']
             logger.info(f"success: {edition['status']} {edition['key']}")
@@ -72,7 +72,7 @@ def do_import(item, servername=None, require_marc=True):
     else:
         logger.error(f"failed with internal error: {response}")
         item.set_status("failed", error='internal-error')
-        
+
     logger.info(f"do_import END (pid:{os.getpid()})")
 
 

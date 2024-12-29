@@ -286,7 +286,6 @@ def batch_import(path, batch, batch_size=5000):
                     continue
                 offset = 0
 
-
                 try:
                     book_item = csv_to_ol_json_item(line)
                     if not any(

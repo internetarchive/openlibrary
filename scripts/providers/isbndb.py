@@ -214,7 +214,7 @@ def batch_import(path: str, batch: Batch, import_status: str, batch_size: int = 
                     continue
                 else:
                     offset = 0
-   
+
                 try:
                     book_item = get_line_as_biblio(line=line, status=import_status)
                     assert book_item is not None
