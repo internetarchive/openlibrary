@@ -54,11 +54,12 @@ def map_data(data) -> dict[str, Any]:
         import_record['description'] = data['description']
 
     if data.get('subjects'):
-        subjects = [
-            subject["name"] for subject in data['subjects'] if subject.get("name")
-        ]
+        subjects = [subject["name"] for subject in data['subjects'] if subject.get("name")]
         if subjects:
             import_record['subjects'] = subjects
+        else:
+            pass
+
 
     if data.get('publishers'):
         import_record['publishers'] = [
@@ -103,13 +104,9 @@ def map_data(data) -> dict[str, Any]:
             import_record["contributors"] = ol_contributors
 
     if data.get('subjects'):
-        lc_classifications = [
-            subject["call_number"]
-            for subject in data['subjects']
-            if subject.get("call_number")
-        ]
-        if lc_classifications:
-            import_record["lc_classifications"] = lc_classifications
+        lc_classifications = list(filter(None, (subject.get("call_number") for subject in data['subjects'])))
+        import_record["lc_classifications"] = lc_classifications
+
 
     return import_record
 

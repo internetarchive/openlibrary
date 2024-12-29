@@ -157,6 +157,8 @@ def parse_log(records, load_ia_scans: bool):
                     # If a key was changed or was removed, the previous keys
                     # also need to be updated
                     yield from before_keys - after_keys
+                elif not before:
+                    pass    
 
         elif action == 'store.put':
             # A sample record looks like this:
@@ -171,26 +173,21 @@ def parse_log(records, load_ia_scans: bool):
             # }
             data = rec.get('data', {}).get("data", {})
             key = data.get("_key", "")
-            if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = data.get('book_key')
-                if edition_key:
-                    yield edition_key
-            elif (
-                load_ia_scans
-                and data.get("type") == "ia-scan"
-                and key.startswith("ia-scan/")
-            ):
-                identifier = data.get('identifier')
-                if identifier and is_allowed_itemid(identifier):
-                    yield "/books/ia:" + identifier
+            
+            if data.get("type") == "ebook" and key.startswith("ebooks/books/") and (edition_key := data.get('book_key')):
+                yield edition_key
+
+            elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/") and (identifier := data.get('identifier')) and is_allowed_itemid(identifier):
+                yield "/books/ia:" + identifier
+
 
             # Hack to force updating something from admin interface
             # The admin interface writes the keys to update to a document named
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
-            elif key == 'solr-force-update':
-                keys = data.get('keys')
+            elif key == 'solr-force-update' and (keys := data.get('keys')):
                 yield from keys
+
 
         elif action == 'store.delete':
             key = rec.get("data", {}).get("key")

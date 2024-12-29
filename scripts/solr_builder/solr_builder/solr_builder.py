@@ -95,8 +95,7 @@ class LocalPostgresDataProvider(DataProvider):
             if json_cache is not None:
                 json_cache.update({row[0]: row[1] for row in rows})
             return rows
-        else:
-            return []
+        return []
 
     def query_iter(self, query, size=20):
         cur = self._conn.cursor()
@@ -514,11 +513,13 @@ async def main(
     # load the contents of the config?
     with LocalPostgresDataProvider(postgres) as db:
         # Check to see where we should be starting from
+        
         if cmd == 'fetch-end':
             next_start_query = build_job_query(job, start_at, limit, last_modified, 1)
             next_start_results = db.query_all(next_start_query)
             if next_start_results:
-                print(next_start_results[0][0])
+                first_result = next_start_results[0][0]
+                print(first_result)
             return
 
         logger.info(

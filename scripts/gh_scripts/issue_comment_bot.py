@@ -415,8 +415,12 @@ def start_job():
     if not args.no_labels:
         print('Labeling issues as "Needs: Response"...')
         all_issues_labeled = add_label_to_issues(filtered_issues)
-        if not all_issues_labeled:
-            print('Failed to label some issues')
+    
+        if all_issues_labeled:
+            print('All issues labeled successfully.')
+        else:
+            print('Failed to label some issues.')
+
     if args.slack_channel:
         print('Publishing digest to Slack...')
         publish_digest(

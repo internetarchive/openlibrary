@@ -282,10 +282,10 @@ def batch_import(path, batch, batch_size=5000):
             logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
                 # skip over already processed records
-                if offset:
-                    if offset > line_num:
-                        continue
-                    offset = 0
+                if offset and offset > line_num:
+                    continue
+                offset = 0
+
 
                 try:
                     book_item = csv_to_ol_json_item(line)

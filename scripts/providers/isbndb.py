@@ -210,11 +210,11 @@ def batch_import(path: str, batch: Batch, import_status: str, batch_size: int = 
             logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
                 # skip over already processed records
-                if offset:
-                    if offset > line_num:
-                        continue
+                if offset and offset > line_num:
+                    continue
+                else:
                     offset = 0
-
+   
                 try:
                     book_item = get_line_as_biblio(line=line, status=import_status)
                     assert book_item is not None

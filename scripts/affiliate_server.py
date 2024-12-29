@@ -376,6 +376,10 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
             work = web.ctx.site.get(work_key)
             if work.get("authors"):
                 needed_book_fields = []
+            else:
+                pass    
+        else:
+            pass   
 
     if needed_book_fields:  # Log book fields that should to be copied to the edition
         fields = ", ".join(needed_book_fields)
@@ -650,40 +654,38 @@ class Submit:
         # Check the cache a few times for product data to return to the client,
         # or otherwise return.
         if priority == Priority.HIGH:
+        # Try to retrieve product data from cache, retrying if necessary
             for _ in range(RETRIES):
                 time.sleep(1)
-                if product := cache.memcache_cache.get(
-                    f'amazon_product_{isbn_13 or b_asin}'
-                ):
-                    # If not importing, return whatever data AMZ returns, even if it's unimportable.
+                product = cache.memcache_cache.get(f'amazon_product_{isbn_13 or b_asin}')
+        
+                if product:
+                # Process the product metadata if found
                     cleaned_metadata = clean_amazon_metadata_for_load(product)
+            
+                # If not importing, return the cleaned metadata directly
                     if not stage_import:
-                        return json.dumps(
-                            {"status": "success", "hit": cleaned_metadata}
-                        )
+                        return json.dumps({"status": "success", "hit": cleaned_metadata})
 
-                    # When importing, return a result only if the item can be imported.
+                # If importing, check if the item can be imported
                     source, pid = cleaned_metadata['source_records'][0].split(":")
-                    if ImportItem.find_staged_or_pending(
-                        identifiers=[pid], sources=[source]
-                    ):
-                        return json.dumps(
-                            {"status": "success", "hit": cleaned_metadata}
-                        )
-
+                    if ImportItem.find_staged_or_pending(identifiers=[pid], sources=[source]):
+                        return json.dumps({"status": "success", "hit": cleaned_metadata})
+    
+        # Increment stats when the item is not found in cache
             stats.increment("ol.affiliate.amazon.total_items_not_found")
-
-            # Fall back to Google Books
-            # TODO: Any point in having option not to stage and just return metadata?
+    
+        # Fall back to Google Books if item is not found in Amazon cache
             if isbn_13 and stage_from_google_books(isbn=isbn_13):
                 return json.dumps({"status": "success"})
-
+    
+        # Return "not found" if all attempts fail
             return json.dumps({"status": "not found"})
 
         else:
-            return json.dumps(
-                {"status": "submitted", "queue": web.amazon_queue.qsize()}
-            )
+        # If priority is not high, return the status of the Amazon queue
+            return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
+
 
 
 def load_config(configfile):

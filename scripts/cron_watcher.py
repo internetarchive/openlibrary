@@ -35,10 +35,10 @@ def find_last_months_dumps_on_ia(yyyy_mm: str = yyyy_mm) -> bool:
             if item["identifier"].startswith(prefix):
                 prefixes[prefix] += 1
                 # Is there at least one item id starting with each prefix?
-                if files_with_both_prefixes_found := all(prefixes.values()):
-                    return files_with_both_prefixes_found
-    return all(prefixes.values())
-
+                if all(prefixes.values()):
+                    return True
+                break  # Exit the inner loop as soon as a match is found for this prefix
+    return False
 
 if __name__ == "__main__":
     import sys

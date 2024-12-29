@@ -37,9 +37,7 @@ langs = {
 def convert_pressbooks_to_ol(data):
     book = {"source_records": ['pressbooks:%s' % data['url']]}
     if data.get('isbn'):
-        book['isbn_13'] = [
-            isbn.split(' ')[0].replace('-', '') for isbn in data['isbn'].split('; ')
-        ]
+        book['isbn_13'] = [isbn.split(' ')[0].replace('-', '') for isbn in data['isbn'].split('; ')]
     if data.get('name'):
         book['title'] = html.unescape(data['name'])
     if data.get('languageCode'):

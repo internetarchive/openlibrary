@@ -128,11 +128,10 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
         identifier = to_isbn_13(isbn_13 or isbn_10 or "")
 
         # Fall back to B* ASIN as a last resort.
-        if not identifier:
-            if not (amazon := book.get('identifiers', {}).get('amazon', [])):
-                continue
-
-            identifier = amazon[0]
+        if not identifier and book.get('identifiers', {}).get('amazon', []):
+            identifier = book['identifiers']['amazon'][0]
+        elif not identifier or not book.get('identifiers', {}).get('amazon', []):
+            continue
 
         try:
             stage_bookworm_metadata(identifier=identifier)

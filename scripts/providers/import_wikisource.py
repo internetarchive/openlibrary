@@ -394,22 +394,18 @@ def update_record_with_wikisource_metadata(
     if not [b for b in author_map if book_id in author_map[b]] and not book.authors:
         try:
             author = template.get("author").value.strip()
-            if author != "":
+            if author:
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
-                if authors:
-                    book.add_authors(
-                        [Author(friendly_name=format_contributor(a)) for a in authors]
-                    )
+                book.add_authors([Author(friendly_name=format_contributor(a)) for a in authors])
         except ValueError:
             pass
 
     if not book.illustrators:
         try:
             illustrator = template.get("illustrator").value.strip()
-            if illustrator != "":
+            if illustrator:
                 illustrators = re.split(r"(?:\sand\s|,\s?)", illustrator)
-                if illustrators:
-                    book.add_illustrators([format_contributor(a) for a in illustrators])
+                book.add_illustrators([format_contributor(a) for a in illustrators])
         except ValueError:
             pass
 
