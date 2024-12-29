@@ -59,8 +59,6 @@ def map_data(data) -> dict[str, Any]:
         ]
         if subjects:
             import_record['subjects'] = subjects
-        else:
-            pass
 
     if data.get('publishers'):
         import_record['publishers'] = [
