@@ -35,7 +35,6 @@ from openlibrary.core import (
 )
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
-from openlibrary.plugins.upstream.account import send_forgot_password_email
 
 logger = logging.getLogger("openlibrary.admin")
 
