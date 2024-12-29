@@ -4,7 +4,21 @@ import '../../../../../static/css/legacy-datatables.less';
 const DEFAULT_LENGTH = 3;
 const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
+// Function to add the custom CSS for hiding pagination
+function addCustomPaginationCSS() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .dataTables_paginate.paging_full_numbers:has(.paginate_button.previous.disabled):has(.paginate_button.next.disabled):has(.paginate_button.first.disabled):has(.paginate_button.last.disabled) {
+            display: none;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 export function initEditionsTable() {
+    // Add the custom CSS for pagination
+    addCustomPaginationCSS();
+
     var rowCount;
     let currentLength;
 
