@@ -5,7 +5,7 @@ from openlibrary.plugins.books import readlinks
 
 
 @pytest.mark.parametrize(
-    "collections,subjects,options,expected",
+    ("collections", "subjects", "options", "expected"),
     [
         (['lendinglibrary'], ['Lending library'], {}, 'lendable'),
         (['lendinglibrary'], ['Some other subject'], {}, 'restricted'),
@@ -28,7 +28,7 @@ def test_get_item_status(collections, subjects, options, expected, mock_site):
 
 
 @pytest.mark.parametrize(
-    "borrowed,expected",
+    ("borrowed", "expected"),
     [
         ('true', 'checked out'),
         ('false', 'lendable'),

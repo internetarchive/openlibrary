@@ -48,7 +48,7 @@ isbn_cases = [
 ]
 
 
-@pytest.mark.parametrize('isbnlike,expected', isbn_cases)
+@pytest.mark.parametrize(('isbnlike', 'expected'), isbn_cases)
 def test_normalize_isbn(isbnlike, expected):
     assert normalize_isbn(isbnlike) == expected
 
@@ -86,7 +86,7 @@ def test_get_isbn_10s_and_13s() -> None:
 
 
 @pytest.mark.parametrize(
-    ["isbn", "expected"],
+    ('isbn', 'expected'),
     [
         ("1111111111", ("1111111111", "9781111111113")),
         ("9781111111113", ("1111111111", "9781111111113")),
@@ -101,7 +101,7 @@ def test_get_isbn_10_and_13(isbn, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ["identifier", "expected"],
+    ('identifier', 'expected'),
     [
         ("B01234678", ("B01234678", None, None)),
         ("1111111111", (None, "1111111111", "9781111111113")),

@@ -164,7 +164,7 @@ class TestParseMARCBinary:
         with pytest.raises(NoTitle):
             read_edition(rec)
 
-    @pytest.mark.parametrize('marcfile,expect', date_tests)
+    @pytest.mark.parametrize(('marcfile', 'expect'), date_tests)
     def test_dates(self, marcfile, expect):
         filepath = TEST_DATA / 'bin_input' / marcfile
         rec = MarcBinary(filepath.read_bytes())

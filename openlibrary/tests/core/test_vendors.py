@@ -144,7 +144,7 @@ amazon_titles = [
 ]
 
 
-@pytest.mark.parametrize('amazon,title,subtitle', amazon_titles)
+@pytest.mark.parametrize(("amazon", "title", "subtitle"), amazon_titles)
 def test_split_amazon_title(amazon, title, subtitle):
     assert split_amazon_title(amazon) == (title, subtitle)
 
