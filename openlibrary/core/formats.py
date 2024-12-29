@@ -7,7 +7,7 @@ import yaml
 
 from openlibrary.core.helpers import NothingEncoder
 
-__all__ = ["load_yaml", "dump_yaml"]
+__all__ = ["dump_yaml", "load_yaml"]
 
 
 def load_yaml(text):
