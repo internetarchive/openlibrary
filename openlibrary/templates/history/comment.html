@@ -1,24 +1,19 @@
 $def with (v)
 
-$ get_source_record = render_template("history/sources").get_source_record
-
-$def link(url, label):
-    $if url: <a href="$url">$label</a>
-    $else: $label
+$ get_source_html = render_template("history/sources").get_source_html
 
 $ v = process_version(v)
 $ record_id = v.get('machine_comment')
 $if record_id:
-    $ record = get_source_record(record_id)
     $if v.revision == 1:
-       $ record_type = ''
-       $if record.source_name not in ('amazon.com', 'Better World Books'):
-            $ record_type = 'item' if record.source_name == 'Internet Archive' else 'MARC'
-       $:_('Imported from %(source)s  <a href="%(url)s">%(type)s record</a>.', source=link(record.source_url, record.source_name), url=record.url, type=record_type)
+       $:_('Imported from')
+       $:get_source_html(record_id)
     $else:
-        $:_('Found a <a href="%(url)s">matching record</a> from %(source)s.', url=record.url, source=link(record.source_url, record.source_name))
+       $:_('Found a matching')
+       $:get_source_html(record_id)
 $elif 'history_v2' in ctx.features:
-    $ t = get_template('recentchanges/' + v.kind + '/comment') or get_template('recentchanges/default/comment')
+    $ kind = "merge" if v.kind.startswith('merge-') else v.kind
+    $ t = get_template('recentchanges/' + kind + '/comment') or get_template('recentchanges/default/comment')
     $:t(v, v.thing)
 $elif v.comment:
     $v.comment

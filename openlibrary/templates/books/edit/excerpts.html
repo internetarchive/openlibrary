@@ -1,6 +1,11 @@
 $def with (work)
 
-<div id="excerpts-errors" class="note hidden">
+$ i18n_strings = {
+    $ "empty_excerpt": _("Please provide an excerpt."),
+    $ "over_wordcount": _("That excerpt is too long.")
+    $ }
+
+<div id="excerpts-errors" class="note" style="display: none" data-i18n="$json_encode(i18n_strings)">
 </div>
 
 <fieldset class="major" id="addexcerpts">
@@ -16,7 +21,7 @@ $def with (work)
             </div>
             <div class="input">
                 <input type="text" name="pages" id="excerpts-pages" value="" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');" style="width:60px!important;"/>
-                <span class="tip fixthis"><input type="checkbox" name="first--sentence" id="first--sentence" tabindex="0"/> This is the first sentence.</span>
+                <span class="tip fixthis"><input type="checkbox" name="first--sentence" id="first--sentence" tabindex="0"/> $_('This excerpt is the first sentence of the book.')</span>
             </div>
 
         </div>
@@ -38,7 +43,7 @@ $def with (work)
                 <span class="tip">$_("Add an optional note.")</span>
             </div>
             <div class="input">
-                <textarea name="comment" id="excerpts-comment" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
+                <textarea name="comment" id="excerpts-comment" class="markdown" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
             </div>
         </div>
         <div class="formElement">
@@ -94,66 +99,4 @@ $def with (work)
                 </div>
         </div>
     </div>
-
-    <script type="text/javascript">
-    <!--
-        window.q.push(function() {
-            function error(errordiv, input, message) {
-                \$(errordiv).show().html(message);
-                \$(input).focus();
-                return false;
-            }
-
-            \$("#excerpts").repeat({
-                vars: {
-                    "prefix": "work--excerpts",
-                },
-                validate: function(data) {
-                    if (!data.excerpt) {
-                        return error("#excerpts-errors", "#excerpts-excerpt", "$_('Please provide an excerpt.')");
-                    }
-                    if (data.excerpt.length > 2000) {
-                        return error("#excerpts-errors", "#excerpts-excerpt", "$_('That excerpt is too long.')")
-                    }
-                    \$("#excerpts-errors").hide();
-                    return true;
-                }
-            });
-
-            function update_len() {
-                var len = \$("#excerpts-excerpt").val().length;
-                if (len > 2000) {
-                    var color = "#e44028";
-                }
-                else {
-                    var color = "gray";
-                }
-                \$("#excerpts-excerpt-len").html(2000 - len).css("color", color);
-            }
-
-            function show_hide_title() {
-                if (\$("#excerpts-display .repeat-item").length > 1) {
-                    \$("#excerpts-so-far").show();
-                }
-                else {
-                    \$("#excerpts-so-far").hide();
-                }
-            }
-
-            // update length on every keystroke
-            \$("#excerpts-excerpt").keyup(update_len);
-
-            // update length on add.
-            \$("#excerpts")
-                .bind("repeat-add", update_len)
-                .bind("repeat-add", show_hide_title)
-                .bind("repeat-remove", show_hide_title);
-
-            // update length on load
-            update_len();
-            show_hide_title();
-        });
-    //-->
-    </script>
-
 </fieldset>

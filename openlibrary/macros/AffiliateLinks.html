@@ -1,46 +1,4 @@
-$def with (page, opts)
-
-$code:
-  prices = opts.get('prices')
-  isbn = opts.get('isbn', '')
-  asin = opts.get('asin', '')
-
-  bwb = {
-    'key': 'betterworldbooks',
-    'analytics_key': 'BetterWorldBooks',
-    'name': _('Better World Books'),
-    'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
-      affiliate_id('betterworldbooks'),
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title)
-    ),
-    'price_note': _(' - includes shipping')
-  }
-
-  amazon = {
-    'key': 'amazon',
-    'analytics_key': 'Amazon',
-    'name': _('Amazon'),
-    'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
-  } if (asin or isbn) else None
-
-  bookshop = {
-    'key': 'bookshop-org',
-    'analytics_key': 'BookshopOrg',
-    'name': _('Bookshop.org'),
-    'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
-  } if isbn else None
-
-  # Fetch price data
-  if not is_bot() and prices and isbn:
-    bwb_metadata = get_betterworldbooks_metadata(isbn)
-    bwb['price'] = bwb_metadata and bwb_metadata.get('price')
-    if amazon:
-      amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
-    if amazon and not amazon['price']:
-      amz_metadata = get_amazon_metadata(isbn, resources='prices')
-      amazon['price'] = amz_metadata and amz_metadata.get('price')
-
-  stores = [store for store in [bwb, amazon, bookshop] if store]
+$def with (title, opts, async_load=False)
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
@@ -54,7 +12,65 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         <span name="price">$price$price_note</span>
   </li>
 
-<ul class="buy-options-table">
-    $for store in stores:
-      $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
-</ul>
+<span class="affiliate-links-section" data-title="$title" data-opts="$json_encode(opts)">
+  $if async_load:
+    $:macros.LoadingIndicator(_("Fetching prices"), additional_classes="affiliate-links-loading")
+  $else:
+    $code:
+      prices = opts.get('prices')
+      isbn = opts.get('isbn', '')
+      asin = opts.get('asin', '')
+
+      bwb = {
+        'key': 'betterworldbooks',
+        'analytics_key': 'BetterWorldBooks',
+        'name': _('Better World Books'),
+        'link': 'https://www.betterworldbooks.com/%s' % (
+          ('product/detail/-%s' % isbn) if isbn else ('search/results?q=' + title.replace(' ','%20'))
+        ),
+        'price_note': _(' - includes shipping')
+      }
+
+      amazon = {
+        'key': 'amazon',
+        'analytics_key': 'Amazon',
+        'name': _('Amazon'),
+        'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
+      } if (asin or isbn) else None
+
+      bookshop = {
+        'key': 'bookshop-org',
+        'analytics_key': 'BookshopOrg',
+        'name': _('Bookshop.org'),
+        'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
+      } if isbn else None
+
+      # Fetch price data
+      if False and not is_bot() and prices and isbn:
+        bwb_metadata = get_betterworldbooks_metadata(isbn)
+        bwb['price'] = bwb_metadata and bwb_metadata.get('price')
+        if amazon:
+          amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
+        if amazon and not amazon['price']:
+          amz_metadata = get_amazon_metadata(isbn, resources='prices')
+          amazon['price'] = amz_metadata and amz_metadata.get('price')
+
+      primary_stores = [store for store in [bwb, amazon] if store]
+      more_stores = [store for store in [bookshop] if store]
+
+    <ul class="buy-options-table">
+        $for store in primary_stores:
+          $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+        $if more_stores:
+          <li class="more">
+            <details>
+              <summary>$_('More')</summary>
+              <ul>
+                $for store in more_stores:
+                  $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+              </ul>
+            </details>
+          </li>
+    </ul>
+    <p>$:_('When you buy books using these links the Internet Archive may earn a <a class="nostyle" href="/help/faq/about#selling">small commission</a>.')</p>
+</span>

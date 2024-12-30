@@ -13,9 +13,9 @@ $def render_percents():
     - $epub_loans ($epub_percent%) $_("ePub")
 
 $if not loans:
-    <em>No current loans.</em>
+    <em>$_("No current loans.")</em>
 $else:
-    <div id="borrowTable" class="borrow collapse">
+    <div class="borrow borrow-table collapse">
     <table>
         <thead>
             <tr>
@@ -63,14 +63,14 @@ $else:
                     </span>
 
                     <span class="author">
-                    $# :macros.AuthorList(book.get_authors())
+                    $# :macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
                     </span>
                     <div class="date">
                     $if waiting_loan:
-                        Waiting since $datestr(parse_datetime(loan['since']))<br/>
-                        #$loan['position'] among $loan['wl_size'] people waiting for this book<br/>
+                        $_('Waiting since %(date)s', date=datestr(parse_datetime(loan['since'])))<br/>
+                        $_('#%(num_position)d among %(num_waitlist)d people waiting for this book', num_position=loan['position'], num_waitlist=loan['wl_size'])<br/>
                     $else:
-                        Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                        $_('Borrowed %(date)s', date=datestr(datetime_from_utc_timestamp(loan['loaned_at'])))
                     </div>
                 </td>
                 <td class="expires">
@@ -83,21 +83,16 @@ $else:
                     $if waiting_loan:
                         $loan['status']
                     $elif loan['resource_type'] == 'pdf':
-                        PDF
+                        $_('PDF')
                     $elif loan['resource_type'] == 'epub':
-                        ePub
+                        $_('ePub')
                     $elif loan['resource_type'] == 'bookreader':
-                        BookReader
+                        $_('BookReader')
                     $else:
                         $loan['resource_type']
                 </td>
                 <td class="user">
                     <a href="$user.key">$user.key</a>
-                </td>
-                <td class="action">
-                    $ borrow_admin = book.url('/borrow_admin')
-                    <a href="$borrow_admin">debug_info</a><br/><br/>
-                    <a href="$borrow_admin?updatestatus=t" class="smaller plain">refresh</a>
                 </td>
             </tr>
         </tbody>

@@ -3,14 +3,8 @@ $def with (change, label=None)
 $ label = label or change.kind.replace("_", " ").replace("-", " ").title()
 
 <div id="editTools" class="edit">
-    $if change.can_undo() and "undo" in ctx.features:
-        <div class="editButton">
-            <form id="undo-form" method="POST">
-                <button class="larger" name="#" accesskey="u" id="undo-button" type="submit">Undo All</button>
-            </form>
-        </div>
     <div id="editInfo">
-        <div class="brown smaller sansserif">By
+        <div class="brown smaller sansserif">$_("By")
             $if change.author:
                 <a href="$change.author.key" rel="nofollow">$change.author.displayname</a>
             $else:
@@ -18,6 +12,12 @@ $ label = label or change.kind.replace("_", " ").replace("-", " ").title()
         </div>
         <div class="smallest gray sansserif">$datestr(change.timestamp)</div>
     </div>
+    $if change.can_undo() and "undo" in ctx.features:
+        <div class="editButton">
+            <form id="undo-form" method="POST">
+                <button class="linkButton" name="#" accesskey="u" id="undo-button" type="submit">$_("Undo All")</button>
+            </form>
+        </div>
 </div>
 
 $def breadcrumbs():

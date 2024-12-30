@@ -1,17 +1,18 @@
 $def with (q, lists)
 
-$var title: Search results for Lists
+$var title: $_('Search results for Lists')
 
 <div id="contentHead">
-  <h1>$_("Lists")</h1>
+  <h1>$_("Search Lists")</h1>
 </div>
 
 <div id="contentBody">
-
-  <form class="siteSearch searchInsideForm" action="/search/lists">
-    <input type="text" class="larger" name="q" value="$q"/>
-    <input type="submit" class="generic-button" value="$_('Search')">
-  </form>
+  $:macros.SearchNavigation()
+  <div class="section">
+    <form class="siteSearch olform" action="/search/lists">
+      $:render_template("search/searchbox", q=q)
+    </form>
+  </div>
 
   $if lists:
     <div class="mybooks-list">
@@ -21,6 +22,11 @@ $var title: Search results for Lists
       </ul>
     </div>
   $elif q:
-    <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
-
+    <center>
+      <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
+      <hr>
+    </center>
+    <div id="fulltext-search-suggestion" data-query="$q">
+        $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+    </div>
 </div>

@@ -8,6 +8,7 @@ import 'flot/jquery.flot.selection.js';
 import 'flot/jquery.flot.crosshair.js';
 import 'flot/jquery.flot.stack.js';
 import 'flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.time.js';
 
 /**
  * A special graph loaded on the following URLs:
@@ -62,8 +63,9 @@ export function loadEditionsGraph() {
             'background-color': '#fffdcd',
             color: '#615132',
             'font-size': '11px',
-            opacity: 0.90
-        }).appendTo('body').customFadeIn(200);
+            opacity: 0.90,
+            'z-index': 100
+        }).appendTo('body').fadeIn(200);
     }
     previousPoint = null;
     placeholder.bind('plothover', function (event, pos, item) {
@@ -71,12 +73,12 @@ export function loadEditionsGraph() {
         $('#x').text(pos.x.toFixed(0));
         $('#y').text(pos.y.toFixed(0));
         if (item) {
-            if (previousPoint != item.datapoint) {
+            if (previousPoint !== item.datapoint) {
                 previousPoint = item.datapoint;
                 $('#chartLabel').remove();
                 x = item.datapoint[0].toFixed(0);
                 y = item.datapoint[1].toFixed(0);
-                if (y == 1) {
+                if (y === 1) {
                     showTooltip(item.pageX, item.pageY,
                         `${y} edition in ${x}`);
                 } else {
@@ -90,17 +92,55 @@ export function loadEditionsGraph() {
             previousPoint = null;
         }
     });
+
+    placeholder.bind('plotclick', function (event, pos, item) {
+
+        if (item) {
+            plot.unhighlight();
+            const yearFrom = item.datapoint[0].toFixed(0);
+            applyDateFilter(yearFrom, yearFrom);
+
+            plot.highlight(item.series,item.datapoint);
+        }
+        else {
+            plot.unhighlight();
+        }
+    });
+
+    placeholder.bind('plotselected', function (event, ranges) {
+        plot = $.plot(placeholder, data,
+            $.extend(true, {}, options, {
+                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+            })
+        );
+
+        const yearFrom = ranges.xaxis.from.toFixed(0);
+        const yearTo = ranges.xaxis.to.toFixed(0);
+        applyDateFilter(yearFrom, yearTo);
+    });
+
+    function applyDateFilter(yearFrom, yearTo, hideSelector='.chartUnzoom', showSelector='.chartZoom') {
+        document.dispatchEvent(new CustomEvent('filter', { detail: { yearFrom: yearFrom, yearTo: yearTo } }));
+        $(hideSelector).hide();
+        $(showSelector).removeClass('hidden').show();
+    }
+
     plot = $.plot(placeholder, data, options);
     dateFrom = plot.getAxes().xaxis.min.toFixed(0);
     dateTo = plot.getAxes().xaxis.max.toFixed(0);
 
-    if (jQuery.support.opacity) {
-        $('.chartYaxis').css({top: '60px', left: '-60px'})
-    } else {
-        $('.chartYaxis').css({top: '0', left: '0'})
-    }
+    $('.resetSelection').on('click', function() {
+        plot = $.plot(placeholder, data, options);
 
-    if (dateFrom == (dateTo - 1)) {
+        const yearFrom = plot.getAxes().xaxis.min.toFixed(0);
+        const yearTo = plot.getAxes().xaxis.max.toFixed(0);
+        applyDateFilter(yearFrom, yearTo, '.chartZoom', '.chartUnzoom');
+    });
+
+    $('.chartYaxis').css({top: '60px', left: '-60px'});
+
+    if (dateFrom === (dateTo - 1)) {
         $('.clickdata').text(`Published in ${dateFrom}`);
     } else {
         $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
@@ -229,7 +269,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
         if (tooltip_message) {
             return plot_tooltip_graph($(node), data, tooltip_message, color);
         } else {
-            return $.plot($(node), data, options);
+            return $.plot($(node), [{data: data}], options);
         }
     }
 }

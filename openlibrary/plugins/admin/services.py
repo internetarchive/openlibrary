@@ -2,17 +2,15 @@
 Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """
-from __future__ import print_function
 
 import re
-import requests
 from collections import defaultdict
 
+import requests
 from bs4 import BeautifulSoup
 
 
-
-class Nagios(object):
+class Nagios:
     def __init__(self, url):
         try:
             self.data = BeautifulSoup(requests.get(url).content, "lxml")
@@ -28,21 +26,27 @@ class Nagios(object):
         # walk up the nodes to find the enclosing <tr> that contains
         # the service in question. A single step is not enough since
         # there are nested tables in the layout.
-        service = self.data.find(text = re.compile(service))
+        service = self.data.find(text=re.compile(service))
         if service:
             service_tr = service.findParents("tr")[2]
-            status_td  = service_tr.find("td", attrs = {"class" : re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")})
-            return status_td['class'].replace("status","")
+            status_td = service_tr.find(
+                "td",
+                attrs={
+                    "class": re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")
+                },
+            )
+            return status_td['class'].replace("status", "")
         else:
             return "error-nosuchservice"
 
-class Service(object):
+
+class Service:
     """
     An OpenLibrary service with all the stuff that we need to
     manipulate it.
     """
 
-    def __init__(self, node, name, nagios, logs = False):
+    def __init__(self, node, name, nagios, logs=False):
         self.node = node
         self.name = name
         self.logs = logs
@@ -50,7 +54,9 @@ class Service(object):
         self.nagios = nagios.get_service_status(name)
 
     def __repr__(self):
-        return "Service(name = '%s', node = '%s', logs = '%s')"%(self.name, self.node, self.logs)
+        return (
+            f"Service(name = '{self.name}', node = '{self.node}', logs = '{self.logs}')"
+        )
 
 
 def load_all(config, nagios_url):
@@ -62,5 +68,5 @@ def load_all(config, nagios_url):
         services = config[node].get('services', [])
         if services:
             for service in services:
-                d[node].append(Service(node = node, name = service, nagios = nagios))
+                d[node].append(Service(node=node, name=service, nagios=nagios))
     return d

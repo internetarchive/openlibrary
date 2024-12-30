@@ -5,25 +5,19 @@
  * openlibrary/macros/databarWork.html
  * Used in templates:
  * - openlibrary/templates/type/work/view.html
- * - openlibrary/templates/type/edition-history/view.html
  * - openlibrary/templates/type/edition/view.html
  */
 
 .shareLinks-list {
-  margin-top: 10px;
   .display-flex();
   word-break: keep-all;
-
-  ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
   li {
-    list-style-type: none;
     line-height: 24px;
-    display: inline-block;
     // FIXME:
     // Important can be removed when component/Tools has been removed
     // The list styles clash with this component.
@@ -31,6 +25,9 @@
     padding: 0;
     flex: 1;
     cursor: pointer;
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+      flex: 0 0 calc(33.33%)
+    }
   }
   p {
     margin: 0;
@@ -40,12 +37,15 @@
     text-align: center;
     cursor: pointer;
     line-height: 24px;
+    width: 80%;
+    margin: 0 auto;
   }
   img {
     display: block;
     margin: 0 auto;
     cursor: pointer;
     height: 30px;
+    aspect-ratio: 1;
   }
 }
 

@@ -1,0 +1,178 @@
+/* Styles for the check-in form */
+.check-in {
+  padding: 10px;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+
+    > div {
+      margin-bottom: 10px;
+    }
+  }
+
+  &__label,
+  &__select {
+    font-size: 16px;
+  }
+
+  &__label {
+    font-weight: 700;
+  }
+
+  &__select {
+    padding: 5px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+
+    button {
+      width: 45%;
+    }
+
+    .invisible {
+      visibility: hidden;
+    }
+  }
+}
+
+.check-in__inputs {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;
+
+  > span {
+    display: flex;
+    justify-content: space-between;
+
+    > select {
+      width: 75%;
+    }
+  }
+}
+
+.last-read-date,
+.check-in-prompt {
+  border-radius: 0 0 5px 5px;
+  padding: 5px 0;
+  margin-top: -15px;
+  margin-bottom: 5px;
+  border: 1px solid @light-grey;
+  font-size: @font-size-label-medium;
+  text-align: center;
+  background: linear-gradient(to bottom, transparent 80%, @lightest-grey);
+
+  a {
+    display: inline-block;
+    padding: 8px 7px;
+    transition: background-color .2s;
+    border-radius: 4px;
+  }
+  a:hover {
+    background-color: @icon-link-grey;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .check-in {
+    &__form {
+      flex-direction: column;
+
+      > div {
+        margin-bottom: 20px;
+      }
+    }
+
+    &__label {
+      flex-grow: 2;
+    }
+
+    &__actions button {
+      width: 25%;
+    }
+  }
+
+  .check-in__inputs {
+    flex-direction: row;
+    height: unset;
+    gap: 10px;
+
+    > span {
+      display: unset;
+      flex-grow: 1;
+
+      > label {
+        display: none;
+      }
+
+      > select {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/* Styles for check-in prompt, located below reading log dropper */
+.check-in-prompt {
+  .prompt-options {
+    white-space: nowrap;
+  }
+
+  .prompt-copy {
+    display: inline-block;
+    padding-top: 8px;
+  }
+}
+
+/* Styles for the yearly reading goal form */
+.goal-form {
+  font-size: 16px;
+
+  button {
+    display: inline-block;
+    width: fit-content;
+    margin-left: 10px;
+  }
+
+  input {
+    width: 5em;
+    padding: 10px;
+    font-size: 16px;
+  }
+}
+
+/* Styles for the yearly reading goal progress component */
+.reading-goal-progress {
+  color: @dark-grey;
+  padding: 5px 0;
+
+  &__body {
+    justify-content: center;
+  }
+
+  &__progress-bar {
+    background-color: @light-grey;
+    border-radius: 5px;
+    height: 20px;
+    margin: auto;
+    width: 85%;
+    margin-bottom: 10px;
+  }
+
+  &__completed {
+    display: inline-block;
+    background-color: @primary-blue;
+    height: inherit;
+    border-radius: inherit;
+  }
+
+  &__details {
+    display: flex;
+    justify-content: space-between;
+    width: 97%;
+    margin: auto;
+  }
+}

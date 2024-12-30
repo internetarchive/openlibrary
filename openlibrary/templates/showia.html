@@ -15,19 +15,20 @@ $var title: $title
         <table class="meta">
             <tbody>
                 <tr>
-                    <td class="title"><span class="title">Record ID</span></td>
+                    <td class="title"><span class="title">$_("Record ID")</span></td>
+                    $# detect-missing-i18n-skip-line
                     <td><span class="object">ia:$ia</span></td>
                 </tr>
                 <tr>
-                    <td class="title"><span class="title">Source</span></td>
-                    <td><span class="object"><a href="//archive.org/details/$ia">Internet Archive</a></span></td>
+                    <td class="title"><span class="title">$_("Source")</span></td>
+                    <td><span class="object"><a href="//archive.org/details/$ia">$_("Internet Archive")</a></span></td>
                 </tr>
                 <tr>
-                    <td class="title"><span class="title">Download MARC XML</span></td>
+                    <td class="title"><span class="title">$_("Download MARC XML")</span></td>
                     <td><span class="object"><a href="https://archive.org/download/$ia/$(ia)_marc.xml">https://archive.org/download/$ia/$(ia)_marc.xml</a></span></td>
                 </tr>
                 <tr>
-                    <td class="title"><span class="title">Download MARC binary</span></td>
+                    <td class="title"><span class="title">$_("Download MARC binary")</span></td>
                     <td><span class="object"><a href="https://archive.org/download/$ia/$(ia)_meta.mrc">https://www.archive.org/download/$ia/$(ia)_meta.mrc</a></span></td>
                 </tr>
             </tbody>
@@ -37,6 +38,6 @@ $var title: $title
     $if not record:
         <p>$_("Invalid MARC record.")</p>
     $else:
-        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        <p><b>$_("LEADER:")</b> <code>$record.leader</code><br/>
         $:record.html()</p>
 </div>

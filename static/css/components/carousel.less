@@ -8,7 +8,7 @@
 
 // Badly named. Should be renamed "carousel-heading" or similar.
 .home-h2 {
-  font-size: 1.2em;
+  font-size: @font-size-title-medium;
   font-weight: normal;
   color: @link-blue;
   margin-bottom: .5em;
@@ -26,12 +26,23 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &.carousel--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-gap: 30px 20px;
+    padding: 10px;
+
+    // Fallback for non-grid browsers
+    flex-wrap: wrap;
+  }
+
   a,
   a:link {
     text-decoration: none;
   }
 
   &__item {
+    padding: 2px;
     float: left;
     height: 100%;
     margin: 0 10px;
@@ -47,6 +58,10 @@
       border: 5px solid @orange;
       outline: 0;
     }
+  }
+
+  &.carousel--grid .carousel__item {
+    margin: 0;  // Handled by grid gap
   }
 
   // Modifiers
@@ -133,11 +148,11 @@
 @height-blank-cover: 200px;
 .carousel__item__blankcover {
   position: relative;
-  padding: 33% 10px 10px 10px;
+  padding: 33% 10px 10px;
   text-align: center;
   background: @lighter-grey;
   font-size: 1em;
-  color: black;
+  color: @black;
   height: @height-blank-cover;
 
   // White border
@@ -146,24 +161,41 @@
     display: block;
     position: absolute;
     border: 2px solid fade(@white, 50%);
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
     margin: 10px;
   }
 
   &--title {
     position: relative;
-    font-size: 0.9em;
+    font-size: .9em;
   }
 
   &--authors {
     position: relative;
-    color: hsl(0,0%,40%);
+    color: @dark-grey-two;
     padding: 4px 4px 0;
-    font-size: 0.6875em;
+    font-size: .6875em;
     font-style: oblique;
+  }
+}
+@height-cover-compact: 125px;
+.carousel--compact {
+  .book .book-cover {
+    height: @height-cover-compact;
+  }
+  .book .bookcover {
+    height: @height-cover-compact;
+  }
+
+  .carousel__item__blankcover {
+    height: @height-cover-compact;
+    padding: 20% 10px 10px;
+    margin: 0 auto;
   }
 }
 
@@ -172,10 +204,10 @@
   // because the slick css passed through js
   // and librejs is breaking on utf8 chars
   &-next::before {
-    content: '→' !important;
+    content: "→" !important;
   }
   &-prev::before {
-    content: '←' !important;
+    content: "←" !important;
   }
 }
 

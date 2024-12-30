@@ -1,0 +1,150 @@
+@import (less) "components/generic-dropper.less";
+
+// Styling overrides for author and orphaned edition pages
+.old-style-lists {
+  h3 {
+    font-size: .75em;
+    text-align: left;
+    padding: 10px;
+    min-width: 150px;
+    font-weight: bold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* Hide "My Reading Lists" heading */
+  .reading-list-title {
+    display: none;
+  }
+
+  .generic-dropper__dropclick {
+    padding: 5px;
+    text-decoration: none;
+  }
+
+  .list {
+    padding-left: 0;
+  }
+}
+
+// Styling for My Books droppers
+/* Styling for the My Books dropper's primary action: */
+.generic-dropper__actions {
+  align-items: center;
+  height: 37px;
+}
+
+.generic-dropper__primary {
+  .reading-log {
+    height: 100%;
+
+    .activated-check {
+      color: @green;
+      margin-right: 2px;
+    }
+  }
+}
+
+/* Styling for the My Books dropper's dropdown content: */
+.generic-dropper__dropdown {
+  border: 1px solid @mid-grey;
+  background-color: @lightest-grey;
+
+  p {
+    font-size: .875em;
+    margin-bottom: 5px;
+    margin-top: 0;
+    color: @grey;
+
+    a {
+      font-size: .875em;
+      display: block;
+    }
+
+    span {
+      font-size: .8125em;
+    }
+  }
+
+  form:last-child {
+    /* stylelint-disable selector-max-specificity */
+    button.nostyle-btn {
+      border: none;
+    }
+    /* stylelint-enable selector-max-specificity */
+  }
+
+  p.create {
+    border-top: 1px solid @lightest-grey;
+    padding: 5px 10px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 0;
+
+    a {
+      color: @dark-grey;
+      text-decoration: none;
+    }
+
+  }
+
+  .reading-lists {
+    .reading-list-title {
+      background: @white;
+      padding: 5px 0 0 10px;
+      margin: 0;
+      font-size: .8em;
+    }
+    .my-lists {
+      background: @white;
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 10px 15px;
+
+      /* stylelint-disable selector-max-specificity */
+      /* stylelint-disable max-nesting-depth */
+      .list {
+        display: flex;
+        margin-top: 0;
+
+        .list__status-indicator {
+          margin-right: 8px;
+          min-width: 13px;
+        }
+      }
+
+      .list--active .list__status-indicator::after {
+        content: "✔️";
+      }
+      .list--pending .list__status-indicator {
+        display: inline-block;
+
+        &::after {
+          content: "";
+          display: block;
+          margin-top: 4px;
+          width: 1em;
+          height: 1em;
+          border-radius: 50%;
+          border: 1px solid @black;
+          border-color: @black transparent;
+          animation: spin 1.2s linear infinite;
+        }
+      }
+      /* stylelint-enable max-nesting-depth */
+      /* stylelint-enable selector-max-specificity */
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

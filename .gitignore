@@ -1,4 +1,5 @@
-venv
+openlibrary/components/_dev.js
+*venv
 *.pyc
 *~
 .vscode/
@@ -18,9 +19,6 @@ dumps/
 openlibrary.egg-info/
 pip-log.txt
 supervisord.pid
-vendor/apache-solr-1.4.0/
-vendor/solr/
-solr-update.offset
 openlibrary/mailserver/logs/lamson.err
 openlibrary/mailserver/logs/lamson.log
 openlibrary/mailserver/logs/logger.log

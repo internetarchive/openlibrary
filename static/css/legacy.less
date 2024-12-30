@@ -24,22 +24,20 @@
 @import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
-@import (less) "legacy-borrowBookForm.less";
 @import (less) "legacy-header.less";
 @import (less) "legacy-tools.less";
 @import (less) "legacy-wmd.less";
 
 @import (less) "components/read-panel.less";
 @import (less) "components/diff.less";
-@import (less) "components/iconochive.less";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
 @import (less) "components/mybooks.less";
 @import (less) "components/readinglog-stats.less";
+@import (less) "components/tagging-menu.less";
 @import (less) "components/shareLinks.less";
-@import (less) "components/dropper.less";
-
+@import (less) "components/mybooks-dropper.less";
 @import (less) "components/subNav.less";
 @import (less) "components/book.less";
 
@@ -129,8 +127,13 @@ table {
     td.comment {
       width: 33%;
     }
+    .comment__cover {
+      vertical-align: middle;
+      height: 72px;
+      margin-left: 10px;
+    }
   }
-  // openlibrary/templates/lib/markdown.html
+  // https://openlibrary.org/help/markdown
   &.help {
     margin: 20px 0;
     border-top: 1px solid @grey-e7e7e7;
@@ -207,8 +210,7 @@ q {
   }
 }
 
-abbr,
-acronym {
+abbr {
   border: 0;
   font-variant: normal;
 }
@@ -225,20 +227,12 @@ em {
   font-style: italic;
 }
 
-#contentBody,
-#contentMeta,
-.floaterBody {
-  ol,
-  ul {
-    margin-left: .5em;
-    margin-right: .5em;
-  }
-}
-
 #contentBody {
   ul,
   ol {
     margin-bottom: 20px;
+    margin-left: .5em;
+    margin-right: .5em;
   }
   li,
   blockquote {
@@ -252,19 +246,6 @@ em {
     padding: 0 !important;
     position: relative;
   }
-}
-
-#contentBody,
-#contentMeta {
-  .tabs ul {
-    margin-left: 0;
-  }
-}
-
-#content,
-#contentBody,
-#contentMeta,
-.floaterBody {
   ol li {
     list-style: decimal;
     color: @dark-grey;
@@ -378,7 +359,7 @@ div.superNav {
 span {
   &.link {
     font-size: 12px;
-    color: @light-grey;
+    color: @darker-grey;
     font-weight: normal !important;
     font-family: @lucida_sans_serif-2;
     white-space: nowrap;
@@ -388,6 +369,11 @@ span {
     color: @dark-grey;
     font-weight: normal !important;
     font-family: @lucida_sans_serif-2;
+
+    &.sorter {
+      margin-right: 5px;
+      margin-left: 10px;
+    }
 
     span.label {
       background-color: @orange;
@@ -476,15 +462,6 @@ p {
   }
 }
 
-.print-disabled-download {
-  a {
-    flex: 1;
-  }
-  display: flex;
-  font-size: 10px;
-  align-items: center;
-}
-
 input[type=text],
 select,
 textarea {
@@ -494,14 +471,14 @@ textarea {
 }
 
 input {
-  &[type=text] {
+  &[type=text], &[type=email] {
     margin: 0 10px 5px 0;
   }
   &.repeat-add {
     font-size: 1.125em;
   }
   &.invalid {
-    border: 1px solid @red;
+    border-color: @red;
     color: @dark-grey;
   }
   &.highlight {
@@ -518,24 +495,8 @@ input {
 .search-results-stats {
   margin: 0;
   margin-bottom: 10px;
-  color: @light-grey;
+  color: @grey;
   font-size: .9em;
-}
-
-// openlibrary/macros/FulltextSnippet.html
-.fulltext-excerpt {
-  padding: 10px;
-  border-bottom: 1px solid @lightest-grey;
-  font-size: .8em;
-  overflow: hidden;
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-// openlibrary/templates/work_search.html
-.advanced-search {
-  float: right;
 }
 
 /* Search v2 */
@@ -595,7 +556,7 @@ div#content {
   }
   /* stylelint-enable selector-max-specificity */
   &Head {
-    max-width: 918px;
+    max-width: 1018px;
     padding: 20px;
     // Reset h1 margin set in common.less
     h1 {
@@ -608,7 +569,6 @@ div#content {
 
 // openlibrary/templates/account/create.html
 // openlibrary/templates/account/email/forgot-ia.html
-// openlibrary/templates/account/email/forgot.html
 // openlibrary/templates/form.html
 // openlibrary/templates/login.html
 // openlibrary/templates/merge/authors.html
@@ -708,14 +668,6 @@ fieldset {
   }
 }
 
-// openlibrary/plugins/theme/templates/theme/git.html
-#message {
-  font-family: @lucida_sans_serif-2;
-  font-size: 14px;
-  background-color: @light-yellow;
-  padding: 15px;
-}
-
 /* ACCOUNT FORMS */
 @import (less) "components/page-heading-search-box.less";
 @import (less) "components/form.olform.less";
@@ -741,24 +693,6 @@ div.valid {
 
 /* SEARCH FORMS */
 
-// openlibrary/templates/lib/search_foot.html
-div#formScroll {
-  display: block;
-  position: relative;
-  width: 1px;
-  height: 1px;
-  left: 900px;
-  top: -410px;
-}
-
-// openlibrary/templates/lib/search_foot.html
-div#scrollBtm {
-  width: 1px;
-  height: 1px;
-}
-
-// openlibrary/templates/lib/search_foot.html
-// openlibrary/templates/lib/search_head.html
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
@@ -792,41 +726,6 @@ div.siteSearch {
   }
 }
 
-// openlibrary/templates/lib/search_head.html
-// openlibrary/templates/lib/search_foot.html
-div.searchFilter {
-  .searchOpener {
-    right: 0;
-    margin-top: 5px;
-    font-size: .6875em;
-  }
-  .searchCheckboxes {
-    margin-top: 5px;
-    font-size: .6875em;
-  }
-}
-
-// openlibrary/templates/lib/search_head.html
-// openlibrary/templates/lib/search_foot.html
-.searchCheckboxes {
-  ul li label {
-    font-family: @lucida_sans_serif-5;
-    font-size: 1.1em;
-  }
-  > ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    > li {
-      list-style-type: none;
-      display: inline-block;
-      margin: 0 4px 0 0;
-      padding: 0;
-    }
-  }
-}
-
-// openlibrary/templates/lib/search_head.html
 // openlibrary/templates/search/advancedsearch.html
 #qtop {
   input {
@@ -836,50 +735,6 @@ div.searchFilter {
   }
 }
 
-// possibly unused
-input.query {
-  width: 205px;
-}
-
-// openlibrary/templates/lib/search_head.html
-div#topOptions {
-  padding-top: 30px;
-}
-#topOptions {
-  .searchPlus {
-    padding: 8px 0;
-  }
-}
-
-// openlibrary/templates/lib/search_foot.html
-div#bottomOptions {
-  margin-top: 20px;
-  padding-top: 15px;
-}
-
-// openlibrary/templates/lib/search_foot.html
-#bottomOptions {
-  .searchPlus {
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-  }
-}
-
-// openlibrary/templates/lib/search_foot.html
-// openlibrary/templates/lib/search_head.html
-div.searchOptions {
-  display: none;
-  width: 300px;
-  .formElement {
-    padding: 0 2px 8px 0;
-  }
-  label {
-    margin-bottom: 2px;
-  }
-}
-
-// openlibrary/templates/lib/search_foot.html
-// openlibrary/templates/lib/search_head.html
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
@@ -894,8 +749,6 @@ div.searchOptions {
   }
 }
 
-// openlibrary/templates/lib/search_foot.html
-// openlibrary/templates/lib/search_head.html
 // openlibrary/templates/search/advancedsearch.html
 .searchPlus {
   font-family: @lucida_sans_serif-1;
@@ -904,10 +757,13 @@ div.searchOptions {
   padding: 15px 0;
 }
 
+.searchPlus a{
+  margin-right: 20px;
+}
+
 /* DIALOGS */
 
 // openlibrary/macros/EditButtons.html
-// openlibrary/macros/EditButtonsMacros.html
 div.cclicense {
   font-family: @lucida_sans_serif-2;
   font-size: .75em;
@@ -952,7 +808,6 @@ div.verify {
   }
 }
 
-// openlibrary/templates/borrow_admin.html
 // openlibrary/templates/account/verify/failed.html
 div.alert {
   span {
@@ -967,7 +822,6 @@ div.verify {
 }
 
 // openlibrary/templates/account/email/forgot-ia.html
-// openlibrary/templates/account/email/forgot.html
 .defaultstyling {
   font-family: @lucida_sans_serif-1;
   .padtop {
@@ -975,12 +829,6 @@ div.verify {
   }
 }
 
-// openlibrary/templates/account/email/forgot.html
-hr.forgot-padding {
-  margin: 30px 0 15px;
-}
-
-// openlibrary/templates/account/email/forgot.html
 // openlibrary/templates/account/email/forgot-ia.html
 .forgot-email {
   font-size: .8em;
@@ -1000,11 +848,8 @@ hr.forgot-padding {
 /* FOOTER */
 @import (less) "components/footer.less";
 
-/* CONTENT */
-div.contentWide,
-div#contentMeta {
-  padding: 10px 20px 20px;
-}
+/* LANGUAGE DROPDOWN */
+@import (less) "components/language.less";
 
 @import (less) "components/link-box.less";
 
@@ -1081,6 +926,7 @@ div.editThis {
 
 div#searchResults,
 div#searchResults ul {
+  min-width: 0;
   flex: 1;
   margin-left: 0;
   margin-bottom: 0;
@@ -1171,11 +1017,6 @@ div#searchResults {
   background-color: @purple;
 }
 
-// openlibrary/plugins/openlibrary/js/availability.js
-.check-book-availability {
-  background-color: fade(@dark-grey-two, 80);
-}
-
 // openlibrary/macros/AvailabilityButton.html
 .waitlist-msg {
   font-family: @lucida_sans_serif-1;
@@ -1194,6 +1035,10 @@ div#searchResults {
     max-width: 800px;
     font-size: 1em;
     color: @grey;
+  }
+  .cover {
+    max-width: 120px;
+    border-radius: 4px;
   }
 }
 
@@ -1286,7 +1131,6 @@ div.list {
 
 // openlibrary/templates/books/author-autocomplete.html
 // openlibrary/templates/type/work/view.html
-// openlibrary/templates/type/edition-history/view.html
 div.work {
   font-family: @lucida_sans_serif-1;
   span.work,
@@ -1302,20 +1146,6 @@ div.work {
     font-family: @lucida_sans_serif-1;
     color: @brown;
     font-size: 1.125em;
-  }
-  &Cover {
-    min-height: 10px;
-  }
-  &About {
-    padding-right: 38px;
-  }
-  &Padding {
-    margin-top: 10px;
-    margin-bottom: 30px;
-    margin-left: 20px;
-    p {
-      margin-top: 0;
-    }
   }
   &Help {
     padding-top: 10px;
@@ -1391,30 +1221,6 @@ div.books {
     font-style: italic;
     padding: 4px 4px 0;
     font-size: .6875em;
-  }
-}
-
-td {
-  // openlibrary/templates/type/edition/view.html
-  &.toc-label {
-    white-space: pre-wrap;
-  }
-  // openlibrary/templates/type/edition/view.html
-  &.toc-pagenum {
-    text-align: right;
-  }
-}
-
-tr {
-  &.toc-level-2 {
-    td.toc-label {
-      padding-left: 15px !important;
-    }
-  }
-  &.toc-level-3 {
-    td.toc-label {
-      padding-left: 30px !important;
-    }
   }
 }
 
@@ -1522,7 +1328,6 @@ ul {
 }
 
 // openlibrary/macros/WorkInfo.html
-// openlibrary/templates/account/borrow.html
 // openlibrary/templates/publishers/view.html
 // openlibrary/templates/search/authors.html
 // openlibrary/templates/search/publishers.html
@@ -1532,7 +1337,6 @@ ul {
 // openlibrary/templates/subjects.html
 // openlibrary/templates/type/author/view.html
 // openlibrary/templates/type/edition/view.html
-// openlibrary/templates/type/edition-history/view.html
 // openlibrary/templates/type/list/view.html
 // openlibrary/templates/type/permission/view.html
 // openlibrary/templates/type/work/view.html
@@ -1549,7 +1353,6 @@ ul {
 @import (less) "components/page-history.less";
 
 // openlibrary/macros/CoverImage.html
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
@@ -1566,7 +1369,6 @@ ul {
   line-height: normal;
 }
 
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .Author {
@@ -1576,7 +1378,6 @@ ul {
   font-size: 11px;
 }
 
-// openlibrary/macros/SearchResults.html
 // openlibrary/macros/SearchResultsWork.html
 // openlibrary/templates/books/show.html
 // openlibrary/templates/books/works-show.html
@@ -1660,14 +1461,11 @@ span.actions {
 // openlibrary/templates/work_search.html
 // openlibrary/templates/books/check.html
 // openlibrary/templates/account/books.html
-// openlibrary/macros/SearchResults.html
 // openlibrary/macros/FulltextResults.html
-// why not form#siteSearch ?
-ul#siteSearch {
+ul.list-books {
   > li {
     .display-flex();
   }
-  // openlibrary/macros/SearchResults.html
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
   // openlibrary/templates/books/show.html
@@ -1676,7 +1474,7 @@ ul#siteSearch {
   // openlibrary/templates/lists/snippet.html
   // openlibrary/templates/type/list/embed.html
   // openlibrary/templates/type/list/view.html
-  span.resultTitle {
+  .resultTitle {
     display: block;
     margin: 0 !important;
     font-family: @lucida_sans_serif-1;
@@ -1684,14 +1482,13 @@ ul#siteSearch {
   }
 
   // `span.resultTitle .bookauthor` is used in:
-  // * openlibrary/macros/SearchResults.html
   // * openlibrary/macros/SearchResultsWork.html
   // `span.resultPublisher` is used in
   // * openlibrary/macros/SearchResultsWork.htm
   // * openlibrary/templates/books/check.html
   // * openlibrary/templates/books/show.html
   // * openlibrary/templates/books/works-show.html
-  span.resultTitle .bookauthor,
+  .resultTitle .bookauthor,
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
@@ -1701,11 +1498,9 @@ ul#siteSearch {
   // openlibrary/templates/books/show.html
   // openlibrary/templates/books/check.html
   // openlibrary/macros/SearchResultsWork.html
-  // openlibrary/macros/SearchResults.html
   span.resultPublisher {
     display: block;
   }
-  // openlibrary/macros/SearchResults.html
   // openlibrary/templates/books/show.html
   span.resultType {
     font-size: .6875em;
@@ -1715,7 +1510,7 @@ ul#siteSearch {
 // openlibrary/templates/search/lists.html
 // openlibrary/templates/lists/lists.html
 div.wide {
-  ul#siteSearch {
+  ul.list-books {
     span.resultTitle {
       max-width: 850px;
     }
@@ -1726,7 +1521,7 @@ div.wide {
 // openlibrary/templates/type/list/view.html
 // openlibrary/templates/type/work/editions.html
 div.narrow {
-  ul#siteSearch {
+  ul.list-books {
     span.resultTitle {
       max-width: 500px !important;
     }
@@ -1735,7 +1530,6 @@ div.narrow {
 
 div.pop {
   // openlibrary/templates/covers/add.html
-  // openlibrary/templates/books/edit/addfield.html
   &Alert {
     display: none;
     width: 550px;
@@ -1746,17 +1540,6 @@ div.pop {
     color: @red;
     text-align: center;
   }
-  // openlibrary/templates/books/edit/addfield.html
-  &Notify {
-    font-size: .6875em;
-    font-family: @lucida_sans_serif-1;
-    margin: 10px 20px;
-  }
-}
-
-// openlibrary/templates/books/edit/addfield.html
-div.addfield {
-  margin: 10px 20px;
 }
 
 // openlibrary/templates/type/edition/view.html
@@ -1809,7 +1592,7 @@ div.addfield {
   // openlibrary/templates/recentchanges/render.html
   // openlibrary/templates/type/list/editions.html
   .historyPager {
-    text-align:center;
+    text-align: center;
     margin: 20px 0;
     width: 100%;
   }
@@ -1822,9 +1605,9 @@ div.addfield {
 // Merge button
 //openlibrary/templates/search/authors.html
 div.mergeThis {
-  float: right;
-  margin: 20px 20px 0 30px;
-  padding-left: 47px;
+  display: inline;
+  padding: 15px 0 0 45px;
+  margin-left: 15px;
   background: url(/images/icons/icon_merge.png) no-repeat 0 0;
 }
 @import (less) "components/merge-form.less";
@@ -1969,18 +1752,6 @@ div#subjectLists {
 }
 
 /* My books ... */
-// TODO: Remove in favor of general styles
-// openlibrary/templates/account/books.html
-#mybooks {
-  font-size: .9em;
-}
-
-// openlibrary/templates/account/books.html
-.user-lists {
-  a {
-    text-decoration: underline;
-  }
-}
 
 // openlibrary/templates/stats/readinglog.html
 // openlibrary/templates/account/books.html
@@ -1990,57 +1761,15 @@ div#subjectLists {
   }
 }
 
-// openlibrary/macros/ReadingLogButton.html
-// openlibrary/plugins/openlibrary/js/ol.js
-.reading-log-lite {
-  .display-flex();
-  padding-bottom: 5px;
-  margin-bottom: 5px;
-
-  select {
-    background-color: @white;
-    color: @dark-grey;
-    border: 1px solid @mid-grey;
-    border-radius: 4px;
-    height: 2.5em;
-    width: 100%;
-  }
-  button {
-    border-radius: 4px;
-    color: @white;
-    background: @green-three;
-    border: 2px solid @green-four;
-    border-right: 1px solid @green-two;
-    height: 2.5em;
-    padding: 0 10px;
-  }
-}
-
 // openlibrary/templates/account/books.html
 // openlibrary/templates/account/notifications.html
 // openlibrary/templates/account/privacy.html
 // openlibrary/templates/account.html
 .account-settings-menu {
-  margin-bottom: 15px;
+  display: flex;
 }
 
 @import (less) "components/rating-form.less";
-
-// openlibrary/templates/lists/home.html
-// openlibrary/templates/search/lists.html
-// openlibrary/templates/search/inside.html
-.searchInsideForm {
-  input[type=text] {
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    max-width: 500px;
-    min-width: 100px;
-  }
-  input[type=submit] {
-    padding: 5px;
-  }
-}
 @import (less) "components/searchResultItemCta.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
@@ -2050,7 +1779,6 @@ div#subjectLists {
     }
   }
   @import (less) "components/work--tablet.less";
-  @import (less) "components/dropper--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
 }
 
@@ -2070,13 +1798,6 @@ div#subjectLists {
   * - /search/subjects
   * To be deleted in https://github.com/internetarchive/openlibrary/issues/1821
   */
-  div.contentWide,
-  div#contentMeta {
-    float: left;
-    clear: both;
-    width: 918px;
-    padding: 10px 20px 20px;
-  }
   .desktop-only {
     display: inherit;
   }
@@ -2108,12 +1829,12 @@ div#subjectLists {
   .content {
     &Twothird {
       float: left;
-      width: 610px;
+      width: 675px;
       padding-right: 38px;
     }
     &Onethird {
       float: left;
-      width: 270px;
+      width: 305px;
     }
     &Half {
       float: left;

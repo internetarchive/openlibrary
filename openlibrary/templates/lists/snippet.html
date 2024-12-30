@@ -2,24 +2,24 @@ $def with (list)
 <span class="imageLg">
     $ cover = list.get_cover() or list.get_default_cover()
     $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-    $ title = _("Cover of: %(listname)s", listname=list)
+    $ title = _("Cover of: %(title)s", title=list.name)
     <a href="$list.key"><img src="$cover_url" height="58" alt="$title" title="$title"/></a>
 </span>
-<span class="details">
-    <span class="resultTitle">
+<div class="details">
+    <div class="resultTitle">
         <h3>
             <a href="$list.key" class="results"><b>$list.name</b></a>
         </h3>
         <span class="editions">
-            $ungettext('1 seed','%(count)d seeds', len(list.seeds), count=len(list.seeds))
+            $ungettext('%(count)d item','%(count)d items', len(list.seeds), count=len(list.seeds))
             $if list.last_update:
                 | $_('Last modified %(date)s', date=datestr(list.last_modified))
         </span>
-        <span class="detail">
+        <div class="detail">
             $if list.description:
                 $:sanitize(format(list.description))
             $else:
-                <em>$_('No description.')</em>
-        </span>
-    </span>
-</span>
+                <p>$_("No description.")</p>
+        </div>
+    </div>
+</div>

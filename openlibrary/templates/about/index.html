@@ -1,0 +1,34 @@
+$var title: $_("The Open Library Team")
+$ _x = ctx.setdefault('cssfile', 'team')
+
+<div class="teamPage__top">
+	<h1 class="teamPageroledescription__role">$_("The Open Library Team")</h1>
+	<p class="teamPageTagLine">$_("Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe.") <a href="https://openlibrary.org/volunteer">$_("Want to join us?")</a></p>
+	<div class="teamPage__selectElements">
+		<div class="selectElement">
+			<label for="roles">$_("Role:")</label>
+			<select name="roles" id="role">
+				<option value="All" selected>$_("All")</option>
+				<option value="staff">$_("Staff")</option>
+				<option value="fellow">$_("Fellows")</option>
+				<option value="volunteer">$_("Volunteers")</option>
+			</select>
+	    </div>
+		<div>
+			<label for="departments">$_("Department:")</label>
+			<select name="departments" id="department">
+				<option value="All" selected>$_("All")</option>
+				<option value="communication">$_("Communications")</option>
+				<option value="design">$_("Design")</option>
+				<option value="engineer">$_("Engineering")</option>
+				<option value="librarian">$_("Librarianship")</option>
+			</select>
+		</div>
+	</div>
+</div>
+
+<div class="teamCards_container"></div>
+
+<div class="teamPage__bottom">
+	<p class="teamPageTagLine">$:_('If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href="https://forms.gle/zPyuXGf4Bg6RzbDA7">Open Library team information form</a>.')</p>
+</div>

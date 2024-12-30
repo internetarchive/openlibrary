@@ -1,12 +1,25 @@
-$def with (status = {}, flags = {})
+$def with (status = {}, flags = {}, dev_merged_status=None)
 $# Template entry point for /status page
-$var title: Open Library server status
+$var title: $_("Open Library server status")
 
 <style type="text/css">
   table th {
              padding: 2pt;
              font-weight: bold;
              }
+
+  td {
+    border: 1px solid #aaa;
+    padding: 4px;
+  }
+
+  table tr.tr-body {
+    display: none;
+    background: #ddd;
+  }
+  #show_changed:checked ~ table tr.tr-body {
+    display: table-row;
+  }
 </style>
 
 <div id="contentHead">
@@ -14,7 +27,7 @@ $var title: Open Library server status
 </div>
 
 <div id="contentBody">
-  <h2> System information </h2>
+  <h2> $_("System information") </h2>
   <table>
     $for i in status:
        <tr>
@@ -23,7 +36,7 @@ $var title: Open Library server status
        </tr>
   </table>
 
-  <h2> Features enabled </h2>
+  <h2> $_("Features enabled") </h2>
   <table>
     $for i in flags:
        <tr>
@@ -39,7 +52,38 @@ $var title: Open Library server status
 	 </td>
        </tr>
   </table>
+  $if dev_merged_status:
+      <h2> $_("Staged") </h2>
+      <pre>$dev_merged_status.git_status</pre>
 
+
+      <input type="checkbox" id="show_changed"> <label for="show_changed">$_("Show changed files")</label>
+      <table>
+        <thead>
+          <tr>
+            <th>$_("Name")</th>
+            <th>$_("Status")</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for pr_status in dev_merged_status.pr_statuses:
+            <tr class="$cond(pr_status.status.startswith('Automatic merge failed'), 'red')">
+              <td>
+                $if pr_status.link:
+                  <a href="$pr_status.link">#$pr_status.pull_id: $pr_status.name</a>
+                $else:
+                  <code>$pr_status.pull_line</code>
+              </td>
+              <td><code>$pr_status.status</code></td>
+            </tr>
+            <tr class="tr-body">
+              <td colspan="2">
+                <pre>$pr_status.body</pre>
+              </td>
+            </tr>
+        </tbody>
+      </table>
+      <pre>$dev_merged_status.footer</pre>
 </div>
 
 

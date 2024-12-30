@@ -1,0 +1,91 @@
+@import (reference) "../less/breakpoints.less";
+@import (reference) "../less/colors.less";
+
+.toc__entry {
+  line-height: 1.2em;
+
+  border-radius: 4px;
+  padding: 3px 8px;
+  @media only screen and (hover: none) {
+    padding: 8px; /* Increase padding for touch-only devices */
+  }
+
+  .toc__main {
+    display: flex;
+    gap: 4px;
+    position: relative;
+  }
+
+  .toc__dots {
+    flex: 1;
+    border-bottom: 1px dotted;
+    height: 1.2em;
+  }
+
+  .toc__subtitle {
+    font-style: oblique;
+    color: @accessible-grey;
+  }
+
+  .toc__subtitle, .toc__authors, .toc__description {
+    font-size: @font-size-label-large;
+    text-decoration: none;
+  }
+
+  .toc__description {
+    margin-top: 5px;
+  }
+}
+
+a.toc__main {
+  text-decoration: none;
+  border-radius: 4px;
+
+  .toc__title {
+    text-decoration: underline;
+  }
+
+  &:hover:after {
+    display: block;
+    content: "";
+    inset: -2px;
+    position: absolute;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: fade-in .2s;
+    background-color: rgba(0, 124, 255, .15);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    background-color: rgba(0, 124, 255, 0);
+  }
+  to {
+    background-color: rgba(0, 124, 255, .15);
+  }
+}
+
+.toc__pagenum {
+  white-space: nowrap;
+}
+
+@media (max-width: @width-breakpoint-mobile) {
+  .toc__entry {
+    padding: 8px 0;
+  }
+
+  .toc__main {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .toc__dots {
+    display: none;
+  }
+
+  .toc__pagenum {
+    font-size: @font-size-label-large;
+    color: @accessible-grey;
+  }
+}

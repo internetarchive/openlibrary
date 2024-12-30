@@ -2,16 +2,17 @@
 
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
-from __future__ import print_function
-import simplejson
 
-from six.moves import urllib
+import urllib
 
+import requests
 
-root = "http://openlibrary.org"
+root = "https://openlibrary.org"
+
 
 def wget(path):
-    return simplejson.loads(urllib.request.urlopen(root + path).read())
+    return requests.get(root + path).json()
+
 
 def find_marc_url(d):
     if d.get('source_records'):
@@ -19,21 +20,26 @@ def find_marc_url(d):
 
     # some times initial revision is 2 instead of 1. So taking first 3 revisions (in reverse order)
     # and picking the machine comment from the last one
-    result = wget('%s.json?m=history&offset=%d' % (d['key'], d['revision']-3))
+    result = wget('%s.json?m=history&offset=%d' % (d['key'], d['revision'] - 3))
     if result:
         return result[-1]['machine_comment'] or ""
     else:
         return ""
 
+
 def main(oclc):
-    query = urllib.parse.urlencode({'type': '/type/edition', 'oclc_numbers': oclc, '*': ''})
+    query = urllib.parse.urlencode(
+        {'type': '/type/edition', 'oclc_numbers': oclc, '*': ''}
+    )
     result = wget('/query.json?' + query)
 
     for d in result:
         print("\t".join([oclc, d['key'], find_marc_url(d)]))
 
+
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) == 1 or "-h" in sys.argv or "--help" in sys.argv:
         print(__doc__, file=sys.stderr)
     else:

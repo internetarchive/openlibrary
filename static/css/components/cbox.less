@@ -24,9 +24,15 @@
   img {
     height: auto;
   }
+
   img,
   iframe {
     width: 100%;
+  }
+
+  img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
   }
 }
 
@@ -103,10 +109,10 @@
   font-size: 1.2em;
   // Increase clickable are to the recommended size (44x44px) according to
   // https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-  // but avoid modifing the UI
+  // but avoid modifying the UI
   display: inline-block;
   position: relative;
-  z-index: 1;
+  z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
   &:visited, &:link, &:hover {
@@ -126,7 +132,6 @@ div.coverFloat {
   }
   &Head {
     display: flex;
-    font-size: 1em;
     h2 {
       font-weight: normal;
       color: @dark-grey;
@@ -138,12 +143,11 @@ div.coverFloat {
   }
 }
 
-
 /* ADD IMAGE/COVER POP-UP */
 div.floater {
   position: relative;
   font-family: @lucida_sans_serif-1;
-  min-height: 550px;
+  min-height: 675px;
   background: @white;
   text-align: left;
   &Head {
@@ -158,6 +162,10 @@ div.floater {
       padding: 0;
       flex: 1;
     }
+
+    &.right-justify {
+      justify-content: right;
+    }
   }
   &Body {
     padding: 20px;
@@ -168,10 +176,19 @@ div.floater {
   }
 }
 
-.floatform {
+.floatform, .ol-cover-form {
   font-family: @lucida_sans_serif-2;
 
+  button[type=submit] {
+    font-size: 1em;
+    width: auto;
+    cursor: pointer;
+    display: inline-block;
+  }
+
   .label {
+    padding-bottom: 5px;
+
     label {
       font-size: 1.0em;
       font-family: @lucida_sans_serif-5;
@@ -181,27 +198,107 @@ div.floater {
       font-weight: normal;
     }
   }
-  div#covers.input {
-    max-height: 132px;
-    overflow: hidden;
-    margin-left: -80px;
-    text-align: center;
-  }
+
   input[type=text],
+  input[type=url],
   input[type=file] {
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
-    margin-left: 30px;
   }
-  button[type=submit] {
-    font-size: 1.125em;
-    width: auto !important;
+
+  input::file-selector-button{
+    cursor: pointer;
+  }
+
+  a {
+    cursor: pointer;
   }
 }
 
-.floatform__body {
+.ol-cover-form {
+  background-color: @lightest-grey;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+
+  .input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .input > :first-child {
+    flex: 1;
+  }
+
+  button[type=submit] {
+    margin-top: 0;
+  }
+
+  .carousel-container {
+    padding: 10px 0;
+    margin: 0;
+    border-radius: 10px;
+  }
+
+  .carousel {
+    padding: 0;
+  }
+
+  .carousel__item {
+    margin: 0;
+  }
+
+  .book-cover {
+    height: auto;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .carousel button {
+    color: @grey;
+    border: 2px solid @light-grey;
+    border-radius: 6px;
+    position: relative;
+  }
+}
+
+.ol-cover-form--ia {
+  a {
+    text-decoration: none;
+  }
+
+  .ol-cover-form--ia_image {
+    display: block;
+  }
+
+  .input {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  button[type=submit] {
+    width: 135px;
+  }
+}
+
+#coverFile {
+  min-width: 1px;
+}
+
+.dialog--close-parent {
+  cursor: pointer;
+}
+
+div#covers.input {
+  max-height: 132px;
+  overflow: hidden;
+  margin-left: -80px;
   text-align: center;
+}
+
+.floatform__body {
   width: 100%;
   position: relative;
 
@@ -213,7 +310,6 @@ div.floater {
 div.imageIntro{
   margin: 0 0 10px;
 }
-
 
 /* ADD ROLES, ETC. */
 div.floaterAdd {
@@ -243,6 +339,7 @@ div.floaterAdd {
     }
     textarea {
       padding: 3px;
+      resize: none;
     }
   }
 }
@@ -262,6 +359,7 @@ div.floaterAdd {
     }
 
     input[type=text],
+    input[type=url],
     input[type=file] {
       width: 350px;
     }
@@ -278,8 +376,10 @@ div.floaterAdd {
     .input,
     .label,
     input[type=text],
+    input[type=url],
     textarea {
       width: 560px;
+      resize: none;
     }
   }
 }

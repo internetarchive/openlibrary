@@ -1,10 +1,12 @@
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST
 import re
+from socket import AF_INET, SO_BROADCAST, SOCK_DGRAM, SOL_UDP, socket
 
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
+re_loc = re.compile(r'^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
+
 
 class FindItemError(Exception):
     pass
+
 
 def find_item(ia):
     s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)

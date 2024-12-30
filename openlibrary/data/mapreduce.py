@@ -12,20 +12,23 @@ This works as follows:
   reduce function is applied for each key and its values.
 * The reduced key, value pairs are returned as an iterator.
 """
-import sys
+
+import gzip
 import itertools
+import logging
 import os
 import subprocess
-import logging
-import gzip
+import sys
 
 logger = logging.getLogger("mapreduce")
+
 
 class Task:
     """Abstraction of a map-reduce task.
 
     Each task should extend this class and implement map and reduce functions.
     """
+
     def __init__(self, tmpdir="/tmp/mapreduce", filecount=100, hashfunc=None):
         self.tmpdir = tmpdir
         self.filecount = 100
@@ -62,8 +65,7 @@ class Task:
             yield self.reduce(key, values)
 
     def process(self, records):
-        """Takes key-value pairs, applies map-reduce and returns the resultant key-value pairs.
-        """
+        """Takes key-value pairs, applies map-reduce and returns the resultant key-value pairs."""
         # Map the record and write to disk
         disk = Disk(self.tmpdir, mode="w", hashfunc=self.hashfunc)
         self.map_all(records, disk)
@@ -74,11 +76,13 @@ class Task:
         records = disk.read_semisorted()
         return self.reduce_all(records)
 
+
 class Disk:
     """Map Reduce Disk to manage key values.
 
     The data is stored over multiple files based on the key. All records with same key will fall in the same file.
     """
+
     def __init__(self, dir, prefix="shard", filecount=100, hashfunc=None, mode="r"):
         self.dir = dir
         self.prefix = prefix
@@ -118,4 +122,3 @@ class Disk:
             status = p.wait()
             if status != 0:
                 raise Exception("sort failed with status %d" % status)
-

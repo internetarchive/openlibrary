@@ -2,24 +2,33 @@ $def with (user)
 
 $var title: $_("Settings")
 
-<div id="contentHead">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$ctx.user.key">$ctx.user.displayname</a>
-      &raquo; $_("Settings")
+$ username = ctx.user.key.split('/')[-1]
+$ mb = MyBooksTemplate(username, 'Settings')
+
+<div class="mybooks">
+  $:mb.render_sidebar()
+  <div>
+    <div id="contentHead">
+      <div class="small sansserif grey account-settings-menu">
+	<a href="$ctx.user.key">$ctx.user.displayname</a>
+	&raquo; $_("Settings")
+      </div>
     </div>
 
-<div id="contentBody">
-    <p class="sansserif larger"><a href="https://archive.org/account/index.php?settings=1">$_("Change Password")</a></p>
-    <p class="sansserif larger"><a href="https://archive.org/account/index.php?settings=1">$_("Update Email Address")</a></p>
-    <p class="sansserif larger"><a href="/account/notifications">$_("Your Notifications")</a></p>
-    <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Internet Archive Announcements")</a></p>
-    <p class="sansserif larger"><a href="/account/privacy">$_("Your Privacy Settings")</a></p>
-    <p class="sansserif larger"><a href="$user.key">$_("View")</a> $_("or") <a href="$user.key?m=edit">$_("Edit")</a> $_("Your Profile Page")</p>
-    <p class="sansserif larger"><a href="/account/books">$_("View or Edit your Reading Log")</a></p>
-    <p class="sansserif larger"><a href="/account/lists">$_("View or Edit your Lists")</a></p>
-    <p class="sansserif larger"><a href="/account/import">$_("Import and Export Options")</a></p>
-    <br/>
-    <p class="sansserif larger"><a href="/contact">$_("Please contact us if you need help with anything else.")</a></p>
-
+    <div id="contentBody">
+      <h1>$_('Settings & Privacy')</h1>
+      <p class="sansserif larger"><a href="$user.key">$_("View")</a> $_("or") <a href="$user.key?m=edit">$_("Edit")</a> $_("Your Profile Page")</p>
+      <p class="sansserif larger"><a href="/account/books">$_("View or Edit your Reading Log")</a></p>
+      <p class="sansserif larger"><a href="/account/lists">$_("View or Edit your Lists")</a></p>
+      <p class="sansserif larger"><a href="/account/import">$_("Import and Export Options")</a></p>
+      <p class="sansserif larger"><a href="/account/privacy">$_("Manage Privacy & Content Moderation Settings")</a></p>
+      <p class="sansserif larger"><a href="/account/notifications">$_("Manage Notifications Settings")</a></p>
+      <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Manage Mailing List Subscriptions")</a></p>
+      <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Change Password")</a></p>
+      <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Update Email Address")</a></p>
+      <p class="sansserif larger"><a href="//openlibrary.org/help/faq/troubleshooting#deleteaccount">$_("Deactivate Account")</a></p>
+      <br/>
+      <p class="sansserif larger"><a href="mailto:openlibrary@archive.org?subject=Support Case">$_("Please contact us if you need help with anything else.")</a></p>
     </div>
+  </div>
 </div>

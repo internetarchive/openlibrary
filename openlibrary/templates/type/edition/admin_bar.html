@@ -10,15 +10,15 @@ $ edition_id = edition and edition.key.split('/')[2]
       <form action="/admin/staffpicks" method="POST">
         <input type="hidden" value="add" name="action"/>
         <input type="hidden" name="work_id" value="$work_id"/>
-        <input type="submit" class="cta-btn--vanilla" value="$_('Add to Staff Picks')"/>
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('Add to Staff Picks')"/>
       </form>
     $if ocaid:
       <form method="GET" action="/admin/sync">
         <input type="hidden" name="edition_id" value="$edition_id"/>
-        <input type="submit" class="cta-btn--vanilla" value="$_('Sync Archive.org ID')"/>
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('Sync Archive.org ID')"/>
       </form>
       <form method="GET" action="https://archive.org/details/$ocaid">
-        <input type="submit" class="cta-btn--vanilla" value="$_('View Book on Archive.org')"/>
+        <input type="submit" class="cta-btn cta-btn--small cta-btn--vanilla" value="$_('View Book on Archive.org')"/>
       </form>
     $if not work_id:
       <strong>$_("Orphaned Edition")</strong>

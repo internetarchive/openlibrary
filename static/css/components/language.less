@@ -1,0 +1,66 @@
+.translate-icon {
+  width: 1.5em;
+  vertical-align: middle;
+}
+.language-component {
+  cursor: pointer;
+}
+.language-component summary::marker {
+  content: "";
+}
+.language-component summary:after {
+  content: " ▼";
+  zoom: 70%;
+  vertical-align: middle;
+}
+.language-dropdown-component {
+  .dropdown-menu {
+    width: 150px;
+    text-align: left;
+    background-color: @light-beige;
+    border: 1px solid @dark-beige;
+    border-radius: 3px;
+    cursor: pointer;
+
+    li {
+      border-bottom: 1px solid @beige-two;
+
+      // stylelint-disable max-nesting-depth, selector-max-specificity
+      &:last-child {
+        border: none;
+      }
+
+      &:hover {
+        background-color: @white;
+      }
+
+      a {
+        text-decoration: none;
+        color: @dark-grey;
+        white-space: nowrap;
+        font-size: .9em;
+        display: block;
+      }
+      // stylelint-enable max-nesting-depth, selector-max-specificity
+    }
+  }
+}
+
+.iaBar .language-component {
+  position: relative;
+  display: block;
+  border: 1px solid @mid-grey;
+  border-radius: 5px;
+  padding: .2rem .4rem;
+  // stylelint-disable selector-max-specificity, max-nesting-depth
+  .language-dropdown-component {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    z-index: @z-index-level-5;
+    li {
+      padding: 8px 12px;
+    }
+  }
+  // stylelint-enable max-nesting-depth, selector-max-specificity
+}

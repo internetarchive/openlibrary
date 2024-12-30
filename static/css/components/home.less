@@ -1,13 +1,49 @@
 /* Homepage about section */
 @import (less) "less/font-families.less";
 
+div.tutorial__item {
+  background-color: @book-cover-carousel-cards;
+  border: 1px solid hsl(0, 0%, 87%);
+  border-radius: 5px;
+  padding: 10px;
+  min-width: 220px;
+
+  @media only screen and (min-width: @width-breakpoint-desktop) {
+    min-width: 310px;
+  }
+  &:focus {
+    border: 1px solid hsl(202, 97%, 28%);
+  }
+  p {
+    margin: .4% 4%;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: normal;
+  }
+  p.small {
+    color: @gray-a19b9e;
+    font-size: .8rem;
+  }
+  a {
+    display: flex;
+    align-items: center;
+    height: 100px;
+  }
+  img {
+    position: relative;
+    margin: 5px;
+    float: left;
+    height: 5rem;
+    opacity: 80%;
+  }
+}
+
 /* stylelint-disable selector-max-specificity */
 div.chartHome a:hover,
 #home-stats-charts .statschart:hover a {
   color: @link-blue;
   text-decoration: underline;
 }
-
 #home {
   &-stats-charts {
     .display-flex();
@@ -21,7 +57,7 @@ div.chartHome a:hover,
       .chartShow {
         width: 145px;
         height: 60px;
-        padding: 0 5px;
+        margin: 0 5px;
         border-bottom: 1px solid @grey;
         cursor: pointer;
       }
@@ -34,6 +70,7 @@ div.chartHome a:hover,
           display: block;
         }
         .ticks {
+          margin-top: 2px;
           font-family: @georgia_serif-2;
           font-size: 1.125em;
           font-weight: 700;
@@ -78,6 +115,9 @@ div.chartHome a:hover,
 }
 /* stylelint-enable selector-max-specificity */
 
+.card__text {
+  margin: 5px;
+}
 .home-resource-section {
   flex: 1;
   font-size: 13px;

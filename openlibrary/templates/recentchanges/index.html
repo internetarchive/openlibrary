@@ -24,6 +24,7 @@ $def subnav():
     $ nav_items = [
     $     (path + "/edit-book", _("Books Edited")),
     $     (path + "/merge-authors", _("Author Merges")),
+    $     (path + "/merge-works", _("Work Merges")),
     $     (path + "/add-book", _("Books Added")),
     $     (path + "/add-cover", _("Covers Added")),
     $ ]
@@ -43,7 +44,7 @@ $def subnav():
     $if ip:
         $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
     $else:
-        <div id="tabsHistory" class="tabs autohash">
+        <div id="tabsHistory" class="ol-tabs autohash">
             <ul>
                 <li><a href="#humans">$_('By Humans')</a></li>
                 <li><a href="#bots">$_('By Bots')</a></li>

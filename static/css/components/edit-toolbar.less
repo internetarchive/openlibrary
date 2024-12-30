@@ -11,18 +11,17 @@ div#editHistory {
 
 div.editButton {
   width: auto;
-  float: left;
+  display: inline-block;
 }
 
 div#editInfo {
   float: right;
-  overflow: hidden;
-  white-space: nowrap;
+  white-space: normal;
   text-align: right;
   > div {
-    font-size: 11px;
+    font-size: @font-size-label-small;
     font-weight: normal;
-    color: @brown!important;
+    color: @brown !important;
     font-family: @lucida_sans_serif-1;
   }
   .smallest {
@@ -32,7 +31,6 @@ div#editInfo {
 
 div#editTools {
   white-space: nowrap;
-  overflow: hidden;
-  padding: 0 0 1rem 0;
+  padding: 0 0 1rem;
 }
 @import "components/buttonLink.less";

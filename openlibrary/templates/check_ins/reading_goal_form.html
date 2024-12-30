@@ -1,0 +1,17 @@
+$def with (goal=None, year=None, update=False)
+
+<form class="goal-form" action="/reading-goal.json" method="POST">
+  $ year_value = year if year else ''
+  <input type="hidden" name="year" value="$year_value">
+  $if update:
+    <input type="hidden" name="is_update" value="true">
+  <span>$_("How many books would you like to read this year?")</span>
+  $ goal_value = goal if goal else ''
+  $ min_value = 0 if goal else 1
+  <input type="number" name="goal" min="$min_value" step="1" value="$goal_value" max="10000" required>
+  <button class="cta-btn cta-btn--shell reading-goal-submit-button" type="submit" data-ol-link-track="YearlyReadingGoals|SubmitGoal">$_("Submit")</button>
+  $if goal:
+    <div class="small">$_('Enter "0" to unset your reading goal. Your check-ins will be preserved.')</div>
+  $else:
+    <a class="small" href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library" target="_blank">$_('Learn More')</a>
+</form>

@@ -13,7 +13,7 @@ javascript function.
 USAGE::
 
     import jsdef
-    render = web.tempalte.render("templates/", extensions=[jsdef.extension])
+    render = web.template.render("templates/", extensions=[jsdef.extension])
 
 Sample Template::
 
@@ -53,36 +53,43 @@ __version__ = "0.3"
 0.3: Added support for elif.
 """
 
-import simplejson
+import json
 
 import web
-from web.template import Template, Parser, LineNode, SuiteNode, DefNode, PythonTokenizer, INDENT
+from web.template import (
+    DefNode,
+    PythonTokenizer,
+    # INDENT,
+)
+
+INDENT = "    "
+
 
 def extension(parser):
     r"""jsdef extension. Adds support for `jsdef` block to template parser.::
 
-        >>> t = Template("$jsdef hello(name):\n    Hello $name!", extensions=[extension])
-        >>> print t() #doctest:+NORMALIZE_WHITESPACE
-        <script type="text/javascript">
-        function hello(name){
-            var self = [], loop;
-            self.push("Hello "); self.push(websafe(name)); self.push("!\n");
-            return self.join("");
-        }
-        </script>
+    >>> t = Template("$jsdef hello(name):\n    Hello $name!", extensions=[extension])
+    >>> print t() #doctest:+NORMALIZE_WHITESPACE
+    <script type="text/javascript">
+    function hello(name){
+        var self = [], loop;
+        self.push("Hello "); self.push(websafe(name)); self.push("!\n");
+        return self.join("");
+    }
+    </script>
     """
     parser.statement_nodes['jsdef'] = JSDefNode
     return parser
 
+
 class JSDefNode(DefNode):
-    """Node to represent jsdef block.
-    """
+    """Node to represent jsdef block."""
+
     def __init__(self, *a, **kw):
         DefNode.__init__(self, *a, **kw)
         self.suite.sections.append(JSNode(self))
         self.stmt = self.stmt.replace("jsdef", "def")
 
-INDENT = "    "
 
 class JSNode:
     def __init__(self, node):
@@ -99,28 +106,27 @@ class JSNode:
     def jsemit(self, node, indent):
         r"""Emit Javascript for given node.::
 
-            >>> jsemit = JSNode(None).jsemit
-            >>> jsemit(web.template.StatementNode("break"), "")
-            'break;\n'
-            >>> jsemit(web.template.AssignmentNode("x = 1"), "")
-            'var x = 1;\n'
+        >>> jsemit = JSNode(None).jsemit
+        >>> jsemit(web.template.StatementNode("break"), "")
+        'break;\n'
+        >>> jsemit(web.template.AssignmentNode("x = 1"), "")
+        'var x = 1;\n'
         """
         name = "jsemit_" + node.__class__.__name__
-        f= getattr(self, name, None)
-        if f:
+        if f := getattr(self, name, None):
             return f(node, indent)
         else:
             return ""
 
     def jsemit_SuiteNode(self, node, indent):
-        return u"".join(self.jsemit(s, indent) for s in node.sections)
+        return "".join(self.jsemit(s, indent) for s in node.sections)
 
     def jsemit_LineNode(self, node, indent):
         text = ["self.push(%s);" % self.jsemit(n, "") for n in node.nodes]
         return indent + " ".join(text) + "\n"
 
     def jsemit_TextNode(self, node, indent):
-        return simplejson.dumps(node.value)
+        return json.dumps(node.value)
 
     def jsemit_ExpressionNode(self, node, indent):
         if node.escape:
@@ -137,9 +143,7 @@ class JSNode:
     def jsemit_BlockNode(self, node, indent):
         text = ""
 
-        jsnames = {
-            "elif": "else if"
-        }
+        jsnames = {"elif": "else if"}
 
         for n in ["if", "elif", "else", "for"]:
             if node.stmt.startswith(n):
@@ -148,11 +152,11 @@ class JSNode:
         else:
             return ""
 
-        expr = node.stmt[len(name):].strip(": ")
+        expr = node.stmt[len(name) :].strip(": ")
         expr = expr and "(" + expr + ")"
 
         jsname = jsnames.get(name, name)
-        text += indent + "%s %s {\n" % (jsname, py2js(expr))
+        text += indent + f"{jsname} {py2js(expr)} {{\n"
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "}\n"
         return text
@@ -164,14 +168,14 @@ class JSNode:
     def jsemit_ForNode(self, node, indent):
         tok = PythonTokenizer(node.stmt)
         tok.consume_till('in')
-        a = node.stmt[:tok.index].strip() # for i in
-        a = a[len("for"):-len("in")].strip() # strip `for` and `in`
+        a = node.stmt[: tok.index].strip()  # for i in
+        a = a[len("for") : -len("in")].strip()  # strip `for` and `in`
 
-        b = node.stmt[tok.index:-1].strip() # rest of for stmt excluding :
-        b = web.re_compile("loop.setup\((.*)\)").match(b).group(1)
+        b = node.stmt[tok.index : -1].strip()  # rest of for stmt excluding :
+        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
-        text += indent + "foreach(%s, loop, function(loop, %s) {\n" % (py2js(b), a)
+        text += indent + f"foreach({py2js(b)}, loop, function(loop, {a}) {{\n"
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "});\n"
         return text
@@ -189,11 +193,12 @@ class JSNode:
         text += "//--></script>\n"
         return text
 
+
 def tokenize(code):
     """Tokenize python code.::
 
-        >>> list(tokenize("x + y"))
-        ['x', ' ', '+', ' ', 'y']
+    >>> list(tokenize("x + y"))
+    ['x', ' ', '+', ' ', 'y']
     """
     end = 0
     tok = PythonTokenizer(code)
@@ -209,22 +214,25 @@ def tokenize(code):
     except StopIteration:
         pass
 
+
 def py2js(expr):
     """Converts a python expression to javascript.::
 
-        >>> py2js("x + y")
-        'x + y'
-        >>> py2js("x and y")
-        'x && y'
-        >>> py2js("x or not y")
-        'x || ! y'
+    >>> py2js("x + y")
+    'x + y'
+    >>> py2js("x and y")
+    'x && y'
+    >>> py2js("x or not y")
+    'x || ! y'
     """
-    d = {"and": "&&", "or": "||", "not": "!"}
+    d = {"and": "&&", "or": "||", "not": "!", "None": "null"}
+
     def f(tokens):
-       for t in tokens:
-           yield d.get(t, t)
+        for t in tokens:
+            yield d.get(t, t)
 
     return "".join(f(tokenize(expr)))
+
 
 def _testrun(code):
     parser = extension(web.template.Parser())
@@ -233,23 +241,26 @@ def _testrun(code):
     jnode = JSNode(node)
     return jnode.jsemit(node, "")
 
+
 def _test():
     r"""
-        >>> t = _testrun
-        >>> t("$x")
-        'self.push(websafe(x));\n'
-        >>> t("$:x")
-        'self.push(x);\n'
-        >>> t("$ x = 1")
-        'var x = 1;\n'
-        >>> t("$ x = a and b")
-        'var x = a && b;\n'
-        >>> t("$if a or not b: $a")
-        u'if (a || ! b) {\n    self.push(websafe(a));\n}\n'
-        >>> t("$for i in a and a.data or []: $i")
-        u'foreach(a && a.data || [], loop, function(loop, i) {\n    self.push(websafe(i));\n});\n'
+    >>> t = _testrun
+    >>> t("$x")
+    'self.push(websafe(x));\n'
+    >>> t("$:x")
+    'self.push(x);\n'
+    >>> t("$ x = 1")
+    'var x = 1;\n'
+    >>> t("$ x = a and b")
+    'var x = a && b;\n'
+    >>> t("$if a or not b: $a")
+    u'if (a || ! b) {\n    self.push(websafe(a));\n}\n'
+    >>> t("$for i in a and a.data or []: $i")
+    u'foreach(a && a.data || [], loop, function(loop, i) {\n    self.push(websafe(i));\n});\n'
     """
+
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

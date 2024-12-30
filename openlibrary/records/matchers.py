@@ -18,60 +18,57 @@ then adding the function to this list.
 
 
 """
-from __future__ import print_function
 
 import copy
-from collections import defaultdict
 import logging as Logging
+from collections import defaultdict
 
-from infogami import config
-from openlibrary.utils.solr import Solr
 import web
 
+from infogami import config  # noqa: F401 side effects may be needed
+from openlibrary.utils.solr import Solr  # noqa: F401 side effects may be needed
 
 logger = Logging.getLogger(__name__)
 
 
 def match_isbn(params):
     "Search by ISBN for exact matches"
-    if "isbn" in params.get("identifiers",{}):
+    if "isbn" in params.get("identifiers", {}):
         isbns = params["identifiers"]["isbn"]
-        q = {
-            'type':'/type/edition',
-            'isbn_': [str(x) for x in isbns]
-            }
+        q = {'type': '/type/edition', 'isbn_': [str(x) for x in isbns]}
         logger.debug("ISBN query : %s", q)
         ekeys = list(web.ctx.site.things(q))
         if ekeys:
             return ekeys
     return []
 
+
 def match_identifiers(params):
     "Match by identifiers"
     print(params)
     counts = defaultdict(int)
-    identifiers = copy.deepcopy(params.get("identifiers",{}))
+    identifiers = copy.deepcopy(params.get("identifiers", {}))
     for i in ["oclc_numbers", "lccn", "ocaid"]:
         if i in identifiers:
             val = identifiers.pop(i)
-            query = {'type':'/type/edition',
-                     i : val}
+            query = {'type': '/type/edition', i: val}
             matches = web.ctx.site.things(query)
             for i in matches:
                 counts[i] += 1
     for k, v in identifiers.items():  # Rest of the identifiers
-        print("Trying ", k , v)
-        query = {'type':'/type/edition',
-                 'identifiers' : {k : v}}
+        print("Trying ", k, v)
+        query = {'type': '/type/edition', 'identifiers': {k: v}}
         matches = web.ctx.site.things(query)
         for i in matches:
             counts[i] += 1
 
-    return sorted(counts, key = counts.__getitem__, reverse = True)
+    return sorted(counts, key=counts.__getitem__, reverse=True)
+
 
 def match_tap_infogami(params):
     "Search infogami using title, author and publishers"
     return []
+
 
 def match_tap_solr(params):
     """Search solr for works using title and author and narrow using
@@ -90,11 +87,4 @@ def match_tap_solr(params):
     return []
 
 
-match_functions = [match_isbn,
-                   match_identifiers,
-                   match_tap_infogami,
-                   match_tap_solr
-                   ]
-
-
-
+match_functions = [match_isbn, match_identifiers, match_tap_infogami, match_tap_solr]

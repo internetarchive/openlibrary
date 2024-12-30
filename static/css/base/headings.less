@@ -1,4 +1,4 @@
-@import (less) "less/font-families.less";
+@import "../less/font-families.less";
 
 h1 {
   font-size: 1.875em;
@@ -12,15 +12,9 @@ h1 {
   &.publisher {
     color: @brown;
     font-size: 1.375em;
-    font-family: @georgia_serif-1!important;
+    font-family: @georgia_serif-1 !important;
     font-weight: normal !important;
     margin: 0;
-  }
-  &.work-title {
-    font-family: @georgia_serif-1;
-    margin: 10px 0 0;
-    color: @dark-grey;
-    font-size: 2em;
   }
   span.count {
     font-size: 14px !important;
@@ -28,7 +22,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.375em;
+  font-size: @font-size-title-large;
   &.author {
     color: @brown;
     font-size: 1.125em;
@@ -41,22 +35,8 @@ h2 {
     margin: 0;
     padding: 0;
   }
-  &.edition-byline {
-    font-size: 1em;
-    font-weight: normal;
-    color: @dark-grey;
-    margin: 10px 0 20px;
-  }
   &.publisher {
     background-color: @lightest-grey;
-  }
-  &.work-subtitle {
-    font-family: @georgia_serif-1;
-    margin: 0;
-    color: @grey;
-    font-size: 1.3em;
-    font-weight: normal;
-    font-style: italic;
   }
   &.edition-title {
     margin: 7px 0 0;
@@ -88,7 +68,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.0em;
+  font-size: @font-size-label-medium;
   &.Question {
     font-family: @georgia_serif-1;
     font-size: 1.2em;
@@ -102,7 +82,8 @@ h3 {
 
 h4 {
   font-size: .8125em;
-  &.publisher {
+  &.publisher,
+  &.observer-count {
     font-family: @lucida_sans_serif-1;
     font-weight: normal;
   }

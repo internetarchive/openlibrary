@@ -1,9 +1,23 @@
 $def with(work)
 
 $if work and not is_bot():
-    $ work_subjects_authors = cached_work_authors_and_subjects(work.key)
-    $ authors = ', '.join([author if isinstance(author, basestring) else author.name for author in work_subjects_authors.get('authors', [])])
     <div class="related-books">
-      $:render_template("home/custom_ia_carousel", title="You might also like", key="related-subjects-carousel", work_id=work.key, _type="subjects", limit=42, min_books=1)
-      $:render_template("home/custom_ia_carousel", title="More by %s" % (authors or "this author"), key="related-authors-carousel", work_id=work.key, _type="authors", limit=42, min_books=1)
+        $ subjects = work.get_related_books_subjects()
+        $ author_keys = [a.key.split('/')[-1] for a in work.get_authors()]
+
+        $if subjects:
+            $ query = 'ebook_access:[borrowable TO *] -key:"%s" subject:(%s)' % (
+            $    work.key,
+            $    ' OR '.join(['"%s"' % s for s in subjects]),
+            $ )
+            $if author_keys:
+                $ query += ' -author_key:(%s)' % ' OR '.join(['%s' % a for a in author_keys])
+            $:macros.QueryCarousel(query=query, title=_("You might also like"), key="related-subjects-carousel", limit=12, use_cache=False)
+        $if author_keys:
+            $ query = 'ebook_access:[borrowable TO *] -key:"%s" author_key:(%s)' % (
+            $    work.key,
+            $    ' OR '.join(['%s' % a for a in author_keys]),
+            $ )
+            $ title = ungettext("More by this author", "More by these authors", len(author_keys))
+            $:macros.QueryCarousel(query=query, title=title, key="related-authors-carousel", limit=12, use_cache=False)
     </div>

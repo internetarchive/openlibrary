@@ -1,0 +1,36 @@
+$def with (tag_name='', tag_type='', tag_description='')
+
+<div class="formElement">
+    <div class="label">
+        <label for="tag_name">$_("Tag Name")</label>*<span class="tip">$_("Required field")</span>
+    </div>
+    <div class="input">
+        <input type="text" name="name" id="tag_name" value="$tag_name" required/>
+    </div>
+</div>
+
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="tag_description">$_("Tag Description")</label>
+        </div>
+        <div class="input">
+            <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80">$tag_description</textarea>
+        </div>
+    </div>
+</fieldset>
+
+<div class="formElement">
+    <div class="label"><label for="tag_type">$_("Tag type")</label></div>
+    <div class="input">
+        <select name="tag_type" id="tag_type" required>
+            <option value="">$_("Select")</option>
+            $ tag_types = get_tag_types()
+            $for t_type in tag_types:
+                $if t_type == tag_type:
+                    <option value="$t_type" selected>$t_type</option>
+                $else:
+                    <option value="$t_type">$t_type</option>
+        </select>
+    </div>
+</div>

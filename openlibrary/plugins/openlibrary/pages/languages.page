@@ -1,1716 +1,1816 @@
 [
   {
-    "code": "aar", 
-    "type": "/type/language", 
-    "name": "Afar", 
+    "code": "aar",
+    "type": "/type/language",
+    "name": "Afar",
     "key": "/languages/aar"
-  }, 
+  },
   {
-    "code": "abk", 
-    "type": "/type/language", 
-    "name": "Abkhaz", 
+    "code": "abk",
+    "type": "/type/language",
+    "name": "Abkhaz",
     "key": "/languages/abk"
-  }, 
+  },
   {
-    "code": "ace", 
-    "type": "/type/language", 
-    "name": "Achinese", 
+    "code": "ace",
+    "type": "/type/language",
+    "name": "Achinese",
     "key": "/languages/ace"
-  }, 
+  },
   {
-    "code": "ach", 
-    "type": "/type/language", 
-    "name": "Acoli", 
+    "code": "ach",
+    "type": "/type/language",
+    "name": "Acoli",
     "key": "/languages/ach"
-  }, 
+  },
   {
-    "code": "ada", 
-    "type": "/type/language", 
-    "name": "Adangme", 
+    "code": "ada",
+    "type": "/type/language",
+    "name": "Adangme",
     "key": "/languages/ada"
-  }, 
+  },
   {
-    "code": "ady", 
-    "type": "/type/language", 
-    "name": "Adygei", 
+    "code": "ady",
+    "type": "/type/language",
+    "name": "Adygei",
     "key": "/languages/ady"
-  }, 
+  },
   {
-    "code": "afa", 
-    "type": "/type/language", 
-    "name": "Afroasiatic (Other)", 
+    "code": "afa",
+    "type": "/type/language",
+    "name": "Afroasiatic (Other)",
     "key": "/languages/afa"
-  }, 
+  },
   {
-    "code": "afr", 
-    "type": "/type/language", 
-    "name": "Afrikaans", 
+    "code": "afr",
+    "type": "/type/language",
+    "name": "Afrikaans",
     "key": "/languages/afr"
-  }, 
+  },
   {
-    "code": "aka", 
-    "type": "/type/language", 
-    "name": "Akan", 
+    "code": "ain",
+    "type": "/type/language",
+    "name": "Ainu",
+    "key": "/languages/ain"
+  },
+  {
+    "code": "aka",
+    "type": "/type/language",
+    "name": "Akan",
     "key": "/languages/aka"
-  }, 
+  },
   {
-    "code": "akk", 
-    "type": "/type/language", 
-    "name": "Akkadian", 
+    "code": "akk",
+    "type": "/type/language",
+    "name": "Akkadian",
     "key": "/languages/akk"
-  }, 
+  },
   {
-    "code": "alb", 
-    "type": "/type/language", 
-    "name": "Albanian", 
+    "code": "alb",
+    "type": "/type/language",
+    "name": "Albanian",
     "key": "/languages/alb"
-  }, 
+  },
   {
-    "code": "ale", 
-    "type": "/type/language", 
-    "name": "Aleut", 
+    "code": "ale",
+    "type": "/type/language",
+    "name": "Aleut",
     "key": "/languages/ale"
-  }, 
+  },
   {
-    "code": "alg", 
-    "type": "/type/language", 
-    "name": "Algonquian (Other)", 
+    "code": "alg",
+    "type": "/type/language",
+    "name": "Algonquian (Other)",
     "key": "/languages/alg"
-  }, 
+  },
   {
-    "code": "alt", 
-    "type": "/type/language", 
-    "name": "Altai", 
-    "key": "/languages/alt", 
+    "code": "alt",
+    "type": "/type/language",
+    "name": "Altai",
+    "key": "/languages/alt",
     "title": "Altai"
-  }, 
+  },
   {
-    "code": "amh", 
-    "type": "/type/language", 
-    "name": "Amharic", 
+    "code": "amh",
+    "type": "/type/language",
+    "name": "Amharic",
     "key": "/languages/amh"
-  }, 
+  },
   {
-    "code": "ang", 
-    "type": "/type/language", 
-    "name": "English, Old (ca. 450-1100)", 
+    "code": "ang",
+    "type": "/type/language",
+    "name": "English, Old (ca. 450-1100)",
     "key": "/languages/ang"
-  }, 
+  },
   {
-    "code": "apa", 
-    "type": "/type/language", 
-    "name": "Apache languages", 
+    "code": "anp",
+    "type": "/type/language",
+    "name": "Angika",
+    "key": "/languages/anp"
+  },
+  {
+    "code": "apa",
+    "type": "/type/language",
+    "name": "Apache languages",
     "key": "/languages/apa"
-  }, 
+  },
   {
-    "code": "ara", 
-    "type": "/type/language", 
-    "name": "Arabic", 
+    "code": "ara",
+    "type": "/type/language",
+    "name": "Arabic",
     "key": "/languages/ara"
-  }, 
+  },
   {
-    "code": "arc", 
-    "type": "/type/language", 
-    "name": "Aramaic", 
+    "code": "arc",
+    "type": "/type/language",
+    "name": "Aramaic",
     "key": "/languages/arc"
-  }, 
+  },
   {
-    "code": "arg", 
-    "type": "/type/language", 
-    "name": "Aragonese", 
-    "key": "/languages/arg", 
+    "code": "arg",
+    "type": "/type/language",
+    "name": "Aragonese",
+    "key": "/languages/arg",
     "title": "Aragonese"
-  }, 
+  },
   {
-    "code": "arm", 
-    "type": "/type/language", 
-    "name": "Armenian", 
+    "code": "arm",
+    "type": "/type/language",
+    "name": "Armenian",
     "key": "/languages/arm"
-  }, 
+  },
   {
-    "code": "arn", 
-    "type": "/type/language", 
-    "name": "Mapuche", 
+    "code": "arn",
+    "type": "/type/language",
+    "name": "Mapuche",
     "key": "/languages/arn"
-  }, 
+  },
   {
-    "code": "arp", 
-    "type": "/type/language", 
-    "name": "Arapaho", 
+    "code": "arp",
+    "type": "/type/language",
+    "name": "Arapaho",
     "key": "/languages/arp"
-  }, 
+  },
   {
-    "code": "art", 
-    "type": "/type/language", 
-    "name": "Artificial (Other)", 
+    "code": "art",
+    "type": "/type/language",
+    "name": "Artificial (Other)",
     "key": "/languages/art"
-  }, 
+  },
   {
-    "code": "arw", 
-    "type": "/type/language", 
-    "name": "Arawak", 
+    "code": "arw",
+    "type": "/type/language",
+    "name": "Arawak",
     "key": "/languages/arw"
-  }, 
+  },
   {
-    "code": "ase", 
-    "type": "/type/language", 
-    "name": "American Sign Language", 
+    "code": "ase",
+    "type": "/type/language",
+    "name": "American Sign Language",
     "key": "/languages/ase"
-  }, 
+  },
   {
-    "code": "asm", 
-    "type": "/type/language", 
-    "name": "Assamese", 
+    "code": "asm",
+    "type": "/type/language",
+    "name": "Assamese",
     "key": "/languages/asm"
-  }, 
+  },
   {
-    "code": "ast", 
-    "type": "/type/language", 
-    "name": "Asturian", 
-    "key": "/languages/ast", 
+    "code": "ast",
+    "type": "/type/language",
+    "name": "Asturian",
+    "key": "/languages/ast",
     "title": "Asturian"
-  }, 
+  },
   {
-    "code": "ath", 
-    "type": "/type/language", 
-    "name": "Athapascan (Other)", 
+    "code": "ath",
+    "type": "/type/language",
+    "name": "Athapascan (Other)",
     "key": "/languages/ath"
-  }, 
+  },
   {
-    "code": "aus", 
-    "type": "/type/language", 
-    "name": "Australian languages", 
+    "code": "aus",
+    "type": "/type/language",
+    "name": "Australian languages",
     "key": "/languages/aus"
-  }, 
+  },
   {
-    "code": "ava", 
-    "type": "/type/language", 
-    "name": "Avaric", 
+    "code": "ava",
+    "type": "/type/language",
+    "name": "Avaric",
     "key": "/languages/ava"
-  }, 
+  },
   {
-    "code": "ave", 
-    "type": "/type/language", 
-    "name": "Avestan", 
+    "code": "ave",
+    "type": "/type/language",
+    "name": "Avestan",
     "key": "/languages/ave"
-  }, 
+  },
   {
-    "code": "awa", 
-    "type": "/type/language", 
-    "name": "Awadhi ", 
+    "code": "awa",
+    "type": "/type/language",
+    "name": "Awadhi ",
     "key": "/languages/awa"
-  }, 
+  },
   {
-    "code": "aym", 
-    "type": "/type/language", 
-    "name": "Aymara", 
+    "code": "aym",
+    "type": "/type/language",
+    "name": "Aymara",
     "key": "/languages/aym"
-  }, 
+  },
   {
-    "code": "aze", 
-    "type": "/type/language", 
-    "name": "Azerbaijani", 
+    "code": "aze",
+    "type": "/type/language",
+    "name": "Azerbaijani",
     "key": "/languages/aze"
-  }, 
+  },
   {
-    "code": "bai", 
-    "type": "/type/language", 
-    "name": "Bamileke languages", 
+    "code": "bad",
+    "type": "/type/language",
+    "name": "Banda languages",
+    "key": "/languages/bad"
+  },
+  {
+    "code": "bai",
+    "type": "/type/language",
+    "name": "Bamileke languages",
     "key": "/languages/bai"
-  }, 
+  },
   {
-    "code": "bak", 
-    "type": "/type/language", 
-    "name": "Bashkir", 
+    "code": "bak",
+    "type": "/type/language",
+    "name": "Bashkir",
     "key": "/languages/bak"
-  }, 
+  },
   {
-    "code": "bal", 
-    "type": "/type/language", 
-    "name": "Baluchi", 
+    "code": "bal",
+    "type": "/type/language",
+    "name": "Baluchi",
     "key": "/languages/bal"
-  }, 
+  },
   {
-    "code": "bam", 
-    "type": "/type/language", 
-    "name": "Bambara", 
+    "code": "bam",
+    "type": "/type/language",
+    "name": "Bambara",
     "key": "/languages/bam"
-  }, 
+  },
   {
-    "code": "ban", 
-    "type": "/type/language", 
-    "name": "Balinese", 
+    "code": "ban",
+    "type": "/type/language",
+    "name": "Balinese",
     "key": "/languages/ban"
-  }, 
+  },
   {
-    "code": "baq", 
-    "type": "/type/language", 
-    "name": "Basque", 
+    "code": "baq",
+    "type": "/type/language",
+    "name": "Basque",
     "key": "/languages/baq"
-  }, 
+  },
   {
-    "code": "bas", 
-    "type": "/type/language", 
-    "name": "Basa", 
+    "code": "bas",
+    "type": "/type/language",
+    "name": "Basa",
     "key": "/languages/bas"
-  }, 
+  },
   {
-    "code": "bat", 
-    "type": "/type/language", 
-    "name": "Baltic (Other)", 
+    "code": "bat",
+    "type": "/type/language",
+    "name": "Baltic (Other)",
     "key": "/languages/bat"
-  }, 
+  },
   {
-    "code": "bel", 
-    "type": "/type/language", 
-    "name": "Belarusian", 
+    "code": "bel",
+    "type": "/type/language",
+    "name": "Belarusian",
     "key": "/languages/bel"
-  }, 
+  },
   {
-    "code": "bem", 
-    "type": "/type/language", 
-    "name": "Bemba", 
+    "code": "bem",
+    "type": "/type/language",
+    "name": "Bemba",
     "key": "/languages/bem"
-  }, 
+  },
   {
-    "code": "ben", 
-    "type": "/type/language", 
-    "name": "Bengali", 
+    "code": "ben",
+    "type": "/type/language",
+    "name": "Bengali",
     "key": "/languages/ben"
-  }, 
+  },
   {
-    "code": "ber", 
-    "type": "/type/language", 
-    "name": "Berber (Other)", 
+    "code": "ber",
+    "type": "/type/language",
+    "name": "Berber (Other)",
     "key": "/languages/ber"
-  }, 
+  },
   {
-    "code": "bho", 
-    "type": "/type/language", 
-    "name": "Bhojpuri", 
+    "code": "bho",
+    "type": "/type/language",
+    "name": "Bhojpuri",
     "key": "/languages/bho"
-  }, 
+  },
   {
-    "code": "bik", 
-    "type": "/type/language", 
-    "name": "Bikol", 
+    "code": "bik",
+    "type": "/type/language",
+    "name": "Bikol",
     "key": "/languages/bik"
-  }, 
+  },
   {
-    "code": "bin", 
-    "type": "/type/language", 
-    "name": "Edo", 
+    "code": "bin",
+    "type": "/type/language",
+    "name": "Edo",
     "key": "/languages/bin"
-  }, 
+  },
   {
-    "code": "bis", 
-    "type": "/type/language", 
-    "name": "Bislama", 
+    "code": "bis",
+    "type": "/type/language",
+    "name": "Bislama",
     "key": "/languages/bis"
-  }, 
+  },
   {
-    "code": "bla", 
-    "type": "/type/language", 
-    "name": "Siksika", 
+    "code": "bla",
+    "type": "/type/language",
+    "name": "Siksika",
     "key": "/languages/bla"
-  }, 
+  },
   {
-    "code": "bnt", 
-    "type": "/type/language", 
-    "name": "Bantu (Other)", 
+    "code": "bnt",
+    "type": "/type/language",
+    "name": "Bantu (Other)",
     "key": "/languages/bnt"
-  }, 
+  },
   {
-    "code": "bos", 
-    "type": "/type/language", 
-    "name": "Bosnian", 
+    "code": "bos",
+    "type": "/type/language",
+    "name": "Bosnian",
     "key": "/languages/bos"
-  }, 
+  },
   {
-    "code": "bra", 
-    "type": "/type/language", 
-    "name": "Braj", 
+    "code": "bra",
+    "type": "/type/language",
+    "name": "Braj",
     "key": "/languages/bra"
-  }, 
+  },
   {
-    "code": "bre", 
-    "type": "/type/language", 
-    "name": "Breton", 
+    "code": "bre",
+    "type": "/type/language",
+    "name": "Breton",
     "key": "/languages/bre"
-  }, 
+  },
   {
-    "code": "btk", 
-    "type": "/type/language", 
-    "name": "Batak", 
+    "code": "btk",
+    "type": "/type/language",
+    "name": "Batak",
     "key": "/languages/btk"
-  }, 
+  },
   {
-    "code": "bua", 
-    "type": "/type/language", 
-    "name": "Buriat", 
+    "code": "bua",
+    "type": "/type/language",
+    "name": "Buriat",
     "key": "/languages/bua"
-  }, 
+  },
   {
-    "code": "bug", 
-    "type": "/type/language", 
-    "name": "Bugis", 
+    "code": "bug",
+    "type": "/type/language",
+    "name": "Bugis",
     "key": "/languages/bug"
-  }, 
+  },
   {
-    "code": "bul", 
-    "type": "/type/language", 
-    "name": "Bulgarian", 
+    "code": "bul",
+    "type": "/type/language",
+    "name": "Bulgarian",
     "key": "/languages/bul"
-  }, 
+  },
   {
-    "code": "bur", 
-    "type": "/type/language", 
-    "name": "Burmese", 
+    "code": "bur",
+    "type": "/type/language",
+    "name": "Burmese",
     "key": "/languages/bur"
-  }, 
+  },
   {
-    "code": "cai", 
-    "type": "/type/language", 
-    "name": "Central American Indian (Other)", 
+    "code": "byn",
+    "type": "/type/language",
+    "name": "Bilin",
+    "key": "/languages/byn"
+  },
+  {
+    "code": "cai",
+    "type": "/type/language",
+    "name": "Central American Indian (Other)",
     "key": "/languages/cai"
-  }, 
+  },
   {
-    "code": "cam", 
-    "type": "/type/language", 
-    "name": "Khmer", 
-    "key": "/languages/cam"
-  }, 
+    "code": "cam",
+    "type": "/type/language",
+    "name": "Khmer",
+    "key": "/languages/cam",
+    "deprecated": true,
+    "current": "/languages/khm"
+  },
   {
-    "code": "car", 
-    "type": "/type/language", 
-    "name": "Carib", 
+    "code": "car",
+    "type": "/type/language",
+    "name": "Carib",
     "key": "/languages/car"
-  }, 
+  },
   {
-    "code": "cat", 
-    "type": "/type/language", 
-    "name": "Catalan", 
+    "code": "cat",
+    "type": "/type/language",
+    "name": "Catalan",
     "key": "/languages/cat"
-  }, 
+  },
   {
-    "code": "cau", 
-    "type": "/type/language", 
-    "name": "Caucasian (Other)", 
+    "code": "cau",
+    "type": "/type/language",
+    "name": "Caucasian (Other)",
     "key": "/languages/cau"
-  }, 
+  },
   {
-    "code": "ceb", 
-    "type": "/type/language", 
-    "name": "Cebuano", 
+    "code": "ceb",
+    "type": "/type/language",
+    "name": "Cebuano",
     "key": "/languages/ceb"
-  }, 
+  },
   {
-    "code": "cel", 
-    "type": "/type/language", 
-    "name": "Celtic (Other)", 
+    "code": "cel",
+    "type": "/type/language",
+    "name": "Celtic (Other)",
     "key": "/languages/cel"
-  }, 
+  },
   {
-    "code": "che", 
-    "type": "/type/language", 
-    "name": "Chechen", 
+    "code": "che",
+    "type": "/type/language",
+    "name": "Chechen",
     "key": "/languages/che"
-  }, 
+  },
   {
-    "code": "chg", 
-    "type": "/type/language", 
-    "name": "Chagatai", 
+    "code": "chg",
+    "type": "/type/language",
+    "name": "Chagatai",
     "key": "/languages/chg"
-  }, 
+  },
   {
-    "code": "chi", 
-    "type": "/type/language", 
-    "name": "Chinese", 
+    "code": "chi",
+    "type": "/type/language",
+    "name": "Chinese",
     "key": "/languages/chi"
-  }, 
+  },
   {
-    "code": "chk", 
-    "type": "/type/language", 
-    "name": "Chuukese", 
+    "code": "chk",
+    "type": "/type/language",
+    "name": "Chuukese",
     "key": "/languages/chk"
-  }, 
+  },
   {
-    "code": "chm", 
-    "type": "/type/language", 
-    "name": "Mari", 
+    "code": "chm",
+    "type": "/type/language",
+    "name": "Mari",
     "key": "/languages/chm"
-  }, 
+  },
   {
-    "code": "chn", 
-    "type": "/type/language", 
-    "name": "Chinook jargon", 
+    "code": "chn",
+    "type": "/type/language",
+    "name": "Chinook jargon",
     "key": "/languages/chn"
-  }, 
+  },
   {
-    "code": "cho", 
-    "type": "/type/language", 
-    "name": "Choctaw", 
+    "code": "cho",
+    "type": "/type/language",
+    "name": "Choctaw",
     "key": "/languages/cho"
-  }, 
+  },
   {
-    "code": "chr", 
-    "type": "/type/language", 
-    "name": "Cherokee", 
+    "code": "chr",
+    "type": "/type/language",
+    "name": "Cherokee",
     "key": "/languages/chr"
-  }, 
+  },
   {
-    "code": "chu", 
-    "type": "/type/language", 
-    "name": "Church Slavic", 
+    "code": "chu",
+    "type": "/type/language",
+    "name": "Church Slavic",
     "key": "/languages/chu"
-  }, 
+  },
   {
-    "code": "chv", 
-    "type": "/type/language", 
-    "name": "Chuvash", 
+    "code": "chv",
+    "type": "/type/language",
+    "name": "Chuvash",
     "key": "/languages/chv"
-  }, 
+  },
   {
-    "code": "chy", 
-    "type": "/type/language", 
-    "name": "Cheyenne", 
+    "code": "chy",
+    "type": "/type/language",
+    "name": "Cheyenne",
     "key": "/languages/chy"
-  }, 
+  },
   {
-    "code": "cmc", 
-    "type": "/type/language", 
-    "name": "Chamic languages", 
+    "code": "cmc",
+    "type": "/type/language",
+    "name": "Chamic languages",
     "key": "/languages/cmc"
-  }, 
+  },
   {
-    "code": "cmn", 
-    "type": "/type/language", 
-    "name": "Mandarin", 
+    "code": "cmn",
+    "type": "/type/language",
+    "name": "Mandarin",
     "key": "/languages/cmn"
-  }, 
+  },
   {
-    "code": "cop", 
-    "type": "/type/language", 
-    "name": "Coptic", 
+    "code": "cop",
+    "type": "/type/language",
+    "name": "Coptic",
     "key": "/languages/cop"
-  }, 
+  },
   {
-    "code": "cor", 
-    "type": "/type/language", 
-    "name": "Cornish", 
+    "code": "cor",
+    "type": "/type/language",
+    "name": "Cornish",
     "key": "/languages/cor"
-  }, 
+  },
   {
-    "code": "cos", 
-    "type": "/type/language", 
-    "name": "Corsican", 
+    "code": "cos",
+    "type": "/type/language",
+    "name": "Corsican",
     "key": "/languages/cos"
-  }, 
+  },
   {
-    "code": "cpe", 
-    "type": "/type/language", 
-    "name": "Creoles and Pidgins, English-based (Other)", 
+    "code": "cpe",
+    "type": "/type/language",
+    "name": "Creoles and Pidgins, English-based (Other)",
     "key": "/languages/cpe"
-  }, 
+  },
   {
-    "code": "cpf", 
-    "type": "/type/language", 
-    "name": "Creoles and Pidgins, French-based (Other)", 
+    "code": "cpf",
+    "type": "/type/language",
+    "name": "Creoles and Pidgins, French-based (Other)",
     "key": "/languages/cpf"
-  }, 
+  },
   {
-    "code": "cpp", 
-    "type": "/type/language", 
-    "name": "Creoles and Pidgins, Portuguese-based (Other)", 
+    "code": "cpp",
+    "type": "/type/language",
+    "name": "Creoles and Pidgins, Portuguese-based (Other)",
     "key": "/languages/cpp"
-  }, 
+  },
   {
-    "code": "cre", 
-    "type": "/type/language", 
-    "name": "Cree", 
+    "code": "cre",
+    "type": "/type/language",
+    "name": "Cree",
     "key": "/languages/cre"
-  }, 
+  },
   {
-    "code": "crh", 
-    "type": "/type/language", 
-    "name": "Crimean Tatar", 
+    "code": "crh",
+    "type": "/type/language",
+    "name": "Crimean Tatar",
     "key": "/languages/crh"
-  }, 
+  },
   {
-    "code": "crp", 
-    "type": "/type/language", 
-    "name": "Creoles and Pidgins (Other)", 
+    "code": "crp",
+    "type": "/type/language",
+    "name": "Creoles and Pidgins (Other)",
     "key": "/languages/crp"
-  }, 
+  },
   {
-    "code": "cus", 
-    "type": "/type/language", 
-    "name": "Cushitic (Other)", 
+    "code": "csb",
+    "type": "/type/language",
+    "name": "Kashubian",
+    "key": "/languages/csb"
+  },
+  {
+    "code": "cus",
+    "type": "/type/language",
+    "name": "Cushitic (Other)",
     "key": "/languages/cus"
-  }, 
+  },
   {
-    "code": "cze", 
-    "type": "/type/language", 
-    "name": "Czech", 
+    "code": "cze",
+    "type": "/type/language",
+    "name": "Czech",
     "key": "/languages/cze"
-  }, 
+  },
   {
-    "code": "dak", 
-    "type": "/type/language", 
-    "name": "Dakota", 
+    "code": "dak",
+    "type": "/type/language",
+    "name": "Dakota",
     "key": "/languages/dak"
-  }, 
+  },
   {
-    "code": "dan", 
-    "type": "/type/language", 
-    "name": "Danish", 
+    "code": "dan",
+    "type": "/type/language",
+    "name": "Danish",
     "key": "/languages/dan"
-  }, 
+  },
   {
-    "code": "dar", 
-    "type": "/type/language", 
-    "name": "Dargwa", 
+    "code": "dar",
+    "type": "/type/language",
+    "name": "Dargwa",
     "key": "/languages/dar"
-  }, 
+  },
   {
-    "code": "day", 
-    "type": "/type/language", 
-    "name": "Dayak", 
+    "code": "day",
+    "type": "/type/language",
+    "name": "Dayak",
     "key": "/languages/day"
-  }, 
+  },
   {
-    "code": "del", 
-    "type": "/type/language", 
-    "name": "Delaware", 
+    "code": "del",
+    "type": "/type/language",
+    "name": "Delaware",
     "key": "/languages/del"
-  }, 
+  },
   {
-    "code": "din", 
-    "type": "/type/language", 
-    "name": "Dinka", 
+    "code": "den",
+    "type": "/type/language",
+    "name": "Slavey",
+    "key": "/languages/den"
+  },
+  {
+    "code": "din",
+    "type": "/type/language",
+    "name": "Dinka",
     "key": "/languages/din"
-  }, 
+  },
   {
-    "code": "div", 
-    "name": "Maldivian", 
-    "title": "Maldivian", 
-    "library_of_congress_name": "Divehi", 
-    "key": "/languages/div", 
+    "code": "div",
+    "name": "Maldivian",
+    "title": "Maldivian",
+    "library_of_congress_name": "Divehi",
+    "key": "/languages/div",
     "type": "/type/language"
-  }, 
+  },
   {
-    "code": "doi", 
-    "type": "/type/language", 
-    "name": "Dogri", 
+    "code": "doi",
+    "type": "/type/language",
+    "name": "Dogri",
     "key": "/languages/doi"
-  }, 
+  },
   {
-    "code": "dra", 
-    "type": "/type/language", 
-    "name": "Dravidian (Other)", 
+    "code": "dra",
+    "type": "/type/language",
+    "name": "Dravidian (Other)",
     "key": "/languages/dra"
-  }, 
+  },
   {
-    "code": "dua", 
-    "type": "/type/language", 
-    "name": "Duala", 
+    "code": "dsb",
+    "type": "/type/language",
+    "name": "Lower Sorbian",
+    "key": "/languages/dsb"
+  },
+  {
+    "code": "dua",
+    "type": "/type/language",
+    "name": "Duala",
     "key": "/languages/dua"
-  }, 
+  },
   {
-    "code": "dum", 
-    "type": "/type/language", 
-    "name": "Dutch, Middle (ca. 1050-1350)", 
+    "code": "dum",
+    "type": "/type/language",
+    "name": "Dutch, Middle (ca. 1050-1350)",
     "key": "/languages/dum"
-  }, 
+  },
   {
-    "code": "dut", 
-    "type": "/type/language", 
-    "name": "Dutch", 
+    "code": "dut",
+    "type": "/type/language",
+    "name": "Dutch",
     "key": "/languages/dut"
-  }, 
+  },
   {
-    "code": "dyu", 
-    "type": "/type/language", 
-    "name": "Dyula", 
+    "code": "dyu",
+    "type": "/type/language",
+    "name": "Dyula",
     "key": "/languages/dyu"
-  }, 
+  },
   {
-    "code": "dzo", 
-    "type": "/type/language", 
-    "name": "Dzongkha", 
+    "code": "dzo",
+    "type": "/type/language",
+    "name": "Dzongkha",
     "key": "/languages/dzo"
-  }, 
+  },
   {
-    "code": "efi", 
-    "type": "/type/language", 
-    "name": "Efik", 
+    "code": "efi",
+    "type": "/type/language",
+    "name": "Efik",
     "key": "/languages/efi"
-  }, 
+  },
   {
-    "code": "egy", 
-    "type": "/type/language", 
-    "name": "Egyptian", 
+    "code": "egy",
+    "type": "/type/language",
+    "name": "Egyptian",
     "key": "/languages/egy"
-  }, 
+  },
   {
-    "code": "eka", 
-    "type": "/type/language", 
-    "name": "Ekajuk", 
+    "code": "eka",
+    "type": "/type/language",
+    "name": "Ekajuk",
     "key": "/languages/eka"
-  }, 
+  },
   {
-    "code": "elx", 
-    "type": "/type/language", 
-    "name": "Elamite", 
+    "code": "elx",
+    "type": "/type/language",
+    "name": "Elamite",
     "key": "/languages/elx"
-  }, 
+  },
   {
-    "code": "eng", 
-    "type": "/type/language", 
-    "name": "English", 
+    "code": "eng",
+    "type": "/type/language",
+    "name": "English",
     "key": "/languages/eng"
-  }, 
+  },
   {
-    "code": "enm", 
-    "type": "/type/language", 
-    "name": "English, Middle (1100-1500)", 
+    "code": "enm",
+    "type": "/type/language",
+    "name": "English, Middle (1100-1500)",
     "key": "/languages/enm"
-  }, 
+  },
   {
-    "code": "epo", 
-    "type": "/type/language", 
-    "name": "Esperanto", 
+    "code": "epo",
+    "type": "/type/language",
+    "name": "Esperanto",
     "key": "/languages/epo"
-  }, 
+  },
   {
-    "code": "esk", 
-    "type": "/type/language", 
-    "name": "Eskimo languages", 
+    "code": "esk",
+    "type": "/type/language",
+    "name": "Inuit-Yupik-Unangan languages",
     "key": "/languages/esk"
-  }, 
+  },
   {
-    "code": "esp", 
-    "type": "/type/language", 
-    "name": "Esperanto", 
-    "key": "/languages/esp"
-  }, 
+    "code": "esp",
+    "type": "/type/language",
+    "name": "Esperanto",
+    "key": "/languages/esp",
+    "deprecated": true,
+    "current": "/languages/epo"
+  },
   {
-    "code": "est", 
-    "type": "/type/language", 
-    "name": "Estonian", 
+    "code": "est",
+    "type": "/type/language",
+    "name": "Estonian",
     "key": "/languages/est"
-  }, 
+  },
   {
-    "code": "eth", 
-    "type": "/type/language", 
-    "name": "Ethiopic", 
-    "key": "/languages/eth"
-  }, 
+    "code": "eth",
+    "type": "/type/language",
+    "name": "Ethiopic",
+    "key": "/languages/eth",
+    "deprecated": true,
+    "current": "/languages/gez"
+  },
   {
-    "code": "ewe", 
-    "type": "/type/language", 
-    "name": "Ewe", 
+    "code": "ewe",
+    "type": "/type/language",
+    "name": "Ewe",
     "key": "/languages/ewe"
-  }, 
+  },
   {
-    "code": "ewo", 
-    "type": "/type/language", 
-    "name": "Ewondo", 
+    "code": "ewo",
+    "type": "/type/language",
+    "name": "Ewondo",
     "key": "/languages/ewo"
-  }, 
+  },
   {
-    "code": "fan", 
-    "type": "/type/language", 
-    "name": "Fang", 
+    "code": "fan",
+    "type": "/type/language",
+    "name": "Fang",
     "key": "/languages/fan"
-  }, 
+  },
   {
-    "code": "fao", 
-    "type": "/type/language", 
-    "name": "Faroese", 
+    "code": "fao",
+    "type": "/type/language",
+    "name": "Faroese",
     "key": "/languages/fao"
-  }, 
+  },
   {
-    "code": "far", 
-    "type": "/type/language", 
-    "name": "Faroese", 
-    "key": "/languages/far"
-  }, 
+    "code": "far",
+    "type": "/type/language",
+    "name": "Faroese",
+    "key": "/languages/far",
+    "deprecated": true,
+    "current": "/languages/fao"
+  },
   {
-    "code": "fat", 
-    "type": "/type/language", 
-    "name": "Fanti", 
+    "code": "fat",
+    "type": "/type/language",
+    "name": "Fanti",
     "key": "/languages/fat"
-  }, 
+  },
   {
-    "code": "fij", 
-    "type": "/type/language", 
-    "name": "Fijian", 
+    "code": "fij",
+    "type": "/type/language",
+    "name": "Fijian",
     "key": "/languages/fij"
-  }, 
+  },
   {
-    "code": "fil", 
-    "type": "/type/language", 
-    "name": "Filipino", 
+    "code": "fil",
+    "type": "/type/language",
+    "name": "Filipino",
     "key": "/languages/fil"
-  }, 
+  },
   {
-    "code": "fin", 
-    "type": "/type/language", 
-    "name": "Finnish", 
+    "code": "fin",
+    "type": "/type/language",
+    "name": "Finnish",
     "key": "/languages/fin"
-  }, 
+  },
   {
-    "code": "fiu", 
-    "type": "/type/language", 
-    "name": "Finno-Ugrian (Other)", 
+    "code": "fiu",
+    "type": "/type/language",
+    "name": "Finno-Ugrian (Other)",
     "key": "/languages/fiu"
-  }, 
+  },
   {
-    "code": "fon", 
-    "type": "/type/language", 
-    "name": "Fon", 
+    "code": "fon",
+    "type": "/type/language",
+    "name": "Fon",
     "key": "/languages/fon"
-  }, 
+  },
   {
-    "code": "fre", 
-    "type": "/type/language", 
-    "name": "French", 
+    "code": "fre",
+    "type": "/type/language",
+    "name": "French",
     "key": "/languages/fre"
-  }, 
+  },
   {
-    "code": "fri", 
-    "type": "/type/language", 
-    "name": "Frisian", 
-    "key": "/languages/fri"
-  }, 
+    "code": "fri",
+    "type": "/type/language",
+    "name": "Frisian",
+    "key": "/languages/fri",
+    "deprecated": true,
+    "current": "/languages/fry"
+  },
   {
-    "code": "frm", 
-    "type": "/type/language", 
-    "name": "French, Middle (ca. 1300-1600)", 
+    "code": "frm",
+    "type": "/type/language",
+    "name": "French, Middle (ca. 1300-1600)",
     "key": "/languages/frm"
-  }, 
+  },
   {
-    "code": "fro", 
-    "type": "/type/language", 
-    "name": "French, Old (ca. 842-1300)", 
+    "code": "fro",
+    "type": "/type/language",
+    "name": "French, Old (ca. 842-1300)",
     "key": "/languages/fro"
-  }, 
+  },
   {
-    "code": "frs", 
-    "type": "/type/language", 
-    "name": "East Frisian", 
-    "key": "/languages/frs", 
+    "code": "frr",
+    "type": "/type/language",
+    "name": "North Frisian",
+    "key": "/languages/frr"
+  },
+  {
+    "code": "frs",
+    "type": "/type/language",
+    "name": "East Frisian",
+    "key": "/languages/frs",
     "title": "East Frisian"
-  }, 
+  },
   {
-    "code": "fry", 
-    "type": "/type/language", 
-    "name": "Frisian", 
+    "code": "fry",
+    "type": "/type/language",
+    "name": "Frisian",
     "key": "/languages/fry"
-  }, 
+  },
   {
-    "code": "ful", 
-    "type": "/type/language", 
-    "name": "Fula", 
+    "code": "ful",
+    "type": "/type/language",
+    "name": "Fula",
     "key": "/languages/ful"
-  }, 
+  },
   {
-    "code": "fur", 
-    "type": "/type/language", 
-    "name": "Friulian", 
+    "code": "fur",
+    "type": "/type/language",
+    "name": "Friulian",
     "key": "/languages/fur"
-  }, 
+  },
   {
-    "code": "gaa", 
-    "type": "/type/language", 
-    "name": "G\u00e3", 
+    "code": "gaa",
+    "type": "/type/language",
+    "name": "G\u00e3",
     "key": "/languages/gaa"
-  }, 
+  },
   {
-    "code": "gae", 
-    "type": "/type/language", 
-    "name": "Scottish Gaelix", 
+    "code": "gae",
+    "type": "/type/language",
+    "name": "Scottish Gaelix",
     "key": "/languages/gae"
-  }, 
+  },
   {
-    "code": "gag", 
-    "type": "/type/language", 
-    "name": "Galician", 
-    "key": "/languages/gag"
-  }, 
+    "code": "gag",
+    "type": "/type/language",
+    "name": "Galician",
+    "key": "/languages/gag",
+    "deprecated": true,
+    "current": "/languages/glg"
+  },
   {
-    "code": "gal", 
-    "type": "/type/language", 
-    "name": "Oromo", 
-    "key": "/languages/gal"
-  }, 
+    "code": "gal",
+    "type": "/type/language",
+    "name": "Oromo",
+    "key": "/languages/gal",
+    "deprecated": true,
+    "current": "/languages/orm"
+  },
   {
-    "code": "gay", 
-    "type": "/type/language", 
-    "name": "Gayo", 
+    "code": "gay",
+    "type": "/type/language",
+    "name": "Gayo",
     "key": "/languages/gay"
-  }, 
+  },
   {
-    "code": "gba", 
-    "type": "/type/language", 
-    "name": "Gbaya", 
+    "code": "gba",
+    "type": "/type/language",
+    "name": "Gbaya",
     "key": "/languages/gba"
-  }, 
+  },
   {
-    "code": "gem", 
-    "type": "/type/language", 
-    "name": "Germanic (Other)", 
+    "code": "gem",
+    "type": "/type/language",
+    "name": "Germanic (Other)",
     "key": "/languages/gem"
-  }, 
+  },
   {
-    "code": "geo", 
-    "type": "/type/language", 
-    "name": "Georgian", 
+    "code": "geo",
+    "type": "/type/language",
+    "name": "Georgian",
     "key": "/languages/geo"
-  }, 
+  },
   {
-    "code": "ger", 
-    "type": "/type/language", 
-    "name": "German", 
+    "code": "ger",
+    "type": "/type/language",
+    "name": "German",
     "key": "/languages/ger"
-  }, 
+  },
   {
-    "code": "gez", 
-    "type": "/type/language", 
-    "name": "Ethiopic", 
+    "code": "gez",
+    "type": "/type/language",
+    "name": "Ethiopic",
     "key": "/languages/gez"
-  }, 
+  },
   {
-    "code": "gil", 
-    "type": "/type/language", 
-    "name": "Gilbertese", 
+    "code": "gil",
+    "type": "/type/language",
+    "name": "Gilbertese",
     "key": "/languages/gil"
-  }, 
+  },
   {
-    "code": "gla", 
-    "type": "/type/language", 
-    "name": "Scottish Gaelic", 
+    "code": "gla",
+    "type": "/type/language",
+    "name": "Scottish Gaelic",
     "key": "/languages/gla"
-  }, 
+  },
   {
-    "code": "gle", 
-    "type": "/type/language", 
-    "name": "Irish", 
+    "code": "gle",
+    "type": "/type/language",
+    "name": "Irish",
     "key": "/languages/gle"
-  }, 
+  },
   {
-    "code": "glg", 
-    "type": "/type/language", 
-    "name": "Galician ", 
+    "code": "glg",
+    "type": "/type/language",
+    "name": "Galician ",
     "key": "/languages/glg"
-  }, 
+  },
   {
-    "code": "glv", 
-    "type": "/type/language", 
-    "name": "Manx", 
+    "code": "glv",
+    "type": "/type/language",
+    "name": "Manx",
     "key": "/languages/glv"
-  }, 
+  },
   {
-    "code": "gmh", 
-    "type": "/type/language", 
-    "name": "German, Middle High (ca. 1050-1500)", 
+    "code": "gmh",
+    "type": "/type/language",
+    "name": "German, Middle High (ca. 1050-1500)",
     "key": "/languages/gmh"
-  }, 
+  },
   {
-    "key": "/languages/goh", 
-    "code": "goh", 
-    "type": "/type/language", 
-    "name": "Old High German", 
+    "key": "/languages/goh",
+    "code": "goh",
+    "type": "/type/language",
+    "name": "Old High German",
     "library_of_congress_name": "German, Old High (ca. 750-1050)"
-  }, 
+  },
   {
-    "code": "gon", 
-    "type": "/type/language", 
-    "name": "Gondi", 
+    "code": "gon",
+    "type": "/type/language",
+    "name": "Gondi",
     "key": "/languages/gon"
-  }, 
+  },
   {
-    "code": "gor", 
-    "type": "/type/language", 
-    "name": "Gorontalo", 
+    "code": "gor",
+    "type": "/type/language",
+    "name": "Gorontalo",
     "key": "/languages/gor"
-  }, 
+  },
   {
-    "code": "got", 
-    "type": "/type/language", 
-    "name": "Gothic", 
+    "code": "got",
+    "type": "/type/language",
+    "name": "Gothic",
     "key": "/languages/got"
-  }, 
+  },
   {
-    "code": "grb", 
-    "type": "/type/language", 
-    "name": "Grebo", 
+    "code": "grb",
+    "type": "/type/language",
+    "name": "Grebo",
     "key": "/languages/grb"
-  }, 
+  },
   {
-    "code": "grc", 
-    "type": "/type/language", 
-    "name": "Ancient Greek", 
+    "code": "grc",
+    "type": "/type/language",
+    "name": "Ancient Greek",
     "key": "/languages/grc"
-  }, 
+  },
   {
-    "code": "gre", 
-    "type": "/type/language", 
-    "name": "Greek", 
+    "code": "gre",
+    "type": "/type/language",
+    "name": "Greek",
     "key": "/languages/gre"
-  }, 
+  },
   {
-    "code": "grn", 
-    "type": "/type/language", 
-    "name": "Guarani", 
+    "code": "grn",
+    "type": "/type/language",
+    "name": "Guarani",
     "key": "/languages/grn"
-  }, 
+  },
   {
-    "code": "Swiss German", 
-    "type": "/type/language", 
-    "name": "gsw", 
+    "code": "gsw",
+    "type": "/type/language",
+    "name": "Swiss German",
     "key": "/languages/gsw"
-  }, 
+  },
   {
-    "code": "gua", 
-    "type": "/type/language", 
-    "name": "Guarani", 
-    "key": "/languages/gua"
-  }, 
+    "code": "gua",
+    "type": "/type/language",
+    "name": "Guarani",
+    "key": "/languages/gua",
+    "deprecated": true,
+    "current": "/languages/grn"
+  },
   {
-    "code": "guj", 
-    "type": "/type/language", 
-    "name": "Gujarati", 
+    "code": "guj",
+    "type": "/type/language",
+    "name": "Gujarati",
     "key": "/languages/guj"
-  }, 
+  },
   {
-    "code": "gul", 
-    "type": "/type/language", 
-    "name": "Gullah", 
+    "code": "gul",
+    "type": "/type/language",
+    "name": "Gullah",
     "key": "/languages/gul"
-  }, 
+  },
   {
-    "code": "hat", 
-    "type": "/type/language", 
-    "name": "Haitian French Creole", 
+    "code": "hat",
+    "type": "/type/language",
+    "name": "Haitian French Creole",
     "key": "/languages/hat"
-  }, 
+  },
   {
-    "code": "hau", 
-    "type": "/type/language", 
-    "name": "Hausa", 
+    "code": "hau",
+    "type": "/type/language",
+    "name": "Hausa",
     "key": "/languages/hau"
-  }, 
+  },
   {
-    "code": "haw", 
-    "type": "/type/language", 
-    "name": "Hawaiian", 
+    "code": "haw",
+    "type": "/type/language",
+    "name": "Hawaiian",
     "key": "/languages/haw"
-  }, 
+  },
   {
-    "code": "hbs", 
-    "type": "/type/language", 
-    "name": "Serbo-Croatian", 
+    "code": "hbs",
+    "type": "/type/language",
+    "name": "Serbo-Croatian",
     "key": "/languages/hbs"
-  }, 
+  },
   {
-    "code": "heb", 
-    "type": "/type/language", 
-    "name": "Hebrew", 
+    "code": "heb",
+    "type": "/type/language",
+    "name": "Hebrew",
     "key": "/languages/heb"
-  }, 
+  },
   {
-    "code": "her", 
-    "type": "/type/language", 
-    "name": "Herero", 
+    "code": "her",
+    "type": "/type/language",
+    "name": "Herero",
     "key": "/languages/her"
-  }, 
+  },
   {
-    "code": "hil", 
-    "type": "/type/language", 
-    "name": "Hiligaynon", 
+    "code": "hil",
+    "type": "/type/language",
+    "name": "Hiligaynon",
     "key": "/languages/hil"
-  }, 
+  },
   {
-    "code": "him", 
-    "type": "/type/language", 
-    "name": "Himachali", 
+    "code": "him",
+    "type": "/type/language",
+    "name": "Western Pahari languages",
     "key": "/languages/him"
-  }, 
+  },
   {
-    "code": "hin", 
-    "type": "/type/language", 
-    "name": "Hindi", 
+    "code": "hin",
+    "type": "/type/language",
+    "name": "Hindi",
     "key": "/languages/hin"
-  }, 
+  },
   {
-    "code": "hmn", 
-    "type": "/type/language", 
-    "name": "Hmong", 
+    "code": "hmn",
+    "type": "/type/language",
+    "name": "Hmong",
     "key": "/languages/hmn"
-  }, 
+  },
   {
-    "code": "hmo", 
-    "type": "/type/language", 
-    "name": "Hiri Motu", 
+    "code": "hmo",
+    "type": "/type/language",
+    "name": "Hiri Motu",
     "key": "/languages/hmo"
-  }, 
+  },
   {
-    "code": "hrv", 
-    "type": "/type/language", 
-    "name": "Croatian", 
-    "key": "/languages/hrv", 
+    "code": "hrv",
+    "type": "/type/language",
+    "name": "Croatian",
+    "key": "/languages/hrv",
     "title": "Croatian"
-  }, 
+  },
   {
-    "code": "hun", 
-    "type": "/type/language", 
-    "name": "Hungarian", 
+    "code": "hsb",
+    "type": "/type/language",
+    "name": "Upper Sorbian",
+    "key": "/languages/hsb"
+  },
+  {
+    "code": "hun",
+    "type": "/type/language",
+    "name": "Hungarian",
     "key": "/languages/hun"
-  }, 
+  },
   {
-    "code": "iba", 
-    "type": "/type/language", 
-    "name": "Iban", 
+    "code": "iba",
+    "type": "/type/language",
+    "name": "Iban",
     "key": "/languages/iba"
-  }, 
+  },
   {
-    "code": "ibo", 
-    "type": "/type/language", 
-    "name": "Igbo", 
+    "code": "ibo",
+    "type": "/type/language",
+    "name": "Igbo",
     "key": "/languages/ibo"
-  }, 
+  },
   {
-    "code": "ice", 
-    "type": "/type/language", 
-    "name": "Icelandic", 
+    "code": "ice",
+    "type": "/type/language",
+    "name": "Icelandic",
     "key": "/languages/ice"
-  }, 
+  },
   {
-    "code": "ido", 
-    "type": "/type/language", 
-    "name": "Ido", 
+    "code": "ido",
+    "type": "/type/language",
+    "name": "Ido",
     "key": "/languages/ido"
-  }, 
+  },
   {
-    "code": "ijo", 
-    "type": "/type/language", 
-    "name": "Ijo", 
+    "code": "ijo",
+    "type": "/type/language",
+    "name": "Ijo",
     "key": "/languages/ijo"
-  }, 
+  },
   {
-    "code": "iku", 
-    "type": "/type/language", 
-    "name": "Inuktitut", 
+    "code": "iku",
+    "type": "/type/language",
+    "name": "Inuktitut",
     "key": "/languages/iku"
-  }, 
+  },
   {
-    "code": "ilo", 
-    "type": "/type/language", 
-    "name": "Iloko", 
+    "code": "ilo",
+    "type": "/type/language",
+    "name": "Iloko",
     "key": "/languages/ilo"
-  }, 
+  },
   {
-    "code": "ina", 
-    "type": "/type/language", 
-    "name": "Interlingua (International Auxiliary Language Association)", 
+    "code": "ina",
+    "type": "/type/language",
+    "name": "Interlingua (International Auxiliary Language Association)",
     "key": "/languages/ina"
-  }, 
+  },
   {
-    "code": "inc", 
-    "type": "/type/language", 
-    "name": "Indic (Other)", 
+    "code": "inc",
+    "type": "/type/language",
+    "name": "Indic (Other)",
     "key": "/languages/inc"
-  }, 
+  },
   {
-    "code": "ind", 
-    "type": "/type/language", 
-    "name": "Indonesian", 
+    "code": "ind",
+    "type": "/type/language",
+    "name": "Indonesian",
     "key": "/languages/ind"
-  }, 
+  },
   {
-    "code": "ine", 
-    "type": "/type/language", 
-    "name": "Indo-European (Other)", 
+    "code": "ine",
+    "type": "/type/language",
+    "name": "Indo-European (Other)",
     "key": "/languages/ine"
-  }, 
+  },
   {
-    "code": "inh", 
-    "type": "/type/language", 
-    "name": "Ingush", 
+    "code": "inh",
+    "type": "/type/language",
+    "name": "Ingush",
     "key": "/languages/inh"
-  }, 
+  },
   {
-    "code": "int", 
-    "type": "/type/language", 
-    "name": "Interlingua (International Auxiliary Language Association)", 
-    "key": "/languages/int"
-  }, 
+    "code": "int",
+    "type": "/type/language",
+    "name": "Interlingua (International Auxiliary Language Association)",
+    "key": "/languages/int",
+    "deprecated": true,
+    "current": "/languages/ina"
+  },
   {
-    "code": "ipk", 
-    "type": "/type/language", 
-    "name": "Inupiaq", 
+    "code": "ipk",
+    "type": "/type/language",
+    "name": "Inupiaq",
     "key": "/languages/ipk"
-  }, 
+  },
   {
-    "code": "ira", 
-    "type": "/type/language", 
-    "name": "Iranian (Other)", 
+    "code": "ira",
+    "type": "/type/language",
+    "name": "Iranian (Other)",
     "key": "/languages/ira"
-  }, 
+  },
   {
-    "code": "iri", 
-    "type": "/type/language", 
-    "name": "Irish", 
-    "key": "/languages/iri"
-  }, 
+    "code": "iri",
+    "type": "/type/language",
+    "name": "Irish",
+    "key": "/languages/iri",
+    "deprecated": true,
+    "current": "/languages/gle"
+  },
   {
-    "code": "iro", 
-    "type": "/type/language", 
-    "name": "Iroquoian (Other)", 
+    "code": "iro",
+    "type": "/type/language",
+    "name": "Iroquoian (Other)",
     "key": "/languages/iro"
-  }, 
+  },
   {
-    "code": "ita", 
-    "type": "/type/language", 
-    "name": "Italian", 
+    "code": "ita",
+    "type": "/type/language",
+    "name": "Italian",
     "key": "/languages/ita"
-  }, 
+  },
   {
-    "code": "jav", 
-    "type": "/type/language", 
-    "name": "Javanese", 
+    "code": "jav",
+    "type": "/type/language",
+    "name": "Javanese",
     "key": "/languages/jav"
-  }, 
+  },
   {
-    "code": "jpn", 
-    "type": "/type/language", 
-    "name": "Japanese", 
+    "code": "jbo",
+    "type": "/type/language",
+    "name": "Lojban (Artificial language)",
+    "key": "/languages/jbo"
+  },
+  {
+    "code": "jpn",
+    "type": "/type/language",
+    "name": "Japanese",
     "key": "/languages/jpn"
-  }, 
+  },
   {
-    "code": "jpr", 
-    "type": "/type/language", 
-    "name": "Judeo-Persian", 
+    "code": "jpr",
+    "type": "/type/language",
+    "name": "Judeo-Persian",
     "key": "/languages/jpr"
-  }, 
+  },
   {
-    "code": "jrb", 
-    "type": "/type/language", 
-    "name": "Judeo-Arabic", 
+    "code": "jrb",
+    "type": "/type/language",
+    "name": "Judeo-Arabic",
     "key": "/languages/jrb"
-  }, 
+  },
   {
-    "code": "kaa", 
-    "type": "/type/language", 
-    "name": "Kara-Kalpak", 
+    "code": "kaa",
+    "type": "/type/language",
+    "name": "Kara-Kalpak",
     "key": "/languages/kaa"
-  }, 
+  },
   {
-    "code": "kab", 
-    "type": "/type/language", 
-    "name": "Kabyle", 
+    "code": "kab",
+    "type": "/type/language",
+    "name": "Kabyle",
     "key": "/languages/kab"
-  }, 
+  },
   {
-    "code": "kac", 
-    "type": "/type/language", 
-    "name": "Kachin", 
+    "code": "kac",
+    "type": "/type/language",
+    "name": "Kachin",
     "key": "/languages/kac"
-  }, 
+  },
   {
-    "code": "kal", 
-    "type": "/type/language", 
-    "name": "Kal\u00e2tdlisut", 
+    "code": "kal",
+    "type": "/type/language",
+    "name": "Kal\u00e2tdlisut",
     "key": "/languages/kal"
-  }, 
+  },
   {
-    "code": "kam", 
-    "type": "/type/language", 
-    "name": "Kamba", 
+    "code": "kam",
+    "type": "/type/language",
+    "name": "Kamba",
     "key": "/languages/kam"
-  }, 
+  },
   {
-    "code": "kan", 
-    "type": "/type/language", 
-    "name": "Kannada", 
+    "code": "kan",
+    "type": "/type/language",
+    "name": "Kannada",
     "key": "/languages/kan"
-  }, 
+  },
   {
-    "code": "kar", 
-    "type": "/type/language", 
-    "name": "Karen languages", 
+    "code": "kar",
+    "type": "/type/language",
+    "name": "Karen languages",
     "key": "/languages/kar"
-  }, 
+  },
   {
-    "code": "kas", 
-    "type": "/type/language", 
-    "name": "Kashmiri", 
+    "code": "kas",
+    "type": "/type/language",
+    "name": "Kashmiri",
     "key": "/languages/kas"
-  }, 
+  },
   {
-    "code": "kau", 
-    "type": "/type/language", 
-    "name": "Kanuri", 
+    "code": "kau",
+    "type": "/type/language",
+    "name": "Kanuri",
     "key": "/languages/kau"
-  }, 
+  },
   {
-    "code": "kaw", 
-    "type": "/type/language", 
-    "name": "Kawi", 
+    "code": "kaw",
+    "type": "/type/language",
+    "name": "Kawi",
     "key": "/languages/kaw"
-  }, 
+  },
   {
-    "code": "kaz", 
-    "type": "/type/language", 
-    "name": "Kazakh", 
+    "code": "kaz",
+    "type": "/type/language",
+    "name": "Kazakh",
     "key": "/languages/kaz"
-  }, 
+  },
   {
-    "code": "kbd", 
-    "type": "/type/language", 
-    "name": "Kabardian", 
+    "code": "kbd",
+    "type": "/type/language",
+    "name": "Kabardian",
     "key": "/languages/kbd"
-  }, 
+  },
   {
-    "code": "kha", 
-    "type": "/type/language", 
-    "name": "Khasi", 
+    "code": "kha",
+    "type": "/type/language",
+    "name": "Khasi",
     "key": "/languages/kha"
-  }, 
+  },
   {
-    "code": "khi", 
-    "type": "/type/language", 
-    "name": "Khoisan (Other)", 
+    "code": "khi",
+    "type": "/type/language",
+    "name": "Khoisan (Other)",
     "key": "/languages/khi"
-  }, 
+  },
   {
-    "code": "khm", 
-    "type": "/type/language", 
-    "name": "Khmer", 
+    "code": "khm",
+    "type": "/type/language",
+    "name": "Khmer",
     "key": "/languages/khm"
-  }, 
+  },
   {
-    "code": "kho", 
-    "type": "/type/language", 
-    "name": "Khotanese", 
+    "code": "kho",
+    "type": "/type/language",
+    "name": "Khotanese",
     "key": "/languages/kho"
-  }, 
+  },
   {
-    "code": "kik", 
-    "type": "/type/language", 
-    "name": "Kikuyu", 
+    "code": "kik",
+    "type": "/type/language",
+    "name": "Kikuyu",
     "key": "/languages/kik"
-  }, 
+  },
   {
-    "code": "kin", 
-    "type": "/type/language", 
-    "name": "Kinyarwanda", 
+    "code": "kin",
+    "type": "/type/language",
+    "name": "Kinyarwanda",
     "key": "/languages/kin"
-  }, 
+  },
   {
-    "code": "kir", 
-    "type": "/type/language", 
-    "name": "Kyrgyz", 
+    "code": "kir",
+    "type": "/type/language",
+    "name": "Kyrgyz",
     "key": "/languages/kir"
-  }, 
+  },
   {
-    "code": "kmb", 
-    "type": "/type/language", 
-    "name": "Kimbundu", 
+    "code": "kmb",
+    "type": "/type/language",
+    "name": "Kimbundu",
     "key": "/languages/kmb"
-  }, 
+  },
   {
-    "code": "kok", 
-    "type": "/type/language", 
-    "name": "Konkani ", 
+    "code": "kok",
+    "type": "/type/language",
+    "name": "Konkani ",
     "key": "/languages/kok"
-  }, 
+  },
   {
-    "code": "kom", 
-    "type": "/type/language", 
-    "name": "Komi", 
+    "code": "kom",
+    "type": "/type/language",
+    "name": "Komi",
     "key": "/languages/kom"
-  }, 
+  },
   {
-    "code": "kon", 
-    "type": "/type/language", 
-    "name": "Kongo", 
+    "code": "kon",
+    "type": "/type/language",
+    "name": "Kongo",
     "key": "/languages/kon"
-  }, 
+  },
   {
-    "code": "kor", 
-    "type": "/type/language", 
-    "name": "Korean", 
+    "code": "kor",
+    "type": "/type/language",
+    "name": "Korean",
     "key": "/languages/kor"
-  }, 
+  },
   {
-    "code": "kos", 
-    "type": "/type/language", 
-    "name": "Kusaie", 
+    "code": "kos",
+    "type": "/type/language",
+    "name": "Kusaie",
     "key": "/languages/kos"
-  }, 
+  },
   {
-    "code": "kpe", 
-    "type": "/type/language", 
-    "name": "Kpelle", 
+    "code": "kpe",
+    "type": "/type/language",
+    "name": "Kpelle",
     "key": "/languages/kpe"
-  }, 
+  },
   {
-    "code": "krc", 
-    "type": "/type/language", 
-    "name": "Karachay-Balkar", 
+    "code": "krc",
+    "type": "/type/language",
+    "name": "Karachay-Balkar",
     "key": "/languages/krc"
-  }, 
+  },
   {
-    "code": "krl", 
-    "type": "/type/language", 
-    "name": "Karelian", 
-    "key": "/languages/krl", 
+    "code": "krl",
+    "type": "/type/language",
+    "name": "Karelian",
+    "key": "/languages/krl",
     "title": "Karelian"
-  }, 
+  },
   {
-    "code": "kro", 
-    "type": "/type/language", 
-    "name": "Kru (Other)", 
+    "code": "kro",
+    "type": "/type/language",
+    "name": "Kru (Other)",
     "key": "/languages/kro"
-  }, 
+  },
   {
-    "code": "kru", 
-    "type": "/type/language", 
-    "name": "Kurukh", 
+    "code": "kru",
+    "type": "/type/language",
+    "name": "Kurukh",
     "key": "/languages/kru"
-  }, 
+  },
   {
-    "code": "kua", 
-    "type": "/type/language", 
-    "name": "Kuanyama", 
+    "code": "kua",
+    "type": "/type/language",
+    "name": "Kuanyama",
     "key": "/languages/kua"
-  }, 
+  },
   {
-    "code": "kum", 
-    "type": "/type/language", 
-    "name": "Kumyk", 
+    "code": "kum",
+    "type": "/type/language",
+    "name": "Kumyk",
     "key": "/languages/kum"
-  }, 
+  },
   {
-    "code": "kur", 
-    "type": "/type/language", 
-    "name": "Kurdish", 
+    "code": "kur",
+    "type": "/type/language",
+    "name": "Kurdish",
     "key": "/languages/kur"
-  }, 
+  },
   {
-    "code": "lad", 
-    "type": "/type/language", 
-    "name": "Ladino", 
+    "code": "kut",
+    "type": "/type/language",
+    "name": "Kootenai",
+    "key": "/languages/kut"
+  },
+  {
+    "code": "lad",
+    "type": "/type/language",
+    "name": "Ladino",
     "key": "/languages/lad"
-  }, 
+  },
   {
-    "code": "lah", 
-    "type": "/type/language", 
-    "name": "Lahnd\u0101", 
+    "code": "lah",
+    "type": "/type/language",
+    "name": "Lahnd\u0101",
     "key": "/languages/lah"
-  }, 
+  },
   {
-    "code": "lam", 
-    "type": "/type/language", 
-    "name": "Lamba (Zambia and Congo)", 
+    "code": "lam",
+    "type": "/type/language",
+    "name": "Lamba (Zambia and Congo)",
     "key": "/languages/lam"
-  }, 
+  },
   {
-    "code": "lan", 
-    "type": "/type/language", 
-    "name": "Occitan (post 1500)", 
-    "key": "/languages/lan"
-  }, 
+    "code": "lan",
+    "type": "/type/language",
+    "name": "Occitan (post 1500)",
+    "key": "/languages/lan",
+    "deprecated": true,
+    "current": "/languages/oci"
+  },
   {
-    "code": "lao", 
-    "type": "/type/language", 
-    "name": "Lao", 
+    "code": "lao",
+    "type": "/type/language",
+    "name": "Lao",
     "key": "/languages/lao"
-  }, 
+  },
   {
-    "code": "lap", 
-    "type": "/type/language", 
-    "name": "Sami", 
-    "key": "/languages/lap"
-  }, 
+    "code": "lap",
+    "type": "/type/language",
+    "name": "Sami",
+    "key": "/languages/lap",
+    "deprecated": true,
+    "current": "/languages/smi"
+  },
   {
-    "code": "lat", 
-    "type": "/type/language", 
-    "name": "Latin", 
+    "code": "lat",
+    "type": "/type/language",
+    "name": "Latin",
     "key": "/languages/lat"
-  }, 
+  },
   {
-    "code": "lav", 
-    "type": "/type/language", 
-    "name": "Latvian", 
+    "code": "lav",
+    "type": "/type/language",
+    "name": "Latvian",
     "key": "/languages/lav"
-  }, 
+  },
   {
-    "code": "lez", 
-    "type": "/type/language", 
-    "name": "Lezgian", 
+    "code": "lez",
+    "type": "/type/language",
+    "name": "Lezgian",
     "key": "/languages/lez"
-  }, 
+  },
   {
-    "code": "lin", 
-    "type": "/type/language", 
-    "name": "Lingala", 
+    "code": "lin",
+    "type": "/type/language",
+    "name": "Lingala",
     "key": "/languages/lin"
-  }, 
+  },
   {
-    "code": "lit", 
-    "type": "/type/language", 
-    "name": "Lithuanian", 
+    "code": "lit",
+    "type": "/type/language",
+    "name": "Lithuanian",
     "key": "/languages/lit"
-  }, 
+  },
   {
-    "code": "lol", 
-    "type": "/type/language", 
-    "name": "Mongo-Nkundu", 
+    "code": "lol",
+    "type": "/type/language",
+    "name": "Mongo-Nkundu",
     "key": "/languages/lol"
-  }, 
+  },
   {
-    "code": "loz", 
-    "type": "/type/language", 
-    "name": "Lozi", 
+    "code": "loz",
+    "type": "/type/language",
+    "name": "Lozi",
     "key": "/languages/loz"
-  }, 
+  },
   {
-    "code": "ltz", 
-    "type": "/type/language", 
-    "name": "Luxembourgish", 
+    "code": "ltz",
+    "type": "/type/language",
+    "name": "Luxembourgish",
     "key": "/languages/ltz"
-  }, 
+  },
   {
-    "code": "lua", 
-    "type": "/type/language", 
-    "name": "Luba-Lulua", 
+    "code": "lua",
+    "type": "/type/language",
+    "name": "Luba-Lulua",
     "key": "/languages/lua"
-  }, 
+  },
   {
-    "code": "lub", 
-    "type": "/type/language", 
-    "name": "Luba-Katanga", 
+    "code": "lub",
+    "type": "/type/language",
+    "name": "Luba-Katanga",
     "key": "/languages/lub"
-  }, 
+  },
   {
-    "code": "lug", 
-    "type": "/type/language", 
-    "name": "Ganda", 
+    "code": "lug",
+    "type": "/type/language",
+    "name": "Ganda",
     "key": "/languages/lug"
-  }, 
+  },
   {
-    "code": "lun", 
-    "type": "/type/language", 
-    "name": "Lunda", 
+    "code": "lun",
+    "type": "/type/language",
+    "name": "Lunda",
     "key": "/languages/lun"
-  }, 
+  },
   {
-    "code": "luo", 
-    "type": "/type/language", 
-    "name": "Luo (Kenya and Tanzania)", 
+    "code": "luo",
+    "type": "/type/language",
+    "name": "Luo (Kenya and Tanzania)",
     "key": "/languages/luo"
-  }, 
+  },
   {
-    "code": "lus", 
-    "type": "/type/language", 
-    "name": "Lushai", 
+    "code": "lus",
+    "type": "/type/language",
+    "name": "Lushai",
     "key": "/languages/lus"
-  }, 
+  },
   {
-    "code": "mac", 
-    "type": "/type/language", 
-    "name": "Macedonian", 
+    "code": "mac",
+    "type": "/type/language",
+    "name": "Macedonian",
     "key": "/languages/mac"
-  }, 
+  },
   {
-    "code": "mad", 
-    "type": "/type/language", 
-    "name": "Madurese", 
+    "code": "mad",
+    "type": "/type/language",
+    "name": "Madurese",
     "key": "/languages/mad"
-  }, 
+  },
   {
-    "code": "mag", 
-    "type": "/type/language", 
-    "name": "Magahi", 
+    "code": "mag",
+    "type": "/type/language",
+    "name": "Magahi",
     "key": "/languages/mag"
-  }, 
+  },
   {
-    "code": "mah", 
-    "type": "/type/language", 
-    "name": "Marshallese", 
+    "code": "mah",
+    "type": "/type/language",
+    "name": "Marshallese",
     "key": "/languages/mah"
-  }, 
+  },
   {
-    "code": "mai", 
-    "type": "/type/language", 
-    "name": "Maithili", 
+    "code": "mai",
+    "type": "/type/language",
+    "name": "Maithili",
     "key": "/languages/mai"
-  }, 
+  },
   {
-    "code": "mak", 
-    "type": "/type/language", 
-    "name": "Makasar", 
+    "code": "mak",
+    "type": "/type/language",
+    "name": "Makasar",
     "key": "/languages/mak"
-  }, 
+  },
   {
-    "code": "mal", 
-    "type": "/type/language", 
-    "name": "Malayalam", 
+    "code": "mal",
+    "type": "/type/language",
+    "name": "Malayalam",
     "key": "/languages/mal"
-  }, 
+  },
   {
-    "code": "man", 
-    "type": "/type/language", 
-    "name": "Mandingo", 
+    "code": "man",
+    "type": "/type/language",
+    "name": "Mandingo",
     "key": "/languages/man"
-  }, 
+  },
   {
-    "code": "mao", 
-    "type": "/type/language", 
-    "name": "Maori", 
+    "code": "mao",
+    "type": "/type/language",
+    "name": "Māori",
     "key": "/languages/mao"
-  }, 
+  },
   {
-    "code": "map", 
-    "type": "/type/language", 
-    "name": "Austronesian (Other)", 
+    "code": "map",
+    "type": "/type/language",
+    "name": "Austronesian (Other)",
     "key": "/languages/map"
-  }, 
+  },
   {
-    "code": "mar", 
-    "type": "/type/language", 
-    "name": "Marathi", 
+    "code": "mar",
+    "type": "/type/language",
+    "name": "Marathi",
     "key": "/languages/mar"
-  }, 
+  },
   {
-    "code": "mas", 
-    "type": "/type/language", 
-    "name": "Masai", 
+    "code": "mas",
+    "type": "/type/language",
+    "name": "Masai",
     "key": "/languages/mas"
-  }, 
+  },
   {
-    "code": "may", 
-    "type": "/type/language", 
-    "name": "Malay", 
+    "code": "may",
+    "type": "/type/language",
+    "name": "Malay",
     "key": "/languages/may"
-  }, 
+  },
   {
-    "code": "mdf", 
-    "type": "/type/language", 
-    "name": "Moksha", 
-    "key": "/languages/mdf", 
+    "code": "mdf",
+    "type": "/type/language",
+    "name": "Moksha",
+    "key": "/languages/mdf",
     "title": "Moksha"
-  }, 
+  },
   {
-    "code": "men", 
-    "type": "/type/language", 
-    "name": "Mende", 
+    "code": "men",
+    "type": "/type/language",
+    "name": "Mende",
     "key": "/languages/men"
-  }, 
+  },
   {
-    "code": "mic", 
-    "type": "/type/language", 
-    "name": "Micmac", 
+    "code": "mga",
+    "type": "/type/language",
+    "name": "Irish, Middle (ca. 1100-1550)",
+    "key": "/languages/mga"
+  },
+  {
+    "code": "mic",
+    "type": "/type/language",
+    "name": "Micmac",
     "key": "/languages/mic"
-  }, 
+  },
   {
-    "code": "min", 
-    "type": "/type/language", 
-    "name": "Minangkabau", 
+    "code": "min",
+    "type": "/type/language",
+    "name": "Minangkabau",
     "key": "/languages/min"
-  }, 
+  },
   {
-    "code": "mis", 
-    "type": "/type/language", 
-    "name": "Miscellaneous languages", 
+    "code": "mis",
+    "type": "/type/language",
+    "name": "Miscellaneous languages",
     "key": "/languages/mis"
-  }, 
+  },
   {
-    "code": "mkh", 
-    "type": "/type/language", 
-    "name": "Mon-Khmer (Other)", 
+    "code": "mkh",
+    "type": "/type/language",
+    "name": "Mon-Khmer (Other)",
     "key": "/languages/mkh"
-  }, 
+  },
   {
-    "code": "mla", 
-    "type": "/type/language", 
-    "name": "Malagasy", 
-    "key": "/languages/mla"
-  }, 
+    "code": "mla",
+    "type": "/type/language",
+    "name": "Malagasy",
+    "key": "/languages/mla",
+    "deprecated": true,
+    "current": "/languages/mlg"
+  },
   {
-    "code": "mlg", 
-    "type": "/type/language", 
-    "name": "Malagasy", 
+    "code": "mlg",
+    "type": "/type/language",
+    "name": "Malagasy",
     "key": "/languages/mlg"
-  }, 
+  },
   {
-    "code": "mlt", 
-    "type": "/type/language", 
-    "name": "Maltese", 
+    "code": "mlt",
+    "type": "/type/language",
+    "name": "Maltese",
     "key": "/languages/mlt"
-  }, 
+  },
   {
-    "code": "mnc", 
-    "type": "/type/language", 
-    "name": "Manchu", 
+    "code": "mnc",
+    "type": "/type/language",
+    "name": "Manchu",
     "key": "/languages/mnc"
-  }, 
+  },
   {
-    "code": "mni", 
-    "type": "/type/language", 
-    "name": "Manipuri", 
+    "code": "mni",
+    "type": "/type/language",
+    "name": "Manipuri",
     "key": "/languages/mni"
-  }, 
+  },
   {
-    "code": "mno", 
-    "type": "/type/language", 
-    "name": "Manobo languages", 
+    "code": "mno",
+    "type": "/type/language",
+    "name": "Manobo languages",
     "key": "/languages/mno"
-  }, 
+  },
   {
-    "code": "moh", 
-    "type": "/type/language", 
-    "name": "Mohawk", 
+    "code": "moh",
+    "type": "/type/language",
+    "name": "Mohawk",
     "key": "/languages/moh"
-  }, 
+  },
   {
-    "code": "mol", 
-    "type": "/type/language", 
-    "name": "Moldavian", 
-    "key": "/languages/mol"
-  }, 
+    "code": "mol",
+    "type": "/type/language",
+    "name": "Moldavian",
+    "key": "/languages/mol",
+    "deprecated": true,
+    "current": "/languages/rum"
+  },
   {
-    "code": "mon", 
-    "type": "/type/language", 
-    "name": "Mongolian", 
+    "code": "mon",
+    "type": "/type/language",
+    "name": "Mongolian",
     "key": "/languages/mon"
-  }, 
+  },
   {
-    "code": "mos", 
-    "type": "/type/language", 
-    "name": "Moor\u00e9", 
+    "code": "mos",
+    "type": "/type/language",
+    "name": "Moor\u00e9",
     "key": "/languages/mos"
-  }, 
+  },
   {
-    "code": "mul", 
-    "type": "/type/language", 
-    "name": "Multiple languages", 
+    "code": "mul",
+    "type": "/type/language",
+    "name": "Multiple languages",
     "key": "/languages/mul"
-  }, 
+  },
   {
-    "code": "mun", 
-    "type": "/type/language", 
-    "name": "Munda (Other)", 
+    "code": "mun",
+    "type": "/type/language",
+    "name": "Munda (Other)",
     "key": "/languages/mun"
-  }, 
+  },
   {
-    "code": "mus", 
-    "type": "/type/language", 
-    "name": "Creek", 
+    "code": "mus",
+    "type": "/type/language",
+    "name": "Creek",
     "key": "/languages/mus"
   },
   {
@@ -1720,1076 +1820,1134 @@
     "key": "/languages/mwl"
   },
   {
-    "code": "mwr", 
-    "type": "/type/language", 
-    "name": "Marwari", 
+    "code": "mwr",
+    "type": "/type/language",
+    "name": "Marwari",
     "key": "/languages/mwr"
-  }, 
+  },
   {
-    "code": "myn", 
-    "type": "/type/language", 
-    "name": "Mayan languages", 
+    "code": "myn",
+    "type": "/type/language",
+    "name": "Mayan languages",
     "key": "/languages/myn"
-  }, 
+  },
   {
-    "code": "myv", 
-    "type": "/type/language", 
-    "name": "Erzya", 
-    "key": "/languages/myv", 
+    "code": "myv",
+    "type": "/type/language",
+    "name": "Erzya",
+    "key": "/languages/myv",
     "title": "Erzya"
-  }, 
+  },
   {
-    "code": "nah", 
-    "type": "/type/language", 
-    "name": "Nahuatl", 
+    "code": "nah",
+    "type": "/type/language",
+    "name": "Nahuatl",
     "key": "/languages/nah"
-  }, 
+  },
   {
-    "code": "nai", 
-    "type": "/type/language", 
-    "name": "North American Indian (Other)", 
+    "code": "nai",
+    "type": "/type/language",
+    "name": "North American Indian (Other)",
     "key": "/languages/nai"
-  }, 
+  },
   {
-    "code": "nau", 
-    "type": "/type/language", 
-    "name": "Nauru", 
+    "code": "nau",
+    "type": "/type/language",
+    "name": "Nauru",
     "key": "/languages/nau"
-  }, 
+  },
   {
-    "code": "nav", 
-    "type": "/type/language", 
-    "name": "Navajo", 
+    "code": "nav",
+    "type": "/type/language",
+    "name": "Navajo",
     "key": "/languages/nav"
-  }, 
+  },
   {
-    "code": "nbl", 
-    "type": "/type/language", 
-    "name": "Ndebele (South Africa)", 
+    "code": "nbl",
+    "type": "/type/language",
+    "name": "Ndebele (South Africa)",
     "key": "/languages/nbl"
-  }, 
+  },
   {
-    "code": "nde", 
-    "type": "/type/language", 
-    "name": "Ndebele (Zimbabwe)", 
+    "code": "nde",
+    "type": "/type/language",
+    "name": "Ndebele (Zimbabwe)",
     "key": "/languages/nde"
-  }, 
+  },
   {
-    "code": "ndo", 
-    "type": "/type/language", 
-    "name": "Ndonga", 
+    "code": "ndo",
+    "type": "/type/language",
+    "name": "Ndonga",
     "key": "/languages/ndo"
-  }, 
+  },
   {
-    "code": "nds", 
-    "type": "/type/language", 
-    "name": "Low German", 
+    "code": "nds",
+    "type": "/type/language",
+    "name": "Low German",
     "key": "/languages/nds"
-  }, 
+  },
   {
-    "code": "nep", 
-    "type": "/type/language", 
-    "name": "Nepali", 
+    "code": "nep",
+    "type": "/type/language",
+    "name": "Nepali",
     "key": "/languages/nep"
-  }, 
+  },
   {
-    "code": "new", 
-    "type": "/type/language", 
-    "name": "Newari", 
+    "code": "new",
+    "type": "/type/language",
+    "name": "Newari",
     "key": "/languages/new"
-  }, 
+  },
   {
-    "code": "nic", 
-    "type": "/type/language", 
-    "name": "Niger-Kordofanian (Other)", 
+    "code": "nic",
+    "type": "/type/language",
+    "name": "Niger-Kordofanian (Other)",
     "key": "/languages/nic"
-  }, 
+  },
   {
-    "code": "niu", 
-    "type": "/type/language", 
-    "name": "Niuean", 
+    "code": "niu",
+    "type": "/type/language",
+    "name": "Niuean",
     "key": "/languages/niu"
-  }, 
+  },
   {
-    "code": "nno", 
-    "name": "Nynorsk", 
-    "title": "Nynorsk", 
-    "library_of_congress_name": "Norwegian (Nynorsk)", 
-    "key": "/languages/nno", 
+    "code": "nno",
+    "name": "Nynorsk",
+    "title": "Nynorsk",
+    "library_of_congress_name": "Norwegian (Nynorsk)",
+    "key": "/languages/nno",
     "type": "/type/language"
-  }, 
+  },
   {
-    "code": "nob", 
-    "name": "Norwegian (Bokm\u00e5l)", 
-    "title": "Norwegian (Bokm\u00e5l)", 
-    "library_of_congress_name": "Norwegian (Bokm\u00e5l)", 
-    "key": "/languages/nob", 
+    "code": "nob",
+    "name": "Norwegian (Bokm\u00e5l)",
+    "title": "Norwegian (Bokm\u00e5l)",
+    "library_of_congress_name": "Norwegian (Bokm\u00e5l)",
+    "key": "/languages/nob",
     "type": "/type/language"
-  }, 
+  },
   {
-    "code": "nog", 
-    "type": "/type/language", 
-    "name": "Nogai", 
+    "code": "nog",
+    "type": "/type/language",
+    "name": "Nogai",
     "key": "/languages/nog"
-  }, 
+  },
   {
-    "code": "non", 
-    "type": "/type/language", 
-    "name": "Old Norse", 
+    "code": "non",
+    "type": "/type/language",
+    "name": "Old Norse",
     "key": "/languages/non"
-  }, 
+  },
   {
-    "code": "nor", 
-    "type": "/type/language", 
-    "name": "Norwegian", 
+    "code": "nor",
+    "type": "/type/language",
+    "name": "Norwegian",
     "key": "/languages/nor"
-  }, 
+  },
   {
-    "code": "nso", 
-    "type": "/type/language", 
-    "name": "Northern Sotho", 
+    "code": "nqo",
+    "type": "/type/language",
+    "name": "N'Ko",
+    "key": "/languages/nqo"
+  },
+  {
+    "code": "nso",
+    "type": "/type/language",
+    "name": "Northern Sotho",
     "key": "/languages/nso"
-  }, 
+  },
   {
-    "code": "nub", 
-    "type": "/type/language", 
-    "name": "Nubian languages", 
+    "code": "nub",
+    "type": "/type/language",
+    "name": "Nubian languages",
     "key": "/languages/nub"
-  }, 
+  },
   {
-    "code": "nya", 
-    "type": "/type/language", 
-    "name": "Nyanja", 
+    "code": "nwc",
+    "type": "/type/language",
+    "name": "Newari, Old",
+    "key": "/languages/nwc"
+  },
+  {
+    "code": "nya",
+    "type": "/type/language",
+    "name": "Nyanja",
     "key": "/languages/nya"
-  }, 
+  },
   {
-    "code": "nyn", 
-    "type": "/type/language", 
-    "name": "Nyankole", 
+    "code": "nyn",
+    "type": "/type/language",
+    "name": "Nyankole",
     "key": "/languages/nyn"
-  }, 
+  },
   {
-    "code": "nyo", 
-    "type": "/type/language", 
-    "name": "Nyoro", 
+    "code": "nyo",
+    "type": "/type/language",
+    "name": "Nyoro",
     "key": "/languages/nyo"
-  }, 
+  },
   {
-    "code": "nzi", 
-    "type": "/type/language", 
-    "name": "Nzima", 
+    "code": "nzi",
+    "type": "/type/language",
+    "name": "Nzima",
     "key": "/languages/nzi"
-  }, 
+  },
   {
-    "code": "oci", 
-    "type": "/type/language", 
-    "name": "Occitan (post 1500)", 
+    "code": "oci",
+    "type": "/type/language",
+    "name": "Occitan (post 1500)",
     "key": "/languages/oci"
-  }, 
+  },
   {
-    "code": "oji", 
-    "type": "/type/language", 
-    "name": "Ojibwa", 
+    "code": "oji",
+    "type": "/type/language",
+    "name": "Ojibwa",
     "key": "/languages/oji"
-  }, 
+  },
   {
-    "code": "ori", 
-    "type": "/type/language", 
-    "name": "Oriya", 
+    "code": "ori",
+    "type": "/type/language",
+    "name": "Oriya",
     "key": "/languages/ori"
-  }, 
+  },
   {
-    "code": "orm", 
-    "type": "/type/language", 
-    "name": "Oromo", 
+    "code": "orm",
+    "type": "/type/language",
+    "name": "Oromo",
     "key": "/languages/orm"
-  }, 
+  },
   {
-    "code": "osa", 
-    "type": "/type/language", 
-    "name": "Osage", 
-    "key": "/languages/osa", 
+    "code": "osa",
+    "type": "/type/language",
+    "name": "Osage",
+    "key": "/languages/osa",
     "title": "Osage"
-  }, 
+  },
   {
-    "code": "oss", 
-    "type": "/type/language", 
-    "name": "Ossetic", 
+    "code": "oss",
+    "type": "/type/language",
+    "name": "Ossetic",
     "key": "/languages/oss"
-  }, 
+  },
   {
-    "code": "ota", 
-    "type": "/type/language", 
-    "name": "Turkish, Ottoman", 
+    "code": "ota",
+    "type": "/type/language",
+    "name": "Turkish, Ottoman",
     "key": "/languages/ota"
-  }, 
+  },
   {
-    "code": "oto", 
-    "type": "/type/language", 
-    "name": "Otomian languages", 
+    "code": "oto",
+    "type": "/type/language",
+    "name": "Otomian languages",
     "key": "/languages/oto"
-  }, 
+  },
   {
-    "code": "paa", 
-    "type": "/type/language", 
-    "name": "Papuan (Other)", 
+    "code": "paa",
+    "type": "/type/language",
+    "name": "Papuan (Other)",
     "key": "/languages/paa"
-  }, 
+  },
   {
-    "code": "pag", 
-    "type": "/type/language", 
-    "name": "Pangasinan", 
+    "code": "pag",
+    "type": "/type/language",
+    "name": "Pangasinan",
     "key": "/languages/pag"
-  }, 
+  },
   {
-    "code": "pal", 
-    "type": "/type/language", 
-    "name": "Pahlavi", 
+    "code": "pal",
+    "type": "/type/language",
+    "name": "Pahlavi",
     "key": "/languages/pal"
-  }, 
+  },
   {
-    "code": "pam", 
-    "type": "/type/language", 
-    "name": "Pampanga", 
+    "code": "pam",
+    "type": "/type/language",
+    "name": "Pampanga",
     "key": "/languages/pam"
-  }, 
+  },
   {
-    "code": "pan", 
-    "type": "/type/language", 
-    "name": "Panjabi", 
+    "code": "pan",
+    "type": "/type/language",
+    "name": "Panjabi",
     "key": "/languages/pan"
-  }, 
+  },
   {
-    "code": "pap", 
-    "type": "/type/language", 
-    "name": "Papiamento", 
+    "code": "pap",
+    "type": "/type/language",
+    "name": "Papiamento",
     "key": "/languages/pap"
-  }, 
+  },
   {
-    "code": "pau", 
-    "type": "/type/language", 
-    "name": "Palauan", 
+    "code": "pau",
+    "type": "/type/language",
+    "name": "Palauan",
     "key": "/languages/pau"
-  }, 
+  },
   {
-    "code": "peo", 
-    "type": "/type/language", 
-    "name": "Old Persian (ca. 600-400 B.C.)", 
+    "code": "peo",
+    "type": "/type/language",
+    "name": "Old Persian (ca. 600-400 B.C.)",
     "key": "/languages/peo"
-  }, 
+  },
   {
-    "code": "per", 
-    "type": "/type/language", 
-    "name": "Persian", 
+    "code": "per",
+    "type": "/type/language",
+    "name": "Persian",
     "key": "/languages/per"
-  }, 
+  },
   {
-    "code": "phi", 
-    "type": "/type/language", 
-    "name": "Philippine (Other)", 
+    "code": "phi",
+    "type": "/type/language",
+    "name": "Philippine (Other)",
     "key": "/languages/phi"
-  }, 
+  },
   {
-    "code": "pli", 
-    "type": "/type/language", 
-    "name": "Pali", 
+    "code": "pli",
+    "type": "/type/language",
+    "name": "Pali",
     "key": "/languages/pli"
-  }, 
+  },
   {
-    "code": "pol", 
-    "type": "/type/language", 
-    "name": "Polish", 
+    "code": "pol",
+    "type": "/type/language",
+    "name": "Polish",
     "key": "/languages/pol"
-  }, 
+  },
   {
-    "code": "pon", 
-    "type": "/type/language", 
-    "name": "Ponape", 
+    "code": "pon",
+    "type": "/type/language",
+    "name": "Ponape",
     "key": "/languages/pon"
-  }, 
+  },
   {
-    "code": "por", 
-    "type": "/type/language", 
-    "name": "Portuguese", 
+    "code": "por",
+    "type": "/type/language",
+    "name": "Portuguese",
     "key": "/languages/por"
-  }, 
+  },
   {
-    "code": "pra", 
-    "type": "/type/language", 
-    "name": "Prakrit languages", 
+    "code": "pra",
+    "type": "/type/language",
+    "name": "Prakrit languages",
     "key": "/languages/pra"
-  }, 
+  },
   {
-    "code": "pro", 
-    "type": "/type/language", 
-    "name": "Proven\u00e7al (to 1500)", 
+    "code": "pro",
+    "type": "/type/language",
+    "name": "Proven\u00e7al (to 1500)",
     "key": "/languages/pro"
-  }, 
+  },
   {
-    "code": "pus", 
-    "type": "/type/language", 
-    "name": "Pushto", 
+    "code": "pus",
+    "type": "/type/language",
+    "name": "Pushto",
     "key": "/languages/pus"
-  }, 
+  },
   {
-    "code": "que", 
-    "type": "/type/language", 
-    "name": "Quechua", 
+    "code": "que",
+    "type": "/type/language",
+    "name": "Quechua",
     "key": "/languages/que"
-  }, 
+  },
   {
-    "code": "raj", 
-    "type": "/type/language", 
-    "name": "Rajasthani", 
+    "code": "raj",
+    "type": "/type/language",
+    "name": "Rajasthani",
     "key": "/languages/raj"
-  }, 
+  },
   {
-    "code": "rar", 
-    "type": "/type/language", 
-    "name": "Rarotongan", 
+    "code": "rar",
+    "type": "/type/language",
+    "name": "Rarotongan",
     "key": "/languages/rar"
-  }, 
+  },
   {
-    "code": "roa", 
-    "type": "/type/language", 
-    "name": "Romance (Other)", 
+    "code": "roa",
+    "type": "/type/language",
+    "name": "Romance (Other)",
     "key": "/languages/roa"
-  }, 
+  },
   {
-    "code": "roh", 
-    "type": "/type/language", 
-    "name": "Raeto-Romance", 
+    "code": "roh",
+    "type": "/type/language",
+    "name": "Raeto-Romance",
     "key": "/languages/roh"
-  }, 
+  },
   {
-    "code": "rom", 
-    "type": "/type/language", 
-    "name": "Romani", 
+    "code": "rom",
+    "type": "/type/language",
+    "name": "Romani",
     "key": "/languages/rom"
-  }, 
+  },
   {
-    "code": "rum", 
-    "type": "/type/language", 
-    "name": "Romanian", 
+    "code": "rum",
+    "type": "/type/language",
+    "name": "Romanian",
     "key": "/languages/rum"
-  }, 
+  },
   {
-    "code": "run", 
-    "type": "/type/language", 
-    "name": "Rundi", 
+    "code": "run",
+    "type": "/type/language",
+    "name": "Rundi",
     "key": "/languages/run"
-  }, 
+  },
   {
-    "code": "rus", 
-    "type": "/type/language", 
-    "name": "Russian", 
+    "code": "rup",
+    "type": "/type/language",
+    "name": "Aromanian",
+    "key": "/languages/rup"
+  },
+  {
+    "code": "rus",
+    "type": "/type/language",
+    "name": "Russian",
     "key": "/languages/rus"
-  }, 
+  },
   {
-    "code": "sag", 
-    "type": "/type/language", 
-    "name": "Sango (Ubangi Creole)", 
+    "code": "sag",
+    "type": "/type/language",
+    "name": "Sango (Ubangi Creole)",
     "key": "/languages/sag"
-  }, 
+  },
   {
-    "code": "sah", 
-    "type": "/type/language", 
-    "name": "Yakut", 
+    "code": "sah",
+    "type": "/type/language",
+    "name": "Yakut",
     "key": "/languages/sah"
-  }, 
+  },
   {
-    "code": "sai", 
-    "type": "/type/language", 
-    "name": "South American Indian (Other)", 
+    "code": "sai",
+    "type": "/type/language",
+    "name": "South American Indian (Other)",
     "key": "/languages/sai"
-  }, 
+  },
   {
-    "code": "sal", 
-    "type": "/type/language", 
-    "name": "Salishan languages", 
+    "code": "sal",
+    "type": "/type/language",
+    "name": "Salishan languages",
     "key": "/languages/sal"
-  }, 
+  },
   {
-    "code": "sam", 
-    "type": "/type/language", 
-    "name": "Samaritan Aramaic", 
+    "code": "sam",
+    "type": "/type/language",
+    "name": "Samaritan Aramaic",
     "key": "/languages/sam"
-  }, 
+  },
   {
-    "code": "san", 
-    "type": "/type/language", 
-    "name": "Sanskrit", 
+    "code": "san",
+    "type": "/type/language",
+    "name": "Sanskrit",
     "key": "/languages/san"
-  }, 
+  },
   {
-    "code": "sao", 
-    "type": "/type/language", 
-    "name": "Samoan", 
-    "key": "/languages/sao"
-  }, 
+    "code": "sao",
+    "type": "/type/language",
+    "name": "Samoan",
+    "key": "/languages/sao",
+    "deprecated": true,
+    "current": "/languages/smo"
+  },
   {
-    "code": "sas", 
-    "type": "/type/language", 
-    "name": "Sasak", 
+    "code": "sas",
+    "type": "/type/language",
+    "name": "Sasak",
     "key": "/languages/sas"
-  }, 
+  },
   {
-    "code": "sat", 
-    "type": "/type/language", 
-    "name": "Santali", 
+    "code": "sat",
+    "type": "/type/language",
+    "name": "Santali",
     "key": "/languages/sat"
-  }, 
+  },
   {
-    "code": "scc", 
-    "type": "/type/language", 
-    "name": "Serbian", 
-    "key": "/languages/scc"
-  }, 
+    "code": "scc",
+    "type": "/type/language",
+    "name": "Serbian",
+    "key": "/languages/scc",
+    "deprecated": true,
+    "current": "/languages/srp"
+  },
   {
-    "code": "sco", 
-    "type": "/type/language", 
-    "name": "Scots", 
+    "code": "scn",
+    "type": "/type/language",
+    "name": "Sicilian Italian",
+    "key": "/languages/scn"
+  },
+  {
+    "code": "sco",
+    "type": "/type/language",
+    "name": "Scots",
     "key": "/languages/sco"
-  }, 
+  },
   {
-    "code": "scr", 
-    "type": "/type/language", 
-    "name": "Croatian", 
-    "key": "/languages/scr"
-  }, 
+    "code": "scr",
+    "type": "/type/language",
+    "name": "Croatian",
+    "key": "/languages/scr",
+    "deprecated": true,
+    "current": "/languages/hrv"
+  },
   {
-    "code": "sel", 
-    "type": "/type/language", 
-    "name": "Selkup", 
+    "code": "sel",
+    "type": "/type/language",
+    "name": "Selkup",
     "key": "/languages/sel"
-  }, 
+  },
   {
-    "code": "sem", 
-    "type": "/type/language", 
-    "name": "Semitic (Other)", 
+    "code": "sem",
+    "type": "/type/language",
+    "name": "Semitic (Other)",
     "key": "/languages/sem"
-  }, 
+  },
   {
-    "code": "shn", 
-    "type": "/type/language", 
-    "name": "Shan", 
+    "code": "shn",
+    "type": "/type/language",
+    "name": "Shan",
     "key": "/languages/shn"
-  }, 
+  },
   {
-    "code": "sho", 
-    "type": "/type/language", 
-    "name": "Shona", 
-    "key": "/languages/sho"
-  }, 
+    "code": "sho",
+    "type": "/type/language",
+    "name": "Shona",
+    "key": "/languages/sho",
+    "deprecated": true,
+    "current": "/languages/sna"
+  },
   {
-    "code": "sid", 
-    "type": "/type/language", 
-    "name": "Sidamo", 
+    "code": "sid",
+    "type": "/type/language",
+    "name": "Sidamo",
     "key": "/languages/sid"
-  }, 
+  },
   {
-    "code": "sin", 
-    "type": "/type/language", 
-    "name": "Sinhalese", 
+    "code": "sin",
+    "type": "/type/language",
+    "name": "Sinhalese",
     "key": "/languages/sin"
-  }, 
+  },
   {
-    "code": "sio", 
-    "type": "/type/language", 
-    "name": "Siouan (Other)", 
+    "code": "sio",
+    "type": "/type/language",
+    "name": "Siouan (Other)",
     "key": "/languages/sio"
-  }, 
+  },
   {
-    "code": "sit", 
-    "type": "/type/language", 
-    "name": "Sino-Tibetan (Other)", 
+    "code": "sit",
+    "type": "/type/language",
+    "name": "Sino-Tibetan (Other)",
     "key": "/languages/sit"
-  }, 
+  },
   {
-    "code": "sla", 
-    "type": "/type/language", 
-    "name": "Slavic (Other)", 
+    "code": "sla",
+    "type": "/type/language",
+    "name": "Slavic (Other)",
     "key": "/languages/sla"
-  }, 
+  },
   {
-    "code": "slo", 
-    "type": "/type/language", 
-    "name": "Slovak", 
+    "code": "slo",
+    "type": "/type/language",
+    "name": "Slovak",
     "key": "/languages/slo"
-  }, 
+  },
   {
-    "code": "slv", 
-    "type": "/type/language", 
-    "name": "Slovenian", 
+    "code": "slv",
+    "type": "/type/language",
+    "name": "Slovenian",
     "key": "/languages/slv"
-  }, 
+  },
   {
-    "code": "sme", 
-    "type": "/type/language", 
-    "name": "Northern Sami", 
-    "key": "/languages/sme", 
+    "code": "sme",
+    "type": "/type/language",
+    "name": "Northern Sami",
+    "key": "/languages/sme",
     "title": "Northern Sami"
-  }, 
+  },
   {
-    "code": "smi", 
-    "type": "/type/language", 
-    "name": "Sami", 
+    "code": "smi",
+    "type": "/type/language",
+    "name": "Sami",
     "key": "/languages/smi"
-  }, 
+  },
   {
-    "code": "smo", 
-    "type": "/type/language", 
-    "name": "Samoan", 
+    "code": "smo",
+    "type": "/type/language",
+    "name": "Samoan",
     "key": "/languages/smo"
-  }, 
+  },
   {
-    "code": "sna", 
-    "type": "/type/language", 
-    "name": "Shona", 
+    "code": "sna",
+    "type": "/type/language",
+    "name": "Shona",
     "key": "/languages/sna"
-  }, 
+  },
   {
-    "code": "snd", 
-    "type": "/type/language", 
-    "name": "Sindhi", 
+    "code": "snd",
+    "type": "/type/language",
+    "name": "Sindhi",
     "key": "/languages/snd"
-  }, 
+  },
   {
-    "code": "snh", 
-    "type": "/type/language", 
-    "name": "Sinhalese", 
-    "key": "/languages/snh"
-  }, 
+    "code": "snh",
+    "type": "/type/language",
+    "name": "Sinhalese",
+    "key": "/languages/snh",
+    "deprecated": true,
+    "current": "/languages/sin"
+  },
   {
-    "code": "snk", 
-    "type": "/type/language", 
-    "name": "Soninke", 
+    "code": "snk",
+    "type": "/type/language",
+    "name": "Soninke",
     "key": "/languages/snk"
-  }, 
+  },
   {
-    "code": "sog", 
-    "type": "/type/language", 
-    "name": "Sogdian", 
+    "code": "sog",
+    "type": "/type/language",
+    "name": "Sogdian",
     "key": "/languages/sog"
-  }, 
+  },
   {
-    "code": "som", 
-    "type": "/type/language", 
-    "name": "Somali", 
+    "code": "som",
+    "type": "/type/language",
+    "name": "Somali",
     "key": "/languages/som"
-  }, 
+  },
   {
-    "code": "son", 
-    "type": "/type/language", 
-    "name": "Songhai", 
+    "code": "son",
+    "type": "/type/language",
+    "name": "Songhai",
     "key": "/languages/son"
-  }, 
+  },
   {
-    "code": "sot", 
-    "type": "/type/language", 
-    "name": "Sotho", 
+    "code": "sot",
+    "type": "/type/language",
+    "name": "Sotho",
     "key": "/languages/sot"
-  }, 
+  },
   {
-    "code": "spa", 
-    "type": "/type/language", 
-    "name": "Spanish", 
+    "code": "spa",
+    "type": "/type/language",
+    "name": "Spanish",
     "key": "/languages/spa"
-  }, 
+  },
   {
-    "code": "srd", 
-    "type": "/type/language", 
-    "name": "Sardinian", 
+    "code": "srd",
+    "type": "/type/language",
+    "name": "Sardinian",
     "key": "/languages/srd"
-  }, 
+  },
   {
-    "code": "srn", 
-    "name": "Sranan", 
-    "title": "Sranan", 
-    "library_of_congress_name": "Sranan", 
-    "key": "/languages/srn", 
+    "code": "srn",
+    "name": "Sranan",
+    "title": "Sranan",
+    "library_of_congress_name": "Sranan",
+    "key": "/languages/srn",
     "type": "/type/language"
-  }, 
+  },
   {
-    "code": "srp", 
-    "type": "/type/language", 
-    "name": "Serbian", 
+    "code": "srp",
+    "type": "/type/language",
+    "name": "Serbian",
     "key": "/languages/srp"
-  }, 
+  },
   {
-    "code": "srr", 
-    "type": "/type/language", 
-    "name": "Serer", 
+    "code": "srr",
+    "type": "/type/language",
+    "name": "Serer",
     "key": "/languages/srr"
-  }, 
+  },
   {
-    "code": "ssa", 
-    "type": "/type/language", 
-    "name": "Nilo-Saharan (Other)", 
+    "code": "ssa",
+    "type": "/type/language",
+    "name": "Nilo-Saharan (Other)",
     "key": "/languages/ssa"
-  }, 
+  },
   {
-    "code": "sso", 
-    "type": "/type/language", 
-    "name": "Sotho", 
-    "key": "/languages/sso"
-  }, 
+    "code": "sso",
+    "type": "/type/language",
+    "name": "Sotho",
+    "key": "/languages/sso",
+    "deprecated": true,
+    "current": "/languages/sot"
+  },
   {
-    "code": "ssw", 
-    "type": "/type/language", 
-    "name": "Swazi ", 
+    "code": "ssw",
+    "type": "/type/language",
+    "name": "Swazi ",
     "key": "/languages/ssw"
-  }, 
+  },
   {
-    "code": "suk", 
-    "type": "/type/language", 
-    "name": "Sukuma", 
+    "code": "suk",
+    "type": "/type/language",
+    "name": "Sukuma",
     "key": "/languages/suk"
-  }, 
+  },
   {
-    "code": "sun", 
-    "type": "/type/language", 
-    "name": "Sundanese", 
+    "code": "sun",
+    "type": "/type/language",
+    "name": "Sundanese",
     "key": "/languages/sun"
-  }, 
+  },
   {
-    "code": "sus", 
-    "type": "/type/language", 
-    "name": "Susu", 
+    "code": "sus",
+    "type": "/type/language",
+    "name": "Susu",
     "key": "/languages/sus"
-  }, 
+  },
   {
-    "code": "sux", 
-    "type": "/type/language", 
-    "name": "Sumerian", 
+    "code": "sux",
+    "type": "/type/language",
+    "name": "Sumerian",
     "key": "/languages/sux"
-  }, 
+  },
   {
-    "code": "swa", 
-    "type": "/type/language", 
-    "name": "Swahili", 
+    "code": "swa",
+    "type": "/type/language",
+    "name": "Swahili",
     "key": "/languages/swa"
-  }, 
+  },
   {
-    "code": "swe", 
-    "type": "/type/language", 
-    "name": "Swedish", 
+    "code": "swe",
+    "type": "/type/language",
+    "name": "Swedish",
     "key": "/languages/swe"
-  }, 
+  },
   {
-    "code": "swz", 
-    "type": "/type/language", 
-    "name": "Swazi", 
-    "key": "/languages/swz"
-  }, 
+    "code": "swz",
+    "type": "/type/language",
+    "name": "Swazi",
+    "key": "/languages/swz",
+    "deprecated": true,
+    "current": "/languages/ssw"
+  },
   {
-    "code": "syc", 
-    "type": "/type/language", 
-    "name": "Syriac", 
+    "code": "syc",
+    "type": "/type/language",
+    "name": "Syriac",
     "key": "/languages/syc"
-  }, 
+  },
   {
-    "code": "syr", 
-    "type": "/type/language", 
-    "name": "Syriac, Modern", 
+    "code": "syr",
+    "type": "/type/language",
+    "name": "Syriac, Modern",
     "key": "/languages/syr"
-  }, 
+  },
   {
-    "code": "tag", 
-    "type": "/type/language", 
-    "name": "Tagalog", 
-    "key": "/languages/tag"
-  }, 
+    "code": "tag",
+    "type": "/type/language",
+    "name": "Tagalog",
+    "key": "/languages/tag",
+    "deprecated": true,
+    "current": "/languages/tgl"
+  },
   {
-    "code": "tah", 
-    "type": "/type/language", 
-    "name": "Tahitian", 
+    "code": "tah",
+    "type": "/type/language",
+    "name": "Tahitian",
     "key": "/languages/tah"
-  }, 
+  },
   {
-    "code": "tai", 
-    "type": "/type/language", 
-    "name": "Tai", 
-    "key": "/languages/tai", 
+    "code": "tai",
+    "type": "/type/language",
+    "name": "Tai",
+    "key": "/languages/tai",
     "title": "Tai"
-  }, 
+  },
   {
-    "code": "taj", 
-    "type": "/type/language", 
-    "name": "Tajik", 
-    "key": "/languages/taj"
-  }, 
+    "code": "taj",
+    "type": "/type/language",
+    "name": "Tajik",
+    "key": "/languages/taj",
+    "deprecated": true,
+    "current": "/languages/tgk"
+  },
   {
-    "code": "tam", 
-    "type": "/type/language", 
-    "name": "Tamil", 
+    "code": "tam",
+    "type": "/type/language",
+    "name": "Tamil",
     "key": "/languages/tam"
-  }, 
+  },
   {
-    "code": "tar", 
-    "type": "/type/language", 
-    "name": "Tatar", 
-    "key": "/languages/tar"
-  }, 
+    "code": "tar",
+    "type": "/type/language",
+    "name": "Tatar",
+    "key": "/languages/tar",
+    "deprecated": true,
+    "current": "/languages/tat"
+  },
   {
-    "code": "tat", 
-    "type": "/type/language", 
-    "name": "Tatar", 
+    "code": "tat",
+    "type": "/type/language",
+    "name": "Tatar",
     "key": "/languages/tat"
-  }, 
+  },
   {
-    "code": "tel", 
-    "type": "/type/language", 
-    "name": "Telugu", 
+    "code": "tel",
+    "type": "/type/language",
+    "name": "Telugu",
     "key": "/languages/tel"
-  }, 
+  },
   {
-    "code": "tem", 
-    "type": "/type/language", 
-    "name": "Temne", 
+    "code": "tem",
+    "type": "/type/language",
+    "name": "Temne",
     "key": "/languages/tem"
-  }, 
+  },
   {
-    "code": "ter", 
-    "type": "/type/language", 
-    "name": "Terena", 
+    "code": "ter",
+    "type": "/type/language",
+    "name": "Terena",
     "key": "/languages/ter"
-  }, 
+  },
   {
-    "code": "tet", 
-    "type": "/type/language", 
-    "name": "Tetum", 
+    "code": "tet",
+    "type": "/type/language",
+    "name": "Tetum",
     "key": "/languages/tet"
-  }, 
+  },
   {
-    "code": "tgk", 
-    "type": "/type/language", 
-    "name": "Tajik ", 
+    "code": "tgk",
+    "type": "/type/language",
+    "name": "Tajik ",
     "key": "/languages/tgk"
-  }, 
+  },
   {
-    "code": "tgl", 
-    "type": "/type/language", 
-    "name": "Tagalog", 
+    "code": "tgl",
+    "type": "/type/language",
+    "name": "Tagalog",
     "key": "/languages/tgl"
-  }, 
+  },
   {
-    "code": "tha", 
-    "type": "/type/language", 
-    "name": "Thai", 
+    "code": "tha",
+    "type": "/type/language",
+    "name": "Thai",
     "key": "/languages/tha"
-  }, 
+  },
   {
-    "code": "tib", 
-    "type": "/type/language", 
-    "name": "Tibetan", 
+    "code": "tib",
+    "type": "/type/language",
+    "name": "Tibetan",
     "key": "/languages/tib"
-  }, 
+  },
   {
-    "code": "tig", 
-    "type": "/type/language", 
-    "name": "Tigr\u00e9", 
+    "code": "tig",
+    "type": "/type/language",
+    "name": "Tigr\u00e9",
     "key": "/languages/tig"
-  }, 
+  },
   {
-    "code": "tir", 
-    "type": "/type/language", 
-    "name": "Tigrinya", 
+    "code": "tir",
+    "type": "/type/language",
+    "name": "Tigrinya",
     "key": "/languages/tir"
-  }, 
+  },
   {
-    "code": "tiv", 
-    "type": "/type/language", 
-    "name": "Tiv", 
+    "code": "tiv",
+    "type": "/type/language",
+    "name": "Tiv",
     "key": "/languages/tiv"
-  }, 
+  },
   {
-    "code": "tkl", 
-    "type": "/type/language", 
-    "name": "Tokelauan", 
+    "code": "tkl",
+    "type": "/type/language",
+    "name": "Tokelauan",
     "key": "/languages/tkl"
-  }, 
+  },
   {
-    "code": "tli", 
-    "type": "/type/language", 
-    "name": "Tlingit", 
+    "code": "tlh",
+    "type": "/type/language",
+    "name": "Klingon (Artificial language)",
+    "key": "/languages/tlh"
+  },
+  {
+    "code": "tli",
+    "type": "/type/language",
+    "name": "Tlingit",
     "key": "/languages/tli"
-  }, 
+  },
   {
-    "code": "tmh", 
-    "type": "/type/language", 
-    "name": "Tamashek", 
+    "code": "tmh",
+    "type": "/type/language",
+    "name": "Tamashek",
     "key": "/languages/tmh"
-  }, 
+  },
   {
-    "code": "tog", 
-    "type": "/type/language", 
-    "name": "Tonga (Nyasa)", 
+    "code": "tog",
+    "type": "/type/language",
+    "name": "Tonga (Nyasa)",
     "key": "/languages/tog"
-  }, 
+  },
   {
-    "code": "ton", 
-    "type": "/type/language", 
-    "name": "Tongan", 
+    "code": "ton",
+    "type": "/type/language",
+    "name": "Tongan",
     "key": "/languages/ton"
-  }, 
+  },
   {
-    "code": "tpi", 
-    "type": "/type/language", 
-    "name": "Tok Pisin", 
+    "code": "tpi",
+    "type": "/type/language",
+    "name": "Tok Pisin",
     "key": "/languages/tpi"
-  }, 
+  },
   {
-    "code": "tsi", 
-    "type": "/type/language", 
-    "name": "Tsimshian", 
+    "code": "tsi",
+    "type": "/type/language",
+    "name": "Tsimshian",
     "key": "/languages/tsi"
-  }, 
+  },
   {
-    "code": "tsn", 
-    "type": "/type/language", 
-    "name": "Tswana", 
+    "code": "tsn",
+    "type": "/type/language",
+    "name": "Tswana",
     "key": "/languages/tsn"
-  }, 
+  },
   {
-    "code": "tso", 
-    "type": "/type/language", 
-    "name": "Tsonga", 
+    "code": "tso",
+    "type": "/type/language",
+    "name": "Tsonga",
     "key": "/languages/tso"
-  }, 
+  },
   {
-    "code": "tsw", 
-    "type": "/type/language", 
-    "name": "Tswana", 
-    "key": "/languages/tsw"
-  }, 
+    "code": "tsw",
+    "type": "/type/language",
+    "name": "Tswana",
+    "key": "/languages/tsw",
+    "deprecated": true,
+    "current": "/languages/tsn"
+  },
   {
-    "code": "tuk", 
-    "type": "/type/language", 
-    "name": "Turkmen", 
+    "code": "tuk",
+    "type": "/type/language",
+    "name": "Turkmen",
     "key": "/languages/tuk"
-  }, 
+  },
   {
-    "code": "tum", 
-    "type": "/type/language", 
-    "name": "Tumbuka", 
+    "code": "tum",
+    "type": "/type/language",
+    "name": "Tumbuka",
     "key": "/languages/tum"
-  }, 
+  },
   {
-    "code": "tur", 
-    "type": "/type/language", 
-    "name": "Turkish", 
+    "code": "tur",
+    "type": "/type/language",
+    "name": "Turkish",
     "key": "/languages/tur"
-  }, 
+  },
   {
-    "code": "tut", 
-    "type": "/type/language", 
-    "name": "Altaic (Other)", 
+    "code": "tut",
+    "type": "/type/language",
+    "name": "Altaic (Other)",
     "key": "/languages/tut"
-  }, 
+  },
   {
-    "code": "tvl", 
-    "type": "/type/language", 
-    "name": "Tuvaluan", 
+    "code": "tvl",
+    "type": "/type/language",
+    "name": "Tuvaluan",
     "key": "/languages/tvl"
-  }, 
+  },
   {
-    "code": "twi", 
-    "type": "/type/language", 
-    "name": "Twi", 
+    "code": "twi",
+    "type": "/type/language",
+    "name": "Twi",
     "key": "/languages/twi"
-  }, 
+  },
   {
-    "code": "tyv", 
-    "type": "/type/language", 
-    "name": "Tuvinian", 
+    "code": "tyv",
+    "type": "/type/language",
+    "name": "Tuvinian",
     "key": "/languages/tyv"
-  }, 
+  },
   {
-    "code": "udm", 
-    "type": "/type/language", 
-    "name": "Udmurt ", 
+    "code": "udm",
+    "type": "/type/language",
+    "name": "Udmurt ",
     "key": "/languages/udm"
-  }, 
+  },
   {
-    "code": "uga", 
-    "type": "/type/language", 
-    "name": "Ugaritic", 
+    "code": "uga",
+    "type": "/type/language",
+    "name": "Ugaritic",
     "key": "/languages/uga"
-  }, 
+  },
   {
-    "code": "uig", 
-    "type": "/type/language", 
-    "name": "Uighur", 
+    "code": "uig",
+    "type": "/type/language",
+    "name": "Uighur",
     "key": "/languages/uig"
-  }, 
+  },
   {
-    "code": "ukr", 
-    "type": "/type/language", 
-    "name": "Ukrainian", 
+    "code": "ukr",
+    "type": "/type/language",
+    "name": "Ukrainian",
     "key": "/languages/ukr"
-  }, 
+  },
   {
-    "code": "umb", 
-    "type": "/type/language", 
-    "name": "Umbundu", 
+    "code": "umb",
+    "type": "/type/language",
+    "name": "Umbundu",
     "key": "/languages/umb"
-  }, 
+  },
   {
-    "code": "und", 
-    "type": "/type/language", 
-    "name": "Undetermined", 
+    "code": "und",
+    "type": "/type/language",
+    "name": "Undetermined",
     "key": "/languages/und"
-  }, 
+  },
   {
-    "code": "urd", 
-    "type": "/type/language", 
-    "name": "Urdu", 
+    "code": "urd",
+    "type": "/type/language",
+    "name": "Urdu",
     "key": "/languages/urd"
-  }, 
+  },
   {
-    "code": "uzb", 
-    "type": "/type/language", 
-    "name": "Uzbek", 
+    "code": "uzb",
+    "type": "/type/language",
+    "name": "Uzbek",
     "key": "/languages/uzb"
-  }, 
+  },
   {
-    "code": "vai", 
-    "type": "/type/language", 
-    "name": "Vai", 
+    "code": "vai",
+    "type": "/type/language",
+    "name": "Vai",
     "key": "/languages/vai"
-  }, 
+  },
   {
-    "code": "ven", 
-    "type": "/type/language", 
-    "name": "Venda", 
+    "code": "ven",
+    "type": "/type/language",
+    "name": "Venda",
     "key": "/languages/ven"
-  }, 
+  },
   {
-    "code": "vie", 
-    "type": "/type/language", 
-    "name": "Vietnamese", 
+    "code": "vie",
+    "type": "/type/language",
+    "name": "Vietnamese",
     "key": "/languages/vie"
-  }, 
+  },
   {
-    "code": "vls", 
-    "type": "/type/language", 
-    "name": "Flemish", 
+    "code": "vls",
+    "type": "/type/language",
+    "name": "Flemish",
     "key": "/languages/vls"
-  }, 
+  },
   {
-    "code": "wak", 
-    "type": "/type/language", 
-    "name": "Wakashan languages", 
+    "code": "wak",
+    "type": "/type/language",
+    "name": "Wakashan languages",
     "key": "/languages/wak"
-  }, 
+  },
   {
-    "code": "wal", 
-    "type": "/type/language", 
-    "name": "Wolayta", 
+    "code": "wal",
+    "type": "/type/language",
+    "name": "Wolayta",
     "key": "/languages/wal"
-  }, 
+  },
   {
-    "code": "war", 
-    "type": "/type/language", 
-    "name": "Waray", 
+    "code": "war",
+    "type": "/type/language",
+    "name": "Waray",
     "key": "/languages/war"
-  }, 
+  },
   {
-    "code": "wel", 
-    "type": "/type/language", 
-    "name": "Welsh", 
+    "code": "wel",
+    "type": "/type/language",
+    "name": "Welsh",
     "key": "/languages/wel"
-  }, 
+  },
   {
-    "code": "wen", 
-    "type": "/type/language", 
-    "name": "Sorbian (Other)", 
+    "code": "wen",
+    "type": "/type/language",
+    "name": "Sorbian (Other)",
     "key": "/languages/wen"
-  }, 
+  },
   {
-    "code": "wol", 
-    "type": "/type/language", 
-    "name": "Wolof ", 
+    "code": "wol",
+    "type": "/type/language",
+    "name": "Wolof ",
     "key": "/languages/wol"
-  }, 
+  },
   {
-    "code": "xal", 
-    "type": "/type/language", 
-    "name": "Oirat", 
+    "code": "xal",
+    "type": "/type/language",
+    "name": "Oirat",
     "key": "/languages/xal"
-  }, 
+  },
   {
-    "code": "xho", 
-    "type": "/type/language", 
-    "name": "Xhosa", 
+    "code": "xho",
+    "type": "/type/language",
+    "name": "Xhosa",
     "key": "/languages/xho"
-  }, 
+  },
   {
-    "code": "yao", 
-    "type": "/type/language", 
-    "name": "Yao (Africa)", 
+    "code": "yao",
+    "type": "/type/language",
+    "name": "Yao (Africa)",
     "key": "/languages/yao"
-  }, 
+  },
   {
-    "code": "yap", 
-    "type": "/type/language", 
-    "name": "Yapese", 
+    "code": "yap",
+    "type": "/type/language",
+    "name": "Yapese",
     "key": "/languages/yap"
-  }, 
+  },
   {
-    "code": "yid", 
-    "type": "/type/language", 
-    "name": "Yiddish", 
+    "code": "yid",
+    "type": "/type/language",
+    "name": "Yiddish",
     "key": "/languages/yid"
-  }, 
+  },
   {
-    "code": "yor", 
-    "type": "/type/language", 
-    "name": "Yoruba", 
+    "code": "yor",
+    "type": "/type/language",
+    "name": "Yoruba",
     "key": "/languages/yor"
-  }, 
+  },
   {
-    "code": "ypk", 
-    "type": "/type/language", 
-    "name": "Yupik languages", 
+    "code": "ypk",
+    "type": "/type/language",
+    "name": "Yupik languages",
     "key": "/languages/ypk"
-  }, 
+  },
   {
-    "code": "yue", 
-    "type": "/type/language", 
-    "name": "Cantonese", 
+    "code": "yue",
+    "type": "/type/language",
+    "name": "Cantonese",
     "key": "/languages/yue"
-  }, 
+  },
   {
-    "code": "zap", 
-    "type": "/type/language", 
-    "name": "Zapotec", 
+    "code": "zap",
+    "type": "/type/language",
+    "name": "Zapotec",
     "key": "/languages/zap"
-  }, 
+  },
   {
-    "code": "znd", 
-    "type": "/type/language", 
-    "name": "Zande languages", 
+    "code": "zbl",
+    "type": "/type/language",
+    "name": "Blissymbolics",
+    "key": "/languages/zbl"
+  },
+  {
+    "code": "znd",
+    "type": "/type/language",
+    "name": "Zande languages",
     "key": "/languages/znd"
-  }, 
+  },
   {
-    "code": "zul", 
-    "type": "/type/language", 
-    "name": "Zulu", 
+    "code": "zul",
+    "type": "/type/language",
+    "name": "Zulu",
     "key": "/languages/zul"
-  }, 
+  },
   {
-    "code": "zun", 
-    "type": "/type/language", 
-    "name": "Zuni", 
+    "code": "zun",
+    "type": "/type/language",
+    "name": "Zuni",
     "key": "/languages/zun"
-  }, 
+  },
   {
-    "code": "zza", 
-    "type": "/type/language", 
-    "name": "Zaza", 
-    "key": "/languages/zza", 
+    "code": "zza",
+    "type": "/type/language",
+    "name": "Zaza",
+    "key": "/languages/zza",
     "title": "Zaza"
   }
 ]

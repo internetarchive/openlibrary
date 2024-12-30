@@ -1,6 +1,10 @@
 # Open Library
 
-[![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary) [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
+![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
+[![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Open in Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
+[![contributors](https://img.shields.io/github/contributors/internetarchive/openlibrary.svg)](https://github.com/internetarchive/openlibrary/graphs/contributors)
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
@@ -16,33 +20,39 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
      - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
-   - [Contributing](CONTRIBUTING.md)
+   - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
 
 ## Overview
 
-Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
+Open Library is an effort started in 2006 to create "one web page for every book ever published." It provides access to many public domain and out-of-print books, which can be read online.
 
-Here's a quick public tour of Open Library to get your familiar with the service and its offerings (10min)
+Here's a quick public tour of Open Library to get you familiar with the service and its offerings (10min).
 
 [![archive org_embed_openlibrary-tour-2020 (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
-- [Visit the Blog](http://blog.openlibrary.org)
+- [Visit the Blog](https://blog.openlibrary.org)
 
 ## Installation
 
-The development environment can be set up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md). You can also watch the [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4) for a more detailed explanation.
+Run `docker compose up` and visit http://localhost:8080
 
-Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
+Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
+or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
+
+***Alternatively***, if you do not want to set up Open Library on your local computer, try Gitpod!
+This lets you work on Open Library entirely in your browser without having to install anything on your personal computer.
+Warning: This integration is still experimental.
+[![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide. 
+For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
-You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
+You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/).
 
 ## Code Organization
 
@@ -56,11 +66,11 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ### The Backend
 
-OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
+OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework.
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
-Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase)
+Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase).
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
@@ -68,18 +78,32 @@ If you want to dive into the source code for Infogami, see the [Infogami repo](h
 
 ## Running tests
 
-Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
-
-Run tests while the docker container is running
+Open Library tests can be run using docker. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
 
 ```
-cd docker/
-docker-compose exec web make test
+docker compose run --rm home make test
 ```
 
-### Integration Tests
+## Contributing
 
-Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
+There are many ways volunteers can contribute to the Open Library project, from development and design to data management and community engagement. Here’s how you can get involved:
+
+### Developers
+- **Getting Started:** Check out our [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) for instructions on how to set up your development environment, find issues to work on, and submit your contributions.
+- **Good First Issues:** Browse our [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to find beginner-friendly tasks.
+
+### Designers
+- **Design Contributions:** We welcome designers to help improve the user experience. You can start by looking at [design-related issues](https://github.com/internetarchive/openlibrary/labels/design).
+
+### Librarians and Data Enthusiasts
+- **Data Contributions:** Learn how to contribute to our catalog and help improve book data on Open Library. Visit our [volunteer page](https://openlibrary.org/volunteer) for more information.
+
+### Community Engagement
+- **Join our Community Calls:** Open Library hosts weekly community and design calls. Check the [community call schedule](https://github.com/internetarchive/openlibrary/wiki/Community-Call) for times and details.
+- **Ask Questions:** If you have any questions, join our [gitter chat](https://gitter.im/theopenlibrary/Lobby) or request an invitation to our Slack channel on our [volunteers page](https://openlibrary.org/volunteer).
+
+For more detailed information, refer to the [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md).
+
 
 ## License
 

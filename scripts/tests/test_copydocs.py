@@ -1,7 +1,9 @@
-from ..copydocs import copy, KeyVersionPair
+from __future__ import annotations
+
+from ..copydocs import KeyVersionPair, copy
 
 
-class TestKeyVersionPair():
+class TestKeyVersionPair:
     def test_from_uri(self):
         pair = KeyVersionPair.from_uri('/works/OL1W?v=7')
         assert pair.key == '/works/OL1W'
@@ -20,18 +22,18 @@ class TestKeyVersionPair():
 class FakeServer:
     """Mimics OpenLibrary's API class"""
 
-    def __init__(self, docs):
+    def __init__(self, docs: list[dict]):
         """
         :param list[dict] docs:
         """
-        self.db = {}  # Mapping of key to (Mp of revision to doc)
+        self.db: dict = {}  # Mapping of key to (Mp of revision to doc)
         self.save_many(docs)
 
-    def get(self, key, revision=None):
+    def get(self, key: str, revision: int | None = None) -> dict | None:
         """
         :param str key:
         :param int or None revision:
-        :rtype: dict or None
+        :return: dict or None
         """
         revisions = self.db.get(key, {})
         if revision is None and len(revisions) > 0:
@@ -39,10 +41,9 @@ class FakeServer:
         else:
             return revisions.get(revision, None)
 
-    def get_many(self, keys):
+    def get_many(self, keys: list[str], max_length: int = 500) -> dict:
         """
         :param list of str keys:
-        :rtype: dict
         :return: Map of key to document
         """
         result = {}
@@ -51,16 +52,16 @@ class FakeServer:
                 result[k] = self.get(k)
         return result
 
-    def save_many(self, docs, comment=None):
+    def save_many(self, docs: list[dict], comment: str | None = None) -> None:
         """
-        :param typing.List[dict] docs:
+        :param list[dict] docs:
         :param str or None comment:
         """
         for doc in docs:
             key = doc['key']
             revision = doc['revision']
             if key not in self.db:
-                self.db[key] = dict()
+                self.db[key] = {}
             self.db[doc['key']][revision] = doc
 
 

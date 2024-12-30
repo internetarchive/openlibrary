@@ -1,47 +1,8 @@
-$def with (keys, top_books_from_author, formdata=None)
-
-<script type="text/javascript">
-window.q.push(function(){
-    \$('#save').click(function(){
-        var n = \$("#mergeForm input[type=radio]:checked").length;
-        if (n == 0) {
-            \$('#noMaster').dialog('open');
-            return false;
-        } else {
-            \$('#confirmMerge').dialog('open');
-            return false;
-        };
-    });
-    \$("div.radio:first input[type=radio]").attr("checked","checked");
-    \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
-    \$("div.author:first").addClass("master");
-    \$("#include input[type=radio]").mouseover(function(){
-        \$(this).parent().parent().addClass("mouseoverHighlight",300);
-    });
-    \$("#include input[type=radio]").mouseout(function(){
-        \$(this).parent().parent().removeClass("mouseoverHighlight",100);
-    });
-    \$("#include input[type=radio]").click(function(){
-        var previousMaster = \$(".merge").find("div.master");
-        previousMaster.removeClass("master mergeSelection");
-        previousMaster.find("input[type=checkbox]").attr('checked', false);
-        \$(this).parent().parent().addClass("master");
-        \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
-    });
-    \$("#include input[type=checkbox]").on("change", function() {
-        if (!\$(this).parent().parent().hasClass("master")) {
-            if (\$(this).is(":checked")) {
-                \$(this).parent().parent().addClass("mergeSelection");
-            } else {
-                \$(this).parent().parent().removeClass("mergeSelection");
-            }
-        }
-    });
-});
-</script>
+$def with (keys, top_books_from_author, formdata=None, mrid=None, can_merge=False)
 
 $var title: $_("Merge Authors")
 
+<span id="author-merge-page"><!--This span is used to determine that the page-specific javascript should be loaded--></span>
 <div id="contentHead">
     <h1>$_("Merge Authors")</h1>
 </div>
@@ -54,15 +15,15 @@ $if not keys:
 
 $if formdata:
     $if not formdata.master:
-        <div class="note">$_("Please select a master author record.")</div>
+        <div class="note">$_("Please select a primary author record.")</div>
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>$_('Select a "master" record that best represents the author -')
+    <li>$_('Select the oldest profile as primary -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
-    <li>$_('Select author records which should be merged with the master')
+    <li>$_('Select author records which should be merged with the primary')
         -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
@@ -70,20 +31,24 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No Master record')" style="text-align:left;">
-    <p>$_('You must select a master record to point the duplicates toward.')</p>
+<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
+    <p>$_('You must select a primary record to point the duplicates toward.')</p>
 </div>
 
-<div id="confirmMerge" title="$_('Please Be Careful...')" style="text-align:left;">
-    <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
-</div>
+$if can_merge:
+    <div id="confirmMerge" title="$_('Please Be Careful...')" style="text-align:left;">
+        <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
+    </div>
 
-<form method="POST" id="mergeForm" name="mergeForm">
+<form method="POST" id="mergeForm" name="mergeForm" action="/authors/merge" method="POST">
     <input type="hidden" name="merge" value="true"/>
+    $if mrid:
+        <input type="hidden" id="mrid-input" name="mrid" value="$mrid"/>
+    <input type="hidden" id="hidden-comment-input" name="comment" value=""/>
     <div class="merge" id="include">
 
         <div class="entry header">
-            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;">$_('Master')</div>
+            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;">$_('Primary')</div>
             <div class="data input smaller center"><strong>$_('Merge')</strong></div>
             <div class="data record smaller"><strong>$_('Authors')</strong></div>
             <div class="data count">&nbsp;</div>
@@ -105,32 +70,54 @@ $if formdata:
                     <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
+                    <span class="ol-num"> ${k} </span>
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
-                            <span class="metaDate" title="birth/death date">$a.get('birth_date', '') - $a.get('death_date', '')</span>
+                            <span class="metaDate" title="$_('birth/death date')">$a.get('birth_date', '') - $a.get('death_date', '')</span>
                         $elif a.date:
                             <span class="metaDate">$a.date</span>
+                        $if a.remote_ids:
+                            <div>
+                            $ configured_ids = get_author_config()['identifiers']
+                            $for id in configured_ids:
+                                $if id.name in a.remote_ids:
+                                    $ href = id.url.replace('@@@', a.remote_ids[id.name])
+                                    <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
+                            </div>
                     </label>
+                    $if a.bio:
+                        <p>${ macros.TruncateString(a.bio, 250) }</p>
+                    $else:
+                        <p>No description.</p>
                     <ul>
-                    $for doc in top['books']:
-                        <li><a href="$doc.key" target="new" title="$_('Open in a new window')">$doc.title</a> <span class="smaller">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count),
+                    $for doc in top.docs:
+                        <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
                         $if doc.get('first_publish_year'):
-                            <span title="$_('First published in')">$doc.first_publish_year</span>
+                            <span title="$_('First published in')">$doc['first_publish_year']</span>
                         </span></li>
                     </ul>
                 </div>
                 <div class="data count">
-                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("1 work", "%(count)d works", top['total'], count=top['total'])</a>
+                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("%(count)d work", "%(count)d works", top.num_found, count=top.num_found)</a>
                 </div>
             </div>
     </div>
 
-<p>
-<button id="save" class="larger" value="Merge Authors">$_('Merge Authors')</button>
-&nbsp;&nbsp;
-<a href="javascript:history.go(-1);" class="small red sansserif">$_('Cancel')</a>
-</p>
+    <div class="merge-feedback">
+        <label for="merge-comment">$_('Comment:') <input type="text" id="author-merge-comment" name="comment" placeholder="$_('Comment...')"></label>
+        <div class="merge-feedback__buttons">
+            $if can_merge:
+                $ cta = _('Merge Authors')
+            $else:
+                $ cta = _('Request Merge')
+            <button id="save" class="larger merge-feedback__submit" value="Merge Authors" type="submit">$cta</button>
+            $if mrid:
+                <button id="reject-author-merge-btn" type="button" class="larger merge-feedback__reject">$_('Reject Merge')</button>
+            $else:
+                <a href="javascript:;" class="small red sansserif go-back-link">$_('Cancel')</a>
+    </div>
+</div>
 
 </form>
 

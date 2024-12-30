@@ -1,26 +1,30 @@
 @import (less) "../less/z-index.less";
 
+/* stylelint-disable no-descending-specificity */
 .ac_results {
   padding: 0;
-  overflow: hidden;
+  margin: 0;
+  overflow: auto;
   z-index: @z-index-level-16;
   position: absolute;
   display: none;
   top: -5px;
-  width: 493px;
   max-height: 290px;
+  max-width: 600px;
   background-color: @white;
   border: 1px solid @light-grey;
   opacity: .95;
   text-align: left;
+  list-style: none;
 
   li {
     margin: 0;
     padding: 5px;
-    cursor: default;
     display: block;
-    font: menu, sans-serif;
+    font-family: @lucida_sans_serif-2;
     font-size: 12px;
+    cursor: pointer;
+    color: @dark-grey;
     /*
     it is very important, if line-height not set or set
     in relative units scroll will be broken in firefox
@@ -31,24 +35,9 @@
     &:last-child {
       border-bottom: 0;
     }
-  }
 
-  ul {
-    width: 100%;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      font-family: @lucida_sans_serif-2;
-      cursor: pointer;
-      color: @dark-grey;
-      line-height: normal;
-
-      // stylelint-disable-next-line max-nesting-depth
-      &.ac_over {
-        background-color: @light-yellow;
-      }
+    &.ac_over {
+      background-color: @light-yellow;
     }
   }
 }
@@ -58,7 +47,7 @@
   color: @black;
 }
 
-.ac_results .ac_author {
+.ac_author {
   .action {
     font-size: 9px;
     color: @olive;
@@ -95,7 +84,7 @@
   }
 }
 
-.ac_results .ac_work {
+.ac_work {
   .cover {
     float: left;
     margin-right: 5px;
@@ -103,7 +92,7 @@
     height: 5em;
     overflow: hidden;
     border-radius: 2px;
-    mask-image: linear-gradient(to top, rgba(0,0,0,0), black 15%);
+    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 15%);
 
     // stylelint-disable-next-line selector-max-specificity
     img {
@@ -124,6 +113,7 @@
 
   .name {
     display: block;
+    line-height: 1.1em;
   }
 
   .title {
@@ -142,11 +132,6 @@
 
 .ac_odd {
   background-color: @lightest-grey;
-}
-
-.ac_over {
-  background-color: @navy-blue;
-  color: @white;
 }
 
 .ac_even,

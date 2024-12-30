@@ -1,29 +1,37 @@
-from __future__ import print_function
-import simplejson
-import web
+import importlib
+import json
 import sys
+from collections.abc import Hashable, Iterable, Mapping
+from typing import Any
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.core import helpers as h
-from openlibrary.core import ia
-import six
+import web
 
 from infogami.utils.delegate import register_exception
+from openlibrary.core import helpers as h
+from openlibrary.core import ia
+from openlibrary.core.imports import ImportItem
+from openlibrary.core.models import Edition
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
-def split_key(bib_key):
+# Import from manage-imports, but get around hyphen problem.
+imports_module = "scripts.manage-imports"
+manage_imports = importlib.import_module(imports_module)
+
+
+def split_key(bib_key: str) -> tuple[str | None, str | None]:
     """
-        >>> split_key('1234567890')
-        ('isbn_', '1234567890')
-        >>> split_key('ISBN:1234567890')
-        ('isbn_', '1234567890')
-        >>> split_key('ISBN1234567890')
-        ('isbn_', '1234567890')
-        >>> split_key('ISBN1234567890123')
-        ('isbn_', '1234567890123')
-        >>> split_key('LCCNsa 64009056')
-        ('lccn', 'sa 64009056')
-        >>> split_key('badkey')
-        (None, None)
+    >>> split_key('1234567890')
+    ('isbn_', '1234567890')
+    >>> split_key('ISBN:1234567890')
+    ('isbn_', '1234567890')
+    >>> split_key('ISBN1234567890')
+    ('isbn_', '1234567890')
+    >>> split_key('ISBN1234567890123')
+    ('isbn_', '1234567890123')
+    >>> split_key('LCCNsa 64009056')
+    ('lccn', 'sa 64009056')
+    >>> split_key('badkey')
+    (None, None)
     """
     bib_key = bib_key.strip()
     if not bib_key:
@@ -41,7 +49,7 @@ def split_key(bib_key):
         for k in valid_keys:
             if bib_key.lower().startswith(k):
                 key = k
-                value = bib_key[len(k):]
+                value = bib_key[len(k) :]
                 continue
 
     # treat plain number as ISBN
@@ -58,14 +66,14 @@ def split_key(bib_key):
     if key == 'isbn':
         # 'isbn_' is a special indexed field that gets both isbn_10 and isbn_13 in the normalized form.
         key = 'isbn_'
-        value = value.replace("-", "") # normalize isbn by stripping hyphens
+        value = (value or "").replace("-", "")  # normalize isbn by stripping hyphens
 
     if key == 'oclc':
         key = 'oclc_numbers'
 
     if key == 'olid':
         key = 'key'
-        value = '/books/' + value.upper()
+        value = '/books/' + (value or "").upper()
 
     return key, value
 
@@ -75,15 +83,18 @@ def ol_query(name, value):
         'type': '/type/edition',
         name: value,
     }
-    keys = web.ctx.site.things(query)
-    if keys:
+    if keys := web.ctx.site.things(query):
         return keys[0]
 
-def ol_get_many_as_dict(keys):
+
+def ol_get_many_as_dict(keys: Iterable[str]) -> dict:
+    """
+    Ex.: ol_get_many_as_dict(['/books/OL2058361M', '/works/OL54120W'])
+    """
     keys_with_revisions = [k for k in keys if '@' in k]
     keys2 = [k for k in keys if '@' not in k]
 
-    result = dict((doc['key'], doc) for doc in ol_get_many(keys2))
+    result = {doc['key']: doc for doc in ol_get_many(keys2)}
 
     for k in keys_with_revisions:
         key, revision = k.split('@', 1)
@@ -93,15 +104,18 @@ def ol_get_many_as_dict(keys):
 
     return result
 
-def ol_get_many(keys):
+
+def ol_get_many(keys: Iterable[str]) -> list:
     return [doc.dict() for doc in web.ctx.site.get_many(keys)]
 
-def query_keys(bib_keys):
+
+def query_keys(bib_keys: Iterable[str]) -> dict:
     """Given a list of bibkeys, returns a mapping from bibkey to OL key.
 
-        >> query(["isbn:1234567890"])
-        {"isbn:1234567890": "/books/OL1M"}
+    >> query(["isbn:1234567890"])
+    {"isbn:1234567890": "/books/OL1M"}
     """
+
     def query(bib_key):
         name, value = split_key(bib_key)
         if name is None:
@@ -111,58 +125,75 @@ def query_keys(bib_keys):
         else:
             return ol_query(name, value)
 
-    d = dict((bib_key, query(bib_key)) for bib_key in bib_keys)
-    return dict((k, v) for k, v in d.items() if v is not None)
+    d = {bib_key: query(bib_key) for bib_key in bib_keys}
+    return {k: v for k, v in d.items() if v is not None}
 
-def query_docs(bib_keys):
-    """Given a list of bib_keys, returns a mapping from bibkey to OL doc.
-    """
+
+def query_docs(bib_keys: Iterable[str]) -> dict:
+    """Given a list of bib_keys, returns a mapping from bibkey to OL doc."""
     mapping = query_keys(bib_keys)
     thingdict = ol_get_many_as_dict(uniq(mapping.values()))
-    return dict((bib_key, thingdict[key]) for bib_key, key in mapping.items() if key in thingdict)
+    return {
+        bib_key: thingdict[key] for bib_key, key in mapping.items() if key in thingdict
+    }
 
-def uniq(values):
+
+def uniq(values: Iterable[Hashable]) -> list:
     return list(set(values))
+
 
 def process_result(result, jscmd):
     d = {
         "details": process_result_for_details,
         "data": DataProcessor().process,
-        "viewapi": process_result_for_viewapi
+        "viewapi": process_result_for_viewapi,
     }
 
     f = d.get(jscmd) or d['viewapi']
     return f(result)
 
-def get_many_as_dict(keys):
-    return dict((doc['key'], doc) for doc in ol_get_many(keys))
 
-def get_url(doc):
+def get_many_as_dict(keys: Iterable[str]) -> dict:
+    return {doc['key']: doc for doc in ol_get_many(keys)}
+
+
+def get_url(doc: Mapping[str, str]) -> str:
     base = web.ctx.get("home", "https://openlibrary.org")
     if base == 'http://[unknown]':
         base = "https://openlibrary.org"
-    if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
+    if doc['key'].startswith(("/books/", "/works/")):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))
     else:
         return base + doc['key']
 
+
 class DataProcessor:
-    """Processor to process the result when jscmd=data.
-    """
+    """Processor to process the result when jscmd=data."""
+
     def process(self, result):
         work_keys = [w['key'] for doc in result.values() for w in doc.get('works', [])]
         self.works = get_many_as_dict(work_keys)
 
-        author_keys = [a['author']['key'] for w in self.works.values() for a in w.get('authors', [])]
+        author_keys = [
+            a['author']['key']
+            for w in self.works.values()
+            for a in w.get('authors', [])
+        ]
         self.authors = get_many_as_dict(author_keys)
 
-        return dict((k, self.process_doc(doc)) for k, doc in result.items())
+        return {k: self.process_doc(doc) for k, doc in result.items()}
 
     def get_authors(self, work):
         author_keys = [a['author']['key'] for a in work.get('authors', [])]
-        return [{"url": get_url(self.authors[key]), "name": self.authors[key].get("name", "")} for key in author_keys]
+        return [
+            {
+                "url": get_url(self.authors[key]),
+                "name": self.authors[key].get("name", ""),
+            }
+            for key in author_keys
+        ]
 
     def get_work(self, doc):
         works = [self.works[w['key']] for w in doc.get('works', [])]
@@ -189,7 +220,9 @@ class DataProcessor:
 
             return {
                 "name": name,
-                "url": "https://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
+                "url": "https://openlibrary.org/subjects/{}{}".format(
+                    prefix, name.lower().replace(" ", "_")
+                ),
             }
 
         def get_subjects(name, prefix):
@@ -204,13 +237,13 @@ class DataProcessor:
         def format_excerpt(e):
             return {
                 "text": get_value(e.get("excerpt", {})),
-                "comment": e.get("comment", "")
+                "comment": e.get("comment", ""),
             }
 
         def format_table_of_contents(toc):
             # after openlibrary.plugins.upstream.models.get_table_of_contents
             def row(r):
-                if isinstance(r, six.string_types):
+                if isinstance(r, str):
                     level = 0
                     label = ""
                     title = r
@@ -220,8 +253,9 @@ class DataProcessor:
                     label = r.get('label', '')
                     title = r.get('title', '')
                     pagenum = r.get('pagenum', '')
-                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                r = {'level': level, 'label': label, 'title': title, 'pagenum': pagenum}
                 return r
+
             d = [row(r) for r in toc]
             return [row for row in d if any(row.values())]
 
@@ -230,52 +264,50 @@ class DataProcessor:
             "key": doc['key'],
             "title": doc.get("title", ""),
             "subtitle": doc.get("subtitle", ""),
-
             "authors": self.get_authors(w),
-
             "number_of_pages": doc.get("number_of_pages", ""),
             "pagination": doc.get("pagination", ""),
-
             "weight": doc.get("weight", ""),
-
             "by_statement": doc.get("by_statement", ""),
-
-            'identifiers': web.dictadd(doc.get('identifiers', {}), {
-                'isbn_10': doc.get('isbn_10', []),
-                'isbn_13': doc.get('isbn_13', []),
-                'lccn': doc.get('lccn', []),
-                'oclc': doc.get('oclc_numbers', []),
-                'openlibrary': [doc['key'].split("/")[-1]]
-            }),
-
-            'classifications': web.dictadd(doc.get('classifications', {}), {
-                'lc_classifications': doc.get('lc_classifications', []),
-                'dewey_decimal_class': doc.get('dewey_decimal_class', [])
-            }),
-
+            'identifiers': web.dictadd(
+                doc.get('identifiers', {}),
+                {
+                    'isbn_10': doc.get('isbn_10', []),
+                    'isbn_13': doc.get('isbn_13', []),
+                    'lccn': doc.get('lccn', []),
+                    'oclc': doc.get('oclc_numbers', []),
+                    'openlibrary': [doc['key'].split("/")[-1]],
+                },
+            ),
+            'classifications': web.dictadd(
+                doc.get('classifications', {}),
+                {
+                    'lc_classifications': doc.get('lc_classifications', []),
+                    'dewey_decimal_class': doc.get('dewey_decimal_class', []),
+                },
+            ),
             "publishers": [{"name": p} for p in doc.get("publishers", "")],
             "publish_places": [{"name": p} for p in doc.get("publish_places", "")],
             "publish_date": doc.get("publish_date"),
-
             "subjects": get_subjects("subjects", ""),
             "subject_places": get_subjects("subject_places", "place:"),
             "subject_people": get_subjects("subject_people", "person:"),
             "subject_times": get_subjects("subject_times", "time:"),
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
-
             "notes": get_value(doc.get("notes", "")),
-            "table_of_contents": format_table_of_contents(doc.get("table_of_contents", [])),
-
-            "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
+            "table_of_contents": format_table_of_contents(
+                doc.get("table_of_contents", [])
+            ),
+            "links": [
+                {'title': link.get("title"), 'url': link['url']}
+                for link in w.get('links', '')
+                if link.get('url')
+            ],
         }
 
         for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
             if fs:
-                e = {
-                    "text": get_value(fs),
-                    "comment": "",
-                    "first_sentence": True
-                    }
+                e = {"text": get_value(fs), "comment": "", "first_sentence": True}
                 d['excerpts'].insert(0, e)
                 break
 
@@ -286,27 +318,25 @@ class DataProcessor:
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
                 "availability": availability,
-                "formats": {}
+                "formats": {},
             }
 
-            prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
+            prefix = f"https://archive.org/download/{itemid}/{itemid}"
             if availability == 'full':
                 d["read_url"] = "https://archive.org/stream/%s" % (itemid)
                 d['formats'] = {
-                    "pdf": {
-                        "url": prefix + ".pdf"
-                    },
-                    "epub": {
-                        "url": prefix + ".epub"
-                    },
-                    "text": {
-                        "url": prefix + "_djvu.txt"
-                    }
+                    "pdf": {"url": prefix + ".pdf"},
+                    "epub": {"url": prefix + ".epub"},
+                    "text": {"url": prefix + "_djvu.txt"},
                 }
             elif availability == "borrow":
-                d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
-                loanstatus =  web.ctx.site.store.get('ebooks/' + doc['ocaid'], {'borrowed': 'false'})
-                d['checkedout'] = (loanstatus['borrowed'] == 'true')
+                d['borrow_url'] = "https://openlibrary.org{}/{}/borrow".format(
+                    doc['key'], h.urlsafe(doc.get("title", "untitled"))
+                )
+                loanstatus = web.ctx.site.store.get(
+                    'ebooks/' + doc['ocaid'], {'borrowed': 'false'}
+                )
+                d['checkedout'] = loanstatus['borrowed'] == 'true'
 
             return d
 
@@ -325,17 +355,18 @@ class DataProcessor:
         d['classifications'] = trim(d['classifications'])
         return trim(d)
 
-def trim(d):
-    """Remote empty values from given dictionary.
 
-        >>> trim({"a": "x", "b": "", "c": [], "d": {}})
-        {'a': 'x'}
+def trim(d):
+    """Remove empty values from given dictionary.
+
+    >>> trim({"a": "x", "b": "", "c": [], "d": {}})
+    {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.items() if v)
+    return {k: v for k, v in d.items() if v}
+
 
 def get_authors(docs):
-    """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.
-    """
+    """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs."""
     authors = [a['key'] for doc in docs for a in doc.get('authors', [])]
     author_dict = {}
 
@@ -344,6 +375,7 @@ def get_authors(docs):
             author_dict[a['key']] = {"key": a['key'], "name": a.get("name", "")}
 
     return author_dict
+
 
 def process_result_for_details(result):
     def f(bib_key, doc):
@@ -356,10 +388,11 @@ def process_result_for_details(result):
         return d
 
     author_dict = get_authors(result.values())
-    return dict((k, f(k, doc)) for k, doc in result.items())
+    return {k: f(k, doc) for k, doc in result.items()}
+
 
 def process_result_for_viewapi(result):
-    return dict((k, process_doc_for_viewapi(k, doc)) for k, doc in result.items())
+    return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
 def get_ia_availability(itemid):
@@ -371,6 +404,7 @@ def get_ia_availability(itemid):
         return 'restricted'
     else:
         return 'full'
+
 
 def process_doc_for_viewapi(bib_key, page):
     key = page['key']
@@ -392,45 +426,121 @@ def process_doc_for_viewapi(bib_key, page):
     }
 
     if page.get('covers'):
-        d['thumbnail_url'] = 'https://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
+        d['thumbnail_url'] = (
+            'https://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
+        )
 
     return d
 
-def format_result(result, options):
+
+def format_result(result: dict, options: web.storage) -> str:
     """Format result as js or json.
 
-        >>> format_result({'x': 1}, {})
-        'var _OLBookInfo = {"x": 1};'
-        >>> format_result({'x': 1}, {'callback': 'f'})
-        '{"x": 1}'
+    >>> format_result({'x': 1}, {})
+    'var _OLBookInfo = {"x": 1};'
+    >>> format_result({'x': 1}, {'callback': 'f'})
+    '{"x": 1}'
     """
     format = options.get('format', '').lower()
     if format == 'json':
-        return simplejson.dumps(result)
-    else: # js
-        json = simplejson.dumps(result)
+        return json.dumps(result)
+    else:  # js
+        json_data = json.dumps(result)
         callback = options.get("callback")
         if callback:
             # the API handles returning the data as a callback
-            return "%s" % json
+            return "%s" % json_data
         else:
-            return "var _OLBookInfo = %s;" % json
+            return "var _OLBookInfo = %s;" % json_data
 
-def dynlinks(bib_keys, options):
+
+def is_isbn(bib_key: str) -> bool:
+    """Return True if the bib_key is ostensibly an ISBN (i.e. 10 or 13 characters)."""
+    return len(bib_key) in {10, 13}
+
+
+def get_missed_isbn_bib_keys(bib_keys: Iterable[str], found_records: dict) -> list[str]:
+    """
+    Return a Generator[str, None, None] with all ISBN bib_keys not in `found_records`.
+    """
+    return [
+        bib_key
+        for bib_key in bib_keys
+        if bib_key not in found_records and is_isbn(bib_key)
+    ]
+
+
+def get_isbn_editiondict_map(
+    isbns: Iterable[str], high_priority: bool = False
+) -> dict[str, Any]:
+    """
+    Attempts to import items from their ISBN, returning a mapping of possibly
+    imported edition_dicts in the following form:
+        {isbn_string: edition_dict...}}
+    """
+    # Supplement non-ISBN ASIN records with BookWorm metadata for that ASIN.
+    if high_priority:
+        for isbn in isbns:
+            if not isbn.upper().startswith("B"):
+                continue
+
+            if item_to_import := ImportItem.find_staged_or_pending([isbn]).first():
+                item_edition = ImportItem(item_to_import)
+                manage_imports.do_import(item_edition, require_marc=False)
+
+    # Get a mapping of ISBNs to new Editions (or `None`)
+    isbn_edition_map = {
+        isbn: Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority)
+        for isbn in isbns
+    }
+
+    # Convert editions to dicts, dropping ISBNs for which no edition was created.
+    return {
+        isbn: edition.dict() for isbn, edition in isbn_edition_map.items() if edition
+    }
+
+
+def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
+    """
+    Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
+    associated with the corresponding edition, if any.
+
+    If a bib key is an ISBN, options.high_priority=True, and no edition is found,
+    an import is attempted with high priority; otherwise missed bib_keys are queued
+    for lookup via the affiliate-server and responses are `staged` in `import_item`.
+
+    Example return value for a bib key of the ISBN "1452303886":
+        '{"1452303886": {"bib_key": "1452303886", "info_url": '
+        '"http://localhost:8080/books/OL24630277M/Fires_of_Prophecy_The_Morcyth_Saga_Book_Two", '
+        '"preview": "restricted", "preview_url": '
+        '"https://archive.org/details/978-1-4523-0388-8"}}'
+    """
     # for backward-compatibility
     if options.get("details", "").lower() == "true":
         options["jscmd"] = "details"
+    high_priority = options.get("high_priority", False)
 
     try:
-        result = query_docs(bib_keys)
-        result = process_result(result, options.get('jscmd'))
+        edition_dicts = query_docs(bib_keys)
+
+        # For any ISBN bib_keys without hits, attempt to import+use immediately if
+        # `high_priority`. Otherwise, queue them for lookup via the AMZ Products
+        # API and process whatever editions were found in existing data.
+        if missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts):
+            new_editions = get_isbn_editiondict_map(
+                isbns=missed_isbns, high_priority=high_priority
+            )
+            edition_dicts.update(new_editions)
+        edition_dicts = process_result(edition_dicts, options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
 
-        result = {}
-    return format_result(result, options)
+        edition_dicts = {}
+    return format_result(edition_dicts, options)
+
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

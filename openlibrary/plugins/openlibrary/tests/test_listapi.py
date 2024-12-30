@@ -1,15 +1,13 @@
-from __future__ import print_function
-from py.test import config
-import web
-import simplejson
+# from py.test import config
+import json
+import urllib
 
 import cookielib
-
-from six.moves import urllib
 
 
 def pytest_funcarg__config(request):
     return request.config
+
 
 class ListAPI:
     def __init__(self, config):
@@ -20,8 +18,7 @@ class ListAPI:
         self.cookiejar = cookielib.CookieJar()
 
         self.opener = urllib.request.build_opener()
-        self.opener.add_handler(
-            urllib.request.HTTPCookieProcessor(self.cookiejar))
+        self.opener.add_handler(urllib.request.HTTPCookieProcessor(self.cookiejar))
 
     def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
@@ -37,41 +34,39 @@ class ListAPI:
         return self.opener.open(req)
 
     def login(self):
-        data = dict(username=self.username, password=self.password)
+        data = {'username': self.username, 'password': self.password}
         self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
         print(self.cookiejar)
 
     def create_list(self, data):
-        json = simplejson.dumps(data)
-        headers = {
-            "content-type": "application/json"
-        }
+        json_data = json.dumps(data)
+        headers = {"content-type": "application/json"}
         response = self.urlopen(
-            "/people/" + self.username + "/lists",
-            data=json,
-            headers=headers)
-        return simplejson.loads(response.read())
+            "/people/" + self.username + "/lists", data=json_data, headers=headers
+        )
+        return json.loads(response.read())
 
     def get_lists(self):
         data = self.urlopen("/people/" + self.username + "/lists.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_list(self, key):
         data = self.urlopen(key + ".json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_seeds(self, key):
         data = self.urlopen(key + "/seeds.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def update_seeds(self, key, additions, removals):
         data = {
             "add": additions,
             "remove": removals,
         }
-        json = simplejson.dumps(data)
-        response = self.urlopen(key + "/seeds.json", json)
-        return simplejson.loads(response.read())
+        json_data = json.dumps(data)
+        response = self.urlopen(key + "/seeds.json", json_data)
+        return json.loads(response.read())
+
 
 def test_create(config):
     api = ListAPI(config)
@@ -81,10 +76,11 @@ def test_create(config):
         "name": "foo",
         "description": "foo bar",
         "tags": ["t1", "t2"],
-        "seeds": ["subject:cheese"]
+        "seeds": ["subject:cheese"],
     }
     result = api.create_list(data)
-    assert "key" in result and result['revision'] == 1
+    assert "key" in result
+    assert result['revision'] == 1
     list_key = result['key']
 
     # test get
@@ -97,18 +93,15 @@ def test_create(config):
         "type": {"key": "/type/list"},
         "revision": 1,
         "latest_revision": 1,
-
         "name": "foo",
-        "description": {
-            "type": "/type/text",
-            "value": "foo bar"
-        },
+        "description": {"type": "/type/text", "value": "foo bar"},
         "tags": ["t1", "t2"],
-        "seeds": ["subject:cheese"]
+        "seeds": ["subject:cheese"],
     }
 
     # test get seeds
     assert api.get_seeds(list_key) == ["subject:cheese"]
+
 
 def test_add_seeds(config):
     api = ListAPI(config)
@@ -118,7 +111,7 @@ def test_add_seeds(config):
         "name": "foo",
         "description": "foo bar",
         "tags": ["t1", "t2"],
-        "seeds": ["subject:cheese"]
+        "seeds": ["subject:cheese"],
     }
     result = api.create_list(data)
     key = result['key']
@@ -138,4 +131,4 @@ def test_lists(config):
 
     new_count = api.get_lists()['list_count']
     # counts are not accurate yet.
-    #assert new_count == count + 1
+    # assert new_count == count + 1

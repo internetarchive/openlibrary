@@ -1,8 +1,10 @@
 """Recapcha Input to use in web.py forms."""
 
-import web
-import requests
 import logging
+
+import requests
+import web
+
 
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
@@ -22,14 +24,15 @@ class Recaptcha(web.form.Input):
         params = {
             'secret': self._private_key,
             'response': i.get('g-recaptcha-response'),
-            'remoteip': web.ctx.ip
+            'remoteip': web.ctx.ip,
         }
 
         try:
             r = requests.get(url, params=params, timeout=3)
         except requests.exceptions.RequestException as e:
             logging.getLogger("openlibrary").exception(
-                'Recaptcha call failed: letting user through')
+                'Recaptcha call failed: letting user through'
+            )
             return True
-        
+
         return r.json().get('success', '')

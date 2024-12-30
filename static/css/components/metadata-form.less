@@ -1,59 +1,61 @@
 @import (less) "../less/breakpoints.less";
+@import (reference) "../less/colors.less";
+@import (reference) "./buttonBtn.less";
 
-.single-choice {
-    display: flex;
-    margin-bottom: 1.5em;
+.book-notes-form {
+  margin: 1em auto;
+  padding: 0 20px;
 
-    &-label {
-        display: inline-block;
-        width: 16%;
-        text-align: center;
-        text-transform: capitalize;
+  p {
+    font-size: 16px;
+  }
 
-        input {
-            display: block;
-            margin: 0 auto 5px;
-        }
+  div {
+    width: 100%;
+    margin-bottom: 1em;
+
+    textarea {
+      width: 100%;
+      padding: .25em;
+      font-size: 16px;
+      resize: none;
     }
+  }
 }
 
-.multi-choice {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 1.5em;
+.note-form-buttons {
+  display: flex;
+  justify-content: space-between;
 
-    &-label {
-        flex: 0 0 25%;
-        margin: 0.5em 0;
-        text-transform: capitalize;
-    }
+  button {
+    font-size: 1.2em;
+    width: unset;
+  }
 
-    input[type="checkbox"] {
-        margin-right: .3em;
-    }
+  .update-note-button {
+    margin-left: auto;
+    margin-top: 5px;
+    font-size: 1.2em;
+    padding: 7px;
+  }
 }
 
-.metadata-submit {
-    margin-top: 1em;
+.observation-instructions {
+  margin: 1em 2em;
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {
-    .single-choice {
-        display: inline-block;
+  .note-form-buttons {
+    flex-direction: column-reverse;
 
-        &-label {
-            display: flex;
-            width: 100%;
-            margin: 1em 0;
-            text-align: left;
-
-            input {
-                margin: auto 1em auto 0;
-            }
-        }
+    .update-note-button {
+      margin-bottom: 1em;
     }
-
-    .multi-choice-label {
-        flex: 0 0 50%;
+  }
+  .book-notes-form {
+    button {
+      width: 100%;
+      line-height: 1.5em;
     }
+  }
 }

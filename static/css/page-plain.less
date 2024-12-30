@@ -1,8 +1,6 @@
 /**
- * Stylesheet entry point for pages with body#plain
+ * Stylesheet entry point for pages with body-plain
  * See
- * - openlibrary/templates/borrow_admin.html
- * - openlibrary/templates/borrow.html
  * - openlibrary/templates/books/daisy.html
  * Used on pages:
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
@@ -12,186 +10,179 @@
 @import (less) "less/mixins.less";
 @import (less) "less/font-families.less";
 
-body#plain {
-  /* stylelint-disable selector-max-specificity */
-  div#header,
-  footer,
-  div#bottom,
-  .siteSearch {
-    display: none;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  #contentBody,
-  #contentHead {
-    padding: 0 134px;
+div#header,
+footer,
+div#bottom,
+.siteSearch {
+  display: none;
+}
+
+#contentBody,
+#contentHead {
+  padding: 0 134px;
+  margin: 0;
+}
+div.contentOnethird {
+  width: 210px;
+}
+div.contentSpacer {
+  width: 30px;
+  height: 15px;
+}
+div.nav {
+  margin: 50px 0;
+  font-size: 14px;
+}
+// Specific to borrowTable component
+
+.borrow-table {
+  margin: 60px 0 25px;
+
+  p {
+    font-size: .875em;
     margin: 0;
+    padding: 0;
   }
-  /* stylelint-enable selector-max-specificity */
-  div.contentOnethird {
-    width: 210px;
-  }
-  div.contentSpacer {
-    width: 30px;
-    height: 15px;
-  }
-  div.nav {
-    margin: 50px 0;
-    font-size: 14px;
-  }
-  div.message {
-    padding: 25px 25px 25px 55px;
-    margin-bottom: 50px;
-    background: @light-yellow url(/images/icons/icon_lock-msg.png) no-repeat 15px 50%;
-    h2 {
-      font-weight: normal;
-      font-size: 18px;
-      color: @black;
-      margin: 0;
-      padding: 0;
-    }
-    p {
-      font-size: .75em;
-      padding: 0;
-      margin: 0;
-    }
-  }
-  ul.link {
-    margin-bottom: 50px;
-    li {
-      font-size: 1.125em;
-    }
-  }
-  /* stylelint-disable selector-max-specificity */
-  #faq {
-    h4 {
-      font-size: .75em;
-      color: @black;
-      text-transform: uppercase;
-      margin-bottom: 0;
-    }
-    p {
-      font-size: .75em;
-      color: @dark-grey;
-    }
-  }
-  /* stylelint-enable selector-max-specificity */
-  p.help {
-    font-size: 14px;
-  }
-  div.alert {
-    background: @light-yellow url(/images/icons/icon_alert-gold.png) no-repeat 15px 50% !important;
-    margin-bottom: 10px;
-    margin-top: 20px;
-  }
-  div.stop {
-    background: @light-yellow url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
-    margin-bottom: 45px;
-    margin-top: 20px;
-  }
-  div.info {
-    background: @light-yellow url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
-    margin-bottom: 45px;
-    margin-top: 20px;
-  }
-  h1 {
-    font-size: 1.5em;
-    margin: 0 0 15px;
-  }
-  div.navBorrow {
-    margin: 50px 0 10px;
-    font-size: .75em;
-  }
-  .panel {
-    background-color: @white;
-    border: 1px solid @beige-two;
-    padding: 30px 20px;
+
+  table {
+    width: 690px;
     margin-bottom: 20px;
-  }
-  .formElement {
-    float: none;
-  }
-  .panel h3 {
-    font-size: 1.875em;
-  }
-  /* stylelint-disable selector-max-specificity */
-  #borrowThis {
-    margin-bottom: 20px;
-  }
-  /* stylelint-enable selector-max-specificity */
-  .borrow {
-    span.book {
-      font-size: 1em;
-      font-weight: 700;
-    }
-    span.author {
-      font-size: .875em;
-      color: @dark-grey;
-    }
-    span.publisher,
-    span.contributor {
-      color: @dark-grey;
-      font-size: .875em;
-    }
-    div.date {
-      font-size: .75em;
-      color: @grey;
-    }
-    span.expires {
-      font-size: 1em;
-    }
-    table {
-      border-bottom: none;
-    }
-  }
-  // Specific to borrowTable component
-  /* stylelint-disable selector-max-specificity */
-  #borrowTable {
-    margin: 60px 0 25px;
 
-    p {
-      font-size: .875em;
-      margin: 0;
-      padding: 0;
-    }
+    th {
+      border-bottom: 1px solid @beige-three;
+      vertical-align: bottom;
+      padding-bottom: 10px;
 
-    table {
-      width: 690px;
-      margin-bottom: 20px;
+      &.expires {
+        font-family: @lucida_sans_serif-1;
+        color: @brown;
+        font-weight: 600;
+        font-size: .6875em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
 
-      th {
-        border-bottom: 1px solid @beige-three;
-        vertical-align: bottom;
-        padding-bottom: 10px;
-
-        &.expires {
-          font-family: @lucida_sans_serif-1;
-          color: @brown;
-          font-weight: 600;
-          font-size: .6875em;
-          text-transform: uppercase;
-          white-space: nowrap;
-        }
-
-        &.titles {
-          font-family: @lucida_sans_serif-1;
-          color: @teal;
-          font-weight: 600;
-          font-size: 1.125em;
-        }
+      &.titles {
+        font-family: @lucida_sans_serif-1;
+        color: @teal;
+        font-weight: 600;
+        font-size: 1.125em;
       }
     }
   }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#listsWork {
-    p {
-      font-size: .75em;
-      padding-left: 0;
-      margin-bottom: 5px !important;
-    }
+}
+div.message {
+  padding: 25px 25px 25px 55px;
+  margin-bottom: 50px;
+  background: @light-yellow url(/images/icons/icon_lock-msg.png) no-repeat 15px
+    50%;
+  h2 {
+    font-weight: normal;
+    font-size: 18px;
+    color: @black;
+    margin: 0;
+    padding: 0;
   }
-  /* stylelint-enable selector-max-specificity */
+  p {
+    font-size: .75em;
+    padding: 0;
+    margin: 0;
+  }
+}
+ul.link {
+  margin-bottom: 50px;
+  li {
+    font-size: 1.125em;
+  }
+}
+
+#faq {
+  h4 {
+    font-size: .75em;
+    color: @black;
+    text-transform: uppercase;
+    margin-bottom: 0;
+  }
+  p {
+    font-size: .75em;
+    color: @dark-grey;
+  }
+}
+p.help {
+  font-size: 14px;
+}
+div.alert {
+  background: @light-yellow url(/images/icons/icon_alert-gold.png) no-repeat
+    15px 50% !important;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+div.stop {
+  background: @light-yellow url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
+  margin-bottom: 45px;
+  margin-top: 20px;
+}
+div.info {
+  background: @light-yellow url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
+  margin-bottom: 45px;
+  margin-top: 20px;
+}
+h1 {
+  font-size: 1.5em;
+  margin: 0 0 15px;
+}
+div.navBorrow {
+  margin: 50px 0 10px;
+  font-size: .75em;
+}
+.panel {
+  background-color: @white;
+  border: 1px solid @beige-two;
+  padding: 30px 20px;
+  margin-bottom: 20px;
+}
+.formElement {
+  float: none;
+}
+.panel h3 {
+  font-size: 1.875em;
+}
+
+#borrowThis {
+  margin-bottom: 20px;
+}
+.borrow {
+  span.book {
+    font-size: 1em;
+    font-weight: 700;
+  }
+  span.author {
+    font-size: .875em;
+    color: @dark-grey;
+  }
+  span.publisher,
+  span.contributor {
+    color: @dark-grey;
+    font-size: .875em;
+  }
+  div.date {
+    font-size: .75em;
+    color: @grey;
+  }
+  span.expires {
+    font-size: 1em;
+  }
+  table {
+    border-bottom: none;
+  }
+}
+
+div#listsWork {
+  p {
+    font-size: .75em;
+    padding-left: 0;
+    margin-bottom: 5px !important;
+  }
 }
 
 // Import all common components

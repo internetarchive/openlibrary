@@ -1,6 +1,6 @@
 $def with (get_results)
 
-$ q = query_param('q')
+$ q = query_param('q', '').strip()
 $ results_per_page = 100
 $ page = query_param('page')
 $if page:
@@ -12,79 +12,68 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 
 <div id="contentHead">
     <h1>
-        $_("Subject Search")
+        $_("Search Subjects")
     </h1>
-
-$if q:
-    $ results = get_results(q, offset=offset, limit=results_per_page)
-    $if 'error' not in results:
-        $ response = results['response']
-        $ num_found = int(response['numFound'])
-        <p class="sansserif darkgreen collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
 </div>
 
 <div id="contentBody">
+  $:macros.SearchNavigation()
     <div class="section">
         <form class="siteSearch olform" action="">
-            <input type="text" class="larger" name="q" size="100" value="$q"/>
-            <input type="submit" class="large" value="$_('Search')"/>
+            $:render_template("search/searchbox", q=q)
         </form>
     </div>
 
-$if q and 'error' in results:
+$if q:
+    $ response = get_results(q, offset=offset, limit=results_per_page)
+    $if not response.error:
+        $if response.num_found:
+            <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $else:
+            <center>
+                <div class="red">$:_('No <strong>subjects</strong> directly matched your search')</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$q">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
+
+$if q and response.error:
     <strong>
-        $for line in results['error'].splitlines():
+        $for line in response.error.splitlines():
             $line
             $if not loop.last:
                 <br>
     </strong>
 
-$if q and 'error' not in results:
+$if q and not response.error:
     <ul class="subjectList">
-    $for doc in response['docs']:
+    $for doc in response.docs:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '')
+        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
 
         <li>
             <a href="$key">$n</a>
-            $code:
-                def find_type():
-                    if doc['type'] == 'time':
-                        return "type_time"
-                    elif doc['type'] == 'subject':
-                        return "type_subject"
-                    elif doc['type'] == 'place':
-                        return "type_place"
-                    elif doc['type'] == 'org':
-                        return "type_org"
-                    elif doc['type'] == 'event':
-                        return "type_event"
-                    elif doc['type'] == 'person':
-                        return "type_person"
-                    elif doc['type'] == 'work':
-                        return "type_work"
-                    else:
-                        return "other"
-                type = find_type()
-                if type == "type_time":
-                    note = '<span class="teal">' + _("time") + '</span>'
-                elif type == "type_subject":
-                    note = '<span class="darkgreen">' + _("subject") + '</span>'
-                elif type == "type_place":
-                    note = '<span class="orange">' + _("place") + '</span>'
-                elif type == "type_org":
-                    note = '<span class="blue">' + _("org") + '</span>'
-                elif type == "type_event":
-                    note = '<span class="grey">' + _("event") + '</span>'
-                elif type == "type_person":
-                    note = '<span class="red">' + _("person") + '</span>'
-                elif type == "type_work":
-                    note = '<span class="black">' + _("work") + '</span>'
-                else:
-                    note = doc['type']
-            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['count'], count=doc['count'])</b>, $:note</span>
+            $def render_type(subject_type):
+                $if subject_type == "time":
+                    <span class="teal">$_("time")</span>
+                $elif subject_type == "subject":
+                    <span class="darkgreen">$_("subject")</span>
+                $elif subject_type == "place":
+                    <span class="orange">$_("place")</span>
+                $elif subject_type == "org":
+                    <span class="blue">$_("org")</span>
+                $elif subject_type == "event":
+                    <span class="grey">$_("event")</span>
+                $elif subject_type == "person":
+                    <span class="red">$_("person")</span>
+                $elif subject_type == "work":
+                    <span class="black">$_("work")</span>
+                $else:
+                    $doc['subject_type']
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('%(count)d book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
         </li>
     </ul>
-    $:macros.Pager(page, num_found, results_per_page)
+    $:macros.Pager(page, response.num_found, results_per_page)
 
 </div>

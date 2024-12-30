@@ -1,10 +1,13 @@
-import random
 import os
+import random
 import string
 
 chars = string.ascii_letters + string.digits
+
+
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
+
 
 class Disk:
     """Disk interface to store files.
@@ -22,6 +25,7 @@ class Disk:
     >>> disk.read(f3)
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     """
+
     def __init__(self, root):
         self.root = root
         if not os.path.exists(root):
@@ -45,9 +49,10 @@ class Disk:
     def make_filename(self, prefix=""):
         def exists(filename):
             return os.path.exists(os.path.join(self.root, filename))
+
         filename = prefix + "_" + random_string(4)
         while exists(filename):
-            filename = prefix + "_"  + random_string(4)
+            filename = prefix + "_" + random_string(4)
         return filename
 
 
@@ -56,6 +61,7 @@ class LayeredDisk:
     Write always happens to the first disk and
     read happens on the first disk where the file is available.
     """
+
     def __init__(self, disks):
         self.disks = disks
 
@@ -69,7 +75,8 @@ class LayeredDisk:
         headers = headers or {}
         return self.disks[0].write(data, headers)
 
+
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
 
+    doctest.testmod()

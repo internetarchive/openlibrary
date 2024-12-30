@@ -16,7 +16,7 @@ $var title: $_("Add a book")
 
 <div id="contentBody">
     <div id="searchResults">
-        <ul id="siteSearch" class="list-books">
+        <ul class="list-books">
         $for work in matches:
             <li class="workResult" id="$work.key.split('/')[-1]">
                 <span class="bookcover">
@@ -29,7 +29,7 @@ $var title: $_("Add a book")
                             $for a in work.authors:
                                 $a.name$cond(not loop.last, ',')
                         </span>
-                        <span class="resultPublisher">$ungettext('1 edition', '%(count)s editions', work.edition_count, count=commify(work.edition_count))
+                        <span class="resultPublisher">$ungettext('%(count)s edition', '%(count)s editions', work.edition_count, count=commify(work.edition_count))
                         $if work.first_publish_year:
                             <span class="smallest">&bull;</span> $_('First published in %(year)d', year=work.first_publish_year)
                         </span>
@@ -39,32 +39,18 @@ $var title: $_("Add a book")
         </ul>
     </div>
 
-    <p class="small sansserif clearfix">None of these match the book I want to add. <a href="javascript:;" id="bookAddCont">Continue</a>.</p>
+    <p class="small sansserif clearfix">$_("None of these match the book I want to add.") <a href="javascript:;" id="bookAddCont">$_('Continue')</a></p>
 
     <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
-        <input type="hidden" id="work" name="work" value=""/>
+        <input type="hidden" id="work" name="work" value="none-of-these"/>
         <input type="hidden" name="title" value="$d.title"/>
-        <input type="hidden" name="author_key" value="$d.author_key"/>
         <input type="hidden" name="publisher" value="$d.publisher"/>
         <input type="hidden" name="publish_date" value="$d.publish_date"/>
         <input type="hidden" name="id_name" value="$d.id_name"/>
         <input type="hidden" name="id_value" value="$d.id_value"/>
+        $for author in d.authors:
+            <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
+        $for name in d.author_names:
+            <input type="hidden" name="author_names--$loop.index0" value="$name"/>
     </form>
 </div>
-
-<script type="text/javascript">
-<!--
-window.q.push(function() {
-    \$("#siteSearch a").click(function() {
-        var li = \$(this).parents('li:first');
-        \$("input#work").val("/works/" + li.attr("id"));
-        \$("form#addbook").submit();
-    });
-
-    \$("#bookAddCont").click(function() {
-        \$("input#work").val("none-of-these");
-        \$("form#addbook").submit();
-    });
-});
-//-->
-</script>

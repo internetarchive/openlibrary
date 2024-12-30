@@ -1,184 +1,255 @@
+// Slick#1.6.0 is not on npm
+import 'slick-carousel';
+import '../../../../../static/css/components/carousel--js.less';
+
+/**
+ * @typedef {Object} CarouselConfig
+ * @property {[number, number, number, number, number, number]} booksPerBreakpoint
+ *      number of books to show at: [default, >1200px, >1024px, >600px, >480px, >360px]
+ * @property {String} analyticsCategory
+ * @property {String} carouselKey
+ * @property {Object} [loadMore] configuration for loading more items
+ * @property {String} loadMore.url to use to load more items
+ * @property {Number} loadMore.limit of new items to receive
+ * @property {'page' | 'offset'} loadMore.pageMode
+ * -- INTERNAL --
+ * @property {boolean} loadMore.locked PRIVATE used internally to prevent multiple requests
+ * @property {boolean} loadMore.allDone PRIVATE used internally to indicate no more items to load
+ * @property {number} loadMore.page PRIVATE used internally to track current page OR offset
+ * @property {Object} loadMore.extraParams PRIVATE used internally to track extra params
+ */
+
 // used in templates/covers/add.html
-const Carousel = {
+export class Carousel {
     /**
-     * @param {String} selector (CSS) referring to the node to be enhanced
-     * @param {Number} [a] number of books to show (default)
-     * @param {Number} [b] number of books to show @1200px or more
-     * @param {Number} [c] number of books to show @1024px or more
-     * @param {Number} [d] number of books to show @600px or more
-     * @param {Number} [e] number of books to show @480px or more
-     * @param {Number} [f] number of books to show @360px or more
-     * @param {Object} [loadMore] configuration
-     * @param {String} loadMore.url to use to load more items
-     * @param {Number} loadMore.limit of new items to receive
-     * @param {String} loadMore.pageMode of page e.g. `offset`
+     * @param {jQuery} $container
      */
-    add: function(selector, a, b, c, d, e, f, loadMore) {
-        var responsive_settings, availabilityStatuses, addWork, url, default_limit;
+    constructor($container) {
+        /** @type {CarouselConfig} */
+        this.config = Object.assign(
+            {
+                booksPerBreakpoint: [6, 5, 4, 3, 2, 1],
+                analyticsCategory: 'Carousel',
+                carouselKey: '',
+            },
+            JSON.parse($container.attr('data-config'))
+        );
 
-        a = a || 6;
-        b = b || 5;
-        c = c || 4;
-        d = d || 3;
-        e = e || 2;
-        f = f || 1;
+        /** @type {CarouselConfig['loadMore']} */
+        this.loadMore = Object.assign(
+            {
+                limit: 18, // 3 pages of 6 books
+                pageMode: 'page',
+                locked: false,
+                allDone: false,
+                page: 1,
+            },
+            this.config.loadMore || {}
+        );
 
-        responsive_settings = [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: b,
-                    slidesToScroll: b,
-                    infinite: false,
-                }
-            },
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: c,
-                    slidesToScroll: c,
-                    infinite: false,
-                }
-            },
-            {
-                breakpoint: 600,
-                settings: {
-                    slidesToShow: d,
-                    slidesToScroll: d
-                }
-            },
-            {
-                breakpoint: 480,
-                settings: {
-                    slidesToShow: e,
-                    slidesToScroll: e
-                }
-            }
-        ];
-        if (f) {
-            responsive_settings.push({
-                breakpoint: 360,
-                settings: {
-                    slidesToShow: f,
-                    slidesToScroll: f
-                }
-            });
+        /** @type {jquery} */
+        this.$container = $container;
+
+        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
+        if (i18nInput) {
+            this.i18n = JSON.parse(i18nInput.value);
+
+            this.availabilityStatuses = {
+                open: {cls: 'cta-btn--available', cta: this.i18n['open']},
+                borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
+                borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
+                error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
+                // private: {cls: 'cta-btn--available', cta: 'Preview'}
+            };
         }
+    }
 
-        $(selector).slick({
+    get slick() {
+        return this.$container.slick('getSlick');
+    }
+
+    init() {
+        this.$container.slick({
             infinite: false,
             speed: 300,
-            slidesToShow: a,
-            slidesToScroll: a,
-            responsive: responsive_settings
+            slidesToShow: this.config.booksPerBreakpoint[0],
+            slidesToScroll: this.config.booksPerBreakpoint[0],
+            responsive: [1200, 1024, 600, 480, 360]
+                .map((breakpoint, i) => ({
+                    breakpoint: breakpoint,
+                    settings: {
+                        slidesToShow: this.config.booksPerBreakpoint[i + 1],
+                        slidesToScroll: this.config.booksPerBreakpoint[i + 1],
+                        infinite: false,
+                    }
+                }))
         });
 
-        availabilityStatuses = {
-            open: {cls: 'cta-btn--available', cta: 'Read'},
-            borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
-            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            error: {cls: 'cta-btn--missing', cta: 'Not In Library'}
-        };
+        // Slick internally changes the click handlers on the next/prev buttons,
+        // so we listen via the container instead
+        this.$container.on('click', '.slick-next', (ev) => {
+            // Note: This will actually fail on the last 'next', but that's okay
+            if ($(ev.target).hasClass('slick-disabled')) return;
 
-        addWork = function(work) {
-            var availability = work.availability.status;
-            var ocaid = work.availability.identifier;
-            var cover = {
-                type: 'id',
-                id: work.covers ? work.covers[0] : work.cover_id || work.cover_i
-            };
-            var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ?
-                (`/borrow/ia/${ocaid}`) : (cls == 'cta-btn--unavailable') ?
-                    (`/books/${work.availability.openlibrary_edition}`) : work.key;
-            var cta = availabilityStatuses[availability].cta;
-            var isClickable = availability == 'error' ? 'disabled' : '';
+            window.archive_analytics.ol_send_event_ping({
+                category: this.config.analyticsCategory,
+                action: 'Next',
+                label: this.config.carouselKey,
+            });
+        });
 
-            if (!cover.id && ocaid) {
-                cover.type = 'ia';
-                cover.id = ocaid;
+        this.$container.on('swipe', (ev, _slick, direction) => {
+            if (direction === 'left') {
+                window.archive_analytics.ol_send_event_ping({
+                    category: this.config.analyticsCategory,
+                    action: 'Next',
+                    label: this.config.carouselKey,
+                });
             }
-
-            return `${'<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false" role="option">' +
-                '<div class="book-cover">' +
-                  '<a href="'}${work.key}" ${isClickable}>` +
-                    `<img class="bookcover" width="130" height="200" title="${
-                        work.title}" ` +
-                      `src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">` +
-                  '</a>' +
-                '</div>' +
-                '<div class="book-cta">' +
-                  `<a class="btn cta-btn ${cls}" href="${url
-                  }" data-ol-link-track="subjects" ` +
-                    `title="${cta}: ${work.title
-                    }" data-key="subjects" data-ocaid="${ocaid}">${cta
-                    }</a>` +
-                '</div>' +
-              '</div>';
-        }
+        });
 
         // if a loadMore config is provided and it has a (required) url
+        const loadMore = this.loadMore;
         if (loadMore && loadMore.url) {
-            url;
-            try {
-                // exception handling needed in case loadMore.url is relative path
-                url = new URL(loadMore.url);
-            } catch (e) {
-                url = new URL(window.location.origin + loadMore.url);
-            }
-            default_limit = 18; // 3 pages of 6 books
-            url.searchParams.set('limit', loadMore.limit || default_limit);
-            loadMore.pageMode = loadMore.pageMode === 'page' ? 'page' : 'offset'; // verify pagination mode
-            loadMore.locked = false; // prevent additional calls when not in critical section
-
             // Bind an action listener to this carousel on resize or advance
-            $(selector).on('afterChange', function() {
-                var totalSlides = $(`${selector}.slick-slider`)
-                    .slick('getSlick').$slides.length;
-                var numActiveSlides = $(`${selector} .slick-active`).length;
-                var currentLastSlide = $(`${selector}.slick-slider`)
-                    .slick('slickCurrentSlide') + numActiveSlides;
+            this.$container.on('afterChange', (_ev, _slick, curSlide) => {
+                const totalSlides = this.slick.$slides.length;
+                const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
-                var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
+                const isOn2ndLastPage = curSlide >= Math.max(0, totalSlides - numActiveSlides * 2);
 
-                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage) && (currentLastSlide < totalSlides)) {
+                if (!loadMore.locked && !loadMore.allDone && isOn2ndLastPage) {
                     loadMore.locked = true; // lock for critical section
-                    document.body.style.cursor='wait'; // change mouse to spin
 
-                    if (loadMore.pageMode == 'page') {
-                        // for first time, we're on page 1 already so initialize as page 2
-                        // otherwise advance to next page
-                        loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
+                    if (loadMore.pageMode === 'page') {
+                        loadMore.page++;
                     } else { // i.e. offset, start from last slide
                         loadMore.page = totalSlides;
                     }
 
-                    // update the current page or offset within the URL
-                    url.searchParams.set(loadMore.pageMode, loadMore.page);
-
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        success: function(subject_results) {
-                            var works = subject_results.works;
-                            if (!works) {
-                                works = subject_results.docs;
-                            }
-                            $.each(works, function(work_idx) {
-                                var work = works[work_idx];
-                                var lastSlidePos = $(`${selector}.slick-slider`)
-                                    .slick('getSlick').$slides.length - 1;
-                                $(selector).slick('slickAdd', addWork(work), lastSlidePos);
-                            });
-                            document.body.style.cursor='default'; // return cursor to ready
-                            loadMore.locked = false;
-                        }
-                    });
+                    this.fetchMore();
                 }
+            });
+
+            document.addEventListener('filter', (ev) => {
+                loadMore.extraParams = {published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}`};
+
+                // Reset the page count - the result set is now 'new'
+                if (loadMore.pageMode === 'page') {
+                    loadMore.page = 1;
+                } else {
+                    loadMore.page = 0;
+                }
+                loadMore.allDone = false;
+
+                this.clearCarousel();
+                this.fetchMore();
             });
         }
     }
-};
 
-export default Carousel;
+    renderWork(work) {
+        const availability = work.availability || {};
+        const ocaid = availability.identifier ||
+            work.lending_identifier_s ||
+            (work.ia ? work.ia[0] : undefined);
+        // Use solr data to augment availability API
+        if (!availability.status || availability.status === 'error') {
+            if (work.lending_identifier_s) {
+                availability.status = 'borrow_available';
+            } else if (ocaid) {
+                availability.status = 'private';
+            }
+        }
+        const cover = {
+            type: 'id',
+            id: work.covers ? work.covers[0] : (work.cover_id || work.cover_i)
+        };
+        const availabilityStatus = this.availabilityStatuses[availability.status] || this.availabilityStatuses.error;
+        const cls = availabilityStatus.cls;
+        const cta = availabilityStatus.cta;
+        const url = cls === 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
+
+        if (!cover.id && ocaid) {
+            cover.type = 'ia';
+            cover.id = ocaid;
+        }
+
+        let bookCover;
+        if (cover.id) {
+            bookCover = `
+                <img
+                    class="bookcover"
+                    src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book.png"
+                >`
+        } else {
+            bookCover = `
+                <div class="carousel__item__blankcover bookcover">
+                    <div class="carousel__item__blankcover--title">${work.title}</div>
+                    ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
+                </div>`
+        }
+
+        const $el = $(`
+            <div class="book carousel__item">
+                <div class="book-cover">
+                    <a href="${work.key}">
+                        ${bookCover}
+                    </a>
+                </div>
+                <div class="book-cta">
+                    <a class="btn cta-btn ${cls}">${cta}</a>
+                </div>
+            </div>`);
+        $el.find('.bookcover').attr('title', work.title);
+        $el.find('.cta-btn')
+            .attr('title', `${cta}: ${work.title}`)
+            .attr('data-ocaid', ocaid)
+            .attr('href', url);
+
+        $el.find('.book-cover a')
+            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CoverClick|${this.config.carouselKey}`);
+        $el.find('.cta-btn')
+            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CTAClick|${this.config.carouselKey}`);
+        return $el;
+    }
+
+    fetchMore() {
+        const loadMore = this.loadMore;
+        // update the current page or offset within the URL
+        const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
+        url.searchParams.set('limit', loadMore.limit);
+        url.searchParams.set(loadMore.pageMode, loadMore.page);
+        //set extraParams
+        for (const key in loadMore.extraParams) {
+            url.searchParams.set(key, loadMore.extraParams[key]);
+        }
+
+
+        this.appendLoadingSlide();
+        $.ajax({ url: url, type: 'GET' })
+            .then((results) => {
+                this.removeLoadingSlide();
+                const works = results.works || results.docs;
+                works.forEach(work => this.slick.addSlide(this.renderWork(work)));
+                if (!works.length) {
+                    loadMore.allDone = true;
+                }
+                loadMore.locked = false;
+            });
+    }
+
+
+    clearCarousel() {
+        this.slick.removeSlide(this.slick.$slides.length, true, true);
+    }
+
+    appendLoadingSlide() {
+        this.slick.addSlide(`<div class="carousel__item carousel__loading-end">${this.i18n['loading']}</div>`);
+    }
+
+    removeLoadingSlide() {
+        this.slick.removeSlide(this.slick.$slides.length - 1);
+    }
+}

@@ -1,0 +1,83 @@
+{
+    "short_name": "Open Library",
+    "name": "Open Library: A page for every book published",
+    "description": "An open, editable library catalog for every book published.",
+    "icons": [
+        {
+            "src": "/static/images/openlibrary-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/static/images/openlibrary-192x192-mask.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/static/images/openlibrary-512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "/static/images/openlibrary-512x512-mask.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "maskable"
+        }
+    ],
+    "start_url": "/?source=pwa",
+    "scope": "/",
+    "background_color": "#e2dcc5",
+    "display": "standalone",
+    "theme_color": "#e2dcc5",
+    "share_target": {
+        "action": "/search",
+        "method": "GET",
+        "params": {
+            "text": "q"
+        }
+    },
+    "shortcuts": [
+      {
+        "name": "My Books",
+        "url": "/account/books",
+        "description": "Your loans, lists, and reading log"
+      },
+      {
+        "name": "Subjects",
+        "url": "/subjects",
+        "description": "Browse books by subject"
+      },
+      {
+        "name": "Trending",
+        "url": "/trending",
+        "description": "Browse books that are trending"
+      },
+      {
+        "name": "Explore",
+        "url": "/explore",
+        "description": "Browse books using the Library Explorer"
+      },
+      {
+        "name": "Collections",
+        "url": "/collections",
+        "description": "Browse collections curated by our community librarians"
+      },
+      {
+        "name": "Lists",
+        "url": "/lists",
+        "description": "Browse book lists created by members of the community"
+      },
+      {
+        "name": "Random Book",
+        "url": "/random",
+        "description": "Teleport to a random, readable book"
+      },
+      {
+        "name": "Advanced Search",
+        "url": "/advancedsearch",
+        "description": "Search for books using specific fields like publication date"
+      }
+  ]
+}

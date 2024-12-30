@@ -1,0 +1,628 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Open Library API",
+    "version": "0.1.0",
+    "description": "- These are still in development and may not be perfect\n- Contribute by proposing edits to [openapi.json](https://github.com/internetarchive/openlibrary/blob/master/static/openapi.json)\n- Please do not use our APIs for bulk downloads, see [dev center](https://openlibrary.org/developers/api) \n- (Warning!) As Swagger only contains a subset of the API, please see the API pages in the developer's docs for the full set."
+  },
+  "tags": [
+    {
+      "name": "books",
+      "description": "Retrieve a specific work or edition by identifier",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://openlibrary.org/dev/docs/api/books"
+      }
+    },
+    {
+      "name": "authors",
+      "description": "Retrieve an author and their works by author identifier",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://openlibrary.org/dev/docs/api/authors"
+      }
+    },
+    {
+      "name": "search",
+      "description": "Search results for books, authors, and more",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://openlibrary.org/dev/docs/api/search"
+      }
+    },
+    {
+      "name": "covers",
+      "description": "Fetch book covers by ISBN or Open Library identifier",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://openlibrary.org/dev/docs/api/covers"
+      }
+    },
+    {
+      "name": "subjects",
+      "description": "Fetch books by subject name ",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://openlibrary.org/dev/docs/api/subjects"
+      }
+    }
+  ],
+  "paths": {
+    "/api/books": {
+      "get": {
+        "summary": "Read Api Books",
+        "operationId": "read_api_books_api_books_get",
+        "tags": [
+          "books"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Bibkeys",
+              "type": "string"
+            },
+            "name": "bibkeys",
+            "in": "query",
+            "examples": {
+              "isbn": {
+                "value": "ISBN:0201558025"
+              },
+              "oclc": {
+                "value": "OCLC:263296519"
+              },
+              "multiple": {
+                "value": "ISBN:9781408113479,OCLC:420517"
+              }
+            }
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Format",
+              "type": "string",
+              "default": "json"
+            },
+            "name": "format",
+            "in": "query",
+            "description": "Specifies the response format. Possible values are json and javascript. When not specified the format is javascript."
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Callback"
+            },
+            "name": "callback",
+            "in": "query",
+            "description": "The name of the JavaScript function to call with the result. This is considered only when the format is javascript."
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Jscmd",
+              "type": "string",
+              "default": "viewapi"
+            },
+            "name": "jscmd",
+            "in": "query",
+            "description": "Decides what information to provide for each matched bib_key. Possible values are viewapi and data. The default value is viewapi."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/volumes/brief/{key_type}/{value}.json": {
+      "get": {
+        "summary": "Read Api Volumes Brief",
+        "operationId": "read_api_volumes_brief_api_volumes_brief__key_type___value__json_get",
+        "tags": [
+          "books"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Key Type"
+            },
+            "name": "key_type",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Value"
+            },
+            "name": "value",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Callback"
+            },
+            "name": "callback",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authors/{olid}.json": {
+      "get": {
+        "summary": "Read Authors",
+        "operationId": "read_authors_authors__olid__json_get",
+        "tags": [
+          "authors"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Olid"
+            },
+            "name": "olid",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authors/{olid}/works.json": {
+      "get": {
+        "summary": "Read Authors Works",
+        "operationId": "read_authors_works_authors__olid__works_json_get",
+        "tags": [
+          "authors"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Olid"
+            },
+            "name": "olid",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Limit",
+              "type": "integer"
+            },
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{olid}": {
+      "get": {
+        "summary": "Read Books",
+        "operationId": "read_books_books__olid__get",
+        "tags": [
+          "books"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Olid",
+              "example": "OL53924W"
+            },
+            "name": "olid",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/covers/{key_type}/{value}-{size}.jpg": {
+      "get": {
+        "summary": "Read Covers Key Type Value Size Jpeg",
+        "operationId": "read_covers_key_type_value_size_jpeg_covers__key_type___value___size__jpg_get",
+        "tags": [
+          "covers"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Key Type"
+            },
+            "name": "key_type",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Value"
+            },
+            "name": "value",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Size"
+            },
+            "name": "size",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/isbn/{isbn}": {
+      "get": {
+        "summary": "Read Isbn",
+        "operationId": "read_isbn_isbn__isbn__get",
+        "tags": [
+          "books"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Isbn"
+            },
+            "name": "isbn",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search.json": {
+      "get": {
+        "summary": "Read Search Json",
+        "operationId": "read_search_json_search_json_get",
+        "tags": [
+          "search"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Q"
+            },
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "type": "integer"
+            },
+            "name": "page",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/authors.json": {
+      "get": {
+        "summary": "Read Search Authors Json",
+        "operationId": "read_search_authors_json_search_authors_json_get",
+        "tags": [
+          "search"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Q"
+            },
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{subject}.json": {
+      "get": {
+        "summary": "Read Subjects",
+        "operationId": "read_subjects_subjects__subject__json_get",
+        "tags": [
+          "subjects"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Subject"
+            },
+            "name": "subject",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Details",
+              "type": "boolean",
+              "default": false
+            },
+            "name": "details",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/works/{olid}": {
+      "get": {
+        "summary": "Read Works",
+        "operationId": "read_works_works__olid__get",
+        "tags": [
+          "books"
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Olid"
+            },
+            "name": "olid",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

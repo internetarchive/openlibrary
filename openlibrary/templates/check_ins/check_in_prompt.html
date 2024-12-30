@@ -1,0 +1,37 @@
+$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None)
+
+$# work_key : str : The work key
+$# read_status : int | None : Number representing which shelf this work is on.
+$#    Possible Values:
+$#    1 : Want to Read
+$#    2 : Currently Reading
+$#    3 : Already Read
+$#    None : Work is not on the patron's shelf
+$# edition_key : str | None : The edition key
+$# last_read_date : str | None : Date that the patron last read the book
+$# event_id : str | None : ID of record for this event
+
+$ work_olid = work_key.split('/')[-1]
+$ modal_id = 'check-in-dialog-%s' % work_olid
+$ prompt_id = 'prompt-%s' % work_olid
+
+<div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
+  <span class="date-display">
+    $:_('Read <time class="check-in-date">%(date)s</time>', date=last_read_date)
+    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit")</a>
+  </span>
+</div>
+
+$ display_prompt = read_status == 3
+<div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
+  <span class="prompt-copy">$_("When did you finish this book?")</span>
+  <span class="prompt-options">
+    $ year = current_year()
+    <a class="prompt-current-year use-local-year" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCurrentYear" data-server-year="$year">$year</a>
+    <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
+    <a class="prompt-custom" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
+  </span>
+</div>
+
+$ check_in_form = render_template('check_ins/check_in_form', work_olid, work_key, edition_key=edition_key, last_read_date=last_read_date, event_id=event_id)
+$:render_template('native_dialog', modal_id, check_in_form, title=_("Check-In"))

@@ -1,8 +1,10 @@
 """Infobase schema for Open Library
 """
-from __future__ import print_function
-from infogami.infobase import dbstore
+
 import web
+
+from infogami.infobase import dbstore
+
 
 def get_schema():
     schema = dbstore.Schema()
@@ -23,12 +25,14 @@ def get_schema():
     schema.add_table_group('work', '/type/work', datatypes)
     schema.add_table_group('publisher', '/type/publisher', datatypes)
     schema.add_table_group('subject', '/type/subject', datatypes)
+    # schema.add_table_group('tag', '/type/tag', datatypes)
 
     schema.add_seq('/type/edition', '/books/OL%dM')
     schema.add_seq('/type/author', '/authors/OL%dA')
 
     schema.add_seq('/type/work', '/works/OL%dW')
     schema.add_seq('/type/publisher', '/publishers/OL%dP')
+    schema.add_seq('/type/tag', '/tags/OL%dT')
 
     _sql = schema.sql
 
@@ -89,8 +93,10 @@ def get_schema():
         status text default 'pending',
         error text,
         ia_id text,
+        data text,
         ol_key text,
         comments text,
+        submitter text,
         UNIQUE (batch_id, ia_id)
     );
     CREATE INDEX import_item_batch_id ON import_item(batch_id);
@@ -103,9 +109,11 @@ def get_schema():
     schema.sql = lambda: web.safestr(_sql()) + more_sql
     return schema
 
+
 def register_schema():
     """Register the schema defined in this module as the default schema."""
     dbstore.default_schema = get_schema()
+
 
 if __name__ == "__main__":
     print(get_schema().sql())

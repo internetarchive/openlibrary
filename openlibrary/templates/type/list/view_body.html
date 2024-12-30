@@ -1,0 +1,183 @@
+$def with (list, is_owner)
+
+$ title = list.name
+$ title_with_site = _("%(name)s | Lists | Open Library", name=title)
+
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
+$ page = safeint(query_param('page'), 1) - 1
+$ page_size = 50
+$ meta_description = title
+$if list.description:
+    $ meta_description = _("%(title)s: %(description)s", title=title, description=list.description)
+
+$putctx("description", meta_description)
+$if days_since(list.created) < 30:
+    $ putctx('robots', 'noindex')
+
+$add_metatag(property="twitter:card", content="summary_large_image")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title_with_site)
+$add_metatag(property="twitter:description", content= _("View the list on Open Library."))
+$add_metatag(property="twitter:image", content=request.canonical_url + "/preview.png")
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="website")
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=meta_description)
+$add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
+
+$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$ sort = query_param('sort', None)
+
+$jsdef render_seed_count(seed_count):
+    $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
+
+$if not is_owner:
+    <div id="contentHead" style="margin-bottom:0;">
+        $ owner = list.get_owner()
+        <h1>$list.name</h1>
+        <p class="collapse sansserif">
+            $ component_times['render_seed_count'] = time()
+            <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+            $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
+        </p>
+    </div>
+
+$def remove_item_link():
+    $ owner = list.get_owner()
+    $if owner and ctx.user and ctx.user.key == owner.key:
+        <span class="listDelete sansserif smaller">
+            <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
+        </span>
+
+$def seed_meta_line(seed):
+    <span class="meta">
+        <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
+        <span class="type small">$seed.type</span>
+    </span>
+
+    $if sort == 'last_modified' and seed.last_update:
+        <span class="time">
+            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
+        </span>
+
+$def seed_attrs(seed):
+    data-seed-key="$seed.key"
+    data-list-key="$list.key"
+
+<div id="contentBody">
+    <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
+    <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
+        $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
+    </div>
+
+    $def render_authors(authors):
+        $if not authors:
+            <em>$_('Unknown authors')</em>
+        $else:
+            $for a in authors:
+                <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
+
+    <div class="mybooks-list">
+
+        $if list.description:
+            $:format(list.description)
+
+        $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
+        $:macros.Pager(page+1, len(list.seeds), page_size)
+        <div class="clearfix"></div>
+
+        <ul id="listResults" class="list-books clearfix">
+            $ component_times['get_seeds'] = time()
+            $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
+            $ component_times['get_seeds'] = time() - component_times['get_seeds']
+
+        $if not seeds:
+            <p>$_("There are no items on this list.")</p>
+            <p>
+                $:_('<a href="/search" target="_blank">Search for book, subjects, or authors</a> to add to your list.')
+                <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
+            </p>
+
+        $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
+        $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
+        $for seed in seeds:
+            $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
+            $ cover = seed.get_cover()
+            $if cover:
+                $ cover_url = item_image(cover.url("M"), default=default_image)
+            $else:
+                $ cover_url = default_image
+
+            $if seed.type in ['edition', 'work']:
+                $ doc = solr_works.get(seed.key) or seed.document
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)))
+            $else:
+                <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
+                    <div class="sri__main">
+                        <span class="bookcover">
+                            <a href="$seed.url">
+                            <img src="$cover_url" alt="$seed.title"/>
+                            </a>
+                        </span>
+                        <div class="details">
+                            <div class="resultTitle">
+                                <h3 class="booktitle">
+                                    <a href="$seed.url" class="results">$seed.title</a>
+                                </h3>
+                                $:seed_meta_line(seed)
+                            </div>
+                        </div>
+                        <span class="searchResultItemCTA">
+                            $:remove_item_link()
+                        </span>
+                    </div>
+                    $if seed.notes:
+                        <hr>
+                        $:sanitize(format(seed.notes))
+                </li>
+        </ul>
+    </div>
+
+    <div class="contentOnethird" style="margin-bottom:0;">
+
+        $:render_template("type/list/exports", list)
+
+        $# This is making lists slow, and often the solr request times out,
+        $# so nothing is even rendered. Remove for now, investigate whether
+        $# we want to keep or improve later.
+        $if False:
+            <h2 class="collapse">$_('List Metadata')</h2>
+            <div class="smaller lightgreen sansserif">$_('Derived from seed metadata')</div>
+            <br/>
+
+            $def render_subjects(label, subjects):
+                $if subjects:
+                    <div class="section">
+                        <h3 class="collapse black uppercase">$label</h3>
+                        <div class="sansserif">
+                        $for subject in subjects:
+                            <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
+                        </div>
+                    </div>
+
+            $ subjects = list.get_subjects()
+
+            $:render_subjects(_("Subjects"), subjects.subjects)
+            $:render_subjects(_("People"), subjects.people)
+            $:render_subjects(_("Places"), subjects.places)
+            $:render_subjects(_("Times"), subjects.times)
+    </div>
+
+    <div class="clearfix"></div>
+
+    $:macros.Pager(page+1, len(list.seeds), page_size)
+    $ component_times['TotalTime'] = time() - component_times['TotalTime']
+    $if query_param('debug'):
+        $:macros.Profile(component_times)
+
+    $:render_template("lib/history", list)
+</div>

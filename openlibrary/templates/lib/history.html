@@ -25,7 +25,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ url = changequery(m='history')
 
         $ latest = versions[0]
-        <li class="link inline"><a rel="nofollow" href="$url">$ungettext('1 revision', '%(count)d revisions', latest.revision, count=latest.revision)</a></li>
+        <li class="link inline"><a rel="nofollow" href="$url">$ungettext('%(count)d revision', '%(count)d revisions', latest.revision, count=latest.revision)</a></li>
         </ul>
         $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"):
             $if cur_v:
@@ -38,12 +38,12 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ opds = page.key + ".opds" + hist_addition
             <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
                 $_('Download catalog record:')
-                <a rel="nofollow" href="$rdf">RDF</a>
+                <a rel="nofollow" href="$rdf">$_("RDF")</a>
                 /
-                <a rel="nofollow" href="$json">JSON</a>
+                <a rel="nofollow" href="$json">$_("JSON")</a>
                 $if page.key.startswith("/books"):
                     /
-                    <a rel="nofollow" href="$opds">OPDS</a>
+                    <a rel="nofollow" href="$opds">$_("OPDS")</a>
                 $if show_wikipedia_citation_link:
                     | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
             </span>
@@ -52,26 +52,16 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                 <div class="hidden">
                     <div class="coverFloat" id="wikicode">
                         <div class="coverFloatHead">
-                          <h2>Wikipedia citation</h2>
-                          <a class="dialog--close">&times;<span class="shift">Close</span></a>
+                          <h2>$_("Wikipedia citation")</h2>
+                          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
                         </div>
-                        <p>$_('Copy and paste this code into your Wikipedia page.') <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+                        <p>$_("Copy and paste this code into your Wikipedia page.") <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" title="$_('Get instructions at Wikipedia in a new window')">$_('Need help?')</a></p>
                         <form method="get">
-                            <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
-                $for k, v in page.wp_citation_fields.items():
-                   |$k = $v
-                }}</textarea>
+                          $ cite = " |".join([k + '=' + v for k, v in page.wp_citation_fields.items() if v])
+                          <textarea cols="70" rows="10" readonly="readonly" id="wikiselect">{{cite book|$cite}}</textarea>
                         </form>
                     </div>
                 </div>
-
-                <script type="text/javascript">
-                <!--
-                window.q.push(function(){
-                    \$('#wikiselect').focus(function(){\$(this).select();})
-                });
-                //-->
-                </script>
     </div>
 
     <table class="history">

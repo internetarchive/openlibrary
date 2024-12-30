@@ -13,14 +13,14 @@ $for name in s:
         <tbody>
             <tr><td class="descrip"><span class="title">$_t[name]</span></td>
             $if name == "other_titles":
-                <td><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr>
+                <td><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr> $# detect-missing-i18n-skip-line
             $elif name == "translated_titles":
                 $for t in page[name]: <td class="tag"><span class="object"><i>$t.language.name -</i> $t.text;</span></td></tr>
             $elif name == "subjects":
                 <td><span class="object">
                 $for name in subjects:
                     $for subject in page[name]:
-                        <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
+                        <a href="/search?ftokens=$utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
                 </span></td></tr>
             $else:
                 <td><span class="object">$:thingrepr(page[name])</span></td></tr>
@@ -52,7 +52,7 @@ $if links:
         $if this_lang:
             <span class="tag">$this_lang.lang: <a href="$this_lang.url">$(this_lang.title or this_lang.url)</a></span>
         $else:
-            <span class="tag">No link to Wikipedia in your language</span>
+            <span class="tag">$_("No link to Wikipedia in your language")</span>
             $if simple:
                 <span class="tag">
                 Simple English: <a href="$simple.url">$(simple.title or simple.url)</a>

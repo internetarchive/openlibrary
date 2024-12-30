@@ -2,11 +2,6 @@ $def with ()
 
 $var title: $_('Barcode Scanner (Beta)')
 
-$ ctx.setdefault('bodyid', 'barcodescanner')
+$ ctx.setdefault("show_ol_shell", False)
 
-<div id="page-barcodescanner">
-    <div id="interactive" class="viewport"></div>
-    <div id="result-strip">
-        <div class="empty">$_('Point your camera at a barcode! 📷')</div>
-    </div>
-</div>
+$:render_component('BarcodeScanner')

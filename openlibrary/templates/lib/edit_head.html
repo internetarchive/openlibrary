@@ -1,17 +1,9 @@
 $def with (page)
 
-<script type="text/javascript">
-window.q.push(function(){
-    if(top.location != location){
-        top.location.href = document.location.href;
-    };
-});
-</script>
-
 <div id="editHead">
     <h2>
         $_("You're in edit mode.")
-        <span class="cancelThis"><a href="javascript:history.go(-1);">$_('Cancel, and go back.')</a></span>
+        <span class="cancelThis go-back-link"><a href="javascript:;">$_('Cancel, and go back.')</a></span>
     </h2>
 $ author = get_recent_author(page)
 $if author:

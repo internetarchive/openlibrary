@@ -1,0 +1,96 @@
+.fsi {
+  &__main {
+    .display-flex();
+    flex-direction: row;
+    background-color: @white;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid @light-beige;
+    border-radius: 3px;
+    overflow: hidden;
+    @media (min-width: @width-breakpoint-tablet) {
+      flex-direction: row;
+    }
+  }
+
+  &__book-cover {
+    overflow: hidden;
+    height: 100%;
+    width: auto;
+    min-width: 90px;
+    border-radius: 4px;
+    align-self: center;
+    margin-top: 5px;
+    @media (min-width: @width-breakpoint-tablet) {
+      height: 130px;
+      margin-bottom: 5px;
+    }
+  }
+
+  &__book-cover-img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__book-cover-img-blur {
+    filter: blur(4px);
+  }
+
+  &__book-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 5px 10px 0;
+    @media (min-width: @width-breakpoint-tablet) {
+      align-items: flex-start;
+    }
+  }
+
+  &__title-author {
+    display: flex;
+    flex-direction: column;
+    padding: 5px 3px 0 10px;
+    width: 50%;
+    @media (min-width: @width-breakpoint-mobile-s) {
+      width: 70%
+    }
+    @media (min-width: @width-breakpoint-mobile-m) {
+      width: 80%
+    }
+  }
+
+  &__book-title,
+  &__book-author {
+    width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: @lucida_sans_serif-6;
+  }
+
+  &__book-title {
+    font-size: large;
+    margin: 0;
+    display: block;
+    padding: 0;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+
+  &__book-title a:link,
+  &__book-title a:visited {
+    text-decoration: none;
+    color: @black;
+  }
+
+  &__book-title a:hover {
+    color: @header-nav-hover-color;
+  }
+
+  &__book-author {
+    line-height: 1.2em;
+    margin: 3px 0 0;
+    font-size: medium;
+  }
+}

@@ -1,6 +1,10 @@
-<div id="contentBody">
+<div id="contentHead">
   <h1>$_('Advanced Search')</h1>
-  <form method="get" action="/search" class="siteSearch">
+</div>
+
+<div id="contentBody">
+  $:macros.SearchNavigation()
+  <form method="get" action="/search" class="siteSearch olform">
     <fieldset class="home">
       <legend>$_('Advanced Search')</legend>
       <input type="hidden" name="q" id="qtop">
@@ -36,9 +40,10 @@
         <input type="text" name="publisher" id="qtop-publisher" placeholder="" size="35">
       </div>
     </fieldset>
-    <input type="submit" class="generic-button generic-button-primary" value="Search">
+    <button type="submit" class="cta-btn cta-btn--search">$_('Search')</button>
     <div class="searchPlus">
-      <a href="/search/inside">$_('Full Text Search')</a>?
+      <a href="https://openlibrary.org/search/howto">$_('How to search?')</a>
+      <a href="/search/inside">$_('Full Text Search?')</a>
     </div>
   </form>
 </div>

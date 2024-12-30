@@ -1,35 +1,40 @@
 $def with (page)
 
-$ bodyid = ctx.get('bodyid', 'user')
-$ bodyclass = ctx.get('bodyclass', []) 
-$ show_banners = bodyid != 'form'
+$ bodyclass = ctx.get('bodyclass', [])
+$ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
-<body id="$bodyid" class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
+$if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search')):
+  $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin())):
+    $bodyclass.append('show-librarian-tools')
+    $bodyattrs.append('data-username="%s"' % ctx.user.key.split('/')[-1])
+
+<body class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
   <script>
       // Provide a signal that JS will load
       document.body.className += ' client-js';
   </script>
   <span id="top"></span>
+  <div id="offline-info">$_("It looks like you're offline.")</div>
   $# on form pages e.g. manage-covers, add-cover we do not display the header
   $# this is consistent with version 1.
-  $if show_banners:
+  $if show_ol_shell:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
   $# don't render test-body-mobile for iframes
-  <div $:('id="test-body-mobile"' if bodyid != 'form' else '')>
-    $if show_banners:
+  <div $:('id="test-body-mobile"' if show_ol_shell else '')>
+    $if show_ol_shell:
       $#print errors (hidden by default as styles are loaded via JS)
-      <div class="flash-messages" style="display: none;">
+      <div class="flash-messages">
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $# Paste next line into announcement variable to show the blue banner
-      $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = None
-      $if announcement:
-        <div class="page-banner page-banner-body">
-         $:announcement
-        </div>
+      $# Announcement banner will only be rendered if announcement and storage_key variables are set.
+      $# Be sure to escape any single quotes inside of the announcement HTML string.
+      $ announcement = ''
+      $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
+      $ cookie_name = ''
+      $if announcement and cookie_name:
+        $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
   </div>

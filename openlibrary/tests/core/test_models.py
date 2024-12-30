@@ -1,3 +1,5 @@
+import pytest
+
 from openlibrary.core import models
 
 
@@ -8,9 +10,11 @@ class MockSite:
     def _get_backreferences(self, thing):
         return {}
 
+
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
         return ['lendinglibrary']
+
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
@@ -19,11 +23,7 @@ class MockPrivateEdition(models.Edition):
 
 class TestEdition:
     def mock_edition(self, edition_class):
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "foo"
-        }
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
         return edition_class(MockSite(), "/books/OL1M", data=data)
 
     def test_url(self):
@@ -59,14 +59,62 @@ class TestEdition:
         e = self.mock_edition(MockPrivateEdition)
         assert not e.in_borrowable_collection()
 
+    @pytest.mark.parametrize(
+        ('isbn_or_asin', 'expected'),
+        [
+            ("1111111111", ("1111111111", "")),  # ISBN 10
+            ("9780747532699", ("9780747532699", "")),  # ISBN 13
+            ("B06XYHVXVJ", ("", "B06XYHVXVJ")),  # ASIN
+            ("b06xyhvxvj", ("", "B06XYHVXVJ")),  # Lower case ASIN
+            ("", ("", "")),  # Nothing at all.
+        ],
+    )
+    def test_get_isbn_or_asin(self, isbn_or_asin, expected) -> None:
+        e: models.Edition = self.mock_edition(MockPrivateEdition)
+        got = e.get_isbn_or_asin(isbn_or_asin)
+        assert got == expected
+
+    @pytest.mark.parametrize(
+        ('isbn', 'asin', 'expected'),
+        [
+            ("1111111111", "", True),  # ISBN 10
+            ("", "B06XYHVXVJ", True),  # ASIN
+            ("9780747532699", "", True),  # ISBN 13
+            ("0", "", False),  # Invalid ISBN length
+            ("", "0", False),  # Invalid ASIN length
+            ("", "", False),  # Nothing at all.
+        ],
+    )
+    def test_is_valid_identifier(self, isbn, asin, expected) -> None:
+        e: models.Edition = self.mock_edition(MockPrivateEdition)
+        got = e.is_valid_identifier(isbn=isbn, asin=asin)
+        assert got == expected
+
+    @pytest.mark.parametrize(
+        ('isbn', 'asin', 'expected'),
+        [
+            ("1111111111", "", ["1111111111", "9781111111113"]),
+            ("9780747532699", "", ["0747532699", "9780747532699"]),
+            ("", "B06XYHVXVJ", ["B06XYHVXVJ"]),
+            (
+                "9780747532699",
+                "B06XYHVXVJ",
+                ["0747532699", "9780747532699", "B06XYHVXVJ"],
+            ),
+            ("", "", []),
+        ],
+    )
+    def test_get_identifier_forms(
+        self, isbn: str, asin: str, expected: list[str]
+    ) -> None:
+        e: models.Edition = self.mock_edition(MockPrivateEdition)
+        got = e.get_identifier_forms(isbn=isbn, asin=asin)
+        assert got == expected
+
 
 class TestAuthor:
     def test_url(self):
-        data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
-            "name": "foo"
-        }
+        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
 
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
 
@@ -84,39 +132,43 @@ class TestAuthor:
 
 class TestSubject:
     def test_url(self):
-        subject = models.Subject({
-            "key": "/subjects/love"
-        })
+        subject = models.Subject({"key": "/subjects/love"})
         assert subject.url() == "/subjects/love"
         assert subject.url("/lists") == "/subjects/love/lists"
 
 
-class TestList:
-    def test_owner(self):
-        models.register_models()
-        self._test_list_owner("/people/anand")
-        self._test_list_owner("/people/anand-test")
-        self._test_list_owner("/people/anand_test")
+class TestWork:
+    def test_resolve_redirect_chain(self, monkeypatch):
+        # e.g. https://openlibrary.org/works/OL2163721W.json
 
-    def _test_list_owner(self, user_key):
-        from openlibrary.mocks.mock_infobase import MockSite
-        site = MockSite()
-        list_key = user_key + "/lists/OL1L"
+        # Chain:
+        type_redir = {"key": "/type/redirect"}
+        type_work = {"key": "/type/work"}
+        work1_key = "/works/OL123W"
+        work2_key = "/works/OL234W"
+        work3_key = "/works/OL345W"
+        work4_key = "/works/OL456W"
+        work1 = {"key": work1_key, "location": work2_key, "type": type_redir}
+        work2 = {"key": work2_key, "location": work3_key, "type": type_redir}
+        work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
+        work4 = {"key": work4_key, "type": type_work}
 
-        self.save_doc(site, "/type/user", user_key)
-        self.save_doc(site, "/type/list", list_key)
+        import web
 
-        list =  site.get(list_key)
-        assert list is not None
-        assert isinstance(list, models.List)
+        from openlibrary.mocks import mock_infobase
 
-        assert list.get_owner() is not None
-        assert list.get_owner().key == user_key
+        site = mock_infobase.MockSite()
+        site.save(web.storage(work1))
+        site.save(web.storage(work2))
+        site.save(web.storage(work3))
+        site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", site, raising=False)
 
-    def save_doc(self, site, type, key, **fields):
-        d = {
-            "key": key,
-            "type": {"key": type}
-        }
-        d.update(fields)
-        site.save(d)
+        work_key = "/works/OL123W"
+        redirect_chain = models.Work.get_redirect_chain(work_key)
+        assert redirect_chain
+        resolved_work = redirect_chain[-1]
+        assert (
+            str(resolved_work.type) == type_work['key']
+        ), f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"

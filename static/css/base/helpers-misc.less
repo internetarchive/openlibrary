@@ -2,7 +2,7 @@
 // They are not components.
 // Helpers here should not be needed for most page views.
 // helpers-common provides a more standard set for usage.
-@import (less) "less/font-families.less";
+@import "../less/font-families.less";
 
 .small {
   font-size: 12px !important;
@@ -34,6 +34,7 @@
 button {
   &.larger {
     font-size: 18px !important;
+    cursor: pointer;
   }
 }
 .average {
@@ -51,7 +52,7 @@ button {
 }
 
 .adminOnly {
-  background-color: @orange!important;
+  background-color: @orange !important;
   padding: 4px;
   border-radius: 4px;
 }
@@ -86,11 +87,11 @@ button {
 .valid,
 .darkgreen,
 .pos {
-  color: @dark-green!important;
+  color: @dark-green !important;
 }
 
 .black {
-  color: @black!important;
+  color: @black !important;
 }
 
 .highlight {
@@ -98,52 +99,55 @@ button {
 }
 
 .orange {
-  color: @orange!important;
+  color: @orange !important;
 }
 
 .brown {
-  color: @brown!important;
+  color: @brown !important;
 }
 
 .teal {
-  color: @teal!important;
+  color: @teal !important;
 }
 
 .light {
   &green {
-    color: @olive!important;
+    color: @olive !important;
   }
   &grey,
   &gray {
-    color: @light-grey!important;
+    color: @light-grey !important;
   }
 }
 
 .blue {
-  color: @link-blue!important;
+  color: @link-blue !important;
 }
 
 .invalid,
 .attn,
 .neg,
 .red {
-  color: @red!important;
+  color: @red !important;
+  &:not(input):empty {
+    display: none;
+  }
 }
 
 .yellow {
-  color: @light-yellow!important;
+  color: @light-yellow !important;
 }
 
 .lighter,
 .gray,
 .grey {
-  color: @grey!important;
+  color: @grey !important;
 }
 
 .dark {
   &gray,
   &grey {
-    color: @dark-grey!important;
+    color: @dark-grey !important;
   }
 }
 
@@ -190,11 +194,11 @@ button {
 
 .headline,
 .sansserif {
-  font-family: @lucida_sans_serif-1!important;
+  font-family: @lucida_sans_serif-1 !important;
 }
 
 .arial {
-  font-family: @arial_sans_serif!important;
+  font-family: @arial_sans_serif !important;
 }
 
 .nowrap {

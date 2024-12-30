@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: Publisher: $page.name
+$var title: $_('Publisher: %(name)s', name=page.name)
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
@@ -10,18 +10,18 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <em>Publisher</em> - <strong><span>$ungettext("1 work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
+            <em>$_("Publisher")</em> - <strong><span>$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
             $if page.ebook_count > 0:
-                / <span class="ebookcount"><span id="ebooks">$ungettext("1 ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
+                / <span class="ebookcount"><span id="ebooks">$ungettext("%(count)s ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
             $else:
-                / 0 ebooks
+                / $_("0 ebooks")
             <span class="clickdata"></span>
         </span>
     </h1>
 </div>
 
 <div class="contentBody">
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
+  $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
 
 	<div class="head">
 	    <h2>
@@ -33,54 +33,6 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 	</div>
 
     <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(page.publishing_history)</script>
-<script type="text/javascript">
-<!--
-// FIXME: Please move this text/javascript to webpack entry point after you've worked out what it's doing
-function parse_hash() {
-    try {
-    	var hash = document.location.hash || "#";
-    	var tokens = hash.substr(1).split("&");
-    	var d = {};
-    	for (var i in tokens) {
-    		if (tokens[i]) {
-    			var kv = tokens[i].split("=");
-    			d[kv[0]] = kv[1];
-    	    }
-    	}
-    	return d;
-    }
-    catch (error) {
-        // Work-around for IE weirdness
-        return {};
-    }
-}
-
-function set_hash(data) {
-	var d = parse_hash();
-
-	for (var k in data) {
-		if (data[k])
-			d[k] = data[k];
-		else
-			delete d[k];
-	}
-
-	var tokens = [];
-	for (var k in d) {
-		tokens[tokens.length] = k + "=" + d[k];
-	}
-
-    var hash = "#" + tokens.join("&");
-    var current_hash = document.location.hash || "#";
-
-    if (hash == current_hash)
-        return;
-	document.location.hash = hash;
-}
-
-var _hash = parse_hash();
-//-->
-</script>
 
     <div class="chart">
         <div class="chartYaxis">$_("Editions Published")</div>
@@ -94,7 +46,7 @@ var _hash = parse_hash();
 
         <div class="head" id="subjectRelated">
             <h2>$_("Common Subjects")
-                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search for books published by $page.name</a></span>
+                <span class="count"><a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">$_('Search for books published by %(publisher)s', publisher=page.name)</a></span>
             </h2>
         </div>
 
@@ -108,11 +60,9 @@ var _hash = parse_hash();
 	        <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
-        <div class="contentQuarter link-box">
-            <h6>$s</h6>
-			<div class="subjects" id="subjects-$s">
-				$:renderSubjects(page[s][:limit])
-			</div>
+        <div class="contentQuarter link-box link-box--with-header">
+            <h3>$s</h3>
+            $:renderSubjects(page[s][:limit])
         </div>
         $if s != 'times':
             <div class="contentSpacer"></div>
@@ -124,7 +74,7 @@ $jsdef renderAuthors(authors):
         <span class="tag">
             <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
         </span>
-        <span class="count">$ungettext("1 book", "%(count)d books", a.count, count=a.count)</span>
+        <span class="count">$ungettext("%(count)d book", "%(count)d books", a.count, count=a.count)</span>
         <br/>
 <div id="resultsAuthors" class="widget-box">
     <div class="head">
@@ -139,13 +89,6 @@ $jsdef renderAuthors(authors):
 
 $ publishers_feature_enabled = "publishers" in ctx.features
 
-<script type="text/javascript">
-<!--
-    $ page_key = page.key[page.key.rindex('/')+1:]
-    var page_key = "$page_key";
-    var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
-//-->
-</script>
 $jsdef renderPublishers(publishers):
     $for p in publishers:
         <span class="tag">
@@ -154,16 +97,16 @@ $jsdef renderPublishers(publishers):
             $else:
                 <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
-        <span class="count">$ungettext("1 edition", "%(count)s editions", p.count, count=commify(p.count))</span>
+        <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
          <br/>
 
 <div class="section clearfix"></div>
 
 <form action="/search/publishers" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Publisher Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+    <h2 class="collapse"><label for="searchSubjects">$_("Publisher Search")</label>  <span class="sansserif grey smaller">$_("Try a keyword.")</span></h2>
     <p>
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-        <button type="submit" class="larger">$_('Search')</button>
+        <button type="submit" class="larger">$_("Search")</button>
     </p>
 </form>
 

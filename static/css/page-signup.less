@@ -1,0 +1,217 @@
+/**
+ * Stylesheet for signup and (soon) login forms
+
+ * Used in templates:
+ * - openlibrary/templates/account/create.html
+ *
+ * Used on pages:
+ * - /account/create
+ * - /account/login
+ */
+
+@import (less) "less/index.less";
+
+// Import all base styles
+@import (less) "base/index.less";
+
+// Import colors
+@import (less) "less/colors.less";
+
+// Import fonts
+@import (less) "less/font-families.less";
+
+// Layout rules
+@import (less) "layout/index.less";
+
+// Components (modules) in order of appearance on page
+@import (less) "components/header.less";
+@import (less) "components/form.olform.less";
+@import (less) "components/buttonCta.less";
+@import (less) "components/footer.less";
+@import (less) "components/language.less";
+
+.ol-page-signup {
+  display: flex;
+  flex-direction: row;
+
+  .ol-signup-hero > *, .ol-signup-form > * {
+    width: 70%;
+  }
+
+  @media only screen and (max-width: @width-breakpoint-tablet) {
+    .ol-signup-form > * {
+      width: calc(100% - 60px);
+    }
+  }
+}
+
+.ol-signup-hero {
+  width: 55%;
+  background-color: @grey-fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 5px 0 0 5px;
+
+  .ol-signup-hero__title {
+    color: @black;
+    font-size: @font-size-headline-large;
+  }
+
+  .ol-signup-hero__subtitle {
+    color: @grey;
+    font-size: @font-size-title-large;
+  }
+
+  @media only screen and (max-width: @width-breakpoint-tablet) {
+    display: none;
+  }
+}
+
+/* Specificity added to override original padding*/
+#contentBody.ol-signup-form {
+  padding: 30px 0;
+}
+
+.ol-signup-form {
+  flex: 1 1 0;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  #ia-third-party-logins {
+    margin: 0 auto;
+    display: flex;
+  }
+
+  .ol-signup-form__big-or {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    max-width: 600px;
+    color: @grey;
+  }
+
+  .ol-signup-form__big-or::before, .ol-signup-form__big-or::after {
+    content: "";
+    display: block;
+    flex: 1;
+    border-bottom: 1px solid @grey;
+    transform: translateY(-50%);
+  }
+
+  .ol-signup-form__info-box {
+    font-size: 14px;
+  }
+
+  .ol-signup-form__info {
+    font-size: 14px;
+    padding-top: 10px;
+  }
+
+  .ol-signup-form__link {
+    color: inherit;
+  }
+
+  .ol-signup-form__note {
+    font-size: 14px;
+    color: @grey;
+  }
+
+  .ol-signup-form__input {
+    padding-top: 6px;
+
+    input {
+      border: 1px solid @light-grey;
+      border-radius: 5px;
+      width: 100%;
+      padding: 6px 4px;
+    }
+
+    input.invalid {
+      border: 1px solid @red;
+    }
+
+    label, .ol-signup-form__note {
+      display: block;
+      margin-bottom: 4px;
+    }
+  }
+
+  .ol-signup-form__error {
+    font-size: 14px;
+    color: @red;
+    background-color: fade(@baby-pink, 50%);
+    border: .5px fade(@red, 50%);
+    border-style: solid solid none;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: -3px;
+    width: 100%;
+    padding: 10px 5px;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .ol-signup-form__suffix {
+    font-size: 12px;
+    color: @grey;
+  }
+
+  .input {
+    position: relative;
+  }
+
+  .ol-signup-form__icon-wrap {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+  }
+
+  .ol-signup-form__icon-wrap > img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .ol-signup-form__checkbox {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: flex-start;
+    padding-top: 16px;
+    width: 100%;
+    font-size: 14px;
+
+    input {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    a {
+      color: inherit;
+    }
+  }
+
+  .ol-signup-form__tos {
+    font-size: 14px;
+    color: @grey;
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .ol-signup-form__login-hint {
+    text-align: center;
+    padding-top: 10px;
+
+    a {
+      color: @link-blue;
+    }
+  }
+}

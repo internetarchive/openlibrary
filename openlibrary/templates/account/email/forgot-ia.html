@@ -5,13 +5,13 @@ $var title: $("Forgot Your Email?")
 <div id="contentHead">
     <h2>$_('Forgot Your Internet Archive Email?')</h2>
     $if not email:
-        <p class="instruct">Please enter your Open Library email and password, and we’ll retrieve your Archive.org email.</p>
+        <p class="instruct">$_('Please enter your Open Library email and password, and we’ll retrieve your Archive.org email.')</p>
 </div>
 
 <div id="contentBody" class="defaultstyling">
   $if email:
-    <p>Your email is: <strong>$email</strong></p>
-    <p><a href="/account/login">&larr; Return to Log In?</a></p>
+    <p>$_('Your email is:') <strong>$email</strong></p>
+    <p><a href="/account/login">&larr; $_('Return to Log In?')</a></p>
 
   $else:
     $if err:
@@ -20,18 +20,18 @@ $var title: $("Forgot Your Email?")
     <form class="forgot-email-form"  action="/account/email/forgot-ia" method="POST">
       <div class="form-row">
 	<div>
-	  <label>Open Library Email</label>
+	  <label>$_('Open Library Email')</label>
 	</div>
 	<input type="text" name="email"/>
       </div>
       <div class="form-row">
 	<div>
-	  <label>Password</label>
+	  <label>$_('Password')</label>
 	</div>
 	<input type="password" name="password"/>
       </div>
       <div>
-	<input type="submit" value="Retrieve Archive.org Email"/>
+	<input type="submit" value="$_('Retrieve Archive.org Email')"/>
       </div>
       <div class="formElement">
         <div class="label"></div>

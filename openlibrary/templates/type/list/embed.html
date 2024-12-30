@@ -2,22 +2,24 @@ $def with (list)
 
 $var title: $list.name
 
-$putctx('bodyid', 'form')
+$putctx('cssfile', 'form')
+$putctx("show_ol_shell", False)
 
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 10
 
 $def render_seed_count(seed_count):
-    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
+    $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
         <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
 
         $ owner = list.get_owner()
-        <a href="$owner.key">$owner.displayname</a>
-        /
-        <a href="$owner.key/lists">$_('Lists')</a>
+        $if owner:
+            <a href="$owner.key">$owner.displayname</a>
+            /
+            <a href="$owner.key/lists">$_('Lists')</a>
     </div>
     <h1>
         $list.name
@@ -45,7 +47,6 @@ $def render_seed_count(seed_count):
             <span class="image">
                 <a href="$seed.url"><img src="$cover_url" height="70"/></a>
             </span>
-            <span class="seed-key hidden">$seed.key</span>
             <div class="details">
                 <div class="resultTitle">
                     $if seed.type in ['edition', 'work']:
@@ -89,20 +90,7 @@ $def render_seed_count(seed_count):
                                 $ authors = seed.document.get_authors()
                         <span class="small">$:_('by %(name)s', name=render_authors(authors))</span>
                     <span class="meta">
-                    $if seed.type == "author":
-                        <span class="type author small">$seed.type</span>
-                    $elif seed.type == "work" or seed.type == "edition":
-                        <span class="type book small">$seed.type</span>
-                    $elif seed.type == "subject":
-                        <span class="type subject small">$seed.type</span>
-                    $elif seed.type == "place":
-                        <span class="type place small">$seed.type</span>
-                    $elif seed.type == "person":
-                        <span class="type people small">$seed.type</span>
-                    $elif seed.type == "work":
-                        $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count,  count=commify(seed.edition_count))$cond(seed.ebook_count, ",")
-                    $else:
-                        $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))$cond(seed.ebook_count, ",")
+                        <span class="type $seed.type small">$seed.type</span>
                     </span>
                 </div>
             </div>
@@ -112,5 +100,4 @@ $def render_seed_count(seed_count):
     <div class="clearfix"></div>
     $:macros.Pager(page+1, len(list.seeds), page_size)
 </div>
-
 

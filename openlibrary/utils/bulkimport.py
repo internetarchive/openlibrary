@@ -1,15 +1,13 @@
 """Utility to bulk import documents into Open Library database without
 going through infobase API.
 """
-from __future__ import print_function
 
-import os
-import web
 import datetime
-import simplejson
+import json
+import os
 from collections import defaultdict
 
-import six
+import web
 
 
 class DocumentLoader:
@@ -29,23 +27,27 @@ class DocumentLoader:
         that sequence and returns list of n numbers.
         """
         rows = self.db.query(
-            "SELECT setval($seqname, $n + (select last_value from %s)) as value" % seqname,
-            vars=locals())
-        end = rows[0].value + 1 # lastval is inclusive
+            "SELECT setval($seqname, $n + (select last_value from %s)) as value"
+            % seqname,
+            vars=locals(),
+        )
+        end = rows[0].value + 1  # lastval is inclusive
         begin = end - n
         return range(begin, end)
 
     def get_thing_ids(self, keys):
         keys = list(set(keys))
-        rows = self.db.query("SELECT id, key FROM thing WHERE key in $keys", vars=locals())
-        return dict((r.key, r.id) for r in rows)
+        rows = self.db.query(
+            "SELECT id, key FROM thing WHERE key in $keys", vars=locals()
+        )
+        return {r.key: r.id for r in rows}
 
     def get_thing_id(self, key):
         return self.get_thing_ids([key]).get(key)
 
     def _with_transaction(f):
-        """Decorator to run a method in a transaction.
-        """
+        """Decorator to run a method in a transaction."""
+
         def g(self, *a, **kw):
             t = self.db.transaction()
             try:
@@ -56,6 +58,7 @@ class DocumentLoader:
             else:
                 t.commit()
             return value
+
         return g
 
     def bulk_new(self, documents, author="/user/ImportBot", comment=None):
@@ -72,17 +75,21 @@ class DocumentLoader:
         """
         return self._bulk_new(documents, author, comment)
 
-    @_with_transaction
+    @_with_transaction  # type: ignore[arg-type]
     def _bulk_new(self, documents, author, comment):
         timestamp = datetime.datetime.utcnow()
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
 
         # insert things
-        things = [dict(key=doc['key'],
-                       type=type_ids[doc['type']['key']],
-                       created=timestamp,
-                       last_modified=timestamp)
-                  for doc in documents]
+        things = [
+            {
+                'key': doc['key'],
+                'type': type_ids[doc['type']['key']],
+                'created': timestamp,
+                'last_modified': timestamp,
+            }
+            for doc in documents
+        ]
         thing_ids = self.db.multiple_insert('thing', things)
 
         # prepare documents
@@ -95,7 +102,9 @@ class DocumentLoader:
             doc['last_modified'] = created
 
         # insert data
-        return self._insert_data(documents, author=author, timestamp=timestamp, comment=comment)
+        return self._insert_data(
+            documents, author=author, timestamp=timestamp, comment=comment
+        )
 
     def _insert_data(self, documents, author, timestamp, comment, ip="127.0.0.1"):
         """Add entries in transaction and version tables for inseting
@@ -107,29 +116,42 @@ class DocumentLoader:
         author_id = author and self.get_thing_id(author)
 
         # add an entry in the transaction table
-        txn_id = self.db.insert('transaction',
-                                action="import",
-                                comment=comment,
-                                author_id=author_id,
-                                created=timestamp,
-                                ip=ip)
+        txn_id = self.db.insert(
+            'transaction',
+            action="import",
+            comment=comment,
+            author_id=author_id,
+            created=timestamp,
+            ip=ip,
+        )
 
         # add versions
-        versions = [dict(transaction_id=txn_id,
-                         thing_id=doc['id'],
-                         revision=doc['revision'])
-                    for doc in documents]
+        versions = [
+            {
+                'transaction_id': txn_id,
+                'thing_id': doc['id'],
+                'revision': doc['revision'],
+            }
+            for doc in documents
+        ]
         self.db.multiple_insert('version', versions, seqname=False)
 
-        result = [{'key': doc['key'], 'revision': doc['revision'], 'id': doc['id']} for doc in documents]
+        result = [
+            {'key': doc['key'], 'revision': doc['revision'], 'id': doc['id']}
+            for doc in documents
+        ]
 
         # insert data
         data = []
         for doc in documents:
             try:
-                data.append(dict(thing_id=doc.pop('id'),
-                                 revision=doc['revision'],
-                                 data=simplejson.dumps(doc)))
+                data.append(
+                    {
+                        'thing_id': doc.pop('id'),
+                        'revision': doc['revision'],
+                        'data': json.dumps(doc),
+                    }
+                )
             except UnicodeDecodeError:
                 print(repr(doc))
                 raise
@@ -153,7 +175,7 @@ class DocumentLoader:
             {'key': '/b/OL1M', 'title': 'New title'}],
             comment="unicode normalize titles")
 
-        When append new value to an existing property, entire list must be provied.
+        When append new value to an existing property, entire list must be provided.
 
         db.bulk_update([{
                 'key': '/a/OL1A',
@@ -164,43 +186,51 @@ class DocumentLoader:
         """
         return self._bulk_update(documents, author, comment)
 
-    @_with_transaction
+    @_with_transaction  # type: ignore[arg-type]
     def _bulk_update(self, documents, author, comment):
         timestamp = datetime.datetime.utcnow()
 
         keys = [doc['key'] for doc in documents]
 
         # update latest_revision and last_modified in thing table
-        self.db.query("UPDATE thing" +
-                      " SET last_modified=$timestamp, latest_revision=latest_revision+1" +
-                      " WHERE key IN $keys",
-                      vars=locals())
+        self.db.query(
+            "UPDATE thing"
+            " SET last_modified=$timestamp, latest_revision=latest_revision+1"
+            " WHERE key IN $keys",
+            vars=locals(),
+        )
 
         # fetch the current data
-        rows = self.db.query("SELECT thing.id, thing.key, thing.created, thing.latest_revision, data.data" +
-                             " FROM thing, data" +
-                             " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
-                             vars=locals())
+        rows = self.db.query(
+            "SELECT thing.id, thing.key, thing.created, thing.latest_revision, data.data"
+            " FROM thing, data"
+            " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
+            vars=locals(),
+        )
 
-        rows = dict((r.key, r) for r in rows)
+        rows = {r.key: r for r in rows}
         last_modified = {'type': '/type/datetime', 'value': timestamp.isoformat()}
+
         def prepare(doc):
             """Takes the existing document from db, update it with doc
             and add revision, latest_revision, last_modified
             properties.
             """
             r = rows[doc['key']]
-            d = simplejson.loads(r.data)
-            d.update(doc,
-                     revision=r.latest_revision,
-                     latest_revision=r.latest_revision,
-                     last_modified=last_modified,
-                     id=r.id)
+            d = json.loads(r.data)
+            d.update(
+                doc,
+                revision=r.latest_revision,
+                latest_revision=r.latest_revision,
+                last_modified=last_modified,
+                id=r.id,
+            )
             return d
 
         documents = [prepare(doc) for doc in documents]
-        return self._insert_data(documents, author=author, timestamp=timestamp, comment=comment)
-
+        return self._insert_data(
+            documents, author=author, timestamp=timestamp, comment=comment
+        )
 
     def reindex(self, keys, tables=None):
         """Delete existing entries and add new entries to xxx_str,
@@ -213,17 +243,28 @@ class DocumentLoader:
     # this is not required anymore
     del _with_transaction
 
+
 class Reindexer:
     """Utility to reindex documents."""
+
     def __init__(self, db):
         self.db = db
 
         import openlibrary.plugins.openlibrary.schema
+
         self.schema = openlibrary.plugins.openlibrary.schema.get_schema()
-        self.noindex = set(["id", "key", "type", "type_id",
-                       "revision", "latest_revision",
-                       "created", "last_modified",
-                       "permission", "child_permission"])
+        self.noindex = {
+            "id",
+            "key",
+            "type",
+            "type_id",
+            "revision",
+            "latest_revision",
+            "created",
+            "last_modified",
+            "permission",
+            "child_permission",
+        }
         self._property_cache = {}
 
     def reindex(self, keys, tables=None):
@@ -244,23 +285,25 @@ class Reindexer:
             t.commit()
 
     def get_documents(self, keys):
-        """Get documents with given keys from database and add "id" and "type_id" to them.
-        """
-        rows = self.db.query("SELECT thing.id, thing.type, data.data" +
-                             " FROM thing, data" +
-                             " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
-                             vars=locals())
+        """Get documents with given keys from database and add "id" and "type_id" to them."""
+        rows = self.db.query(
+            "SELECT thing.id, thing.type, data.data"
+            " FROM thing, data"
+            " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
+            vars=locals(),
+        )
 
-        documents = [dict(simplejson.loads(row.data),
-                          id=row.id,
-                          type_id=row.type)
-                     for row in rows]
+        documents = [
+            dict(json.loads(row.data), id=row.id, type_id=row.type) for row in rows
+        ]
         return documents
 
     def delete_earlier_index(self, documents, tables=None):
         """Remove all previous entries corresponding to the given documents"""
-        all_tables = tables or set(r.relname for r in self.db.query(
-                "SELECT relname FROM pg_class WHERE relkind='r'"))
+        all_tables = tables or {
+            r.relname
+            for r in self.db.query("SELECT relname FROM pg_class WHERE relkind='r'")
+        }
 
         data = defaultdict(list)
         for doc in documents:
@@ -268,7 +311,7 @@ class Reindexer:
                 if table in all_tables:
                     data[table].append(doc['id'])
 
-        for table, thing_ids in data.items():
+        for table in data:
             self.db.delete(table, where="thing_id IN $thing_ids", vars=locals())
 
     def create_new_index(self, documents, tables=None):
@@ -277,24 +320,40 @@ class Reindexer:
 
         def insert(doc, name, value, ordering=None):
             # these are present in thing table. No need to index these keys
-            if name in ["id", "type", "created", "last_modified", "permission", "child_permission"]:
+            if name in [
+                "id",
+                "type",
+                "created",
+                "last_modified",
+                "permission",
+                "child_permission",
+            ]:
                 return
             if isinstance(value, list):
                 for i, v in enumerate(value):
                     insert(doc, name, v, ordering=i)
             elif isinstance(value, dict) and 'key' not in value:
                 for k, v in value.items():
-                    if k == "type": # no need to index type
+                    if k == "type":  # no need to index type
                         continue
                     insert(doc, name + '.' + k, v, ordering=ordering)
             else:
                 datatype = self._find_datatype(value)
-                table = datatype and self.schema.find_table(doc['type']['key'], datatype, name)
+                table = datatype and self.schema.find_table(
+                    doc['type']['key'], datatype, name
+                )
                 # when asked to index only some tables
                 if tables and table not in tables:
                     return
                 if table:
-                    self.prepare_insert(data[table], doc['id'], doc['type_id'], name, value, ordering=ordering)
+                    self.prepare_insert(
+                        data[table],
+                        doc['id'],
+                        doc['type_id'],
+                        name,
+                        value,
+                        ordering=ordering,
+                    )
 
         for doc in documents:
             for name, value in doc.items():
@@ -307,14 +366,15 @@ class Reindexer:
         for table, rows in data.items():
             self.db.multiple_insert(table, rows, seqname=False)
 
-
     def get_property_id(self, type_id, name):
         if (type_id, name) not in self._property_cache:
             self._property_cache[type_id, name] = self._get_property_id(type_id, name)
         return self._property_cache[type_id, name]
 
     def _get_property_id(self, type_id, name):
-        d = self.db.select('property', where='name=$name AND type=$type_id', vars=locals())
+        d = self.db.select(
+            'property', where='name=$name AND type=$type_id', vars=locals()
+        )
         if d:
             return d[0].id
         else:
@@ -329,10 +389,13 @@ class Reindexer:
                 self.prepare_insert(rows, thing_id, type_id, name, v, ordering=i)
         else:
             rows.append(
-                dict(thing_id=thing_id,
-                     key_id=self.get_property_id(type_id, name),
-                     value=value,
-                     ordering=ordering))
+                {
+                    'thing_id': thing_id,
+                    'key_id': self.get_property_id(type_id, name),
+                    'value': value,
+                    'ordering': ordering,
+                }
+            )
 
     def process_refs(self, data):
         """Convert key values to thing ids for xxx_ref tables."""
@@ -344,9 +407,12 @@ class Reindexer:
         if not keys:
             return
 
-        thing_ids = dict((r.key, r.id) for r in self.db.query(
-                "SELECT id, key FROM thing WHERE key in $keys",
-                vars=locals()))
+        thing_ids = {
+            r.key: r.id
+            for r in self.db.query(
+                "SELECT id, key FROM thing WHERE key in $keys", vars=locals()
+            )
+        }
 
         for table, rows in data.items():
             if table.endswith('_ref'):
@@ -371,7 +437,7 @@ class Reindexer:
         """
         if isinstance(value, int):
             return 'int'
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return 'str'
         elif isinstance(value, dict):
             if 'key' in value:
@@ -380,12 +446,13 @@ class Reindexer:
                 return {
                     '/type/int': 'int',
                     '/type/string': 'str',
-                    '/type/datetime': 'datetime'
+                    '/type/datetime': 'datetime',
                 }.get(value['type'])
         elif isinstance(value, list):
             return value and self._find_datatype(value[0])
         else:
-             return None
+            return None
+
 
 def _test():
     loader = DocumentLoader(db='ol')
@@ -393,15 +460,31 @@ def _test():
 
     n = 2
 
-    print(loader.bulk_new([dict(
-                key="/b/OL%dM" % i,
-                title="book %d" % i,
-                type={"key": "/type/edition"},
-                table_of_contents=[{"type": {"key": "/type/toc_item"}, "class": "part", "label": "test", "title": "test", "pagenum": "10"}])
-            for i in range(1, n+1)],
-        comment="add books"))
+    print(
+        loader.bulk_new(
+            [
+                {
+                    'key': "/b/OL%dM" % i,
+                    'title': "book %d" % i,
+                    'type': {"key": "/type/edition"},
+                    'table_of_contents': [
+                        {
+                            "type": {"key": "/type/toc_item"},
+                            "class": "part",
+                            "label": "test",
+                            "title": "test",
+                            "pagenum": "10",
+                        }
+                    ],
+                }
+                for i in range(1, n + 1)
+            ],
+            comment="add books",
+        )
+    )
 
-    loader.reindex(["/b/OL%dM" % i for i in range(1, n+1)])
+    loader.reindex(["/b/OL%dM" % i for i in range(1, n + 1)])
+
 
 if __name__ == "__main__":
     _test()

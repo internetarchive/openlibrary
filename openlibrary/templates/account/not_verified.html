@@ -16,11 +16,11 @@ div.alert {
 
 <div id="contentBody">
 
-<div class="alert">The email address you signed up with needs to be verified.</div>
+<div class="alert">$_("The email address you signed up with needs to be verified.")</div>
 
-<p>When you created your account, we sent an email to $email that contained a link for you to verify your email address. We need you to click that link, please.</p>
+<p>$_("When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please.", email=email)</p>
 
-<p>If you can't find the email, just hit this button to send a fresh one:</p>
+<p>$_("If you can't find the email, just hit this button to send a fresh one:")</p>
 
 <form method="POST" class="olform">
     <input type="hidden" name="email" value="$email"/>
@@ -33,5 +33,5 @@ div.alert {
     </div>
 </form>
 
-<p>Thanks!</p>
+<p>$_("Thanks!")</p>
 </div>

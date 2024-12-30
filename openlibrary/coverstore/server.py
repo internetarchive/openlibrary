@@ -1,12 +1,13 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """coverstore server.
 """
 
 import sys
-import yaml
-import web
 
-from openlibrary.coverstore import config, code, archive
+import web
+import yaml
+
+from openlibrary.coverstore import archive, code, config
 from openlibrary.utils.sentry import Sentry
 
 
@@ -22,7 +23,9 @@ def runfcgi(func, addr=('localhost', 8000)):
 
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 
+
 web.wsgi.runfcgi = runfcgi
+
 
 def load_config(configfile):
     with open(configfile) as in_file:
@@ -34,8 +37,7 @@ def load_config(configfile):
         web.config.fastcgi = d['fastcgi']
 
 
-def setup(configfile):
-    # type: (str) -> None
+def setup(configfile: str) -> None:
     load_config(configfile)
 
     sentry = Sentry(getattr(config, 'sentry', {}))
@@ -52,6 +54,7 @@ def main(configfile, *args):
     else:
         sys.argv = [sys.argv[0]] + list(args)
         code.app.run()
+
 
 if __name__ == "__main__":
     main(*sys.argv[1:])

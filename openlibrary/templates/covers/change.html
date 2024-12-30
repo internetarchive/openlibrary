@@ -1,4 +1,4 @@
-$def with (doc, cover_selector=".bookCover img")
+$def with (doc, cover_selector=".bookCover img", imagesId=0)
 
 $# If user is not logged-in don't show add/manage link.
 $if not ctx.user:
@@ -8,115 +8,49 @@ $if not ctx.user:
 $if doc.type.key == '/type/author':
     $ add_url = doc.url('/add-photo')
     $ manage_url = doc.url('/manage-photos')
-    $ title = "Author Photos"
+    $ title = _('Author Photos')
     $if doc.get_photo():
-        $ change = "Manage Author Photos"
+        $ change = _('Manage Author Photos')
         $ size = "smaller"
     $else:
-        $ change = "Add Author Photo"
+        $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
     $ add_url = doc.url('/add-cover')
     $ manage_url = doc.url('/manage-covers')
-    $ title = "Book Covers"
+    $ title = _('Book Covers')
 
     $if doc.get_cover():
-        $ change = "Manage Covers"
+        $ change = _('Manage Covers')
         $ size = "smaller"
     $else:
-        $ change = "Add Cover Image"
+        $ change = _('Add Cover Image')
         $ size = "smallest"
 
-<script type="text/javascript">
-function update_image(image) {
-    var url;
-
-    $if doc.type.key in ["/type/edition", "/type/work", "/edit"]:
-        if (image) {
-            url = "$get_coverstore_url()/b/id/" + image + "-M.jpg";
-            // XXX-Anand: Fix this hack
-            // set url and show SRPCover  and hide SRPCoverBlank
-            \$("$cover_selector").attr('src', url)
-                .parents("div:first").show()
-                .next().hide();
-            \$("$cover_selector").attr('srcset', url)
-                .parents("div:first").show()
-                .next().hide();
-        }
-        else {
-            // hide SRPCover and show SRPCoverBlank
-            \$("$cover_selector")
-                .parents("div:first").hide()
-                .next().show();
-        }
-    $else:
-        if (image) {
-            url = "$get_coverstore_url()/a/id/" + image + "-M.jpg";
-        }
-        else {
-            url = "/images/icons/avatar_author-lg.png";
-        }
-        \$("$cover_selector").attr('src', url);
-}
-
-window.q.push(function(){
-    function add_iframe(selector, src) {
-        \$(selector)
-            .append('<iframe frameborder="0" height="450" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
-            .find('iframe')
-            .attr("src", src);
-    }
-
-    // Add iframes lazily when the popup is loaded.
-    // This avoids fetching the iframes along with main page.
-    \$('.coverPop')
-        .bind("click", function() {
-            // clear the content of #imagesAdd and #imagesManage before adding new
-            \$("#imagesAdd").html("");
-            \$("#imagesManage").html("");
-            $if doc.type.key == "/type/work":
-                \$('#imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
-            setTimeout(function() {
-                // add iframe to add images
-                add_iframe("#imagesAdd", "$:add_url");
-                // add iframe to manage images
-                add_iframe("#imagesManage", "$:manage_url");
-            }, 0);
-        })
-        .bind("cbox_cleanup", function(){
-            \$("#imagesAdd").html("");
-            \$("#imagesManage").html("");
-        });
-    // Add function to close throbber
-    closeThrobber = function() {\$(".throbber").customFadeOut();};
-});
-//-->
-</script>
-
 <div class="$size sansserif manageCoversContainer hidden--nojs">
-  <a aria-controls="addImage" class="coverPop dialog--open">
-    <div class="manageCovers">$change</div>
+  <a aria-controls="addImage-$imagesId" class="coverPop dialog--open">
+    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
   </a>
 </div>
 
 <div class="hidden">
-    <div class="floater" id="addImage">
+    <div class="floater" id="addImage-$imagesId">
         <div class="floaterHead">
             <h2>$title</h2>
             <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
 
-        <div id="tabsImages" class="tabs tabsPop">
+        <div id="tabsImages" class="ol-tabs tabsPop">
             <ul>
-                <li><a href="#imagesAdd">Add</a></li>
-                <li><a href="#imagesManage">Manage</a></li>
+                <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
+                <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
             </ul>
 
-            <div id="imagesAdd">
+            <div class="imagesAdd" id="imagesAdd-$imagesId">
                 $# add image iframe is added here when the popup is loaded
             </div>
 
-            <div id="imagesManage">
+            <div class="imagesManage" id="imagesManage-$imagesId">
                 $# manage images iframe is added here when the popup is loaded
             </div>
         </div>

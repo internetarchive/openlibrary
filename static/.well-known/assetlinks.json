@@ -1,0 +1,15 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "org.openlibrary.testing.twa",
+            "sha256_cert_fingerprints": [
+                "52:1E:4B:B9:94:C7:23:95:39:9A:32:68:0E:A5:2E:77:D5:63:13:0F:3B:84:E9:62:D8:0D:F0:7B:91:6E:E5:FD",
+                "FC:08:8A:12:69:3C:71:6A:3A:FC:26:36:FC:8B:BC:38:D6:49:85:59:F9:66:AE:4F:FD:3F:E8:CA:F9:B7:EB:25"
+            ]
+        }
+    }
+]

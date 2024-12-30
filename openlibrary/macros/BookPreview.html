@@ -1,10 +1,12 @@
-$def with (ocaid)
+$def with (ocaid, analytics_attr, show_only=False)
 $# :param str ocaid:
 
-<a class="cta-btn cta-btn--shell cta-btn--preview"
-   data-iframe-src="https://archive.org/stream/$ocaid?wrapper=false"
-   data-iframe-link="https://archive.org/details/$ocaid"
-   data-ol-link-track="CTAClick|Preview" href="#bookPreview">$_('Preview')</a>
+  <div class="cta-button-group">
+    <a class="cta-btn cta-btn--preview"
+      data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
+      data-iframe-link="https://archive.org/details/$ocaid"
+      $:analytics_attr('Preview') href="#bookPreview">$(_('Preview Only') if show_only else _('Preview'))</a>
+  </div>
 
 $if render_once('book-preview-floater'):
   <div class="hidden">
@@ -12,18 +14,16 @@ $if render_once('book-preview-floater'):
       <div class="book-preview">
         <div class="floaterHead">
           <h2>$_('Preview Book')</h2>
-          <a class="dialog--close" data-key="book_preview"
-             title="$_('Close')">&times;<span class="shift">$_("Close")</span></a>
+          <a class="dialog--close" data-key="book_preview">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <div class="iframe-container">
           <iframe style="width:100%; height:515px"></iframe>
-        </div>
-        <p class="learn-more">
-          <a data-key="book_preview_learn_more"
+          <p class="learn-more">
+            <a data-key="book_preview_learn_more"
              data-ol-link-track="book_preview_learn_more">
-            $_("See more about this book on Archive.org")
-          </a>
-        </p>
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   </div>

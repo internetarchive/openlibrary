@@ -12,6 +12,7 @@ the javascript markdown editor used in OL.
 """
 
 import re
+
 from infogami.utils.markdown import markdown
 from openlibrary.core import helpers as h
 
@@ -22,27 +23,36 @@ AUTOLINK_RE = r'''(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-
 
 LINK_REFERENCE_RE = re.compile(r' *\[[^\[\] ]*\] *:')
 
+
 class LineBreaksPreprocessor(markdown.Preprocessor):
-    def run(self, lines) :
-        for i in range(len(lines)-1):
+    def run(self, lines):
+        for i in range(len(lines) - 1):
             # append <br/> to all lines expect blank lines and the line before blankline.
-            if (lines[i].strip() and lines[i+1].strip()
+            if (
+                lines[i].strip()
+                and lines[i + 1].strip()
                 and not markdown.RE.regExp['tabbed'].match(lines[i])
-                and not LINK_REFERENCE_RE.match(lines[i])):
+                and not LINK_REFERENCE_RE.match(lines[i])
+            ):
                 lines[i] += "<br />"
         return lines
 
+
 LINE_BREAKS_PREPROCESSOR = LineBreaksPreprocessor()
+
 
 class AutolinkPreprocessor(markdown.Preprocessor):
     rx = re.compile(AUTOLINK_RE)
+
     def run(self, lines):
         for i in range(len(lines)):
             if not markdown.RE.regExp['tabbed'].match(lines[i]):
                 lines[i] = self.rx.sub(r'\1<\2>', lines[i])
         return lines
 
+
 AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
+
 
 class OLMarkdown(markdown.Markdown):
     """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
@@ -54,13 +64,16 @@ class OLMarkdown(markdown.Markdown):
     * URLs are autolinked
     * generated HTML is sanitized
     """
+
     def __init__(self, *a, **kw):
         markdown.Markdown.__init__(self, *a, **kw)
         self._patch()
 
     def _patch(self):
         patterns = self.inlinePatterns
-        autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace('http', 'https?'))
+        autolink = markdown.AutolinkPattern(
+            markdown.AUTOLINK_RE.replace('http', 'https?')
+        )
         patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
         p = self.preprocessors
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
