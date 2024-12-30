@@ -5,25 +5,23 @@ const DEFAULT_LENGTH = 3;
 const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
-    var rowCount;
-    let currentLength;
-
-    $('#editions th.title').on('mouseover', function () {
+    
+    $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title', 'Sort latest to earliest');
+            $(this).attr('title','Sort latest to earliest');
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title', 'Sort earliest to latest');
+            $(this).attr('title','Sort earliest to latest');
         } else {
-            $(this).attr('title', 'Sort by publish date');
+            $(this).attr('title','Sort by publish date');
         }
     });
-    $('#editions th.read').on('mouseover', function () {
+    $('#editions th.read').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title', 'Push readable versions to the bottom');
+            $(this).attr('title','Push readable versions to the bottom');
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title', 'Sort by editions to read');
+            $(this).attr('title','Sort by editions to read');
         } else {
-            $(this).attr('title', 'Available to read');
+            $(this).attr('title','Available to read');
         }
     });
 
@@ -38,43 +36,44 @@ export function initEditionsTable() {
     }
 
     $('#editions th.read span').html('&nbsp;&uarr;');
-    $('#editions th').on('mouseup', function () {
-        toggleSorting(this);
+    $('#editions th').on('mouseup', function() {
+        toggleSorting(this)
     });
 
-    $('#editions').on('length.dt', function (e, settings, length) {
-        localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
+    $('#editions').on('length.dt', function(e, settings, length) {
         togglePaginationVisibility(length);
+        localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
-    $('#editions th').on('keydown', function (e) {
+    $('#editions th').on('keydown', function(e) {
         if (e.key === 'Enter') {
             toggleSorting(this);
         }
-    });
+    })
 
-    rowCount = $('#editions tbody tr').length;
-    currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
+   var rowCount = $('#editions tbody tr').length;
+   let currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
 
-    const dataTable = $('#editions').DataTable({
+    $('#editions').DataTable({
         aoColumns: [{ sType: 'html' }, null],
         order: [[1, 'asc']],
         lengthMenu: [[3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All']],
-        bPaginate: rowCount > currentLength ,
+        bPaginate: true, // Always allow pagination initially
         bInfo: true,
         sPaginationType: 'full_numbers',
         bFilter: true,
         bStateSave: false,
         bAutoWidth: false,
-        pageLength: currentLength
+        pageLength: currentLength,
     });
 
     // Toggle pagination visibility based on row count and selected length
     function togglePaginationVisibility(selectedLength) {
+        const paginationElement = $('.dataTables_paginate.paging_full_numbers');
         if (rowCount <= selectedLength || selectedLength === -1) {
-            $('.dataTables_paginate').hide();
+            paginationElement.hide();
         } else {
-            $('.dataTables_paginate').show();
+            paginationElement.show();
         }
     }
 
