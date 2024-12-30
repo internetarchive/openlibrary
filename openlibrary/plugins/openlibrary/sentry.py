@@ -1,5 +1,6 @@
 import infogami
 from infogami.utils import delegate
+
 from openlibrary.utils.sentry import InfogamiSentryProcessor, Sentry
 
 sentry: Sentry | None = None

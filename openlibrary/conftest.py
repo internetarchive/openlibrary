@@ -3,10 +3,10 @@
 
 import pytest
 import web
-
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
+
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext
 from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401 side effects may be needed
@@ -88,25 +88,18 @@ def render_template(request):
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    def undo():
-        ol_infobase.init_plugin = init_plugin
-
-    request.addfinalizer(undo)
-
     from openlibrary.plugins.openlibrary import code
 
     web.config.db_parameters = {}
     code.setup_template_globals()
-
-    def finalizer():
-        template.disktemplates.clear()
-        web.ctx.clear()
-
-    request.addfinalizer(finalizer)
 
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
         d = infobase_render_template(name, *a, **kw)
         return str(d) if as_string else d
 
-    return render
+    yield render
+
+    ol_infobase.init_plugin = init_plugin
+    template.disktemplates.clear()
+    web.ctx.clear()

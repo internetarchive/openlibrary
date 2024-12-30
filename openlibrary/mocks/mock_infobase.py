@@ -9,10 +9,10 @@ from datetime import datetime
 
 import pytest
 import web
-
 from infogami import config
 from infogami.infobase import account, client, common
 from infogami.infobase import config as infobase_config
+
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
 
@@ -446,10 +446,8 @@ def mock_site(request):
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
 
-    def undo():
-        web.ctx.clear()
-        web.ctx.update(old_ctx)
+    yield site
 
-    request.addfinalizer(undo)
-
-    return site
+    # cleanup after the test, restoring the context
+    web.ctx.clear()
+    web.ctx.update(old_ctx)

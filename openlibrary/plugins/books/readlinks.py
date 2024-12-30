@@ -8,10 +8,10 @@ import sys
 
 import requests
 import web
-
 from infogami import config
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
+
 from openlibrary.api import OpenLibrary  # noqa: F401 side effects may be needed
 from openlibrary.core import helpers, ia
 from openlibrary.plugins.books import dynlinks
