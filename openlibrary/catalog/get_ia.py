@@ -2,9 +2,9 @@ from time import sleep
 
 import lxml.etree
 import requests
-from infogami import config
 from lxml import etree
 
+from infogami import config
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.core import ia

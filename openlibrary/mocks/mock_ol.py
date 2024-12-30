@@ -2,6 +2,7 @@ import re
 
 import pytest
 import web
+
 from infogami import config
 from infogami.utils import delegate
 
