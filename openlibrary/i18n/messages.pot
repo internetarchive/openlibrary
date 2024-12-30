@@ -6568,6 +6568,13 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid ""
 "This edition doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
