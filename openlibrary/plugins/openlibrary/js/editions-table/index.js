@@ -6,7 +6,7 @@ const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
     var rowCount;
-    
+
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -52,8 +52,8 @@ export function initEditionsTable() {
         }
     })
 
-   rowCount = $('#editions tbody tr').length;
-   let currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
+    rowCount = $('#editions tbody tr').length;
+    const currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
 
     $('#editions').DataTable({
         aoColumns: [{ sType: 'html' }, null],
