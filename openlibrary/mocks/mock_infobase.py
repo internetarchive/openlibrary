@@ -448,6 +448,5 @@ def mock_site(request):
 
     yield site
 
-    # cleanup after the test, restoring the context
     web.ctx.clear()
     web.ctx.update(old_ctx)
