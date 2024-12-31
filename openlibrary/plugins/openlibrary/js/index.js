@@ -302,7 +302,7 @@ jQuery(function () {
             .then(module => {
                 module.initAddBookImport();
                 module.trimInputValues();
-            });  
+            });
     }
 
     if (document.getElementById('autofill-dev-credentials')) {

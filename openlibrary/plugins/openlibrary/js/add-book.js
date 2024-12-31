@@ -27,7 +27,7 @@ export function initAddBookImport () {
         $('input#work').val('none-of-these');
         addBookForm.trigger('submit');
     });
-    console.log("???")
+    console.log('???')
 
     invalidChecksum = i18nStrings.invalid_checksum;
     invalidIsbn10 = i18nStrings.invalid_isbn10;
