@@ -57,7 +57,7 @@ async def update_keys(
     output_file=None,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-    data_provider=DataProvider(),
+    data_provider = DataProvider | None = Node,
 ) -> SolrUpdateRequest:
     """
     Insert/update the documents with the provided keys in Solr.
