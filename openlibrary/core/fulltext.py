@@ -26,7 +26,6 @@ def fulltext_search_api(params):
         "x-application-id": "openlibrary",
         "x-search-request-context": config_fts_context,
     }
-    # Try adding s3 keys?
     if config_ia_ol_metadata_write_s3:
         headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
             **config_ia_ol_metadata_write_s3
