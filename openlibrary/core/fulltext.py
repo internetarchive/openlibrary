@@ -6,7 +6,11 @@ import requests
 import web
 
 from infogami import config
-from openlibrary.core.lending import config_fts_context, config_ia_ol_metadata_write_s3, get_availability_of_ocaids
+from openlibrary.core.lending import (
+    config_fts_context,
+    config_ia_ol_metadata_write_s3,
+    get_availability_of_ocaids,
+)
 from openlibrary.plugins.openlibrary.home import format_book_data
 
 logger = logging.getLogger("openlibrary.inside")
@@ -24,7 +28,9 @@ def fulltext_search_api(params):
     }
     # Try adding s3 keys?
     if config_ia_ol_metadata_write_s3:
-        headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+        headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
+            **config_ia_ol_metadata_write_s3
+        )
 
     logger.debug('URL: ' + search_select)
     try:
