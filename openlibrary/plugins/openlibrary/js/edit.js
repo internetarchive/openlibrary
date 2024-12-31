@@ -515,3 +515,12 @@ function isValidURL(url) {
         return false;
     }
 }
+
+export function trimInputValues() {
+    const inputs = document.querySelectorAll('.olform input');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            this.value = this.value.trim();
+        });
+    });
+}
