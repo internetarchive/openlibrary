@@ -6,7 +6,7 @@ import requests
 import web
 
 from infogami import config
-from openlibrary.core.lending import get_availability_of_ocaids, config_fts_context
+from openlibrary.core.lending import config_fts_context, get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
 
 logger = logging.getLogger("openlibrary.inside")
@@ -18,9 +18,7 @@ def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
     headers = {
-        "x-preferred-client-id": web.ctx.env.get(
-            'HTTP_X_FORWARDED_FOR', 'ol-internal'
-        ),
+        "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
         "x-application-id": "openlibrary",
         "x-search-request-context": config_fts_context,
     }

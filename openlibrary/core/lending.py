@@ -101,6 +101,7 @@ def setup(config):
     config_http_request_timeout = config.get('http_request_timeout')
     config_fts_context = config.get('fts_context')
 
+
 @public
 def compose_ia_url(
     limit: int | None = None,
