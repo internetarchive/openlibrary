@@ -34,7 +34,6 @@ class Client:
 def mock_memcache(request, monkeypatch):
     """This patches all the existing memcache connections to use mock memcache instance."""
     m = monkeypatch
-    request.addfinalizer(m.undo)
 
     mock_memcache = Client()
 
@@ -50,4 +49,6 @@ def mock_memcache(request, monkeypatch):
     m.setattr(memcache.Client, "set", proxy("set"))
     m.setattr(memcache.Client, "add", proxy("add"))
 
-    return mock_memcache
+    yield mock_memcache
+
+    m.undo()
