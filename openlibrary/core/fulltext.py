@@ -6,7 +6,7 @@ import requests
 import web
 
 from infogami import config
-from openlibrary.core.lending import get_availability_of_ocaids
+from openlibrary.core.lending import get_availability_of_ocaids, config_fts_context
 from openlibrary.plugins.openlibrary.home import format_book_data
 
 logger = logging.getLogger("openlibrary.inside")
@@ -17,10 +17,16 @@ def fulltext_search_api(params):
         return {'error': 'Unable to prepare search engine'}
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
-
+    headers = {
+        "x-preferred-client-id": web.ctx.env.get(
+            'HTTP_X_FORWARDED_FOR', 'ol-internal'
+        ),
+        "x-application-id": "openlibrary",
+        "x-search-request-context": config_fts_context,
+    }
     logger.debug('URL: ' + search_select)
     try:
-        response = requests.get(search_select, timeout=30)
+        response = requests.get(search_select, headers=headers, timeout=30)
         response.raise_for_status()
         return response.json()
     except requests.HTTPError:
