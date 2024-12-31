@@ -115,6 +115,7 @@ jQuery(function () {
             .then(module => {
                 if (edition) {
                     module.initEdit();
+                    module.trimInputValues();
                 }
                 if (addRowButton) {
                     module.initEditRow();
@@ -294,7 +295,10 @@ jQuery(function () {
 
     if (document.getElementById('addbook')) {
         import(/* webpackChunkName: "add-book" */ './add-book')
-            .then(module => module.initAddBookImport());
+            .then(module => {
+                module.initAddBookImport();
+                module.trimInputValues();
+            });
     }
 
     if (document.getElementById('autofill-dev-credentials')) {
