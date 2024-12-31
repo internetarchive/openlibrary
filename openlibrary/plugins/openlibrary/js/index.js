@@ -102,6 +102,7 @@ jQuery(function () {
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
+    const addWork = document.getElementById('addWork');
 
     // conditionally load for user edit page
     if (
@@ -109,7 +110,7 @@ jQuery(function () {
         autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
-        excerpts || links
+        excerpts || links || addWork
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -146,6 +147,10 @@ jQuery(function () {
                 if (autocompleteSeeds) {
                     module.initSeedsMultiInputAutocomplete();
                 }
+                if (addWork) {
+                    module.trimInputValues();
+                }
+
             });
     }
 
@@ -294,7 +299,10 @@ jQuery(function () {
 
     if (document.getElementById('addbook')) {
         import(/* webpackChunkName: "add-book" */ './add-book')
-            .then(module => module.initAddBookImport());
+            .then(module => {
+                module.initAddBookImport();
+                module.trimInputValues();
+            });  
     }
 
     if (document.getElementById('autofill-dev-credentials')) {

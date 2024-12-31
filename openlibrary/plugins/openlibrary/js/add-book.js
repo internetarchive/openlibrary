@@ -27,6 +27,7 @@ export function initAddBookImport () {
         $('input#work').val('none-of-these');
         addBookForm.trigger('submit');
     });
+    console.log("???")
 
     invalidChecksum = i18nStrings.invalid_checksum;
     invalidIsbn10 = i18nStrings.invalid_isbn10;
@@ -183,4 +184,14 @@ function validatePublishDate() {
     } else {
         errorDiv.classList.add('hidden');
     }
+}
+
+export function trimInputValues() {
+    const inputs = document.querySelectorAll('input');
+    console.log(inputs);
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            this.value = this.value.trim();
+        });
+    });
 }
