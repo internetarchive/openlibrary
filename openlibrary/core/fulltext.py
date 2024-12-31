@@ -13,7 +13,11 @@ logger = logging.getLogger("openlibrary.inside")
 
 
 def fulltext_search_api(params):
-    from openlibrary.core.lending import config_fts_context, config_ia_ol_metadata_write_s3
+    from openlibrary.core.lending import (
+        config_fts_context,
+        config_ia_ol_metadata_write_s3,
+    )
+
     if not hasattr(config, 'plugin_inside'):
         return {'error': 'Unable to prepare search engine'}
     search_endpoint = config.plugin_inside['search_endpoint']
