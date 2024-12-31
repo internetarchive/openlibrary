@@ -79,9 +79,6 @@
     background: @white;
     z-index: @z-index-level-5;
 
-    > li:last-child {
-      margin-right: 44px;
-    }
     /* stylelint-disable selector-max-specificity */
     li {
       display: inline-block;
@@ -116,6 +113,9 @@
     /* stylelint-enable max-nesting-depth */
     /* stylelint-enable selector-max-specificity */
   }
+}
+.nav-bar.work-menu> li:last-child {
+  margin-right: 44px;
 }
 
 .nav-bar-wrapper.sticky > .nav-bar{
