@@ -5,8 +5,8 @@ import re
 from datetime import datetime
 
 import web
-
 from infogami.core.code import logout as infogami_logout
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
@@ -103,12 +103,12 @@ class PreferenceProcessor:
             user = get_current_user()
             if not user:
                 # Must be logged in to see preferences
-                raise web.Unauthorized()
+                raise web.Unauthorized
 
             username = web.ctx.path.split('/')[2]
             if username != user.get_username() and not user.is_admin():
                 # Can only view preferences if page owner or admin
-                raise web.Forbidden()
+                raise web.Forbidden
 
         return handler()
 

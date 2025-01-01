@@ -25,7 +25,7 @@ class AbstractSolrUpdater:
         """
         :return: (update, new keys to update)
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class AbstractSolrBuilder:

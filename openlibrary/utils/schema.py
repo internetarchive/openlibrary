@@ -79,7 +79,7 @@ class AbstractAdapter:
         return self.constants[name]
 
     def quote(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class MockAdapter(AbstractAdapter):

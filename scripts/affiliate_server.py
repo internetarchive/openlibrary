@@ -48,11 +48,11 @@ from enum import Enum
 from typing import Any, Final
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+import infogami
 import requests
 import web
-
-import infogami
 from infogami import config
+
 from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem

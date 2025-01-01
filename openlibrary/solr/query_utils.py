@@ -21,7 +21,7 @@ def luqum_remove_child(child: Item, parents: list[Item]):
     parent = parents[-1] if parents else None
     if parent is None:
         # We cannot remove the element if it is the root of the tree
-        raise EmptyTreeError()
+        raise EmptyTreeError
     elif isinstance(parent, (BaseOperation, Group, Unary)):
         new_children = tuple(c for c in parent.children if c != child)
         if not new_children:
