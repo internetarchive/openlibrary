@@ -1,8 +1,8 @@
 # Translations template for Open Library.
-# Copyright (C) 2024 Internet Archive
+# Copyright (C) 2025 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
 #, fuzzy
 msgid ""
