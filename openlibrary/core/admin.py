@@ -156,13 +156,15 @@ def _get_count_docs(ndays):
 
 def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
-    docs = mock_get_stats() if use_mock_data else _get_count_docs(ndays)
+    if use_mock_data:
+        return mock_get_stats()
+    docs = _get_count_docs(ndays)
     return {
         'human_edits': Stats(docs, "human_edits", "human_edits"),
         'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
         'lists': Stats(docs, "lists", "total_lists"),
-        'visitors': Stats(docs, "visitors", "visitors"),
-        'loans': Stats(docs, "loans", "loans"),
+        'visitors': VisitorStats(docs, "visitors", "visitors"),
+        'loans': LoanStats(docs, "loans", "loans"),
         'members': Stats(docs, "members", "total_members"),
         'works': Stats(docs, "works", "total_works"),
         'editions': Stats(docs, "editions", "total_editions"),
@@ -198,4 +200,17 @@ def mock_get_stats():
         docs[x]["_key"] = (today - datetime.timedelta(days=x + 1)).strftime(
             'counts-%Y-%m-%d'
         )
-    return docs
+    return {
+        'human_edits': Stats(docs, "human_edits", "human_edits"),
+        'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
+        'lists': Stats(docs, "lists", "total_lists"),
+        'visitors': Stats(docs, "visitors", "visitors"),
+        'loans': Stats(docs, "loans", "loans"),
+        'members': Stats(docs, "members", "total_members"),
+        'works': Stats(docs, "works", "total_works"),
+        'editions': Stats(docs, "editions", "total_editions"),
+        'ebooks': Stats(docs, "ebooks", "total_ebooks"),
+        'covers': Stats(docs, "covers", "total_covers"),
+        'authors': Stats(docs, "authors", "total_authors"),
+        'subjects': Stats(docs, "subjects", "total_subjects"),
+    }
