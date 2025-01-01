@@ -657,7 +657,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html
+#: books/add.html showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -1736,10 +1736,12 @@ msgstr ""
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
 #: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
 #: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
 msgid "Lists"
 msgstr ""
 
 #: account/sidebar.html type/edition/view.html type/user/view.html
+#: type/work/view.html
 msgid "See All"
 msgstr ""
 
@@ -3775,7 +3777,7 @@ msgstr ""
 msgid "The name of the publisher's series."
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html
+#: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
 msgstr ""
 
@@ -3847,7 +3849,7 @@ msgstr ""
 msgid "Only if it's different from the work's description"
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html
+#: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Table of Contents"
 msgstr ""
 
@@ -3946,6 +3948,7 @@ msgid "Invalid ID format"
 msgstr ""
 
 #: books/edit/edition.html type/author/view.html type/edition/view.html
+#: type/work/view.html
 msgid "ID Numbers"
 msgstr ""
 
@@ -3965,7 +3968,7 @@ msgstr ""
 msgid "You need to give a value to CLASS."
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html
+#: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
 msgstr ""
 
@@ -3989,7 +3992,7 @@ msgstr ""
 msgid "Remove this classification"
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html
+#: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "The Physical Object"
 msgstr ""
 
@@ -4025,7 +4028,7 @@ msgstr ""
 msgid "How much does the book weigh?"
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html
+#: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Dimensions"
 msgstr ""
 
@@ -5741,6 +5744,7 @@ msgid "Publisher: %(name)s"
 msgstr ""
 
 #: publishers/view.html search/advancedsearch.html type/edition/view.html
+#: type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -6408,7 +6412,7 @@ msgstr ""
 msgid "Author Identifiers Purpose"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html
+#: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
 msgstr ""
@@ -6488,11 +6492,11 @@ msgstr ""
 msgid "Inventaire.io:"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html
+#: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html
+#: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Wikipedia"
 msgstr ""
 
@@ -6561,149 +6565,149 @@ msgstr ""
 msgid "First published in %s"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
 "This work doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
 "This edition doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Publish Date"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Language"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Pages"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "ISBNs"
 msgstr ""
 
-#: databarWork.html type/edition/view.html
+#: databarWork.html type/edition/view.html type/work/view.html
 msgid "Buy this book"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Book Details"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "First Sentence"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Published in"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Series"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Volume"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Genre"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Other Titles"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Translation Of"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Translated From"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "External Links"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Format"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Number of pages"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Weight"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Work Description"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Original languages"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Excerpts"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "added anonymously."
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "This work does not appear on any lists."
 msgstr ""
 
-#: type/edition/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Loading Related Books"
 msgstr ""
 
