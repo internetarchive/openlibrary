@@ -154,8 +154,10 @@ def _get_count_docs(ndays):
     return [d for d in docs if d]
 
 
-def get_stats(ndays=30):
+def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
+    if use_mock_data:
+        return mock_get_stats()
     docs = _get_count_docs(ndays)
     return {
         'human_edits': Stats(docs, "human_edits", "human_edits"),
@@ -163,6 +165,47 @@ def get_stats(ndays=30):
         'lists': Stats(docs, "lists", "total_lists"),
         'visitors': VisitorStats(docs, "visitors", "visitors"),
         'loans': LoanStats(docs, "loans", "loans"),
+        'members': Stats(docs, "members", "total_members"),
+        'works': Stats(docs, "works", "total_works"),
+        'editions': Stats(docs, "editions", "total_editions"),
+        'ebooks': Stats(docs, "ebooks", "total_ebooks"),
+        'covers': Stats(docs, "covers", "total_covers"),
+        'authors': Stats(docs, "authors", "total_authors"),
+        'subjects': Stats(docs, "subjects", "total_subjects"),
+    }
+
+
+def mock_get_stats():
+    keyNames = [
+        "human_edits",
+        "bot_edits",
+        "lists",
+        "visitors",
+        "loans",
+        "members",
+        "works",
+        "editions",
+        "ebooks",
+        "covers",
+        "authors",
+        "subjects",
+    ]
+    mockKeyValues = [[(1 + x) * y for x in range(len(keyNames))] for y in range(28)][
+        ::-1
+    ]
+
+    docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
+    today = datetime.date.today()
+    for x in range(28):
+        docs[x]["_key"] = (today - datetime.timedelta(days=x + 1)).strftime(
+            'counts-%Y-%m-%d'
+        )
+    return {
+        'human_edits': Stats(docs, "human_edits", "human_edits"),
+        'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
+        'lists': Stats(docs, "lists", "total_lists"),
+        'visitors': Stats(docs, "visitors", "visitors"),
+        'loans': Stats(docs, "loans", "loans"),
         'members': Stats(docs, "members", "total_members"),
         'works': Stats(docs, "works", "total_works"),
         'editions': Stats(docs, "editions", "total_editions"),
