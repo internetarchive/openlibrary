@@ -47,18 +47,19 @@ def get_solr_updaters() -> list[AbstractSolrUpdater]:
     ]
 
 
-def can_update_key(key: str, data_provider: DataProvider) -> bool:
+def can_update_key(key: str, data_provider: DataProvider | None = None) -> bool:
     return any(updater.key_test(key) for updater in get_solr_updaters())
 
 
 async def update_keys(
     keys: list[str],
-    commit=True,
-    output_file=None,
-    skip_id_check=False,
+    commit: bool =True,
+    output_file: str | None = None,
+    skip_id_check: bool =False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-    data_provider = DataProvider | None = Node,
+    data_provider: DataProvider| None = None
 ) -> SolrUpdateRequest:
+
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -69,8 +70,8 @@ async def update_keys(
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
     """
     logger.debug("BEGIN update_keys")
-
     def _solr_update(update_state: SolrUpdateRequest):
+
         if update == 'update':
             return solr_update(update_state, skip_id_check)
         elif update == 'pprint':
@@ -144,7 +145,7 @@ def load_configs(
     c_data_provider: (
         DataProvider | Literal["default", "legacy", "external"]
     ) = 'default',
-    data_provider: DataProvider = None,
+    data_provider: DataProvider | None = None,
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
