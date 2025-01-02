@@ -79,7 +79,8 @@ $jsdef render_subject_autocomplete_item(item):
             <input type="hidden" value="$edition_key" name="edition_key">
 
             <label for="comment">$_("Why?")</label>
-            <input name="comment" placeholder=$_("Comment") type="text" value="$default_comment">
+            <textarea name="comment" rows="3" placeholder=$_("Comment") cols="80">$default_comment</textarea>
+
             <button class="bestbook_submit" type="submit">$_("Submit")</button>
             $if users_work_read_status != 3:
               <div class="bestbook_warning">⚠️ $_("Awards may only be given to books you have already read. Submitting this award will mark this book as \"Already Read\"")
