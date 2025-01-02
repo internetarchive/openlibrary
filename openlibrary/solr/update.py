@@ -139,7 +139,7 @@ async def do_updates(keys):
     await update_keys(keys, commit=False)
 
 
-def load_configs(
+def load_configs( 
     c_host: str,
     c_config: str,
     c_data_provider: (
@@ -150,7 +150,8 @@ def load_configs(
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
 
-    load_config(c_config)
+    load_config(c_config) #noqa 
+    # db_parameters are not set, needs work!
 
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
