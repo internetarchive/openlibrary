@@ -53,13 +53,12 @@ def can_update_key(key: str, data_provider: DataProvider | None = None) -> bool:
 
 async def update_keys(
     keys: list[str],
-    commit: bool =True,
+    commit: bool = True,
     output_file: str | None = None,
-    skip_id_check: bool =False,
+    skip_id_check: bool = False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-    data_provider: DataProvider| None = None
+    data_provider: DataProvider | None = None,
 ) -> SolrUpdateRequest:
-
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -70,6 +69,7 @@ async def update_keys(
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
     """
     logger.debug("BEGIN update_keys")
+
     def _solr_update(update_state: SolrUpdateRequest):
 
         if update == 'update':
