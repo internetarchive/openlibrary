@@ -54,9 +54,9 @@ def can_update_key(key: str) -> bool:
 
 async def update_keys(
     keys: list[str],
-    commit = True,
+    commit=True,
     output_file: str = None,
-    skip_id_check= False,
+    skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
 ) -> SolrUpdateRequest:
     """
@@ -149,7 +149,7 @@ def load_configs(
     set_query_host(host)
 
     load_config(c_config)
-    
+
     global data_provider
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
