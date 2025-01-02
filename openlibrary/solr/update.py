@@ -37,6 +37,7 @@ data_provider = cast(DataProvider, None)
 
 @functools.cache
 def get_solr_updaters() -> list[AbstractSolrUpdater]:
+    global data_provider
     assert data_provider is not None
     return [
         # ORDER MATTERS
@@ -47,17 +48,16 @@ def get_solr_updaters() -> list[AbstractSolrUpdater]:
     ]
 
 
-def can_update_key(key: str, data_provider: DataProvider | None = None) -> bool:
+def can_update_key(key: str) -> bool:
     return any(updater.key_test(key) for updater in get_solr_updaters())
 
 
 async def update_keys(
     keys: list[str],
-    commit: bool = True,
-    output_file: str | None = None,
-    skip_id_check: bool = False,
+    commit = True,
+    output_file: str = None,
+    skip_id_check= False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-    data_provider: DataProvider | None = None,
 ) -> SolrUpdateRequest:
     """
     Insert/update the documents with the provided keys in Solr.
@@ -71,7 +71,6 @@ async def update_keys(
     logger.debug("BEGIN update_keys")
 
     def _solr_update(update_state: SolrUpdateRequest):
-
         if update == 'update':
             return solr_update(update_state, skip_id_check)
         elif update == 'pprint':
@@ -145,14 +144,13 @@ def load_configs(
     c_data_provider: (
         DataProvider | Literal["default", "legacy", "external"]
     ) = 'default',
-    data_provider: DataProvider | None = None,
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
 
     load_config(c_config)
-    # db_parameters are not set, needs work!
-
+    
+    global data_provider
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
             data_provider = c_data_provider
