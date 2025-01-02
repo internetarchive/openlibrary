@@ -47,3 +47,5 @@ jobs:
           file: "./docker/Dockerfile.olbase"
           tags: openlibrary/olbase:${{ github.ref_name }}
           push: true
+          build-args: |
+            CACHEBUST=${{ github.run_id }}
