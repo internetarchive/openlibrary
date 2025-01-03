@@ -4,6 +4,7 @@ db_parameters:
     engine: postgres
     database: openlibrary
     host: db
+    driver: psycopg
 
 account_bot: /people/AccountBot
 user_root: /people/
