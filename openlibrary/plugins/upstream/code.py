@@ -16,12 +16,15 @@ from infogami.plugins.api.code import request as infogami_request
 from infogami.utils import delegate
 from infogami.utils.context import context  # noqa: F401 side effects may be needed
 from infogami.utils.view import (
+    add_flash_message,
     public,
     render,
     render_template,  # used for its side effects
     safeint,
 )
-from openlibrary import accounts  # noqa: F401 side effects may be needed
+from openlibrary import accounts
+from openlibrary.core import bestbook as bestbook_model
+from openlibrary.core import bookshelves
 from openlibrary.plugins.upstream import (
     addbook,
     addtag,
@@ -36,6 +39,7 @@ from openlibrary.plugins.upstream import (
     utils,
 )  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.utils import extract_numeric_id_from_olid
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
@@ -71,6 +75,121 @@ class history(delegate.mode):
         for _, row in enumerate(history):
             row.pop("ip")
         return json.dumps(history)
+
+
+class bestbook(delegate.page):
+    path = r"/works/OL(\d+)W/awards"
+    encoding = "json"
+
+    @jsonapi
+    def POST(self, work_id) -> bool:
+        """Store Bestbook award
+
+        Args:
+            work_id (int): unique id for each book
+
+        Returns:
+            bool: returns true if award is stored
+        """
+
+        # get the user account
+        user = accounts.get_current_user()
+        i = web.input(edition_key=None, topic=None, comment=None, redir=False)
+
+        work_key = '/works/OL%sW' % work_id
+        key = i.edition_key if i.edition_key else work_key
+
+        edition_id = (
+            int(extract_numeric_id_from_olid(i.edition_key)) if i.edition_key else None
+        )
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+        read_status = bookshelves.Bookshelves.get_users_read_status_of_work(
+            username=username, work_id=work_id
+        )
+
+        existing = (
+            len(bestbook_model.Bestbook.get_awards(work_id=work_id, submitter=username))
+            > 0
+        )
+
+        def response(msg, status="success"):
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
+
+        if read_status != 3:
+            add_flash_message(
+                "error",
+                "You can award only if you have read the book",
+            )
+            raise web.seeother('%s' % key)
+
+        if i.topic is None:
+            bestbook_model.Bestbook.remove(username, work_id)
+            add_flash_message(
+                "success",
+                "Removed bestbook award!",
+            )
+            raise web.seeother('%s' % key)
+
+        elif bestbook_model.Bestbook.check_if_award_given(
+            submitter=username,
+            work_id=work_id,
+            topic=i.topic,
+        ):
+            r = response("You have already awarded the book!")
+        else:
+            if existing:
+                bestbook_model.Bestbook.remove(submitter=username, work_id=work_id)
+            bestbook_model.Bestbook.add(
+                submitter=username,
+                work_id=work_id,
+                edition_id=edition_id,
+                comment=i.comment,
+                topic=i.topic,
+            )
+            if not existing:
+                r = response('Awarded the book')
+            else:
+                r = response('Updated the bestbook award')
+                add_flash_message(
+                    "success",
+                    "Updated bestbook award!",
+                )
+                raise web.seeother('%s' % key)
+
+        return r
+
+
+class bestbook_count(delegate.page):
+    """API for award count"""
+
+    path = "/awards/count"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        filt = web.input(work_id=None, submitter=None, topic=None)
+        result = bestbook_model.Bestbook.get_count(
+            work_id=filt.work_id, submitter=filt.submitter, topic=filt.topic
+        )
+        return json.dumps({'count': result})
+
+
+class bestbook_leaderboard(delegate.page):
+    """API for bestbook leaderboard"""
+
+    path = "/awards/leaderboard"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        result = bestbook_model.Bestbook.get_leaderboard()
+        return json.dumps(result)
 
 
 class edit(core.edit):

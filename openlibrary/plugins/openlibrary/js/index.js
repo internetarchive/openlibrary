@@ -245,10 +245,11 @@ jQuery(function () {
     }
 
     const $observationModalLinks = $('.observations-modal-link');
+    const $bestbookModalLinks = $('.bestbook-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length || $bestbookModalLinks.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -262,6 +263,9 @@ jQuery(function () {
                 }
                 if ($shareModalLinks.length) {
                     module.initShareModal($shareModalLinks)
+                }
+                if ($bestbookModalLinks.length) {
+                    module.initBestbookModal($bestbookModalLinks)
                 }
             });
     }
