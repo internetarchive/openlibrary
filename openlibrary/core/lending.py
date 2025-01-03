@@ -227,7 +227,7 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
     if response.status_code in [400, 409]:
-        raise PatronAccessException()
+        raise PatronAccessException
     response.raise_for_status()
     return response
 
