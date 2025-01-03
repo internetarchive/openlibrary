@@ -117,12 +117,9 @@ class bestbook(delegate.page):
         if read_status != 3:
             add_flash_message(
                 "error",
-                "You can award only if you have read the book"
-                + str(read_status)
-                + str(username),
+                "You can award only if you have read the book",
             )
-            r = response('Only readers can award')
-            return r
+            raise web.seeother('%s' % key)
 
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
@@ -152,6 +149,11 @@ class bestbook(delegate.page):
                 r = response('Awarded the book')
             else:
                 r = response('Updated the bestbook award')
+                add_flash_message(
+                    "success",
+                    "Updated bestbook award!",
+                )
+                raise web.seeother('%s' % key)
 
         return r
 
@@ -169,6 +171,18 @@ class bestbook_count(delegate.page):
             work_id=filt.work_id, submitter=filt.submitter, topic=filt.topic
         )
         return json.dumps({'count': result})
+
+
+class bestbook_leaderboard(delegate.page):
+    """API for bestbook leaderboard"""
+
+    path = "/awards/leaderboard"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        result = bestbook_model.Bestbook.get_leaderboard()
+        return json.dumps(result)
 
 
 class edit(core.edit):

@@ -78,6 +78,26 @@ class Bestbook(db.CommonExtras):
         return list(result) if result else []
 
     @classmethod
+    def get_leaderboard(cls):
+        """Get the leaderboard of best books
+
+        Returns:
+            list: list of best books
+        """
+        oldb = db.get_db()
+        query = """
+            SELECT
+                work_id,
+                COUNT(*) AS count
+            FROM bestbooks
+            GROUP BY work_id
+            ORDER BY count DESC
+        """
+        result = oldb.query(query)
+        print(result)
+        return list(result) if result else []
+
+    @classmethod
     def check_if_award_given(cls, submitter, work_id=None, topic=None) -> bool:
         """This function checks if the award is already given to a book or topic by pattron
 

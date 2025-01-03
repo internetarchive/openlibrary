@@ -237,14 +237,13 @@ export function initBestbookModal($modalLinks)
                     }
                 } else {
                     this.hideTaggingMenu();
-                    new FadingToast('Subjects successfully updated.').show()
+                    new FadingToast('Couldn\'t Award').show()
                     this.submitButton.textContent = 'Submit';
                     this.updateFetchedSubjects();
                     this.resetTaggingMenu();
                 }
             })
 
-        console.log('Submit button clicked!');
         // Additional code here
     });
 
