@@ -7,13 +7,17 @@ The purpose of this file is to:
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 import requests
+import web
 
 from openlibrary.core import db
 from openlibrary.core.helpers import days_since
+from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("core.wikidata")
 
@@ -29,6 +33,25 @@ SOCIAL_PROFILE_CONFIGS = [
         "base_url": "https://scholar.google.com/citations?user=",
     }
 ]
+
+# The keys in this dict need to match their corresponding names in openlibrary/plugins/openlibrary/config/author/identifiers.yml
+# Ordered by what I assume is most (viaf) to least (amazon/youtube) reliable for author matching
+REMOTE_IDS = {
+    "viaf": "P214",
+    "isni": "P213",
+    "lc_naf": "P244",
+    "opac_sbn": "P396",
+    "project_gutenberg": "P1938",
+    "librivox": "P1899",
+    "bookbrainz": "P2607",
+    "musicbrainz": "P434",
+    "librarything": "P7400",
+    "goodreads": "P2963",
+    "storygraph": "P12430",
+    "imdb": "P345",
+    "amazon": "P4862",
+    "youtube": "P2397",
+}
 
 
 @dataclass
@@ -98,6 +121,33 @@ class WikidataEntity:
             )
         return profiles
 
+    def get_remote_ids(self) -> dict[str, Any]:
+        """
+        Get remote IDs like viaf, isni, etc.
+
+        Returns:
+            Dict containing identifier names as keys and lists of corresponding values
+        """
+        remote_ids = {}
+
+        for service, id in REMOTE_IDS.items():
+            values = self._get_statement_values(id)
+            remote_ids[service] = values
+        return remote_ids
+
+    def get_openlibrary_id(self) -> str | None:
+        """
+        Get open library ID of WD item. Mostly used to validate connection between WD item and OL thing
+
+        Returns:
+            OL ID, if it exists
+        """
+        res = self._get_statement_values("P648")
+        if len(res) > 0:
+            return min(res, key=extract_numeric_id_from_olid)
+
+        return None
+
     def _get_wiki_profiles(self, language: str) -> list[dict]:
         """
         Get formatted Wikipedia and Wikidata profile data for rendering.
@@ -160,6 +210,38 @@ class WikidataEntity:
             for statement in self.statements[property_id]
             if "value" in statement and "content" in statement["value"]
         ]
+
+    # can this move into author def'n?
+    def consolidate_remote_author_ids(self) -> None:
+        output = {"wikidata": self.id}
+        ol_id = self.get_openlibrary_id()
+        if ol_id is None or not re.fullmatch(r"^OL\d+A$", ol_id):
+            return
+
+        key = "/authors/" + ol_id
+        q = {"type": "/type/author", "key~": key}
+        reply = list(web.ctx.site.things(q))
+        authors = [web.ctx.site.get(k) for k in reply]
+        if len(authors) != 1:
+            # There should never, ever be len(authors) > 1, because that would imply two OL author entities have the same OL ID.
+            return
+        author = authors[0]
+        if author.wikidata() is not None and author.wikidata().id != self.id:
+            # TODO: Flag this to librarians. This means the OL entity identified by the Wikidata JSON has a different Wikidata ID than the JSON expects.
+            return
+        wd_remote_ids: dict[str, str] = {
+            key: value[0] for key, value in self.get_remote_ids().items() if value != []
+        }
+
+        # Verify that the author's IDs are not significantly different.
+        output, matches = author.merge_remote_ids(wd_remote_ids)
+
+        # save if there are new identifiers to save
+        if matches >= 0:
+            author.remote_ids = output
+            web.ctx.site.save(
+                query={**author, "key": key, "type": {"key": "/type/author"}}
+            )
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:
@@ -228,6 +310,11 @@ def _add_to_cache(entity: WikidataEntity) -> None:
     # TODO: after we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
     json_data = entity.to_wikidata_api_json_format()
+    ol_id = entity.get_openlibrary_id()
+
+    # here, we should write WD data to author remote ids
+    if ol_id is not None and re.fullmatch(r"^OL\d+A$", ol_id):
+        entity.consolidate_remote_author_ids()
 
     if _get_from_cache(entity.id):
         return oldb.update(
