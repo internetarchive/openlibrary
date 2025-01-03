@@ -27,7 +27,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages">
       $for flash in get_flash_messages():
-        <div class="$flash.type"><span>$flash.message</span></div>
+        <div class="$flash.type"><span>$:flash.message</span></div>
       </div>
       $# Announcement banner will only be rendered if announcement and storage_key variables are set.
       $# Be sure to escape any single quotes inside of the announcement HTML string.
