@@ -126,7 +126,11 @@ class bestbook(delegate.page):
 
         if i.topic is None:
             bestbook_model.Bestbook.remove(username, work_id)
-            r = response('Removed award')
+            add_flash_message(
+                "success",
+                "Removed bestbook award!",
+            )
+            raise web.seeother('%s' % key)
 
         elif bestbook_model.Bestbook.check_if_award_given(
             submitter=username,
