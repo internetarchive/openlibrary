@@ -2,7 +2,7 @@ import datetime
 import json
 from sqlite3 import IntegrityError
 
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
 
 from infogami.utils.view import public
 from openlibrary.core import cache
