@@ -29,6 +29,6 @@ lccns += [
 ]
 
 
-@pytest.mark.parametrize('raw,norm', lccns)
+@pytest.mark.parametrize(('raw', 'norm'), lccns)
 def test_normalize_lccn(raw, norm):
     assert normalize_lccn(raw) == norm

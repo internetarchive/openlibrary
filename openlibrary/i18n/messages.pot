@@ -2690,10 +2690,6 @@ msgid "block this account"
 msgstr ""
 
 #: admin/people/view.html
-msgid "send password reset email"
-msgstr ""
-
-#: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
 msgstr ""
@@ -5067,11 +5063,11 @@ msgid "Help Center"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Problems"
+msgid "Contact"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Report A Problem"
+msgid "Contact Us"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -6567,6 +6563,13 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid ""
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

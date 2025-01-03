@@ -55,6 +55,7 @@ services:
       # if the db is empty (which as of now is always, since we don't store the
       # postgres data anywhere).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
+      - ol-postgres:/var/lib/postgresql/data
 
   covers:
     build:
@@ -106,3 +107,4 @@ volumes:
   ol-vendor:
   ol-build:
   ol-nodemodules:
+  ol-postgres:

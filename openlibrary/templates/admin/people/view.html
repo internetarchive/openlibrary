@@ -112,7 +112,6 @@ $ has_profile = person.get_user() is not None
         $if person.status in ['active', 'verified']:
             <button class="do-confirm" type="submit" name="action" value="block_account_and_revert" style="float: right; background: #ffbbbb;">$_("block and revert all edits")</button>
             <button class="do-confirm" type="submit" name="action" value="block_account">$_("block this account")</button>
-            &nbsp;&nbsp;<button type="submit" name="action" value="send_password_reset_email">$_("send password reset email")</button>
             <br/>
             <br/>
             <div class="small">$:_('Registered on <span class="time">%(date)s</span>.', date=datestr(person.registered_on, relative=False))</div>

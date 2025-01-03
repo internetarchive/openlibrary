@@ -26,7 +26,7 @@ def image_dir(tmpdir):
     config.data_root = str(tmpdir)
 
 
-@pytest.mark.parametrize('prefix, path', image_formats)
+@pytest.mark.parametrize(('prefix', 'path'), image_formats)
 def test_write_image(prefix, path, image_dir):
     """Test writing jpg, gif and png images"""
     data = open(join(static_dir, path), 'rb').read()

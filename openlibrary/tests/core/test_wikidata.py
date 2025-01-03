@@ -33,7 +33,13 @@ VALID_CACHE = ""
 
 
 @pytest.mark.parametrize(
-    "bust_cache, fetch_missing, status, expected_web_call, expected_cache_call",
+    (
+        'bust_cache',
+        'fetch_missing',
+        'status',
+        'expected_web_call',
+        'expected_cache_call',
+    ),
     [
         # if bust_cache, always call web, never call cache
         (True, True, VALID_CACHE, True, False),
