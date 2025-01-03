@@ -52,7 +52,7 @@ class WaitingLoan(dict):
             username = account.username
         elif userid.startswith('ol:'):
             username = userid[len("ol:") :]
-        return "/people/%s" % username
+        return f"/people/{username}"
 
     def get_user(self):
         user_key = self.get_user_key()

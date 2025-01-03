@@ -292,7 +292,7 @@ class cover:
             return web.notfound()
 
     def get_ia_cover_url(self, identifier, size="M"):
-        url = "https://archive.org/metadata/%s/metadata" % identifier
+        url = f"https://archive.org/metadata/{identifier}/metadata"
         try:
             d = requests.get(url).json().get("result", {})
         except (OSError, ValueError):
@@ -320,7 +320,7 @@ class cover:
 
             if path:
                 if size:
-                    key = "filename_%s" % size
+                    key = f"filename_{size}"
                 else:
                     key = "filename"
                 return web.storage(
@@ -348,7 +348,7 @@ class cover:
         imgsize = array_size and array_size[index]
 
         if size:
-            prefix = "%s_covers" % size
+            prefix = f"{size}_covers"
         else:
             prefix = "covers"
 
@@ -372,7 +372,7 @@ def get_tar_index(tarindex, size):
 def get_tarindex_path(index, size):
     name = "%06d" % index
     if size:
-        prefix = "%s_covers" % size
+        prefix = f"{size}_covers"
     else:
         prefix = "covers"
 
@@ -471,7 +471,7 @@ class touch:
             db.touch(id)
             raise web.seeother(redirect_url)
         else:
-            return 'no such id: %s' % id
+            return f'no such id: {id}'
 
 
 class delete:
@@ -487,7 +487,7 @@ class delete:
             else:
                 return 'cover has been deleted successfully.'
         else:
-            return 'no such id: %s' % id
+            return f'no such id: {id}'
 
 
 def render_list_preview_image(lst_key):
