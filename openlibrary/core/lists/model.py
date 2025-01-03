@@ -546,11 +546,10 @@ class Seed:
     def url(self):
         if self.document:
             return self.document.url()
+        elif self.key.startswith("subject:"):
+            return "/subjects/" + web.lstrips(self.key, "subject:")
         else:
-            if self.key.startswith("subject:"):
-                return "/subjects/" + web.lstrips(self.key, "subject:")
-            else:
-                return "/subjects/" + self.key
+            return "/subjects/" + self.key
 
     def get_subject_url(self, subject: SeedSubjectString) -> str:
         if subject.startswith("subject:"):
