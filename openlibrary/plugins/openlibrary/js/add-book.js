@@ -185,3 +185,12 @@ function validatePublishDate() {
         errorDiv.classList.add('hidden');
     }
 }
+
+export function trimInputValues() {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            this.value = this.value.trim();
+        });
+    });
+}
