@@ -31,7 +31,7 @@ def setup():
 
     for p in old_plugins:
         logger.info("loading plugin %s", p)
-        modname = "openlibrary.plugins.%s.code" % p
+        modname = f"openlibrary.plugins.{p}.code"
         path = "openlibrary/plugins/" + p
         template.load_templates(path, lazy=True)
         macro.load_macros(path, lazy=True)

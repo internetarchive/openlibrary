@@ -37,12 +37,12 @@ class NoStats(TypeError):
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"
     q1 = "SELECT id as id from thing where key=$typ"
-    typ = '/type/%s' % typ
+    typ = f'/type/{typ}'
     result = db.query(q1, vars=locals())
     try:
         kid = result[0].id
     except IndexError:
-        raise InvalidType("No id for type '/type/%s in the database" % typ)
+        raise InvalidType(f"No id for type '/type/{typ} in the database")
     q2 = (
         "select count(*) as count from thing where type=%d and created >= '%s' and created < '%s'"
         % (kid, start, end)
@@ -77,11 +77,8 @@ def admin_range__human_edits(**kargs):
         end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db = kargs['thingdb']
     except KeyError as k:
-        raise TypeError("%s is a required argument for admin_range__human_edits" % k)
-    q1 = (
-        "SELECT count(*) AS count FROM transaction WHERE created >= '%s' and created < '%s'"
-        % (start, end)
-    )
+        raise TypeError(f"{k} is a required argument for admin_range__human_edits")
+    q1 = f"SELECT count(*) AS count FROM transaction WHERE created >= '{start}' and created < '{end}'"
     result = db.query(q1)
     total_edits = result[0].count
     q1 = (
@@ -103,7 +100,7 @@ def admin_range__bot_edits(**kargs):
         end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db = kargs['thingdb']
     except KeyError as k:
-        raise TypeError("%s is a required argument for admin_range__bot_edits" % k)
+        raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
     q1 = (
         "SELECT count(*) AS count FROM transaction t, version v WHERE "
         f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
@@ -121,11 +118,8 @@ def admin_range__covers(**kargs):
         end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db = kargs['coverdb']
     except KeyError as k:
-        raise TypeError("%s is a required argument for admin_range__covers" % k)
-    q1 = (
-        "SELECT count(*) as count from cover where created>= '%s' and created < '%s'"
-        % (start, end)
-    )
+        raise TypeError(f"{k} is a required argument for admin_range__covers")
+    q1 = f"SELECT count(*) as count from cover where created>= '{start}' and created < '{end}'"
     result = db.query(q1)
     count = result[0].count
     return count
@@ -151,7 +145,7 @@ def admin_range__loans(**kargs):
         start = kargs['start']
         end = kargs['end']
     except KeyError as k:
-        raise TypeError("%s is a required argument for admin_total__ebooks" % k)
+        raise TypeError(f"{k} is a required argument for admin_total__ebooks")
     result = db.query(
         "SELECT count(*) as count FROM stats"
         " WHERE type='loan'"
@@ -177,7 +171,7 @@ def admin_total__lists(**kargs):
     try:
         db = kargs['thingdb']
     except KeyError as k:
-        raise TypeError("%s is a required argument for admin_total__lists" % k)
+        raise TypeError(f"{k} is a required argument for admin_total__lists")
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
     result = db.query(q1)

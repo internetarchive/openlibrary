@@ -125,9 +125,7 @@ def read_file(path):
 
 def read_image(d, size):
     if size:
-        filename = (
-            d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
-        )
+        filename = d['filename_' + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:
         filename = d.filename
     path = find_image_path(filename)

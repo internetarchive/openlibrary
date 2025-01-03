@@ -102,7 +102,7 @@ def generate_uuid():
 
 def send_verification_email(username, email):
     """Sends account verification email."""
-    key = "account/%s/verify" % username
+    key = f"account/{username}/verify"
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
@@ -288,14 +288,14 @@ class Account(web.storage):
         return doc.get_creation_info()
 
     def get_activation_link(self):
-        key = "account/%s/verify" % self.username
+        key = f"account/{self.username}/verify"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self):
-        key = "account/%s/password" % self.username
+        key = f"account/{self.username}/password"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
@@ -466,7 +466,7 @@ class OpenLibraryAccount(Account):
             raise ValueError('something_went_wrong')
 
         if verified:
-            key = "account/%s/verify" % username
+            key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
             web.ctx.site.store[key] = doc
             web.ctx.site.activate_account(username=username)
@@ -583,7 +583,7 @@ class OpenLibraryAccount(Account):
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        itemname = itemname if itemname.startswith('@') else '@%s' % itemname
+        itemname = itemname if itemname.startswith('@') else f'@{itemname}'
 
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname

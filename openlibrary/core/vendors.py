@@ -247,7 +247,7 @@ class AmazonAPI:
             'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')
             ),
-            'source_records': ['amazon:%s' % product.asin],
+            'source_records': [f'amazon:{product.asin}'],
             'isbn_10': [product.asin] if asin_is_isbn10 else [],
             'isbn_13': [isbn_13] if isbn_13 else [],
             'price': price and price.display_amount,
