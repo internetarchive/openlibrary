@@ -37,7 +37,7 @@ data_provider = cast(DataProvider, None)
 
 @functools.cache
 def get_solr_updaters() -> list[AbstractSolrUpdater]:
-    global data_provider
+    global data_provider  # noqa
     assert data_provider is not None
     return [
         # ORDER MATTERS
@@ -55,7 +55,7 @@ def can_update_key(key: str) -> bool:
 async def update_keys(
     keys: list[str],
     commit=True,
-    output_file: str = None,
+    output_file=None,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
 ) -> SolrUpdateRequest:
@@ -80,6 +80,7 @@ async def update_keys(
         elif update == 'quiet':
             pass
 
+    global data_provider
     if data_provider is None:
         data_provider = get_data_provider('default')
 
