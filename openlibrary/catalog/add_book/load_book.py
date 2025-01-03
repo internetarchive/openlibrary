@@ -273,7 +273,7 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     """
     # import format_languages function from __init__.py to avoid circular import
     from . import format_languages
-    
+
     book: dict[str, Any] = {
         'type': {'key': '/type/edition'},
     }
@@ -286,7 +286,7 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
-        
+
         if k == 'languages':  # Special handling for languages
             if not v:
                 continue
@@ -296,14 +296,14 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
                     raise InvalidLanguage(language.lower())
             book[k] = formatted_languages
             continue
-        
+
         if k in ('translated_from',):  # Handle translated_from if necessary
             if not v:
                 continue
             formatted_languages = format_languages(v)
             book[k] = formatted_languages
             continue
-        
+
         if k in type_map:
             t = '/type/' + type_map[k]
             if isinstance(v, list):
