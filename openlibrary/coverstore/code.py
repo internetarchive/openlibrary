@@ -68,15 +68,14 @@ def _query(category, key, value):
         if category in prefixes:
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
-    else:
-        if category == 'b':
-            if key == 'isbn':
-                value = value.replace("-", "").strip()
-                key = "isbn_"
-            if key == 'oclc':
-                key = 'oclc_numbers'
-            olkeys = ol_things(key, value)
-            return get_cover_id(olkeys)
+    elif category == 'b':
+        if key == 'isbn':
+            value = value.replace("-", "").strip()
+            key = "isbn_"
+        if key == 'oclc':
+            key = 'oclc_numbers'
+        olkeys = ol_things(key, value)
+        return get_cover_id(olkeys)
     return None
 
 
