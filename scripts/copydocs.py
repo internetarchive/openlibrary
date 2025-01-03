@@ -71,9 +71,8 @@ class Disk:
 
             try:
                 print("writing", path)
-                f = open(path, "w")
-                f.write(text)
-                f.close()
+                with open(path, "w") as f:
+                    f.write(text)
             except OSError:
                 print("failed", path)
 

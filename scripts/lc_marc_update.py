@@ -102,7 +102,9 @@ else:
     ftp.close()
     sys.exit(0)
 
-bad = open(c['log_location'] + 'lc_marc_bad_import', 'a')
+with open(c['log_location'] + 'lc_marc_bad_import', 'a') as bad:
+    # only needs the object
+    pass
 
 
 def iter_marc(data):
