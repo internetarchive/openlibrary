@@ -128,8 +128,8 @@ export default class SelectionManager {
     getSelectableRange(clicked) {
         let commonParent = undefined;
         const curEls = { clicked, lastClicked: this.lastClicked };
-        // Only check up to 2 levels up in the tree
-        for (let i = 0; i < 2; i++) {
+        // Only check up to 3 levels up in the tree
+        for (let i = 0; i < 3; i++) {
             if (!curEls.clicked || !curEls.lastClicked) {
                 break;
             } else if (curEls.clicked === curEls.lastClicked) {
