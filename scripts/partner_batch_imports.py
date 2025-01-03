@@ -83,7 +83,7 @@ SCHEMA_URL = (
     "/openlibrary-client/master/olclient/schemata/import.schema.json"
 )
 
-required_fields = []
+required_fields: list[str] = []
 
 
 class Biblio:
