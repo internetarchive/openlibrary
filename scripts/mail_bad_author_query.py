@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 
 import web
 
-with open(os.path.expanduser('~/.openlibrary_db_password'), "r") as f:
+with open(os.path.expanduser('~/.openlibrary_db_password')) as f:
     password = f.read()
 if password.endswith('\n'):
     password = password[:-1]
