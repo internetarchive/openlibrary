@@ -7,7 +7,6 @@ from contextlib import closing
 from pathlib import Path
 
 osp_dump_location: Path | None = None
-
 logger = logging.getLogger("openlibrary.open_syllabus_project")
 
 
