@@ -44,7 +44,8 @@ class HashIP:
         """Set the database."""
         # Catching file-locking errors makes testing easier.
         try:
-            self.real_ips = dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c")
+            with dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c") as db:
+                self.real_ips = db
         except dbm.ndbm.error as e:
             if "Resource temporarily unavailable" in str(e):
                 pass

@@ -143,7 +143,9 @@ def get_sort_key(key: str) -> str | None:
 
 @elapsed_time("generate_sitemaps")
 def generate_sitemaps(filename: str) -> None:
-    rows = (line.strip().split("\t") for line in open(filename))
+    with open(filename) as f:
+        rows = (line.strip().split("\t") for line in f)
+
     for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
         things = []
 
