@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
 import web
-from psycopg2.errors import UndefinedTable, UniqueViolation
+from psycopg.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
 from web.db import ResultSet
 
