@@ -215,7 +215,6 @@ async def update_keys(keys):
         return 0
 
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
-    global args
     logger.debug("Args: %s" % str(args))
     update.load_configs(args['ol_url'], args['ol_config'], 'default')
 

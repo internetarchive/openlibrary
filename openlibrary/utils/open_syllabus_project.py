@@ -14,12 +14,10 @@ def get_osp_dump_location() -> Path | None:
     """
     Get whether the location of the Open Syllabus project counts dump
     """
-    global osp_dump_location
     return osp_dump_location
 
 
 def set_osp_dump_location(val: Path | None):
-    global osp_dump_location
     osp_dump_location = val
 
 

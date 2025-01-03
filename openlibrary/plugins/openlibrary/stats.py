@@ -27,7 +27,7 @@ filters: dict[str, Any] = {}
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
-    global filters
+
     if not summary:
         return
     try:
@@ -133,7 +133,7 @@ def process_stats(stats):
 
 
 def register_filter(name, function):
-    global filters
+
     filters[name] = function
 
 
