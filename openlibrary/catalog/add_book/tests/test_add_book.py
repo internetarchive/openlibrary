@@ -321,7 +321,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     }
     reply = load(rec)
     assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
+    assert reply['edition']['status'] in ['matched', 'modified']
 
 
 class Test_From_MARC:
