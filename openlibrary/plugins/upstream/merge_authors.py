@@ -399,7 +399,9 @@ class merge_authors_json(delegate.page):
             )(update_request)
         except MaxRetriesExceeded as e:
             raise web.badrequest(str(e.last_exception))
-        return delegate.RawText(json.dumps(merge_result), content_type="application/json")
+        return delegate.RawText(
+            json.dumps(merge_result), content_type="application/json"
+        )
 
 
 def setup():
