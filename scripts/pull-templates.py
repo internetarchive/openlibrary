@@ -50,6 +50,7 @@ def write(path, text):
     with open(path, "w") as f:
         f.write(text.encode("utf-8"))
 
+
 def delete(path):
     print("deleting", path)
     if os.path.exists(path):
