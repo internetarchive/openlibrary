@@ -7,9 +7,9 @@ from urllib.parse import urlencode
 
 import requests
 import web
+
 from infogami import config
 from infogami.utils import stats
-
 from openlibrary.core import cache
 
 logger = logging.getLogger('openlibrary.ia')

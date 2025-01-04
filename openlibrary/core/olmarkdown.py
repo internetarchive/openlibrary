@@ -14,7 +14,6 @@ the javascript markdown editor used in OL.
 import re
 
 from infogami.utils.markdown import markdown
-
 from openlibrary.core import helpers as h
 
 # regexp to match urls and emails.

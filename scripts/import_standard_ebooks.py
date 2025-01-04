@@ -5,9 +5,9 @@ from typing import Any
 
 import feedparser
 import requests
-from infogami import config
 from requests.auth import AuthBase, HTTPBasicAuth
 
+from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI

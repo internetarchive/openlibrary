@@ -3,10 +3,10 @@
 
 import pytest
 import web
+
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
-
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext
 from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401 side effects may be needed
