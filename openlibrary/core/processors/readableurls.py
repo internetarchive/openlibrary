@@ -7,8 +7,8 @@ import urllib
 from typing import ClassVar
 
 import web
-from infogami.utils.view import render
 
+from infogami.utils.view import render
 from openlibrary.core import helpers as h
 
 logger = logging.getLogger("openlibrary.readableurls")

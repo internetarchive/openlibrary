@@ -9,13 +9,13 @@ import urllib
 from typing import ClassVar, Literal, NoReturn, overload
 
 import web
+from web.webapi import SeeOther
+
 from infogami import config
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
-from web.webapi import SeeOther
-
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed

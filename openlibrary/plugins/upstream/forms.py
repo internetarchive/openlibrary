@@ -1,9 +1,9 @@
 from typing import ClassVar
 
 import web
+
 from infogami.core import forms
 from infogami.infobase.client import ClientException
-
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.i18n import lgettext as _
