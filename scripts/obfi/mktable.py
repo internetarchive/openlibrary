@@ -39,7 +39,6 @@ class HashIP:
         self.yday = time.gmtime()[7]
         self.get_seed()
 
-
     def get_seed(self) -> None:
         """Get the day's seed."""
         try:
@@ -90,7 +89,6 @@ class HashIP:
                             self.real_ips.sync()
                         print(ip, hidden)
                 line = sys.stdin.readline()
-
 
 
 def main():
