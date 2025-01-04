@@ -39,14 +39,14 @@ class Task:
 
         The implementation should yield the key-value pairs.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def reduce(self, key, values):
         """Function to reduce given values.
 
         The implementation should return a key-value pair, with the reduced value.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def read(self):
         for line in sys.sydin:
