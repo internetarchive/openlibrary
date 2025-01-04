@@ -37,20 +37,8 @@ class HashIP:
         self.real_ip_prefix = real_ip_prefix
         self.seed = b""
         self.yday = time.gmtime()[7]
-        self.set_db()
         self.get_seed()
 
-    def set_db(self) -> None:
-        """Set the database."""
-        # Catching file-locking errors makes testing easier.
-        try:
-            with dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c") as db:
-                self.real_ips = db
-        except dbm.ndbm.error as e:
-            if "Resource temporarily unavailable" in str(e):
-                pass
-            else:
-                raise e
 
     def get_seed(self) -> None:
         """Get the day's seed."""
@@ -85,9 +73,10 @@ class HashIP:
         obfuscated IPs are printed to STDOUT. If an IP is already
         obfuscated for the day, it is not printed to STDOUT.
         """
-        count = 0
-        line = sys.stdin.readline()
-        try:
+        with dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c") as db:
+            self.real_ips = db
+            count = 0
+            line = sys.stdin.readline()
             while line:
                 ips = re.findall(
                     r"[^\d]?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})[^\d]?", line
@@ -98,12 +87,10 @@ class HashIP:
                         self.real_ips[hidden] = ip
                         # Every 10th IP, flush the DB to disk
                         if count % 10 == 0:
-                            self.real_ips.close()
-                            self.set_db()
+                            self.real_ips.sync()
                         print(ip, hidden)
                 line = sys.stdin.readline()
-        except KeyboardInterrupt:
-            self.real_ips.close()
+
 
 
 def main():
