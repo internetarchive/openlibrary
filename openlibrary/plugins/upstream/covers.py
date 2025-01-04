@@ -6,11 +6,11 @@ from logging import getLogger
 
 import requests
 import web
+from infogami.utils import delegate
+from infogami.utils.view import safeint
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 
-from infogami.utils import delegate
-from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (

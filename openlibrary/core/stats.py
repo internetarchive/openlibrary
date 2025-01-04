@@ -12,9 +12,8 @@ Based on the code in http://www.monkinetic.com/2011/02/statsd.html (pystatsd cli
 
 import logging
 
-from statsd import StatsClient
-
 from infogami import config
+from statsd import StatsClient
 
 pystats_logger = logging.getLogger("openlibrary.pystats")
 

@@ -10,9 +10,9 @@ import json
 
 import eventer
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
+
 from openlibrary.core import statsdb
 
 
