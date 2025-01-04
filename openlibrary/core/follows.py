@@ -1,5 +1,5 @@
 import logging
-from typing import cast
+from typing import ClassVar, cast
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PubSub:
     TABLENAME = "follows"
-    PRIMARY_KEY = ["subscriber", "publisher"]
+    PRIMARY_KEY: ClassVar[list[str]] = ["subscriber", "publisher"]
 
     @classmethod
     def subscribe(cls, subscriber, publisher):

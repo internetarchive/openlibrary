@@ -6,12 +6,11 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, TypedDict
+from typing import Any, ClassVar, TypedDict
 from urllib.parse import urlencode
 
 import requests
 import web
-
 from infogami.infobase import client
 
 # TODO: fix this. openlibrary.core should not import plugins.
@@ -809,7 +808,7 @@ class Author(Thing):
 
 
 class User(Thing):
-    DEFAULT_PREFERENCES = {
+    DEFAULT_PREFERENCES: ClassVar[dict[str, str]] = {
         'updates': 'no',
         'public_readlog': 'no',
         # New users are now public by default for new patrons

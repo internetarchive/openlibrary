@@ -4,10 +4,11 @@
 import logging
 import os
 import urllib
+from typing import ClassVar
 
 import web
-
 from infogami.utils.view import render
+
 from openlibrary.core import helpers as h
 
 logger = logging.getLogger("openlibrary.readableurls")
@@ -29,7 +30,7 @@ class ReadableUrlProcessor:
     The changequery function is also customized to support this.
     """
 
-    patterns = [
+    patterns: ClassVar[list[tuple[str, str, str, str]]] = [
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),

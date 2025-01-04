@@ -5,6 +5,7 @@ import sys
 import time
 import urllib.request
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -92,7 +93,7 @@ class TestReveal:
 207.241.224.2 archive.org - [04/Apr/2023:12:34:56 +0000] "GET /example.html HTTP/1.1" 200 1234 "http://www.example.com/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0"
 0.1.2.3 not_in_real_ips - [04/Apr/2023:12:34:56 +0000] "GET /example.html HTTP/1.1" 200 1234 "http://www.example.com/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0"
 """
-    real_ips = {
+    real_ips: ClassVar[dict] = {
         "0.81.159.57": b"8.8.8.8",
         "0.168.131.52": b"93.184.216.34",
         "0.128.68.105": b"207.241.224.2",

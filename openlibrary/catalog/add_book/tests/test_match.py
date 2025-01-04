@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import ClassVar
 
 import pytest
 
@@ -97,7 +98,7 @@ def test_mk_norm_equality(a, b):
 
 
 class TestExpandRecord:
-    rec = {
+    rec: ClassVar[dict[str, str | list[str]]] = {
         'title': 'A test full title',
         'subtitle': 'subtitle (parens).',
         'source_records': ['ia:test-source'],

@@ -6,16 +6,16 @@ import io
 import json
 import logging
 import urllib
-from typing import Literal, NoReturn, overload
+from typing import ClassVar, Literal, NoReturn, overload
 
 import web
-from web.webapi import SeeOther
-
 from infogami import config
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
+from web.webapi import SeeOther
+
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
@@ -1053,7 +1053,7 @@ class daisy(delegate.page):
 class work_identifiers(delegate.view):
     # TODO: (cclauss) Fix typing in infogami.utils.delegate and remove type: ignore
     suffix = "identifiers"  # type: ignore[assignment]
-    types = ["/type/edition"]  # type: ignore[assignment]
+    types: ClassVar[list[str]] = ["/type/edition"]  # type: ignore[assignment]
 
     def POST(self, edition):
         saveutil = DocSaveHelper()

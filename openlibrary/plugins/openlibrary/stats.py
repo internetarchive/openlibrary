@@ -11,11 +11,11 @@ from types import TracebackType
 from typing import Any
 
 import web
-
-import openlibrary.plugins.openlibrary.filters as stats_filters
 from infogami import config
 from infogami.utils import stats
 from infogami.utils.app import find_mode, find_page, find_view
+
+import openlibrary.plugins.openlibrary.filters as stats_filters
 from openlibrary.core import stats as graphite_stats
 
 logger = logging.getLogger("openlibrary.stats")

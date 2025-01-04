@@ -1,4 +1,5 @@
 import json
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -72,7 +73,7 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
-    SEED_TESTS = [
+    SEED_TESTS: ClassVar[list[tuple[list[str], list[dict]]]] = [
         ([], []),
         (['OL1M'], [{'key': '/books/OL1M'}]),
         (['OL1M', 'OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),

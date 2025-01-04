@@ -1,9 +1,11 @@
 """Module for handling patron observation functionality"""
 
 from collections import defaultdict, namedtuple
+from typing import ClassVar
 
 from infogami import config
 from infogami.utils.view import public
+
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -745,7 +747,7 @@ def get_observation_metrics(work_olid):
 class Observations(db.CommonExtras):
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
-    PRIMARY_KEY = [
+    PRIMARY_KEY: ClassVar[list[str]] = [
         "work_id",
         "edition_id",
         "username",
