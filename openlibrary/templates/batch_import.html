@@ -3,9 +3,10 @@ $# type: (BatchResult)
 $var title: $_("Batch Imports")
 
 <div id="contentHead">
- <h1>$_("Batch Imports")</h1>
+ <h1>$_("New Batch Import")</h1>
 </div>
 <div id="contentBody" class="batchImport">
+  $:macros.BatchImportNavigation()
     <p>$_('Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea.')</p>
     <p>$:_('See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more.')</p>
     <form method="POST" enctype="multipart/form-data" action="">
