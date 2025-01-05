@@ -466,6 +466,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     conforming_fields = [
         'title',
         'authors',
+        'contributors',
         'publish_date',
         'source_records',
         'number_of_pages',

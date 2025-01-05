@@ -105,6 +105,58 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('offer_summary') is None
 
 
+def test_clean_amazon_metadata_for_load_translator():
+    amazon = {
+        "publishers": ["Oxford University Press"],
+        "price": "$9.50 (used)",
+        "physical_format": "paperback",
+        "edition": "3",
+        'authors': [{'name': 'Rachel Kushner'}],
+        'contributors': [{'role': 'Translator', 'name': 'Suat Ertüzün'}],
+        "isbn_13": ["9780190906764"],
+        "price_amt": "9.50",
+        "source_records": ["amazon:0190906766"],
+        "title": "The Sea Around Us",
+        "url": "https://www.amazon.com/dp/0190906766/?tag=internetarchi-20",
+        "offer_summary": {
+            "amazon_offers": 1,
+            "lowest_new": 1050,
+            "total_new": 31,
+            "lowest_used": 950,
+            "total_collectible": 0,
+            "total_used": 15,
+        },
+        "number_of_pages": "256",
+        "cover": "https://images-na.ssl-images-amazon.com/images/I/51XKo3FsUyL.jpg",
+        "languages": ["english"],
+        "isbn_10": ["0190906766"],
+        "publish_date": "Dec 18, 2018",
+        "product_group": "Book",
+        "qlt": "used",
+    }
+    result = clean_amazon_metadata_for_load(amazon)
+    # TODO: implement and test edition number
+    assert isinstance(result['publishers'], list)
+    assert (
+        result['cover']
+        == 'https://images-na.ssl-images-amazon.com/images/I/51XKo3FsUyL.jpg'
+    )
+    assert result['authors'][0]['name'] == 'Rachel Kushner'
+    assert result['contributors'][0]['role'] == 'Translator'
+    assert result['contributors'][0]['name'] == 'Suat Ertüzün'
+    assert result.get('isbn') is None
+    assert result.get('isbn_13') == ['9780190906764']
+    assert result.get('isbn_10') == ['0190906766']
+    assert result.get('identifiers') is None  # No Amazon id present
+    assert result['source_records'] == ['amazon:0190906766']
+    assert result['publish_date'] == 'Dec 18, 2018'
+    assert result['physical_format'] == 'paperback'
+    assert result['number_of_pages'] == '256'
+    assert result.get('price') is None
+    assert result.get('qlt') is None
+    assert result.get('offer_summary') is None
+
+
 amazon_titles = [
     # Original title, title, subtitle
     ['Test Title', 'Test Title', None],
@@ -369,7 +421,6 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
         'title': '',
         'cover': None,
         'authors': [{'name': 'Rachel Kushner'}],
-        'translators': [{'name': 'Suat Ertüzün'}],
         'contributors': [{'role': 'Translator', 'name': 'Suat Ertüzün'}],
         'publishers': [],
         'number_of_pages': '',
