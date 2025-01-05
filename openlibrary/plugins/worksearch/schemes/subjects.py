@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from typing import ClassVar
 
@@ -34,11 +33,11 @@ class SubjectSearchScheme(SearchScheme):
         'subject_type',
         'work_count',
     }
-    facet_rewrites: ClassVar[dict] = {
-        ('public_scan', 'true'): 'ebook_access:public'
-    }
+    facet_rewrites: ClassVar[dict] = {('public_scan', 'true'): 'ebook_access:public'}
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str], cur_solr_params: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    def q_to_solr_params(
+        self, q: str, solr_fields: set[str], cur_solr_params: list[tuple[str, str]]
+    ) -> list[tuple[str, str]]:
         return [
             ('q', q),
             ('q.op', 'AND'),

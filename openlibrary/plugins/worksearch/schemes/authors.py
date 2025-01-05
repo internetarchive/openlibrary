@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from typing import ClassVar
 
@@ -10,7 +9,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 class AuthorSearchScheme(SearchScheme):
     universe: ClassVar[list] = ['type:author']
-    all_fields : ClassVar[set] = {
+    all_fields: ClassVar[set] = {
         'key',
         'name',
         'alternate_names',
@@ -33,11 +32,18 @@ class AuthorSearchScheme(SearchScheme):
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
     default_fetched_fields: ClassVar[set] = {  # Annotated with ClassVar
-        'key', 'name', 'birth_date', 'death_date', 'date', 'top_subjects', 'work_count'
+        'key',
+        'name',
+        'birth_date',
+        'death_date',
+        'date',
+        'top_subjects',
+        'work_count',
     }
     facet_rewrites: ClassVar[dict] = {  # Annotated with ClassVar
         ('public_scan', 'true'): 'ebook_access:public'
     }
+
     def q_to_solr_params(
         self,
         q: str,

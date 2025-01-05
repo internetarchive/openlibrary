@@ -94,6 +94,10 @@ msgstr ""
 msgid "Batch Imports"
 msgstr ""
 
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
+msgstr ""
+
 #: batch_import.html
 msgid ""
 "Attach a JSONL formatted document with import records or copy/paste the "
@@ -7144,6 +7148,10 @@ msgstr ""
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
 msgstr ""
 
 #: BookByline.html
