@@ -112,7 +112,10 @@ def test_clean_amazon_metadata_for_load_translator():
         "physical_format": "paperback",
         "edition": "3",
         'authors': [{'name': 'Rachel Kushner'}],
-        'contributors': [{'role': 'Translator', 'name': 'Suat Ertüzün'}],
+        'contributors': [
+            {'role': 'Translator', 'name': 'Suat Ertüzün'},
+            {'role': 'Translator', 'name': 'Second Translator'},
+        ],
         "isbn_13": ["9780190906764"],
         "price_amt": "9.50",
         "source_records": ["amazon:0190906766"],
@@ -144,6 +147,8 @@ def test_clean_amazon_metadata_for_load_translator():
     assert result['authors'][0]['name'] == 'Rachel Kushner'
     assert result['contributors'][0]['role'] == 'Translator'
     assert result['contributors'][0]['name'] == 'Suat Ertüzün'
+    assert result['contributors'][1]['role'] == 'Translator'
+    assert result['contributors'][1]['name'] == 'Second Translator'
     assert result.get('isbn') is None
     assert result.get('isbn_13') == ['9780190906764']
     assert result.get('isbn_10') == ['0190906766']
@@ -396,6 +401,9 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
     contributors = [
         Contributor(None, 'Rachel Kushner', 'Author'),
         Contributor(None, 'Suat Ertüzün', 'Translator'),
+        Contributor(None, 'Second Translator', 'Translator'),
+        Contributor(None, 'No Role', ''),
+        Contributor(None, 'Third Contributor', 'Unsupported Role'),
     ]
     by_line_info = ByLineInfo(None, contributors, None)
     item_info = ItemInfo(
@@ -421,7 +429,10 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
         'title': '',
         'cover': None,
         'authors': [{'name': 'Rachel Kushner'}],
-        'contributors': [{'role': 'Translator', 'name': 'Suat Ertüzün'}],
+        'contributors': [
+            {'role': 'Translator', 'name': 'Suat Ertüzün'},
+            {'role': 'Translator', 'name': 'Second Translator'},
+        ],
         'publishers': [],
         'number_of_pages': '',
         'edition_num': '',
