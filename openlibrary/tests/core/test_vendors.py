@@ -370,6 +370,7 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
         'cover': None,
         'authors': [{'name': 'Rachel Kushner'}],
         'translators': [{'name': 'Suat Ertüzün'}],
+        'contributors': [{'role': 'Translator', 'name': 'Suat Ertüzün'}],
         'publishers': [],
         'number_of_pages': '',
         'edition_num': '',

@@ -272,9 +272,9 @@ class AmazonAPI:
                 for contrib in attribution.contributors or []
                 if contrib.role == 'Author'
             ],
-            'translators': attribution
+            'contributors': attribution
             and [
-                {'name': contrib.name}
+                {'name': contrib.name, 'role': 'Translator'}
                 for contrib in attribution.contributors or []
                 if contrib.role == 'Translator'
             ],
