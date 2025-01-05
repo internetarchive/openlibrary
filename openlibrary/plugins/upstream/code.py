@@ -7,6 +7,7 @@ import os.path
 import random
 
 import web
+
 from infogami import config
 from infogami.core import code as core
 from infogami.infobase import client
@@ -20,7 +21,6 @@ from infogami.utils.view import (
     render_template,  # used for its side effects
     safeint,
 )
-
 from openlibrary import accounts  # noqa: F401 side effects may be needed
 from openlibrary.plugins.upstream import (
     addbook,
