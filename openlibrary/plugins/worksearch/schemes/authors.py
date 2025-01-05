@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 from datetime import datetime
+from typing import ClassVar
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
@@ -8,8 +9,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class AuthorSearchScheme(SearchScheme):
-    universe = ['type:author']
-    all_fields = {
+    universe: ClassVar[list] = ['type:author']
+    all_fields : ClassVar[set] = {
         'key',
         'name',
         'alternate_names',
@@ -19,10 +20,10 @@ class AuthorSearchScheme(SearchScheme):
         'top_subjects',
         'work_count',
     }
-    non_solr_fields: set[str] = set()
-    facet_fields: set[str] = set()
-    field_name_map: dict[str, str] = {}
-    sorts = {
+    non_solr_fields: ClassVar[set] = set()
+    facet_fields: ClassVar[set] = set()
+    field_name_map: ClassVar[dict] = {}
+    sorts: ClassVar[dict] = {
         'work_count desc': 'work_count desc',
         # Random
         'random': 'random_1 asc',
@@ -31,17 +32,12 @@ class AuthorSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields = {
-        'key',
-        'name',
-        'birth_date',
-        'death_date',
-        'date',
-        'top_subjects',
-        'work_count',
+    default_fetched_fields: ClassVar[set] = {  # Annotated with ClassVar
+        'key', 'name', 'birth_date', 'death_date', 'date', 'top_subjects', 'work_count'
     }
-    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
-
+    facet_rewrites: ClassVar[dict] = {  # Annotated with ClassVar
+        ('public_scan', 'true'): 'ebook_access:public'
+    }
     def q_to_solr_params(
         self,
         q: str,
