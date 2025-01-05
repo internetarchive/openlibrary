@@ -37,6 +37,7 @@ class HashIP:
         self.real_ip_prefix = real_ip_prefix
         self.seed = b""
         self.yday = time.gmtime()[7]
+        self.set_db()
         self.get_seed()
 
     def set_db(self) -> None:
@@ -45,6 +46,7 @@ class HashIP:
         try:
             self.real_ips = dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c")
             # the connection is handled manually to be able to resync. The context manager interfiere with this.
+            # TODO: add "noqa: SIM115" next to the database open line before close the issue.
         except dbm.ndbm.error as e:
             if "Resource temporarily unavailable" in str(e):
                 pass
