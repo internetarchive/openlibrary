@@ -1145,7 +1145,7 @@ class Tag(Thing):
 
     @classmethod
     def find(cls, tag_name, tag_type=None):
-        """Returns a Tag key for a given tag name."""
+        """Returns a list of keys for Tags that match the search criteria."""
         q = {'type': '/type/tag', 'name': tag_name}
         if tag_type:
             q['tag_type'] = tag_type
