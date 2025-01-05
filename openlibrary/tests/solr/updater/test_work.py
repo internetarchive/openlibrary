@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pytest
 
 from openlibrary.solr.updater.work import (
@@ -357,7 +359,7 @@ class TestWorkSolrBuilder:
         assert d.author_alternative_name == {"Author 1"}
 
     # {'Test name': (doc_lccs, solr_lccs, sort_lcc_index)}
-    LCC_TESTS = {
+    LCC_TESTS: ClassVar[dict[str, tuple[list[str], list[str] | None, int | None]]] = {
         'Remove dupes': (['A', 'A'], ['A--0000.00000000'], 0),
         'Ignores garbage': (['$9.99'], None, None),
         'Handles none': ([], None, None),
@@ -406,7 +408,7 @@ class TestWorkSolrBuilder:
             assert d.lcc == set()
             assert d.lcc_sort is None
 
-    DDC_TESTS = {
+    DDC_TESTS: ClassVar[dict[str, tuple[list[str], list[str] | None, int | None]]] = {
         'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
         'Handles none': ([], None, None),
         'Handles empty string': ([''], None, None),

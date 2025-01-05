@@ -1,12 +1,12 @@
 import json
-from typing import TYPE_CHECKING, Final, Literal, cast
+from typing import TYPE_CHECKING, ClassVar, Final, Literal, cast
 
 import web
-from web.template import TemplateResult
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
+from web.template import TemplateResult
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
@@ -369,7 +369,11 @@ def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
 @public
 class MyBooksTemplate:
     # Reading log shelves
-    READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
+    READING_LOG_KEYS: ClassVar[set[str]] = {
+        "currently-reading",
+        "want-to-read",
+        "already-read",
+    }
 
     # Keys that can be accessed when not logged in
     PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"} | {"mybooks"}
@@ -454,7 +458,7 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
-    READING_LOG_KEY_TO_SHELF: dict[READING_LOG_KEYS, PRESET_SHELVES] = {
+    READING_LOG_KEY_TO_SHELF: ClassVar[dict[READING_LOG_KEYS, PRESET_SHELVES]] = {
         "want-to-read": "Want to Read",
         "already-read": "Already Read",
         "currently-reading": "Currently Reading",

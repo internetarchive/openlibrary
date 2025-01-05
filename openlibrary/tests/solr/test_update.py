@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pytest
 
 from openlibrary.core.ratings import WorkRatingsSummary
@@ -60,8 +62,8 @@ def make_work(**kw):
 class FakeDataProvider(DataProvider):
     """Stub data_provider and methods which are used by build_data."""
 
-    docs: list = []
-    docs_by_key: dict = {}
+    docs: ClassVar[list] = []
+    docs_by_key: ClassVar[dict] = {}
 
     def __init__(self, docs=None):
         docs = docs or []

@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from json import JSONDecodeError
-from typing import Any, Final
+from typing import Any, ClassVar, Final
 
 import requests
 
@@ -34,7 +34,7 @@ def is_nonbook(binding: str, nonbooks: list[str]) -> bool:
 
 
 class ISBNdb:
-    ACTIVE_FIELDS = [
+    ACTIVE_FIELDS: ClassVar[list[str]] = [
         'authors',
         'isbn_13',
         'languages',
@@ -45,7 +45,7 @@ class ISBNdb:
         'subjects',
         'title',
     ]
-    INACTIVE_FIELDS = [
+    INACTIVE_FIELDS: ClassVar[list[str]] = [
         "copyright",
         "dewey",
         "doi",

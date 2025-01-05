@@ -15,11 +15,11 @@ import logging
 import os
 import re
 from collections.abc import Mapping
-from typing import cast
+from typing import ClassVar, cast
 
 import requests
-
 from infogami import config  # noqa: F401 side effects may be needed
+
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -84,7 +84,7 @@ SCHEMA_URL = (
 
 
 class Biblio:
-    ACTIVE_FIELDS = [
+    ACTIVE_FIELDS: ClassVar[list[str]] = [
         'title',
         'isbn_13',
         'publish_date',
@@ -101,7 +101,7 @@ class Biblio:
         'identifiers',
         'dewey_decimal_class',
     ]
-    INACTIVE_FIELDS = [
+    INACTIVE_FIELDS: ClassVar[list[str]] = [
         "copyright",
         "length",
         "width",
