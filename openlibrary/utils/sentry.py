@@ -68,6 +68,7 @@ class Sentry:
             dsn=self.config['dsn'],
             environment=self.config['environment'],
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
+            profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),
         )
 
