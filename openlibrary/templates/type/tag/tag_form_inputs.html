@@ -38,7 +38,7 @@ $ tag_type = page and page.get('tag_type', '')
 <div class="formElement">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>
     <div class="input">
-        <select name="tag_type" required>
+        <select name="tag_type" required aria-label="Select a tag type">
             <option value="">$_("Select")</option>
             $ tag_types = get_tag_types()
             $for t_type in tag_types:
