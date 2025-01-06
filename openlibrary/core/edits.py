@@ -1,10 +1,11 @@
 import datetime
 import json
 from sqlite3 import IntegrityError
-
-from psycopg2.errors import UniqueViolation
+from typing import ClassVar
 
 from infogami.utils.view import public
+from psycopg2.errors import UniqueViolation
+
 from openlibrary.core import cache
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
@@ -38,18 +39,18 @@ class CommunityEditsQueue:
 
     TABLENAME = 'community_edits_queue'
 
-    TYPE = {
+    TYPE: ClassVar[dict[str, int]] = {
         'WORK_MERGE': 1,
         'AUTHOR_MERGE': 2,
     }
 
-    STATUS = {
+    STATUS: ClassVar[dict[str, int]] = {
         'DECLINED': 0,
         'PENDING': 1,
         'MERGED': 2,
     }
 
-    MODES = {
+    MODES: ClassVar[dict[str, list[int]]] = {
         'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
         'open': [STATUS['PENDING']],
         'closed': [STATUS['DECLINED'], STATUS['MERGED']],

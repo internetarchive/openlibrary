@@ -2,11 +2,11 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Final, Literal, TypedDict, cast
+from typing import Any, ClassVar, Final, Literal, TypedDict, cast
 
 import web
-
 from infogami.infobase.utils import flatten
+
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -25,11 +25,15 @@ class WorkReadingLogSummary(TypedDict):
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
-    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
-    PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    PRIMARY_KEY: ClassVar[list[str]] = ["username", "work_id", "bookshelf_id"]
+    PRESET_BOOKSHELVES: ClassVar[dict[str, int]] = {
+        'Want to Read': 1,
+        'Currently Reading': 2,
+        'Already Read': 3,
+    }
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON = {
+    PRESET_BOOKSHELVES_JSON: ClassVar[dict[str, int]] = {
         'want_to_read': 1,
         'currently_reading': 2,
         'already_read': 3,
