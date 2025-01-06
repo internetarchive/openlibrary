@@ -192,7 +192,7 @@ class WorkSearchScheme(SearchScheme):
         'id_cita_press',
         'id_wikisource',
     }
-    facet_rewrites = {
+    facet_rewrites:ClassVar[dict[tuple[str, str], str | Callable[[], str]]] = {
         ('public_scan', 'true'): 'ebook_access:public',
         ('public_scan', 'false'): '-ebook_access:public',
         ('print_disabled', 'true'): 'ebook_access:printdisabled',
