@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from typing import ClassVar, Dict, Set, Callable, List, Tuple
+from typing import ClassVar
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
@@ -17,8 +18,8 @@ class SubjectSearchScheme(SearchScheme):
     }
     non_solr_fields: ClassVar[set[str]] = set()
     facet_fields: ClassVar[set[str]] = set()
-    field_name_map: ClassVar[dict[str,str]] = {}
-    sorts: ClassVar[Dict[str, str | Callable[[], str]]]= {
+    field_name_map: ClassVar[dict[str, str]] = {}
+    sorts: ClassVar[dict[str, str | Callable[[], str]]] = {
         'work_count desc': 'work_count desc',
         # Random
         'random': 'random_1 asc',
@@ -33,16 +34,13 @@ class SubjectSearchScheme(SearchScheme):
         'subject_type',
         'work_count',
     }
-    facet_rewrites: ClassVar[Dict[tuple[str, str], str | Callable[[], str]]] = {
+    facet_rewrites: ClassVar[dict[tuple[str, str], str | Callable[[], str]]] = {
         ('public_scan', 'true'): 'ebook_access:public'
     }
 
     def q_to_solr_params(
-        self,
-        q: str,
-        solr_fields: set[str],
-        cur_solr_params: list[tuple[str, str]]
-    ) -> List[tuple[str, str]]:
+        self, q: str, solr_fields: set[str], cur_solr_params: list[tuple[str, str]]
+    ) -> list[tuple[str, str]]:
         return [
             ('q', q),
             ('q.op', 'AND'),
