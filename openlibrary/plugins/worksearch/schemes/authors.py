@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Dict, Set, Callable, Tuple
 from datetime import datetime
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -8,8 +8,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class AuthorSearchScheme(SearchScheme):
-    universe = ['type:author']
-    all_fields = {
+    universe: ClassVar[list[str]] = ['type:author']
+    all_fields: ClassVar[set[str]]= {
         'key',
         'name',
         'alternate_names',
@@ -19,10 +19,10 @@ class AuthorSearchScheme(SearchScheme):
         'top_subjects',
         'work_count',
     }
-    non_solr_fields: set[str] = set()
-    facet_fields: set[str] = set()
-    field_name_map: dict[str, str] = {}
-    sorts = {
+    non_solr_fields: ClassVar[set[str]]  = set()
+    facet_fields: ClassVar[set[str]] = set()
+    field_name_map: ClassVar[dict[str, str]] = {}
+    sorts: ClassVar[Dict[str, str | Callable[[], str]]]= {
         'work_count desc': 'work_count desc',
         # Random
         'random': 'random_1 asc',
@@ -31,7 +31,7 @@ class AuthorSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields = {
+    default_fetched_fields: ClassVar[set[str]]  = {
         'key',
         'name',
         'birth_date',
@@ -40,7 +40,7 @@ class AuthorSearchScheme(SearchScheme):
         'top_subjects',
         'work_count',
     }
-    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
+    facet_rewrites:ClassVar[Dict[Tuple[str, str], str | Callable[[], str]]] = {}
 
     def q_to_solr_params(
         self,
