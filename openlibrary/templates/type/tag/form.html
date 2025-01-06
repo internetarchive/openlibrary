@@ -1,0 +1,38 @@
+$def with (page, redirect=None)
+
+$putctx("robots", "noindex,nofollow")
+
+$ is_editing = page and page.get("key", "")
+$var title: $(_("Edit tag") if is_editing else _("Add a tag"))
+$ heading = _("Edit tag") if is_editing else _("Add a tag to Open Library")
+
+<div id="contentHead">
+    $if is_editing:
+        $:macros.databarEdit(page)
+
+    <h1>$heading</h1>
+    $if not is_editing:
+        <p class="instruct">$_("We require a minimum set of fields to create a new collection tag.")</p>
+</div>
+
+<div id="contentBody">
+    <form name="edit" method="post" class="olform">
+        $if redirect:
+            <input type="hidden" name="redir" value="$redirect">
+        $:render_template("type/tag/tag_form_inputs", page)
+        <div class="clearfix"></div>
+
+        <div class="formElement bottom">
+            $if is_editing:
+                $:macros.EditButtons(comment=page.comment_)
+            $else:
+                <div class="cclicense">
+                    $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="This link to Creative Commons will open in a new window">CC0</a>. Yippee!')
+                </div>
+                <div class="input">
+                    <button type="submit" title="$_('Add this tag now')" class="larger">$_('Add')</button>
+                    <a href="javascript:;" class="attn go-back-link">$_('Cancel')</a>
+                </div>
+        </div>
+    </form>
+</div>
