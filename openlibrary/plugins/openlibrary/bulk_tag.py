@@ -1,8 +1,8 @@
 import json
 
 import web
-from infogami.utils import delegate
 
+from infogami.utils import delegate
 from openlibrary.core import stats
 from openlibrary.utils import uniq
 

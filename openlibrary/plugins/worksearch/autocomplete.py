@@ -3,9 +3,9 @@ import json
 from typing import ClassVar
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import safeint
-
 from openlibrary.core.models import Thing
 from openlibrary.plugins.upstream import utils
 from openlibrary.plugins.worksearch.search import get_solr

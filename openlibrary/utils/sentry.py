@@ -4,14 +4,14 @@ from dataclasses import dataclass
 
 import sentry_sdk
 import web
+from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
+from sentry_sdk.utils import capture_internal_exceptions
+
 from infogami.utils.app import (
     find_page,
     modes,
 )
 from infogami.utils.types import type_patterns
-from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
-from sentry_sdk.utils import capture_internal_exceptions
-
 from openlibrary.utils import get_software_version
 
 

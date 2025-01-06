@@ -3,9 +3,9 @@ import json
 from sqlite3 import IntegrityError
 from typing import ClassVar
 
-from infogami.utils.view import public
 from psycopg2.errors import UniqueViolation
 
+from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
