@@ -6,10 +6,10 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any, ClassVar, cast
 
-import infogami
 import luqum.tree
 import web
 
+import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -39,7 +39,7 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    universe : ClassVar[list[str]] = ['type:work']
+    universe: ClassVar[list[str]] = ['type:work']
     all_fields: ClassVar[set[str]] = {
         "key",
         "redirects",
@@ -95,11 +95,11 @@ class WorkSearchScheme(SearchScheme):
         "ddc_sort",
         "osp_count",
     }
-    non_solr_fields: ClassVar[set[str]]  = {
+    non_solr_fields: ClassVar[set[str]] = {
         'description',
         'providers',
     }
-    facet_fields: ClassVar[set[str]]  = {
+    facet_fields: ClassVar[set[str]] = {
         "has_fulltext",
         "author_facet",
         "language",
@@ -165,7 +165,7 @@ class WorkSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields: ClassVar[set[str]]   = {
+    default_fetched_fields: ClassVar[set[str]] = {
         'key',
         'author_name',
         'author_key',
