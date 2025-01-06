@@ -158,7 +158,7 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-    READING_LOG_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    READING_LOG_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -178,7 +178,7 @@ class TestUsernameUpdate:
             "bookshelf_id": 2,
         },
     ]
-    BOOKNOTES_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    BOOKNOTES_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"},
         {"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "notes": "World"},
     ]
@@ -186,7 +186,7 @@ class TestUsernameUpdate:
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4},
         {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2},
     ]
-    OBSERVATIONS_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    OBSERVATIONS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -203,7 +203,7 @@ class TestUsernameUpdate:
         },
     ]
 
-    EDITS_QUEUE_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    EDITS_QUEUE_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {
             "title": "One Fish, Two Fish, Red Fish, Blue Fish",
             "submitter": "@kilgore_trout",
@@ -310,7 +310,7 @@ class TestUsernameUpdate:
 
 
 class TestCheckIns:
-    BOOKSHELVES_EVENTS_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    BOOKSHELVES_EVENTS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {
             "id": 1,
             "username": "@kilgore_trout",
@@ -483,7 +483,7 @@ class TestCheckIns:
 
 
 class TestYearlyReadingGoals:
-    SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
+    SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
         {
             'username': '@billy_pilgrim',
             'year': 2022,
