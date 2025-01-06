@@ -4,7 +4,7 @@ import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar, cast, Dict, Set, Callable, List, Tuple
 
 import luqum.tree
 import web
@@ -39,8 +39,8 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    universe = ClassVar[list]
-    all_fields: ClassVar[set] = {
+    universe = ClassVar[list[str]]
+    all_fields: ClassVar[set[str]] = {
         "key",
         "redirects",
         "title",
@@ -95,11 +95,11 @@ class WorkSearchScheme(SearchScheme):
         "ddc_sort",
         "osp_count",
     }
-    non_solr_fields: ClassVar[set] = {
+    non_solr_fields: ClassVar[set[str]] = {
         'description',
         'providers',
     }
-    facet_fields: ClassVar[set] = {
+    facet_fields: ClassVar[set[str]] = {
         "has_fulltext",
         "author_facet",
         "language",
@@ -111,7 +111,7 @@ class WorkSearchScheme(SearchScheme):
         "time_facet",
         "public_scan_b",
     }
-    field_name_map: ClassVar[dict] = {
+    field_name_map: ClassVar[dict[str,str]] = {
         'author': 'author_name',
         'authors': 'author_name',
         'by': 'author_name',
@@ -126,7 +126,7 @@ class WorkSearchScheme(SearchScheme):
         # plain string at the next opportunity, which will make it much more usable.
         '_ia_collection': 'ia_collection_s',
     }
-    sorts: ClassVar[dict] = {
+    sorts: ClassVar[Dict[str, str | Callable[[], str]]]= {
         'editions': 'edition_count desc',
         'old': 'def(first_publish_year, 9999) asc',
         'new': 'first_publish_year desc',
@@ -165,7 +165,7 @@ class WorkSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields: ClassVar[set] = {
+    default_fetched_fields: ClassVar[set[str]]= {
         'key',
         'author_name',
         'author_key',
@@ -192,7 +192,7 @@ class WorkSearchScheme(SearchScheme):
         'id_cita_press',
         'id_wikisource',
     }
-    facet_rewrites: ClassVar[dict] = {
+    facet_rewrites: ClassVar[Dict[tuple[str, str], str | Callable[[], str]]]= {
         ('public_scan', 'true'): 'ebook_access:public',
         ('public_scan', 'false'): '-ebook_access:public',
         ('print_disabled', 'true'): 'ebook_access:printdisabled',
@@ -204,7 +204,7 @@ class WorkSearchScheme(SearchScheme):
         (
             'has_fulltext',
             'false',
-        ): lambda: f'ebook_access:[* TO {get_fulltext_min()}}}',
+        ): lambda: f'ebook_access:[* TO {get_fulltext_min()}',
     }
 
     def is_search_field(self, field: str):
