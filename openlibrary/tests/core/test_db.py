@@ -1,5 +1,4 @@
 from typing import ClassVar
-
 import web
 
 from openlibrary.core.booknotes import Booknotes
@@ -158,11 +157,7 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-<<<<<<< HEAD
-    READING_LOG_SETUP_ROWS : ClassVar[list[dict[str, str|int]]]= [
-=======
     READING_LOG_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
->>>>>>> da290a6ebad2200b1c14e0f01c63e01a094fd658
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -182,11 +177,7 @@ class TestUsernameUpdate:
             "bookshelf_id": 2,
         },
     ]
-<<<<<<< HEAD
-    BOOKNOTES_SETUP_ROWS: ClassVar[list[dict[str, str | int]]]= [
-=======
     BOOKNOTES_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
->>>>>>> da290a6ebad2200b1c14e0f01c63e01a094fd658
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"},
         {"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "notes": "World"},
     ]
@@ -194,11 +185,7 @@ class TestUsernameUpdate:
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4},
         {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2},
     ]
-<<<<<<< HEAD
-    OBSERVATIONS_SETUP_ROWS :ClassVar[list[dict[str, str | int]]] = [
-=======
     OBSERVATIONS_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
->>>>>>> da290a6ebad2200b1c14e0f01c63e01a094fd658
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -215,11 +202,7 @@ class TestUsernameUpdate:
         },
     ]
 
-<<<<<<< HEAD
-    EDITS_QUEUE_SETUP_ROWS :ClassVar[list[dict[str, str | int]]] = [
-=======
     EDITS_QUEUE_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
->>>>>>> da290a6ebad2200b1c14e0f01c63e01a094fd658
         {
             "title": "One Fish, Two Fish, Red Fish, Blue Fish",
             "submitter": "@kilgore_trout",
@@ -326,11 +309,7 @@ class TestUsernameUpdate:
 
 
 class TestCheckIns:
-<<<<<<< HEAD
-    BOOKSHELVES_EVENTS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]]= [
-=======
     BOOKSHELVES_EVENTS_SETUP_ROWS: ClassVar[List[Dict[str, str | int]]] = [
->>>>>>> da290a6ebad2200b1c14e0f01c63e01a094fd658
         {
             "id": 1,
             "username": "@kilgore_trout",
