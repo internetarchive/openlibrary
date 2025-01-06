@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 """utility to generate db schema for any database engine.
 (should go to web.py)
 """
@@ -94,7 +96,7 @@ class MockAdapter(AbstractAdapter):
 
 
 class MySQLAdapter(AbstractAdapter):
-    native_types = {
+    native_types : ClassVar[dict[str,str]]= {
         'serial': 'int auto_increment not null',
         'integer': 'int',
         'float': 'float',
@@ -107,7 +109,7 @@ class MySQLAdapter(AbstractAdapter):
         'binary': 'blob',
         'boolean': 'boolean',
     }
-    constants = {
+    constants :ClassVar[dict[str,str]]= {
         'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
         'CURRENT_DATE': 'CURRENT_DATE',
         'CURRENT_TIME': 'CURRENT_TIME',
@@ -121,7 +123,7 @@ class MySQLAdapter(AbstractAdapter):
 
 
 class PostgresAdapter(AbstractAdapter):
-    native_types = {
+    native_types: ClassVar[dict[str,str]] = {
         'serial': 'serial',
         'integer': 'int',
         'float': 'float',
@@ -134,7 +136,7 @@ class PostgresAdapter(AbstractAdapter):
         'binary': 'bytea',
         'boolean': 'boolean',
     }
-    constants = {
+    constants: ClassVar[dict[str,str]] = {
         'CURRENT_TIMESTAMP': 'current_timestamp',
         'CURRENT_DATE': 'current_date',
         'CURRENT_TIME': 'current_time',
@@ -148,7 +150,7 @@ class PostgresAdapter(AbstractAdapter):
 
 
 class SQLiteAdapter(AbstractAdapter):
-    native_types = {
+    native_types: ClassVar[dict[str,str]] = {
         'serial': 'integer autoincrement',
         'integer': 'integer',
         'float': 'float',
@@ -161,7 +163,7 @@ class SQLiteAdapter(AbstractAdapter):
         'binary': 'blob',
         'boolean': 'boolean',
     }
-    constants = {
+    constants : ClassVar[dict[str,str]] = {
         'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
         'CURRENT_DATE': "CURRENT_DATE",
         'CURRENT_TIME': "CURRENT_TIME",
