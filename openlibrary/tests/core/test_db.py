@@ -1,4 +1,5 @@
 from typing import ClassVar
+
 import web
 
 from openlibrary.core.booknotes import Booknotes
