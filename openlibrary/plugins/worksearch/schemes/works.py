@@ -4,12 +4,12 @@ import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
+import infogami
 import luqum.tree
 import web
 
-import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -39,8 +39,8 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    universe = ['type:work']
-    all_fields = {
+    universe : ClassVar[list[str]] = ['type:work']
+    all_fields: ClassVar[set[str]] = {
         "key",
         "redirects",
         "title",
@@ -95,11 +95,11 @@ class WorkSearchScheme(SearchScheme):
         "ddc_sort",
         "osp_count",
     }
-    non_solr_fields = {
+    non_solr_fields: ClassVar[set[str]]  = {
         'description',
         'providers',
     }
-    facet_fields = {
+    facet_fields: ClassVar[set[str]]  = {
         "has_fulltext",
         "author_facet",
         "language",
@@ -111,7 +111,7 @@ class WorkSearchScheme(SearchScheme):
         "time_facet",
         "public_scan_b",
     }
-    field_name_map = {
+    field_name_map: ClassVar[dict[str, str]] = {
         'author': 'author_name',
         'authors': 'author_name',
         'by': 'author_name',
@@ -126,7 +126,7 @@ class WorkSearchScheme(SearchScheme):
         # plain string at the next opportunity, which will make it much more usable.
         '_ia_collection': 'ia_collection_s',
     }
-    sorts = {
+    sorts: ClassVar[dict[str, str | Callable[[], str]]] = {
         'editions': 'edition_count desc',
         'old': 'def(first_publish_year, 9999) asc',
         'new': 'first_publish_year desc',
@@ -165,7 +165,7 @@ class WorkSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
-    default_fetched_fields = {
+    default_fetched_fields: ClassVar[set[str]]   = {
         'key',
         'author_name',
         'author_key',
