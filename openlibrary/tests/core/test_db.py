@@ -203,7 +203,7 @@ class TestUsernameUpdate:
         },
     ]
 
-    EDITS_QUEUE_SETUP_ROWS: ClassVar[list[dict[str, str | int| None]]] = [
+    EDITS_QUEUE_SETUP_ROWS: ClassVar[list[dict[str, str | int | None]]] = [
         {
             "title": "One Fish, Two Fish, Red Fish, Blue Fish",
             "submitter": "@kilgore_trout",
