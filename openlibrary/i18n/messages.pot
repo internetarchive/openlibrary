@@ -711,7 +711,11 @@ msgid "Name"
 msgstr ""
 
 #: subjects.html
-msgid "Edit Subject Tag"
+msgid "Edit tag for this subject"
+msgstr ""
+
+#: subjects.html
+msgid "Create tag for this subject"
 msgstr ""
 
 #: subjects.html
@@ -728,6 +732,10 @@ msgstr[1] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
+msgstr ""
+
+#: subjects.html
+msgid "Disambiguations"
 msgstr ""
 
 #: support.html
@@ -791,7 +799,7 @@ msgstr ""
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
+#: my_books/dropdown_content.html support.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -1997,7 +2005,7 @@ msgid "Imports"
 msgstr ""
 
 #: admin/imports-add.html books/add.html books/edit/edition.html
-#: books/edit/excerpts.html covers/change.html tag/add.html
+#: books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -3225,7 +3233,7 @@ msgstr ""
 msgid "Add a book to Open Library"
 msgstr ""
 
-#: books/add.html tag/add.html
+#: books/add.html
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
@@ -3323,7 +3331,7 @@ msgstr ""
 msgid "Only fill this out if this is a web book"
 msgstr ""
 
-#: EditButtons.html books/add.html tag/add.html
+#: EditButtons.html books/add.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -6305,18 +6313,6 @@ msgstr ""
 msgid "OpenAPI"
 msgstr ""
 
-#: tag/add.html
-msgid "Add a tag"
-msgstr ""
-
-#: tag/add.html
-msgid "Add a tag to Open Library"
-msgstr ""
-
-#: tag/add.html
-msgid "Add this tag now"
-msgstr ""
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
@@ -6953,8 +6949,24 @@ msgstr ""
 msgid "Writers"
 msgstr ""
 
-#: type/tag/edit.html
-msgid "Edit Tag"
+#: type/tag/form.html
+msgid "Edit tag"
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add a tag"
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add a tag to Open Library"
+msgstr ""
+
+#: type/tag/form.html
+msgid "We require a minimum set of fields to create a new collection tag."
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add this tag now"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
@@ -6966,7 +6978,24 @@ msgid "Tag Description"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
+msgid "Page Body"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
 msgid "Tag type"
+msgstr ""
+
+#: type/tag/view.html
+#, python-format
+msgid "<strong>Type:</strong> %(tag_type)s"
+msgstr ""
+
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: type/tag/view.html
+msgid "Tag Body"
 msgstr ""
 
 #: type/tag/view.html
@@ -7017,10 +7046,6 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
-
-#: type/user/edit.html
-msgid "Description"
 msgstr ""
 
 #: type/user/view.html

@@ -7,25 +7,21 @@ $ has_tag = 'tag' in page
 $ q = query_param('q')
 
 <div id="scrollHere"></div>
-
-<!--
-  Able to fetch Tag with the same name as the subject and use it's data to enrich the page via page.tag
--->
-
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">
-        $ edit_tag_url = page.tag.get('id') + '/-/edit' if 'tag' in page else '/tag/add'
-        $if not has_tag:
-          $ edit_tag_url += '?name=%s&type=subject&sub_type=%s' % (page.name, page.subject_type)
+        $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/add?name=%s&redir=%s&tag_type=%s" % (page.name, ctx.path, page.subject_type)
+        $ link_cta = _("Edit")
+        $ elem_title = _("Edit tag for this subject") if has_tag else _("Create tag for this subject")
+        $ link_track = "CTAClick|SubjectPageTagEdit"
         <a
           class="editTagButton"
-          href="$edit_tag_url"
-          title="$_('Edit Subject Tag')"
-          data-ol-link-track="CTAClick|Edit"
+          href="$link_url"
+          title="$elem_title"
+          data-ol-link-track="$link_track"
           accesskey="e"
           rel="nofollow"
-        >$_("Edit")</a>
+        >$link_cta</a>
       </div>
     <h1 class="inline">
         $page.name
@@ -36,19 +32,29 @@ $ q = query_param('q')
         </span>
     </span>
     $if has_tag:
-      <h3 itemprop="description">
-        $page.tag['description']
-      </h3>
+      <p class="tag-description" itemprop="description">
+        $:sanitize(format(page.tag['tag_description']))
+      </p>
     <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
       $:render_template("search/searchbox", q=q)
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
+    $if 'disambiguations' in page:
+        <div class="disambiguations">
+            <h3>$_("Disambiguations")</h3>
+            <ul>
+                $for i in page.disambiguations:
+                    <li>
+                        <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                    </li>
+            </ul>
+        </div>
 </div>
-
 <div class="contentBody">
-
+    $if has_tag:
+      $:sanitize(format(page.tag.body))
     $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
     $:macros.PublishingHistory(page.publishing_history)
 

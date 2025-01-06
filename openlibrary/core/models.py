@@ -1,7 +1,6 @@
 """Models of various OL objects.
 """
 
-import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -1145,19 +1144,18 @@ class Tag(Thing):
         return self.name or "unnamed"
 
     @classmethod
-    def find(cls, tag_name, tag_type):
-        """Returns a Tag key for a given tag name and tag type."""
-        q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
-        match = list(web.ctx.site.things(q))
-        return match[0] if match else None
+    def find(cls, tag_name, tag_type=None):
+        """Returns a list of keys for Tags that match the search criteria."""
+        q = {'type': '/type/tag', 'name': tag_name}
+        if tag_type:
+            q['tag_type'] = tag_type
+        matches = list(web.ctx.site.things(q))
+        return matches
 
     @classmethod
     def create(
         cls,
-        tag_name,
-        tag_description,
-        tag_type,
-        tag_plugins,
+        tag,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1165,22 +1163,17 @@ class Tag(Thing):
         current_user = web.ctx.site.get_user()
         patron = current_user.get_username() if current_user else 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
+        tag['key'] = key
+
         from openlibrary.accounts import RunAs
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            web.ctx.site.save(
-                {
-                    'key': key,
-                    'name': tag_name,
-                    'tag_description': tag_description,
-                    'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
-                    'type': {"key": '/type/tag'},
-                },
+            t = web.ctx.site.save(
+                tag,
                 comment=comment,
             )
-            return key
+            return t
 
 
 @dataclass
