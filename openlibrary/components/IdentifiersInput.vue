@@ -155,7 +155,8 @@ export default {
                 this.inputValue = this.inputValue.replace(/\s/g, '')
             }
             if (this.isEdition) {
-                const existingIds = Object.values(this.assignedIdentifiers).flat();
+                // collect id values of matching type, or empty array if none present
+                const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
                 const validEditionId = validateEditionIdentifiers(this.selectedIdentifier, this.inputValue, existingIds);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
