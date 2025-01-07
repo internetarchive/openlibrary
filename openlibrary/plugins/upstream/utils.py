@@ -11,7 +11,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, Literal
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
     urlparse,
@@ -1164,9 +1164,11 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
             return lang.code
     return None
 
+
 @public
 def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     return _get_identifier_config(identifier)
+
 
 @web.memoize
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
@@ -1187,9 +1189,13 @@ def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> 
 
     if identifier == 'edition':
         thing = web.ctx.site.get('/config/edition')
-        classifications= [Storage(t.dict()) for t in thing.classifications if 'name in t']
+        classifications = [
+            Storage(t.dict()) for t in thing.classifications if 'name in t'
+        ]
         roles = thing.roles
-        return Storage(classifications=classifications, identifiers=identifiers, roles=roles)
+        return Storage(
+            classifications=classifications, identifiers=identifiers, roles=roles
+        )
 
     return Storage(identifiers=identifiers)
 

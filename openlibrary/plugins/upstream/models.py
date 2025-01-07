@@ -361,7 +361,9 @@ class Edition(models.Edition):
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
-            get_identifier_config('edition').classifications, names, self.classifications
+            get_identifier_config('edition').classifications,
+            names,
+            self.classifications,
         )
 
     def set_classifications(self, classifications):
@@ -810,7 +812,9 @@ class Work(models.Work):
                 if not isinstance(value, list):
                     value = [value]
 
-                id = id_map.get(name) or web.storage(name=name, label=name, url_format=None)
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
                 for v in value:
                     d[id.name] = web.storage(
                         name=id.name,
@@ -818,6 +822,7 @@ class Work(models.Work):
                         value=v,
                         url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
                     )
+
         for name in names:
             process(name, self[name])
 
@@ -825,6 +830,7 @@ class Work(models.Work):
             process(name, values[name])
 
         return d
+
 
 class Subject(client.Thing):
     pass
