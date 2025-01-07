@@ -267,7 +267,17 @@ class AmazonAPI:
                 else None
             ),
             'authors': attribution
-            and [{'name': contrib.name} for contrib in attribution.contributors or []],
+            and [
+                {'name': contrib.name}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Author'
+            ],
+            'contributors': attribution
+            and [
+                {'name': contrib.name, 'role': 'Translator'}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Translator'
+            ],
             'publishers': list({p for p in (brand, manufacturer) if p}),
             'number_of_pages': (
                 edition_info
@@ -456,6 +466,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     conforming_fields = [
         'title',
         'authors',
+        'contributors',
         'publish_date',
         'source_records',
         'number_of_pages',

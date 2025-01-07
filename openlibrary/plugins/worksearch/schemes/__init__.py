@@ -125,4 +125,4 @@ class SearchScheme:
         return [('q', q)]
 
     def add_non_solr_fields(self, solr_fields: set[str], solr_result: dict) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError

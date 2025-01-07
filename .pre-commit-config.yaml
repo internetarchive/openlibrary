@@ -11,7 +11,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -38,7 +38,7 @@ repos:
         args: [ --fix ]
 
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black  # See pyproject.toml for args
 
@@ -51,7 +51,7 @@ repos:
         args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.2
+    rev: v0.16.6
     hooks:
     - id: cython-lint
 
@@ -67,12 +67,12 @@ repos:
           - types-simplejson
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.19
+    rev: v0.23
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.11.0
+    rev: v9.17.0
     hooks:
       - id: eslint
         types: [file]

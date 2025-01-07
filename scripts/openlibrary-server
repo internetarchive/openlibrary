@@ -100,7 +100,7 @@ class BaseWSGIServer(Application):
         return wsgi_app
 
     def get_wsgi_app(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class OLWSGIServer(BaseWSGIServer):
