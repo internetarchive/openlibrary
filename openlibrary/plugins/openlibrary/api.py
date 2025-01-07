@@ -25,9 +25,13 @@ from openlibrary.accounts.model import (
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
-from openlibrary.core.models import Booknotes, Work
+from openlibrary.core.models import (
+    Booknotes,
+    Work,
+)
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
@@ -704,3 +708,18 @@ class create_qrcode(delegate.page):
             img.save(buf, format='PNG')
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
+
+
+class bestbook_count(delegate.page):
+    """API for award count"""
+
+    path = "/awards/count"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        filt = web.input(work_id=None, submitter=None, topic=None)
+        result = Bestbook.get_count(
+            work_id=filt.work_id, submitter=filt.submitter, topic=filt.topic
+        )
+        return json.dumps({'count': result})
