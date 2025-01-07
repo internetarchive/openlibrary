@@ -75,9 +75,10 @@
   }
 
   .nav-bar.work-menu {
-    padding: 0;
+    padding: 8px 20px 0;
     background: @white;
     z-index: @z-index-level-5;
+    scrollbar-width: thin;
 
     /* stylelint-disable selector-max-specificity */
     li {
@@ -116,10 +117,6 @@
     /* stylelint-enable max-nesting-depth */
     /* stylelint-enable selector-max-specificity */
   }
-}
-
-.nav-bar-wrapper.sticky > .nav-bar{
-  padding: 8px 20px 0;
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
