@@ -29,6 +29,13 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
+components_vite: $(COMPONENTS_DIR)/*.vue
+	mkdir -p $(BUILD)
+	rm -rf $(BUILD)/components
+	npx vite build
+	# Right now vite build is hardcoded for the barcode scanner but
+	# we will need to update to work for all files
+
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
