@@ -385,8 +385,8 @@ msgstr ""
 msgid "Who"
 msgstr ""
 
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
+#: BestbookModal.html RecentChanges.html RecentChangesUsers.html
+#: admin/history.html admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
 msgid "Comment"
 msgstr ""
@@ -551,8 +551,8 @@ msgstr ""
 msgid "Thank you very much for improving that record!"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html
+#: BestbookModal.html BookPreview.html CreateListModal.html DonateModal.html
+#: NotesModal.html ObservationsModal.html ShareModal.html
 #: book_providers/cita_press_read_button.html
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
@@ -1479,8 +1479,8 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: account/observations.html books/mybooks_breadcrumb_select.html mybooks.py
+#: observations/review_component.html
 msgid "Reviews"
 msgstr ""
 
@@ -2017,9 +2017,9 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html
+#: BestbookModal.html admin/imports-add.html admin/inspect/store.html
+#: admin/ip/view.html admin/people/edits.html admin/permissions.html
+#: check_ins/check_in_form.html check_ins/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -3657,7 +3657,7 @@ msgstr ""
 msgid "Imports and Exports"
 msgstr ""
 
-#: books/edit/about.html
+#: BestbookModal.html books/edit/about.html
 msgid "Select this subject"
 msgstr ""
 
@@ -5668,7 +5668,7 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
+#: merge_request_table/table_row.html
 msgid "Review"
 msgstr ""
 
@@ -5709,12 +5709,18 @@ msgstr ""
 msgid "Add to List"
 msgstr ""
 
-#: observations/review_component.html
+#: EditionNavBar.html observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
 
+#: StarRatingsStats.html observations/review_component.html
+msgid "Rating"
+msgid_plural "Ratings"
+msgstr[0] ""
+msgstr[1] ""
+
 #: observations/review_component.html
-msgid "No community reviews have been submitted for this work."
+msgid "No reviews have been submitted for this work."
 msgstr ""
 
 #: observations/review_component.html
@@ -5723,6 +5729,34 @@ msgstr ""
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
+msgstr ""
+
+#: observations/review_component.html
+msgid "Awards"
+msgstr ""
+
+#: observations/review_component.html
+msgid "No bestbook awards have been awarded for this work."
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Update Bestbook Award"
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Give Bestbook Award"
+msgstr ""
+
+#: observations/review_component.html
+msgid "Complete reading book to award bestbook"
+msgstr ""
+
+#: observations/review_component.html
+msgid "You can award bestbook only if you have read the book"
+msgstr ""
+
+#: observations/review_component.html
+msgid "+ Log in to award this book"
 msgstr ""
 
 #: publishers/index.html publishers/notfound.html
@@ -6552,6 +6586,12 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
+#: StarRatingsStats.html type/edition/modal_links.html
+msgid "Award"
+msgid_plural "Awards"
+msgstr[0] ""
+msgstr[1] ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -7169,6 +7209,28 @@ msgstr ""
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: BestbookModal.html
+msgid "Best Book Award"
+msgstr ""
+
+#: BestbookModal.html
+msgid "On what topic?"
+msgstr ""
+
+#: BestbookModal.html
+msgid "Why?"
+msgstr ""
+
+#: BestbookModal.html
+msgid ""
+"Awards may only be given to books you have already read. Submitting this "
+"award will mark this book as \"Already Read\""
+msgstr ""
+
+#: BestbookModal.html
+msgid "Remove Award"
 msgstr ""
 
 #: BookByline.html

@@ -211,6 +211,53 @@ export function initObservationsModal($modalLinks) {
     })
 }
 
+export function initBestbookModal($modalLinks)
+{
+    addClickListeners($modalLinks, '800px');
+    $('.bestbook_submit').on('click', function(event) {
+        event.preventDefault(); // Prevent form from submitting
+        const form = $(this).closest('form')[0];
+        const formData = new FormData(form);
+        const url = form.action;
+
+        fetch(url, {
+            method: 'post',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    $('.bestbook-modal .dialog--close')[0].click()
+                    const review = confirm('Would you like to add community review tags?');
+                    // new FadingToast('Award added!').show();
+                    if (review)
+                    {
+                        setTimeout(() => {
+                            document.querySelector('.observations-modal-link').click()
+                        }, 1000);
+                    }
+                } else {
+                    this.hideTaggingMenu();
+                    new FadingToast('Couldn\'t Award').show()
+                    this.submitButton.textContent = 'Submit';
+                    this.updateFetchedSubjects();
+                    this.resetTaggingMenu();
+                }
+            })
+
+        // Additional code here
+    });
+
+    // addObservationReloadListeners($('.observations-list'))
+    // addDeleteObservationsListeners($('.delete-observations-button'));
+
+    // $modalLinks.each(function(_i, modalLinkElement) {
+    //     const $element = $(modalLinkElement);
+    //     const context = JSON.parse(getModalContent($element).dataset['context'])
+
+    //     addObservationChangeListeners($element.next(), context);
+    // })
+}
+
 /**
  * Add on click listeners to a collection of modal links.
  *
