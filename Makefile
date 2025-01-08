@@ -29,12 +29,18 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
-components_vite: $(COMPONENTS_DIR)/*.vue
+vite: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
-	npx vite build
-	# Right now vite build is hardcoded for the barcode scanner but
-	# we will need to update to work for all files
+	node generateViteInputFiles.js
+	component=BarcodeScanner npx vite build
+	component=BulkSearch npx vite build
+	component=HelloWorld npx vite build
+	component=IdentifiersInput npx vite build
+	# The three below this are not working yet
+	# component=LibraryExplorer npx vite build
+	# component=MergeUI npx vite build
+	# component=ObservationForm npx vite build
 
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
