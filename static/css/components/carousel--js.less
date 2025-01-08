@@ -8,7 +8,6 @@
   .slick-slider {
     // allow overflow now the carousel has been initialised.
     overflow: visible;
-    display: flex;
   }
 }
 .carousel {
@@ -16,7 +15,7 @@
   .slick-next {
     width: auto;
     height: auto;
-
+    z-index: @z-index-level-4;
     &:before {
       color: @primary-blue;
       font-size: 35px;
