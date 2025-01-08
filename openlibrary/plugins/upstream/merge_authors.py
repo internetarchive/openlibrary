@@ -41,7 +41,7 @@ class BasicRedirectEngine:
         :param str key: e.g. /works/OL1W
         :rtype: list of str
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_all_references(self, keys):
         refs = {ref for key in keys for ref in self.find_references(key)}
@@ -105,7 +105,7 @@ class BasicMergeEngine:
 
         All the subclasses must provide an implementation for this method.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def merge_docs(self, master, dup):
         """Merge duplicate doc into master doc."""
@@ -263,6 +263,8 @@ class merge_authors(delegate.page):
         # key is deprecated in favor of records but we will support both
         if deprecated_keys := uniq(i.key):
             redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
+            if i.mrid:
+                redir_url = f'{redir_url}&mrid={i.mrid}'
             raise web.redirect(redir_url)
 
         keys = uniq(i.records.strip(',').split(','))

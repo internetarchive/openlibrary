@@ -201,7 +201,7 @@ def test_remove_trailing_dot():
 
 
 @pytest.mark.parametrize(
-    'year, expected',
+    ('year', 'expected'),
     [
         ('1999-01', 1999),
         ('1999', 1999),
@@ -224,7 +224,7 @@ def test_publication_year(year, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'years_from_today, expected',
+    ('years_from_today', 'expected'),
     [
         (1, True),
         (0, False),
@@ -244,7 +244,7 @@ def test_published_in_future_year(years_from_today, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'name, rec, expected',
+    ('name', 'rec', 'expected'),
     [
         (
             "1399 is too old for an Amazon source",
@@ -287,7 +287,7 @@ def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'publishers, expected',
+    ('publishers', 'expected'),
     [
         (['INDEPENDENTLY PUBLISHED'], True),
         (['Independent publisher'], True),
@@ -303,7 +303,7 @@ def test_independently_published(publishers, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'rec, expected',
+    ('rec', 'expected'),
     [
         ({'source_records': ['bwb:123'], 'isbn_10': ['1234567890']}, False),
         ({'source_records': ['amazon:123'], 'isbn_13': ['1234567890123']}, False),
@@ -318,7 +318,7 @@ def test_needs_isbn_and_lacks_one(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'rec, expected',
+    ('rec', 'expected'),
     [
         ({'source_records': ['promise:123', 'ia:456']}, True),
         ({'source_records': ['ia:456']}, False),
@@ -331,7 +331,7 @@ def test_is_promise_item(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ["rec", "expected"],
+    ('rec', 'expected'),
     [
         ({"source_records": ["amazon:B01234568"]}, "B01234568"),
         ({"source_records": ["amazon:123456890"]}, None),
@@ -351,7 +351,7 @@ def test_get_non_isbn_asin(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ["rec", "expected"],
+    ('rec', 'expected'),
     [
         ({"isbn_10": "123456890", "source_records": ["amazon:B01234568"]}, False),
         ({"isbn_13": "1234567890123", "source_records": ["amazon:B01234568"]}, False),
@@ -369,7 +369,7 @@ def test_is_asin_only(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'name, rec, expected',
+    ('name', 'rec', 'expected'),
     [
         (
             "Returns an empty list if no fields are missing",
@@ -395,7 +395,7 @@ def test_get_missing_field(name, rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ("date, expected"),
+    ('date', 'expected'),
     [
         ("", ""),
         ("1865.", "1865"),

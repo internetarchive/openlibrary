@@ -87,7 +87,7 @@ def import_ocaids(*ocaids, **kwargs):
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
 
     date = datetime.date.today()
@@ -128,7 +128,7 @@ def add_new_scans(args):
 
 
 def import_batch(args, **kwargs):
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     batch_name = args[0]
     batch = Batch.find(batch_name)
@@ -141,7 +141,7 @@ def import_batch(args, **kwargs):
 
 
 def import_item(args, **kwargs):
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
     if item := ImportItem.find_by_identifier(ia_id):
@@ -153,7 +153,7 @@ def import_item(args, **kwargs):
 def import_all(args, **kwargs):
     import multiprocessing
 
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
 
     # Use multiprocessing to call do_import on each item

@@ -190,7 +190,7 @@ def render_component(
     attrs = attrs or {}
     attrs_str = ''
     for key, val in attrs.items():
-        if json_encode and isinstance(val, dict) or isinstance(val, list):
+        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
             val = json.dumps(val)
             # On the Vue side use decodeURIComponent to decode
             val = urllib.parse.quote(val)
@@ -560,10 +560,8 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
 
     if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if (
-            thing.source_records
-            and v.revision == 1
-            or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
+        if (thing.source_records and v.revision == 1) or (
+            v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):

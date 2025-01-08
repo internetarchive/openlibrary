@@ -283,7 +283,7 @@ class olid_to_key:
         d = get_db().query(
             'SELECT key FROM thing WHERE get_olid(key) = $i.olid', vars=locals()
         )
-        key = d and d[0].key or None
+        key = (d and d[0].key) or None
         return {'olid': i.olid, 'key': key}
 
 

@@ -148,6 +148,7 @@ function parseAndValidateLccn(event, idValue) {
 function autoCompleteIdName(){
     const idValue = document.querySelector('input#id_value').value.trim();
     const idValueIsbn = parseIsbn(idValue);
+    const currentSelection = document.getElementById('id_name').value;
 
     if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
         document.getElementById('id_name').value = 'isbn_10';
@@ -162,7 +163,7 @@ function autoCompleteIdName(){
     }
 
     else {
-        document.getElementById('id_name').value = '';
+        document.getElementById('id_name').value = currentSelection || '';
     }
 }
 

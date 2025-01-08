@@ -73,7 +73,7 @@ def gen_html_entries():
         yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
-@pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
+@pytest.mark.parametrize(('locale', 'msgid', 'msgstr'), gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
     # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?

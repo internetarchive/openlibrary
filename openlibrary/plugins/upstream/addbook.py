@@ -869,10 +869,8 @@ class book_edit(delegate.page):
             raise web.notfound()
 
         work = (
-            edition.works
-            and edition.works[0]
-            or edition.make_work_from_orphaned_edition()
-        )
+            edition.works and edition.works[0]
+        ) or edition.make_work_from_orphaned_edition()
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 

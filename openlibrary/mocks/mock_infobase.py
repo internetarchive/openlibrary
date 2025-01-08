@@ -446,10 +446,7 @@ def mock_site(request):
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
 
-    def undo():
-        web.ctx.clear()
-        web.ctx.update(old_ctx)
+    yield site
 
-    request.addfinalizer(undo)
-
-    return site
+    web.ctx.clear()
+    web.ctx.update(old_ctx)

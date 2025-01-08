@@ -56,12 +56,6 @@ jQuery(function () {
             .then((module) => module.initTabs($tabs));
     }
 
-    const $validates = $('form.validate');
-    if ($validates.length) {
-        import(/* webpackChunkName: "validate" */ './validate')
-            .then((module) => module.init($));
-    }
-
     const $autocomplete = $('.multi-input-autocomplete');
     if ($autocomplete.length) {
         import(/* webpackChunkName: "autocomplete" */ './autocomplete')
@@ -560,4 +554,3 @@ jQuery(function () {
             .then(module => module.initGoBackLinks(backLinks))
     }
 });
-
