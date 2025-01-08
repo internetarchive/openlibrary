@@ -80,7 +80,7 @@ def test_serve_file(image_dir):
         assert coverlib.read_file(path) == file.read()
 
     with open(path, "rb") as file:
-        assert coverlib.read_file(path + ":10:20") == file.read()[10:10 + 20]
+        assert coverlib.read_file(path + ":10:20") == file.read()[10 : 10 + 20]
 
 
 def test_server_image(image_dir):

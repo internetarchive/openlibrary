@@ -118,17 +118,11 @@ class TestWebappWithDB(WebTestCase):
 
         assert id1 < id2
         with open(static_dir + '/logos/logo-it.png') as file:
-            assert (
-        b.open('/b/olid/OL1M.jpg').read()
-        == file.read()
-            )
+            assert b.open('/b/olid/OL1M.jpg').read() == file.read()
 
         b.open('/b/touch', urllib.parse.urlencode({'id': id1}))
         with open(static_dir + '/logos/logo-en.png') as file:
-            assert (
-        b.open('/b/olid/OL1M.jpg').read()
-        == file.read()
-            )
+            assert b.open('/b/olid/OL1M.jpg').read() == file.read()
 
     def test_delete(self, setup_db):
         b = self.browser
