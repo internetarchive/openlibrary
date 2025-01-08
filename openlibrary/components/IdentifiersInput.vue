@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { errorDisplay, validateEditionIdentifiers } from './IdentifiersInput/utils/utils.js';
+import { errorDisplay, validateIdentifiers } from './IdentifiersInput/utils/utils.js';
 const identifierPatterns  = {
     wikidata: /^Q[1-9]\d*$/i,
     isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
@@ -162,7 +162,7 @@ export default {
             if (this.saveIdentifiersAsList) {
                 // collect id values of matching type, or empty array if none present
                 const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
-                const validEditionId = validateEditionIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
+                const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
                         this.inputValue = [this.inputValue];

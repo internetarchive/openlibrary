@@ -64,7 +64,7 @@ function validateLccn(value) {
     return true;
 }
 
-export function validateEditionIdentifiers(name, value, entries, error_output) {
+export function validateIdentifiers(name, value, entries, error_output) {
     let validId = true;
     errorDisplay('', error_output);
     if (name === '' || name === '---') {

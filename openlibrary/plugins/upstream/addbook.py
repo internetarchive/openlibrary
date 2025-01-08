@@ -596,7 +596,7 @@ class SaveBookHelper:
                     # we're trying to create an orphan; let's not do that
                     edition_data.works = [{'key': self.work.key}]
             if self.work is not None:
-                work_identifiers = work_data.pop('identifiers', [])
+                work_identifiers = work_data.pop('identifiers', {})
                 self.work.set_identifiers(work_identifiers)
                 self.work.update(work_data)
                 saveutil.save(self.work)
@@ -784,7 +784,7 @@ class SaveBookHelper:
             work.subtitle = None
 
         for k in ['excerpts', 'links', 'identifiers']:
-            work[k] = work.get(k, [])
+            work[k] = work.get(k, {})
 
         # ignore empty authors
         work.authors = [

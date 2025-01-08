@@ -358,6 +358,9 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
+        if not d.items():
+            self.identifiers = None
+
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
@@ -387,6 +390,9 @@ class Edition(models.Edition):
                 self[name] = value
             else:
                 self.classifications[name] = value
+
+        if not self.classifications.items():
+            self.classifications = None
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -779,7 +785,6 @@ class Work(models.Work):
 
     def set_identifiers(self, identifiers):
         """Updates the work from identifiers specified as (name, value) pairs."""
-        names = ()
 
         d = {}
         if identifiers:
@@ -793,10 +798,10 @@ class Work(models.Work):
         self.identifiers = {}
 
         for name, value in d.items():
-            if name in names:
-                self[name] = value
-            else:
-                self.identifiers[name] = value
+            self.identifiers[name] = value
+
+        if not d.items():
+            self.identifiers = None
 
     def _process_identifiers(self, config_, names, values):
         id_map = {}

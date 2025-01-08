@@ -1190,7 +1190,7 @@ def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> 
     if identifier == 'edition':
         thing = web.ctx.site.get('/config/edition')
         classifications = [
-            Storage(t.dict()) for t in thing.classifications if 'name in t'
+            Storage(t.dict()) for t in thing.classifications if 'name' in t
         ]
         roles = thing.roles
         return Storage(
