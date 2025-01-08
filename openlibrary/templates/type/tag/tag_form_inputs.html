@@ -1,5 +1,6 @@
-$def with (tag_name='', tag_type='', tag_description='')
+$def with (page)
 
+$ tag_name = page and page.get('name', '')
 <div class="formElement">
     <div class="label">
         <label for="tag_name">$_("Tag Name")</label>*<span class="tip">$_("Required field")</span>
@@ -9,21 +10,35 @@ $def with (tag_name='', tag_type='', tag_description='')
     </div>
 </div>
 
+$ tag_description = page and page.get('tag_description', '')
 <fieldset class="major">
     <div class="formElement">
         <div class="label">
             <label for="tag_description">$_("Tag Description")</label>
         </div>
         <div class="input">
-            <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80">$tag_description</textarea>
+            <textarea id="tag_description" name="tag_description" rows="5" cols="80" required>$tag_description</textarea>
         </div>
     </div>
 </fieldset>
 
+$ body = page and page.get('body', '')
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">$_("Page Body")</label>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="body" rows="5" cols="50" class="markdown" required>$body</textarea>
+        </div>
+    </div>
+</fieldset>
+
+$ tag_type = page and page.get('tag_type', '')
 <div class="formElement">
     <div class="label"><label for="tag_type">$_("Tag type")</label></div>
     <div class="input">
-        <select name="tag_type" id="tag_type" required>
+        <select name="tag_type" required aria-label="Select a tag type">
             <option value="">$_("Select")</option>
             $ tag_types = get_tag_types()
             $for t_type in tag_types:
