@@ -11,7 +11,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
     urlparse,
@@ -1169,55 +1169,38 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 
 
 @public
-def get_author_config():
-    return _get_author_config()
+def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
+    return _get_identifier_config(identifier)
 
 
 @web.memoize
-def _get_author_config():
-    """Returns the author config.
-
-    The results are cached on the first invocation.
-    Any changes to /config/author page require restarting the app.
+def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
-    # Load the author config from the author.yml file in the author directory
-    with open(
-        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
-    ) as in_file:
-        id_config = yaml.safe_load(in_file)
-        identifiers = [
-            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
-        ]
+    Returns the identifier config.
 
-    return Storage(identifiers=identifiers)
-
-
-@public
-def get_edition_config() -> Storage:
-    return _get_edition_config()
-
-
-@web.memoize
-def _get_edition_config():
-    """Returns the edition config.
-
-    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    The results are cached on the first invocation. Any changes to /config/{identifier} page require restarting the app.
 
     This is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
-    thing = web.ctx.site.get('/config/edition')
-    classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    roles = thing.roles
     with open(
-        'openlibrary/plugins/openlibrary/config/edition/identifiers.yml'
+        f'openlibrary/plugins/openlibrary/config/{identifier}/identifiers.yml'
     ) as in_file:
         id_config = yaml.safe_load(in_file)
         identifiers = [
             Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
         ]
-    return Storage(
-        classifications=classifications, identifiers=identifiers, roles=roles
-    )
+
+    if identifier == 'edition':
+        thing = web.ctx.site.get('/config/edition')
+        classifications = [
+            Storage(t.dict()) for t in thing.classifications if 'name' in t
+        ]
+        roles = thing.roles
+        return Storage(
+            classifications=classifications, identifiers=identifiers, roles=roles
+        )
+
+    return Storage(identifiers=identifiers)
 
 
 from openlibrary.core.olmarkdown import OLMarkdown

@@ -3604,6 +3604,21 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
+#: books/edit.html
+msgid "Work Identifiers"
+msgstr ""
+
+#: books/edit.html
+msgid "Do you know any identifiers for this work?"
+msgstr ""
+
+#: books/edit.html
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
+msgstr ""
+
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
 #: lists/preview.html lists/snippet.html lists/widget.html

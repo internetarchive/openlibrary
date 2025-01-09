@@ -134,6 +134,22 @@ a.cta-btn {
   }
 }
 
+// Button inside carousel
+.carousel-section .cta-btn {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  text-align: center;
+
+  &.cta-btn--external {
+    padding-right: 25px;
+    // stylelint-disable-next-line selector-max-specificity
+    .btn-label {
+      padding: 8px 10px;
+    }
+  }
+}
+
 // Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
