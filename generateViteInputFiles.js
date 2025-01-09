@@ -17,11 +17,10 @@ const getVueComponentFiles = async () => {
 };
 
 const generateComponentFile = async (componentName) => {
-    const template = `import { defineCustomElement } from 'vue';
-import vueComponent from '../${componentName}.vue';
-
-customElements.define('ol-${kebabCase(componentName)}', defineCustomElement(vueComponent));
-`;
+    const template = `
+import { createWebComponentSimple } from "../rollupInputCore.js"
+import rootComponent from '../${componentName}.vue';
+createWebComponentSimple(rootComponent, '${componentName}');`;
 
     const outputDir = './openlibrary/components/build';
     try {
