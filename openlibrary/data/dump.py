@@ -93,7 +93,7 @@ def xopen(path: str, mode: str):
         with gzip.open(path, mode) as file:
             return file
     else:
-        return file
+        return open(path,mode)
 
 
 def read_tsv(file, strip=True):
