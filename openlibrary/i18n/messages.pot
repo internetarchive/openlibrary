@@ -3613,7 +3613,10 @@ msgid "Do you know any identifiers for this work?"
 msgstr ""
 
 #: books/edit.html
-msgid "Like, Wikidata?"
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
 msgstr ""
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
