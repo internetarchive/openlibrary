@@ -37,10 +37,10 @@ vite: $(COMPONENTS_DIR)/*.vue
 	component=BulkSearch npx vite build
 	component=HelloWorld npx vite build
 	component=IdentifiersInput npx vite build
-	# The three below this are not working yet
-	# component=LibraryExplorer npx vite build
-	# component=MergeUI npx vite build
-	# component=ObservationForm npx vite build
+	# The three below this need more testing
+	component=LibraryExplorer npx vite build
+	component=MergeUi npx vite build
+	component=ObservationForm npx vite build
 
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
