@@ -9,6 +9,7 @@ const getVueComponentFiles = async () => {
         const f = files.filter(file => file.endsWith('.vue'));
         return f;
     } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Unable to scan directory:', err);
         return [];
     }
@@ -28,9 +29,11 @@ createWebComponentSimple(rootComponent, '${componentName}');`;
 
         const filePath = path.join(outputDir, `${componentName}.js`);
         await fs.writeFile(filePath, template);
+        // eslint-disable-next-line no-console
         console.log(`Generated ${filePath}.js`)
 
     } catch (err) {
+        // eslint-disable-next-line no-console
         console.error(`Error creating file for ${componentName}:`, err);
     }
 };
