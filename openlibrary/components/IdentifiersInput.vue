@@ -4,12 +4,12 @@
       <th>
         <select class="form-control" v-model="selectedIdentifier" name="name">
           <option disabled value="">Select one</option>
-          <template v-if="isEdition">
-            <option v-for="entry in popularEditionConfigs" :key="entry.name" :value="entry.name">
+          <template v-if="Object.keys(popularIdDict).length !== 0">
+            <option v-for="entry in popularIdDict" :key="entry.name" :value="entry.name">
               {{ entry.label }}
             </option>
             <option disabled value="">---</option>
-            <option v-for="entry in secondaryEditionConfigs" :key="entry.name" :value="entry.name">
+            <option v-for="entry in secondaryIdDict" :key="entry.name" :value="entry.name">
               {{ entry.label }}
             </option>
           </template>
@@ -60,6 +60,8 @@ const identifierPatterns  = {
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
 }
+const popularEditionIds = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'librivox', 'oclc_numbers', 'project_gutenberg']
+
 export default {
     // Props are for external options; if a subelement of this is modified,
     // the view automatically re-renders
@@ -74,13 +76,15 @@ export default {
          * {"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, ... ]}
          */
         id_config_string: {
-            type: String
+            type: String,
+            required: true
         },
         /** see createHiddenInputs function for usage
          * #hiddenEditionIdentifiers, #hiddenWorkIdentifiers
          */
         output_selector: {
-            type: String
+            type: String,
+            required: true
         },
         input_prefix: {
             /*
@@ -89,9 +93,8 @@ export default {
             */
             type: String
         },
-        /* Props specifically for Editions */
+        /* Editions and works can have multiple identifiers in the form of a list */
         multiple: {
-            /* Editions can have multiple identifiers in the form of a list */
             type: String,
             default: 'false',
         },
@@ -99,9 +102,6 @@ export default {
             type: String,
             default: 'false',
         },
-        /* Maintains identifier order in the dropdown list */
-        edition_popular: {},
-        secondary_identifiers: {}
     },
 
     // Data is for internal stuff. This needs to be a function so that we get
@@ -115,40 +115,48 @@ export default {
     },
 
     computed: {
-        popularEditionConfigs: function() {
-            if (this.edition_popular) {
-                const popularConfigs = JSON.parse(decodeURIComponent(this.edition_popular));
-                return Object.fromEntries(popularConfigs.map(e => [e.name, e]));
+        parsedConfigs: function() {
+            return JSON.parse(decodeURIComponent(this.id_config_string))
+        },
+        popularIdDict: function() {
+            if (this.output_selector.includes('Edition')) {
+                const popularConfigs = this.parsedConfigs.filter((config) => {
+                    if (popularEditionIds.includes(config.name)) {
+                        return true;
+                    }
+                    return false;
+                })
+                return Object.fromEntries(popularConfigs.map(e => [e.name, e]))
             }
             return {};
         },
-        secondaryEditionConfigs: function() {
-            if (this.secondary_identifiers) {
-                const secondConfigs = JSON.parse(decodeURIComponent(this.secondary_identifiers));
-                return Object.fromEntries(secondConfigs.map(e => [e.name, e]));
+        secondaryIdDict: function() {
+            if (this.output_selector.includes('Edition')) {
+                const filteredConfigs = this.parsedConfigs.filter((config) => {
+                    if (popularEditionIds.includes(config.name)) {
+                        return false;
+                    }
+                    return true
+                })
+                return Object.fromEntries(filteredConfigs.map(e => [e.name, e]))
             }
             return {};
         },
-        identifierConfigsByKey: function(){
-            const parsedConfigs = JSON.parse(decodeURIComponent(this.id_config_string));
-            if (this.isEdition) {
-                const betterConfigs = JSON.parse(decodeURIComponent(this.id_config_string));
-                return Object.fromEntries(betterConfigs.map(e => [e.name, e]));
+        identifierConfigsByKey: function() {
+            if (this.saveIdentifiersAsList) {
+                return Object.fromEntries(this.parsedConfigs.map(e => [e.name, e]));
             }
-            return Object.fromEntries(parsedConfigs['identifiers'].map(e => [e.name, e]));
+            return Object.fromEntries(this.parsedConfigs['identifiers'].map(e => [e.name, e]));
         },
         isAdmin() {
             return this.admin.toLowerCase() === 'true';
-        },
-        isEdition() {
-            return this.multiple.toLowerCase() === 'true' && this.edition_popular;
         },
         saveIdentifiersAsList() {
             return this.multiple.toLowerCase() === 'true';
         },
         setButtonEnabled: function(){
             return this.selectedIdentifier !== '' && this.inputValue !== '';
-        }
+        },
     },
 
     methods: {
@@ -217,7 +225,7 @@ export default {
         },
         selectIdentifierByInputValue: function() {
             // Ignore for edition identifiers
-            if (this.isEdition) {
+            if (this.saveIdentifiersAsList) {
                 return;
             }
             // Selects the dropdown identifier based on the input value when possible
