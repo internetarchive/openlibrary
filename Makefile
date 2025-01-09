@@ -32,7 +32,7 @@ js:
 vite: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
-	node generateViteInputFiles.js
+	node /openlibrary/openlibrary/components/generateViteInputFiles.js
 	component=BarcodeScanner npx vite build
 	component=BulkSearch npx vite build
 	component=HelloWorld npx vite build

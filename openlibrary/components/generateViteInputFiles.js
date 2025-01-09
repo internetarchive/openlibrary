@@ -1,14 +1,13 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { kebabCase } = require('lodash');
 
-const directoryPath = path.join(__dirname, './openlibrary/components');
+const directoryPath = path.join(__dirname, '.');
 
 const getVueComponentFiles = async () => {
     try {
         const files = await fs.readdir(directoryPath);
         const f = files.filter(file => file.endsWith('.vue'));
-        // console.log(f);
+        console.log(f);
         return f;
     } catch (err) {
         console.error('Unable to scan directory:', err);
@@ -22,14 +21,15 @@ import { createWebComponentSimple } from "../rollupInputCore.js"
 import rootComponent from '../${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
-    const outputDir = './openlibrary/components/build';
+    const outputDir = path.join(__dirname, 'build');
+
     try {
         // Create the build directory if it doesn't exist
         await fs.mkdir(outputDir, { recursive: true });
 
         const filePath = path.join(outputDir, `${componentName}.js`);
         await fs.writeFile(filePath, template);
-        console.log(`Generated ${componentName}.js`)
+        console.log(`Generated ${filePath}.js`)
 
     } catch (err) {
         console.error(`Error creating file for ${componentName}:`, err);
