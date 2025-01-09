@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from infogami.infobase.client import Thing
 
+from infogami.infobase.client import Thing
 from openlibrary.solr.data_provider import BetterDataProvider
 
 

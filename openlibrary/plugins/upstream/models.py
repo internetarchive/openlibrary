@@ -5,12 +5,12 @@ from collections import defaultdict
 from functools import cached_property
 
 import web
+from isbnlib import NotValidISBNError, canonical, mask
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
 from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
-from isbnlib import NotValidISBNError, canonical, mask
-
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import (

@@ -2,11 +2,11 @@ import json
 from typing import TYPE_CHECKING, Final, Literal, cast
 
 import web
+from web.template import TemplateResult
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
-from web.template import TemplateResult
-
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
