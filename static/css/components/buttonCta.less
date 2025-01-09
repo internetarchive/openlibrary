@@ -134,7 +134,6 @@ a.cta-btn {
 }
 
 // Button inside carousel
-// stylelint-disable-next-line selector-max-specificity
 .carousel-section .cta-btn {
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -143,6 +142,7 @@ a.cta-btn {
 
   &.cta-btn--external {
     padding-right: 25px;
+    // stylelint-disable-next-line selector-max-specificity
     .btn-label {
       padding: 8px 10px;
     }
