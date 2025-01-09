@@ -55,7 +55,8 @@ class Batch(web.storage):
 
     def load_items(self, filename):
         """Adds all the items specified in the filename to this batch."""
-        items = [line.strip() for line in open(filename) if line.strip()]
+        with open(filename) as file:
+            items = [line.strip() for line in file if line.strip()]
         self.add_items(items)
 
     def dedupe_items(self, items):

@@ -90,9 +90,10 @@ def read_data_file(filename: str, max_lines: int = 0):
 
 def xopen(path: str, mode: str):
     if path.endswith(".gz"):
-        return gzip.open(path, mode)
+        with gzip.open(path, mode) as file:
+            return file
     else:
-        return open(path, mode)
+        return file
 
 
 def read_tsv(file, strip=True):

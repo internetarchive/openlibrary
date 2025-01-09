@@ -9,10 +9,10 @@ from datetime import datetime
 
 import pytest
 import web
-
 from infogami import config
 from infogami.infobase import account, client, common
 from infogami.infobase import config as infobase_config
+
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
 
@@ -421,7 +421,8 @@ def mock_site(request):
 
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
+            with open(path) as file:
+                text = file.read()
             doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc

@@ -12,10 +12,10 @@ import socket
 from time import time
 from urllib.parse import parse_qs, urlencode
 
+import infogami
 import requests
 import web
 
-import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -26,7 +26,6 @@ from openlibrary.i18n import gettext as _
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
-import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -38,6 +37,8 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+
+import openlibrary.core.stats
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
@@ -205,11 +206,13 @@ def sampleload(filename='sampledump.txt.gz'):
     if filename.endswith('.gz'):
         import gzip
 
-        f = gzip.open(filename)
+        with gzip.open(filename) as file:
+            pass
     else:
-        f = open(filename)
+        with open(filename) as file:
+            pass
 
-    queries = [json.loads(line) for line in f]
+    queries = [json.loads(line) for line in file]
     print(web.ctx.site.save_many(queries))
 
 
@@ -400,9 +403,8 @@ def save(filename, text):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(text)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(text)
 
 
 def change_ext(filename, ext):
@@ -1119,9 +1121,8 @@ def save_error():
         os.makedirs(dir)
 
     error = web.safestr(web.djangoerror())
-    f = open(path, 'w')
-    f.write(error)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(error)
 
     print('error saved to', path, file=web.debug)
     return name

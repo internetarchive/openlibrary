@@ -13,8 +13,8 @@ import traceback
 
 import requests
 import web
-
 from infogami.infobase import cache, common, config, dbstore, server
+
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -291,9 +291,8 @@ def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(data)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(data)
 
 
 def save_error(dir, prefix):

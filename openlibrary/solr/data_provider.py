@@ -17,9 +17,9 @@ import httpx
 import requests
 import web
 from httpx import HTTPError
+from infogami.infobase.client import Site
 from web import DB
 
-from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
