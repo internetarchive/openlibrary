@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Shelf from './Shelf';
+import Shelf from './Shelf.vue';
 
 
 export default {
