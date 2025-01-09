@@ -5,6 +5,8 @@
 #
 # Run the following command:
 # ./scripts/dev-instance/load-patron-data.sh
+#
+# For best results, run this script after a fresh Open Library install.
 
 docker compose exec -T db psql --quiet -U openlibrary openlibrary < scripts/dev-instance/patron_data.sql
 
