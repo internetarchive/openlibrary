@@ -7,7 +7,6 @@ const getVueComponentFiles = async () => {
     try {
         const files = await fs.readdir(directoryPath);
         const f = files.filter(file => file.endsWith('.vue'));
-        console.log(f);
         return f;
     } catch (err) {
         console.error('Unable to scan directory:', err);
