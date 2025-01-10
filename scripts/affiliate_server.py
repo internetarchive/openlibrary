@@ -689,6 +689,7 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+    http_proxy_url = config.get('http_proxy')
 
     stats.client = stats.create_stats_client(cfg=config)
 
@@ -699,7 +700,7 @@ def load_config(configfile):
         config.amazon_api.get('id'),
     ]
     if all(args):
-        web.amazon_api = AmazonAPI(*args, throttling=0.9)
+        web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=http_proxy_url)
         logger.info("AmazonAPI Initialized")
     else:
         raise RuntimeError(f"{configfile} is missing required keys.")
