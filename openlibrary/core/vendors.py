@@ -115,7 +115,7 @@ class AmazonAPI:
             access_key=key, secret_key=secret, host=host, region=region
         )
 
-        # Replace the api object with one that supports the HTTP proxy. See #10308.
+        # Replace the api object with one that supports the HTTP proxy. See #10310.
         configuration = Configuration()
         configuration.proxy = http_proxy_url
         rest_client = RESTClientObject(configuration=configuration)
