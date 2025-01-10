@@ -16,7 +16,7 @@
 <script>
 import Vue from 'vue'
 
-import OLChip from './OLChip'
+import OLChip from './OLChip.vue'
 
 import { updateObservation } from '../ObservationService'
 
