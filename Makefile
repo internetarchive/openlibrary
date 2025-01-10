@@ -29,26 +29,20 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
-vite: $(COMPONENTS_DIR)/*.vue
-	mkdir -p $(BUILD)
-	rm -rf $(BUILD)/components
-	node /openlibrary/openlibrary/components/generateViteInputFiles.js
-	component=BarcodeScanner npx vite build
-	component=BulkSearch npx vite build
-	component=HelloWorld npx vite build
-	component=IdentifiersInput npx vite build
-	# The three below this need more testing
-	component=LibraryExplorer npx vite build
-	component=MergeUi npx vite build
-	component=ObservationForm npx vite build
 
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
-	# Run these silly things one at a time, because they don't support parallelization :(
-	parallel --verbose -q --jobs 1 \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
-	::: $^
+	node /openlibrary/openlibrary/components/generateViteInputFiles.js
+	# TODO: call generateViteFiles from vite.config.mjs
+	# TODO: make it loop over everything in the components directory
+	component=BarcodeScanner npx vite build
+	component=BulkSearch npx vite build
+	component=HelloWorld npx vite build
+	component=IdentifiersInput npx vite build
+	component=LibraryExplorer npx vite build
+	component=MergeUi npx vite build
+	component=ObservationForm npx vite build
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
