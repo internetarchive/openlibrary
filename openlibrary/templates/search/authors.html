@@ -53,7 +53,7 @@ $ sort = query_param('sort', None)
               <div id="fulltext-search-suggestion" data-query="$q">
                   $:macros.LoadingIndicator(_("Checking Search Inside matches"))
               </div>
-
+       $if results.num_found:
         <ul class="authorList list-books">
         $for doc in results.docs:
             $ n = doc['name']
@@ -78,5 +78,5 @@ $ sort = query_param('sort', None)
 
         $:macros.Pager(page, results.num_found, results_per_page)
   </div>
-  <div class="clearfix"></div>
+
 </div>
