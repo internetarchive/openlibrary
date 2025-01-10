@@ -28,8 +28,8 @@
 </template>
 
 <script>
-import RightArrowIcon from './icons/RightArrowIcon';
-import ShelfProgressBar from './ShelfProgressBar';
+import RightArrowIcon from './icons/RightArrowIcon.vue';
+import ShelfProgressBar from './ShelfProgressBar.vue';
 export default {
     components: { RightArrowIcon, ShelfProgressBar },
     props: {
