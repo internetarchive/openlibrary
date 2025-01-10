@@ -29,7 +29,6 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
-
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components

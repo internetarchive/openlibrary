@@ -79,7 +79,7 @@ import Bookshelf from './Bookshelf.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
-import { nextTick } from 'vue'
+import { nextTick } from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
 import CONFIGS from '../../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
