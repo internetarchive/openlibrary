@@ -48,7 +48,8 @@ def gen_po_file_keys():
     for locale in get_locales():
         po_path = os.path.join(root, locale, 'messages.po')
 
-        catalog = read_po(open(po_path, 'rb'))
+        with open(po_path, 'rb') as fil:
+            catalog = read_po(fil)
         for key in catalog:
             yield locale, key
 
