@@ -8,10 +8,11 @@ from typing import Any, Literal
 import requests
 from dateutil import parser as isoparser
 from paapi5_python_sdk.api.default_api import DefaultApi
+from paapi5_python_sdk.api_client import Configuration
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
 from paapi5_python_sdk.partner_type import PartnerType
-from paapi5_python_sdk.rest import ApiException
+from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
 from infogami.utils.view import public
@@ -32,6 +33,7 @@ BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
+http_proxy_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
     h.affiliate_id('betterworldbooks')
 )
@@ -42,6 +44,8 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
+    global http_proxy_url
+    http_proxy_url = config.get('http_proxy')
 
 
 def get_lexile(isbn):
@@ -93,6 +97,9 @@ class AmazonAPI:
         """
         Creates an instance containing your API credentials.
 
+        Instantiating this object in a REPL requires the `infogami._setup()`
+        magic incantation to set `http_proxy_url`.
+
         :param str key: affiliate key
         :param str secret: affiliate secret
         :param str tag: affiliate string
@@ -107,6 +114,12 @@ class AmazonAPI:
         self.api = DefaultApi(
             access_key=key, secret_key=secret, host=host, region=region
         )
+
+        # Replace the api object with one that supports the HTTP proxy. See #10308.
+        configuration = Configuration()
+        configuration.proxy = http_proxy_url
+        rest_client = RESTClientObject(configuration=configuration)
+        self.api.api_client.rest_client = rest_client
 
     def search(self, keywords):
         """Adding method to test amz searches from the CLI, unused otherwise"""
