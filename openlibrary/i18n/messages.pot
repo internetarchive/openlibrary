@@ -7287,6 +7287,10 @@ msgid ""
 msgstr ""
 
 #: EditionNavBar.html
+msgid "Go to next section"
+msgstr ""
+
+#: EditionNavBar.html
 msgid "Overview"
 msgstr ""
 
@@ -7306,10 +7310,6 @@ msgstr[1] ""
 
 #: EditionNavBar.html
 msgid "Related Books"
-msgstr ""
-
-#: EditionNavBar.html
-msgid "Go to next section"
 msgstr ""
 
 #: Follow.html
