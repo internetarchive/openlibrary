@@ -583,10 +583,6 @@ def load_data(
         }
     """
 
-    cover_url = None
-    if 'cover' in rec:
-        cover_url = rec['cover']
-        del rec['cover']
     try:
         # get an OL style edition dict
         rec_as_edition = build_query(rec)
@@ -617,6 +613,11 @@ def load_data(
 
     if not (edition_key := edition.get('key')):
         edition_key = web.ctx.site.new_key('/type/edition')
+
+    cover_url = None
+    if 'cover' in edition:
+        cover_url = edition['cover']
+        del edition['cover']
 
     cover_id = None
     if cover_url:
