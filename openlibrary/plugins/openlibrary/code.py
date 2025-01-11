@@ -642,6 +642,7 @@ class BatchImportPendingView(delegate.page):
 
 
 class isbn_lookup(delegate.page):
+    """The endpoint for /isbn"""
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
     def GET(self, isbn: str):
