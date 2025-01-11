@@ -21,6 +21,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import setup_requests
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -643,6 +644,7 @@ class BatchImportPendingView(delegate.page):
 
 class isbn_lookup(delegate.page):
     """The endpoint for /isbn"""
+
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
     def GET(self, isbn: str):
@@ -1382,32 +1384,6 @@ def setup_context_defaults():
     from infogami.utils import context
 
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
-
-
-def setup_requests():
-    logger.info("Setting up requests")
-
-    logger.info("Setting up proxy")
-    if infogami.config.get("http_proxy", ""):
-        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get(
-            'http_proxy'
-        )
-        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get(
-            'http_proxy'
-        )
-        logger.info('Proxy environment variables are set')
-    else:
-        logger.info("No proxy configuration found")
-
-    logger.info("Setting up proxy bypass")
-    if infogami.config.get("no_proxy_addresses", []):
-        no_proxy = ",".join(infogami.config.get("no_proxy_addresses"))
-        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
-        logger.info('Proxy bypass environment variables are set')
-    else:
-        logger.info("No proxy bypass configuration found")
-
-    logger.info("Requests set up")
 
 
 def setup():
