@@ -4,20 +4,15 @@
       <th>
         <select class="form-control" v-model="selectedIdentifier" name="name">
           <option disabled value="">Select one</option>
-          <template v-if="Object.keys(popularIdDict).length !== 0">
+          <template v-if="hasPopularIds">
             <option v-for="entry in popularIdDict" :key="entry.name" :value="entry.name">
               {{ entry.label }}
             </option>
             <option disabled value="">---</option>
-            <option v-for="entry in secondaryIdDict" :key="entry.name" :value="entry.name">
-              {{ entry.label }}
-            </option>
           </template>
-          <template v-else>
-            <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
-              {{idConfig.label}}
-            </option>
-          </template>
+          <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
+            {{idConfig.label}}
+          </option>
         </select>
       </th>
       <th>
@@ -60,7 +55,6 @@ const identifierPatterns  = {
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
 }
-const popularEditionIds = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'librivox', 'oclc_numbers', 'project_gutenberg']
 
 export default {
     // Props are for external options; if a subelement of this is modified,
@@ -102,6 +96,11 @@ export default {
             type: String,
             default: 'false',
         },
+        /** Maintains identifier order in the dropdown list
+         * Expects a list containing the name field from the
+         * respective identifiers.yaml file
+        */
+        popular_ids: {},
     },
 
     // Data is for internal stuff. This needs to be a function so that we get
@@ -115,47 +114,36 @@ export default {
     },
 
     computed: {
-        parsedConfigs: function() {
+        parsedConfig: function() {
             return JSON.parse(decodeURIComponent(this.id_config_string))
         },
         popularIdDict: function() {
-            if (this.output_selector.includes('Edition')) {
-                const popularConfigs = this.parsedConfigs.filter((config) => {
-                    if (popularEditionIds.includes(config.name)) {
+            if (this.popular_ids) {
+                let popularConfig = JSON.parse(decodeURIComponent(this.popular_ids))
+                popularConfig = this.parsedConfig.filter((config) => {
+                    if (popularConfig.includes(config.name)) {
                         return true;
                     }
                     return false;
                 })
-                return Object.fromEntries(popularConfigs.map(e => [e.name, e]))
-            }
-            return {};
-        },
-        secondaryIdDict: function() {
-            if (this.output_selector.includes('Edition')) {
-                const filteredConfigs = this.parsedConfigs.filter((config) => {
-                    if (popularEditionIds.includes(config.name)) {
-                        return false;
-                    }
-                    return true
-                })
-                return Object.fromEntries(filteredConfigs.map(e => [e.name, e]))
+                return Object.fromEntries(popularConfig.map(e => [e.name, e]))
             }
             return {};
         },
         identifierConfigsByKey: function() {
-            if (this.saveIdentifiersAsList) {
-                return Object.fromEntries(this.parsedConfigs.map(e => [e.name, e]));
-            }
-            return Object.fromEntries(this.parsedConfigs['identifiers'].map(e => [e.name, e]));
+            return Object.fromEntries(this.parsedConfig.map(e => [e.name, e]));
         },
-        isAdmin() {
+        isAdmin: function() {
             return this.admin.toLowerCase() === 'true';
         },
-        saveIdentifiersAsList() {
+        saveIdentifiersAsList: function() {
             return this.multiple.toLowerCase() === 'true';
         },
         setButtonEnabled: function(){
             return this.selectedIdentifier !== '' && this.inputValue !== '';
+        },
+        hasPopularIds: function() {
+            return Object.keys(this.popularIdDict).length !== 0;
         },
     },
 
