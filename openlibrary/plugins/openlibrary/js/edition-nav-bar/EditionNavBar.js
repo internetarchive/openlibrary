@@ -77,7 +77,7 @@ export default class EdtionNavBar {
                 }
             })
         }
- 
+
         if (this.navArrowRight) {
             this.navArrowRight.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
