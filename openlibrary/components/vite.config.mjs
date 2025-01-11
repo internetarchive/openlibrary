@@ -39,6 +39,5 @@ import { createWebComponentSimple } from "${COMPONENT_SOURCE_DIR}/rollupInputCor
 import rootComponent from '${COMPONENT_SOURCE_DIR}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
-    fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(`${dir}/vue-tmp-${componentName}.js`, template);
 }
