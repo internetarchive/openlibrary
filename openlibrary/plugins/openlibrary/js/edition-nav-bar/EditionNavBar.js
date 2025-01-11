@@ -23,6 +23,11 @@ export default class EdtionNavBar {
          * The mobile-only navigation arrow. Not guaranteed to exist.
          * @type {HTMLElement|null}
          */
+        this.navArrowLeft = navbarWrapper.querySelector('.nav-arrow-left')
+        /**
+         * The mobile-only navigation arrow. Not guaranteed to exist.
+         * @type {HTMLElement|null}
+         */
         this.navArrow = navbarWrapper.querySelector('.nav-arrow')
         /**
          * References each nav item in this navbar.
@@ -64,6 +69,15 @@ export default class EdtionNavBar {
         }
 
         // Add click listener to mobile-only navigation arrow:
+        if (this.navArrowLeft) {
+            this.navArrowLeft.addEventListener('click', () => {
+                if (this.selectedIndex > 0) {
+                    --this.selectedIndex
+                    this.navItems[this.selectedIndex].children[0].click()
+                }
+            })
+        }
+ 
         if (this.navArrow) {
             this.navArrow.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
