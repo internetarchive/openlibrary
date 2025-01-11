@@ -39,5 +39,11 @@ import { createWebComponentSimple } from "${COMPONENT_SOURCE_DIR}/rollupInputCor
 import rootComponent from '${COMPONENT_SOURCE_DIR}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
-    fs.writeFileSync(`${dir}/vue-tmp-${componentName}.js`, template);
+    try {
+        fs.writeFileSync(`${dir}/vue-tmp-${componentName}.js`, template);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Failed to generate component file: ${error.message}`);
+        process.exit(1); // Exit the process with an error code
+    }
 }
