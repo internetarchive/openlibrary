@@ -33,7 +33,6 @@ BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
-http_proxy_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
     h.affiliate_id('betterworldbooks')
 )
@@ -94,9 +93,8 @@ class AmazonAPI:
         proxy_url: str = "",
     ) -> None:
         """
-        Creates an instance containing your API credentials.
-
-        Instantiating this class requires a `proxy_url` parameter as of January
+        Creates an instance containing your API credentials. Additionally,
+        instantiating this class requires a `proxy_url` parameter as of January
         10th, 2025 because `ol-home0` has no direct internet access.
 
         :param str key: affiliate key
@@ -117,7 +115,7 @@ class AmazonAPI:
         # Replace the api object with one that supports the HTTP proxy. See #10310.
         if proxy_url:
             configuration = Configuration()
-            configuration.proxy = http_proxy_url
+            configuration.proxy = proxy_url
             rest_client = RESTClientObject(configuration=configuration)
             self.api.api_client.rest_client = rest_client
 
