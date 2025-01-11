@@ -54,7 +54,7 @@ from openlibrary.catalog.utils import (
     published_in_future_year,
 )
 from openlibrary.core import lending
-from openlibrary.plugins.upstream.utils import safeget, strip_accents
+from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -1023,3 +1023,10 @@ def load(rec: dict, account_key=None, from_marc_record: bool = False) -> dict:
     if 'ocaid' in rec:
         update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply
+
+
+def setup():
+    setup_requests()
+
+
+setup()
