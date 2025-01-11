@@ -28,7 +28,7 @@ export default class EdtionNavBar {
          * The mobile-only navigation arrow. Not guaranteed to exist.
          * @type {HTMLElement|null}
          */
-        this.navArrow = navbarWrapper.querySelector('.nav-arrow')
+        this.navArrowRight = navbarWrapper.querySelector('.nav-arrow-right')
         /**
          * References each nav item in this navbar.
          * @type {Array<HTMLLIElement>}
@@ -78,8 +78,8 @@ export default class EdtionNavBar {
             })
         }
  
-        if (this.navArrow) {
-            this.navArrow.addEventListener('click', () => {
+        if (this.navArrowRight) {
+            this.navArrowRight.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
                     // Simulate click on the next nav item:
                     ++this.selectedIndex
