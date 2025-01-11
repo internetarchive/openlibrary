@@ -32,8 +32,6 @@ js:
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
-	node /openlibrary/openlibrary/components/generateViteInputFiles.js
-	# TODO: call generateViteFiles from vite.config.mjs
 	for comp in $$(find openlibrary/components -maxdepth 1 -name '*.vue' -printf "%f\n"); do \
 		COMPONENT="$$comp" npx vite build -c openlibrary/components/vite.config.mjs ; \
 	done
