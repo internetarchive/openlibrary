@@ -14,7 +14,7 @@ if (!COMPONENT) {
 
 // Directory where we store the temporary vite input files
 // This is because vite doesn't support passing params to input files
-const INPUT_JS_DIR = '/openlibrary/openlibrary/static/build';
+const INPUT_JS_DIR = './static/build';
 const COMPONENT_SOURCE_DIR = '/openlibrary/openlibrary/components';
 generateComponentFile(COMPONENT, INPUT_JS_DIR);
 
