@@ -15,7 +15,6 @@ if (!COMPONENT) {
 // Directory where we store the temporary vite input files
 // This is because vite doesn't support passing params to input files
 const INPUT_JS_DIR = './static/build';
-const COMPONENT_SOURCE_DIR = '/openlibrary/openlibrary/components';
 generateComponentFile(COMPONENT, INPUT_JS_DIR);
 
 export default defineConfig({
@@ -35,8 +34,8 @@ export default defineConfig({
 
 function generateComponentFile(componentName, dir) {
     const template = `
-import { createWebComponentSimple } from "${COMPONENT_SOURCE_DIR}/rollupInputCore.js"
-import rootComponent from '${COMPONENT_SOURCE_DIR}/${componentName}.vue';
+import { createWebComponentSimple } from "../../openlibrary/components/rollupInputCore.js"
+import rootComponent from '../../openlibrary/components/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
     try {
