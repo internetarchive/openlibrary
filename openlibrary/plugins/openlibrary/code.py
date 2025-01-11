@@ -43,9 +43,6 @@ from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
-from openlibrary.core.vendors import (
-    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
-)
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
