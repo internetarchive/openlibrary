@@ -77,7 +77,7 @@ export default class EdtionNavBar {
                 }
             })
         }
- 
+
         if (this.navArrowRight) {
             this.navArrowRight.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
@@ -103,7 +103,7 @@ export default class EdtionNavBar {
         if (navbarHeight > 0) {
             let i = this.navItems.length
             // 10 is for a little bit of padding
-            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) {}
+            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) { }
             if (i !== this.selectedIndex) {
                 this.selectedIndex = i
                 this.selectElement(this.navItems[i])
@@ -123,7 +123,8 @@ export default class EdtionNavBar {
 
         this.navbarElem.scrollTo({
             left: selectedItem.offsetLeft - (this.navbarElem.clientWidth - selectedItem.offsetWidth) / 2,
-            behavior: 'instant'})
+            behavior: 'instant'
+        })
     }
 
     /**
