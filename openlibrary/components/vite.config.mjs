@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 // import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
-const COMPONENT = process.env.COMPONENT;
+const COMPONENT = process.env.COMPONENT?.replace('.vue', '');
 if (!COMPONENT) {
     throw new Error('component was not specified in the environment variable. \n' +
         'Try: component=BarcodeScanner npx vite build'

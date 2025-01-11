@@ -34,14 +34,10 @@ components: $(COMPONENTS_DIR)/*.vue
 	rm -rf $(BUILD)/components
 	node /openlibrary/openlibrary/components/generateViteInputFiles.js
 	# TODO: call generateViteFiles from vite.config.mjs
-	# TODO: make it loop over everything in the components directory
-	COMPONENT=BarcodeScanner npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=BulkSearch npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=HelloWorld npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=IdentifiersInput npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=LibraryExplorer npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=MergeUi npx vite build -c openlibrary/components/vite.config.mjs
-	COMPONENT=ObservationForm npx vite build -c openlibrary/components/vite.config.mjs
+	for comp in $$(find openlibrary/components -maxdepth 1 -name '*.vue' -printf "%f\n"); do \
+		COMPONENT="$$comp" npx vite build -c openlibrary/components/vite.config.mjs ; \
+	done
+
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
