@@ -437,11 +437,28 @@ def get_missing_fields(rec: dict) -> list[str]:
     return [field for field in required_fields if rec.get(field) is None]
 
 
+class InvalidLanguage(Exception):
+    def __init__(self, code):
+        self.code = code
+
+    def __str__(self):
+        return f"invalid language code: '{self.code}'"
+
+
 def format_languages(languages: Iterable) -> list[dict]:
-    """Format language data to match Open Library's expected format."""
+    """
+    Format language data to match Open Library's expected format.
+    >>> format_languages(["eng", "fre"])
+    [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
+    """
     if not languages:
         return []
+
     formatted_languages = []
     for language in languages:
+        if web.ctx.site.get(f"/languages/{language.lower()}") is None:
+            raise InvalidLanguage(language.lower())
+
         formatted_languages.append({'key': f'/languages/{language.lower()}'})
+
     return formatted_languages

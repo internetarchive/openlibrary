@@ -316,14 +316,14 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     assert e.type.key == '/type/edition'
     assert e.source_records == ['ia:test_item']
 
-    rec = {
+    matching_rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
         'languages': ['eng'],
     }
-    reply = load(rec)
+    reply = load(matching_rec)
     assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
@@ -333,7 +333,8 @@ def test_matched_edition_with_new_language_in_rec_adds_language(
 ):
     """
     When records match, but the record has a new language, the new language
-    should be added to the existing edition
+    should be added to the existing edition, but existing languages should
+    not be duplicated.
     """
     rec = {
         'ocaid': 'test_item',
@@ -348,19 +349,90 @@ def test_matched_edition_with_new_language_in_rec_adds_language(
     assert e.type.key == '/type/edition'
     assert e.source_records == ['ia:test_item']
 
-    rec = {
+    matching_rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
-        'languages': ['fre'],
+        'languages': ['fre', 'eng'],
     }
-    reply = load(rec)
+    reply = load(matching_rec)
     assert reply['success'] is True
     assert reply['edition']['status'] == 'modified'
     updated_e = mock_site.get(reply['edition']['key'])
     updated_languages = [lang['key'] for lang in updated_e.languages]
     assert updated_languages == ['/languages/eng', '/languages/fre']
+
+
+def test_matched_edition_with_new_language_is_added_even_if_no_existing_language(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    Ensure a new language is added even if the existing edition has no language
+    field.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    matching_rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    updated_edition = mock_site.get(reply['edition']['key'])
+    updated_languages = [lang['key'] for lang in updated_edition.languages]
+    assert updated_languages == ['/languages/eng']
+
+
+def test_matched_edition_properly_updates_non_language_fields(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    Ensure a new language is added even if the existing edition has no language
+    field.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    matching_rec = {
+        'ocaid': 'test_item',
+        'source_records': ['test:1234567890'],  # updated existing field in edition.
+        'title': 'Test item',
+        'lc_classifications': ['PQ2671.A58'],  # new field not present in edition.
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    updated_edition = mock_site.get(reply['edition']['key'])
+
+    expected_source_records = ['ia:test_item', 'test:1234567890']
+    expected_lc_classifications = ['PQ2671.A58']
+
+    assert expected_source_records == updated_edition.source_records
+    assert expected_lc_classifications == updated_edition.lc_classifications
 
 
 class Test_From_MARC:

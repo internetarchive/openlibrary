@@ -36,7 +36,6 @@ import web
 from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
-    InvalidLanguage,
     build_query,
     east_in_by_statement,
     import_author,
@@ -44,6 +43,7 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    InvalidLanguage,
     format_languages,
     get_non_isbn_asin,
     get_publication_year,
@@ -826,30 +826,22 @@ def update_edition_with_rec_data(
             continue
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-
-        if f == 'languages':
-            formatted_languages = format_languages(values)
-
-            if f in edition:
-                # get values from rec field that are not currently on the edition
-                case_folded_values = {v['key'].casefold() for v in edition[f]}
-                to_add = [
-                    v
-                    for v in formatted_languages
-                    if v['key'].casefold() not in case_folded_values
-                ]
-                edition[f] += to_add
-            else:
-                edition[f] = to_add = formatted_languages
+        # get values from rec field that are not currently on the edition
+        if f == "languages":
+            # Existing languages are Thing-type, and rec has dict-style languages.
+            existing_lang_keys = {
+                lang['key'] for lang in edition[f]
+            }  # e.g. set('/languages/eng')
+            formatted_rec_languages = format_languages(values)
+            to_add = [
+                lang
+                for lang in formatted_rec_languages
+                if lang['key'] not in existing_lang_keys
+            ]
         else:
-            if f in edition:
-                # get values from rec field that are not currently on the edition
-                case_folded_values = {v.casefold() for v in edition[f]}
-                to_add = [v for v in values if v.casefold() not in case_folded_values]
-                edition[f] += to_add
-            else:
-                edition[f] = to_add = values
-
+            case_folded_values = {v.casefold() for v in edition[f]}
+            to_add = [v for v in values if v.casefold() not in case_folded_values]
+        edition[f] += to_add
         if to_add:
             need_edition_save = True
 

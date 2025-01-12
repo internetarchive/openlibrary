@@ -2,12 +2,12 @@ import pytest
 
 from openlibrary.catalog.add_book import load_book
 from openlibrary.catalog.add_book.load_book import (
-    InvalidLanguage,
     build_query,
     find_entity,
     import_author,
     remove_author_honorifics,
 )
+from openlibrary.catalog.utils import InvalidLanguage
 from openlibrary.core.models import Author
 
 

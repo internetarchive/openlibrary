@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from openlibrary.catalog.utils import (
+    InvalidLanguage,
     author_dates_match,
     flip_name,
     format_languages,
@@ -436,3 +437,9 @@ def test_remove_trailing_number_dot(date: str, expected: str) -> None:
 def test_format_languages(languages: list[str], expected: list[dict[str, str]]) -> None:
     got = format_languages(languages)
     assert got == expected
+
+
+@pytest.mark.parametrize(("languages"), [(["wtf"]), (["eng", "wtf"])])
+def test_format_language_rasise_for_invalid_language(languages: list[str]) -> None:
+    with pytest.raises(InvalidLanguage):
+        format_languages(languages)
