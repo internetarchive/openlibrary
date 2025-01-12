@@ -451,13 +451,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
             </dl>
-            <h3>$_("Work Identifiers")</h3> 
-            <dl class="meta"> 
-                $:display_identifiers("Work ID", [storage(url=None, value=work.key.split("/")[-1])]) 
-                $for name, values in work.get_identifiers().multi_items(): 
-                    $ identifier_label = values[0].label 
-                    $:display_identifiers(identifier_label, values) 
-            </dl> 
+            <h3>$_("Work Identifiers")</h3>
+            <dl class="meta">
+                $:display_identifiers("Work ID", [storage(url=None, value=work.key.split("/")[-1])])
+                $for name, values in work.get_identifiers().multi_items():
+                    $ identifier_label = values[0].label
+                    $:display_identifiers(identifier_label, values)
+            </dl>
           </div>
 	  $ source_records = edition.get('source_records')
           $if source_records:
