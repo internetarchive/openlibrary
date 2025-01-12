@@ -5,6 +5,7 @@ import pytest
 from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,
+    format_languages,
     get_missing_fields,
     get_non_isbn_asin,
     get_publication_year,
@@ -421,4 +422,17 @@ def test_get_missing_field(name, rec, expected) -> None:
 )
 def test_remove_trailing_number_dot(date: str, expected: str) -> None:
     got = remove_trailing_number_dot(date)
+    assert got == expected
+
+
+@pytest.mark.parametrize(
+    ("languages", "expected"),
+    [
+        (["eng"], [{'key': '/languages/eng'}]),
+        (["eng", "FRE"], [{'key': '/languages/eng'}, {'key': '/languages/fre'}]),
+        ([], []),
+    ],
+)
+def test_format_languages(languages: list[str], expected: list[dict[str, str]]) -> None:
+    got = format_languages(languages)
     assert got == expected
