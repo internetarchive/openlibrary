@@ -1793,6 +1793,10 @@ msgstr ""
 msgid "Then, come back to Open Library and find some great books!"
 msgstr ""
 
+#: account/view.html
+msgid "Yearly Reading Goal"
+msgstr ""
+
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
 msgstr ""
