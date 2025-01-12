@@ -527,7 +527,7 @@ function addGoalSubmissionListener(submitButton) {
                     yearlyGoalSections.forEach((yearlyGoalSection) => {
                         const goalInput = form.querySelector('input[name=goal]')
                         const isDeleted = Number(goalInput.value) === 0
-    
+
                         if (isDeleted) {
                             const chipGroup = yearlyGoalSection.querySelector('.chip-group')
                             const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
