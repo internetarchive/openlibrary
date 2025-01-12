@@ -299,6 +299,42 @@ def test_load_with_redirected_author(mock_site, add_languages):
 
 
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
+    """
+    Here all fields that are 'used' (i.e. read and contribute to the edition)
+    are the same.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'matched'
+
+
+def test_matched_edition_with_new_language_in_rec_adds_language(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    When records match, but the record has a new language, the new language
+    should be added to the existing edition
+    """
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
@@ -321,7 +357,10 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     }
     reply = load(rec)
     assert reply['success'] is True
-    assert reply['edition']['status'] in ['matched', 'modified']
+    assert reply['edition']['status'] == 'modified'
+    updated_e = mock_site.get(reply['edition']['key'])
+    updated_languages = [lang['key'] for lang in updated_e.languages]
+    assert updated_languages == ['/languages/eng', '/languages/fre']
 
 
 class Test_From_MARC:
