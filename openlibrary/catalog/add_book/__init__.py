@@ -44,6 +44,7 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    format_languages,
     get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
@@ -786,16 +787,6 @@ def validate_record(rec: dict) -> None:
 def find_match(rec: dict, edition_pool: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
-
-
-def format_languages(languages):
-    """Format language data to match Open Library's expected format."""
-    if not languages:
-        return []
-    formatted_languages = []
-    for language in languages:
-        formatted_languages.append({'key': f'/languages/{language.lower()}'})
-    return formatted_languages
 
 
 def update_edition_with_rec_data(

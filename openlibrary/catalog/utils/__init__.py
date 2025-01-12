@@ -1,5 +1,6 @@
 import datetime
 import re
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from unicodedata import normalize
 
@@ -434,3 +435,13 @@ def get_missing_fields(rec: dict) -> list[str]:
         'source_records',
     ]
     return [field for field in required_fields if rec.get(field) is None]
+
+
+def format_languages(languages: Iterable) -> list[dict]:
+    """Format language data to match Open Library's expected format."""
+    if not languages:
+        return []
+    formatted_languages = []
+    for language in languages:
+        formatted_languages.append({'key': f'/languages/{language.lower()}'})
+    return formatted_languages

@@ -2,7 +2,12 @@ from typing import TYPE_CHECKING, Any, Final
 
 import web
 
-from openlibrary.catalog.utils import author_dates_match, flip_name, key_int
+from openlibrary.catalog.utils import (
+    author_dates_match,
+    flip_name,
+    format_languages,
+    key_int,
+)
 from openlibrary.core.helpers import extract_year
 
 if TYPE_CHECKING:
@@ -272,7 +277,6 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     :return: Open Library style edition dict representation
     """
     # import format_languages function from __init__.py to avoid circular import
-    from . import format_languages
 
     book: dict[str, Any] = {
         'type': {'key': '/type/edition'},
