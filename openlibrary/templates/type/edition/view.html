@@ -247,7 +247,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
-                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    $if page_type=="works":
+                      $:_("This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    $else:
+                      $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#edition/description")
                 </p>
             </div>
         </div>

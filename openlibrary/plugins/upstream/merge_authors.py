@@ -14,6 +14,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import dicthash, uniq
+from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 
 class BasicRedirectEngine:
@@ -41,7 +42,7 @@ class BasicRedirectEngine:
         :param str key: e.g. /works/OL1W
         :rtype: list of str
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_all_references(self, keys):
         refs = {ref for key in keys for ref in self.find_references(key)}
@@ -105,7 +106,7 @@ class BasicMergeEngine:
 
         All the subclasses must provide an implementation for this method.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def merge_docs(self, master, dup):
         """Merge duplicate doc into master doc."""
@@ -263,6 +264,8 @@ class merge_authors(delegate.page):
         # key is deprecated in favor of records but we will support both
         if deprecated_keys := uniq(i.key):
             redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
+            if i.mrid:
+                redir_url = f'{redir_url}&mrid={i.mrid}'
             raise web.redirect(redir_url)
 
         keys = uniq(i.records.strip(',').split(','))
@@ -364,9 +367,15 @@ class merge_authors_json(delegate.page):
         comment = data.get('comment', None)
         olids = data.get('olids', '')
 
-        engine = AuthorMergeEngine(AuthorRedirectEngine())
-        try:
-            result = engine.merge(master, duplicates)
+        def merge_records() -> Any:
+            try:
+                engine = AuthorMergeEngine(AuthorRedirectEngine())
+                return engine.merge(master, duplicates)
+            except ClientException as e:
+                raise web.badrequest(json.loads(e.json))
+
+        def update_request() -> None:
+            data = {}
             if mrid:
                 # Update the request
                 rtype = 'update-request'
@@ -378,9 +387,21 @@ class merge_authors_json(delegate.page):
             if comment:
                 data['comment'] = comment
             process_merge_request(rtype, data)
-        except ClientException as e:
-            raise web.badrequest(json.loads(e.json))
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+
+        # actually perform merge and save affected records to db
+        merge_result = merge_records()
+        # attempt to update the merge request status with retries
+        try:
+            RetryStrategy(
+                [ClientException],
+                max_retries=5,
+                delay=2,
+            )(update_request)
+        except MaxRetriesExceeded as e:
+            raise web.badrequest(str(e.last_exception))
+        return delegate.RawText(
+            json.dumps(merge_result), content_type="application/json"
+        )
 
 
 def setup():

@@ -60,7 +60,7 @@ class TestEdition:
         assert not e.in_borrowable_collection()
 
     @pytest.mark.parametrize(
-        ["isbn_or_asin", "expected"],
+        ('isbn_or_asin', 'expected'),
         [
             ("1111111111", ("1111111111", "")),  # ISBN 10
             ("9780747532699", ("9780747532699", "")),  # ISBN 13
@@ -75,7 +75,7 @@ class TestEdition:
         assert got == expected
 
     @pytest.mark.parametrize(
-        ["isbn", "asin", "expected"],
+        ('isbn', 'asin', 'expected'),
         [
             ("1111111111", "", True),  # ISBN 10
             ("", "B06XYHVXVJ", True),  # ASIN
@@ -91,7 +91,7 @@ class TestEdition:
         assert got == expected
 
     @pytest.mark.parametrize(
-        ["isbn", "asin", "expected"],
+        ('isbn', 'asin', 'expected'),
         [
             ("1111111111", "", ["1111111111", "9781111111113"]),
             ("9780747532699", "", ["0747532699", "9780747532699"]),

@@ -465,7 +465,7 @@ class ReadingLog:
 
     @property
     def lists(self) -> list:
-        return self.user.get_lists()
+        return self.user.get_lists(limit=1000)
 
     @property
     def booknotes_counts(self):

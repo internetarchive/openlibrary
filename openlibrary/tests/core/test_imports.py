@@ -149,7 +149,7 @@ class TestImportItem:
         assert isinstance(items, map)
 
     @pytest.mark.parametrize(
-        'ia_id, expected',
+        ('ia_id', 'expected'),
         [
             ('unique_id_1', [1, 3]),
             ('unique_id_2', [2]),

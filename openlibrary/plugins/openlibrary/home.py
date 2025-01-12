@@ -40,7 +40,7 @@ CAROUSELS_PRESETS = {
 
 def get_homepage():
     try:
-        stats = admin.get_stats()
+        stats = admin.get_stats(use_mock_data=("dev" in web.ctx.features))
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
