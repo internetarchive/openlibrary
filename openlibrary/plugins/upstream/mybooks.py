@@ -61,7 +61,7 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(loans)})
+            loans = web.Storage({"docs": [], "total_results": len(myloans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
                 # Book will be None if no OL edition exists for the book
