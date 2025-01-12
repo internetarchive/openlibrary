@@ -96,8 +96,6 @@ $def empty_mobile_carousel(data):
                   <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
                 </a>
               </span>
-              $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
-              $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
             </div>
             $if current_goal:
               <span id="reading-goal-container">
