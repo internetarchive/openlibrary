@@ -445,7 +445,7 @@ class InvalidLanguage(Exception):
         return f"invalid language code: '{self.code}'"
 
 
-def format_languages(languages: Iterable) -> list[dict]:
+def format_languages(languages: Iterable) -> list[dict[str, str]]:
     """
     Format language data to match Open Library's expected format.
     >>> format_languages(["eng", "fre"])

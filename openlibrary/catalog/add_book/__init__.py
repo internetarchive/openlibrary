@@ -821,28 +821,28 @@ def update_edition_with_rec_data(
         'source_records',
         'languages',
     ]
-    for f in edition_list_fields:
-        if f not in rec or not rec[f]:
+    edition_dict: dict = edition.dict()
+    for field in edition_list_fields:
+        if field not in rec:
             continue
-        # ensure values is a list
-        values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        # get values from rec field that are not currently on the edition
-        if f == "languages":
-            # Existing languages are Thing-type, and rec has dict-style languages.
-            existing_lang_keys = {
-                lang['key'] for lang in edition[f]
-            }  # e.g. set('/languages/eng')
-            formatted_rec_languages = format_languages(values)
-            to_add = [
-                lang
-                for lang in formatted_rec_languages
-                if lang['key'] not in existing_lang_keys
+
+        existing_values = edition_dict.get(field, []) or []
+        rec_values = rec.get(field, [])
+
+        # Languages in `rec` are ['eng'], etc., but import requires dict-style.
+        if field == 'languages':
+            formatted_languages = format_languages(languages=rec_values)
+            supplemented_values = existing_values + [
+                lang for lang in formatted_languages if lang not in existing_values
             ]
         else:
-            case_folded_values = {v.casefold() for v in edition[f]}
-            to_add = [v for v in values if v.casefold() not in case_folded_values]
-        edition[f] += to_add
-        if to_add:
+            case_folded_values = [v.casefold() for v in existing_values]
+            supplemented_values = existing_values + [
+                v for v in rec_values if v.casefold() not in case_folded_values
+            ]
+
+        if existing_values != supplemented_values:
+            edition[field] = supplemented_values
             need_edition_save = True
 
     # Fields that are added as a whole if absent. (Individual values are not added.)
@@ -859,7 +859,7 @@ def update_edition_with_rec_data(
             edition[f] = rec[f]
             need_edition_save = True
 
-    # Add new identifiers
+    # Add new identifiers (dict values, so different treatment from lists above.)
     if 'identifiers' in rec:
         identifiers = defaultdict(list, edition.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
