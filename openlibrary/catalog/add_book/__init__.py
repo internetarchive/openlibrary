@@ -76,7 +76,7 @@ SUSPECT_PUBLICATION_DATES: Final = [
 ]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
-ALLOWED_COVER_HOSTS: Final = ("m.media-amazon.com",)
+ALLOWED_COVER_HOSTS: Final = ("m.media-amazon.com", "books.google.com")
 
 
 type_map = {
