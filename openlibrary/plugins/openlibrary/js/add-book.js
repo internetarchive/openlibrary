@@ -7,6 +7,7 @@ import {
     isFormatValidIsbn13,
     isValidLccn
 } from './idValidation.js'
+import { trimInputValues } from './utils.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -40,6 +41,8 @@ export function initAddBookImport () {
     $('#id_name').on('change', clearErrors);
 
     $('#publish_date').on('blur', validatePublishDate);
+
+    trimInputValues('input')
 
     // Prevents submission if the publish date is > 1 year in the future
     addBookForm.on('submit', function() {
@@ -184,13 +187,4 @@ function validatePublishDate() {
     } else {
         errorDiv.classList.add('hidden');
     }
-}
-
-export function trimInputValues() {
-    const inputs = document.querySelectorAll('input');
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            this.value = this.value.trim();
-        });
-    });
 }

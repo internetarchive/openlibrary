@@ -11,6 +11,7 @@ import {
 } from './idValidation';
 import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
+import { trimInputValues } from './utils.js';
 
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
@@ -490,6 +491,8 @@ export function initEdit() {
     var link = `#link_${tab.substring(1)}`;
     var fieldname = `:input${hash.replace('/', '-')}`;
 
+    trimInputValues('.olform input');
+
     $(link).trigger('click');
 
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
@@ -514,13 +517,4 @@ function isValidURL(url) {
     } catch (e) {
         return false;
     }
-}
-
-export function trimInputValues() {
-    const inputs = document.querySelectorAll('.olform input');
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            this.value = this.value.trim();
-        });
-    });
 }
