@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
+from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore.utils import (
     changequery,
     download,
@@ -20,6 +21,10 @@ from openlibrary.coverstore.utils import (
     safeint,
 )
 from openlibrary.plugins.openlibrary.processors import CORSProcessor
+from openlibrary.plugins.upstream.utils import setup_requests
+
+if coverstore_config := os.getenv('COVERSTORE_CONFIG'):
+    load_config(coverstore_config)
 
 logger = logging.getLogger("coverstore")
 
@@ -558,3 +563,10 @@ def render_list_preview_image(lst_key):
     with io.BytesIO() as buf:
         background.save(buf, format='PNG')
         return buf.getvalue()
+
+
+def setup():
+    setup_requests(config)
+
+
+setup()

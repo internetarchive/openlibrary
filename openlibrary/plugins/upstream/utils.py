@@ -1617,7 +1617,7 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
 
-def setup_requests():
+def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 
     logger.info("Setting up proxy")
