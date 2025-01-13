@@ -13,7 +13,7 @@ jobs:
       - uses: actions/stale@v5
         with:
           start-date: 2025-01-01
-          exempt-issue-labels: no-automation,"Type: Epic"
+          exempt-issue-labels: 'no-automation,"Type: Epic"'
           exempt-pr-labels: no-automation
           exempt-assignees: jimchamp,mekarpeles,cdrini,scottbarnes
           days-before-close: -1  # `-1` signifies that neither issues nor pull requests are to be closed
