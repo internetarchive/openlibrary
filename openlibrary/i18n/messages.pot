@@ -1366,7 +1366,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Public accounts can be seen and followed by others."
+"or have already read. Patrons with reading logs set to public may be "
+"followed."
 msgstr ""
 
 #: account/privacy.html
