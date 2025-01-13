@@ -15,12 +15,11 @@ jobs:
           start-date: 2025-01-01
           exempt-issue-labels: 'no-automation,"Type: Epic"'
           exempt-pr-labels: no-automation
-          exempt-assignees: jimchamp,mekarpeles,cdrini,scottbarnes
+          exempt-assignees: jimchamp,mekarpeles,cdrini,scottbarnes,raybb,seabelis,hornc
           days-before-close: -1  # `-1` signifies that neither issues nor pull requests are to be closed
-          days-before-stale: 14
+          days-before-issue-stale: 14
+          days-before-pr-stale: -1
           include-only-assigned: true
           stale-issue-label: "Needs: Review Assignee"
-          stale-pr-label: "Needs: Review Assignee"
           stale-issue-message: 'This issue has been marked "Needs: Review Assignee" since there have been no updates within the past two weeks'
-          stale-pr-message: 'This PR has been marked "Needs: Review Assignee" since there have been no updates within the past two weeks'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
