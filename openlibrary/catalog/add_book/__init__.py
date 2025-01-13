@@ -327,10 +327,9 @@ def add_cover(cover_url, ekey, account_key=None):
         'ip': web.ctx.ip,
     }
     reply = None
-    for attempt in range(10):
+    for _ in range(10):
         try:
-            payload = requests.compat.urlencode(params).encode('utf-8')
-            response = requests.post(upload_url, data=payload)
+            response = requests.post(upload_url, data=params)
         except requests.HTTPError:
             sleep(2)
             continue
