@@ -19,13 +19,24 @@
   height: 100vh;
   top: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
 
+  @media (hover: hover) {
+    overflow: hidden;
+
+    &:hover {
+      overflow: auto;
+    }
+  }
+  
   .external-link {
     text-decoration: underline;
   }
 
-  a {
+  a:link, a:hover, a:visited {
     text-decoration: none;
+  }
+  a {
     color: @link-blue;
   }
   /*all uls */
