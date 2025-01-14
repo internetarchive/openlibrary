@@ -196,16 +196,8 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ''
-    included = web.ctx.setdefault("included-components", [])
 
-    # We don't need vue in the current state
-    # But maybe we'll want to "externalize" it in the future so it can be loaded once.
-    if len(included) == 0:
-        pass
-        # Need to include Vue
-        # html += '<script src="%s"></script>' % static_url('build/vue.js')
-
-    if name not in included:
+    if name not in (included := web.ctx.setdefault("included-components", [])):
         url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
         html += f'<script {script_attrs} src="{url}"></script>'
