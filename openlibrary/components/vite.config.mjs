@@ -24,6 +24,7 @@ export default defineConfig({
     build: {
         outDir: PRODUCTION_DIR,
         emptyOutDir: false, // Preserve existing files since we build components individually
+        target: 'es2015', // The oldest version Vite supports out of the box
         rollupOptions: {
             input: join(BUILD_DIR, `vue-tmp-${COMPONENT_NAME}.js`),
             output: {
