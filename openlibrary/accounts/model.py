@@ -100,8 +100,8 @@ def generate_uuid():
     return str(uuid.uuid4()).replace("-", "")
 
 
-def send_verification_email(username, email):
-    """Sends account verification email."""
+"""def send_verification_email(username, email):
+    ""Sends account verification email.""
     key = "account/%s/verify" % username
 
     doc = create_link_doc(key, username, email)
@@ -111,7 +111,7 @@ def send_verification_email(username, email):
     msg = render_template(
         "email/account/verify", username=username, email=email, password=None, link=link
     )
-    sendmail(email, msg)
+    sendmail(email, msg)"""
 
 
 def create_link_doc(key, username, email):
@@ -200,8 +200,8 @@ class Account(web.storage):
     def update_email(self, email):
         web.ctx.site.update_account(self.username, email=email)
 
-    def send_verification_email(self):
-        send_verification_email(self.username, self.email)
+    #def send_verification_email(self):
+    #    send_verification_email(self.username, self.email)
 
     def activate(self):
         web.ctx.site.activate_account(username=self.username)

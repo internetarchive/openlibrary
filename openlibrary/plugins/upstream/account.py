@@ -56,8 +56,8 @@ USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
-send_verification_email = accounts.send_verification_email
-create_link_doc = accounts.create_link_doc
+#send_verification_email = accounts.send_verification_email
+#create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 
@@ -475,7 +475,7 @@ class account_login(delegate.page):
         stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
-    def POST_resend_verification_email(self, i):
+    """def POST_resend_verification_email(self, i):
         try:
             ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
         except ClientException as e:
@@ -491,7 +491,7 @@ class account_login(delegate.page):
             "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
             email=account.email,
         )
-        return render.message(title, message)
+        return render.message(title, message)"""
 
 
 class account_logout(delegate.page):
@@ -511,8 +511,8 @@ class account_logout(delegate.page):
         return infogami_logout().POST()
 
 
-class account_verify(delegate.page):
-    """Verify user account."""
+"""class account_verify(delegate.page):
+    ""Verify user account.""
 
     path = "/account/verify/([0-9a-f]*)"
 
@@ -531,7 +531,7 @@ class account_verify(delegate.page):
             return render['account/verify/failed']()
 
     def POST(self, code=None):
-        """Called to regenerate account verification code."""
+        ""Called to regenerate account verification code.""
         i = web.input(email=None)
         account = accounts.find(email=i.email)
         if not account:
@@ -545,14 +545,14 @@ class account_verify(delegate.page):
                 "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
                 email=account.email,
             )
-            return render.message(title, message)
+            return render.message(title, message)"""
 
 
-class account_verify_old(account_verify):
-    """Old account verification code.
+"""class account_verify_old(account_verify):
+    ""Old account verification code.
 
     This takes username, email and code as url parameters. The new one takes just the code as part of the url.
-    """
+    ""
 
     path = "/account/verify"
 
@@ -560,7 +560,7 @@ class account_verify_old(account_verify):
         # It is too long since we switched to the new account verification links.
         # All old links must be expired by now.
         # Show failed message without thinking.
-        return render['account/verify/failed']()
+        return render['account/verify/failed']()"""
 
 
 class account_validation(delegate.page):
@@ -639,14 +639,14 @@ class account_email_verify(delegate.page):
         return render.message(title, message)
 
 
-class account_email_verify_old(account_email_verify):
+"""class account_email_verify_old(account_email_verify):
     path = "/account/email/verify"
 
     def GET(self):
         # It is too long since we switched to the new email verification links.
         # All old links must be expired by now.
         # Show failed message without thinking.
-        return self.bad_link()
+        return self.bad_link()"""
 
 
 class account_ia_email_forgot(delegate.page):
@@ -679,7 +679,7 @@ class account_ia_email_forgot(delegate.page):
         return render_template('account/email/forgot-ia', err=err)
 
 
-class account_password_forgot(delegate.page):
+"""class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 
     def GET(self):
@@ -701,10 +701,10 @@ class account_password_forgot(delegate.page):
             return render_template('account/password/forgot', f)
 
         send_forgot_password_email(account.username, i.email)
-        return render['account/password/sent'](i.email)
+        return render['account/password/sent'](i.email)"""
 
 
-class account_password_reset(delegate.page):
+"""class account_password_reset(delegate.page):
     path = "/account/password/reset/([0-9a-f]*)"
 
     def GET(self, code):
@@ -729,7 +729,7 @@ class account_password_reset(delegate.page):
 
         accounts.update_account(username, password=i.password)
         link.delete()
-        return render_template("account/password/reset_success", username=username)
+        return render_template("account/password/reset_success", username=username)"""
 
 
 class account_audit(delegate.page):
@@ -1209,7 +1209,7 @@ class account_waitlist(delegate.page):
 #         return render.notfound(path, create=False)
 
 
-def send_forgot_password_email(username: str, email: str) -> None:
+"""def send_forgot_password_email(username: str, email: str) -> None:
     key = f"account/{username}/password"
 
     doc = create_link_doc(key, username, email)
@@ -1219,7 +1219,7 @@ def send_forgot_password_email(username: str, email: str) -> None:
     msg = render_template(
         "email/password/reminder", username=username, email=email, link=link
     )
-    sendmail(email, msg)
+    sendmail(email, msg)"""
 
 
 def as_admin(f):
