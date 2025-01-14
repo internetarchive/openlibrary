@@ -130,28 +130,6 @@ class SourceNeedsISBN(Exception):
         return "this source needs an ISBN"
 
 
-# don't use any of these as work titles
-bad_titles = {
-    'Publications',
-    'Works. English',
-    'Missal',
-    'Works',
-    'Report',
-    'Letters',
-    'Calendar',
-    'Bulletin',
-    'Plays',
-    'Sermons',
-    'Correspondence',
-    'Bill',
-    'Bills',
-    'Selections',
-    'Selected works',
-    'Selected works. English',
-    'The Novels',
-    'Laws, etc',
-}
-
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people']
 
 
@@ -181,8 +159,7 @@ def is_redirect(thing):
 def get_title(e):
     if not e.get('work_titles'):
         return e['title']
-    wt = e['work_titles'][0]
-    return e['title'] if wt in bad_titles else e['title']
+    return e['title']
 
 
 def split_subtitle(full_title):
