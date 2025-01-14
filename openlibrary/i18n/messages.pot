@@ -6512,10 +6512,6 @@ msgstr ""
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
-msgstr ""
-
 #: type/author/view.html
 msgid "No links yet."
 msgstr ""
@@ -6717,6 +6713,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
