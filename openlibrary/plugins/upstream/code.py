@@ -139,11 +139,14 @@ class merge_work(delegate.page):
     def GET(self):
         i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
         has_access = user and (
             (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
         )
         if not has_access:
-            raise web.HTTPError('403 Forbidden')
+            raise web.forbidden()
 
         optional_kwargs = {}
         if not (user.is_admin() or user.is_super_librarian()):
