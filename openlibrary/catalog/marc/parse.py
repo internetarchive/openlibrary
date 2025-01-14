@@ -409,10 +409,10 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
     return edition
 
 
-def name_from_list(name_parts: list[str]) -> str:
+def name_from_list(name_parts: list[str], strip_trailing_dot: bool = True) -> str:
     STRIP_CHARS = r' /,;:[]'
     name = ' '.join(strip_foc(s).strip(STRIP_CHARS) for s in name_parts)
-    return remove_trailing_dot(name)
+    return remove_trailing_dot(name) if strip_trailing_dot else name
 
 
 def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]:
@@ -441,7 +441,8 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
-            author[field_name] = name_from_list(contents[subfield])
+            strip_trailing_dot = field_name != 'role'
+            author[field_name] = name_from_list(contents[subfield], strip_trailing_dot)
     if author['name'] == author.get('personal_name'):
         del author['personal_name']  # DRY names
     if 'q' in contents:
