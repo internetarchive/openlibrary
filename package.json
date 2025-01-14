@@ -81,7 +81,6 @@
     "svgo": "2.3.1",
     "tesseract.js": "4.1.1",
     "vite": "^6.0.7",
-    "vite-plugin-css-injected-by-js": "^3.5.2",
     "vue": "^3.5.13",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.1.0",

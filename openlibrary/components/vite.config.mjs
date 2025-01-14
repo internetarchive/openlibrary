@@ -2,7 +2,6 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import fs from 'fs';
-// import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 
 const COMPONENT = process.env.COMPONENT?.replace('.vue', '');
