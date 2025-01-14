@@ -29,6 +29,7 @@ export default defineConfig({
             output: {
                 entryFileNames: `ol-${COMPONENT_NAME}.js`,
                 inlineDynamicImports: true,
+                format: 'iife' // use iife to support old browsers without type="module"
             },
         },
     },
