@@ -1,47 +1,55 @@
 /* eslint-env node, es6 */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import fs from 'fs';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 
-
-const COMPONENT = process.env.COMPONENT?.replace('.vue', '');
-if (!COMPONENT) {
-    throw new Error('component was not specified in the environment variable. \n' +
-        'Try: component=BarcodeScanner npx vite build'
+const COMPONENT_NAME = process.env.COMPONENT?.replace('.vue', '');
+if (!COMPONENT_NAME) {
+    throw new Error(
+        'Component name not specified in environment variable.\n' +
+        'Usage: COMPONENT=ComponentName npx vite build'
     );
 }
 
-// Directory where we store the temporary vite input files
-// This is because vite doesn't support passing params to input files
-const INPUT_JS_DIR = './static/build';
-generateComponentFile(COMPONENT, INPUT_JS_DIR);
+const BUILD_DIR = './static/build';
+const PRODUCTION_DIR = join(BUILD_DIR, 'components/production');
+const COMPONENT_PATH = '../../openlibrary/components';
+
+// Generate temporary build file
+generateViteEntryFile(COMPONENT_NAME);
 
 export default defineConfig({
     plugins: [vue({ customElement: true })],
     build: {
-        outDir: './static/build/components/production',
-        emptyOutDir: false, // don't empty the out dir because we run this config once for each component
+        outDir: PRODUCTION_DIR,
+        emptyOutDir: false, // Preserve existing files since we build components individually
         rollupOptions: {
-            input: `${INPUT_JS_DIR}/vue-tmp-${COMPONENT}.js`,
+            input: join(BUILD_DIR, `vue-tmp-${COMPONENT_NAME}.js`),
             output: {
-                entryFileNames: `ol-${COMPONENT}.js`,
+                entryFileNames: `ol-${COMPONENT_NAME}.js`,
                 inlineDynamicImports: true,
             },
         },
     },
 });
 
-function generateComponentFile(componentName, dir) {
+/**
+ * Generates a temporary entry file for Vite to build the web component
+ * @param {string} componentName - Name of the Vue component to build
+ * @throws {Error} If file creation fails
+ */
+function generateViteEntryFile(componentName) {
     const template = `
-import { createWebComponentSimple } from "../../openlibrary/components/rollupInputCore.js"
-import rootComponent from '../../openlibrary/components/${componentName}.vue';
+import { createWebComponentSimple } from "${COMPONENT_PATH}/rollupInputCore.js";
+import rootComponent from '${COMPONENT_PATH}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
     try {
-        fs.writeFileSync(`${dir}/vue-tmp-${componentName}.js`, template);
+        writeFileSync(join(BUILD_DIR, `vue-tmp-${componentName}.js`), template);
     } catch (error) {
         // eslint-disable-next-line no-console
-        console.error(`Failed to generate component file: ${error.message}`);
-        process.exit(1); // Exit the process with an error code
+        console.error(`Failed to generate Vite entry file: ${error.message}`);
+        process.exit(1);
     }
 }
