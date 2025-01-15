@@ -14,8 +14,4 @@ createApp(HelloWorld).mount('#app')
 `
 
 const result = data.replace(/HelloWorld/g, componentName);
-fs.writeFile('openlibrary/components/dev/_dev.js', result, 'utf8', (err) => {
-    if (err) {
-        throw err;
-    }
-});
+fs.writeFileSync('openlibrary/components/dev/_dev.js', result);
