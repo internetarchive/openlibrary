@@ -29,7 +29,7 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
-components: $(COMPONENTS_DIR)/*.vue
+components:
 	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
 	for comp in $$(find openlibrary/components -maxdepth 1 -name '*.vue' -printf "%f\n"); do \
