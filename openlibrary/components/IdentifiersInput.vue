@@ -178,9 +178,8 @@ export default {
                 errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector)
                 return;
             } else { errorDisplay('', this.output_selector) }
-            // We use $set otherwise we wouldn't get the reactivity desired
-            // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
+
+            this.assignedIdentifiers[this.selectedIdentifier] = this.inputValue;
             this.inputValue = '';
             this.selectedIdentifier = '';
         },
@@ -189,7 +188,7 @@ export default {
             if (this.saveIdentifiersAsList) {
                 this.assignedIdentifiers[identifierName].splice(idx, 1);
             } else {
-                this.$set(this.assignedIdentifiers, identifierName, '');
+                this.assignedIdentifiers[identifierName] = '';
             }
         },
         createHiddenInputs: function(){

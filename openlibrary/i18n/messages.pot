@@ -3605,7 +3605,7 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: books/edit.html
+#: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
 msgstr ""
 
@@ -3975,8 +3975,7 @@ msgstr ""
 msgid "Invalid ID format"
 msgstr ""
 
-#: books/edit/edition.html type/author/view.html type/edition/view.html
-#: type/work/view.html
+#: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr ""
 
@@ -6512,10 +6511,6 @@ msgstr ""
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
-msgstr ""
-
 #: type/author/view.html
 msgid "No links yet."
 msgstr ""
@@ -6690,6 +6685,10 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Edition Identifiers"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr ""
 
@@ -6717,6 +6716,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

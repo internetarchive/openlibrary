@@ -168,10 +168,15 @@ def kebab_case(upper_camel_case: str) -> str:
     >>> kebab_case('HelloWorld')
     'hello-world'
     >>> kebab_case("MergeUI")
-    'merge-u-i'
+    'merge-ui'
     """
-    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
-    return '-'.join(parts).lower()
+    # Match positions where a lowercase letter is followed by an uppercase letter,
+    # or an uppercase letter is followed by another uppercase followed by a lowercase letter.
+    kebab = re.sub(
+        r'([a-z])([A-Z])', r'\1-\2', upper_camel_case
+    )  # Handle camel case boundaries
+    kebab = re.sub(r'([A-Z])([A-Z][a-z])', r'\1-\2', kebab)  # Handle acronyms
+    return kebab.lower()
 
 
 @public
@@ -196,14 +201,9 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ''
-    included = web.ctx.setdefault("included-components", [])
 
-    if len(included) == 0:
-        # Need to include Vue
-        html += '<script src="%s"></script>' % static_url('build/vue.js')
-
-    if name not in included:
-        url = static_url('build/components/production/ol-%s.min.js' % name)
+    if name not in (included := web.ctx.setdefault("included-components", [])):
+        url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
         html += f'<script {script_attrs} src="{url}"></script>'
         included.append(name)
