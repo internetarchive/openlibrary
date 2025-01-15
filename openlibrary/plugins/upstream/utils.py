@@ -160,22 +160,22 @@ def render_template(name: str, *a, **kw) -> TemplateResult:
     return render[name](*a, **kw)
 
 
-def kebab_case(camel_case: str) -> str:
+def kebab_case(upper_camel_case: str) -> str:
     """
-    :param str camel_case: Text in upper camel case (e.g. "HelloWorld")
+    :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
     :return: text in kebab case (e.g. 'hello-world')
 
     >>> kebab_case('HelloWorld')
     'hello-world'
     >>> kebab_case("MergeUI")
     'merge-ui'
-    >>> kebab_case("MergeUI")
-    'merge-u-i'
     """
     # Match positions where a lowercase letter is followed by an uppercase letter,
     # or an uppercase letter is followed by another uppercase followed by a lowercase letter.
-    kebab = re.sub(r'([a-z])([A-Z])', r'\1-\2', camel_case)  # camel case boundaries
-    kebab = re.sub(r'([A-Z])([A-Z][a-z])', r'\1-\2', kebab)  # acronyms
+    kebab = re.sub(
+        r'([a-z])([A-Z])', r'\1-\2', upper_camel_case
+    )  # Handle camel case boundaries
+    kebab = re.sub(r'([A-Z])([A-Z][a-z])', r'\1-\2', kebab)  # Handle acronyms
     return kebab.lower()
 
 
