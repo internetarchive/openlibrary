@@ -43,7 +43,7 @@ export default defineConfig({
  */
 function generateViteEntryFile(componentName) {
     const template = `
-import { createWebComponentSimple } from "${COMPONENT_PATH}/rollupInputCore.js";
+import { createWebComponentSimple } from '${COMPONENT_PATH}/rollupInputCore.js';
 import rootComponent from '${COMPONENT_PATH}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
