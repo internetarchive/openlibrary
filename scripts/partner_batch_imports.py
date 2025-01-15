@@ -118,7 +118,6 @@ class Biblio:
     VU VY VZ WA WC WI WL WM WP WT WX XL XZ ZF ZZ""".split()
 
     def __init__(self, data):
-        global required_fields
         self.REQUIRED_FIELDS = required_fields
 
         self.primary_format = data[6]
