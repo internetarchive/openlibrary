@@ -191,7 +191,7 @@ export default {
             });
         }
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
     },
 

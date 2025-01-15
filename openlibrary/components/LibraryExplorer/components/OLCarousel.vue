@@ -165,7 +165,7 @@ export default {
         await waitUntil(() => this.$el.isConnected);
         this.intersectionObserver.observe(this.$el);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.intersectionObserver.unobserve(this.$el);
     },
 
