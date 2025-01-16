@@ -9,10 +9,11 @@ import requests
 from dateutil import parser as isoparser
 from infogami.utils.view import public
 from paapi5_python_sdk.api.default_api import DefaultApi
+from paapi5_python_sdk.api_client import Configuration
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
 from paapi5_python_sdk.partner_type import PartnerType
-from paapi5_python_sdk.rest import ApiException
+from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
 from openlibrary import accounts
@@ -32,6 +33,7 @@ BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
+http_proxy_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
     h.affiliate_id('betterworldbooks')
 )
@@ -42,6 +44,8 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
+    global http_proxy_url
+    http_proxy_url = config.get('http_proxy')
 
 
 def get_lexile(isbn):
@@ -93,6 +97,9 @@ class AmazonAPI:
         """
         Creates an instance containing your API credentials.
 
+        Instantiating this object in a REPL requires the `infogami._setup()`
+        magic incantation to set `http_proxy_url`.
+
         :param str key: affiliate key
         :param str secret: affiliate secret
         :param str tag: affiliate string
@@ -107,6 +114,12 @@ class AmazonAPI:
         self.api = DefaultApi(
             access_key=key, secret_key=secret, host=host, region=region
         )
+
+        # Replace the api object with one that supports the HTTP proxy. See #10310.
+        configuration = Configuration()
+        configuration.proxy = http_proxy_url
+        rest_client = RESTClientObject(configuration=configuration)
+        self.api.api_client.rest_client = rest_client
 
     def search(self, keywords):
         """Adding method to test amz searches from the CLI, unused otherwise"""
@@ -267,7 +280,17 @@ class AmazonAPI:
                 else None
             ),
             'authors': attribution
-            and [{'name': contrib.name} for contrib in attribution.contributors or []],
+            and [
+                {'name': contrib.name}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Author'
+            ],
+            'contributors': attribution
+            and [
+                {'name': contrib.name, 'role': 'Translator'}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Translator'
+            ],
             'publishers': list({p for p in (brand, manufacturer) if p}),
             'number_of_pages': (
                 edition_info
@@ -456,6 +479,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     conforming_fields = [
         'title',
         'authors',
+        'contributors',
         'publish_date',
         'source_records',
         'number_of_pages',

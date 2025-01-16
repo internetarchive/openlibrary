@@ -35,9 +35,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
-
-import OLChip from './OLChip'
+import OLChip from './OLChip.vue'
 
 import { updateObservation } from '../ObservationService'
 
@@ -115,7 +113,6 @@ export default {
                 .finally(() => {
                     if (valueArr.length === 0) {
                         delete this.allSelectedValues[type]
-                        Vue.delete(this.allSelectedValues, type)
                     }
                 })
 
@@ -128,7 +125,7 @@ export default {
          * @param {String} value The chip's key.
          */
         addHoverClass: function(value) {
-            Vue.set(this.classLists, value, 'hover')
+            this.classLists[value] = 'hover';
         },
         /**
          * Sets a chip's class list to an empty string.
@@ -136,7 +133,7 @@ export default {
          * @param {String} value The chip's key.
          */
         removeHoverClass: function(value) {
-            Vue.set(this.classLists, value, '')
+            this.classLists[value] = ''
         },
         /**
          * Returns the class list string for the chip with the given key.

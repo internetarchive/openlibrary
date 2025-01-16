@@ -22,6 +22,7 @@ from infogami import config  # noqa: F401 side effects may be needed
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
+from openlibrary.plugins.openlibrary.code import setup_requests
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
@@ -82,6 +83,8 @@ SCHEMA_URL = (
     "/openlibrary-client/master/olclient/schemata/import.schema.json"
 )
 
+required_fields: list[str] = []
+
 
 class Biblio:
     ACTIVE_FIELDS: tuple[str] = (
@@ -109,6 +112,8 @@ class Biblio:
     )
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
+    ]
+
     NONBOOK = """A2 AA AB AJ AVI AZ BK BM C3 CD CE CF CR CRM CRW CX D3 DA DD DF DI DL
     DO DR DRM DRW DS DV EC FC FI FM FR FZ GB GC GM GR H3 H5 L3 L5 LP MAC MC MF MG MH ML
     MS MSX MZ N64 NGA NGB NGC NGE NT OR OS PC PP PRP PS PSC PY QU RE RV SA SD SG SH SK
@@ -116,6 +121,8 @@ class Biblio:
     VU VY VZ WA WC WI WL WM WP WT WX XL XZ ZF ZZ""".split()
 
     def __init__(self, data):
+        self.REQUIRED_FIELDS = required_fields
+
         self.primary_format = data[6]
         self.product_type = data[121]
         assert (
@@ -312,7 +319,11 @@ def batch_import(path, batch, batch_size=5000):
 
 
 def main(ol_config: str, batch_path: str):
+    global required_fields
+
     load_config(ol_config)
+    setup_requests()
+    required_fields = requests.get(SCHEMA_URL).json()['required']
 
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - datetime.timedelta(days=15)

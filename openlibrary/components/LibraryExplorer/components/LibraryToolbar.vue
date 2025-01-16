@@ -201,10 +201,10 @@
 
 <script>
 import lucenerQueryParser from 'lucene-query-parser';
-import SettingsIcon from './icons/SettingsIcon';
-import FilterIcon from './icons/FilterIcon';
-import SortIcon from './icons/SortIcon';
-import FeedbackIcon from './icons/FeedbackIcon';
+import SettingsIcon from './icons/SettingsIcon.vue';
+import FilterIcon from './icons/FilterIcon.vue';
+import SortIcon from './icons/SortIcon.vue';
+import FeedbackIcon from './icons/FeedbackIcon.vue';
 import CONFIGS from '../../configs';
 import Multiselect from 'vue-multiselect';
 

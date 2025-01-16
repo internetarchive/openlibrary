@@ -180,7 +180,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             <ul class="booklinks sansserif">
                 <li>$_('OLID'): $olid</li>
                 $if page.remote_ids:
-                    $ configured_ids = get_author_config()['identifiers']
+                    $ configured_ids = get_identifier_config('author')['identifiers']
                     $for id in configured_ids:
                         $if id.name in page.remote_ids:
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
@@ -196,10 +196,8 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         <div class="section">
             <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
 
-            $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+            $if page.links:
                 <ul class="booklinks sansserif">
-                $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a itemprop="sameAs" href="$page.wikipedia">$_("Wikipedia")</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>

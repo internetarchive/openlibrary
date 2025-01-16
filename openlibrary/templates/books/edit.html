@@ -1,5 +1,6 @@
 $def with (work, edition=None, recaptcha=None)
 
+$ work_config = get_identifier_config('work')
 $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
 
 $var title: $this_title
@@ -118,6 +119,23 @@ $:macros.HiddenSaveButton("addWork")
                     <legend>$_("Links")</legend>
                     <div class="formBack">
                         $:render_template("books/edit/web", work, prefix="work--")
+                    </div>
+                </fieldset>
+                <fieldset class="major" id="identifiers">
+                    <legend>$_("Work Identifiers")</legend>
+                    <div class="formBack">
+                        <div id="id-errors-work" class="note" style="display:none"></div>
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="select-id">$_("Do you know any identifiers for this work?")</label>
+                                <span class="tip">$_("These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab.")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hiddenWorkIdentifiers"></div>
+                    <div id="identifiers-display-works">
+                        $ admin = str(ctx.user.is_admin() or ctx.user.is_super_librarian())
+                        $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=work.get_identifiers().values(), output_selector='#hiddenWorkIdentifiers', id_config_string=work_config, input_prefix='work--identifiers', multiple='true', admin=admin))
                     </div>
                 </fieldset>
             </div>
