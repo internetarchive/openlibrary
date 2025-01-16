@@ -202,16 +202,11 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename='sampledump.txt.gz'):
-    if filename.endswith('.gz'):
-        import gzip
+    import gzip
+        
+    with (gzip.open(filename) if filename.endswith('.gz') else open(filename)) as file:
+        queries = [json.loads(line) for line in file]
 
-        with gzip.open(filename) as file:
-            pass
-    else:
-        with open(filename) as file:
-            pass
-
-    queries = [json.loads(line) for line in file]
     print(web.ctx.site.save_many(queries))
 
 

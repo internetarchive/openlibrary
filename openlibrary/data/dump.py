@@ -15,6 +15,7 @@ import os
 import re
 import sys
 from datetime import datetime
+from contextlib import contextmanager
 
 import web
 
@@ -87,13 +88,17 @@ def read_data_file(filename: str, max_lines: int = 0):
     minutes = (datetime.now() - start_time).seconds // 60
     log(f"read_data_file() processed {i:,} records in {minutes:,} minutes.")
 
-
+@contextmanager
 def xopen(path: str, mode: str):
     if path.endswith(".gz"):
-        with gzip.open(path, mode) as file:
-            return file
+        file = gzip.open(path,mode)
     else:
-        return open(path, mode)
+        file= open(path, mode)
+        
+    try:
+        yield file
+    finally:
+        file.close()
 
 
 def read_tsv(file, strip=True):
