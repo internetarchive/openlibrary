@@ -158,6 +158,7 @@ class borrow(delegate.page):
         response = lending.get_availability_of_ocaid(edition.ocaid)
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
+            stats.increment('ol.reads.bookreader')
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
