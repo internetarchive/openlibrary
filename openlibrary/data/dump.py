@@ -14,8 +14,9 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Union, Generator, TextIO, BinaryIO
+from typing import BinaryIO, TextIO
 
 import web
 
@@ -81,7 +82,7 @@ def read_data_file(filename: str, max_lines: int = 0):
     start_time = datetime.now()
     log(f"read_data_file({filename}, max_lines={max_lines if max_lines else 'all'})")
     for i, line in enumerate(xopen(filename, "rt")):
-        line:str
+        line: str
         thing_id, revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
         if max_lines and i >= max_lines:
@@ -91,13 +92,15 @@ def read_data_file(filename: str, max_lines: int = 0):
 
 
 @contextmanager
-def xopen(path: str, mode: str)-> Generator[Union[gzip.GzipFile, TextIO, BinaryIO], None, None]:
-    file: Union[gzip.GzipFile, TextIO, BinaryIO]
+def xopen(
+    path: str, mode: str
+) -> Generator[gzip.GzipFile | TextIO | BinaryIO, None, None]:
+    file: gzip.GzipFile | TextIO | BinaryIO
 
     if path.endswith(".gz"):
         file = gzip.open(path, mode)
     else:
-        file= open(path, mode)
+        file = open(path, mode)
 
     try:
         yield file
