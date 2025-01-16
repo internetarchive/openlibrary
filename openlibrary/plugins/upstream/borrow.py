@@ -33,7 +33,6 @@ from openlibrary.core import (
     waitinglist,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.utils import dateutil
 
 logger = logging.getLogger("openlibrary.borrow")
@@ -159,6 +158,7 @@ class borrow(delegate.page):
         response = lending.get_availability_of_ocaid(edition.ocaid)
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
+            from openlibrary.plugins.openlibrary.code import is_bot
             if not is_bot():
                 stats.increment('ol.loans.openaccess')
             raise web.seeother(archive_url)
