@@ -10,7 +10,6 @@ from collections import defaultdict
 
 import qrcode
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -18,6 +17,7 @@ from infogami.utils.view import (
     add_flash_message,  # noqa: F401 side effects may be needed
     render_template,  # noqa: F401 used for its side effects
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed

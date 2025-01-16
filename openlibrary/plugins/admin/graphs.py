@@ -4,7 +4,6 @@
 import urllib
 
 import web
-
 from infogami import config
 
 

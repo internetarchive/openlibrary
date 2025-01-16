@@ -12,8 +12,8 @@ import logging
 
 import eventer
 import web
-
 from infogami.infobase import config, server
+
 from openlibrary.utils import olmemcache
 
 logger = logging.getLogger("openlibrary.olbase")

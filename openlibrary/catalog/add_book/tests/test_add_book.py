@@ -2,9 +2,9 @@ import os
 from datetime import datetime
 
 import pytest
-
 from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
+
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     IndependentlyPublished,

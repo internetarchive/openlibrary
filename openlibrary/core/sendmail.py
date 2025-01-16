@@ -1,5 +1,4 @@
 import web
-
 from infogami import config
 from infogami.utils.view import render_template
 
