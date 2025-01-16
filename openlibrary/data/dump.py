@@ -14,8 +14,9 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Generator
 from datetime import datetime
-from typing import BinaryIO, TextIO, Generator
+from typing import BinaryIO, TextIO
 
 import web
 
