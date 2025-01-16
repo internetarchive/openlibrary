@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from json import JSONDecodeError
-from typing import Any, ClassVar, Final
+from typing import Any, Final
 
 import requests
 
@@ -34,7 +34,7 @@ def is_nonbook(binding: str, nonbooks: list[str]) -> bool:
 
 
 class ISBNdb:
-    ACTIVE_FIELDS: ClassVar[list[str]] = [
+    ACTIVE_FIELDS: tuple[str] = (
         'authors',
         'isbn_13',
         'languages',
@@ -44,8 +44,8 @@ class ISBNdb:
         'source_records',
         'subjects',
         'title',
-    ]
-    INACTIVE_FIELDS: ClassVar[list[str]] = [
+    )
+    INACTIVE_FIELDS: tuple[str] = (
         "copyright",
         "dewey",
         "doi",
@@ -57,7 +57,7 @@ class ISBNdb:
         'lc_classifications',
         'pagination',
         'weight',
-    ]
+    )
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     def __init__(self, data: dict[str, Any]):

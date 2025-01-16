@@ -6,9 +6,9 @@ import re
 import urllib
 
 import web
-
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
+
 from openlibrary.plugins.books import dynlinks, readlinks
 
 

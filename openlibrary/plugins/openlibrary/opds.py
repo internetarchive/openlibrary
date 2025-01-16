@@ -3,10 +3,9 @@ OPDS helper class.
 A lightweight version of github.com/internetarchive/bookserver
 """
 
-from typing import ClassVar
+from collections.abc import Mapping
 
 import lxml.etree as ET
-
 from infogami.infobase.utils import parse_datetime
 
 
@@ -18,7 +17,7 @@ class OPDS:
     xmlns_bibo = 'http://purl.org/ontology/bibo/'
     xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 
-    nsmap: ClassVar[dict[None | str, str]] = {
+    nsmap: Mapping[None | str, str] = {
         None: xmlns_atom,
         'dcterms': xmlns_dcterms,
         'opds': xmlns_opds,
@@ -34,7 +33,7 @@ class OPDS:
     bibo = "{%s}" % xmlns_bibo
     xsi = "{%s}" % xmlns_xsi
 
-    fileExtMap: ClassVar[dict[str, str]] = {
+    fileExtMap: Mapping[str, str] = {
         'pdf': 'application/pdf',
         'epub': 'application/epub+zip',
         'mobi': 'application/x-mobipocket-ebook',

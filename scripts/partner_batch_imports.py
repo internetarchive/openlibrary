@@ -15,11 +15,11 @@ import logging
 import os
 import re
 from collections.abc import Mapping
-from typing import ClassVar, cast
+from typing import cast
 
 import requests
-
 from infogami import config  # noqa: F401 side effects may be needed
+
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -84,7 +84,7 @@ SCHEMA_URL = (
 
 
 class Biblio:
-    ACTIVE_FIELDS: ClassVar[list[str]] = [
+    ACTIVE_FIELDS: tuple[str] = (
         'title',
         'isbn_13',
         'publish_date',
@@ -100,13 +100,13 @@ class Biblio:
         'lccn',
         'identifiers',
         'dewey_decimal_class',
-    ]
-    INACTIVE_FIELDS: ClassVar[list[str]] = [
+    )
+    INACTIVE_FIELDS: tuple[str] = (
         "copyright",
         "length",
         "width",
         "height",
-    ]
+    )
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     NONBOOK = """A2 AA AB AJ AVI AZ BK BM C3 CD CE CF CR CRM CRW CX D3 DA DD DF DI DL
