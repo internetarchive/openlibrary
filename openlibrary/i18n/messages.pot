@@ -7497,10 +7497,6 @@ msgstr ""
 msgid "Listen"
 msgstr ""
 
-#: ReadButton.html
-msgid "Locate"
-msgstr ""
-
 #: ReadMore.html
 msgid "Read more"
 msgstr ""
