@@ -14,9 +14,8 @@ import logging
 import os
 import re
 import sys
-from contextlib import contextmanager
 from datetime import datetime
-from typing import BinaryIO, TextIO
+from typing import BinaryIO, TextIO, Generator
 
 import web
 
