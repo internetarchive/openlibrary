@@ -1147,8 +1147,9 @@ msgid ""
 "form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Terms "
 "of Service</a>."
 msgstr ""
-"S registracijom prihvaćaš <a href='//archive.org/about/terms.php' "
-"target='_blank'>uvjete usluge</a> od Internet Archive."
+"S registracijom prihvaćaš <a class=\"ol-signup-"
+"form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">"
+"uvjete usluge</a> od Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -2716,7 +2717,7 @@ msgid ""
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
 "Zapiši kratku napomenu o tvojim promjenama: <span class=\"small "
-"gray“>(Opcionalano, ali vrlo korisno!)</span>"
+"gray\">(Opcionalano, ali vrlo korisno!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
@@ -3669,7 +3670,7 @@ msgstr ""
 "Postoje dvije vrste DAISY-a na Open Library: <i>otvoreni</i> i <i>zaštićeni</"
 "i>. Otvorene DAISY datoteke može čitati svatko na svijetu na različitim "
 "uređajima. Zaštićene DAISY datoteke se mogu otvoriti samo pomoću ključa koji "
-"je izdao <a href=„http://www.loc.gov/nls/„>Library of Congress NLS program</"
+"je izdao <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</"
 "a>."
 
 #: books/daisy.html lists/home.html
@@ -4898,10 +4899,10 @@ msgstr[0] ""
 "Možeš <a href=\"/borrow\">posuditi</a> još jednu knjigu prije nego što "
 "dosegneš ograničenje!"
 msgstr[1] ""
-"Možeš <a href=„/borrow“>posuditi</a> još %(count)d knjige prije nego što "
+"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjige prije nego što "
 "dosegneš ograničenje!"
 msgstr[2] ""
-"Možeš <a href=„/borrow“>posuditi</a> još %(count)d knjiga prije nego što "
+"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjiga prije nego što "
 "dosegneš ograničenje!"
 
 #: home/loans.html
