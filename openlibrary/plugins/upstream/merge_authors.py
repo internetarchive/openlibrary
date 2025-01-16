@@ -6,10 +6,10 @@ import re
 from typing import Any
 
 import web
-
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author

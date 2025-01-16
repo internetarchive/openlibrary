@@ -5,7 +5,6 @@ import logging
 
 import eventer
 import web
-
 from infogami.infobase import client
 
 logger = logging.getLogger("openlibrary.events")

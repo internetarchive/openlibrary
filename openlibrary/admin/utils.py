@@ -2,7 +2,6 @@
 """
 
 import web
-
 from infogami.utils import delegate, features
 from infogami.utils.view import render_template
 
