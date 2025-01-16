@@ -14,7 +14,8 @@ def fetch_works_trending_scores(current_day: int):
         {
             "q": f'trending_score_hourly_sum:[1 TO *] OR trending_score_daily_{current_day}:[1 TO *]',
             "fl": "key,trending_score_hourly_sum",
-            "sort": "trending_score_hourly_sum desc",
+            # /export needs a sort to work
+            "sort": "key asc",
         },
     )
     doc_data = {}
