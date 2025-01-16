@@ -21,10 +21,7 @@ def fetch_works_trending_scores(current_day: int):
     doc_data = {}
     if resp:
         data = resp.json()
-        try:
-            docs = data["response"]["docs"]
-        except KeyError:
-            raise KeyError
+        docs = data["response"]["docs"]
         print(docs)
         doc_data = {doc["key"]: doc.get("trending_score_hourly_sum", 0) for doc in docs}
     return doc_data
