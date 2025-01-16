@@ -198,7 +198,7 @@ class List(Thing):
         things = cast(
             list[Thing],
             web.ctx.site.get_many(
-                [seed.key for seed in self.seeds if isinstance(seed, Thing)]
+                [seed for seed in self._get_seed_strings() if seed.startswith("/")]
             ),
         )
 
