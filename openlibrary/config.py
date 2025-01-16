@@ -4,8 +4,9 @@
 import os
 import sys
 
-import infogami
 import yaml
+
+import infogami
 from infogami import config
 from infogami.infobase import server
 

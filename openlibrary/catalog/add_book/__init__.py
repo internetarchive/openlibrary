@@ -32,8 +32,8 @@ from typing import TYPE_CHECKING, Any, Final
 
 import requests
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     InvalidLanguage,

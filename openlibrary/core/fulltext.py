@@ -4,8 +4,8 @@ from urllib.parse import urlencode
 
 import requests
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
 
