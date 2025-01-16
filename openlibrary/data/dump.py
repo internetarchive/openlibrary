@@ -14,7 +14,6 @@ import logging
 import os
 import re
 import sys
-from datetime import datetime
 from contextlib import contextmanager
 from typing import Union, Generator, TextIO, BinaryIO
 
@@ -90,12 +89,13 @@ def read_data_file(filename: str, max_lines: int = 0):
     minutes = (datetime.now() - start_time).seconds // 60
     log(f"read_data_file() processed {i:,} records in {minutes:,} minutes.")
 
+
 @contextmanager
 def xopen(path: str, mode: str)-> Generator[Union[gzip.GzipFile, TextIO, BinaryIO], None, None]:
     file: Union[gzip.GzipFile, TextIO, BinaryIO]
 
     if path.endswith(".gz"):
-        file = gzip.open(path,mode)
+        file = gzip.open(path, mode)
     else:
         file= open(path, mode)
 
