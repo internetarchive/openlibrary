@@ -857,7 +857,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '').split(',') or WorkSearchScheme.default_fetched_fields
+        fields = (
+            query.pop('fields', '').split(',')
+            or WorkSearchScheme.default_fetched_fields
+        )
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
