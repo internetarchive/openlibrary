@@ -14,7 +14,8 @@ import logging
 import os
 import re
 import sys
-from collections.abc import Generator
+from datetime import datetime
+
 from contextlib import contextmanager
 from typing import BinaryIO, TextIO
 
