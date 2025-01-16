@@ -12,10 +12,10 @@ import socket
 from time import time
 from urllib.parse import parse_qs, urlencode
 
-import infogami
 import requests
 import web
 
+import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -26,6 +26,7 @@ from openlibrary.i18n import gettext as _
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -37,8 +38,6 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-
-import openlibrary.core.stats
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
