@@ -87,7 +87,7 @@ required_fields: list[str] = []
 
 
 class Biblio:
-    ACTIVE_FIELDS: tuple[str] = (
+    ACTIVE_FIELDS: tuple[str, ...] = (
         'title',
         'isbn_13',
         'publish_date',
@@ -104,7 +104,7 @@ class Biblio:
         'identifiers',
         'dewey_decimal_class',
     )
-    INACTIVE_FIELDS: tuple[str] = (
+    INACTIVE_FIELDS: tuple[str, ...] = (
         "copyright",
         "length",
         "width",

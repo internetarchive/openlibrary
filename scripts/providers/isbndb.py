@@ -34,7 +34,7 @@ def is_nonbook(binding: str, nonbooks: list[str]) -> bool:
 
 
 class ISBNdb:
-    ACTIVE_FIELDS: tuple[str] = (
+    ACTIVE_FIELDS: tuple[str, ...] = (
         'authors',
         'isbn_13',
         'languages',
@@ -45,7 +45,7 @@ class ISBNdb:
         'subjects',
         'title',
     )
-    INACTIVE_FIELDS: tuple[str] = (
+    INACTIVE_FIELDS: tuple[str, ...] = (
         "copyright",
         "dewey",
         "doi",
