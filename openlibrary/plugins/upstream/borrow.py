@@ -33,8 +33,8 @@ from openlibrary.core import (
     waitinglist,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import dateutil
 from openlibrary.plugins.openlibrary.code import is_bot
+from openlibrary.utils import dateutil
 
 logger = logging.getLogger("openlibrary.borrow")
 
