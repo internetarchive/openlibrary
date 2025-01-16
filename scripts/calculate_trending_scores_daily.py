@@ -14,16 +14,14 @@ def fetch_works_trending_scores(current_day: int):
         {
             "q": f'trending_score_hourly_sum:[1 TO *] OR trending_score_daily_{current_day}:[1 TO *]',
             "fl": "key,trending_score_hourly_sum",
-            "sort": "trending_score_hourly_sum desc",
+            # /export needs a sort to work
+            "sort": "key asc",
         },
     )
     doc_data = {}
     if resp:
         data = resp.json()
-        try:
-            docs = data["response"]["docs"]
-        except KeyError:
-            raise KeyError
+        docs = data["response"]["docs"]
         print(docs)
         doc_data = {doc["key"]: doc.get("trending_score_hourly_sum", 0) for doc in docs}
     return doc_data
