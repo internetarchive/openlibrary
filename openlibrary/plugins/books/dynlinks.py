@@ -5,8 +5,8 @@ from collections.abc import Hashable, Iterable, Mapping
 from typing import Any
 
 import web
-from infogami.utils.delegate import register_exception
 
+from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
 from openlibrary.core.imports import ImportItem

@@ -6,8 +6,9 @@ from datetime import datetime
 from sqlite3 import IntegrityError
 
 import web
-from infogami.utils import stats
 from psycopg2.errors import UniqueViolation
+
+from infogami.utils import stats
 
 
 @web.memoize
