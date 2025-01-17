@@ -1,5 +1,5 @@
 import json
-from collections.abc import Mapping
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Final, Literal, cast
 
 import web
@@ -461,11 +461,15 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
-    READING_LOG_KEY_TO_SHELF: Mapping[READING_LOG_KEYS, PRESET_SHELVES] = {
-        "want-to-read": "Want to Read",
-        "already-read": "Already Read",
-        "currently-reading": "Currently Reading",
-    }
+    READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = (
+        MappingProxyType(
+            {
+                "want-to-read": "Want to Read",
+                "already-read": "Already Read",
+                "currently-reading": "Currently Reading",
+            }
+        )
+    )
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
