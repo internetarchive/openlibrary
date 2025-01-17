@@ -1,7 +1,7 @@
 import datetime
 import json
 from sqlite3 import IntegrityError
-from typing import ClassVar
+from types import MappingProxyType
 
 from psycopg2.errors import UniqueViolation
 
@@ -39,22 +39,28 @@ class CommunityEditsQueue:
 
     TABLENAME = 'community_edits_queue'
 
-    TYPE: ClassVar[dict[str, int]] = {
-        'WORK_MERGE': 1,
-        'AUTHOR_MERGE': 2,
-    }
+    TYPE: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'WORK_MERGE': 1,
+            'AUTHOR_MERGE': 2,
+        }
+    )
 
-    STATUS: ClassVar[dict[str, int]] = {
-        'DECLINED': 0,
-        'PENDING': 1,
-        'MERGED': 2,
-    }
+    STATUS: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'DECLINED': 0,
+            'PENDING': 1,
+            'MERGED': 2,
+        }
+    )
 
-    MODES: ClassVar[dict[str, list[int]]] = {
-        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
-        'open': [STATUS['PENDING']],
-        'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-    }
+    MODES: MappingProxyType[str, list[int]] = MappingProxyType(
+        {
+            'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
+            'open': [STATUS['PENDING']],
+            'closed': [STATUS['DECLINED'], STATUS['MERGED']],
+        }
+    )
 
     @classmethod
     def get_requests(
