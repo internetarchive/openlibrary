@@ -38,7 +38,7 @@ CAROUSELS_PRESETS = {
 }
 
 
-def get_homepage(devmode=False):
+def get_homepage(devmode):
     try:
         stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
