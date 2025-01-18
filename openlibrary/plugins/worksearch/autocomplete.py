@@ -149,7 +149,7 @@ class subjects_autocomplete(autocomplete):
         i = web.input(type="")
         fq = self.fq
         if i.type:
-            fq = fq + [f'subject_type:{i.type}']
+            fq = fq + (f'subject_type:{i.type}',)
 
         return super().direct_get(fq=fq)
 
