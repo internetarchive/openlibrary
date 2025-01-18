@@ -111,13 +111,15 @@
     contain: layout;
   }
   summary {
+    display: flex;
+    align-items: center;
+    height: 100%;
     cursor: pointer;
     list-style-type: none;
     &:hover { background-color: darken(@primary-blue, 20%); }
     border-radius: 2px 5px 5px 2px;
   }
   summary::after {
-    display: block;
     margin: 0 8px;
     width: 24px;
     height: 24px;
