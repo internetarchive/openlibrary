@@ -448,7 +448,7 @@ class InvalidLanguage(Exception):
 def format_languages(languages: Iterable) -> list[dict[str, str]]:
     """
     Format language data to match Open Library's expected format.
-    >>> format_languages(["eng", "fre"])
+    For an input of ["eng", "fre"], return:
     [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
     """
     if not languages:
