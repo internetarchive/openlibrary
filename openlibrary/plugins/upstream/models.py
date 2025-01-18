@@ -18,7 +18,7 @@ from openlibrary.plugins.upstream import (
     borrow,
 )
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
-from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config
+from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
@@ -124,7 +124,7 @@ class Edition(models.Edition):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(
-            get_edition_config().identifiers, names, self.identifiers
+            get_identifier_config('edition').identifiers, names, self.identifiers
         )
 
     def get_ia_meta_fields(self):
@@ -358,10 +358,15 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
+        if not d.items():
+            self.identifiers = None
+
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
-            get_edition_config().classifications, names, self.classifications
+            get_identifier_config('edition').classifications,
+            names,
+            self.classifications,
         )
 
     def set_classifications(self, classifications):
@@ -385,6 +390,9 @@ class Edition(models.Edition):
                 self[name] = value
             else:
                 self.classifications[name] = value
+
+        if not self.classifications.items():
+            self.classifications = None
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -767,6 +775,66 @@ class Work(models.Work):
         if self.subtitle:
             record['subtitle'] = self.subtitle
         return record
+
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        names = []
+        return self._process_identifiers(
+            get_identifier_config('work').identifiers, names, self.identifiers
+        )
+
+    def set_identifiers(self, identifiers):
+        """Updates the work from identifiers specified as (name, value) pairs."""
+
+        d = {}
+        if identifiers:
+            for id in identifiers:
+                if 'name' not in id or 'value' not in id:
+                    continue
+                name, value = id['name'], id['value']
+                if value is not None:
+                    d.setdefault(name, []).append(value)
+
+        self.identifiers = {}
+
+        for name, value in d.items():
+            self.identifiers[name] = value
+
+        if not d.items():
+            self.identifiers = None
+
+    def _process_identifiers(self, config_, names, values):
+        id_map = {}
+        for id in config_:
+            id_map[id.name] = id
+            id.setdefault("label", id.name)
+            id.setdefault("url_format", None)
+
+        d = MultiDict()
+
+        def process(name, value):
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
+                for v in value:
+                    d[id.name] = web.storage(
+                        name=id.name,
+                        label=id.label,
+                        value=v,
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
+                    )
+
+        for name in names:
+            process(name, self[name])
+
+        for name in values:
+            process(name, values[name])
+
+        return d
 
 
 class Subject(client.Thing):

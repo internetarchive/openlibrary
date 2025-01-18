@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import CardBody from './CardBody'
-import CardHeader from './CardHeader';
+import CardBody from './CardBody.vue'
+import CardHeader from './CardHeader.vue';
 
 export default {
     name: 'ValueCard',

@@ -44,13 +44,10 @@
 <script>
 /* eslint no-console: 0 */
 import _ from 'lodash';
-import Vue from 'vue';
-import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names } from './utils.js';
 import CONFIGS from '../configs.js';
 
-Vue.use(AsyncComputed);
 
 /**
  * @param {string} olid

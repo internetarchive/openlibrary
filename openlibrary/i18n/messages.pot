@@ -94,6 +94,10 @@ msgstr ""
 msgid "Batch Imports"
 msgstr ""
 
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
+msgstr ""
+
 #: batch_import.html
 msgid ""
 "Attach a JSONL formatted document with import records or copy/paste the "
@@ -1513,7 +1517,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Public accounts can be seen and followed by others."
+"or have already read. Patrons with reading logs set to public may be "
+"followed."
 msgstr ""
 
 #: account/privacy.html admin/people/view.html
@@ -3600,6 +3605,21 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
+#: books/edit.html type/edition/view.html type/work/view.html
+msgid "Work Identifiers"
+msgstr ""
+
+#: books/edit.html
+msgid "Do you know any identifiers for this work?"
+msgstr ""
+
+#: books/edit.html
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
+msgstr ""
+
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
 #: lists/preview.html lists/snippet.html lists/widget.html
@@ -3955,8 +3975,7 @@ msgstr ""
 msgid "Invalid ID format"
 msgstr ""
 
-#: books/edit/edition.html type/author/view.html type/edition/view.html
-#: type/work/view.html
+#: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr ""
 
@@ -6492,10 +6511,6 @@ msgstr ""
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
-msgstr ""
-
 #: type/author/view.html
 msgid "No links yet."
 msgstr ""
@@ -6670,6 +6685,10 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Edition Identifiers"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr ""
 
@@ -6697,6 +6716,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7169,6 +7192,10 @@ msgstr ""
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
 msgstr ""
 
 #: BookByline.html

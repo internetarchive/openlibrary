@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import BookRoom from './LibraryExplorer/components/BookRoom';
-import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
+import BookRoom from './LibraryExplorer/components/BookRoom.vue';
+import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar.vue';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';

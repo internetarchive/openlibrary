@@ -38,22 +38,10 @@ RUN apt-get -qq update && apt-get install -y \
 COPY scripts/install_nodejs.sh ./
 RUN ./install_nodejs.sh && rm ./install_nodejs.sh
 
-# Install Archive.org nginx w/ IP anonymization
+# Install nginx
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends nginx curl letsencrypt \
-    # nginx-plus
-    apt-transport-https lsb-release ca-certificates wget \
-    # log rotation service for ol-nginx
-    logrotate \
-    # rsync service for pulling monthly sitemaps from ol-home0 to ol-www0
-    rsync
-COPY scripts/install_openresty.sh ./
-RUN ./install_openresty.sh && rm ./install_openresty.sh
-RUN rm /usr/sbin/nginx
-RUN curl -L https://archive.org/download/nginx/nginx -o /usr/sbin/nginx
-RUN chmod +x /usr/sbin/nginx
-# Remove the stock nginx config file
-RUN rm /etc/nginx/sites-enabled/default
+COPY scripts/install_nginx.sh ./
+RUN ./install_nginx.sh && rm ./install_nginx.sh
 
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
  && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \
