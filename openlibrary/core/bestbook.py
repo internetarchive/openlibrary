@@ -1,3 +1,5 @@
+from openlibrary.core.bookshelves import Bookshelves
+
 from . import db
 
 
@@ -7,6 +9,9 @@ class Bestbook(db.CommonExtras):
     TABLENAME = "bestbooks"
     PRIMARY_KEY = "nomination_id"
     ALLOW_DELETE_ON_CONFLICT = False
+
+    class AwardConditionsError(Exception):
+        pass
 
     @classmethod
     def get_count(cls, work_id=None, submitter=None, topic=None) -> int:
@@ -77,10 +82,9 @@ class Bestbook(db.CommonExtras):
         )
         return list(result) if result else []
 
-
     @classmethod
-    def check_if_award_given(cls, submitter, work_id=None, topic=None) -> bool:
-        """This function checks if the award is already given to a book or topic by pattron
+    def check_if_award_given(cls, submitter, work_id=None, topic=None):
+        """This function checks if the award is already given to a book or topic by patron
 
         Args:
             submitter (text): submitter identifier
@@ -88,14 +92,13 @@ class Bestbook(db.CommonExtras):
             topic (text): topic for which award is given
 
         Returns:
-            bool: returns true if award already given
+            award: returns first matching award or None
         """
         oldb = db.get_db()
         data = {'submitter': submitter, 'work_id': work_id, 'topic': topic}
 
         query = """
-            SELECT
-                COUNT(*)
+            SELECT *
             FROM bestbooks
             WHERE submitter=$submitter
         """
@@ -106,12 +109,12 @@ class Bestbook(db.CommonExtras):
             query += " AND work_id=$work_id"
         elif topic:
             query += " AND topic=$topic"
-
-        return oldb.query(query, vars=data)[0]['count'] > 0
+        award = list(oldb.query(query, vars=data))
+        return award[0] if award else None
 
     @classmethod
-    def add(cls, submitter, work_id, topic, comment, edition_id=None) -> bool:
-        """This function adds award to database only if award doesn't exist previously
+    def add(cls, submitter, work_id, topic, comment="", edition_id=None) -> bool:
+        """Add award to database only if award doesn't exist previously
 
         Args:
             submitter (text): submitter identifier
@@ -121,14 +124,14 @@ class Bestbook(db.CommonExtras):
             comment (text): comment about award
 
         Returns:
-            bool: true if award is added
+            award or raises Bestbook.AwardConditionsError
         """
         oldb = db.get_db()
 
-        if cls.check_if_award_given(submitter, work_id, topic):
-            return False
+        # Raise cls.AwardConditionsError if any failing conditions
+        cls._check_award_conditions(submitter, work_id, topic)
 
-        oldb.insert(
+        return oldb.insert(
             'bestbooks',
             submitter=submitter,
             work_id=work_id,
@@ -136,27 +139,94 @@ class Bestbook(db.CommonExtras):
             topic=topic,
             comment=comment,
         )
-        return True
 
     @classmethod
-    def remove(cls, submitter, work_id):
-        """remove bestbook award from a book
+    def remove(cls, submitter, work_id=None, topic=None):
+        """Remove any award for this submitter where either work_id or topic matches.
 
         Args:
-            submitter (text): unique identifier of pattron
-            work_id (text): unique identifier of book
+            submitter (text): unique identifier of patron
+            work_id (text, optional): unique identifier of book
+            topic (text, optional): topic for which award is given
 
         Returns:
-            bool: return True if award is removed
+            int: Number of rows deleted or 0 if no matches found.
         """
+        if not work_id and not topic:
+            raise ValueError("Either work_id or topic must be specified.")
+
         oldb = db.get_db()
-        where = {'submitter': submitter, 'work_id': work_id}
+
+        # Build WHERE clause dynamically
+        conditions = []
+        if work_id:
+            conditions.append("work_id = $work_id")
+        if topic:
+            conditions.append("topic = $topic")
+
+        # Combine with AND for submitter and OR for other conditions
+        where_clause = f"submitter = $submitter AND ({' OR '.join(conditions)})"
 
         try:
             return oldb.delete(
                 'bestbooks',
-                where=('submitter=$submitter AND work_id=$work_id'),
-                vars=where,
+                where=where_clause,
+                vars={
+                    'submitter': submitter,
+                    'work_id': work_id,
+                    'topic': topic,
+                },
             )
-        except LookupError:  # we want to catch no entry exists
-            return None
+        except LookupError:  # No matching rows found
+            return 0
+
+    @classmethod
+    def get_leaderboard(cls):
+        """Get the leaderboard of best books
+
+        Returns:
+            list: list of best books
+        """
+        oldb = db.get_db()
+        query = """
+            SELECT
+                work_id,
+                COUNT(*) AS count
+            FROM bestbooks
+            GROUP BY work_id
+            ORDER BY count DESC
+        """
+        result = oldb.query(query)
+        print(result)
+        return list(result) if result else []
+
+    @classmethod
+    def _check_award_conditions(cls, username, work_id, topic):
+        errors = []
+
+        if not (work_id and topic):
+            errors += "A work ID and a topic are both required for best book awards"
+
+        else:
+            has_read_book = Bookshelves.user_has_read_work(
+                username=username, work_id=work_id
+            )
+            awarded_book = cls.check_if_award_given(username, work_id=work_id)
+            awarded_topic = cls.check_if_award_given(username, topic=topic)
+
+            if not has_read_book:
+                errors.append(
+                    "Only books which have been marked as read may be given awards"
+                )
+            if awarded_book:
+                errors.append(
+                    "A work may only be nominated one time for a best book award"
+                )
+            if awarded_topic:
+                errors.append(
+                    f"A topic may only be nominated one time for a best book award: The work {awarded_topic.work_id} has already been nominated for topic {awarded_topic.topic}"
+                )
+
+        if errors:
+            raise cls.AwardConditionsError(" ".join(errors))
+        return True

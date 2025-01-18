@@ -15,7 +15,7 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
-    add_flash_message,  # noqa: F401 side effects may be needed
+    add_flash_message,
     render_template,  # noqa: F401 used for its side effects
 )
 from openlibrary import accounts
@@ -24,8 +24,8 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
-from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.core.models import (
@@ -708,6 +708,58 @@ class create_qrcode(delegate.page):
             img.save(buf, format='PNG')
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
+
+
+class bestbook_award(delegate.page):
+    path = r"/works/OL(\d+)W/awards"
+    encoding = "json"
+
+    @jsonapi
+    def POST(self, work_id) -> bool:
+        """Store Bestbook award
+
+        Args:
+            work_id (int): unique id for each book
+        """
+        OPS = ["add", "remove", "update"]
+
+        i = web.input(op="add", edition_key=None, topic=None, comment="", redir=False)
+
+        edition_id = i.edition_key and int(extract_numeric_id_from_olid(i.edition_key))
+        redir_key = i.edition_key if i.edition_key else f"/works/OL{work_id}W"
+        errors = []
+
+        if user := accounts.get_current_user():
+            try:
+                username = user.key.split('/')[2]
+                if i.op == "update":
+                    # Make sure the topic is free
+                    BestBook.remove(username, topic=i.topic)
+                if i.op in ["update", "remove"]:
+                    # Remove any award this patron has given this work_id
+                    BestBook.remove(username, work_id=work_id)
+                if i.op in ["update", "add"]:
+                    award = Bestbook.add(
+                        submitter=username,
+                        work_id=work_id,
+                        edition_id=edition_id,
+                        comment=i.comment,
+                        topic=i.topic,
+                    )
+                if i.op in OPS:
+                    if i.redir:
+                        add_flash_message('info', award)
+                        raise web.seeother(redir_key)
+                    return json.dumps({"success": award})
+                errors.append(f"Invalid op {i.op}: valid ops are {OPS}")
+            except Bestbook.AwardConditionsError as e:
+                errors.append(str(e))
+        else:
+            errors.append("Authentication failed")
+        if i.redir:
+            add_flash_message('error', ', '.join(errors))
+            raise web.seeother(redir_key)
+        return json.dumps({"errors": ', '.join(errors)})
 
 
 class bestbook_count(delegate.page):
