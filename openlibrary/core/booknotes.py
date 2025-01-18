@@ -1,5 +1,3 @@
-from typing import ClassVar
-
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -7,7 +5,7 @@ from . import db
 
 class Booknotes(db.CommonExtras):
     TABLENAME = "booknotes"
-    PRIMARY_KEY: ClassVar[list[str]] = ["username", "work_id", "edition_id"]
+    PRIMARY_KEY: tuple[str, ...] = ("username", "work_id", "edition_id")
     NULL_EDITION_VALUE = -1
     ALLOW_DELETE_ON_CONFLICT = False
 

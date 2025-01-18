@@ -1,5 +1,4 @@
 import json
-from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -73,12 +72,12 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
-    SEED_TESTS: ClassVar[list[tuple[list[str], list[dict]]]] = [
-        ([], []),
-        (['OL1M'], [{'key': '/books/OL1M'}]),
-        (['OL1M', 'OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),
-        (['OL1M,OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),
-    ]
+    SEED_TESTS: tuple[tuple[tuple[str, ...], tuple[dict, ...]], ...] = (
+        ((), ()),
+        (('OL1M',), ({'key': '/books/OL1M'},)),
+        (('OL1M', 'OL2M'), ({'key': '/books/OL1M'}, {'key': '/books/OL2M'})),
+        (('OL1M,OL2M',), ({'key': '/books/OL1M'}, {'key': '/books/OL2M'})),
+    )
 
     @pytest.mark.parametrize(('seeds', 'expected'), SEED_TESTS)
     def test_from_input_seeds(self, seeds, expected):

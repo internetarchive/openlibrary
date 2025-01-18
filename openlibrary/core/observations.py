@@ -1,7 +1,6 @@
 """Module for handling patron observation functionality"""
 
 from collections import defaultdict, namedtuple
-from typing import ClassVar
 
 from infogami import config
 from infogami.utils.view import public
@@ -746,13 +745,13 @@ def get_observation_metrics(work_olid):
 class Observations(db.CommonExtras):
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
-    PRIMARY_KEY: ClassVar[list[str]] = [
+    PRIMARY_KEY: tuple[str, ...] = (
         "work_id",
         "edition_id",
         "username",
         "observation_value",
         "observation_type",
-    ]
+    )
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod

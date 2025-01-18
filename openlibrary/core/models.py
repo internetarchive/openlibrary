@@ -6,7 +6,8 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, ClassVar, TypedDict
+from types import MappingProxyType
+from typing import Any, TypedDict
 from urllib.parse import urlencode
 
 import requests
@@ -809,15 +810,17 @@ class Author(Thing):
 
 
 class User(Thing):
-    DEFAULT_PREFERENCES: ClassVar[dict[str, str]] = {
-        'updates': 'no',
-        'public_readlog': 'no',
-        # New users are now public by default for new patrons
-        # As of 2020-05, OpenLibraryAccount.create will
-        # explicitly set public_readlog: 'yes'.
-        # Legacy accounts w/ no public_readlog key
-        # will continue to default to 'no'
-    }
+    DEFAULT_PREFERENCES: MappingProxyType[str, str] = MappingProxyType(
+        {
+            'updates': 'no',
+            'public_readlog': 'no',
+            # New users are now public by default for new patrons
+            # As of 2020-05, OpenLibraryAccount.create will
+            # explicitly set public_readlog: 'yes'.
+            # Legacy accounts w/ no public_readlog key
+            # will continue to default to 'no'
+        }
+    )
 
     def get_status(self):
         account = self.get_account() or {}

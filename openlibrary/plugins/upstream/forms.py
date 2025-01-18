@@ -1,5 +1,3 @@
-from typing import ClassVar
-
 import web
 
 from infogami.core import forms
@@ -79,7 +77,7 @@ class EqualToValidator(Validator):
 
 
 class RegisterForm(Form):
-    INPUTS: ClassVar[list] = [
+    INPUTS: tuple = (
         Email(
             'email',
             description=_('Email'),
@@ -121,7 +119,7 @@ class RegisterForm(Form):
                 'that runs Open Library.'
             ),
         ),
-    ]
+    )
 
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
