@@ -59,3 +59,16 @@ export function updateURLParameters(params) {
     // Use history.pushState to update the URL without reloading
     window.history.pushState({ path: url.href }, '', url.href);
 }
+
+/**
+ * Remove leading/trailing empty space on field deselect.
+ * @param string a value for document.querySelectorAll()
+ */
+export function trimInputValues(param) {
+    const inputs = document.querySelectorAll(param);
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            this.value = this.value.trim();
+        });
+    });
+}

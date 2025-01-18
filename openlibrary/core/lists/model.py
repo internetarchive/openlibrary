@@ -198,7 +198,7 @@ class List(Thing):
         things = cast(
             list[Thing],
             web.ctx.site.get_many(
-                [seed.key for seed in self.seeds if isinstance(seed, Thing)]
+                [seed.key for seed in self.get_seeds() if seed._type != "subject"]
             ),
         )
 

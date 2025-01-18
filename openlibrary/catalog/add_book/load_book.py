@@ -2,7 +2,12 @@ from typing import TYPE_CHECKING, Any, Final
 
 import web
 
-from openlibrary.catalog.utils import author_dates_match, flip_name, key_int
+from openlibrary.catalog.utils import (
+    author_dates_match,
+    flip_name,
+    format_languages,
+    key_int,
+)
 from openlibrary.core.helpers import extract_year
 
 if TYPE_CHECKING:
@@ -254,14 +259,6 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     return a
 
 
-class InvalidLanguage(Exception):
-    def __init__(self, code):
-        self.code = code
-
-    def __str__(self):
-        return f"invalid language code: '{self.code}'"
-
-
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
 
@@ -283,12 +280,12 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
+
         if k in ('languages', 'translated_from'):
-            for language in v:
-                if web.ctx.site.get('/languages/' + language.lower()) is None:
-                    raise InvalidLanguage(language.lower())
-            book[k] = [{'key': '/languages/' + language.lower()} for language in v]
+            formatted_languages = format_languages(languages=v)
+            book[k] = formatted_languages
             continue
+
         if k in type_map:
             t = '/type/' + type_map[k]
             if isinstance(v, list):
