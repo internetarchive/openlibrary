@@ -1,22 +1,35 @@
 <template>
-    <div class="page">
-        <h1>Hello Vuorld!</h1>
+  <div class="page">
+    <h1>Hello Vuorld!</h1>
 
-        New Vue? Read the <a href="https://vuejs.org/v2/guide/">Getting Started Guide</a>. Here are some quick examples:
-        <hr />
+    New Vue? Read the <a href="https://vuejs.org/v2/guide/">Getting Started Guide</a>. Here are some quick examples:
+    <hr>
 
-        <p>Here's a list ({{sampleList.length}} items):</p>
-        <ol v-if="sampleList.length">
-            <li v-for="(item, i) in sampleList" :key="i">{{item}}</li>
-        </ol>
-        <p v-else>Your list is empty!</p>
+    <p>Here's a list ({{ sampleList.length }} items):</p>
+    <ol v-if="sampleList.length">
+      <li
+        v-for="(item, i) in sampleList"
+        :key="i"
+      >
+        {{ item }}
+      </li>
+    </ol>
+    <p v-else>
+      Your list is empty!
+    </p>
 
-        <hr />
+    <hr>
 
-        <p>Here's some logic:</p>
-        <!-- v-model is used to bind inputs to data fields. See https://vuejs.org/v2/guide/forms.html -->
-        <input type="number" v-model.number="num1"> + <input type="number" v-model.number="num2"> = {{num1 + num2}}
-    </div>
+    <p>Here's some logic:</p>
+    <!-- v-model is used to bind inputs to data fields. See https://vuejs.org/v2/guide/forms.html -->
+    <input
+      v-model.number="num1"
+      type="number"
+    > + <input
+      v-model.number="num2"
+      type="number"
+    > = {{ num1 + num2 }}
+  </div>
 </template>
 
 <script>

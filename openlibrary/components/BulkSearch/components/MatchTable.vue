@@ -3,18 +3,38 @@
     <table>
       <thead>
         <tr>
-          <th rowspan ="2" style="width:4ch">#</th>
-          <th colspan = "2" style="width:400px;"> Extracted Books</th>
-          <th rowspan = "2">Matched Books</th>
+          <th
+            rowspan="2"
+            style="width:4ch"
+          >
+            #
+          </th>
+          <th
+            colspan="2"
+            style="width:400px;"
+          >
+            Extracted Books
+          </th>
+          <th rowspan="2">
+            Matched Books
+          </th>
         </tr>
         <tr>
           <th>Title</th>
-          <th style="min-width: 200px;"> Author</th>
+          <th style="min-width: 200px;">
+            Author
+          </th>
         </tr>
       </thead>
       <tbody>
-        <MatchRow class="matchRow" v-for="bookMatch, index  in bulkSearchState.matchedBooks" :bookMatch="bookMatch" :index="index"
-          :bulkSearchState="bulkSearchState" :key="index" />
+        <MatchRow
+          v-for="bookMatch, index in bulkSearchState.matchedBooks"
+          :key="index"
+          class="matchRow"
+          :book-match="bookMatch"
+          :index="index"
+          :bulk-search-state="bulkSearchState"
+        />
       </tbody>
     </table>
   </div>

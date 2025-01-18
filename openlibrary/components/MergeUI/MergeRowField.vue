@@ -1,22 +1,47 @@
 <template>
-  <div class="field-container" :class="`field-${field}`" :title="title">
+  <div
+    class="field-container"
+    :class="`field-${field}`"
+    :title="title"
+  >
     <!-- Type -->
-    <div v-if="field == 'type'" :title="JSON.stringify(value)">{{value.key}}</div>
+    <div
+      v-if="field == 'type'"
+      :title="JSON.stringify(value)"
+    >
+      {{ value.key }}
+    </div>
     <!-- Location -->
-    <div v-else-if="field == 'location'" :title="JSON.stringify(value)">{{value}}</div>
+    <div
+      v-else-if="field == 'location'"
+      :title="JSON.stringify(value)"
+    >
+      {{ value }}
+    </div>
     <!-- Authors Array -->
-    <AuthorRoleTable v-else-if="field == 'authors'" :roles="value" />
+    <AuthorRoleTable
+      v-else-if="field == 'authors'"
+      :roles="value"
+    />
     <!-- Excerpts Array -->
-    <ExcerptsTable v-else-if="field == 'excerpts'" :excerpts="value" />
+    <ExcerptsTable
+      v-else-if="field == 'excerpts'"
+      :excerpts="value"
+    />
     <!-- Key -->
     <a
-      v-else-if="field == 'key'" :href="value" target="_blank"
-    >{{value.slice("/works/".length)}}</a>
-    <div v-else-if="field == 'covers'" class="wrapper">
+      v-else-if="field == 'key'"
+      :href="value"
+      target="_blank"
+    >{{ value.slice("/works/".length) }}</a>
+    <div
+      v-else-if="field == 'covers'"
+      class="wrapper"
+    >
       <a
-        class="cover"
         v-for="id in value"
         :key="id"
+        class="cover"
         :href="`https://covers.openlibrary.org/b/id/${id}.jpg`"
         target="_blank"
       >
@@ -24,7 +49,7 @@
           loading="lazy"
           :src="`https://covers.openlibrary.org/b/id/${id}-M.jpg`"
           :srcset="`https://covers.openlibrary.org/b/id/${id}-M.jpg, https://covers.openlibrary.org/b/id/${id}-L.jpg 1.5x, https://covers.openlibrary.org/b/id/${id}.jpg 2x`"
-        />
+        >
       </a>
     </div>
 
@@ -33,14 +58,20 @@
       v-else-if="['created', 'last_modified'].includes(field)"
       :datetime="value.value"
       :title="value.value"
-    >{{value.value.split("T")[0]}}</time>
+    >{{ value.value.split("T")[0] }}</time>
 
     <!-- Subjects -->
     <ul
       v-else-if="['subjects','subject_places','subject_people','subject_times'].includes(field)"
       class="reset pill-list"
     >
-      <li class="pill" v-for="string in value" :key="string">{{string}}</li>
+      <li
+        v-for="string in value"
+        :key="string"
+        class="pill"
+      >
+        {{ string }}
+      </li>
     </ul>
 
     <!-- Links -->
@@ -48,15 +79,29 @@
       v-else-if="['links'].includes(field)"
       class="reset links"
     >
-      <li class="link" v-for="link in value" :key="link"><a :href="`${link.url}`" target="_blank">{{link.title}}</a></li>
+      <li
+        v-for="link in value"
+        :key="link"
+        class="link"
+      >
+        <a
+          :href="`${link.url}`"
+          target="_blank"
+        >{{ link.title }}</a>
+      </li>
     </ul>
 
     <!-- Other Array fields -->
-      <ul
+    <ul
       v-else-if="['dewey_number','lc_classifications'].includes(field)"
       class="reset list"
     >
-      <li v-for="string in value" :key="string">{{string}}</li>
+      <li
+        v-for="string in value"
+        :key="string"
+      >
+        {{ string }}
+      </li>
     </ul>
     <!-- Description/First Sentence -->
     <TextDiff
@@ -75,9 +120,11 @@
       :right="merged ? (merged[field] || '') : value"
       :show_diffs="show_diffs"
     />
-    <div v-else-if="typeof(value) == 'number'">{{value}}</div>
+    <div v-else-if="typeof(value) == 'number'">
+      {{ value }}
+    </div>
     <div v-else>
-      <pre>{{JSON.stringify(value)}}</pre>
+      <pre>{{ JSON.stringify(value) }}</pre>
     </div>
   </div>
 </template>

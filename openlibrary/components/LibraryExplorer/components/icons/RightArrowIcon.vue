@@ -13,6 +13,6 @@
     <path
       d="M 1.2009987,0.24999936 3.0732206,2.1270903 1.2217989,3.9833339"
       style="fill:none;stroke:currentColor;stroke-width:.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4"
-    ></path>
+    />
   </svg>
 </template>

@@ -3,13 +3,13 @@
     <OLChip
       v-for="item in values"
       :key="item + type"
-      :text="item"
       :ref="'chip-' + item"
+      :text="item"
       selectable
       :selected="selectedValues.includes(item)"
       class="value-chip"
       @update-selected="updateSelected"
-      />
+    />
   </div>
 </template>
 
@@ -77,6 +77,14 @@ export default {
             required: true
         }
     },
+    computed: {
+        /**
+         * Returns an array of all of this book tag type's currently selected values.
+         */
+        selectedValues: function() {
+            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
+        }
+    },
     methods: {
         /**
          * Updates the currently selected book tags when a value chip is clicked.
@@ -127,14 +135,6 @@ export default {
                         updatedValues.push(text);
                     })
             }
-        }
-    },
-    computed: {
-        /**
-         * Returns an array of all of this book tag type's currently selected values.
-         */
-        selectedValues: function() {
-            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
         }
     }
 }

@@ -8,15 +8,29 @@
     :style="`--book-hue: ${hashHue}`"
   >
     <template #front>
-      <FlatBookCover :book="book" @load.once="updateWithImageMetadata" :cover="cover"/>
+      <FlatBookCover
+        :book="book"
+        :cover="cover"
+        @load.once="updateWithImageMetadata"
+      />
     </template>
-    <template #left v-if="finalThickness > 15">
-      <div class="author" :style="`color: hsl(${hashHue + 60}, 25%, 65%)`">{{byline}}</div>
+    <template
+      v-if="finalThickness > 15"
+      #left
+    >
+      <div
+        class="author"
+        :style="`color: hsl(${hashHue + 60}, 25%, 65%)`"
+      >
+        {{ byline }}
+      </div>
       <hr>
       <div
         class="title"
         :style="(finalThickness < 30) && `transform: translateX(${finalThickness/2}px) rotateZ(90deg);`"
-      >{{book.title}}</div>
+      >
+        {{ book.title }}
+      </div>
     </template>
   </CSSBox>
 </template>
@@ -53,11 +67,6 @@ export default {
             finalThickness: this.book.number_of_pages_median ? Math.min(50, this.book.number_of_pages_median / 10) : this.thickness,
         };
     },
-    methods: {
-        updateWithImageMetadata(e) {
-            this.finalHeight = e.target.height;
-        },
-    },
 
     computed: {
         byline() {
@@ -73,6 +82,11 @@ export default {
 
         hashHue() {
             return hashCode(this.book.key) % 360;
+        },
+    },
+    methods: {
+        updateWithImageMetadata(e) {
+            this.finalHeight = e.target.height;
         },
     }
 };

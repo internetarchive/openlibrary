@@ -1,10 +1,14 @@
 <template>
-    <div v-if="show_diffs">
-        <span v-for="(part, i) in diff" :key="i" :class="part">{{part.value}}</span>
-    </div>
-    <div v-else>
-        {{left}}
-    </div>
+  <div v-if="show_diffs">
+    <span
+      v-for="(part, i) in diff"
+      :key="i"
+      :class="part"
+    >{{ part.value }}</span>
+  </div>
+  <div v-else>
+    {{ left }}
+  </div>
 </template>
 
 <script>

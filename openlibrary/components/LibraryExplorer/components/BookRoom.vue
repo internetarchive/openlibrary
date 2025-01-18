@@ -1,5 +1,8 @@
 <template>
-  <div class="book-room" :class="{'expanding-animation': expandingAnimation}">
+  <div
+    class="book-room"
+    :class="{'expanding-animation': expandingAnimation}"
+  >
     <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
         <button @click="goUpTo(i)">{{i === 0 ? 'Home' : node.name}}</button>
@@ -9,59 +12,88 @@
     </div> -->
     <div class="lr-signs">
       <button
-        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
         v-if="signState.left"
+        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
         @click="moveToShelf(activeBookcaseIndex - 1)"
       >
         <main class="sign-body">
           <RightArrowIcon class="arrow-icon" />
-          <div class="sign-classification">{{signState.left.short}}</div>
-          <div class="sign-label">{{signState.left.name}}</div>
+          <div class="sign-classification">
+            {{ signState.left.short }}
+          </div>
+          <div class="sign-label">
+            {{ signState.left.name }}
+          </div>
         </main>
       </button>
       <!-- Gap --> <div style="flex: 1" />
       <button
-        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
         v-if="signState.right"
+        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
         @click="moveToShelf(activeBookcaseIndex + 1)"
       >
         <main class="sign-body">
           <RightArrowIcon class="arrow-icon" />
-          <div class="sign-classification">{{signState.right.short}}</div>
-          <div class="sign-label">{{signState.right.name}}</div>
+          <div class="sign-classification">
+            {{ signState.right.short }}
+          </div>
+          <div class="sign-label">
+            {{ signState.right.name }}
+          </div>
         </main>
       </button>
     </div>
-    <div class="book-room-shelves" ref="scrollingElement" @scroll.passive="updateActiveShelfOnScroll">
-      <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i" :data-short="bookshelf.short">
+    <div
+      ref="scrollingElement"
+      class="book-room-shelves"
+      @scroll.passive="updateActiveShelfOnScroll"
+    >
+      <div
+        v-for="(bookshelf, i) of activeRoom.children"
+        :key="i"
+        class="bookshelf-wrapper"
+        :data-short="bookshelf.short"
+      >
         <div class="bookshelf-name-wrapper">
           <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
-              <main class="sign-body">
-                <div class="sign-classification">{{bookshelf.short}}</div>
-                <div class="sign-label">{{bookshelf.name}}</div>
-              </main>
-              <div class="sign-toolbar">
-              <button
-                  v-if="breadcrumbs.length"
-                  @click="goUpTo(breadcrumbs.length - 1)"
-                >
-                  <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
-                </button>
-                <!-- Gap --> <div style="flex: 1" />
-                <button @click="expandBookshelf(bookshelf)" v-if="bookshelf.children && bookshelf.children[0].children" title="Expand">
-                  <ExpandIcon /> <span class="label">See more</span>
-                </button>
+            <main class="sign-body">
+              <div class="sign-classification">
+                {{ bookshelf.short }}
               </div>
+              <div class="sign-label">
+                {{ bookshelf.name }}
+              </div>
+            </main>
+            <div class="sign-toolbar">
+              <button
+                v-if="breadcrumbs.length"
+                @click="goUpTo(breadcrumbs.length - 1)"
+              >
+                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
+              </button>
+              <!-- Gap --> <div style="flex: 1" />
+              <button
+                v-if="bookshelf.children && bookshelf.children[0].children"
+                title="Expand"
+                @click="expandBookshelf(bookshelf)"
+              >
+                <ExpandIcon /> <span class="label">See more</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <transition-group>
-          <div class="bookshelf bookshelf-back" v-for="node in breadcrumbs" :key="node.name || 'root'"></div>
+          <div
+            v-for="node in breadcrumbs"
+            :key="node.name || 'root'"
+            class="bookshelf bookshelf-back"
+          />
         </transition-group>
 
         <Bookshelf
           :node="bookshelf"
-          :expandBookshelf="expandBookshelf"
+          :expand-bookshelf="expandBookshelf"
           :features="features"
           :classification="classification"
           :labels="appSettings.labels"
@@ -139,15 +171,6 @@ export default {
             })
         }
     },
-    watch: {
-        async classification(newVal) {
-            this.activeRoom = newVal.root;
-            this.breadcrumbs = [];
-            await nextTick();
-            this.updateWidths();
-            this.updateActiveShelfOnScroll();
-        }
-    },
     data() {
         const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
 
@@ -162,6 +185,29 @@ export default {
             viewportWidth: 1,
             activeBookcaseIndex: 0,
         };
+    },
+
+    computed: {
+        signState() {
+            const cases = this.activeRoom.children;
+            const i = this.activeBookcaseIndex;
+
+            return {
+                left: cases[i - 1],
+                main: cases[i],
+                right: cases[i + 1],
+                parent: this.breadcrumbs.length && this.activeRoom,
+            };
+        }
+    },
+    watch: {
+        async classification(newVal) {
+            this.activeRoom = newVal.root;
+            this.breadcrumbs = [];
+            await nextTick();
+            this.updateWidths();
+            this.updateActiveShelfOnScroll();
+        }
     },
 
     async created() {
@@ -193,20 +239,6 @@ export default {
     },
     unmounted() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
-    },
-
-    computed: {
-        signState() {
-            const cases = this.activeRoom.children;
-            const i = this.activeBookcaseIndex;
-
-            return {
-                left: cases[i - 1],
-                main: cases[i],
-                right: cases[i + 1],
-                parent: this.breadcrumbs.length && this.activeRoom,
-            };
-        }
     },
     methods: {
         /**

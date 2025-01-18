@@ -3,15 +3,26 @@
     v-if="cover === 'image' && coverMultiresUrl"
     class="cover"
     loading="lazy"
-    @load="$emit('load', $event)"
     :alt="book.title"
     :src="coverMultiresUrl.medium"
     :srcset="`${coverMultiresUrl.large} 2x`"
+    @load="$emit('load', $event)"
   >
-  <div v-else class="cover" :style="`background: linear-gradient(to right,  hsl(${hashHue}, 20%, 16%),  hsl(${hashHue}, 20%, 10%) 6px, hsl(${hashHue}, 20%, 16%) 10px)`">
-    <div class="title">{{book.title}}</div>
+  <div
+    v-else
+    class="cover"
+    :style="`background: linear-gradient(to right,  hsl(${hashHue}, 20%, 16%),  hsl(${hashHue}, 20%, 10%) 6px, hsl(${hashHue}, 20%, 16%) 10px)`"
+  >
+    <div class="title">
+      {{ book.title }}
+    </div>
     <hr :style="`border-color: hsl(${hashHue}, 80%, 60%)`">
-    <div class="author" :style="`color: hsl(${hashHue + 30}, 25%, 70%)`">{{byline}}</div>
+    <div
+      class="author"
+      :style="`color: hsl(${hashHue + 30}, 25%, 70%)`"
+    >
+      {{ byline }}
+    </div>
   </div>
 </template>
 

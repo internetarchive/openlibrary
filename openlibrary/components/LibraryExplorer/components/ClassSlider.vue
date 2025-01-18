@@ -1,25 +1,41 @@
 <template>
   <div class="class-slider">
     <div class="lr-buttons">
-      <button @click="index -= 1" v-if="prevSection">
+      <button
+        v-if="prevSection"
+        @click="index -= 1"
+      >
         <RightArrowIcon
           style="transform: rotate(-180deg)"
           class="arrow-icon"
           :title="prevSection.short"
         />
       </button>
-      <div class="classification-short" :class="this.direction">{{ activeSection.short }}</div>
+      <div
+        class="classification-short"
+        :class="direction"
+      >
+        {{ activeSection.short }}
+      </div>
       <button
-        @click="index += 1"
         v-if="nextSection"
         :title="nextSection.short"
+        @click="index += 1"
       >
         <RightArrowIcon class="arrow-icon" />
       </button>
     </div>
     <main>
-      <ShelfProgressBar :sections="progressBarSections" :index="progressBarIndex" />
-      <div class="label" :class="this.direction">{{activeSection.name}}</div>
+      <ShelfProgressBar
+        :sections="progressBarSections"
+        :index="progressBarIndex"
+      />
+      <div
+        class="label"
+        :class="direction"
+      >
+        {{ activeSection.name }}
+      </div>
     </main>
     <div>
       <slot name="extra-actions" />
@@ -39,15 +55,6 @@ export default {
         return {
             direction: null,
         };
-    },
-
-    watch: {
-        async index(newVal, oldVal) {
-            if (typeof oldVal !== 'number') return;
-            this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
-            await new Promise(res => setTimeout(res, 200));
-            this.direction = null;
-        }
     },
 
     computed: {
@@ -81,6 +88,15 @@ export default {
 
         nextSection() {
             return this.sections[this.index + 1];
+        }
+    },
+
+    watch: {
+        async index(newVal, oldVal) {
+            if (typeof oldVal !== 'number') return;
+            this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
+            await new Promise(res => setTimeout(res, 200));
+            this.direction = null;
         }
     }
 };

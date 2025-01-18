@@ -2,74 +2,139 @@
 
 
 <template>
-    <div class="bulk-search-controls">
+  <div class="bulk-search-controls">
+    <div>
+      <p v-if="showColumnHint">
+        Please include a header row. Supported columns include: "Title", "Author".
+      </p>
 
-        <div>
-            <p v-if="showColumnHint">Please include a header row. Supported columns include: "Title", "Author".</p>
-
-            <select class = "sampleBar" v-model="selectedValue">
-                <option v-for="sample in sampleData" :value = "sample.text" :key = "sample.source"> {{sample.name}} </option>
-            </select>
-            <textarea v-model="bulkSearchState.inputText" placeholder = "Enter your books..."></textarea>
-            <br />
-            <div class = "progressCarousel">
-                <div class="progressCard">
-                    <div class = "numeral">1</div>
-                    <div class = "info">
-                        <div class = "heading">
-                            <h3> Extract Books</h3>
-                            <p><i>How to convert your books above into structured information, like title and author.</i></p>
-                        </div>
-                        <label><strong> Extractor</strong> <br> <select v-model="bulkSearchState._activeExtractorIndex">
-                            <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
-                                {{ extractor.label }}
-                            </option>
-                        </select></label>
-
-                        <label v-if="this.showApiKey"><strong >OpenAI API Key</strong> <br>
-                            <input class="api-key-bar" v-if="showPassword" placeholder= "Enter your OpenAI API key to use this feature." type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
-
-                            <input class="api-key-bar" v-else type="text" placeholder= "OpenAI API key here...." @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
-                        </label>
-
-
-                        <button @click="extractBooks" :disabled="loadingExtractedBooks">{{ extractBooksText }}</button>
-                    </div>
-                </div>
-                <div class = "progressCard" :class="{ progressCardDisabled: matchBooksDisabled}">
-                    <div class = "numeral">2</div>
-                    <div class="info">
-                        <div class="heading">
-                            <h3>Match Books</h3>
-                            <p><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
-                        </div>
-                        <label><strong>Options</strong> <br>
-                            <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
-                            search query
-                        </label>
-                        <button @click="matchBooks" :disabled="loadingMatchedBooks || matchBooksDisabled">{{ matchBooksText }}</button>
-                    </div>
-                </div>
-                <div class = "progressCard" :class="{ progressCardDisabled: createListDisabled }">
-                    <div class = "numeral">3</div>
-                    <div class="info">
-                            <div class="heading">
-                                <h3 class="heading">Save your Matches</h3>
-                                <p class="heading"><i> Now that you've found your books, why not save them to your reading log? Or a list?</i></p>
-                            </div>
-                        <a :href="bulkSearchState.listUrl" target="_blank" id="listMakerLink"><button :disabled="createListDisabled">Add to list</button></a>
-                    </div>
-                </div>
+      <select
+        v-model="selectedValue"
+        class="sampleBar"
+      >
+        <option
+          v-for="sample in sampleData"
+          :key="sample.source"
+          :value="sample.text"
+        >
+          {{ sample.name }}
+        </option>
+      </select>
+      <textarea
+        v-model="bulkSearchState.inputText"
+        placeholder="Enter your books..."
+      />
+      <br>
+      <div class="progressCarousel">
+        <div class="progressCard">
+          <div class="numeral">
+            1
+          </div>
+          <div class="info">
+            <div class="heading">
+              <h3> Extract Books</h3>
+              <p><i>How to convert your books above into structured information, like title and author.</i></p>
             </div>
+            <label><strong> Extractor</strong> <br> <select v-model="bulkSearchState._activeExtractorIndex">
+              <option
+                v-for="extractor, index in bulkSearchState.extractors"
+                :key="index"
+                :value="index"
+              >
+                {{ extractor.label }}
+              </option>
+            </select></label>
+
+            <label v-if="showApiKey"><strong>OpenAI API Key</strong> <br>
+              <input
+                v-if="showPassword"
+                v-model="bulkSearchState.extractionOptions.openaiApiKey"
+                class="api-key-bar"
+                placeholder="Enter your OpenAI API key to use this feature."
+                type="password"
+                @click="togglePasswordVisibility()"
+              >
+
+              <input
+                v-else
+                v-model="bulkSearchState.extractionOptions.openaiApiKey"
+                class="api-key-bar"
+                type="text"
+                placeholder="OpenAI API key here...."
+                @click="togglePasswordVisibility"
+              >
+            </label>
 
 
-
+            <button
+              :disabled="loadingExtractedBooks"
+              @click="extractBooks"
+            >
+              {{ extractBooksText }}
+            </button>
+          </div>
         </div>
-        <div v-if="bulkSearchState.errorMessage">
-            <p v-for="error in bulkSearchState.errorMessage" :key="error">
-                {{ error }}</p>
+        <div
+          class="progressCard"
+          :class="{ progressCardDisabled: matchBooksDisabled}"
+        >
+          <div class="numeral">
+            2
+          </div>
+          <div class="info">
+            <div class="heading">
+              <h3>Match Books</h3>
+              <p><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
+            </div>
+            <label><strong>Options</strong> <br>
+              <input
+                v-model="bulkSearchState.matchOptions.includeAuthor"
+                type="checkbox"
+              > Use author in
+              search query
+            </label>
+            <button
+              :disabled="loadingMatchedBooks || matchBooksDisabled"
+              @click="matchBooks"
+            >
+              {{ matchBooksText }}
+            </button>
+          </div>
         </div>
+        <div
+          class="progressCard"
+          :class="{ progressCardDisabled: createListDisabled }"
+        >
+          <div class="numeral">
+            3
+          </div>
+          <div class="info">
+            <div class="heading">
+              <h3 class="heading">
+                Save your Matches
+              </h3>
+              <p class="heading">
+                <i> Now that you've found your books, why not save them to your reading log? Or a list?</i>
+              </p>
+            </div>
+            <a
+              id="listMakerLink"
+              :href="bulkSearchState.listUrl"
+              target="_blank"
+            ><button :disabled="createListDisabled">Add to list</button></a>
+          </div>
+        </div>
+      </div>
     </div>
+    <div v-if="bulkSearchState.errorMessage">
+      <p
+        v-for="error in bulkSearchState.errorMessage"
+        :key="error"
+      >
+        {{ error }}
+      </p>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -92,13 +157,6 @@ export default {
             createListDisabled: true,
         }
     },
-    watch: {
-        selectedValue(newValue) {
-            if (newValue!==''){
-                this.bulkSearchState.inputText = newValue;
-            }
-        }
-    },
     computed: {
         showApiKey(){
             if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
@@ -116,6 +174,13 @@ export default {
             if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor'
             return false
         },
+    },
+    watch: {
+        selectedValue(newValue) {
+            if (newValue!==''){
+                this.bulkSearchState.inputText = newValue;
+            }
+        }
     },
     methods: {
         togglePasswordVisibility(){

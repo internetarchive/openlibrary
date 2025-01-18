@@ -1,6 +1,6 @@
 <template>
   <tr class="work">
-    <slot name="pre"></slot>
+    <slot name="pre" />
     <td
       v-for="field in fields"
       :key="field"
@@ -11,7 +11,7 @@
         :fields="field.split('|')"
         :record="record"
         :merged="merged"
-        :cellSelected="cellSelected"
+        :cell-selected="cellSelected"
         :class="{ [`wrap-${field.replace(/\|/g, '--')}`]: true }"
         :show_diffs="show_diffs"
       />

@@ -2,7 +2,7 @@
   <div class="value-card">
     <CardHeader
       :description="description"
-      />
+    />
     <CardBody
       ref="card-body"
       :values="values"
@@ -11,7 +11,7 @@
       :all-selected-values="allSelectedValues"
       :work-key="workKey"
       :username="username"
-      />
+    />
   </div>
 </template>
 

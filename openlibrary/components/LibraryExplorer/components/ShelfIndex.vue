@@ -5,22 +5,23 @@
         :class="{ selected: index === 'root' }"
         href="#"
         @click.prevent="index = 'root'"
-        >
-          All {{ node.short }}
-          <span class="shelf-label--subclasses--count">{{ node.count }}</span>
-        </a
       >
+        All {{ node.short }}
+        <span class="shelf-label--subclasses--count">{{ node.count }}</span>
+      </a>
     </li>
-    <li v-for="(child, i) of node.children || []" :key="i">
+    <li
+      v-for="(child, i) of node.children || []"
+      :key="i"
+    >
       <a
         :class="{ selected: index === i }"
         href="#"
         @click.prevent="index = i"
-        >
-          {{ child.name }}
-          <span class="shelf-label--subclasses--count">{{ child.count }}</span>
-        </a
       >
+        {{ child.name }}
+        <span class="shelf-label--subclasses--count">{{ child.count }}</span>
+      </a>
     </li>
   </ol>
 </template>

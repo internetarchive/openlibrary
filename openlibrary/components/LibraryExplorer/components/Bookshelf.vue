@@ -6,7 +6,7 @@
       :parent="node"
       :node="lvl"
       :classification="classification"
-      :expandBookshelf="expandBookshelf"
+      :expand-bookshelf="expandBookshelf"
       :labels="labels"
       :features="features"
       :filter="filter"

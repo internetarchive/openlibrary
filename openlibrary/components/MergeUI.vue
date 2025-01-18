@@ -1,27 +1,52 @@
 <template>
   <div id="app">
     <div v-if="!olids.length">
-        No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code>
+      No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code>
     </div>
     <template v-else>
-        <MergeTable :olids="olids" :show_diffs="show_diffs" :primary="primary" ref="mergeTable"/>
-        <div class="action-bar">
-            <div class="comment-input">
-                <label for="comment">Comment: </label>
-                <input name="comment" v-model="comment" type="text">
-            </div>
-            <div class="btn-group">
-                <button class="merge-btn" @click="doMerge" :disabled="isDisabled">{{mergeStatus}}</button>
-                <button class="reject-btn" v-if="showRejectButton" @click="rejectMerge">Reject Merge</button>
-            </div>
-            <div id="diffs-toggle">
-                <label>
-                    <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
-                    Show text diffs
-                </label>
-            </div>
+      <MergeTable
+        ref="mergeTable"
+        :olids="olids"
+        :show_diffs="show_diffs"
+        :primary="primary"
+      />
+      <div class="action-bar">
+        <div class="comment-input">
+          <label for="comment">Comment: </label>
+          <input
+            v-model="comment"
+            name="comment"
+            type="text"
+          >
         </div>
-        <pre v-if="mergeOutput">{{mergeOutput}}</pre>
+        <div class="btn-group">
+          <button
+            class="merge-btn"
+            :disabled="isDisabled"
+            @click="doMerge"
+          >
+            {{ mergeStatus }}
+          </button>
+          <button
+            v-if="showRejectButton"
+            class="reject-btn"
+            @click="rejectMerge"
+          >
+            Reject Merge
+          </button>
+        </div>
+        <div id="diffs-toggle">
+          <label>
+            <input
+              v-model="show_diffs"
+              type="checkbox"
+              title="Show textual differences"
+            >
+            Show text diffs
+          </label>
+        </div>
+      </div>
+      <pre v-if="mergeOutput">{{ mergeOutput }}</pre>
     </template>
   </div>
 </template>
@@ -36,7 +61,7 @@ const LOADING = 'Loading...'
 const SAVING = 'Saving...'
 
 export default {
-    name: 'app',
+    name: 'App',
     components: {
         MergeTable
     },

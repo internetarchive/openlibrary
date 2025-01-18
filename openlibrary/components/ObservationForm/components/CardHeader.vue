@@ -1,6 +1,8 @@
 <template>
   <div class="card-header">
-    <div class="description">{{description}}</div>
+    <div class="description">
+      {{ description }}
+    </div>
   </div>
 </template>
 

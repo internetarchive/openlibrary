@@ -2,13 +2,15 @@
   <div class="shelf-label">
     <details class="shelf-label--classes">
       <summary>
-        <RightArrowIcon class="shelf-label--right-arrow"/>
-        <div class="shelf-label--name">{{index === 'root' ? node.name : node.children[index].name}}</div>
+        <RightArrowIcon class="shelf-label--right-arrow" />
+        <div class="shelf-label--name">
+          {{ index === 'root' ? node.name : node.children[index].name }}
+        </div>
       </summary>
       <ShelfIndex :node="node" />
     </details>
     <div class="shelf-label--controls">
-      <slot name="extra-actions"/>
+      <slot name="extra-actions" />
       <!-- <select class="sort-selector">
         <option>Popular</option>
         <option>Newest</option>

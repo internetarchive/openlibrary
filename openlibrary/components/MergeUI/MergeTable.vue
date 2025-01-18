@@ -2,8 +2,13 @@
   <table class="main">
     <thead>
       <tr>
-        <th></th>
-        <th v-for="field in fields" :key="field">{{field.replace(/\_/g, ' ').replace(/\|/g, ', ')}}</th>
+        <th />
+        <th
+          v-for="field in fields"
+          :key="field"
+        >
+          {{ field.replace(/\_/g, ' ').replace(/\|/g, ', ') }}
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -17,26 +22,49 @@
         :bookshelves="bookshelves"
         :ratings="ratings"
         :class="{ selected: selected[record.key]}"
-        :cellSelected="isCellUsed"
+        :cell-selected="isCellUsed"
         :merged="merge ? merge.record : null"
         :show_diffs="show_diffs"
       >
         <template #pre>
-          <td class="col-controls" v-if="['/type/edition','/type/work'].includes(record.type.key)">
-            <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.key" />
-            <input type="checkbox" title="Include in Merge" v-model="selected[record.key]" />
+          <td
+            v-if="['/type/edition','/type/work'].includes(record.type.key)"
+            class="col-controls"
+          >
+            <input
+              v-model="master_key"
+              type="radio"
+              name="master_key"
+              title="Primary Record"
+              :value="record.key"
+            >
+            <input
+              v-model="selected[record.key]"
+              type="checkbox"
+              title="Include in Merge"
+            >
           </td>
           <td v-else />
         </template>
       </MergeRow>
     </tbody>
     <tfoot>
-      <MergeRow v-if="merge" :record="merge.record" :selected="selected" :fields="fields" :merged="merge">
+      <MergeRow
+        v-if="merge"
+        :record="merge.record"
+        :selected="selected"
+        :fields="fields"
+        :merged="merge"
+      >
         <template #pre>
           <td />
         </template>
       </MergeRow>
-      <tr v-else><td :colspan="fields ? fields.length+1 : 1"><div>⏳</div></td></tr>
+      <tr v-else>
+        <td :colspan="fields ? fields.length+1 : 1">
+          <div>⏳</div>
+        </td>
+      </tr>
     </tfoot>
   </table>
 </template>
@@ -76,17 +104,17 @@ export default {
     components: {
         MergeRow
     },
+    props: {
+        olids: Array,
+        show_diffs: Boolean,
+        primary: String
+    },
     data() {
         return {
             master_key: null,
             /** @type {{[key: string]: Boolean}} */
             selected: []
         };
-    },
-    props: {
-        olids: Array,
-        show_diffs: Boolean,
-        primary: String
     },
     asyncComputed: {
         async records() {
@@ -219,14 +247,6 @@ export default {
             return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
         }
     },
-    methods: {
-        isCellUsed(record, field) {
-            if (!this.merge) return false;
-            return field in this.merge.sources
-                ? this.merge.sources[field].includes(record.key)
-                : record.key === this.master_key;
-        }
-    },
     computed: {
         fields() {
             const at_start = ['covers'];
@@ -282,6 +302,14 @@ export default {
                 ...usedTextData,
                 ...otherFields
             ];
+        }
+    },
+    methods: {
+        isCellUsed(record, field) {
+            if (!this.merge) return false;
+            return field in this.merge.sources
+                ? this.merge.sources[field].includes(record.key)
+                : record.key === this.master_key;
         }
     }
 };

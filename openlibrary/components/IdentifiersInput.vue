@@ -2,51 +2,113 @@
   <table class="identifiers">
     <tr id="identifiers-form">
       <th>
-        <select class="form-control" v-model="selectedIdentifier" name="name">
-          <option disabled value="">Select one</option>
+        <select
+          v-model="selectedIdentifier"
+          class="form-control"
+          name="name"
+        >
+          <option
+            disabled
+            value=""
+          >
+            Select one
+          </option>
           <template v-if="isEdition">
-            <option v-for="entry in popularEditionConfigs" :key="entry.name" :value="entry.name">
+            <option
+              v-for="entry in popularEditionConfigs"
+              :key="entry.name"
+              :value="entry.name"
+            >
               {{ entry.label }}
             </option>
-            <option disabled value="">---</option>
-            <option v-for="entry in secondaryEditionConfigs" :key="entry.name" :value="entry.name">
+            <option
+              disabled
+              value=""
+            >
+              ---
+            </option>
+            <option
+              v-for="entry in secondaryEditionConfigs"
+              :key="entry.name"
+              :value="entry.name"
+            >
               {{ entry.label }}
             </option>
           </template>
           <template v-else>
-            <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
-              {{idConfig.label}}
+            <option
+              v-for="idConfig in identifierConfigsByKey"
+              :key="idConfig.name"
+              :value="idConfig.name"
+            >
+              {{ idConfig.label }}
             </option>
           </template>
         </select>
       </th>
       <th>
-        <input class="form-control" type="text" name="value" id="id-value" v-model.trim="inputValue" @keyup.enter=setIdentifier>
+        <input
+          id="id-value"
+          v-model.trim="inputValue"
+          class="form-control"
+          type="text"
+          name="value"
+          @keyup.enter="setIdentifier"
+        >
       </th>
       <th>
-        <button class="form-control" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
+        <button
+          class="form-control"
+          name="set"
+          :disabled="!setButtonEnabled"
+          @click="setIdentifier"
+        >
+          Set
+        </button>
       </th>
     </tr>
-      <template v-for="(value, name) in assignedIdentifiers">
-        <tr :key="name" v-if="value && !saveIdentifiersAsList">
+    <template v-for="(value, name) in assignedIdentifiers">
+      <tr
+        v-if="value && !saveIdentifiersAsList"
+        :key="name"
+      >
+        <td>{{ identifierConfigsByKey[name].label }}</td>
+        <td>{{ value }}</td>
+        <td>
+          <button
+            class="form-control"
+            @click="removeIdentifier(name)"
+          >
+            Remove
+          </button>
+        </td>
+      </tr>
+      <template v-else-if="value && saveIdentifiersAsList">
+        <tr
+          v-for="(item, idx) in value"
+          :key="name + idx"
+        >
           <td>{{ identifierConfigsByKey[name].label }}</td>
-          <td>{{ value }}</td>
-          <td>
-            <button class="form-control" @click="removeIdentifier(name)">Remove</button>
+          <td>{{ item }}</td>
+          <td v-if="!isAdmin">
+            <button
+              v-if="name !== 'ocaid'"
+              class="form-control"
+              @click="removeIdentifier(name, idx)"
+            >
+              Remove
+            </button>
+          </td>
+          <td v-else>
+            <button
+              class="form-control"
+              @click="removeIdentifier(name, idx)"
+            >
+              Remove
+            </button>
           </td>
         </tr>
-        <template v-else-if="value && saveIdentifiersAsList">
-          <tr v-for="(item, idx) in value" :key="name + idx">
-            <td>{{ identifierConfigsByKey[name].label }}</td>
-            <td>{{ item }}</td>
-            <td v-if="!isAdmin">
-              <button v-if="name !== 'ocaid'" class="form-control" @click="removeIdentifier(name, idx)">Remove</button>
-            </td>
-            <td v-else>
-              <button class="form-control" @click="removeIdentifier(name, idx)">Remove</button>
-            </td>
-          </tr>
-        </template>
+      </template>
     </template>
   </table>
 </template>
@@ -150,6 +212,35 @@ export default {
             return this.selectedIdentifier !== '' && this.inputValue !== '';
         }
     },
+    watch: {
+        assignedIdentifiers:
+            {
+                handler: function(){this.createHiddenInputs()},
+                deep: true
+            },
+        inputValue:
+            {
+                handler: function(){this.selectIdentifierByInputValue()},
+            },
+    },
+    created: function(){
+        this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
+        if (this.assignedIdentifiers.length === 0) {
+            this.assignedIdentifiers = {}
+            return;
+        }
+        if (this.saveIdentifiersAsList) {
+            const edition_identifiers = {};
+            this.assignedIdentifiers.forEach(entry => {
+                if (!edition_identifiers[entry.name]) {
+                    edition_identifiers[entry.name] = [entry.value];
+                } else {
+                    edition_identifiers[entry.name].push(entry.value)
+                }
+            })
+            this.assignedIdentifiers = edition_identifiers;
+        }
+    },
 
     methods: {
         setIdentifier: function(){
@@ -229,35 +320,6 @@ export default {
             }
 
         }
-    },
-    created: function(){
-        this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
-        if (this.assignedIdentifiers.length === 0) {
-            this.assignedIdentifiers = {}
-            return;
-        }
-        if (this.saveIdentifiersAsList) {
-            const edition_identifiers = {};
-            this.assignedIdentifiers.forEach(entry => {
-                if (!edition_identifiers[entry.name]) {
-                    edition_identifiers[entry.name] = [entry.value];
-                } else {
-                    edition_identifiers[entry.name].push(entry.value)
-                }
-            })
-            this.assignedIdentifiers = edition_identifiers;
-        }
-    },
-    watch: {
-        assignedIdentifiers:
-            {
-                handler: function(){this.createHiddenInputs()},
-                deep: true
-            },
-        inputValue:
-            {
-                handler: function(){this.selectIdentifierByInputValue()},
-            },
     }
 }
 </script>

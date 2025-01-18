@@ -11,7 +11,7 @@
         v-if="index === i"
         class="marker"
         :style="{ left: `${(100 * section.offset) / section.count}%` }"
-      ></div>
+      />
     </div>
   </div>
 </template>

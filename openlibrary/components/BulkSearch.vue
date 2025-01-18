@@ -1,9 +1,13 @@
 <template>
-    <div class="ol-bulk-search">
-        <BulkSearchControls :bulkSearchState="bulkSearchState" />
-        <hr />
-        <MatchTable v-if="bulkSearchState.matchedBooks.length" :bulkSearchState="bulkSearchState"  :listUrl = bulkSearchState.listUrl />
-    </div>
+  <div class="ol-bulk-search">
+    <BulkSearchControls :bulk-search-state="bulkSearchState" />
+    <hr>
+    <MatchTable
+      v-if="bulkSearchState.matchedBooks.length"
+      :bulk-search-state="bulkSearchState"
+      :list-url="bulkSearchState.listUrl"
+    />
+  </div>
 </template>
 
 

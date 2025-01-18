@@ -1,8 +1,14 @@
 <template>
   <div class="edition-snippet">
-    <img loading="lazy" :src="cover_url" />
+    <img
+      loading="lazy"
+      :src="cover_url"
+    >
     <div class="links">
-      <a :href="edition.key" target="_blank">OL</a>
+      <a
+        :href="edition.key"
+        target="_blank"
+      >OL</a>
       <a
         v-if="edition.ocaid"
         :href="`https://archive.org/details/${edition.ocaid}`"
@@ -12,20 +18,34 @@
         v-if="edition.oclc_numbers"
         :href="`https://www.worldcat.org/oclc/${edition.oclc_numbers[0]}?tab=details`"
         target="_blank"
-      >WC<span v-if="edition.oclc_numbers.length > 1" title="This edition has multiple OCLCs">*</span></a>
+      >WC<span
+        v-if="edition.oclc_numbers.length > 1"
+        title="This edition has multiple OCLCs"
+      >*</span></a>
       <a
         v-if="asins.length"
         :href="`https://www.amazon.com/dp/${asins[0]}`"
         target="_blank"
-      >AZ<span v-if="asins.length > 1" title="This edition has multiple potential ASINs">*</span></a>
+      >AZ<span
+        v-if="asins.length > 1"
+        title="This edition has multiple potential ASINs"
+      >*</span></a>
     </div>
     <div class="info">
-      <b>{{ number_of_pages }} p | {{languages}} | {{ publish_year }}</b>
+      <b>{{ number_of_pages }} p | {{ languages }} | {{ publish_year }}</b>
       {{ ' ' }}
-      <span class="publishers" :title="`${publishers.join(', ')}`">{{publishers.join(', ')}}</span>
+      <span
+        class="publishers"
+        :title="`${publishers.join(', ')}`"
+      >{{ publishers.join(', ') }}</span>
     </div>
-    <hr />
-    <div class="title" :title="full_title">{{full_title}}</div>
+    <hr>
+    <div
+      class="title"
+      :title="full_title"
+    >
+      {{ full_title }}
+    </div>
   </div>
 </template>
 

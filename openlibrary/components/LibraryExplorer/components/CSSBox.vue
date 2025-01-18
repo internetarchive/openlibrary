@@ -1,22 +1,43 @@
 <template>
-  <div class="css-box" :style="cubeStyle">
-    <div class="front-face" :style="frontFaceStyle">
-      <slot name="front"/>
+  <div
+    class="css-box"
+    :style="cubeStyle"
+  >
+    <div
+      class="front-face"
+      :style="frontFaceStyle"
+    >
+      <slot name="front" />
     </div>
-    <div class="left-face" :style="leftFaceStyle">
-      <slot name="left"/>
+    <div
+      class="left-face"
+      :style="leftFaceStyle"
+    >
+      <slot name="left" />
     </div>
-    <div class="right-face" :style="rightFaceStyle">
-      <slot name="right"/>
+    <div
+      class="right-face"
+      :style="rightFaceStyle"
+    >
+      <slot name="right" />
     </div>
-    <div class="back-face" :style="backFaceStyle">
-      <slot name="back"/>
+    <div
+      class="back-face"
+      :style="backFaceStyle"
+    >
+      <slot name="back" />
     </div>
-    <div class="top-face" :style="topFaceStyle">
-      <slot name="top"/>
+    <div
+      class="top-face"
+      :style="topFaceStyle"
+    >
+      <slot name="top" />
     </div>
-    <div class="bottom-face" :style="bottomFaceStyle">
-      <slot name="bottom"/>
+    <div
+      class="bottom-face"
+      :style="bottomFaceStyle"
+    >
+      <slot name="bottom" />
     </div>
   </div>
 </template>
