@@ -199,7 +199,6 @@ def extract_messages(dirs: list[str], verbose: bool, skip_untracked: bool):
     path = os.path.join(root, 'messages.pot')
     with open(path, 'wb') as f:
         write_po(f, catalog, include_lineno=False)
-    f.close()
 
     print('Updated strings written to', path)
 
