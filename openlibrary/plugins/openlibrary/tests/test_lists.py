@@ -72,11 +72,11 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
-    SEED_TESTS: tuple[tuple[tuple[str, ...], tuple[dict, ...]], ...] = (
-        ((), ()),
-        (('OL1M',), ({'key': '/books/OL1M'},)),
-        (('OL1M', 'OL2M'), ({'key': '/books/OL1M'}, {'key': '/books/OL2M'})),
-        (('OL1M,OL2M',), ({'key': '/books/OL1M'}, {'key': '/books/OL2M'})),
+    SEED_TESTS: tuple = (
+        ([], []),
+        (['OL1M'], [{'key': '/books/OL1M'}]),
+        (['OL1M', 'OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),
+        (['OL1M,OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),
     )
 
     @pytest.mark.parametrize(('seeds', 'expected'), SEED_TESTS)
