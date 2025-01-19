@@ -1,5 +1,8 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None)
 
+$ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
+$ ocaid = doc.get('ocaid') or availability.get('identifier')
+
 $code:
   max_rendered_authors = 9
   doc_type = (
@@ -58,6 +61,7 @@ $code:
               alt="$_('Cover of: %(title)s', title=full_title)"
               title="$_('Cover of: %(title)s', title=full_title)"
       /></a>
+      $:macros.BookPreview(ocaid,show_only=False)
     </span>
 
     <div class="details">
