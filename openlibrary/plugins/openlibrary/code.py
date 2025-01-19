@@ -202,14 +202,11 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename='sampledump.txt.gz'):
-    if filename.endswith('.gz'):
-        import gzip
+    import gzip
 
-        f = gzip.open(filename)
-    else:
-        f = open(filename)
+    with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
+        queries = [json.loads(line) for line in file]
 
-    queries = [json.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -400,9 +397,8 @@ def save(filename, text):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(text)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(text)
 
 
 def change_ext(filename, ext):
@@ -1119,9 +1115,8 @@ def save_error():
         os.makedirs(dir)
 
     error = web.safestr(web.djangoerror())
-    f = open(path, 'w')
-    f.write(error)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(error)
 
     print('error saved to', path, file=web.debug)
     return name
