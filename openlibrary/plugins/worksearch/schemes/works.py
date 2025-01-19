@@ -5,11 +5,11 @@ from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from typing import Any, cast
-from openlibrary.plugins.upstream.utils import get_user_lang_marc
 
 import luqum.tree
 import web
-from openlibrary.plugins.upstream.utils import convert_iso_to_marc
+
+from openlibrary.plugins.upstream.utils import get_user_lang_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
