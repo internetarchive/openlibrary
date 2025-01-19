@@ -32,7 +32,7 @@ Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
     Password('password', description=_('Password'), klass='required'),
     Hidden('redirect'),
-    Hidden('action')
+    Hidden('action'),
 )
 forms.login = Login
 

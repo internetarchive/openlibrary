@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import requests
 import web
@@ -415,16 +415,15 @@ class account_login(delegate.page):
         return render.login(f)
 
     def get_post_login_action(self, web, referer):
-        """Extract the 'action' parameter from the query string. 
-            Return the action if it is valid, else return None
+        """Extract the 'action' parameter from the query string.
+        Return the action if it is valid, else return None
         """
         allowed_actions = ["follow"]
         if not referer:
             return None
         qs = web.ctx.env.get('QUERY_STRING', "")
         parsed_query = parse_qs(qs)
-        action = parsed_query.get("action", [None])[0]
-        if action in allowed_actions:
+        if (action := parsed_query.get("action", [None])[0]) in allowed_actions:
             return action
         return None
 
@@ -444,7 +443,7 @@ class account_login(delegate.page):
         if not OpenLibraryAccount.get_by_username(publisher):
             return None
 
-        # Check is user has already following the publisher 
+        # Check is user has already following the publisher
         if PubSub.is_subscribed(subscriber=ol_account.username, publisher=publisher):
             flash_message = "You are already following this user!"
         else:
@@ -515,8 +514,7 @@ class account_login(delegate.page):
         ]
 
         # Processing post login action
-        flash_message = self.perform_post_login_action(i, ol_account)
-        if flash_message:
+        if flash_message := self.perform_post_login_action(i, ol_account):
             add_flash_message('note', _(flash_message))
 
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
