@@ -5,6 +5,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from typing import Any, cast
+from openlibrary.plugins.upstream.utils import get_user_lang_marc
 
 import luqum.tree
 import web

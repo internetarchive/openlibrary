@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from openlibrary.plugins.upstream.utils import get_user_lang_marc
+
 import pytest
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
