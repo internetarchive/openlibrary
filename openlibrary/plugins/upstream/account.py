@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 import requests
 import web
@@ -414,6 +414,44 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
+    def get_post_login_action(self, web, referer):
+        """Extract the 'action' parameter from the query string. 
+            Return the action if it is valid, else return None
+        """
+        allowed_actions = ["follow"]
+        if not referer:
+            return None
+        qs = web.ctx.env.get('QUERY_STRING', "")
+        parsed_query = parse_qs(qs)
+        action = parsed_query.get("action", [None])[0]
+        if action in allowed_actions:
+            return action
+        return None
+
+    def perform_post_login_action(self, i, ol_account):
+        if not i.action or not i.redirect or i.action != "follow":
+            return None
+
+        redirect_path = urlparse(i.redirect).path
+        if not redirect_path or "/" not in redirect_path:
+            return None
+
+        publisher = redirect_path.split("/")[-1]
+        if not publisher:
+            return None
+
+        # Check if publisher exists
+        if not OpenLibraryAccount.get_by_username(publisher):
+            return None
+
+        # Check is user has already following the publisher 
+        if PubSub.is_subscribed(subscriber=ol_account.username, publisher=publisher):
+            flash_message = "You are already following this user!"
+        else:
+            PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
+            flash_message = "You are now following this user!"
+        return flash_message
+
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
@@ -424,9 +462,14 @@ class account_login(delegate.page):
             this_host = this_host.split(':', 1)[0]
         if parsed_referer.hostname != this_host:
             referer = None
-        i = web.input(redirect=referer)
+
+        # Get the post login action. Example: follow, want to read or borrow
+        action = self.get_post_login_action(web, referer)
+
+        i = web.input(redirect=referer, action=action)
         f = forms.Login()
         f['redirect'].value = i.redirect
+        f['action'].value = i.action
         return render.login(f)
 
     def POST(self):
@@ -470,6 +513,12 @@ class account_login(delegate.page):
             "/account/login",
             "/account/create",
         ]
+
+        # Processing post login action
+        flash_message = self.perform_post_login_action(i, ol_account)
+        if flash_message:
+            add_flash_message('note', _(flash_message))
+
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         stats.increment('ol.account.xauth.login')
