@@ -1775,7 +1775,7 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account.py account/password/reset_success.html account/verify.html
+#: account/password/reset_success.html account/verify.html
 #: account/verify/activated.html account/verify/success.html
 #, python-format
 msgid "Hi, %(user)s"
@@ -7830,13 +7830,6 @@ msgid "A problem occurred and we were unable to log you in"
 msgstr ""
 
 #: account.py
-#, python-format
-msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
-msgstr ""
-
-#: account.py
 msgid "Username unavailable"
 msgstr ""
 
@@ -7876,10 +7869,6 @@ msgstr ""
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr ""
-
-#: account.py
-msgid "Password reset failed."
 msgstr ""
 
 #: account.py

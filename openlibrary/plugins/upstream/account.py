@@ -11,7 +11,6 @@ import web
 
 import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
-from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import (
     add_flash_message,
@@ -42,7 +41,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import borrow, forms, utils
+from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
@@ -56,7 +55,7 @@ USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
-#send_verification_email = accounts.send_verification_email
+# send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
@@ -475,6 +474,7 @@ class account_login(delegate.page):
         stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
+
 class account_logout(delegate.page):
     """Account logout.
 
@@ -490,6 +490,7 @@ class account_logout(delegate.page):
         from infogami.core.code import logout as infogami_logout
 
         return infogami_logout().POST()
+
 
 class account_validation(delegate.page):
     path = '/account/validate'
@@ -566,6 +567,7 @@ class account_email_verify(delegate.page):
         )
         return render.message(title, message)
 
+
 class account_ia_email_forgot(delegate.page):
     path = "/account/email/forgot-ia"
 
@@ -594,6 +596,7 @@ class account_ia_email_forgot(delegate.page):
         else:
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
+
 
 class account_audit(delegate.page):
     path = "/account/audit"
@@ -1070,6 +1073,7 @@ class account_waitlist(delegate.page):
 #
 #     def GET(self, path):
 #         return render.notfound(path, create=False)
+
 
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
