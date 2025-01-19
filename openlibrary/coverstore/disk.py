@@ -36,9 +36,8 @@ class Disk:
         prefix = params.get('olid', '')
         filename = self.make_filename(prefix)
         path = os.path.join(self.root, filename)
-        f = open(path, 'w')
-        f.write(data)
-        f.close()
+        with open(path, 'w') as f:
+            f.write(data)
         return filename
 
     def read(self, filename):

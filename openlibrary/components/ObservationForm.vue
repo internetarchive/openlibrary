@@ -154,7 +154,7 @@ export default {
 
         this.observer.observe(this.$refs.form)
     },
-    beforeDestroy: function() {
+    beforeUnmount: function() {
         if (this.observer) {
             this.observer.disconnect()
         }

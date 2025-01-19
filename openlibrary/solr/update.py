@@ -37,7 +37,6 @@ data_provider = cast(DataProvider, None)
 
 @functools.cache
 def get_solr_updaters() -> list[AbstractSolrUpdater]:
-    global data_provider
     assert data_provider is not None
     return [
         # ORDER MATTERS

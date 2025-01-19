@@ -36,7 +36,6 @@ import web
 from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
-    InvalidLanguage,
     build_query,
     east_in_by_statement,
     import_author,
@@ -44,6 +43,8 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    InvalidLanguage,
+    format_languages,
     get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
@@ -818,20 +819,30 @@ def update_edition_with_rec_data(
         'lc_classifications',
         'oclc_numbers',
         'source_records',
+        'languages',
     ]
-    for f in edition_list_fields:
-        if f not in rec or not rec[f]:
+    edition_dict: dict = edition.dict()
+    for field in edition_list_fields:
+        if field not in rec:
             continue
-        # ensure values is a list
-        values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        if f in edition:
-            # get values from rec field that are not currently on the edition
-            case_folded_values = {v.casefold() for v in edition[f]}
-            to_add = [v for v in values if v.casefold() not in case_folded_values]
-            edition[f] += to_add
+
+        existing_values = edition_dict.get(field, []) or []
+        rec_values = rec.get(field, [])
+
+        # Languages in `rec` are ['eng'], etc., but import requires dict-style.
+        if field == 'languages':
+            formatted_languages = format_languages(languages=rec_values)
+            supplemented_values = existing_values + [
+                lang for lang in formatted_languages if lang not in existing_values
+            ]
         else:
-            edition[f] = to_add = values
-        if to_add:
+            case_folded_values = [v.casefold() for v in existing_values]
+            supplemented_values = existing_values + [
+                v for v in rec_values if v.casefold() not in case_folded_values
+            ]
+
+        if existing_values != supplemented_values:
+            edition[field] = supplemented_values
             need_edition_save = True
 
     # Fields that are added as a whole if absent. (Individual values are not added.)
@@ -848,7 +859,7 @@ def update_edition_with_rec_data(
             edition[f] = rec[f]
             need_edition_save = True
 
-    # Add new identifiers
+    # Add new identifiers (dict values, so different treatment from lists above.)
     if 'identifiers' in rec:
         identifiers = defaultdict(list, edition.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
