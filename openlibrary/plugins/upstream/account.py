@@ -57,7 +57,7 @@ RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
 #send_verification_email = accounts.send_verification_email
-#create_link_doc = accounts.create_link_doc
+create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 

@@ -101,7 +101,7 @@ def generate_uuid():
 
 
 def send_verification_email(username, email):
-    ""Sends account verification email.""
+    """Sends account verification email."""
     key = "account/%s/verify" % username
 
     doc = create_link_doc(key, username, email)
