@@ -208,6 +208,12 @@ def render_component(
         html += f'<script type="module" {script_attrs} src="{url}"></script>'
         included.append(name)
 
+        # Support for legacy browsers (see vite.config.
+        polyfills_url = static_url('build/components/production/ol-polyfills-legacy.js')
+        html += f'<script nomodule src="{polyfills_url}" defer></script>'
+        legacy_url = static_url('build/components/production/ol-%s-legacy.js' % name)
+        html += f'<script nomodule src="{legacy_url}" defer></script>'
+
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
     return html
 

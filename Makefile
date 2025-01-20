@@ -31,11 +31,7 @@ js:
 
 components:
 	mkdir -p $(BUILD)
-	rm -rf $(BUILD)/components
 	npx vite build -c openlibrary/components/vite.config.mjs
-	# for comp in $$(find openlibrary/components -maxdepth 1 -name '*.vue' -printf "%f\n"); do \
-	# 	COMPONENT="$$comp" npx vite build -c openlibrary/components/vite.config.mjs ; \
-	# done
 
 
 i18n:

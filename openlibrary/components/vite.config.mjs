@@ -1,6 +1,7 @@
 /* eslint-env node, es6 */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import legacy from '@vitejs/plugin-legacy';
 import { writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -17,11 +18,12 @@ componentNames.forEach(componentName => {
 });
 
 export default defineConfig({
-    plugins: [vue({ customElement: true })],
+    plugins: [
+        vue({ customElement: true }),
+        legacy({ targets: ['defaults', 'not IE 11'] })
+    ],
     build: {
         outDir: PRODUCTION_DIR,
-        emptyOutDir: false, // Preserve existing files since we build components individually
-        target: 'es2015', // The oldest version Vite supports out of the box
         rollupOptions: {
             input,
             output: {
