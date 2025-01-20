@@ -205,7 +205,7 @@ def render_component(
     if name not in (included := web.ctx.setdefault("included-components", [])):
         url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
-        html += f'<script {script_attrs} src="{url}"></script>'
+        html += f'<script type="module" {script_attrs} src="{url}"></script>'
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'

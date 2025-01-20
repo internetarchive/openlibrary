@@ -1,23 +1,20 @@
 /* eslint-env node, es6 */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import { writeFileSync } from 'fs';
+import { writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-const COMPONENT_NAME = process.env.COMPONENT?.replace('.vue', '');
-if (!COMPONENT_NAME) {
-    throw new Error(
-        'Component name not specified in environment variable.\n' +
-        'Usage: COMPONENT=ComponentName npx vite build'
-    );
-}
 
 const BUILD_DIR = './static/build';
 const PRODUCTION_DIR = join(BUILD_DIR, 'components/production');
-const COMPONENT_PATH = '../../openlibrary/components';
 
-// Generate temporary build file
-generateViteEntryFile(COMPONENT_NAME);
+const componentNames = getComponentNames();
+componentNames.forEach(generateViteEntryFile)
+
+const input = {};
+componentNames.forEach(componentName => {
+    input[componentName] = join(BUILD_DIR, `vue-tmp-${componentName}.js`);
+});
 
 export default defineConfig({
     plugins: [vue({ customElement: true })],
@@ -26,15 +23,27 @@ export default defineConfig({
         emptyOutDir: false, // Preserve existing files since we build components individually
         target: 'es2015', // The oldest version Vite supports out of the box
         rollupOptions: {
-            input: join(BUILD_DIR, `vue-tmp-${COMPONENT_NAME}.js`),
+            input,
             output: {
-                entryFileNames: `ol-${COMPONENT_NAME}.js`,
-                inlineDynamicImports: true,
-                format: 'iife' // use iife to support old browsers without type="module"
+                entryFileNames: 'ol-[name].js',
+                format: 'es'
             },
         },
     },
 });
+
+/**
+ * Retrieves the names of Vue components in the specified directory.
+ * Scans the './openlibrary/components' directory for files with a '.vue' extension,
+ * and returns an array of component names without the extension.
+ *
+ * @returns {string[]} An array of component names, e.g., ['BarcodeScanner', 'BulkSearch'].
+ */
+function getComponentNames() {
+    const files = readdirSync('./openlibrary/components');
+    return files.filter(name => name.includes('.vue')).map(name => name.replace('.vue', ''));
+}
+
 
 /**
  * Generates a temporary entry file for Vite to build the web component
@@ -42,9 +51,10 @@ export default defineConfig({
  * @throws {Error} If file creation fails
  */
 function generateViteEntryFile(componentName) {
+    const component_path = '../../openlibrary/components';
     const template = `
-import { createWebComponentSimple } from '${COMPONENT_PATH}/rollupInputCore.js';
-import rootComponent from '${COMPONENT_PATH}/${componentName}.vue';
+import { createWebComponentSimple } from '${component_path}/rollupInputCore.js';
+import rootComponent from '${component_path}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
     try {
