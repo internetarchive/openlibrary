@@ -29,7 +29,7 @@
     </tr>
       <template v-for="(value, name) in assignedIdentifiers">
         <tr :key="name" v-if="value && !saveIdentifiersAsList">
-          <td>{{ identifierConfigsByKey[name] ? identifierConfigsByKey[name].label : name }}</td>
+          <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
           <td>{{ value }}</td>
           <td>
             <button class="form-control" @click="removeIdentifier(name)">Remove</button>
@@ -37,7 +37,7 @@
         </tr>
         <template v-else-if="value && saveIdentifiersAsList">
           <tr v-for="(item, idx) in value" :key="name + idx">
-            <td>{{ identifierConfigsByKey[name] ? identifierConfigsByKey[name].label : name }}</td>
+            <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
             <td>{{ item }}</td>
             <td v-if="!isAdmin">
               <button v-if="name !== 'ocaid'" class="form-control" @click="removeIdentifier(name, idx)">Remove</button>
