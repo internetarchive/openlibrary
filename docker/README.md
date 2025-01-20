@@ -4,7 +4,7 @@
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)
 4. [Run the app](#run-the-app)
-5. Update [code dependencies](#code-updates) or [docker images](#Updating-the-docker-image) 
+5. Update [code dependencies](#code-updates) or [docker images](#Updating-the-docker-image)
 6. [Teardown commands](#teardown-commands)
 7. [Full reset](#fully-resetting-your-environment)
 8. [Useful docker commands](#Useful-Runtime-Commands)
