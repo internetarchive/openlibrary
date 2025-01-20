@@ -30,7 +30,8 @@ js:
 	done
 
 components:
-	mkdir -p $(BUILD)
+	mkdir -p $(BUILD)/components
+	rm -rf $(BUILD)/components/*
 	npx vite build -c openlibrary/components/vite.config.mjs
 
 
