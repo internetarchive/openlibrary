@@ -53,10 +53,10 @@ function getTemporaryVueInputPath(componentName) {
  * @throws {Error} If file creation fails
  */
 function generateViteEntryFile(componentName) {
-    const component_path = '../../../openlibrary/components';
+    const componentsPath = '../../../openlibrary/components';
     const template = `
-import { createWebComponentSimple } from '${component_path}/rollupInputCore.js';
-import rootComponent from '${component_path}/${componentName}.vue';
+import { createWebComponentSimple } from '${componentsPath}/rollupInputCore.js';
+import rootComponent from '${componentsPath}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
     try {
