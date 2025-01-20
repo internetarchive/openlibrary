@@ -6,16 +6,13 @@ import { writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 
-const BUILD_DIR = './static/build';
-const PRODUCTION_DIR = join(BUILD_DIR, 'components/production');
+const BUILD_DIR = './static/build/components';
 
 const componentNames = getComponentNames();
 componentNames.forEach(generateViteEntryFile)
 
-const input = {};
-componentNames.forEach(componentName => {
-    input[componentName] = join(BUILD_DIR, `vue-tmp-${componentName}.js`);
-});
+const buildInput = {};
+componentNames.forEach(name => { buildInput[name] = getTemporaryVueInputPath(name) });
 
 export default defineConfig({
     plugins: [
@@ -23,12 +20,12 @@ export default defineConfig({
         legacy({ targets: ['defaults', 'not IE 11'] })
     ],
     build: {
-        outDir: PRODUCTION_DIR,
+        outDir: join(BUILD_DIR, '/production'),
         rollupOptions: {
-            input,
+            input: buildInput,
             output: {
                 entryFileNames: 'ol-[name].js',
-                format: 'es'
+                format: 'es' // for browser only builds (not NodeJS)
             },
         },
     },
@@ -46,6 +43,9 @@ function getComponentNames() {
     return files.filter(name => name.includes('.vue')).map(name => name.replace('.vue', ''));
 }
 
+function getTemporaryVueInputPath(componentName) {
+    return join(BUILD_DIR, `tmp-${componentName}.js`)
+}
 
 /**
  * Generates a temporary entry file for Vite to build the web component
@@ -53,14 +53,14 @@ function getComponentNames() {
  * @throws {Error} If file creation fails
  */
 function generateViteEntryFile(componentName) {
-    const component_path = '../../openlibrary/components';
+    const component_path = '../../../openlibrary/components';
     const template = `
 import { createWebComponentSimple } from '${component_path}/rollupInputCore.js';
 import rootComponent from '${component_path}/${componentName}.vue';
 createWebComponentSimple(rootComponent, '${componentName}');`;
 
     try {
-        writeFileSync(join(BUILD_DIR, `vue-tmp-${componentName}.js`), template);
+        writeFileSync(getTemporaryVueInputPath(componentName), template);
     } catch (error) {
         // eslint-disable-next-line no-console
         console.error(`Failed to generate Vite entry file: ${error.message}`);
