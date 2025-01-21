@@ -33,7 +33,6 @@ BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
-http_proxy_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
     h.affiliate_id('betterworldbooks')
 )
@@ -44,8 +43,6 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
-    global http_proxy_url
-    http_proxy_url = config.get('http_proxy')
 
 
 def get_lexile(isbn):
@@ -93,12 +90,12 @@ class AmazonAPI:
         host: str = 'webservices.amazon.com',
         region: str = 'us-east-1',
         throttling: float = 0.9,
+        proxy_url: str = "",
     ) -> None:
         """
-        Creates an instance containing your API credentials.
-
-        Instantiating this object in a REPL requires the `infogami._setup()`
-        magic incantation to set `http_proxy_url`.
+        Creates an instance containing your API credentials. Additionally,
+        instantiating this class requires a `proxy_url` parameter as of January
+        10th, 2025 because `ol-home0` has no direct internet access.
 
         :param str key: affiliate key
         :param str secret: affiliate secret
@@ -116,10 +113,11 @@ class AmazonAPI:
         )
 
         # Replace the api object with one that supports the HTTP proxy. See #10310.
-        configuration = Configuration()
-        configuration.proxy = http_proxy_url
-        rest_client = RESTClientObject(configuration=configuration)
-        self.api.api_client.rest_client = rest_client
+        if proxy_url:
+            configuration = Configuration()
+            configuration.proxy = proxy_url
+            rest_client = RESTClientObject(configuration=configuration)
+            self.api.api_client.rest_client = rest_client
 
     def search(self, keywords):
         """Adding method to test amz searches from the CLI, unused otherwise"""
