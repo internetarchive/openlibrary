@@ -616,9 +616,8 @@ class SaveBookHelper:
                     },
                 )
 
-                if (
-                    new_work_options.get('copy_authors') == 'yes'
-                    and 'authors' in self.work
+                if new_work_options.get('copy_authors') == 'yes' and hasattr(
+                    self.work, 'authors'
                 ):
                     new_work.authors = self.work.authors
                 if new_work_options.get('copy_subjects') == 'yes':
@@ -628,7 +627,7 @@ class SaveBookHelper:
                         'subject_times',
                         'subject_people',
                     ):
-                        if field in self.work:
+                        if hasattr(self.work, field):
                             new_work[field] = self.work[field]
 
                 self.work = new_work
