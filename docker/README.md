@@ -102,7 +102,7 @@ These instructions are intended for contributors who have **already** `built` Op
 
 Building the Open Library project can take a while and most of its images don't change often, so we only want to rebuild them when necessary. When a docker image is created, its dependencies (`pip`, `npm`, `apt-get`) are frozen in time and will be inherited by any container based from it.
 
-Ocassionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/less that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
+Occasionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/less that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
 
 | Change | Fix  |
 |------|-----------|
