@@ -95,7 +95,7 @@ As a next step, we encourage you to proceed to the ["Getting Started" guide](htt
 
 ## Code Updates
 
-> [!TIP] 
+> [!TIP]
 > When the Open Library code within your local docker image falls behind the code upstream, you can typically ```git pull`` the latest changes from github without having to rebuild all your docker image(s).`
 
 These instructions are intended for contributors who have **already** `built` Open Library using docker, but the contributor may have made or pulled changes to their codebase that conflict with what's baked into the image.
