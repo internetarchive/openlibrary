@@ -3,14 +3,15 @@
 1. [Pull code locally](#clone-the-open-library-repository)
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)
-4. [Run the app](#run-the-app)
-5. Update [code dependencies](#code-updates) or [docker images](#Updating-the-docker-image)
-6. [Teardown commands](#teardown-commands)
-7. [Full reset](#fully-resetting-your-environment)
-8. [Useful docker commands](#Useful-Runtime-Commands)
-9. [Troubleshooting](#troubleshooting)
-10. [Developing the Dockerfile](#Developing-the-Dockerfile) and [Debugging and Profiling docker images](#Debugging-and-Profiling-the-docker-image)
-11. [Technical Notes](#Technical-notes)
+4. [Build the project](#build-the-project)
+5. [Run the app](#run-the-app)
+6. [Update code dependencies](#code-updates)
+7. [Teardown commands](#teardown-commands)
+8. [Full reset](#fully-resetting-your-environment)
+9. [Useful docker commands](#Useful-Runtime-Commands)
+10. [Troubleshooting](#troubleshooting)
+11. [Developing the Dockerfile](#Developing-the-Dockerfile) and [Debugging and Profiling docker images](#Debugging-and-Profiling-the-docker-image)
+12. [Technical Notes](#Technical-notes)
 
 ## Pull code locally
 
@@ -94,23 +95,26 @@ As a next step, we encourage you to proceed to the ["Getting Started" guide](htt
 
 ## Code Updates
 
-For changes to the frontend (JS, CSS, and HTML/[Templetor](http://webpy.org/docs/0.3/templetor) templates), see the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide).
+> [!TIP] 
+> When the Open Library code within your local docker image falls behind the code upstream, you can typically ```git pull`` the latest changes from github without having to rebuild all your docker image(s).`
 
-Other changes:
-- **Editing pip packages?** Rebuild the `home` service: `docker compose build home`
-- **Editing npm packages?** Run `docker compose run --rm home npm install --no-audit` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
-- **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;) See [Developing the Dockerfile](#developing-the-dockerfile).
+These instructions are intended for contributors who have **already** `built` Open Library using docker, but the contributor may have made or pulled changes to their codebase that conflict with what's baked into the image.
 
-### Updating the Docker Image
+Building the Open Library project can take a while and most of its images don't change often, so we only want to rebuild them when necessary. When a docker image is created, its dependencies (`pip`, `npm`, `apt-get`) are frozen in time and will be inherited by any container based from it.
 
-Pull the changes into your openlibrary repository: ```git pull```
+Ocassionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/less that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
 
-When pulling down new changes you will need to rebuild the JS/CSS assets:
-```bash
-# build JS/CSS assets:
-docker compose run --rm home npm run build-assets
-```
-Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
+| Change | Fix  |
+|------|-----------|
+| **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: ```docker compose build home``` |
+| **`npm` packages** | run ```docker compose run --rm home npm install --no-audit``` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why) |
+| **`js`, `vue`, `css`/`less`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
+
+> [!WARNING]
+> In the off-chance you find yourself needing to edit core dependencies like `apt-get` or networking, you will most likely need to do a [full rebuild](#fully-resetting-your-environment). If you are making this sort of change, you will know exactly what you are doing. See [Developing the Dockerfile](#developing-the-dockerfile).
+
+> [!TIP]
+> In addition to using ```docker compose run --rm home <command>``` to spin up a temporary container to produce an artifact, you can also use ```docker compose exec -it home <command>``` to run the fix directly on the running container. This may also allow you to test one-off changes that might otherwise require a [full rebuild](#fully-resetting-your-environment). Use caution with this approach as you may end up breaking your container and causing a restart loop.
 
 ## Teardown commands
 
