@@ -3,10 +3,9 @@
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 
-import requests
-
 import urllib
 
+import requests
 
 root = "https://openlibrary.org"
 

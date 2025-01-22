@@ -28,6 +28,7 @@ export function renderBulkTagger() {
                     <div class="subject-type-option subject-type-option--person" data-tag-type="subject_people">person</div>
                     <div class="subject-type-option subject-type-option--place" data-tag-type="subject_places">place</div>
                     <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">time</div>
+                    <div class="subject-type-option subject-type-option--collection" data-tag-type="collections">collection</div>
                 </div>
             </div>
         </div>

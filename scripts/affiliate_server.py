@@ -41,17 +41,15 @@ import queue
 import sys
 import threading
 import time
-
 from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Final
 
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
-
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import infogami
 from infogami import config
@@ -59,10 +57,11 @@ from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
+from openlibrary.plugins.upstream.utils import setup_requests
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
-    normalize_identifier,
     isbn_10_to_isbn_13,
+    normalize_identifier,
 )
 
 logger = logging.getLogger("affiliate-server")
@@ -690,6 +689,7 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+    http_proxy_url = config.get('http_proxy')
 
     stats.client = stats.create_stats_client(cfg=config)
 
@@ -700,7 +700,7 @@ def load_config(configfile):
         config.amazon_api.get('id'),
     ]
     if all(args):
-        web.amazon_api = AmazonAPI(*args, throttling=0.9)
+        web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=http_proxy_url)
         logger.info("AmazonAPI Initialized")
     else:
         raise RuntimeError(f"{configfile} is missing required keys.")
@@ -722,6 +722,7 @@ def start_server():
     # # type: (str) -> None
 
     load_config(web.ol_configfile)
+    setup_requests()
 
     # sentry loaded by infogami
     infogami._setup()
@@ -751,6 +752,7 @@ def start_gunicorn_server():
 
         def load(self):
             load_config(configfile)
+            setup_requests()
             # init_setry(app)
             return app.wsgifunc(https_middleware)
 

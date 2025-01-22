@@ -1,20 +1,17 @@
-from typing import Any
 import importlib
 import json
 import sys
 from collections.abc import Hashable, Iterable, Mapping
+from typing import Any
 
 import web
 
-from openlibrary.core.models import Edition
-from openlibrary.core.imports import ImportItem
-
-from openlibrary.plugins.openlibrary.processors import urlsafe
+from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
-
-from infogami.utils.delegate import register_exception
-
+from openlibrary.core.imports import ImportItem
+from openlibrary.core.models import Edition
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
 # Import from manage-imports, but get around hyphen problem.
 imports_module = "scripts.manage-imports"

@@ -1,11 +1,13 @@
 """Interface to access the database of openlibrary.
 """
 
-import web
 import sqlite3
 from datetime import datetime
 from sqlite3 import IntegrityError
+
+import web
 from psycopg2.errors import UniqueViolation
+
 from infogami.utils import stats
 
 

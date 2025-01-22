@@ -2,31 +2,30 @@
 
 """
 
-import secrets
-import time
 import datetime
 import hashlib
 import hmac
-import random
-import string
-from typing import TYPE_CHECKING, Any
-import uuid
 import logging
-import requests
+import random
+import secrets
+import string
+import time
+import uuid
+from typing import TYPE_CHECKING
 
-from validate_email import validate_email
+import requests
 import web
+from validate_email import validate_email
 
 from infogami import config
-from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
-
-from openlibrary.core import stats, helpers
+from infogami.utils.view import public, render_template
+from openlibrary.core import helpers, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.edits import CommunityEditsQueue
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -122,7 +121,7 @@ def create_link_doc(key, username, email):
     """
     code = generate_uuid()
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     expires = now + datetime.timedelta(days=14)
 
     return {
@@ -162,7 +161,7 @@ class Account(web.storage):
 
     def get_edit_count(self):
         user = self.get_user()
-        return user and user.get_edit_count() or 0
+        return (user and user.get_edit_count()) or 0
 
     @property
     def registered_on(self):
@@ -623,8 +622,8 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def create(
@@ -666,16 +665,22 @@ class InternetArchiveAccount(web.storage):
         _screenname = screenname
         attempt = 0
         while True:
-            response = cls.xauth(
-                'create',
-                email=email,
-                password=password,
-                screenname=_screenname,
-                notifications=notifications,
-                test=test,
-                verified=verified,
-                service='openlibrary',
-            )
+            try:
+                response = cls.xauth(
+                    'create',
+                    email=email,
+                    password=password,
+                    screenname=_screenname,
+                    notifications=notifications,
+                    test=test,
+                    verified=verified,
+                    service='openlibrary',
+                )
+            except requests.HTTPError as err:
+                status_code = err.response.status_code
+                if status_code == 504:
+                    raise OLAuthenticationError("request_timeout")
+                raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -724,6 +729,9 @@ class InternetArchiveAccount(web.storage):
             params['developer'] = test
 
         response = requests.post(url, params=params, json=data)
+        if response.status_code == 504 and op == "create":
+            response.raise_for_status()
+
         try:
             # This API should always return json, even on error (Unless
             # the server is down or something :P)

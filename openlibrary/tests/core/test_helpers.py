@@ -1,4 +1,5 @@
 import web
+
 from openlibrary.core import helpers as h
 from openlibrary.mocks.mock_infobase import MockSite
 

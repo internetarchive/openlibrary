@@ -15,13 +15,12 @@ import pytest
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
-from scripts.affiliate_server import (  # noqa: E402
+from scripts.affiliate_server import (
     PrioritizedIdentifier,
     Priority,
-    Submit,
+    get_editions_for_books,
     get_isbns_from_book,
     get_isbns_from_books,
-    get_editions_for_books,
     get_pending_books,
     make_cache_key,
     process_google_book,
@@ -162,7 +161,7 @@ def test_prioritized_identifier_serialize_to_json() -> None:
 
 
 @pytest.mark.parametrize(
-    ["isbn_or_asin", "expected_key"],
+    ('isbn_or_asin', 'expected_key'),
     [
         ({"isbn_10": [], "isbn_13": ["9780747532699"]}, "9780747532699"),  # Use 13.
         (
@@ -235,7 +234,7 @@ expected_output_complete = {
 
 # Parametrized tests for different missing fields
 @pytest.mark.parametrize(
-    "input_data, expected_output",
+    ('input_data', 'expected_output'),
     [
         (complete_book_data, expected_output_complete),
         # Missing ISBN_13

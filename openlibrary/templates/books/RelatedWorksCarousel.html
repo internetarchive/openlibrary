@@ -12,12 +12,12 @@ $if work and not is_bot():
             $ )
             $if author_keys:
                 $ query += ' -author_key:(%s)' % ' OR '.join(['%s' % a for a in author_keys])
-            $:macros.QueryCarousel(query=query, title=_("You might also like"), key="related-subjects-carousel", limit=12)
+            $:macros.QueryCarousel(query=query, title=_("You might also like"), key="related-subjects-carousel", limit=12, use_cache=False)
         $if author_keys:
             $ query = 'ebook_access:[borrowable TO *] -key:"%s" author_key:(%s)' % (
             $    work.key,
             $    ' OR '.join(['%s' % a for a in author_keys]),
             $ )
             $ title = ungettext("More by this author", "More by these authors", len(author_keys))
-            $:macros.QueryCarousel(query=query, title=title, key="related-authors-carousel", limit=12)
+            $:macros.QueryCarousel(query=query, title=title, key="related-authors-carousel", limit=12, use_cache=False)
     </div>

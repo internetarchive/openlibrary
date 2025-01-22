@@ -1,10 +1,11 @@
-import pytest
 from pathlib import Path
-from openlibrary.catalog import get_ia
-from openlibrary.core import ia
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
+import pytest
+
+from openlibrary.catalog import get_ia
+from openlibrary.catalog.marc.marc_binary import BadLength, BadMARC, MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
+from openlibrary.core import ia
 
 TEST_DATA = Path(__file__).parents[2] / 'catalog' / 'marc' / 'tests' / 'test_data'
 

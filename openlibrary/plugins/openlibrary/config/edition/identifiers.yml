@@ -241,6 +241,11 @@ identifiers:
     name: project_gutenberg
     url: https://www.gutenberg.org/ebooks/@@@
     website: https://www.gutenberg.org
+-   label: Project Runeberg
+    name: project_runeberg
+    notes: Should be a string of alphanumeric characters (/[0-9a-z/.-]+/)
+    url: https://runeberg.org/@@@/
+    website: https://runeberg.org/
 -   label: Scribd
     name: scribd
     url: https://www.scribd.com/doc/@@@/

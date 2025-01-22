@@ -1,8 +1,9 @@
 """Generic web.py application processors.
 """
 
-import web
 import time
+
+import web
 
 __all__ = ["RateLimitProcessor"]
 

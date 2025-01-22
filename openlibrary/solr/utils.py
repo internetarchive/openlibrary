@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
 import json
 import logging
+from dataclasses import dataclass, field
 
 import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException

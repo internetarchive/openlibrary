@@ -1,12 +1,13 @@
 import pytest
+
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     luqum_parser,
     luqum_remove_child,
-    luqum_replace_child,
-    luqum_traverse,
-    luqum_replace_field,
     luqum_remove_field,
+    luqum_replace_child,
+    luqum_replace_field,
+    luqum_traverse,
 )
 
 REMOVE_TESTS = {
@@ -19,7 +20,7 @@ REMOVE_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,to_rem,expected", REMOVE_TESTS.values(), ids=REMOVE_TESTS.keys()
+    ('query', 'to_rem', 'expected'), REMOVE_TESTS.values(), ids=REMOVE_TESTS.keys()
 )
 def test_luqum_remove_child(query: str, to_rem: str, expected: str):
     def fn(query: str, remove: str) -> str:
@@ -52,7 +53,9 @@ REPLACE_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,to_rep,rep_with,expected", REPLACE_TESTS.values(), ids=REPLACE_TESTS.keys()
+    ('query', 'to_rep', 'rep_with', 'expected'),
+    REPLACE_TESTS.values(),
+    ids=REPLACE_TESTS.keys(),
 )
 def test_luqum_replace_child(query: str, to_rep: str, rep_with: str, expected: str):
     def fn(query: str, to_replace: str, replace_with: str) -> str:

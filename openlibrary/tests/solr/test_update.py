@@ -1,6 +1,6 @@
 import pytest
-from openlibrary.core.ratings import WorkRatingsSummary
 
+from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.solr import update
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 

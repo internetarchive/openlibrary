@@ -1,25 +1,24 @@
 """Interface to import queue.
 """
 
+import contextlib
+import datetime
+import json
+import logging
+import time
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
-import logging
-import datetime
-import time
 import web
-import json
-
 from psycopg2.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
 from web.db import ResultSet
 
-from . import db
-
-import contextlib
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
+
+from . import db
 
 logger = logging.getLogger("openlibrary.imports")
 
@@ -56,7 +55,8 @@ class Batch(web.storage):
 
     def load_items(self, filename):
         """Adds all the items specified in the filename to this batch."""
-        items = [line.strip() for line in open(filename) if line.strip()]
+        with open(filename) as file:
+            items = [line.strip() for line in file if line.strip()]
         self.add_items(items)
 
     def dedupe_items(self, items):

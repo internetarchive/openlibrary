@@ -32,8 +32,9 @@ usage:
 }
 """
 
-from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 import lxml.etree
+
+from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
 
 def parse_collection(collection):
@@ -90,8 +91,9 @@ def metaxml_to_edition_dict(root):
 
 
 if __name__ == '__main__':
-    from lxml import etree
     import sys
+
+    from lxml import etree
 
     assert len(sys.argv) == 2
 

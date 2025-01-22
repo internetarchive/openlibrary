@@ -1,14 +1,13 @@
-import requests
-
-from infogami import config
-from lxml import etree
 from time import sleep
 
+import lxml.etree
+import requests
+from lxml import etree
+
+from infogami import config
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.core import ia
-import lxml.etree
-
 
 IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = f'{IA_BASE_URL}/download/'

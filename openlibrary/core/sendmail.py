@@ -1,6 +1,7 @@
+import web
+
 from infogami import config
 from infogami.utils.view import render_template
-import web
 
 
 def sendmail_with_template(template, to, cc=None, frm=None, **kwargs):

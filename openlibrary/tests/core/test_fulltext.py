@@ -1,6 +1,8 @@
 from json.decoder import JSONDecodeError
 from unittest.mock import Mock, patch
+
 import requests
+
 from infogami import config
 from openlibrary.core import fulltext
 

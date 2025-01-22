@@ -1,6 +1,6 @@
 export const sampleData = [
     {
-        name: 'Choose sample...',
+        name: 'Try a Sample...',
         source: '',
         text: '',
     },

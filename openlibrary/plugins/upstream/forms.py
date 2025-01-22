@@ -1,20 +1,21 @@
 import web
-from infogami.infobase.client import ClientException
-from infogami.core import forms
 
-from openlibrary.i18n import lgettext as _
-from openlibrary.utils.form import (
-    Form,
-    Textbox,
-    Email,
-    Password,
-    Checkbox,
-    Hidden,
-    Validator,
-    RegexpValidator,
-)
+from infogami.core import forms
+from infogami.infobase.client import ClientException
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
+from openlibrary.i18n import lgettext as _
+from openlibrary.utils.form import (
+    Checkbox,
+    Email,
+    Form,
+    Hidden,
+    Password,
+    RegexpValidator,
+    Textbox,
+    Validator,
+)
+
 from . import spamcheck
 
 
@@ -43,7 +44,7 @@ email_not_already_used = Validator(
 )
 email_not_disposable = Validator(
     _("Disposable email not permitted"),
-    lambda email: not email.lower().endswith('dispostable.com'),
+    lambda email: not email.lower().endswith('@dispostable.com'),
 )
 email_domain_not_blocked = Validator(
     _("Your email provider is not recognized."),

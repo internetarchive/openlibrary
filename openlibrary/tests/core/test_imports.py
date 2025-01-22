@@ -1,10 +1,10 @@
-import pytest
 from typing import Final
+
+import pytest
 import web
 
 from openlibrary.core.db import get_db
 from openlibrary.core.imports import Batch, ImportItem
-
 
 IMPORT_ITEM_DDL: Final = """
 CREATE TABLE import_item (
@@ -149,7 +149,7 @@ class TestImportItem:
         assert isinstance(items, map)
 
     @pytest.mark.parametrize(
-        'ia_id, expected',
+        ('ia_id', 'expected'),
         [
             ('unique_id_1', [1, 3]),
             ('unique_id_2', [2]),

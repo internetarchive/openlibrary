@@ -2,7 +2,7 @@
 
 import sys
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
 from openlibrary.admin import stats
 

@@ -3,11 +3,11 @@
 """
 
 __all__ = [
+    "Column",
     "Schema",
     "Table",
-    "Column",
-    "register_datatype",
     "register_constant",
+    "register_datatype",
 ]
 
 _datatypes = {}
@@ -79,7 +79,7 @@ class AbstractAdapter:
         return self.constants[name]
 
     def quote(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class MockAdapter(AbstractAdapter):

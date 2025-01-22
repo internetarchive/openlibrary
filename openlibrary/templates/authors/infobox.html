@@ -14,6 +14,12 @@ $def render_infobox_row(label, itemprop, value):
             <td><span itemprop="$itemprop">$value</span></td>
         </tr>
 
+$def render_social_icon(url, icon_url, title):
+    $ title_without_space = title.replace(' ', '_')
+    <a href="$url" title="$_('View on %(site)s', site=title)"  data-ol-link-track="AuthorInfoboxSocialLink|$title_without_space">
+        <img class="profile-icon" src="$icon_url" alt="">
+    </a>
+
 <div class="infobox">
     <div class="illustration">
         $:render_template("covers/author_photo", page)
@@ -30,4 +36,11 @@ $def render_infobox_row(label, itemprop, value):
         $elif page.date:
                 $:render_infobox_row(_("Date"), '', page.date)
     </table>
+    $if wikidata:
+        <hr>
+        <div class="profile-icon-container">
+            $ social_profiles = wikidata.get_external_profiles(i18n.get_locale())
+            $for profile in social_profiles:
+                $:render_social_icon(profile['url'], profile['icon_url'], profile['label'])
+        </div>
 </div>

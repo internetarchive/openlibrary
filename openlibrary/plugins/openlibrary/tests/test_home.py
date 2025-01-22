@@ -1,10 +1,10 @@
 import datetime
+
 import web
+from bs4 import BeautifulSoup
 
 from openlibrary.core.admin import Stats
 from openlibrary.mocks.mock_infobase import MockSite
-from bs4 import BeautifulSoup
-
 from openlibrary.plugins.openlibrary import home
 
 

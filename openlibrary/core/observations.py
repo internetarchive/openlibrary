@@ -7,8 +7,7 @@ from infogami.utils.view import public
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-from . import cache
-from . import db
+from . import cache, db
 
 ObservationIds = namedtuple('ObservationIds', ['type_id', 'value_id'])
 ObservationKeyValue = namedtuple('ObservationKeyValue', ['key', 'value'])

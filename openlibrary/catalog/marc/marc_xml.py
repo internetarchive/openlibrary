@@ -1,8 +1,9 @@
-from lxml import etree
-from unicodedata import normalize
 from collections.abc import Iterator
+from unicodedata import normalize
 
-from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException
+from lxml import etree
+
+from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, MarcFieldBase
 
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
@@ -90,9 +91,8 @@ class MarcXml(MarcBase):
                 continue
             if not tag.isdigit():
                 non_digit = True
-            else:
-                if tag[0] != '9' and non_digit:
-                    raise BadSubtag
+            elif tag[0] != '9' and non_digit:
+                raise BadSubtag
             if f.attrib['tag'] not in want:
                 continue
             yield f.attrib['tag'], self.decode_field(f)

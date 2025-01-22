@@ -1,6 +1,6 @@
-import pytest
-
 from copy import deepcopy
+
+import pytest
 
 from openlibrary.catalog.add_book import load
 from openlibrary.catalog.add_book.match import (
@@ -11,8 +11,8 @@ from openlibrary.catalog.add_book.match import (
     compare_publisher,
     editions_match,
     expand_record,
-    normalize,
     mk_norm,
+    normalize,
     threshold_match,
 )
 
@@ -66,7 +66,7 @@ titles = [
 ]
 
 
-@pytest.mark.parametrize('title,normalized', titles)
+@pytest.mark.parametrize(('title', 'normalized'), titles)
 def test_normalize(title, normalized):
     assert normalize(title) == normalized
 
@@ -81,7 +81,7 @@ mk_norm_conversions = [
 ]
 
 
-@pytest.mark.parametrize('title,expected', mk_norm_conversions)
+@pytest.mark.parametrize(('title', 'expected'), mk_norm_conversions)
 def test_mk_norm(title, expected):
     assert mk_norm(title) == expected
 
@@ -91,7 +91,7 @@ mk_norm_matches = [
 ]
 
 
-@pytest.mark.parametrize('a,b', mk_norm_matches)
+@pytest.mark.parametrize(('a', 'b'), mk_norm_matches)
 def test_mk_norm_equality(a, b):
     assert mk_norm(a) == mk_norm(b)
 
@@ -392,7 +392,6 @@ class TestRecordMatching:
             'publishers': ['Standard Ebooks'],
             'title': 'Spoon River Anthology',
         }
-
         assert threshold_match(existing_edition, potential_match1, THRESHOLD) is False
 
         potential_match2 = {
@@ -401,6 +400,24 @@ class TestRecordMatching:
             'title': 'Spoon River Anthology',
         }
 
-        # If there i s no publisher and nothing else to match, the editions should be
+        # If there is no publisher and nothing else to match, the editions should be
         # indistinguishable, and therefore matches.
         assert threshold_match(existing_edition, potential_match2, THRESHOLD) is True
+
+    def test_noisbn_record_should_not_match_title_only(self):
+        # An existing light title + ISBN only record
+        existing_edition = {
+            # NO author
+            # NO date
+            #'publishers': ['Creative Media Partners, LLC'],
+            'title': 'Just A Title',
+            'isbn_13': ['9780000000002'],
+        }
+        potential_match = {
+            'authors': [{'name': 'Bob Smith'}],
+            'publish_date': '1913',
+            'publishers': ['Early Editions'],
+            'title': 'Just A Title',
+            'source_records': ['marc:somelibrary/some_marc.mrc'],
+        }
+        assert threshold_match(existing_edition, potential_match, THRESHOLD) is False

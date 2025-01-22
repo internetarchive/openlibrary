@@ -1,8 +1,8 @@
 """Infobase extension for Open Library.
 """
 
-from . import events
 from ..plugins import ol_infobase
+from . import events
 
 
 def init_plugin():

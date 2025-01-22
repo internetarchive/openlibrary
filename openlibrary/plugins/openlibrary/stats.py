@@ -10,13 +10,13 @@ import traceback
 from types import TracebackType
 from typing import Any
 
-from infogami.utils.app import find_page, find_view, find_mode
-from openlibrary.core import stats as graphite_stats
 import web
-from infogami import config
-from infogami.utils import delegate, stats
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
+from infogami import config
+from infogami.utils import stats
+from infogami.utils.app import find_mode, find_page, find_view
+from openlibrary.core import stats as graphite_stats
 
 logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
@@ -27,7 +27,7 @@ filters: dict[str, Any] = {}
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
-    global filters
+
     if not summary:
         return
     try:
@@ -133,7 +133,7 @@ def process_stats(stats):
 
 
 def register_filter(name, function):
-    global filters
+
     filters[name] = function
 
 

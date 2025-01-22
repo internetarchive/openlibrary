@@ -97,7 +97,7 @@ $jsdef lazy_thing_preview(key, render_fn_name):
     </div>
 
 <div id="contentBody">
-    <form method="post" id="list-edit" class="olform" $:cond(query_param('debug'), 'action="?debug=true"')>
+    <form method="post" id="list-edit" class="olform">
         $if not new:
             <input
                 required

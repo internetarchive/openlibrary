@@ -7,6 +7,7 @@ import {
     isFormatValidIsbn13,
     isValidLccn
 } from './idValidation.js'
+import { trimInputValues } from './utils.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -40,6 +41,8 @@ export function initAddBookImport () {
     $('#id_name').on('change', clearErrors);
 
     $('#publish_date').on('blur', validatePublishDate);
+
+    trimInputValues('input')
 
     // Prevents submission if the publish date is > 1 year in the future
     addBookForm.on('submit', function() {
@@ -148,6 +151,7 @@ function parseAndValidateLccn(event, idValue) {
 function autoCompleteIdName(){
     const idValue = document.querySelector('input#id_value').value.trim();
     const idValueIsbn = parseIsbn(idValue);
+    const currentSelection = document.getElementById('id_name').value;
 
     if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
         document.getElementById('id_name').value = 'isbn_10';
@@ -162,7 +166,7 @@ function autoCompleteIdName(){
     }
 
     else {
-        document.getElementById('id_name').value = '';
+        document.getElementById('id_name').value = currentSelection || '';
     }
 }
 

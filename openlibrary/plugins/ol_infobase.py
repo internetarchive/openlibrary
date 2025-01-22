@@ -27,9 +27,8 @@ logger = logging.getLogger("infobase.ol")
 
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore
+    from infogami.infobase import common, dbstore, server
     from infogami.infobase import logger as infobase_logger
-    from infogami.infobase import server
 
     dbstore.default_schema = schema.get_schema()
 
@@ -284,7 +283,7 @@ class olid_to_key:
         d = get_db().query(
             'SELECT key FROM thing WHERE get_olid(key) = $i.olid', vars=locals()
         )
-        key = d and d[0].key or None
+        key = (d and d[0].key) or None
         return {'olid': i.olid, 'key': key}
 
 
@@ -292,9 +291,8 @@ def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(data)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(data)
 
 
 def save_error(dir, prefix):

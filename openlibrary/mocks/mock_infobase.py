@@ -1,19 +1,20 @@
 """Simple implementation of mock infogami site to use in testing.
 """
 
-import datetime
 import glob
 import itertools
 import json
 import re
+from datetime import datetime
+
 import pytest
 import web
 
-from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
+from infogami.infobase import account, client, common
+from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
-
 
 key_patterns = {
     'work': '/works/OL%dW',
@@ -79,7 +80,7 @@ class MockSite:
     def save(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
 
         if author:
             author = {"key": author.key}
@@ -102,7 +103,7 @@ class MockSite:
     def save_many(
         self, query, comment=None, action=None, data=None, timestamp=None, author=None
     ):
-        timestamp = timestamp or datetime.datetime.utcnow()
+        timestamp = timestamp or datetime.now()
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:
@@ -420,7 +421,8 @@ def mock_site(request):
 
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
+            with open(path) as file:
+                text = file.read()
             doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc
@@ -445,10 +447,7 @@ def mock_site(request):
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
 
-    def undo():
-        web.ctx.clear()
-        web.ctx.update(old_ctx)
+    yield site
 
-    request.addfinalizer(undo)
-
-    return site
+    web.ctx.clear()
+    web.ctx.update(old_ctx)

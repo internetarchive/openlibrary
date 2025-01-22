@@ -17,5 +17,10 @@ $def with (component_times)
         $# detect-missing-i18n-skip-line
         <td>$("%.2f" % (component[1] / component_times['TotalTime'] * 100.))</td>
       </tr>
+    <tr>
+        $# detect-missing-i18n-skip-line
+        <td>Path:</td>
+        <td colspan="2">$ctx.path</td>
+    </tr>
   </tbody>
 </table>

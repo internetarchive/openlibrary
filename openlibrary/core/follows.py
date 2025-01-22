@@ -1,5 +1,6 @@
 import logging
 from typing import cast
+
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 

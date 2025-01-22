@@ -29,13 +29,11 @@ js:
 		echo "\n// @license-end"  >> $$js; \
 	done
 
-components: $(COMPONENTS_DIR)/*.vue
-	mkdir -p $(BUILD)
+components:
 	rm -rf $(BUILD)/components
-	# Run these silly things one at a time, because they don't support parallelization :(
-	parallel --verbose -q --jobs 1 \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
-	::: $^
+	mkdir -p $(BUILD)/components
+	npx vite build -c openlibrary/components/vite.config.mjs
+
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile

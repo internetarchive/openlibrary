@@ -21,6 +21,18 @@
     "ol_key": "bodiceaa"
   },
   {
+    "name": "Alex Arasawa",
+    "title": "Engineering Volunteer",
+    "roles": ["volunteer"],
+    "departments": ["engineering"],
+    "projects": ["Search Sort Dropper"],
+    "photo_path": "https://avatars.githubusercontent.com/u/46887245",
+    "favorite_book_url": "https://openlibrary.org/works/OL893415W/Dune",
+    "github_id": "aarasawa",
+    "personal_website": "https://aarasawa.dev",
+    "ol_key": ""
+  },
+  {
     "name": "Ben Deitch",
     "title": "Engineering Fellow",
     "roles": ["fellow-2024"],
@@ -64,11 +76,22 @@
     "ol_key": "danafs/books"
   },
   {
+    "name": "Daniel Capilla",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "https://avatars.githubusercontent.com/u/7125952",
+    "github_id": "dcapillae",
+    "personal_website": "https://dcapillae.wordpress.com",
+    "ol_key": "dcapillae"
+  },
+  {
     "name": "Debbie",
-    "title": "Developer",
+    "title": "Design Fellow",
     "roles": ["fellow-2023"],
-    "projects": ["My Book Dropper", "Team Page"],
-    "departments": ["engineering"],
+    "projects": ["Team Page", "My Book Dropper"],
+    "departments": ["design", "engineering"],
     "photo_path": "../../../static/images/team/Debbie.jpg",
     "personal_url": "https://github.com/debbiesan/openlibrary",
     "favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M",
@@ -112,6 +135,28 @@
     "ol_key": ""
   },
   {
+    "name": "Elizabeth Mays",
+    "title": "Communications Lead & Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["communications"],
+    "photo_path": "https://github.com/user-attachments/assets/ce5e633e-13be-40c8-a544-2959a8657f86",
+    "personal_url": "https://www.linkedin.com/in/elizabethgmays/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Frederik “Freso” S. Olesen",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "https://avatars.githubusercontent.com/u/177659",
+    "personal_url": "https://freso.dk/",
+    "favorite_book_url": "https://openlibrary.org/people/freso/lists/OL272257L",
+    "github_id": "Freso",
+    "ol_key": "Freso"
+  },
+  {
     "name": "Giacomo Cignoni",
     "title": "Engineering Fellow, GSoC 2019",
     "roles": ["fellow-2019-gsoc"],
@@ -125,7 +170,7 @@
   },
   {
     "name": "George Oates",
-    "title": "Program Lead, Emeritus",
+    "title": "Program Lead-Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["design", "product"],
     "projects": ["Subjects Page", "Logo"],
@@ -174,6 +219,26 @@
     "ol_key": "lasseignejk"
   },
   {
+    "name": "Jenne W.",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Jenner H.",
+    "title": "Super Librarian",
+    "roles": ["fellow-2021"],
+    "departments": ["librarians"],
+    "projects": ["LGBTQ collection"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
     "name": "Jim Champ",
     "title": "Core Developer",
     "roles": ["staff-active"],
@@ -185,14 +250,34 @@
     "ol_key": "jchamp_archive"
   },
   {
+    "name": "Jim Man",
+    "title": "Engineering Fellow Super Librarian",
+    "roles": ["fellow-2021"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
     "name": "Jon Robson",
-    "title": "Frontend Lead Emeritus",
+    "title": "Frontend Lead-Emeritus",
     "roles": ["fellow-2017"],
     "departments": ["engineering"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e5db2459-3f23-4d49-9ab4-952be2efb4bb",
     "personal_url": "",
     "favorite_book_url": "",
     "github_id": "jdlrobson",
+    "ol_key": ""
+  },
+  {
+    "name": "Jordan Frederick",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
     "ol_key": ""
   },
   {
@@ -203,6 +288,16 @@
     "photo_path": "https://avatars.githubusercontent.com/u/13765801",
     "departments": ["engineering"],
     "projects": ["<a href=\"https://blog.openlibrary.org/2023/06/04/update-open-library-book-page-redesign\">Book Page Redesign</a>"],
+    "ol_key": ""
+  },
+  {
+    "name": "Kathrin Passig",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "photo_path": "",
+    "personal_url": "",
+    "favorite_book_url": "",
     "ol_key": ""
   },
   {
@@ -227,27 +322,47 @@
     "ol_key": "agent-lisa"
   },
   {
+    "name": "Mark Heiman",
+    "title": "Engineering Fellow & Super Librarian",
+    "roles": ["fellow-2021"],
+    "departments": ["librarians", "engineering"],
+    "projects": ["Open Library Reader App"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
     "name": "Mek",
     "title": "Chief of Staff",
     "roles": ["staff-active"],
     "departments": ["engineering", "communications", "design", "librarians"],
     "photo_path": "../../../static/images/team/Mek.png",
     "personal_url": "https://mek.fyi/",
-    "favorite_book_url": "",
+    "favorite_book_url": "https://openlibrary.org/works/OL26492W/Autobiography",
     "github_id": "mekarpeles",
     "ol_key": "mekBot"
   },
   {
-    "name": "Meredith W.",
+    "name": "Meredith White",
     "github_id": "merwhite11",
     "title": "Engineering Fellow",
     "departments": ["engineering", "design"],
     "roles": ["fellow-2024"],
-    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e36587db-1a0e-4557-9fe6-40e5b5b05f55"
+    "photo_path": "https://github.com/user-attachments/assets/735ee20a-25e5-45ef-946b-e8fbc5d17da3"
+  },
+  {
+    "name": "Nazar Kotsur",
+    "title": "Super Librarian",
+    "roles": ["fellow-2022"],
+    "departments": ["librarians", "engineering"],
+    "projects": ["Dictionaries"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
   },
   {
     "name": "Nick Norman",
-    "title": "Communications Fellow & Lead",
+    "title": "Communications Fellow & Lead-Emeritus",
     "roles": ["fellow-2022", "fellow-2023"],
     "departments": ["communications"],
     "photo_path": "../../../static/images/team/Nick_Norman.jpg",
@@ -266,6 +381,26 @@
     "ol_key": ""
   },
   {
+    "name": "Onno",
+    "title": "Super Librarian",
+    "roles": ["fellow-2023"],
+    "departments": ["librarians"],
+    "projects": ["merges"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
+    "name": "@Popcar",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": ["Graphic Novels"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": "popcar"
+  },
+  {
     "name": "Rebecca Shoptaw",
     "title": "Engineering Fellow, i18n Lead",
     "roles": ["fellow-2024"],
@@ -278,11 +413,21 @@
     "ol_key": ""
   },
   {
+    "name": "@reshelved",
+    "title": "Super Librarian",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": "reshelved"
+  },
+  {
     "name": "Roya E.",
     "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "departments": ["design"],
-    "projects": ["Design System", "Subjects Page"],
+    "projects": ["Design System"],
     "photo_path": "https://www.scu.edu/media/college-of-arts-and-sciences/art-and-art-history/faculty-and-staff/RE-profile.jpg",
     "personal_url": "https://royaebtehaj.com",
     "favorite_book_url": "",
@@ -335,6 +480,16 @@
     "ol_key": "samstupendous"
   },
   {
+    "name": "Sandy C.",
+    "title": "Engineering Volunteer",
+    "roles": ["volunteer"],
+    "departments": ["engineering"],
+    "projects": ["Vue Migrations"],
+    "photo_path": "https://github.com/user-attachments/assets/91b60336-05bf-48d7-9307-7654465e7434",
+    "github_id": "schu96",
+    "ol_key": ""
+  },
+  {
     "name": "Scott Barnes",
     "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
@@ -346,10 +501,34 @@
     "ol_key": "srb36"
   },
   {
+    "name": "Sivan Cooperman",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "photo_path": "https://github.com/user-attachments/assets/8866e4be-a185-4ba9-8c08-779689211e31",
+    "github_id": "SivanC",
+    "projects": ["Read Button Dropper"],
+    "personal_url": "https://github.com/SivanC",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Stef Kischak",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Wikisource Imports"],
+    "photo_path": "https://github.com/user-attachments/assets/4d8dd2c9-7750-41f6-91e9-2ab5b27258cb",
+    "personal_url": "https://pidgezero.one",
+    "github_id": "pidgezero-one",
+    "ol_key": ""
+  },
+  {
     "name": "Tabish Shaikh",
     "title": "Engineering Fellow, Staff Emeritus",
     "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
+    "projects": ["Book Sponsorship Program"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/481099ea-0c24-4257-9b3c-0d803be6b98e",
     "github_id": "tabshaikh",
     "ol_key": ""
@@ -367,9 +546,29 @@
     "ol_key": ""
   },
   {
+    "name": "Thorsten A. (Bitnapper)",
+    "title": "Super Librarian",
+    "roles": ["fellow-2024"],
+    "departments": ["librarians"],
+    "projects": [],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Travis P.",
+    "title": "Super Librarian & Collections Lead-Emeritus",
+    "roles": ["volunteer"],
+    "departments": ["librarians"],
+    "projects": ["Star Trek Collection"],
+    "photo_path": "",
+    "github_id": "",
+    "ol_key": ""
+  },
+  {
     "name": "Vaibhav Patel",
     "title": "Engineering Fellow",
-    "roles": ["fellow-2024-gsoc"],
+    "roles": ["fellow-2024"],
     "departments": ["engineering"],
     "projects": ["Book Battles"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/76c602d8-8fe8-4353-a8e0-b68f991bafc8",

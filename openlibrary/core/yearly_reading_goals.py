@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 from . import db
 
 
@@ -100,7 +101,7 @@ class YearlyReadingGoals:
             where=where,
             vars=data,
             current=current_count,
-            updated=datetime.utcnow(),
+            updated=datetime.now(),
         )
 
     @classmethod
@@ -118,7 +119,7 @@ class YearlyReadingGoals:
             where=where,
             vars=data,
             target=new_target,
-            updated=datetime.utcnow(),
+            updated=datetime.now(),
         )
 
     # Delete methods:

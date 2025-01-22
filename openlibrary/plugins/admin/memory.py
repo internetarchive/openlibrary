@@ -2,8 +2,9 @@
 """
 
 import gc
-import web
 from collections import defaultdict
+
+import web
 
 _mark = {}
 _mark_ids = {}

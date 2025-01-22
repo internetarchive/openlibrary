@@ -1,6 +1,7 @@
+from os.path import abspath, dirname, exists, join, pardir
+
 import pytest
 import web
-from os.path import abspath, exists, join, dirname, pardir
 
 from openlibrary.coverstore import config, coverlib, utils
 
@@ -25,10 +26,11 @@ def image_dir(tmpdir):
     config.data_root = str(tmpdir)
 
 
-@pytest.mark.parametrize('prefix, path', image_formats)
+@pytest.mark.parametrize(('prefix', 'path'), image_formats)
 def test_write_image(prefix, path, image_dir):
     """Test writing jpg, gif and png images"""
-    data = open(join(static_dir, path), 'rb').read()
+    with open(join(static_dir, path), 'rb') as file:
+        data = file.read()
     assert coverlib.write_image(data, prefix) is not None
 
     def _exists(filename):
@@ -39,7 +41,8 @@ def test_write_image(prefix, path, image_dir):
     assert _exists(prefix + '-M.jpg')
     assert _exists(prefix + '-L.jpg')
 
-    assert open(coverlib.find_image_path(prefix + '.jpg'), 'rb').read() == data
+    with open(coverlib.find_image_path(prefix + '.jpg'), 'rb') as file:
+        assert file.read() == data
 
 
 def test_bad_image(image_dir):
@@ -73,9 +76,11 @@ def test_serve_file(image_dir):
     path = static_dir + "/logos/logo-en.png"
 
     assert coverlib.read_file('/dev/null') == b''
-    assert coverlib.read_file(path) == open(path, "rb").read()
+    with open(path, "rb") as file:
+        assert coverlib.read_file(path) == file.read()
 
-    assert coverlib.read_file(path + ":10:20") == open(path, "rb").read()[10 : 10 + 20]
+    with open(path, "rb") as file:
+        assert coverlib.read_file(path + ":10:20") == file.read()[10 : 10 + 20]
 
 
 def test_server_image(image_dir):

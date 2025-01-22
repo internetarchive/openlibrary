@@ -1,21 +1,21 @@
 from __future__ import annotations
+
 import logging
 import re
 import time
-
-from datetime import date
 from typing import Any, Literal
 
 import requests
 from dateutil import parser as isoparser
-from infogami.utils.view import public
 from paapi5_python_sdk.api.default_api import DefaultApi
+from paapi5_python_sdk.api_client import Configuration
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
 from paapi5_python_sdk.partner_type import PartnerType
-from paapi5_python_sdk.rest import ApiException
+from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
+from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -29,7 +29,6 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 
-BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
@@ -91,9 +90,12 @@ class AmazonAPI:
         host: str = 'webservices.amazon.com',
         region: str = 'us-east-1',
         throttling: float = 0.9,
+        proxy_url: str = "",
     ) -> None:
         """
-        Creates an instance containing your API credentials.
+        Creates an instance containing your API credentials. Additionally,
+        instantiating this class requires a `proxy_url` parameter as of January
+        10th, 2025 because `ol-home0` has no direct internet access.
 
         :param str key: affiliate key
         :param str secret: affiliate secret
@@ -109,6 +111,13 @@ class AmazonAPI:
         self.api = DefaultApi(
             access_key=key, secret_key=secret, host=host, region=region
         )
+
+        # Replace the api object with one that supports the HTTP proxy. See #10310.
+        if proxy_url:
+            configuration = Configuration()
+            configuration.proxy = proxy_url
+            rest_client = RESTClientObject(configuration=configuration)
+            self.api.api_client.rest_client = rest_client
 
     def search(self, keywords):
         """Adding method to test amz searches from the CLI, unused otherwise"""
@@ -269,7 +278,17 @@ class AmazonAPI:
                 else None
             ),
             'authors': attribution
-            and [{'name': contrib.name} for contrib in attribution.contributors or []],
+            and [
+                {'name': contrib.name}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Author'
+            ],
+            'contributors': attribution
+            and [
+                {'name': contrib.name, 'role': 'Translator'}
+                for contrib in attribution.contributors or []
+                if contrib.role == 'Translator'
+            ],
             'publishers': list({p for p in (brand, manufacturer) if p}),
             'number_of_pages': (
                 edition_info
@@ -291,7 +310,30 @@ class AmazonAPI:
                 ).lower()
             ),
         }
+
+        if is_dvd(book):
+            return {}
         return book
+
+
+def is_dvd(book) -> bool:
+    """
+    If product_group or physical_format is a dvd, it will return True.
+    """
+    product_group = book['product_group']
+    physical_format = book['physical_format']
+
+    try:
+        product_group = product_group.lower()
+    except AttributeError:
+        product_group = None
+
+    try:
+        physical_format = physical_format.lower()
+    except AttributeError:
+        physical_format = None
+
+    return 'dvd' in [product_group, physical_format]
 
 
 @public
@@ -435,6 +477,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     conforming_fields = [
         'title',
         'authors',
+        'contributors',
         'publish_date',
         'source_records',
         'number_of_pages',
@@ -565,8 +608,8 @@ def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
             price = _price
             qlt = 'new'
 
-    market_price = ('$' + market_price[0]) if market_price else None
-    return betterworldbooks_fmt(isbn, qlt, price, market_price)
+    first_market_price = ('$' + market_price[0]) if market_price else None
+    return betterworldbooks_fmt(isbn, qlt, price, first_market_price)
 
 
 def betterworldbooks_fmt(

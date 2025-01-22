@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
-import _init_path  # Imported for its side effect of setting PYTHONPATH
-
 import os
-import web
 from optparse import OptionParser
+
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
+import web
 
 from openlibrary.api import OpenLibrary, marshal
 
@@ -47,9 +47,8 @@ def write(path, text):
 
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    f = open(path, "w")
-    f.write(text.encode("utf-8"))
-    f.close()
+    with open(path, "w") as f:
+        f.write(text.encode("utf-8"))
 
 
 def delete(path):

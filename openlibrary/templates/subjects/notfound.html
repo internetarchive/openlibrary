@@ -2,6 +2,7 @@ $def with (key)
 
 
 $ name = key.split("/")[-1].replace('_', ' ')
+$ q = query_param('q')
 
 <div class="page-heading-search-box">
     <span class="tools"><a href="/subjects" class="plain">$_("Subjects")</a> /</span>
@@ -11,8 +12,7 @@ $ name = key.split("/")[-1].replace('_', ' ')
     <h3 class="collapse">$_("Try something else?")</h3>
 
     <form action="/search/subjects" class="olform">
-        <input type="text" name="q" aria-label="Search" size="100" class="larger" value=""/>
-        <button type="submit" class="larger">$_("Search")</button>
+        $:render_template("search/searchbox", q=q)
     </form>
 
 </div>

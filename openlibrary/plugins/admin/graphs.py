@@ -1,10 +1,11 @@
 """Utilities for rendering Graphite graphs.
 """
 
-import web
-from infogami import config
-
 import urllib
+
+import web
+
+from infogami import config
 
 
 def get_graphite_base_url():

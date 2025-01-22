@@ -1,20 +1,19 @@
 """Cover management."""
 
 import datetime
-from logging import getLogger
 import os
-
 from io import BytesIO
+from logging import getLogger
 
-from PIL import Image
 import web
+from PIL import Image
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["save_image", "read_image", "read_file"]
+__all__ = ["read_file", "read_image", "save_image"]
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):

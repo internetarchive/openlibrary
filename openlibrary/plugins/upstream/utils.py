@@ -1,60 +1,62 @@
-import functools
-from typing import Any, Protocol, TYPE_CHECKING, TypeVar
-from collections.abc import Callable, Generator, Iterable, Iterator
-import unicodedata
-
-import web
-import json
-import babel
-import babel.core
-import babel.dates
-from babel.lists import format_list
-from collections import defaultdict
-import re
-import random
-import xml.etree.ElementTree as ET
 import datetime
+import functools
+import json
 import logging
-from html.parser import HTMLParser
-from pathlib import Path
-import yaml
-
-import requests
-
-from html import unescape
+import os
+import re
+import unicodedata
 import urllib
-from collections.abc import MutableMapping
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
+from html import unescape
+from html.parser import HTMLParser
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
-    urlencode as parse_urlencode,
     urlparse,
     urlunparse,
 )
+from urllib.parse import (
+    urlencode as parse_urlencode,
+)
+
+import babel
+import babel.core
+import babel.dates
+import requests
+import web
+import yaml
+from babel.lists import format_list
+from web.template import TemplateResult
+from web.utils import Storage
 
 from infogami import config
-from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public, query_param
-from infogami.utils.macro import macro
-from infogami.utils.context import InfogamiContext, context
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
-
+from infogami.utils import delegate, stats, view
+from infogami.utils.context import InfogamiContext, context
+from infogami.utils.macro import macro
+from infogami.utils.view import (
+    get_template,
+    public,
+    render,
+)
+from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
-
-from web.utils import Storage
-from web.template import TemplateResult
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
-        Work,
         Author,
         Edition,
+        Work,
     )
 
 
 STRIP_CHARS = ",'\" "
 REPLACE_CHARS = "]["
+
+logger = logging.getLogger('openlibrary')
 
 
 class LanguageMultipleMatchError(Exception):
@@ -168,10 +170,15 @@ def kebab_case(upper_camel_case: str) -> str:
     >>> kebab_case('HelloWorld')
     'hello-world'
     >>> kebab_case("MergeUI")
-    'merge-u-i'
+    'merge-ui'
     """
-    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
-    return '-'.join(parts).lower()
+    # Match positions where a lowercase letter is followed by an uppercase letter,
+    # or an uppercase letter is followed by another uppercase followed by a lowercase letter.
+    kebab = re.sub(
+        r'([a-z])([A-Z])', r'\1-\2', upper_camel_case
+    )  # Handle camel case boundaries
+    kebab = re.sub(r'([A-Z])([A-Z][a-z])', r'\1-\2', kebab)  # Handle acronyms
+    return kebab.lower()
 
 
 @public
@@ -190,7 +197,7 @@ def render_component(
     attrs = attrs or {}
     attrs_str = ''
     for key, val in attrs.items():
-        if json_encode and isinstance(val, dict) or isinstance(val, list):
+        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
             val = json.dumps(val)
             # On the Vue side use decodeURIComponent to decode
             val = urllib.parse.quote(val)
@@ -198,14 +205,19 @@ def render_component(
     html = ''
     included = web.ctx.setdefault("included-components", [])
 
-    if len(included) == 0:
-        # Need to include Vue
-        html += '<script src="%s"></script>' % static_url('build/vue.js')
+    if not included:
+        # Support for legacy browsers (see vite.config.mjs)
+        polyfills_url = static_url('build/components/production/ol-polyfills-legacy.js')
+        html += f'<script nomodule src="{polyfills_url}" defer></script>'
 
     if name not in included:
-        url = static_url('build/components/production/ol-%s.min.js' % name)
+        url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
-        html += f'<script {script_attrs} src="{url}"></script>'
+        html += f'<script type="module" {script_attrs} src="{url}"></script>'
+
+        legacy_url = static_url('build/components/production/ol-%s-legacy.js' % name)
+        html += f'<script nomodule src="{legacy_url}" defer></script>'
+
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
@@ -217,25 +229,26 @@ def render_macro(name, args, **kwargs):
 
 
 @public
-def render_cached_macro(name, args: tuple, **kwargs):
+def render_cached_macro(name: str, args: tuple, **kwargs):
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
-    def get_key():
+    def get_key_prefix():
         lang = web.ctx.lang
-        pd = web.cookies().get('pd', False)
-        key = f'{name}.{lang}'
-        if pd:
-            key += '.pd'
-        for arg in args:
-            key += f'.{arg}'
-        for k, v in kwargs.items():
-            key += f'.{k}:{v}'
-        return key
+        key_prefix = f'{name}.{lang}'
+        if web.cookies().get('pd', False):
+            key_prefix += '.pd'
+        if web.cookies().get('sfw', ''):
+            key_prefix += '.sfw'
+        return key_prefix
 
     five_minutes = 5 * 60
-    key = get_key()
+    key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
-        render_macro, key, timeout=five_minutes, prethread=caching_prethread()
+        render_macro,
+        key_prefix=key_prefix,
+        timeout=five_minutes,
+        prethread=caching_prethread(),
+        hash_args=True,  # this avoids cache key length overflow
     )
 
     try:
@@ -388,7 +401,10 @@ def get_coverstore_url() -> str:
 
 @public
 def get_coverstore_public_url() -> str:
-    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
+    if OL_COVERSTORE_PUBLIC_URL := os.environ.get('OL_COVERSTORE_PUBLIC_URL'):
+        return OL_COVERSTORE_PUBLIC_URL.rstrip('/')
+    else:
+        return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
 def _get_changes_v1_raw(
@@ -556,10 +572,8 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
 
     if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if (
-            thing.source_records
-            and v.revision == 1
-            or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
+        if (thing.source_records and v.revision == 1) or (
+            v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
@@ -657,57 +671,6 @@ def set_share_links(
     ]
     if view_context is not None:
         view_context.share_links = links
-
-
-def pad(seq: list, size: int, e=None) -> list:
-    """
-    >>> pad([1, 2], 4, 0)
-    [1, 2, 0, 0]
-    """
-    seq = seq[:]
-    while len(seq) < size:
-        seq.append(e)
-    return seq
-
-
-def parse_toc_row(line):
-    """Parse one row of table of contents.
-
-    >>> def f(text):
-    ...     d = parse_toc_row(text)
-    ...     return (d['level'], d['label'], d['title'], d['pagenum'])
-    ...
-    >>> f("* chapter 1 | Welcome to the real world! | 2")
-    (1, 'chapter 1', 'Welcome to the real world!', '2')
-    >>> f("Welcome to the real world!")
-    (0, '', 'Welcome to the real world!', '')
-    >>> f("** | Welcome to the real world! | 2")
-    (2, '', 'Welcome to the real world!', '2')
-    >>> f("|Preface | 1")
-    (0, '', 'Preface', '1')
-    >>> f("1.1 | Apple")
-    (0, '1.1', 'Apple', '')
-    """
-    RE_LEVEL = web.re_compile(r"(\**)(.*)")
-    level, text = RE_LEVEL.match(line.strip()).groups()
-
-    if "|" in text:
-        tokens = text.split("|", 2)
-        label, title, page = pad(tokens, 3, '')
-    else:
-        title = text
-        label = page = ""
-
-    return Storage(
-        level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
-    )
-
-
-def parse_toc(text: str | None) -> list[Any]:
-    """Parses each line of toc"""
-    if text is None:
-        return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
 T = TypeVar('T')
@@ -1215,55 +1178,38 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 
 
 @public
-def get_author_config():
-    return _get_author_config()
+def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
+    return _get_identifier_config(identifier)
 
 
 @web.memoize
-def _get_author_config():
-    """Returns the author config.
-
-    The results are cached on the first invocation.
-    Any changes to /config/author page require restarting the app.
+def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
-    # Load the author config from the author.yml file in the author directory
-    with open(
-        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
-    ) as in_file:
-        id_config = yaml.safe_load(in_file)
-        identifiers = [
-            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
-        ]
+    Returns the identifier config.
 
-    return Storage(identifiers=identifiers)
-
-
-@public
-def get_edition_config() -> Storage:
-    return _get_edition_config()
-
-
-@web.memoize
-def _get_edition_config():
-    """Returns the edition config.
-
-    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    The results are cached on the first invocation. Any changes to /config/{identifier} page require restarting the app.
 
     This is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
-    thing = web.ctx.site.get('/config/edition')
-    classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    roles = thing.roles
     with open(
-        'openlibrary/plugins/openlibrary/config/edition/identifiers.yml'
+        f'openlibrary/plugins/openlibrary/config/{identifier}/identifiers.yml'
     ) as in_file:
         id_config = yaml.safe_load(in_file)
         identifiers = [
             Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
         ]
-    return Storage(
-        classifications=classifications, identifiers=identifiers, roles=roles
-    )
+
+    if identifier == 'edition':
+        thing = web.ctx.site.get('/config/edition')
+        classifications = [
+            Storage(t.dict()) for t in thing.classifications if 'name' in t
+        ]
+        roles = thing.roles
+        return Storage(
+            classifications=classifications, identifiers=identifiers, roles=roles
+        )
+
+    return Storage(identifiers=identifiers)
 
 
 from openlibrary.core.olmarkdown import OLMarkdown
@@ -1298,10 +1244,11 @@ def websafe(text: str) -> str:
         return _websafe(text)
 
 
-from openlibrary.plugins.upstream import adapter
-from openlibrary.utils.olcompress import OLCompressor
-from openlibrary.utils import olmemcache
 import memcache
+
+from openlibrary.plugins.upstream import adapter
+from openlibrary.utils import olmemcache
+from openlibrary.utils.olcompress import OLCompressor
 
 
 class UpstreamMemcacheClient:
@@ -1431,20 +1378,6 @@ _get_recent_changes2 = web.memoize(
 
 
 @public
-def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.get("features", []):
-        changes = _get_recent_changes2()
-    else:
-        changes = _get_recent_changes()
-
-    _changes = random.sample(changes, n) if len(changes) > n else changes
-    for i, change in enumerate(_changes):
-        _changes[i]['__body__'] = (
-            _changes[i]['__body__'].replace('<script>', '').replace('</script>', '')
-        )
-    return _changes
-
-
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
@@ -1490,33 +1423,6 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
-
-
-@public
-def get_donation_include() -> str:
-    ia_host = get_ia_host(allow_dev=True)
-    # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services
-    if ia_host != "archive.org":
-        script_src = f"https://{ia_host}/includes/donate.js"
-    else:
-        script_src = "/cdn/archive.org/donate.js"
-
-    if 'ymd' in (web_input := web.input()):
-        # Should be eg 20220101 (YYYYMMDD)
-        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
-            script_src += '?' + urllib.parse.urlencode({'ymd': web_input.ymd})
-        else:
-            raise ValueError('?ymd should be 8 digits (eg 20220101)')
-
-    html = (
-        """
-    <div id="donato"></div>
-    <script src="%s" data-platform="ol"></script>
-    """
-        % script_src
-    )
-    return html
 
 
 @public
@@ -1719,6 +1625,28 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
+
+
+def setup_requests(config=config) -> None:
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = config.get('http_proxy')
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = config.get('http_proxy')
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
 
 
 def setup() -> None:

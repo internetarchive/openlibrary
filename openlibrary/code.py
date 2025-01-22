@@ -3,13 +3,13 @@
 Loaded from Infogami plugin mechanism.
 """
 
-import sys
-import os
 import logging
 import logging.config
+import os
+import sys
 
-from infogami.utils import template, macro, i18n, delegate
 import infogami
+from infogami.utils import delegate, i18n, macro, template
 
 old_plugins = [
     "openlibrary",
@@ -46,7 +46,7 @@ def setup():
     load_views()
 
     # load actions
-    from . import actions
+    from . import actions  # noqa: F401 side effects may be needed
 
     logger.info("loading complete.")
 
@@ -64,7 +64,7 @@ def setup_logging():
 
 def load_views():
     """Registers all views by loading all view modules."""
-    from .views import showmarc
+    from .views import showmarc  # noqa: F401 side effects may be needed
 
 
 setup()

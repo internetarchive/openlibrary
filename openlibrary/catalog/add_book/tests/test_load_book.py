@@ -1,12 +1,13 @@
 import pytest
+
 from openlibrary.catalog.add_book import load_book
 from openlibrary.catalog.add_book.load_book import (
+    build_query,
     find_entity,
     import_author,
-    build_query,
-    InvalidLanguage,
     remove_author_honorifics,
 )
+from openlibrary.catalog.utils import InvalidLanguage
 from openlibrary.core.models import Author
 
 
@@ -35,6 +36,10 @@ unchanged_names = [
     {'name': 'Smith, John III, King of Coats, and Bottles'},
     {'name': 'Harper, John Murdoch, 1845-'},
     {'entity_type': 'org', 'name': 'Organisation, Place'},
+    {
+        'entity_type': 'org',
+        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin',
+    },
 ]
 
 
@@ -84,7 +89,7 @@ class TestImportAuthor:
             mock_site.save(existing_author)
 
     @pytest.mark.parametrize(
-        ["name", "expected"],
+        ('name', 'expected'),
         [
             ("Drake von Drake", "Drake von Drake"),
             ("Dr. Seuss", "Dr. Seuss"),

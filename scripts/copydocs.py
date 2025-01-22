@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from __future__ import annotations
-from collections import namedtuple
 
 import json
 import os
 import sys
+from collections import namedtuple
 from collections.abc import Iterator
 
 import web
@@ -71,9 +71,8 @@ class Disk:
 
             try:
                 print("writing", path)
-                f = open(path, "w")
-                f.write(text)
-                f.close()
+                with open(path, "w") as f:
+                    f.write(text)
             except OSError:
                 print("failed", path)
 
@@ -275,8 +274,8 @@ def copy(
     for group in web.group(docs, 50):
         try:
             print(dest.save_many(group, comment=comment))
-        except BaseException:
-            print("Something went wrong saving this batch!")
+        except BaseException as e:
+            print(f"Something went wrong saving this batch! {e}")
     saved.update(keys)
 
 

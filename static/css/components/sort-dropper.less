@@ -1,0 +1,118 @@
+.sort-dropper {
+  display: inline-flex;
+}
+
+.sort-content {
+  display: flex;
+  background: @white;
+}
+
+.sort-content-inner {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  margin-top: 10px;
+  background-color: @lightest-grey;
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: @light-grey;
+  z-index: @z-index-level-1;
+
+  a {
+    text-decoration: none;
+    color: @grey;
+    padding-right: 25px;
+    border: 2px solid transparent;
+
+    &:link,
+    &:visited {
+      color: @black;
+    }
+
+    &:hover {
+      color: @grey;
+      border-color: @primary-blue;
+    }
+
+    &.sort-selected::before {
+      color: @grey;
+      padding-right: 5px;
+    }
+
+    &.sort-subsort-selected::before {
+      color: @grey;
+      padding-right: 5px;
+    }
+  }
+
+  a::before {
+    content: "✓";
+    margin: 5px 10px;
+    color: transparent;
+  }
+
+  a.sort-subsort {
+    padding-left: 20px;
+
+    &::before {
+      content: "✓";
+      margin: 5px 10px;
+      color: transparent;
+    }
+
+    &-selected {
+      padding-left: 20px;
+      padding-right: 10px;
+      color: @grey;
+    }
+  }
+
+}
+
+.sort details {
+  border-radius: 5px;
+  background: @lightest-grey;
+  border: 1px solid;
+  border-color: @mid-grey;
+
+  summary {
+    font-size: 1rem;
+    color: @black;
+    display: inline-flex;
+    list-style-type: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  summary p {
+    padding: 2px 10px;
+    margin: 0;
+    border-right: 1px solid;
+    border-color: @gray-d1cfd0;
+  }
+
+  &[open] {
+    background: @lighter-grey;
+  }
+}
+
+.sort details summary img {
+  margin-left: 10px;
+}
+
+.sort details summary::after {
+  content: "▾";
+  color: @dark-grey;
+  padding: 2px 10px;
+}
+
+.sort details[open] summary::after {
+  content: "▴";
+}
+
+.sort-random-shuffle {
+  display: inline-flex;
+  padding: 5px;
+}

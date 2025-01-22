@@ -1,9 +1,10 @@
-from functools import cached_property
 import logging
 import re
+from functools import cached_property
 from typing import TYPE_CHECKING, cast
 
 import requests
+
 import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater

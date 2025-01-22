@@ -341,7 +341,7 @@ msgid ""
 "href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 "Wczytywanie wszystkich prac autora. Czy chesz zobaczyć <a "
-"href=%(url)s>tylko e-booki</a>?"
+"href=\"%(url)s\">tylko e-booki</a>?"
 
 #: view.html:154
 #, fuzzy, python-format
@@ -350,7 +350,7 @@ msgid ""
 "href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 "Wczytywanie tylko e-booków. Czy chesz zobaczyć <a "
-"href=%(url)s>wszystkie</a> prace tego autora?"
+"href=\"%(url)s\">wszystkie</a> prace tego autora?"
 
 #: nav_foot.html:27 nav_head.html:72 openlibrary/templates/subjects.html:9
 #: openlibrary/templates/work_search.html:123 view.html:136 view.html:190
@@ -375,8 +375,8 @@ msgid "Time"
 msgstr "Okres"
 
 #: view.html:202
-msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
-msgstr "Linki <span class=\"gray small sansserif\">(spoza Open Library)"
+msgid "Links <span class=\"gray small sansserif\">(outside Open Library)</span>"
+msgstr "Linki <span class=\"gray small sansserif\">(spoza Open Library)</span>"
 
 #: view.html:221
 msgid "No links yet."
@@ -985,11 +985,6 @@ msgstr "%(title)s autorstwa %(authorlist)s"
 msgid "added anonymously."
 msgstr "dodana anonimowo"
 
-#: view.html:170
-#, fuzzy
-msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr "Linki <span class=\"gray small sansserif\">(spoza Open Library)"
-
 #: view.html:173
 msgid "Wikipedia"
 msgstr "Wikipedia"
@@ -1430,8 +1425,7 @@ msgid ""
 msgstr ""
 "Potwierdzam, że moje korzystanie z Open Library podlega warunkom Internet"
 " Archive<a href='//archive.org/about/terms.php' "
-"target='_new'title=„'Przeczytaj warunki użytkowania w nowej "
-"przeglądarce.'>Warunki użytkowania</a>."
+"target='_blank'>Warunki użytkowania</a>."
 
 #: add.html:79 add.html:135 authors.html:125 create.html:97
 #: edit/addfield.html:87 edit/addfield.html:133 edit/addfield.html:177
@@ -1759,9 +1753,9 @@ msgid ""
 "%(publisher)s edition</b>. Thanks! Do you know any more about this "
 "edition?"
 msgstr ""
-"<p class=\"alert thanks\">Już mamy tę książkę <b>%s</b>, ale nie te "
-"wydanie<b>%s %s edition</b>. Dziękujemy! Czy wiesz coś więcej o tym "
-"wydaniu?</p>"
+"Już mamy tę książkę <b>%(work_titles)s</b>, ale nie te "
+"wydanie<b>%(year)s %(publisher)s edition</b>. Dziękujemy! Czy wiesz coś więcej o tym "
+"wydaniu?"
 
 #: edit.html:75
 #, fuzzy, python-format
@@ -1769,8 +1763,8 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of "
 "<b>%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"<p class=\"alert info\">Już znamy wydanie tej <b>%s %s edition</b> "
-"książki <b>%s</b>, ale prosimy o podanie więcej informacji!</p>"
+"Już znamy wydanie tej <b>%(year)s %(publisher)s edition</b> "
+"książki <b>%(work_title)s</b>, ale prosimy o podanie więcej informacji!"
 
 #: edit.html:77
 msgid "Editing..."
@@ -3791,7 +3785,7 @@ msgstr "Brak wyników."
 #: openlibrary/templates/work_search.html:220
 #, fuzzy, python-format
 msgid "Showing books with similar text to: <strong>%(query)s</strong>"
-msgstr "Książki zawierające tekst podobny do:"
+msgstr "Książki zawierające tekst podobny do: <strong>%(query)s</strong>"
 
 #: openlibrary/templates/work_search.html:258
 msgid "Zoom In"

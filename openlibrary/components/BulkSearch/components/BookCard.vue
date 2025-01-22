@@ -31,7 +31,7 @@ export default {
 }</script>
 
 
-<style>
+<style lang="less">
 @keyframes pulse {
   0% {
     opacity: 0;
@@ -147,7 +147,7 @@ export default {
     margin-top: 4px;
     padding-top: 4px;
     color: #555;
-    border-top: 1px dotted;
+    border-top: 1px solid #D8D8D8;
     flex: 1;
   }
 

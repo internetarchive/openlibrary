@@ -11,23 +11,20 @@ import asyncio
 import datetime
 import json
 import logging
-from pathlib import Path
 import re
 import socket
 import sys
 import urllib
-
-from typing import Union
 from collections.abc import Iterator
+from pathlib import Path
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
-
+import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import web
 
-from openlibrary.solr import update
-from openlibrary.config import load_config
 from infogami import config
+from openlibrary.config import load_config
+from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr-updater")
@@ -218,7 +215,6 @@ async def update_keys(keys):
         return 0
 
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
-    global args
     logger.debug("Args: %s" % str(args))
     update.load_configs(args['ol_url'], args['ol_config'], 'default')
 

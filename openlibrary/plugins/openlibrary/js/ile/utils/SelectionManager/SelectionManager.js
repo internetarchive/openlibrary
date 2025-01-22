@@ -128,8 +128,8 @@ export default class SelectionManager {
     getSelectableRange(clicked) {
         let commonParent = undefined;
         const curEls = { clicked, lastClicked: this.lastClicked };
-        // Only check up to 2 levels up in the tree
-        for (let i = 0; i < 2; i++) {
+        // Only check up to 3 levels up in the tree
+        for (let i = 0; i < 3; i++) {
             if (!curEls.clicked || !curEls.lastClicked) {
                 break;
             } else if (curEls.clicked === curEls.lastClicked) {
@@ -493,6 +493,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        href: olids => `/authors/merge?records=${olids.join(',')}`,
     },
 ];

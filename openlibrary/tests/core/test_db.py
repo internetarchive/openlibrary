@@ -1,8 +1,9 @@
 import web
-from openlibrary.core.db import get_db
+
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
-from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings

@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import CategorySelector from './ObservationForm/components/CategorySelector'
-import SavedTags from './ObservationForm/components/SavedTags'
-import ValueCard from './ObservationForm/components/ValueCard'
+import CategorySelector from './ObservationForm/components/CategorySelector.vue'
+import SavedTags from './ObservationForm/components/SavedTags.vue'
+import ValueCard from './ObservationForm/components/ValueCard.vue'
 
 import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
@@ -154,7 +154,7 @@ export default {
 
         this.observer.observe(this.$refs.form)
     },
-    beforeDestroy: function() {
+    beforeUnmount: function() {
         if (this.observer) {
             this.observer.disconnect()
         }

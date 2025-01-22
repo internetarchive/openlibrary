@@ -1,16 +1,17 @@
-from collections import defaultdict
-from collections.abc import Iterable
 import datetime
-from functools import cached_property
 import itertools
 import logging
-from math import ceil
 import re
-from statistics import median
 import time
+from collections import defaultdict
+from collections.abc import Iterable
+from functools import cached_property
+from math import ceil
+from statistics import median
 from typing import Optional, TypedDict, cast
-from openlibrary.core import helpers as h
+
 import openlibrary.book_providers as bp
+from openlibrary.core import helpers as h
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
@@ -233,9 +234,9 @@ def datetimestr_to_int(datestr):
         try:
             t = h.parse_datetime(datestr)
         except (TypeError, ValueError):
-            t = datetime.datetime.utcnow()
+            t = datetime.datetime.now()
     else:
-        t = datetime.datetime.utcnow()
+        t = datetime.datetime.now()
 
     return int(time.mktime(t.timetuple()))
 

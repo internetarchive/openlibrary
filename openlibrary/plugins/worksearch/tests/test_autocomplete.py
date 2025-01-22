@@ -1,8 +1,9 @@
 import json
 from unittest.mock import patch
-from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
+
 import web
 
+from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
 from openlibrary.utils.solr import Solr
 
 

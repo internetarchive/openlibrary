@@ -3,9 +3,9 @@ Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
 
-import os
-import logging
 import datetime
+import logging
+import os
 
 import web
 import yaml
@@ -116,7 +116,8 @@ def setup_ol_config(openlibrary_config_file):
     if config.get("infobase_config_file"):
         dir = os.path.dirname(openlibrary_config_file)
         path = os.path.join(dir, config.infobase_config_file)
-        config.infobase = yaml.safe_load(open(path).read())
+        with open(path) as file:
+            config.infobase = yaml.safe_load(file)
 
     infogami._setup()
 

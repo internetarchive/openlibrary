@@ -7,9 +7,10 @@ data1: This contains OL1A, OL1M, OL1W with each having name/tile and interconnec
 data9: This contains OL9A, OL9M and OL9W with interconnections and almost all fields.
 """
 
-import pytest
-import re
 import json
+import re
+
+import pytest
 import web
 
 from openlibrary.core import ia

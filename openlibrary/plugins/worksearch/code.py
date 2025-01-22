@@ -1,17 +1,18 @@
-from dataclasses import dataclass
-import itertools
-import time
 import copy
+import itertools
 import json
 import logging
 import re
-from typing import Any, cast
+import time
+import urllib
 from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any, cast
 from unicodedata import normalize
+
 import requests
 import web
 from requests import Response
-import urllib
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -25,19 +26,18 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
-from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
     has_solr_editions_enabled,
 )
-from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.isbn import normalize_isbn
-
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -326,8 +326,16 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
+    # If you want work_search page html to extend default_fetched_fields:
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
         fields |= {'subject'}
 
@@ -380,6 +388,7 @@ def get_doc(doc: SolrDocument):
         cover_edition_key=doc.get('cover_edition_key', None),
         languages=doc.get('language', []),
         id_project_gutenberg=doc.get('id_project_gutenberg', []),
+        id_project_runeberg=doc.get('id_project_runeberg', []),
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
@@ -395,6 +404,9 @@ def get_doc(doc: SolrDocument):
             )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
+        ratings_average=doc.get('ratings_average', None),
+        ratings_count=doc.get('ratings_count', None),
+        want_to_read_count=doc.get('want_to_read_count', None),
     )
 
 
@@ -845,7 +857,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '*').split(',')
+        fields = WorkSearchScheme.default_fetched_fields
+        if _fields := query.pop('fields', ''):
+            fields = _fields.split(',')
+
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -866,9 +881,13 @@ class search_json(delegate.page):
             facet=False,
             spellcheck_count=spellcheck_count,
         )
+        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+        # force all other params to appear before `docs` in json
+        docs = response['docs']
+        del response['docs']
+        response['docs'] = docs
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
@@ -876,10 +895,10 @@ class search_json(delegate.page):
 def setup():
     from openlibrary.plugins.worksearch import (
         autocomplete,
-        subjects,
+        bulk_search,
         languages,
         publishers,
-        bulk_search,
+        subjects,
     )
 
     bulk_search.setup()

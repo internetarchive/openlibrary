@@ -1,6 +1,7 @@
 from pathlib import Path
-from setuptools import setup
+
 from Cython.Build import cythonize
+from setuptools import setup
 
 setup(
     py_modules=['solr_builder'],

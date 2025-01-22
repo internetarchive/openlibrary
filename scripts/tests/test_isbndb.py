@@ -1,9 +1,8 @@
 from pathlib import Path
+
 import pytest
 
-
-from ..providers.isbndb import ISBNdb, get_line, NONBOOK, is_nonbook
-
+from ..providers.isbndb import NONBOOK, ISBNdb, get_line, is_nonbook
 
 # Sample lines from the dump
 line0 = '''{"isbn": "0000001562", "msrp": "0.00", "image": "Https://images.isbndb.com/covers/15/66/9780000001566.jpg", "title": "教えます！花嫁衣装 のトレンドニュース", "isbn13": "9780000001566", "authors": ["Orvig", "Glen Martin", "Ron Jenson"], "binding": "Mass Market Paperback", "edition": "1", "language": "en", "subjects": ["PQ", "878"], "synopsis": "Francesco Petrarca.", "publisher": "株式会社オールアバウト", "dimensions": "97 p.", "title_long": "教えます！花嫁衣装のトレンドニュース", "date_published": 2015}'''  # noqa: E501
@@ -86,7 +85,7 @@ def test_isbndb_to_ol_item(tmp_path):
 
 
 @pytest.mark.parametrize(
-    'binding, expected',
+    ('binding', 'expected'),
     [
         ("DVD", True),
         ("dvd", True),
@@ -105,7 +104,7 @@ def test_is_nonbook(binding, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'language, expected',
+    ('language', 'expected'),
     [
         ('en_US', ['eng']),
         ('es,Eng', ['spa', 'eng']),
@@ -123,7 +122,7 @@ def test_isbndb_get_languages(language, expected, get_isbndb_data):
 
 
 @pytest.mark.parametrize(
-    'year, expected',
+    ('year', 'expected'),
     [
         (2000, "2000"),
         ("2000", "2000"),

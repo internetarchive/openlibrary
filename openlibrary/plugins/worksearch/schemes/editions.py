@@ -1,5 +1,5 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 

@@ -13,9 +13,10 @@ The stats table in the openlibrary database is of the following schema:
 see schema.py for more details.
 """
 
-import logging
-import json
 import datetime
+import json
+import logging
+
 from .db import get_db
 
 logger = logging.getLogger("openlibrary.statsdb")

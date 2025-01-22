@@ -4,36 +4,43 @@ its experience. This does not include public facing APIs with LTS
 (long term support)
 """
 
-import web
-import re
-import json
-import qrcode
 import io
+import json
 from collections import defaultdict
-from openlibrary.views.loanstats import get_trending_books
-from infogami import config
-from infogami.utils import delegate
-from infogami.utils.view import render_template  # noqa: F401 used for its side effects
+
+import qrcode
+import web
+
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
-from infogami.utils.view import add_flash_message
+from infogami.utils import delegate
+from infogami.utils.view import (
+    add_flash_message,  # noqa: F401 side effects may be needed
+    render_template,  # noqa: F401 used for its side effects
+)
 from openlibrary import accounts
-from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
-from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+)
+from openlibrary.core import helpers as h
+from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
-from openlibrary.core.observations import Observations, get_observation_metrics
-from openlibrary.core.models import Booknotes, Work
-from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.follows import PubSub
+from openlibrary.core.helpers import NothingEncoder
+from openlibrary.core.models import Booknotes, Work
+from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
-from openlibrary.core.helpers import NothingEncoder
+from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.worksearch.subjects import (
+    get_subject,  # noqa: F401 side effects may be needed
+)
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.views.loanstats import get_trending_books
 
 
 class book_availability(delegate.page):
@@ -318,7 +325,9 @@ class work_bookshelves(delegate.page):
                 content_type="application/json",
             )
 
-        if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
+        if (
+            (not i.dont_remove) and bookshelf_id == current_status
+        ) or bookshelf_id == -1:
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status
             )
@@ -429,24 +438,6 @@ class author_works(delegate.page):
         return {"links": links, "size": size, "entries": works}
 
 
-class sponsorship_eligibility_check(delegate.page):
-    path = r'/sponsorship/eligibility/(.*)'
-
-    @jsonapi
-    def GET(self, _id):
-        i = web.input(patron=None, scan_only=False)
-        edition = (
-            web.ctx.site.get('/books/%s' % _id)
-            if re.match(r'OL[0-9]+M', _id)
-            else models.Edition.from_isbn(_id)
-        )
-        if not edition:
-            return json.dumps({"status": "error", "reason": "Invalid ISBN 13"})
-        return json.dumps(
-            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
-        )
-
-
 class price_api(delegate.page):
     path = r'/prices'
 
@@ -472,8 +463,8 @@ class price_api(delegate.page):
         if id_type == 'isbn_10' and metadata['betterworldbooks'].get('price') is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
             metadata['betterworldbooks'] = (
-                isbn_13 and get_betterworldbooks_metadata(isbn_13) or {}
-            )
+                isbn_13 and get_betterworldbooks_metadata(isbn_13)
+            ) or {}
 
         # fetch book by isbn if it exists
         # TODO: perform existing OL lookup by ASIN if supplied, if possible

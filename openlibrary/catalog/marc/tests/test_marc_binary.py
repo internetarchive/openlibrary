@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
 TEST_DATA = Path(__file__).with_name('test_data') / 'bin_input'

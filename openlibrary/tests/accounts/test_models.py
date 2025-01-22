@@ -1,6 +1,8 @@
-from openlibrary.accounts import model, InternetArchiveAccount, OpenLibraryAccount
-from requests.models import Response
 from unittest import mock
+
+from requests.models import Response
+
+from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
 
 
 def get_username(account):

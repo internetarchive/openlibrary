@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -6,8 +6,6 @@ $# * allow_expensive_availability_check - whether to check the groundtruth avail
 $#     if can't get availability from specified fields
 $# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
-$# * check_sponsorship - whether to check if the book is eligible for sponsorship
-$# * sponsorship_help - whether to show the sponsorship help text
 $# * check_loan_status - whether to check the user's loan status to determine read button
 
 $ loanstatus_start_time = time()
@@ -137,10 +135,16 @@ $else:
   $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
   $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
-  $if (is_edition and is_book_page) or secondary_action:
-      $:macros.NotInLibrary(None, analytics_attr)
+  $ edition_key = doc.key.split('/')[2]
+  $# Wrapper if locate button is in edition table
+  $if secondary_action:
+      $:macros.LocateButton(edition_key)
+  $elif is_edition:
+      <div class="cta-button-group">
+        $:macros.LocateButton(edition_key)
+      </div>
   $else:
-      $:macros.NotInLibrary(key, analytics_attr)
+      $:macros.NotInLibrary(None, analytics_attr)
 
 $:post
 

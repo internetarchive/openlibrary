@@ -124,7 +124,7 @@ export class CreateListForm {
 
         for (const dropper of droppers) {
             const isActive = dropper === openDropper
-            dropper.readingLists.onListCreationSuccess(listKey, listTitle, coverUrl, isActive)
+            dropper.readingLists.onListCreationSuccess(listKey, listTitle, isActive, coverUrl)
         }
     }
 
