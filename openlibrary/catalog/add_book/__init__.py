@@ -156,12 +156,6 @@ def is_redirect(thing):
     return thing.type.key == '/type/redirect'
 
 
-def get_title(e):
-    if not e.get('work_titles'):
-        return e['title']
-    return e['title']
-
-
 def split_subtitle(full_title):
     """
     Splits a title into (title, subtitle),
@@ -206,7 +200,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == mk_norm(get_title(e)):
+            if mk_norm(w['title']) == mk_norm(e['title']):
                 assert w.type.key == '/type/work'
                 return wkey
 
@@ -252,7 +246,7 @@ def new_work(edition, rec, cover_id=None):
     """
     w = {
         'type': {'key': '/type/work'},
-        'title': get_title(rec),
+        'title': rec['title'],
     }
     for s in subject_fields:
         if s in rec:
