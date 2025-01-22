@@ -134,28 +134,6 @@ class SourceNeedsISBN(Exception):
         return "this source needs an ISBN"
 
 
-# don't use any of these as work titles
-bad_titles = {
-    'Publications',
-    'Works. English',
-    'Missal',
-    'Works',
-    'Report',
-    'Letters',
-    'Calendar',
-    'Bulletin',
-    'Plays',
-    'Sermons',
-    'Correspondence',
-    'Bill',
-    'Bills',
-    'Selections',
-    'Selected works',
-    'Selected works. English',
-    'The Novels',
-    'Laws, etc',
-}
-
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people']
 
 
@@ -180,13 +158,6 @@ def is_redirect(thing):
     if not thing:
         return False
     return thing.type.key == '/type/redirect'
-
-
-def get_title(e):
-    if not e.get('work_titles'):
-        return e['title']
-    wt = e['work_titles'][0]
-    return e['title'] if wt in bad_titles else e['title']
 
 
 def split_subtitle(full_title):
@@ -233,7 +204,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == mk_norm(get_title(e)):
+            if mk_norm(w['title']) == mk_norm(e['title']):
                 assert w.type.key == '/type/work'
                 return wkey
 
@@ -279,7 +250,7 @@ def new_work(edition, rec, cover_id=None):
     """
     w = {
         'type': {'key': '/type/work'},
-        'title': get_title(rec),
+        'title': rec['title'],
     }
     for s in subject_fields:
         if s in rec:
