@@ -689,7 +689,11 @@ class InternetArchiveAccount(web.storage):
                 return ia_account
 
             elif 'screenname' not in response.get('values', {}):
-                raise OLAuthenticationError('undefined_error')
+                from openlibrary.plugins.openlibrary.sentry import sentry
+                err = OLAuthenticationError('undefined_error')
+                if sentry.enabled:
+                    sentry.capture_exception(err, extra=('response', response))
+                raise err
 
             elif attempt >= retries:
                 e = OLAuthenticationError('username_registered')

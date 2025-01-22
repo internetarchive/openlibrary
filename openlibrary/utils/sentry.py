@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
+from typing import Any
 
 import sentry_sdk
 import web
@@ -87,8 +88,10 @@ class Sentry:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
-    def capture_exception(self, ex):
+    def capture_exception(self, ex, extra: tuple[str, Any]=None):
         with sentry_sdk.push_scope() as scope:
+            if extra:
+                scope.set_extra(extra[0], extra[1])
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception(ex)
 
