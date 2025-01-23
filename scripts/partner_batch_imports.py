@@ -87,7 +87,7 @@ required_fields: list[str] = []
 
 
 class Biblio:
-    ACTIVE_FIELDS: tuple[str, ...] = (
+    ACTIVE_FIELDS = (
         'title',
         'isbn_13',
         'publish_date',
@@ -104,13 +104,12 @@ class Biblio:
         'identifiers',
         'dewey_decimal_class',
     )
-    INACTIVE_FIELDS: tuple[str, ...] = (
+    INACTIVE_FIELDS = (
         "copyright",
         "length",
         "width",
         "height",
     )
-    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     NONBOOK = """A2 AA AB AJ AVI AZ BK BM C3 CD CE CF CR CRM CRW CX D3 DA DD DF DI DL
     DO DR DRM DRW DS DV EC FC FI FM FR FZ GB GC GM GR H3 H5 L3 L5 LP MAC MC MF MG MH ML
