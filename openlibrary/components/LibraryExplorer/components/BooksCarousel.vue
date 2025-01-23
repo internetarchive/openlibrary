@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import FlatBookCover from './FlatBookCover';
+import FlatBookCover from './FlatBookCover.vue';
 import CONFIGS from '../../configs';
 
 export default {

@@ -102,8 +102,6 @@ else:
     ftp.close()
     sys.exit(0)
 
-bad = open(c['log_location'] + 'lc_marc_bad_import', 'a')
-
 
 def iter_marc(data):
     pos = 0
@@ -150,31 +148,32 @@ for f in to_upload:
         continue
 
     loc_file = item_id + '/' + f
-    for pos, length, marc_data in iter_marc(data):
-        loc = '%s:%d:%d' % (loc_file, pos, length)
-        headers['x-archive-meta-source-record'] = 'marc:' + loc
-        try:
-            h1 = httplib.HTTPConnection('openlibrary.org')
-            h1.request('POST', import_api_url, marc_data, headers)
+    with open(c['log_location'] + 'lc_marc_bad_import', 'a') as bad:
+        for pos, length, marc_data in iter_marc(data):
+            loc = '%s:%d:%d' % (loc_file, pos, length)
+            headers['x-archive-meta-source-record'] = 'marc:' + loc
             try:
-                res = h1.getresponse()
-            except httplib.BadStatusLine:
-                raise BadImport
-            body = res.read()
-            if res.status != 200:
-                raise BadImport
-            else:
+                h1 = httplib.HTTPConnection('openlibrary.org')
+                h1.request('POST', import_api_url, marc_data, headers)
                 try:
-                    reply = json.loads(body)
-                except ValueError:
-                    print(('not JSON:', repr(body)))
+                    res = h1.getresponse()
+                except httplib.BadStatusLine:
                     raise BadImport
-            assert res.status == 200
-            print(reply)
-            assert reply['success']
-            h1.close()
-        except BadImport:
-            print(loc, file=bad)
-            bad.flush()
+                body = res.read()
+                if res.status != 200:
+                    raise BadImport
+                else:
+                    try:
+                        reply = json.loads(body)
+                    except ValueError:
+                        print(('not JSON:', repr(body)))
+                        raise BadImport
+                assert res.status == 200
+                print(reply)
+                assert reply['success']
+                h1.close()
+            except BadImport:
+                print(loc, file=bad)
+                bad.flush()
 
 ftp.close()

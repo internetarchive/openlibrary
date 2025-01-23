@@ -159,7 +159,7 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-    READING_LOG_SETUP_ROWS: classVar[tuple[Mapping[str,str|int], ...]]= (
+    READING_LOG_SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -179,15 +179,15 @@ class TestUsernameUpdate:
             "bookshelf_id": 2,
         },
     )
-    BOOKNOTES_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
+    BOOKNOTES_SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"},
         {"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "notes": "World"},
     )
-    RATINGS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
+    RATINGS_SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4},
         {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2},
     )
-    OBSERVATIONS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
+    OBSERVATIONS_SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -204,7 +204,7 @@ class TestUsernameUpdate:
         },
     )
 
-    def get_edits_queue_setup_rows(cls) -> list[Mapping[str,str|int|None]]:
+    def get_edits_queue_setup_rows(cls) -> list[Mapping[str, str | int | None]]:
         return [
             {
                 "title": "One Fish, Two Fish, Red Fish, Blue Fish",
@@ -312,7 +312,7 @@ class TestUsernameUpdate:
 
 
 class TestCheckIns:
-    BOOKSHELVES_EVENTS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
+    BOOKSHELVES_EVENTS_SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {
             "id": 1,
             "username": "@kilgore_trout",
@@ -485,7 +485,7 @@ class TestCheckIns:
 
 
 class TestYearlyReadingGoals:
-    SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
+    SETUP_ROWS: classVar[tuple[Mapping[str, str | int], ...]] = (
         {
             'username': '@billy_pilgrim',
             'year': 2022,

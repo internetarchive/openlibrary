@@ -14,9 +14,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
-
-import OLChip from './OLChip'
+import OLChip from './OLChip.vue'
 
 import { updateObservation } from '../ObservationService'
 
@@ -99,7 +97,7 @@ export default {
                             updatedValues.pop();
                         })
                         .finally(() => {
-                            Vue.set(this.allSelectedValues, this.type, updatedValues);
+                            this.allSelectedValues[this.type] = updatedValues;
                         })
                 } else {
                     if (updatedValues.length) {
@@ -115,7 +113,7 @@ export default {
                                             updatedValues = [text]
                                         })
                                         .finally(() => {
-                                            Vue.set(this.allSelectedValues, this.type, updatedValues)
+                                            this.allSelectedValues[this.type] = updatedValues;
                                         })
                                 }
                             })
