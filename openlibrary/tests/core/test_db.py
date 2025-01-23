@@ -158,74 +158,108 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-    READING_LOG_SETUP_ROWS=(
-        MappingProxyType({
-            "username": "@kilgore_trout",
-            "work_id": 1,
-            "edition_id": 1,
-            "bookshelf_id": 1,
-        }),
-        MappingProxyType({
-            "username": "@kilgore_trout",
-            "work_id": 2,
-            "edition_id": 2,
-            "bookshelf_id": 1,
-        }),
-        MappingProxyType({
-            "username": "@billy_pilgrim",
-            "work_id": 1,
-            "edition_id": 1,
-            "bookshelf_id": 2,
-        }),
+    READING_LOG_SETUP_ROWS = (
+        MappingProxyType(
+            {
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 1,
+                "bookshelf_id": 1,
+            }
+        ),
+        MappingProxyType(
+            {
+                "username": "@kilgore_trout",
+                "work_id": 2,
+                "edition_id": 2,
+                "bookshelf_id": 1,
+            }
+        ),
+        MappingProxyType(
+            {
+                "username": "@billy_pilgrim",
+                "work_id": 1,
+                "edition_id": 1,
+                "bookshelf_id": 2,
+            }
+        ),
     )
-    BOOKNOTES_SETUP_ROWS=(
-        MappingProxyType({"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"}),
-        MappingProxyType({"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "notes": "World"}),
+    BOOKNOTES_SETUP_ROWS = (
+        MappingProxyType(
+            {
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 1,
+                "notes": "Hello",
+            }
+        ),
+        MappingProxyType(
+            {
+                "username": "@billy_pilgrim",
+                "work_id": 1,
+                "edition_id": 1,
+                "notes": "World",
+            }
+        ),
     )
-    RATINGS_SETUP_ROWS=(
-        MappingProxyType({"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4}),
-        MappingProxyType({"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2}),
-        )
-    OBSERVATIONS_SETUP_ROWS= (
-        MappingProxyType({
-            "username": "@kilgore_trout",
-            "work_id": 1,
-            "edition_id": 3,
-            "observation_type": 1,
-            "observation_value": 2,
-        }),
-        MappingProxyType({
-            "username": "@billy_pilgrim",
-            "work_id": 2,
-            "edition_id": 4,
-            "observation_type": 4,
-            "observation_value": 1,
-        }),
+    RATINGS_SETUP_ROWS = (
+        MappingProxyType(
+            {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4}
+        ),
+        MappingProxyType(
+            {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2}
+        ),
+    )
+    OBSERVATIONS_SETUP_ROWS = (
+        MappingProxyType(
+            {
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 3,
+                "observation_type": 1,
+                "observation_value": 2,
+            }
+        ),
+        MappingProxyType(
+            {
+                "username": "@billy_pilgrim",
+                "work_id": 2,
+                "edition_id": 4,
+                "observation_type": 4,
+                "observation_value": 1,
+            }
+        ),
     )
 
-    EDITS_QUEUE_SETUP_ROWS=(
-        MappingProxyType({
-            "title": "One Fish, Two Fish, Red Fish, Blue Fish",
-            "submitter": "@kilgore_trout",
-            "reviewer": None,
-            "url": "/works/merge?records=OL1W,OL2W,OL3W",
-            "status": 1,
-        }),
-        MappingProxyType({
-            "title": "The Lorax",
-            "submitter": "@kilgore_trout",
-            "reviewer": "@billy_pilgrim",
-            "url": "/works/merge?records=OL4W,OL5W,OL6W",
-            "status": 2,
-        }),
-        MappingProxyType({
-            "title": "Green Eggs and Ham",
-            "submitter": "@eliot_rosewater",
-            "reviewer": None,
-            "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
-            "status": 1,
-        }),
-        )
+    EDITS_QUEUE_SETUP_ROWS = (
+        MappingProxyType(
+            {
+                "title": "One Fish, Two Fish, Red Fish, Blue Fish",
+                "submitter": "@kilgore_trout",
+                "reviewer": None,
+                "url": "/works/merge?records=OL1W,OL2W,OL3W",
+                "status": 1,
+            }
+        ),
+        MappingProxyType(
+            {
+                "title": "The Lorax",
+                "submitter": "@kilgore_trout",
+                "reviewer": "@billy_pilgrim",
+                "url": "/works/merge?records=OL4W,OL5W,OL6W",
+                "status": 2,
+            }
+        ),
+        MappingProxyType(
+            {
+                "title": "Green Eggs and Ham",
+                "submitter": "@eliot_rosewater",
+                "reviewer": None,
+                "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
+                "status": 1,
+            }
+        ),
+    )
 
     @classmethod
     def setup_class(cls):
@@ -310,55 +344,67 @@ class TestUsernameUpdate:
 
 
 class TestCheckIns:
-    BOOKSHELVES_EVENTS_SETUP_ROWS= (
-        MappingProxyType({
-            "id": 1,
-            "username": "@kilgore_trout",
-            "work_id": 1,
-            "edition_id": 2,
-            "event_type": 1,
-            "event_date": "2022-04-17",
-        }),
-        MappingProxyType({
-            "id": 2,
-            "username": "@kilgore_trout",
-            "work_id": 1,
-            "edition_id": 2,
-            "event_type": 2,
-            "event_date": "2022-05-10",
-        }),
-        MappingProxyType({
-            "id": 3,
-            "username": "@kilgore_trout",
-            "work_id": 1,
-            "edition_id": 2,
-            "event_type": 3,
-            "event_date": "2022-06-20",
-        }),
-        MappingProxyType({
-            "id": 4,
-            "username": "@billy_pilgrim",
-            "work_id": 3,
-            "edition_id": 4,
-            "event_type": 1,
-            "event_date": "2020",
-        }),
-        MappingProxyType({
-            "id": 5,
-            "username": "@eliot_rosewater",
-            "work_id": 3,
-            "edition_id": 4,
-            "event_type": 3,
-            "event_date": "2019-08-20",
-        }),
-        MappingProxyType({
-            "id": 6,
-            "username": "@eliot_rosewater",
-            "work_id": 3,
-            "edition_id": 4,
-            "event_type": 3,
-            "event_date": "2019-10",
-        }),
+    BOOKSHELVES_EVENTS_SETUP_ROWS = (
+        MappingProxyType(
+            {
+                "id": 1,
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 2,
+                "event_type": 1,
+                "event_date": "2022-04-17",
+            }
+        ),
+        MappingProxyType(
+            {
+                "id": 2,
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 2,
+                "event_type": 2,
+                "event_date": "2022-05-10",
+            }
+        ),
+        MappingProxyType(
+            {
+                "id": 3,
+                "username": "@kilgore_trout",
+                "work_id": 1,
+                "edition_id": 2,
+                "event_type": 3,
+                "event_date": "2022-06-20",
+            }
+        ),
+        MappingProxyType(
+            {
+                "id": 4,
+                "username": "@billy_pilgrim",
+                "work_id": 3,
+                "edition_id": 4,
+                "event_type": 1,
+                "event_date": "2020",
+            }
+        ),
+        MappingProxyType(
+            {
+                "id": 5,
+                "username": "@eliot_rosewater",
+                "work_id": 3,
+                "edition_id": 4,
+                "event_type": 3,
+                "event_date": "2019-08-20",
+            }
+        ),
+        MappingProxyType(
+            {
+                "id": 6,
+                "username": "@eliot_rosewater",
+                "work_id": 3,
+                "edition_id": 4,
+                "event_type": 3,
+                "event_date": "2019-10",
+            }
+        ),
     )
 
     @classmethod
@@ -483,25 +529,31 @@ class TestCheckIns:
 
 
 class TestYearlyReadingGoals:
-    SETUP_ROWS=(
-        MappingProxyType({
-            'username': '@billy_pilgrim',
-            'year': 2022,
-            'target': 5,
-            'current': 6,
-        }),
-        MappingProxyType({
-            'username': '@billy_pilgrim',
-            'year': 2023,
-            'target': 7,
-            'current': 0,
-        }),
-        MappingProxyType({
-            'username': '@kilgore_trout',
-            'year': 2022,
-            'target': 4,
-            'current': 4,
-        }),
+    SETUP_ROWS = (
+        MappingProxyType(
+            {
+                'username': '@billy_pilgrim',
+                'year': 2022,
+                'target': 5,
+                'current': 6,
+            }
+        ),
+        MappingProxyType(
+            {
+                'username': '@billy_pilgrim',
+                'year': 2023,
+                'target': 7,
+                'current': 0,
+            }
+        ),
+        MappingProxyType(
+            {
+                'username': '@kilgore_trout',
+                'year': 2022,
+                'target': 4,
+                'current': 4,
+            }
+        ),
     )
 
     TABLENAME = YearlyReadingGoals.TABLENAME
