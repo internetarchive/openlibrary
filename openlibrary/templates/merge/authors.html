@@ -79,7 +79,7 @@ $if can_merge:
                             <span class="metaDate">$a.date</span>
                         $if a.remote_ids:
                             <div>
-                            $ configured_ids = get_author_config()['identifiers']
+                            $ configured_ids = get_identifier_config('author')['identifiers']
                             $for id in configured_ids:
                                 $if id.name in a.remote_ids:
                                     $ href = id.url.replace('@@@', a.remote_ids[id.name])

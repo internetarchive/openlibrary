@@ -79,7 +79,7 @@ import Bookshelf from './Bookshelf.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
-import Vue from 'vue';
+import { nextTick } from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
 import CONFIGS from '../../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
@@ -143,7 +143,7 @@ export default {
         async classification(newVal) {
             this.activeRoom = newVal.root;
             this.breadcrumbs = [];
-            await Vue.nextTick();
+            await nextTick();
             this.updateWidths();
             this.updateActiveShelfOnScroll();
         }
@@ -191,7 +191,7 @@ export default {
             });
         }
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
     },
 
@@ -222,7 +222,7 @@ export default {
             const nodeToScrollTo = shelf?.position === 'root' ? shelf :
                 shelf?.children && shelf?.position ? shelf.children[shelf.position]
                     : (shelf || bookshelf);
-            await Vue.nextTick();
+            await nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
 
@@ -230,7 +230,7 @@ export default {
             const nodeToScrollTo = this.activeRoom;
             this.activeRoom = this.breadcrumbs[index];
             this.breadcrumbs.splice(index, this.breadcrumbs.length - index);
-            await Vue.nextTick();
+            await nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
 

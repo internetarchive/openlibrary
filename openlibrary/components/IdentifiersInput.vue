@@ -28,16 +28,16 @@
       </th>
     </tr>
       <template v-for="(value, name) in assignedIdentifiers">
-        <tr :key="name" v-if="value && !isEdition">
-          <td>{{ identifierConfigsByKey[name].label }}</td>
+        <tr :key="name" v-if="value && !saveIdentifiersAsList">
+          <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
           <td>{{ value }}</td>
           <td>
             <button class="form-control" @click="removeIdentifier(name)">Remove</button>
           </td>
         </tr>
-        <template v-else-if="value && isEdition">
+        <template v-else-if="value && saveIdentifiersAsList">
           <tr v-for="(item, idx) in value" :key="name + idx">
-            <td>{{ identifierConfigsByKey[name].label }}</td>
+            <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
             <td>{{ item }}</td>
             <td v-if="!isAdmin">
               <button v-if="name !== 'ocaid'" class="form-control" @click="removeIdentifier(name, idx)">Remove</button>
@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { errorDisplay, validateEditionIdentifiers } from './IdentifiersInput/utils/utils.js';
+import { errorDisplay, validateIdentifiers } from './IdentifiersInput/utils/utils.js';
 const identifierPatterns  = {
     wikidata: /^Q[1-9]\d*$/i,
     isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
@@ -76,7 +76,9 @@ export default {
         id_config_string: {
             type: String
         },
-        /** see createHiddenInputs function for usage */
+        /** see createHiddenInputs function for usage
+         * #hiddenEditionIdentifiers, #hiddenWorkIdentifiers
+         */
         output_selector: {
             type: String
         },
@@ -108,20 +110,20 @@ export default {
         return {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
-            assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'}
+            assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
         }
     },
 
     computed: {
         popularEditionConfigs: function() {
-            if (this.isEdition) {
+            if (this.edition_popular) {
                 const popularConfigs = JSON.parse(decodeURIComponent(this.edition_popular));
                 return Object.fromEntries(popularConfigs.map(e => [e.name, e]));
             }
             return {};
         },
         secondaryEditionConfigs: function() {
-            if (this.isEdition) {
+            if (this.secondary_identifiers) {
                 const secondConfigs = JSON.parse(decodeURIComponent(this.secondary_identifiers));
                 return Object.fromEntries(secondConfigs.map(e => [e.name, e]));
             }
@@ -139,6 +141,9 @@ export default {
             return this.admin.toLowerCase() === 'true';
         },
         isEdition() {
+            return this.multiple.toLowerCase() === 'true' && this.edition_popular;
+        },
+        saveIdentifiersAsList() {
             return this.multiple.toLowerCase() === 'true';
         },
         setButtonEnabled: function(){
@@ -154,9 +159,10 @@ export default {
             if (this.selectedIdentifier === 'isni') {
                 this.inputValue = this.inputValue.replace(/\s/g, '')
             }
-            if (this.isEdition) {
-                const existingIds = Object.values(this.assignedIdentifiers).flat();
-                const validEditionId = validateEditionIdentifiers(this.selectedIdentifier, this.inputValue, existingIds);
+            if (this.saveIdentifiersAsList) {
+                // collect id values of matching type, or empty array if none present
+                const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
+                const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
                         this.inputValue = [this.inputValue];
@@ -169,21 +175,20 @@ export default {
                     return;
                 }
             } else if (this.assignedIdentifiers[this.selectedIdentifier]) {
-                errorDisplay(`An author identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`)
+                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector)
                 return;
-            } else { errorDisplay() }
-            // We use $set otherwise we wouldn't get the reactivity desired
-            // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
+            } else { errorDisplay('', this.output_selector) }
+
+            this.assignedIdentifiers[this.selectedIdentifier] = this.inputValue;
             this.inputValue = '';
             this.selectedIdentifier = '';
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
-        removeIdentifier: function(identifierName, idx = 0){
-            if (this.isEdition) {
+        removeIdentifier: function(identifierName, idx = 0) {
+            if (this.saveIdentifiersAsList) {
                 this.assignedIdentifiers[identifierName].splice(idx, 1);
             } else {
-                this.$set(this.assignedIdentifiers, identifierName, '');
+                this.assignedIdentifiers[identifierName] = '';
             }
         },
         createHiddenInputs: function(){
@@ -193,7 +198,8 @@ export default {
               * So for now this just drops the hidden inputs into the the parent form anytime there is a change
               */
             let html = '';
-            if (this.isEdition) {
+            // should save a list of ids for work + edition identifiers
+            if (this.saveIdentifiersAsList) {
                 let num = 0;
                 for (const [key, value] of Object.entries(this.assignedIdentifiers)) {
                     for (const idx in value) {
@@ -226,7 +232,11 @@ export default {
     },
     created: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
-        if (this.isEdition) {
+        if (this.assignedIdentifiers.length === 0) {
+            this.assignedIdentifiers = {}
+            return;
+        }
+        if (this.saveIdentifiersAsList) {
             const edition_identifiers = {};
             this.assignedIdentifiers.forEach(entry => {
                 if (!edition_identifiers[entry.name]) {

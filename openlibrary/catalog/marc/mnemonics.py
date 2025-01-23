@@ -698,15 +698,15 @@ mapping = {
 
 def load_table(filename):
     mapping = {}
-    for line in (i.split(',') for i in open(filename) if i.startswith('{')):
-        key = line[0]
-        value = ''
-        for d in line[2].strip().split(" "):
-            assert len(d) == 4
-            assert d[3] == 'd'
-            value += chr(int(d[0:3]))
-
-        mapping[key] = value
+    with open(filename) as file:
+        for line in (i.split(',') for i in file if i.startswith('{')):
+            key = line[0]
+            value = ''
+            for d in line[2].strip().split(" "):
+                assert len(d) == 4
+                assert d[3] == 'd'
+                value += chr(int(d[0:3]))
+            mapping[key] = value
     return mapping
 
 

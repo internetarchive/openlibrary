@@ -19,32 +19,6 @@ The script does a case-insensitive search for a `closes #` statement in the newl
 The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label that is found on the issue is added to the PR.
 If a lead is assigned to the issue, and the lead is not also the PR's author, the lead will be assigned to the PR.  Similar to the priority labels, only one lead can be assigned to a PR.
 
-## `stale_assignee_digest.mjs`
-
-This script fetches all open issues that have assignees and adds the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review%20Assignee label to all that have met the following criteria:
-- Assignee has been assigned for more than a given number of days and has not created and linked a pull request to the issue.
-- Assignee's GitHub username does not appear on the exclude list.
-
-This script skips over issues that have the https://github.com/internetarchive/openlibrary/labels/no-automation label.
-
-This script takes two options:
-- `--daysSince` Integer that defines the number of days until an assignee is stale.  Defaults to `14`.
-- `--repoOwner` String that defines the specific `openlibrary` repository.  Defaults to `internetarchive`.
-
-> [!IMPORTANT]
-> Include a space between an option and its value when calling this script.
-
-__Correct:__
-`node stale_assignee_digest.mjs --daysSince 21`
-
-__Incorrect:__
-`node stale_assignee_digest.mjs --daysSince=21`
-
-The GitHub action that runs this script automatically sets `--repoOwner` to the owner of the repository that triggered the action.  The action itself will
-only run if the repository owner is `internetarchive` (it will not run on forks).
-
-To quickly see a script's purpose and arguments, run the script with the `-h` or `--help` flag.
-
 ## `issue_comment_bot.py`
 
 This script fetches issues that have new comments from contributors within the past number of hours, then posts a message to the team in our Slack channel.

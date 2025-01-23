@@ -45,6 +45,8 @@ class HashIP:
         # Catching file-locking errors makes testing easier.
         try:
             self.real_ips = dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c")
+            # the connection is handled manually to be able to resync. The context manager interfiere with this.
+            # TODO: add "noqa: SIM115" next to the database open line before close the issue.
         except dbm.ndbm.error as e:
             if "Resource temporarily unavailable" in str(e):
                 pass

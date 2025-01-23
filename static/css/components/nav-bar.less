@@ -40,7 +40,7 @@
 
 .nav-bar-wrapper {
   display: flex;
-  align-items: baseline;
+  align-items: stretch;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 10px;
@@ -53,13 +53,18 @@
     top: 50px;
     margin-left: -20px;
     margin-right: -20px;
-    padding: 8px 20px 0;
   }
 
   .nav-arrow {
-    padding-left: 20px;
-    background: none;
     border: none;
+    position: absolute;
+    padding: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: @z-index-level-14;
+    width: 44px;
+    background: linear-gradient(to right, transparent, @white 10px);
 
     img {
       max-width: unset !important;
@@ -70,9 +75,10 @@
   }
 
   .nav-bar.work-menu {
-    padding: 0;
+    padding: 8px 20px 0;
     background: @white;
     z-index: @z-index-level-5;
+    scrollbar-width: thin;
 
     /* stylelint-disable selector-max-specificity */
     li {
@@ -85,6 +91,9 @@
     li a {
       padding: 4px 15px;
       vertical-align: text-top;
+    }
+    li:last-child {
+      margin-right: 44px;
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -124,6 +133,11 @@
     margin-right: 0;
     padding-left: 0;
     width: 100%;
+
+    > .nav-bar {
+      padding: 0;
+      padding-top: 8px;
+    }
 
     &.nav-bar-wrapper--slidedown {
       animation-duration: .15s;
