@@ -29,7 +29,7 @@ class ReadableUrlProcessor:
     The changequery function is also customized to support this.
     """
 
-    patterns: tuple[tuple[str, str, str, str], ...] = (
+    patterns = (
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),

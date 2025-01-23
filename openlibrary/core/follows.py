@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PubSub:
     TABLENAME = "follows"
-    PRIMARY_KEY: tuple[str, ...] = ("subscriber", "publisher")
+    PRIMARY_KEY = ("subscriber", "publisher")
 
     @classmethod
     def subscribe(cls, subscriber, publisher):

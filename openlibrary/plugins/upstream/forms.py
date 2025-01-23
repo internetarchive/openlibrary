@@ -77,7 +77,7 @@ class EqualToValidator(Validator):
 
 
 class RegisterForm(Form):
-    INPUTS: tuple = (
+    INPUTS = (
         Email(
             'email',
             description=_('Email'),
