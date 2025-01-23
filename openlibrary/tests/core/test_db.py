@@ -1,4 +1,5 @@
-from typing import ClassVar
+from collections.abc import Mapping
+from typing import classVar
 
 import web
 
@@ -158,7 +159,7 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-    READING_LOG_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    READING_LOG_SETUP_ROWS: classVar[tuple[Mapping[str,str|int], ...]]= (
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -177,16 +178,16 @@ class TestUsernameUpdate:
             "edition_id": 1,
             "bookshelf_id": 2,
         },
-    ]
-    BOOKNOTES_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    )
+    BOOKNOTES_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"},
         {"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "notes": "World"},
-    ]
-    RATINGS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    )
+    RATINGS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4},
         {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2},
-    ]
-    OBSERVATIONS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    )
+    OBSERVATIONS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
         {
             "username": "@kilgore_trout",
             "work_id": 1,
@@ -201,31 +202,32 @@ class TestUsernameUpdate:
             "observation_type": 4,
             "observation_value": 1,
         },
-    ]
+    )
 
-    EDITS_QUEUE_SETUP_ROWS: ClassVar[list[dict[str, str | int| None]]] = [
-        {
-            "title": "One Fish, Two Fish, Red Fish, Blue Fish",
-            "submitter": "@kilgore_trout",
-            "reviewer": None,
-            "url": "/works/merge?records=OL1W,OL2W,OL3W",
-            "status": 1,
-        },
-        {
-            "title": "The Lorax",
-            "submitter": "@kilgore_trout",
-            "reviewer": "@billy_pilgrim",
-            "url": "/works/merge?records=OL4W,OL5W,OL6W",
-            "status": 2,
-        },
-        {
-            "title": "Green Eggs and Ham",
-            "submitter": "@eliot_rosewater",
-            "reviewer": None,
-            "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
-            "status": 1,
-        },
-    ]
+    def get_editd_queue_setup_rows(cls) -> list[Mapping[str,str|int|None]]:
+        return [
+            {
+                "title": "One Fish, Two Fish, Red Fish, Blue Fish",
+                "submitter": "@kilgore_trout",
+                "reviewer": None,
+                "url": "/works/merge?records=OL1W,OL2W,OL3W",
+                "status": 1,
+            },
+            {
+                "title": "The Lorax",
+                "submitter": "@kilgore_trout",
+                "reviewer": "@billy_pilgrim",
+                "url": "/works/merge?records=OL4W,OL5W,OL6W",
+                "status": 2,
+            },
+            {
+                "title": "Green Eggs and Ham",
+                "submitter": "@eliot_rosewater",
+                "reviewer": None,
+                "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
+                "status": 1,
+            },
+        ]
 
     @classmethod
     def setup_class(cls):
@@ -310,7 +312,7 @@ class TestUsernameUpdate:
 
 
 class TestCheckIns:
-    BOOKSHELVES_EVENTS_SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    BOOKSHELVES_EVENTS_SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
         {
             "id": 1,
             "username": "@kilgore_trout",
@@ -359,7 +361,7 @@ class TestCheckIns:
             "event_type": 3,
             "event_date": "2019-10",
         },
-    ]
+    )
 
     @classmethod
     def setup_class(cls):
@@ -483,7 +485,7 @@ class TestCheckIns:
 
 
 class TestYearlyReadingGoals:
-    SETUP_ROWS: ClassVar[list[dict[str, str | int]]] = [
+    SETUP_ROWS : classVar[tuple[Mapping[str,str|int], ...]]= (
         {
             'username': '@billy_pilgrim',
             'year': 2022,
@@ -502,7 +504,7 @@ class TestYearlyReadingGoals:
             'target': 4,
             'current': 4,
         },
-    ]
+    )
 
     TABLENAME = YearlyReadingGoals.TABLENAME
 
