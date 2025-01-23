@@ -15,31 +15,28 @@
   "authors": [
     {
       "alternate_names": [
-        "林屋 辰三郎"
+        "Hayashiya, Tatsusaburō"
       ],
       "birth_date": "1914",
       "death_date": "1998",
-      "name": "Hayashiya, Tatsusaburō",
-      "entity_type": "person",
-      "personal_name": "Hayashiya, Tatsusaburō"
+      "name": "林屋 辰三郎",
+      "entity_type": "person"
     },
     {
       "alternate_names": [
-        "横井 清."
+          "Yokoi, Kiyoshi"
       ],
-      "name": "Yokoi, Kiyoshi",
-      "entity_type": "person",
-      "personal_name": "Yokoi, Kiyoshi"
+      "name": "横井 清.",
+      "entity_type": "person"
     },
     {
       "alternate_names": [
-        "楢林 忠男"
+        "Narabayashi, Tadao"
       ],
       "birth_date": "1940",
       "death_date": "1960",
-      "name": "Narabayashi, Tadao",
-      "entity_type": "person",
-      "personal_name": "Narabayashi, Tadao"
+      "name": "楢林 忠男",
+      "entity_type": "person"
     }
   ],
   "subjects": [
