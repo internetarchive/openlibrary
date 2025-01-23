@@ -1,8 +1,7 @@
-from typing import ClassVar
-
 """utility to generate db schema for any database engine.
 (should go to web.py)
 """
+from types import MappingProxyType
 
 __all__ = [
     "Column",
@@ -96,7 +95,7 @@ class MockAdapter(AbstractAdapter):
 
 
 class MySQLAdapter(AbstractAdapter):
-    native_types: ClassVar[dict[str, str]] = {
+    native_types = MappingProxyType({
         'serial': 'int auto_increment not null',
         'integer': 'int',
         'float': 'float',
@@ -108,22 +107,22 @@ class MySQLAdapter(AbstractAdapter):
         'date': 'date',
         'binary': 'blob',
         'boolean': 'boolean',
-    }
-    constants: ClassVar[dict[str, str]] = {
+    })
+    constants = MappingProxyType({
         'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
         'CURRENT_DATE': 'CURRENT_DATE',
         'CURRENT_TIME': 'CURRENT_TIME',
         'CURRENT_UTC_TIMESTAMP': 'UTC_TIMESTAMP',
         'CURRENT_UTC_DATE': 'UTC_DATE',
         'CURRENT_UTC_TIME': 'UTC_TIME',
-    }
+    })
 
     def references_to_sql(self, column_name, value):
         return {'constraint': f'foreign key ({column_name}) references {value}'}
 
 
 class PostgresAdapter(AbstractAdapter):
-    native_types: ClassVar[dict[str, str]] = {
+    native_types =MappingProxyType({
         'serial': 'serial',
         'integer': 'int',
         'float': 'float',
@@ -135,22 +134,22 @@ class PostgresAdapter(AbstractAdapter):
         'date': 'date',
         'binary': 'bytea',
         'boolean': 'boolean',
-    }
-    constants: ClassVar[dict[str, str]] = {
+    })
+    constants = MappingProxyType({
         'CURRENT_TIMESTAMP': 'current_timestamp',
         'CURRENT_DATE': 'current_date',
         'CURRENT_TIME': 'current_time',
         'CURRENT_UTC_TIMESTAMP': "(current_timestamp at time zone 'utc')",
         'CURRENT_UTC_DATE': "(date (current_timestamp at timezone 'utc'))",
         'CURRENT_UTC_TIME': "(current_time at time zone 'utc')",
-    }
+    })
 
     def references_to_sql(self, column_name, value):
         return 'references ' + value
 
 
 class SQLiteAdapter(AbstractAdapter):
-    native_types: ClassVar[dict[str, str]] = {
+    native_types = MappingProxyType({
         'serial': 'integer autoincrement',
         'integer': 'integer',
         'float': 'float',
@@ -162,15 +161,15 @@ class SQLiteAdapter(AbstractAdapter):
         'date': 'date',
         'binary': 'blob',
         'boolean': 'boolean',
-    }
-    constants: ClassVar[dict[str, str]] = {
+    })
+    constants = MappingProxyType({
         'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
         'CURRENT_DATE': "CURRENT_DATE",
         'CURRENT_TIME': "CURRENT_TIME",
         'CURRENT_UTC_TIMESTAMP': "CURRENT_TIMESTAMP",
         'CURRENT_UTC_DATE': "CURRENT_DATE",
         'CURRENT_UTC_TIME': "CURRENT_TIME",
-    }
+    })
 
 
 register_adapter('mysql', MySQLAdapter)
