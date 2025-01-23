@@ -204,7 +204,7 @@ class TestUsernameUpdate:
         },
     )
 
-    def get_editd_queue_setup_rows(cls) -> list[Mapping[str,str|int|None]]:
+    def get_edits_queue_setup_rows(cls) -> list[Mapping[str,str|int|None]]:
         return [
             {
                 "title": "One Fish, Two Fish, Red Fish, Blue Fish",
