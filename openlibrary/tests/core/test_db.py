@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import CharVar
+from typing import ClassVar
 
 import web
 
