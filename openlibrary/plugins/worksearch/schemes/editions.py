@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Mapping, Set
+from typing import Mapping, Set, ClassVar
 from types import MappingProxyType
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -13,8 +13,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 # sort logic).
 class EditionSearchScheme(SearchScheme):
     # Keep instance variables without overriding with ClassVar
-    universe = ('type:work')
-    all_fields = frozenset(
+    universe = frozenset(['type:work'])
+    all_fields = frozenset([
         "key",
         "title",
         "subtitle",
@@ -32,9 +32,9 @@ class EditionSearchScheme(SearchScheme):
         "publish_year",
         "language",
         "publisher_facet",
-    )
-    facet_fields: set[str] = frozenset()
-    field_name_map: Mapping[str, str]  = MappingProxyType({
+    ])
+    facet_fields: ClassVar[set[str]] = frozenset()
+    field_name_map: ClassVar[dict[str, str]] = dict(MappingProxyType({
         'publishers': 'publisher',
         'subtitle': 'alternative_subtitle',
         'title': 'alternative_title',
@@ -42,8 +42,8 @@ class EditionSearchScheme(SearchScheme):
         # This is private because we'll change it to a multi-valued field instead of a
         # plain string at the next opportunity, which will make it much more usable.
         '_ia_collection': 'ia_collection_s',
-    })
-    sorts : Mapping[str, str] = MappingProxyType({
+    }))
+    sorts:ClassVar[dict[str, str]] = dict(MappingProxyType({
         'old': 'def(publish_year, 9999) asc',
         'new': 'publish_year desc',
         'title': 'title_sort asc',
@@ -61,9 +61,9 @@ class EditionSearchScheme(SearchScheme):
         'random desc': 'random_1 desc',
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-    })
-    default_fetched_fields: set[str] = frozenset()
-    facet_rewrites:Mapping[tuple[str, str], str] = MappingProxyType({}) 
+    }))
+    default_fetched_fields: ClassVar[frozenset]= frozenset()
+    facet_rewrites: ClassVar[dict[tuple[str, str], str]]= {} 
 
     def is_search_field(self, field: str):
         return super().is_search_field(field) or field.startswith('id_')
