@@ -16,19 +16,22 @@
   "publish_country": "fr",
   "authors": [
     {
-      "name": "Yehudai ben Na\u1e25man gaon",
+      "name": "Yehudai ben Naḥman gaon",
       "title": "gaon",
-      "personal_name": "Yehudai ben Na\u1e25man",
-      "role": "supposed author",
+      "personal_name": "Yehudai ben Naḥman",
+      "role": "supposed author.",
       "date": "8th century",
       "entity_type": "person"
+    },
+    {
+      "name": "Schlosberg, Leon",
+      "date": "d. 1899",
+      "entity_type": "person",
+      "role": "ed."
     }
   ],
   "publish_places": [
     "Versailles"
-  ],
-  "contributions": [
-    "Schlosberg, Leon, d. 1899, ed"
   ],
   "subjects": [
     "Jewish law"

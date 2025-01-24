@@ -56,6 +56,8 @@ if TYPE_CHECKING:
 STRIP_CHARS = ",'\" "
 REPLACE_CHARS = "]["
 
+logger = logging.getLogger('openlibrary')
+
 
 class LanguageMultipleMatchError(Exception):
     """Exception raised when more than one possible language match is found."""
@@ -201,11 +203,21 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ''
+    included = web.ctx.setdefault("included-components", [])
 
-    if name not in (included := web.ctx.setdefault("included-components", [])):
+    if not included:
+        # Support for legacy browsers (see vite.config.mjs)
+        polyfills_url = static_url('build/components/production/ol-polyfills-legacy.js')
+        html += f'<script nomodule src="{polyfills_url}" defer></script>'
+
+    if name not in included:
         url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
-        html += f'<script {script_attrs} src="{url}"></script>'
+        html += f'<script type="module" {script_attrs} src="{url}"></script>'
+
+        legacy_url = static_url('build/components/production/ol-%s-legacy.js' % name)
+        html += f'<script nomodule src="{legacy_url}" defer></script>'
+
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
@@ -1613,6 +1625,28 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
+
+
+def setup_requests(config=config) -> None:
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = config.get('http_proxy')
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = config.get('http_proxy')
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
 
 
 def setup() -> None:
