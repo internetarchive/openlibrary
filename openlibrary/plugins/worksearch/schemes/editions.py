@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from typing import Mapping, Set
+from types import MappingProxyType
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
@@ -10,8 +12,9 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe = ['type:work']
-    all_fields = {
+    # Keep instance variables without overriding with ClassVar
+    universe = ('type:work')
+    all_fields = frozenset(
         "key",
         "title",
         "subtitle",
@@ -29,9 +32,9 @@ class EditionSearchScheme(SearchScheme):
         "publish_year",
         "language",
         "publisher_facet",
-    }
-    facet_fields: set[str] = set()
-    field_name_map = {
+    )
+    facet_fields: set[str] = frozenset()
+    field_name_map: Mapping[str, str]  = MappingProxyType({
         'publishers': 'publisher',
         'subtitle': 'alternative_subtitle',
         'title': 'alternative_title',
@@ -39,8 +42,8 @@ class EditionSearchScheme(SearchScheme):
         # This is private because we'll change it to a multi-valued field instead of a
         # plain string at the next opportunity, which will make it much more usable.
         '_ia_collection': 'ia_collection_s',
-    }
-    sorts = {
+    })
+    sorts : Mapping[str, str] = MappingProxyType({
         'old': 'def(publish_year, 9999) asc',
         'new': 'publish_year desc',
         'title': 'title_sort asc',
@@ -58,9 +61,9 @@ class EditionSearchScheme(SearchScheme):
         'random desc': 'random_1 desc',
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-    }
-    default_fetched_fields: set[str] = set()
-    facet_rewrites = {}
+    })
+    default_fetched_fields: set[str] = frozenset()
+    facet_rewrites:Mapping[tuple[str, str], str] = MappingProxyType({}) 
 
     def is_search_field(self, field: str):
         return super().is_search_field(field) or field.startswith('id_')
