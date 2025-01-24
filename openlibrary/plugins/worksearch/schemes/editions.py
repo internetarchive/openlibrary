@@ -73,7 +73,7 @@ class EditionSearchScheme(SearchScheme):
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }))
     default_fetched_fields: ClassVar[frozenset]= frozenset()
-    facet_rewrites: ClassVar[dict[tuple[str, str], str]]= {} 
+    facet_rewrites: ClassVar[dict[tuple[str, str], str]]= {}
 =======
     )
     facet_fields: set[str] = frozenset()
