@@ -689,9 +689,9 @@ class InternetArchiveAccount(web.storage):
                 return ia_account
 
             elif 'screenname' not in response.get('values', {}):
-                err = OLAuthenticationError('undefined_error')
-                err.response = response
-                raise err
+                error = OLAuthenticationError('undefined_error')
+                error.response = response
+                raise error
 
             elif attempt >= retries:
                 e = OLAuthenticationError('username_registered')

@@ -328,8 +328,8 @@ class account_create(delegate.page):
                 from openlibrary.plugins.openlibrary.sentry import sentry
 
                 if sentry.enabled:
-                    extra = ('response', e.response) if hasattr(e, 'response') else None
-                    sentry.capture_exception(e, extra=extra)
+                    extra = {'response': e.response} if hasattr(e, 'response') else None
+                    sentry.capture_exception(e, extras=extra)
 
         return render['account/create'](f)
 
