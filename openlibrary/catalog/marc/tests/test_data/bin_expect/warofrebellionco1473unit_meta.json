@@ -21,26 +21,69 @@
   "publish_country": "dcu",
   "authors": [
     {
-      "name": "United States. War Dept.",
-      "entity_type": "org"
+      "birth_date": "1838",
+      "death_date": "1887",
+      "name": "Scott, Robert N.",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1832",
+      "name": "Lazelle, Henry Martyn",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1847",
+      "death_date": "1914",
+      "name": "Davis, George B.",
+      "entity_type": "person"
+    },
+    {
+      "name": "Perry, Leslie J.",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1841",
+      "death_date": "1912",
+      "name": "Kirkley, Joseph W.",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1852",
+      "death_date": "1834",
+      "name": "Ainsworth, Frederick Crayton",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1842",
+      "name": "Moodey, John Sheldon",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1849",
+      "name": "Cowles, Calvin D.",
+      "entity_type": "person",
+      "role": "comp."
+    },
+    {
+      "entity_type": "org",
+      "name": "United States. War Dept."
+    },
+    {
+      "entity_type": "org",
+      "name": "United States. War Records Office"
+    },
+    {
+      "entity_type": "org",
+      "name": "United States. Record and Pension Office"
+    },
+    {
+      "entity_type": "org",
+      "name": "United States. Congress. House"
     }
   ],
   "by_statement": "prepared under the direction of the Secretary of War",
   "publish_places": [
     "Washington"
-  ],
-  "contributions": [
-    "Scott, Robert N. (Robert Nicholson), 1838-1887",
-    "Lazelle, Henry Martyn, 1832-",
-    "Davis, George B. (George Breckenridge), 1847-1914",
-    "Perry, Leslie J.",
-    "Kirkley, Joseph W. (Joseph William), 1841-1912",
-    "Ainsworth, Frederick Crayton, 1852-1834",
-    "Moodey, John Sheldon, 1842-",
-    "Cowles, Calvin D. (Calvin Duvall), 1849- comp",
-    "United States. War Records Office",
-    "United States. Record and Pension Office",
-    "United States. Congress. House"
   ],
   "subjects": ["Sources", "Regimental histories", "History"],
   "subject_places": ["United States", "Confederate States of America"],

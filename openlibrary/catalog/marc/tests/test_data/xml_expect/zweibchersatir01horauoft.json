@@ -6,32 +6,37 @@
   "table_of_contents": [
     {
       "type": "/type/toc_item",
-      "title": "Vol. 1. Text, \u00dcbersetzung und kritischer Apparat.-  Vol. 2, pt. 1, Commentar zum ersten Buche der Satiren.-  Vol. 2, pt. 2, Commentar zum zweiten Buche der Satiren, verfasst von W.S. Teuffel."
+      "title": "Vol. 1. Text, Übersetzung und kritischer Apparat.-  Vol. 2, pt. 1, Commentar zum ersten Buche der Satiren.-  Vol. 2, pt. 2, Commentar zum zweiten Buche der Satiren, verfasst von W.S. Teuffel."
     }
   ],
-  "title": "Zwei B\u00fccher Satiren",
+  "title": "Zwei Bücher Satiren",
   "work_titles": [
     "Satirae"
   ],
-  "languages": [
-    "ger",
-    "lat"
-  ],
+  "languages": ["ger", "lat"],
   "publish_date": "1854",
   "publish_country": "ge",
   "authors": [
     {
-      "personal_name": "Horace",
       "name": "Horace",
+      "entity_type": "person"
+    },
+    {
+      "name": "Kirchner, Carl Christian Jacob",
+      "birth_date": "1787",
+      "death_date": "1855",
+      "entity_type": "person",
+      "role": "tr. [and] ed."
+    },
+    {
+      "name": "Teuffel, Wilhelm Sigmund",
+      "birth_date": "1820",
+      "death_date": "1878",
       "entity_type": "person"
     }
   ],
-  "by_statement": "aus dreissig unverglichenen und allen bisher verglichenen Handschriften, wie auch s\u00e4mmtlichen bedeutenden Ausgaben kritisch hergestellt, metrisch \u00fcbersetzt, und mit erkl\u00e4rendem Commentar versehen von C. Kirchner",
+  "by_statement": "aus dreissig unverglichenen und allen bisher verglichenen Handschriften, wie auch sämmtlichen bedeutenden Ausgaben kritisch hergestellt, metrisch übersetzt, und mit erklärendem Commentar versehen von C. Kirchner",
   "publish_places": [
     "Leipzig"
-  ],
-  "contributions": [
-    "Kirchner, Carl Christian Jacob, 1787-1855, tr. [and] ed",
-    "Teuffel, Wilhelm Sigmund, 1820-1878"
   ]
 }
