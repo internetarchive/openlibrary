@@ -8,7 +8,7 @@ import web
 from openlibrary.coverstore import config
 from openlibrary.utils import olmemcache
 
-__all__ = ["query", "get"]
+__all__ = ["get", "query"]
 
 
 def is_supported():

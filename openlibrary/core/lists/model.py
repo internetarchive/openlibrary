@@ -161,7 +161,7 @@ class List(Thing):
             "full_url": self.url(),
             "name": self.name or "",
             "seed_count": self.seed_count,
-            "last_update": self.last_update and self.last_update.isoformat() or None,
+            "last_update": (self.last_update and self.last_update.isoformat()) or None,
         }
 
     def get_work_keys(self) -> Iterable[ThingKey]:
@@ -198,7 +198,7 @@ class List(Thing):
         things = cast(
             list[Thing],
             web.ctx.site.get_many(
-                [seed.key for seed in self.seeds if isinstance(seed, Thing)]
+                [seed.key for seed in self.get_seeds() if seed._type != "subject"]
             ),
         )
 
@@ -546,11 +546,10 @@ class Seed:
     def url(self):
         if self.document:
             return self.document.url()
+        elif self.key.startswith("subject:"):
+            return "/subjects/" + web.lstrips(self.key, "subject:")
         else:
-            if self.key.startswith("subject:"):
-                return "/subjects/" + web.lstrips(self.key, "subject:")
-            else:
-                return "/subjects/" + self.key
+            return "/subjects/" + self.key
 
     def get_subject_url(self, subject: SeedSubjectString) -> str:
         if subject.startswith("subject:"):
@@ -585,7 +584,7 @@ class Seed:
             "full_url": full_url,
             "type": self.type,
             "title": self.title,
-            "last_update": self.last_update and self.last_update.isoformat() or None,
+            "last_update": (self.last_update and self.last_update.isoformat()) or None,
         }
         if cover := self.get_cover():
             d['picture'] = {"url": cover.url("S")}

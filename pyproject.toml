@@ -35,6 +35,7 @@ ignore_errors = true
 asyncio_mode = "strict"
 
 [tool.ruff]
+target-version = "py312"
 extend-exclude = [
   "./.*",
   "vendor",
@@ -48,19 +49,11 @@ ignore = [
   "F841",
   "PERF401",
   "PIE790",
-  "PLC1901",
-  "PLR5501",
-  "PLW0602",
   "PLW0603",
   "PLW2901",
-  "PT004",
-  "PT006",
-  "PT021",
-  "RSE102",
   "RUF001",
   "RUF005",
   "RUF012",
-  "RUF100",
   "SIM108",
   "SIM115",
   "SLF001",
@@ -127,7 +120,6 @@ select = [
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops
 ]
-target-version = "py311"
 
 [tool.ruff.mccabe]
 max-complexity = 28

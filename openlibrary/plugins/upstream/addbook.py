@@ -595,8 +595,9 @@ class SaveBookHelper:
                 elif self.work is not None and new_work_key is None:
                     # we're trying to create an orphan; let's not do that
                     edition_data.works = [{'key': self.work.key}]
-
             if self.work is not None:
+                work_identifiers = work_data.pop('identifiers', {})
+                self.work.set_identifiers(work_identifiers)
                 self.work.update(work_data)
                 saveutil.save(self.work)
 
@@ -782,8 +783,8 @@ class SaveBookHelper:
         else:
             work.subtitle = None
 
-        for k in ('excerpts', 'links'):
-            work[k] = work.get(k) or []
+        for k in ['excerpts', 'links', 'identifiers']:
+            work[k] = work.get(k, {})
 
         # ignore empty authors
         work.authors = [
@@ -869,10 +870,8 @@ class book_edit(delegate.page):
             raise web.notfound()
 
         work = (
-            edition.works
-            and edition.works[0]
-            or edition.make_work_from_orphaned_edition()
-        )
+            edition.works and edition.works[0]
+        ) or edition.make_work_from_orphaned_edition()
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 

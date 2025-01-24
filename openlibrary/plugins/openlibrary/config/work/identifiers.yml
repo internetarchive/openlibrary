@@ -1,0 +1,28 @@
+identifiers:
+-   label: BookBrainz
+    name: bookbrainz
+    notes: ''
+    url:  https://bookbrainz.org/work/@@@
+    website:  https://bookbrainz.org
+-   label: Книга Файнфиков
+    name: ficbook
+    notes: ''
+    url: https://ficbook.net/readfic/@@@
+-   label: MusicBrainz
+    name: musicbrainz
+    url: https://musicbrainz.org/artist/@@@
+    website: https://musicbrainz.org
+-   label: MyAnimeList
+    name: myanimelist
+    notes: ''
+    url: https://myanimelist.net/manga/@@@
+-   label: Wikidata
+    name: wikidata
+    notes: ''
+    url: https://www.wikidata.org/wiki/@@@
+    website: https://wikidata.org
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    notes: format is /^\D{2}[A-Z0-3]V\d{6}$/
+    url: https://opac.sbn.it/risultati-autori/-/opac-autori/detail/@@@
+    website: https://opac.sbn.it/

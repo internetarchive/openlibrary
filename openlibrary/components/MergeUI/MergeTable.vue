@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <MergeRow
-        v-for="record in records"
+        v-for="record in enhancedRecords"
         :key="record.key"
         :record="record"
         :fields="fields"
@@ -44,13 +44,10 @@
 <script>
 /* eslint no-console: 0 */
 import _ from 'lodash';
-import Vue from 'vue';
-import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names } from './utils.js';
 import CONFIGS from '../configs.js';
 
-Vue.use(AsyncComputed);
 
 /**
  * @param {string} olid
@@ -111,6 +108,28 @@ export default {
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
+        },
+
+        /** The records, with extra helpful metadata attached for display. Should NOT be saved to Open Library */
+        async enhancedRecords(){
+            if (!this.records) return null;
+
+            let author_names;
+
+            try {
+                author_names = await get_author_names(this.records);
+            } catch (error) {
+                console.error('Error creating enhancedRecords:', error);
+            }
+
+            const enhanced_records = _.cloneDeep(this.records)
+
+            for (const record of enhanced_records) {
+                for (const entry of (record.authors || [])) {
+                    entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+                }
+            }
+            return enhanced_records
         },
 
         async editions() {
@@ -474,6 +493,10 @@ li.excerpt-item {
 }
 
 .field-authors {
+  td.author-author {
+    padding-right: 6px;
+  }
+
   thead, td.author-index, td.author-type {
     display: none;
   }

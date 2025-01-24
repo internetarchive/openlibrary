@@ -43,7 +43,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
         if user.type.key == '/type/delete':
             return True
 
-    email = user and user.get_email() or ""
+    email = (user and user.get_email()) or ""
     if is_spam_email(email):
         return True
 

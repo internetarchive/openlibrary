@@ -146,4 +146,4 @@ def delete(id):
 
 def get_filename(id):
     d = getdb().select('cover', what='filename', where='id=$id', vars=locals())
-    return d and d[0].filename or None
+    return (d and d[0].filename) or None

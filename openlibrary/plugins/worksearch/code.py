@@ -388,6 +388,7 @@ def get_doc(doc: SolrDocument):
         cover_edition_key=doc.get('cover_edition_key', None),
         languages=doc.get('language', []),
         id_project_gutenberg=doc.get('id_project_gutenberg', []),
+        id_project_runeberg=doc.get('id_project_runeberg', []),
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
@@ -856,7 +857,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '*').split(',')
+        fields = WorkSearchScheme.default_fetched_fields
+        if _fields := query.pop('fields', ''):
+            fields = _fields.split(',')
+
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -877,9 +881,13 @@ class search_json(delegate.page):
             facet=False,
             spellcheck_count=spellcheck_count,
         )
+        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+        # force all other params to appear before `docs` in json
+        docs = response['docs']
+        del response['docs']
+        response['docs'] = docs
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 

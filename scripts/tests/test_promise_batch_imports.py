@@ -4,7 +4,7 @@ from ..promise_batch_imports import format_date
 
 
 @pytest.mark.parametrize(
-    "date, only_year, expected",
+    ("date", "only_year", "expected"),
     [
         ("20001020", False, "2000-10-20"),
         ("20000101", True, "2000"),

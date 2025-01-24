@@ -1,8 +1,8 @@
 # Translations template for Open Library.
-# Copyright (C) 2024 Internet Archive
+# Copyright (C) 2025 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
 #, fuzzy
 msgid ""
@@ -92,6 +92,10 @@ msgstr ""
 
 #: batch_import.html
 msgid "Batch Imports"
+msgstr ""
+
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
 msgstr ""
 
 #: batch_import.html
@@ -337,6 +341,10 @@ msgid "by Anonymous"
 msgstr ""
 
 #: diff.html
+msgid "history"
+msgstr ""
+
+#: diff.html
 msgid "Differences"
 msgstr ""
 
@@ -554,6 +562,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
@@ -706,7 +715,11 @@ msgid "Name"
 msgstr ""
 
 #: subjects.html
-msgid "Edit Subject Tag"
+msgid "Edit tag for this subject"
+msgstr ""
+
+#: subjects.html
+msgid "Create tag for this subject"
 msgstr ""
 
 #: subjects.html
@@ -723,6 +736,10 @@ msgstr[1] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
+msgstr ""
+
+#: subjects.html
+msgid "Disambiguations"
 msgstr ""
 
 #: support.html
@@ -786,7 +803,7 @@ msgstr ""
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
+#: my_books/dropdown_content.html support.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -844,6 +861,7 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html books/works-show.html trending.html
@@ -937,7 +955,11 @@ msgstr ""
 
 #: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgid "No <strong>%(path_id)s</strong> directly matched your search."
+msgstr ""
+
+#: work_search.html
+msgid "Add a new book?"
 msgstr ""
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
@@ -1495,7 +1517,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Public accounts can be seen and followed by others."
+"or have already read. Patrons with reading logs set to public may be "
+"followed."
 msgstr ""
 
 #: account/privacy.html admin/people/view.html
@@ -1987,7 +2010,7 @@ msgid "Imports"
 msgstr ""
 
 #: admin/imports-add.html books/add.html books/edit/edition.html
-#: books/edit/excerpts.html covers/change.html tag/add.html
+#: books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -2680,10 +2703,6 @@ msgid "block this account"
 msgstr ""
 
 #: admin/people/view.html
-msgid "send password reset email"
-msgstr ""
-
-#: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
 msgstr ""
@@ -2853,6 +2872,7 @@ msgstr ""
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -2883,6 +2903,7 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
+#: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: book_providers/wikisource_read_button.html
 msgid "Learn more"
@@ -2904,6 +2925,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr ""
@@ -3029,6 +3051,57 @@ msgid ""
 "book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
 "to providing free high-quality, peer-reviewed, openly licensed textbooks "
 "online."
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid "Read eBook from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_read_button.html
+msgid ""
+"This book is available from <a href=\"https://runeberg.org/\">Project "
+"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
+"Nordic (Scandinavian) literature in electronic form."
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html
@@ -3165,7 +3238,7 @@ msgstr ""
 msgid "Add a book to Open Library"
 msgstr ""
 
-#: books/add.html tag/add.html
+#: books/add.html
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
@@ -3263,7 +3336,7 @@ msgstr ""
 msgid "Only fill this out if this is a web book"
 msgstr ""
 
-#: EditButtons.html books/add.html tag/add.html
+#: EditButtons.html books/add.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -3530,6 +3603,21 @@ msgstr ""
 
 #: books/edit.html type/about/edit.html type/author/edit.html
 msgid "Links"
+msgstr ""
+
+#: books/edit.html type/edition/view.html type/work/view.html
+msgid "Work Identifiers"
+msgstr ""
+
+#: books/edit.html
+msgid "Do you know any identifiers for this work?"
+msgstr ""
+
+#: books/edit.html
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
 msgstr ""
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
@@ -3887,8 +3975,7 @@ msgstr ""
 msgid "Invalid ID format"
 msgstr ""
 
-#: books/edit/edition.html type/author/view.html type/edition/view.html
-#: type/work/view.html
+#: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr ""
 
@@ -5003,11 +5090,11 @@ msgid "Help Center"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Problems"
+msgid "Contact"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Report A Problem"
+msgid "Contact Us"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -5646,10 +5733,6 @@ msgid "Community Reviews"
 msgstr ""
 
 #: observations/review_component.html
-msgid "Feedback?"
-msgstr ""
-
-#: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
 msgstr ""
 
@@ -6249,18 +6332,6 @@ msgstr ""
 msgid "OpenAPI"
 msgstr ""
 
-#: tag/add.html
-msgid "Add a tag"
-msgstr ""
-
-#: tag/add.html
-msgid "Add a tag to Open Library"
-msgstr ""
-
-#: tag/add.html
-msgid "Add this tag now"
-msgstr ""
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
@@ -6440,10 +6511,6 @@ msgstr ""
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
-msgstr ""
-
 #: type/author/view.html
 msgid "No links yet."
 msgstr ""
@@ -6507,6 +6574,13 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid ""
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6611,6 +6685,10 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Edition Identifiers"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr ""
 
@@ -6638,6 +6716,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6890,8 +6972,24 @@ msgstr ""
 msgid "Writers"
 msgstr ""
 
-#: type/tag/edit.html
-msgid "Edit Tag"
+#: type/tag/form.html
+msgid "Edit tag"
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add a tag"
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add a tag to Open Library"
+msgstr ""
+
+#: type/tag/form.html
+msgid "We require a minimum set of fields to create a new collection tag."
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add this tag now"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
@@ -6903,7 +7001,24 @@ msgid "Tag Description"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
+msgid "Page Body"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
 msgid "Tag type"
+msgstr ""
+
+#: type/tag/view.html
+#, python-format
+msgid "<strong>Type:</strong> %(tag_type)s"
+msgstr ""
+
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: type/tag/view.html
+msgid "Tag Body"
 msgstr ""
 
 #: type/tag/view.html
@@ -6954,10 +7069,6 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
-
-#: type/user/edit.html
-msgid "Description"
 msgstr ""
 
 #: type/user/view.html
@@ -7081,6 +7192,10 @@ msgstr ""
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
 msgstr ""
 
 #: BookByline.html
@@ -7705,6 +7820,12 @@ msgstr ""
 
 #: account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
+msgstr ""
+
+#: account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
 msgstr ""
 
 #: account.py

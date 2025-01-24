@@ -247,7 +247,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
-                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    $if page_type=="works":
+                      $:_("This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    $else:
+                      $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#edition/description")
                 </p>
             </div>
         </div>
@@ -435,7 +438,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
 
           <div class="section">
-            <h3>$_("ID Numbers")</h3>
+            <h3>$_("Edition Identifiers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $ no_index = edition.get_ia_meta_fields().get('noindex', False)
@@ -447,6 +450,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
+            </dl>
+            <h3>$_("Work Identifiers")</h3>
+            <dl class="meta">
+                $:display_identifiers("Work ID", [storage(url=None, value=work.key.split("/")[-1])])
+                $for name, values in work.get_identifiers().multi_items():
+                    $ identifier_label = values[0].label
+                    $:display_identifiers(identifier_label, values)
             </dl>
           </div>
 	  $ source_records = edition.get('source_records')

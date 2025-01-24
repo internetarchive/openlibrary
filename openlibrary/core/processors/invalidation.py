@@ -90,7 +90,7 @@ class InvalidationProcessor:
 
         cookie_time = self.get_cookie_time()
 
-        if self.is_timeout() or cookie_time and cookie_time > self.last_poll_time:
+        if self.is_timeout() or (cookie_time and cookie_time > self.last_poll_time):
             self.reload()
 
         # last update in recent timeout seconds?

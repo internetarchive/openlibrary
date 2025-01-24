@@ -421,7 +421,8 @@ def mock_site(request):
 
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
+            with open(path) as file:
+                text = file.read()
             doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc
@@ -446,10 +447,7 @@ def mock_site(request):
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
 
-    def undo():
-        web.ctx.clear()
-        web.ctx.update(old_ctx)
+    yield site
 
-    request.addfinalizer(undo)
-
-    return site
+    web.ctx.clear()
+    web.ctx.update(old_ctx)

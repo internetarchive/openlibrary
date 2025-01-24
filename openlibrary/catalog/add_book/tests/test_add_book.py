@@ -7,6 +7,7 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
+    ALLOWED_COVER_HOSTS,
     IndependentlyPublished,
     PublicationYearTooOld,
     PublishedInFutureYear,
@@ -19,6 +20,7 @@ from openlibrary.catalog.add_book import (
     load,
     load_data,
     normalize_import_record,
+    process_cover_url,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -94,7 +96,7 @@ bookseller_titles = [
 ]
 
 
-@pytest.mark.parametrize('full_title,title,subtitle', bookseller_titles)
+@pytest.mark.parametrize(('full_title', 'title', 'subtitle'), bookseller_titles)
 def test_split_subtitle(full_title, title, subtitle):
     assert split_subtitle(full_title) == (title, subtitle)
 
@@ -299,6 +301,10 @@ def test_load_with_redirected_author(mock_site, add_languages):
 
 
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
+    """
+    Here all fields that are 'used' (i.e. read and contribute to the edition)
+    are the same.
+    """
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
@@ -312,16 +318,123 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     assert e.type.key == '/type/edition'
     assert e.source_records == ['ia:test_item']
 
-    rec = {
+    matching_rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
-        'languages': ['fre'],
+        'languages': ['eng'],
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'matched'
+
+
+def test_matched_edition_with_new_language_in_rec_adds_language(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    When records match, but the record has a new language, the new language
+    should be added to the existing edition, but existing languages should
+    not be duplicated.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+        'languages': ['eng'],
     }
     reply = load(rec)
     assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    matching_rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        'languages': ['fre', 'eng'],
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    updated_e = mock_site.get(reply['edition']['key'])
+    updated_languages = [lang['key'] for lang in updated_e.languages]
+    assert updated_languages == ['/languages/eng', '/languages/fre']
+
+
+def test_matched_edition_with_new_language_is_added_even_if_no_existing_language(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    Ensure a new language is added even if the existing edition has no language
+    field.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    matching_rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    updated_edition = mock_site.get(reply['edition']['key'])
+    updated_languages = [lang['key'] for lang in updated_edition.languages]
+    assert updated_languages == ['/languages/eng']
+
+
+def test_matched_edition_properly_updates_non_language_fields(
+    mock_site, add_languages, ia_writeback
+):
+    """
+    Ensure a new language is added even if the existing edition has no language
+    field.
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+    }
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    matching_rec = {
+        'ocaid': 'test_item',
+        'source_records': ['test:1234567890'],  # updated existing field in edition.
+        'title': 'Test item',
+        'lc_classifications': ['PQ2671.A58'],  # new field not present in edition.
+    }
+    reply = load(matching_rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    updated_edition = mock_site.get(reply['edition']['key'])
+
+    expected_source_records = ['ia:test_item', 'test:1234567890']
+    expected_lc_classifications = ['PQ2671.A58']
+
+    assert expected_source_records == updated_edition.source_records
+    assert expected_lc_classifications == updated_edition.lc_classifications
 
 
 class Test_From_MARC:
@@ -1310,7 +1423,7 @@ def test_adding_list_field_items_to_edition_deduplicates_input(mock_site) -> Non
 
 
 @pytest.mark.parametrize(
-    'name, rec, error',
+    ('name', 'rec', 'error'),
     [
         (
             "Books prior to 1400 CANNOT be imported if from a bookseller requiring additional validation",
@@ -1435,7 +1548,7 @@ def test_reimport_updates_edition_and_work_description(mock_site) -> None:
 
 
 @pytest.mark.parametrize(
-    "name, edition, marc, expected",
+    ('name', 'edition', 'marc', 'expected'),
     [
         (
             "Overwrites revision 1 promise items with MARC data",
@@ -1570,7 +1683,7 @@ class TestLoadDataWithARev1PromiseItem:
 
 class TestNormalizeImportRecord:
     @pytest.mark.parametrize(
-        'year, expected',
+        ('year', 'expected'),
         [
             ("2000-11-11", True),
             (str(datetime.now().year), True),
@@ -1590,7 +1703,7 @@ class TestNormalizeImportRecord:
         assert result == expected
 
     @pytest.mark.parametrize(
-        'rec, expected',
+        ('rec', 'expected'),
         [
             (
                 {
@@ -1630,7 +1743,7 @@ class TestNormalizeImportRecord:
         assert rec == expected
 
     @pytest.mark.parametrize(
-        ["rec", "expected"],
+        ('rec', 'expected'),
         [
             (
                 # 1900 publication from non AMZ/BWB is okay.
@@ -1781,3 +1894,43 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
     result = find_match(marc_import, {'title': [existing_edition['key']]})
     assert result != '/books/OL113M'
     assert result is None
+
+
+@pytest.mark.parametrize(
+    ("edition", "expected_cover_url", "expected_edition"),
+    [
+        ({}, None, {}),
+        ({'cover': 'https://not-supported.org/image/123.jpg'}, None, {}),
+        (
+            {'cover': 'https://m.media-amazon.com/image/123.jpg'},
+            'https://m.media-amazon.com/image/123.jpg',
+            {},
+        ),
+        (
+            {'cover': 'http://m.media-amazon.com/image/123.jpg'},
+            'http://m.media-amazon.com/image/123.jpg',
+            {},
+        ),
+        (
+            {'cover': 'https://m.MEDIA-amazon.com/image/123.jpg'},
+            'https://m.MEDIA-amazon.com/image/123.jpg',
+            {},
+        ),
+        (
+            {'title': 'a book without a cover'},
+            None,
+            {'title': 'a book without a cover'},
+        ),
+    ],
+)
+def test_process_cover_url(
+    edition: dict, expected_cover_url: str, expected_edition: dict
+) -> None:
+    """
+    Only cover URLs available via the HTTP Proxy are allowed.
+    """
+    cover_url, edition = process_cover_url(
+        edition=edition, allowed_cover_hosts=ALLOWED_COVER_HOSTS
+    )
+    assert cover_url == expected_cover_url
+    assert edition == expected_edition

@@ -161,7 +161,7 @@ class Account(web.storage):
 
     def get_edit_count(self):
         user = self.get_user()
-        return user and user.get_edit_count() or 0
+        return (user and user.get_edit_count()) or 0
 
     @property
     def registered_on(self):
@@ -622,8 +622,8 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def create(
@@ -665,16 +665,22 @@ class InternetArchiveAccount(web.storage):
         _screenname = screenname
         attempt = 0
         while True:
-            response = cls.xauth(
-                'create',
-                email=email,
-                password=password,
-                screenname=_screenname,
-                notifications=notifications,
-                test=test,
-                verified=verified,
-                service='openlibrary',
-            )
+            try:
+                response = cls.xauth(
+                    'create',
+                    email=email,
+                    password=password,
+                    screenname=_screenname,
+                    notifications=notifications,
+                    test=test,
+                    verified=verified,
+                    service='openlibrary',
+                )
+            except requests.HTTPError as err:
+                status_code = err.response.status_code
+                if status_code == 504:
+                    raise OLAuthenticationError("request_timeout")
+                raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -723,6 +729,9 @@ class InternetArchiveAccount(web.storage):
             params['developer'] = test
 
         response = requests.post(url, params=params, json=data)
+        if response.status_code == 504 and op == "create":
+            response.raise_for_status()
+
         try:
             # This API should always return json, even on error (Unless
             # the server is down or something :P)

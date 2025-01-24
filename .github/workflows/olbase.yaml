@@ -28,10 +28,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      # If on master, use the latest tag, otherwise use the branch name
+      - name: Master Build and push
         uses: docker/build-push-action@v6
+        if: github.ref == 'refs/heads/master'
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
           tags: openlibrary/olbase:latest
+          push: true
+
+      # If on another branch, use the branch name -- just the branch name, not the full ref
+      - name: Test Branch Build and push
+        uses: docker/build-push-action@v6
+        if: github.ref != 'refs/heads/master'
+        with:
+          context: "."
+          file: "./docker/Dockerfile.olbase"
+          tags: openlibrary/olbase:${{ github.ref_name }}
           push: true

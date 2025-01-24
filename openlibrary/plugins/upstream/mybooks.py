@@ -61,7 +61,7 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(loans)})
+            loans = web.Storage({"docs": [], "total_results": len(myloans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
                 # Book will be None if no OL edition exists for the book
@@ -305,10 +305,8 @@ class public_my_books_json(delegate.page):
             )
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if (
-            is_public
-            or logged_in_user
-            and logged_in_user.key.split('/')[-1] == username
+        if is_public or (
+            logged_in_user and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit, q=i.q).docs
@@ -418,7 +416,7 @@ class MyBooksTemplate:
         self.reading_goals: list = []
         self.selected_year = None
 
-        if self.me and self.is_my_page or self.is_public:
+        if (self.me and self.is_my_page) or self.is_public:
             self.counts['followers'] = PubSub.count_followers(self.username)
             self.counts['following'] = PubSub.count_following(self.username)
 
@@ -467,7 +465,7 @@ class ReadingLog:
 
     @property
     def lists(self) -> list:
-        return self.user.get_lists()
+        return self.user.get_lists(limit=1000)
 
     @property
     def booknotes_counts(self):
