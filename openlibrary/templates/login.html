@@ -27,6 +27,7 @@ $if "dev" in ctx.features:
 
     <div id="contentBody" class="ol-signup-form">
     $if not ctx.user:
+        <p class="ol-signup-form__login-hint">$:_('Don\'t have a free account yet? <a href="/account/create?redirect=$form.redirect.value">Sign up</a>.')</p>
         $:render_template("account/ia_thirdparty_logins")
         <div class="ol-signup-form__big-or">$_('OR')</div>
         <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
@@ -76,7 +77,6 @@ $if "dev" in ctx.features:
                 <br/>
                 <button value="$_('Log In')" type="submit" class="cta-btn cta-btn--primary" name="login" title="$_('Log In')">$_("Log In")</button>
             </div>
-            <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
         </form>
     </div>
 </div>
