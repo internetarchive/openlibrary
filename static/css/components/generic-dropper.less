@@ -103,12 +103,9 @@
   }
   // dropdown button
   details {
+    position: relative;
     background-color: @primary-blue;
     border-radius: 2px 5px 5px 2px;
-    // raise dropper menu above "Want to Read" dropper
-    z-index: @z-index-level-4;
-    // mark details as nearest container ancestor to dropdown menu
-    contain: layout;
   }
   summary {
     display: flex;
@@ -138,6 +135,7 @@
 }
 // dropdown containing Listen/Search/Download/Locate buttons
 .dropper-menu {
+  z-index: @z-index-level-4;
   .cta-btn.cta-btn--w-icon, .cta-btn:link, .cta-btn:visited {
     background: @white;
     color: @black;
@@ -158,9 +156,9 @@
   .btn-icon {
     display: inline-block;
     filter: invert(1);
-    margin: 5px 2px -3px;
+    margin: 5px 2px -4px;
     // width uses higher specificity below
-    height: 1.5em;
+    height: 1.25em;
   }
   // icons
   .listen { background-image: url(/static/images/icons/icon_listen.png); }
@@ -185,7 +183,7 @@
     list-style: none;
     margin: 0;
   }
-  .btn-icon { width: 1.5em; }
+  .btn-icon { width: 1.25em; }
 }
 ul.dropper-menu {
   width: 190px;
