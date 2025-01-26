@@ -439,7 +439,9 @@ class account_login(delegate.page):
             return None
 
         # Check is user has already following the publisher
-        if not PubSub.is_subscribed(subscriber=ol_account.username, publisher=publisher):
+        if not PubSub.is_subscribed(
+            subscriber=ol_account.username, publisher=publisher
+        ):
             PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
 
         publisher_name = publisher_info["data"]["displayname"]
