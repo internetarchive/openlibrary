@@ -414,41 +414,36 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
-    def get_post_login_action(self, web, referer):
+    def get_post_login_action(self, web):
         """Extract the 'action' parameter from the query string.
         Return the action if it is valid, else return None
         """
-        allowed_actions = ["follow"]
-        if not referer:
-            return None
         qs = web.ctx.env.get('QUERY_STRING', "")
         parsed_query = parse_qs(qs)
-        if (action := parsed_query.get("action", [None])[0]) in allowed_actions:
+        action = parsed_query.get("action", [None])[0]
+        if action:
             return action
-        return None
+        return action
 
     def perform_post_login_action(self, i, ol_account):
-        if not i.action or not i.redirect or i.action != "follow":
+        if not i.action or ":" not in i.action:
             return None
 
-        redirect_path = urlparse(i.redirect).path
-        if not redirect_path or "/" not in redirect_path:
-            return None
-
-        publisher = redirect_path.split("/")[-1]
-        if not publisher:
+        op, publisher = i.action.split(":")
+        if op != "follow":
             return None
 
         # Check if publisher exists
-        if not OpenLibraryAccount.get_by_username(publisher):
+        publisher_info = OpenLibraryAccount.get_by_username(publisher)
+        if not publisher_info:
             return None
 
         # Check is user has already following the publisher
-        if PubSub.is_subscribed(subscriber=ol_account.username, publisher=publisher):
-            flash_message = "You are already following this user!"
-        else:
+        if not PubSub.is_subscribed(subscriber=ol_account.username, publisher=publisher):
             PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
-            flash_message = "You are now following this user!"
+
+        publisher_name = publisher_info["data"]["displayname"]
+        flash_message = f"You are now following {publisher_name}!"
         return flash_message
 
     def GET(self):
@@ -463,7 +458,7 @@ class account_login(delegate.page):
             referer = None
 
         # Get the post login action. Example: follow, want to read or borrow
-        action = self.get_post_login_action(web, referer)
+        action = self.get_post_login_action(web)
 
         i = web.input(redirect=referer, action=action)
         f = forms.Login()
