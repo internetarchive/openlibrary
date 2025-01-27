@@ -4,6 +4,7 @@ db_parameters:
     dbn: "postgres"
     db: "coverstore"
     host: db
+    driver: psycopg
 
 data_root: "/var/lib/coverstore"
 default_image: "static/images/empty.gif"
