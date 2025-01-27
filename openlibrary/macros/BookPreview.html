@@ -1,10 +1,11 @@
-$def with (ocaid, analytics_attr=None, show_only=False)
+$def with (ocaid, analytics_attr=None, show_only=False, vanilla=True)
 $# :param str ocaid:
 
 $ analytics = analytics_attr('Preview') if analytics_attr else "CTAClick|Preview"
+$ button = "cta-btn cta-btn--preview" if vanilla else "cta-btn--preview-link"
 
   <div class="cta-button-group">
-    <a class="cta-btn cta-btn--preview"
+    <a class="$button"
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"   
       $:analytics href="#bookPreview">$(_('Preview Only') if show_only else _('Preview'))</a>
