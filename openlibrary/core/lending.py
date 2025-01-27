@@ -655,6 +655,9 @@ def get_user_waiting_loans(user_key):
     """
     from .waitinglist import WaitingLoan
 
+    if "site" not in web.ctx:
+        delegate.fakeload()
+
     try:
         account = OpenLibraryAccount.get(key=user_key)
         itemname = account.itemname
