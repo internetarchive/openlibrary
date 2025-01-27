@@ -87,8 +87,11 @@ class Sentry:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
-    def capture_exception(self, ex):
+    def capture_exception(self, ex, extras: dict | None = None):
         with sentry_sdk.push_scope() as scope:
+            if extras:
+                for key, value in extras.items():
+                    scope.set_extra(key, value)
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception(ex)
 
