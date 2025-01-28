@@ -33,7 +33,7 @@ re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 
 
 ROLES = {
-    # MARC 21 realtor codes
+    # MARC 21 relator codes
     # https://www.loc.gov/marc/relators/relacode.html
     'art': 'Artist',
     'aut': 'Author',
