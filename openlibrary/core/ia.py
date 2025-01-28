@@ -115,6 +115,15 @@ def edition_from_item_metadata(itemid, metadata):
 
 
 def get_cover_url(item_id):
+    """Gets the URL of the archive.org item's cover page."""
+    base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
+    cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
+    if cover_response.status_code == 404:
+        return get_fallback_cover_url(item_id)
+    return base_url + 'default.jpg'
+
+
+def get_fallback_cover_url(item_id):
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
