@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
     "name": "Open Library: A page for every book published",
-    "description": "An open, editable library catalog for every book published.",
+    "description": "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
@@ -79,5 +79,42 @@
         "url": "/advancedsearch",
         "description": "Search for books using specific fields like publication date"
       }
-  ]
+  ],
+  "screenshots": [
+    {
+        "src": "/conf/twa/Play_Store_SS.mockup/images/screenshots/Desktop/LandingPage.png",
+        "type": "image/png",
+        "sizes": "1920x1080",
+        "form_factor": "wide",
+        "label": "LandingPage"
+    },
+    {
+        "src": "/conf/twa/Play_Store_SS.mockup/images/screenshots/Desktop/Lists.png",
+        "type": "image/png",
+        "sizes": "1920x1080",
+        "form_factor": "wide",
+        "label": "Lists"
+    },
+    {
+        "src": "//conf/twa/Play_Store_SS.mockup/images/screenshots/Desktop/SchoolLibrary.png",
+        "type": "image/png",
+        "sizes": "1920x1080",
+        "form_factor": "wide",
+        "label": "SchoolLibrary"
+    },
+    {
+        "src": "//conf/twa/Play_Store_SS.mockup/images/screenshots/Desktop/SearchPage.png",
+        "type": "image/png",
+        "sizes": "1920x1080",
+        "form_factor": "wide",
+        "label": "SearchPage"
+    },
+    {
+        "src": "//conf/twa/Play_Store_SS.mockup/images/screenshots/Desktop/Trending.png",
+        "type": "image/png",
+        "sizes": "1920x1080",
+        "form_factor": "wide",
+        "label": "Trending"
+    }
+]
 }
