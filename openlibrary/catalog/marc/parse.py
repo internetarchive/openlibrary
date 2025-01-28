@@ -44,8 +44,8 @@ ROLES = {
     'ltr': 'Letterer',
     'trl': 'Translator',
     # Non-standard terms from $e
-    'ed': 'Editor',
-    'comp': 'Compiler',
+    'ed.': 'Editor',
+    'comp.': 'Compiler',
 }
 
 
