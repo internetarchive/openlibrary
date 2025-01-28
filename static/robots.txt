@@ -7,7 +7,6 @@ Disallow: /search
 Disallow: /search/inside
 Disallow: */borrow*
 Disallow: /*.rdf$
-Disallow: /*?*
 
 Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
