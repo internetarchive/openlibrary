@@ -1307,7 +1307,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     # Create 'placeholders' dicts for items in the Internet Archive loan history,
     # but absent from Open Library, and then add loan history.
     # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
-    # loan. No apparenty way to distinguish between current and past loans with
+    # loan. No apparently way to distinguish between current and past loans with
     # this API call.
     ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
     for ia_only_loan in ia_only_loans:
