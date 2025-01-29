@@ -63,7 +63,7 @@ class FakeDataProvider(DataProvider):
     """Stub data_provider and methods which are used by build_data."""
 
     docs: tuple = ()
-    docs_by_key = MappingProxyType({})
+    docs_by_key: MappingProxyType = MappingProxyType({})
 
     def __init__(self, docs=None):
         docs = docs or []
