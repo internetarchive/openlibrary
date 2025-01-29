@@ -697,14 +697,13 @@ class InternetArchiveAccount(web.storage):
                     error = OLAuthenticationError(f'bad_{field}')
                     error.response = response
                     raise error
+            elif attempt < retries:
+                _screenname = append_random_suffix(screenname)
+                attempt += 1
             else:
-                if attempt < retries:
-                    _screenname = append_random_suffix(screenname)
-                    attempt += 1
-                else:
-                    e = OLAuthenticationError('username_registered')
-                    e.value = _screenname
-                    raise e
+                e = OLAuthenticationError('username_registered')
+                e.value = _screenname
+                raise e
 
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
