@@ -122,7 +122,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .cover img {
   min-height: 80px; /* Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading */
   height: auto; /* Maintain aspect ratio */

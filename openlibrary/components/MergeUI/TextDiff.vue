@@ -32,7 +32,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .value { background: rgba(0,0,255, .1); }
 .added { color: green; background: rgba(0,255,0, .1); }
 .removed { color: red; text-decoration: line-through; background: rgba(255,0,0, .1); user-select: none; }
