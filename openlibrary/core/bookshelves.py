@@ -26,7 +26,7 @@ class WorkReadingLogSummary(TypedDict):
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
-    PRIMARY_KEY: tuple[str, ...] = ("username", "work_id", "bookshelf_id")
+    PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
     PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
         {
             'Want to Read': 1,
