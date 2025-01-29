@@ -252,7 +252,7 @@ export default {
 </script>
 
 
-<style scoped>
+<style>
 .load-books {
   width: 100%;
   height: 50px;

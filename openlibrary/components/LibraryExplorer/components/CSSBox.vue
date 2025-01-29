@@ -80,7 +80,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .css-box {
   position: relative;
   /* Performance optimization, since the size of the css-box is independent of any of its children */

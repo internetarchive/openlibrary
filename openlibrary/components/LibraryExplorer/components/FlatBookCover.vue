@@ -69,7 +69,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 div.cover {
   height: 100%;
   padding: 5px;
