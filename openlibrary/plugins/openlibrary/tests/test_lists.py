@@ -72,7 +72,7 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
-    SEED_TESTS = (
+    SEED_TESTS: tuple = (
         ([], []),
         (['OL1M'], [{'key': '/books/OL1M'}]),
         (['OL1M', 'OL2M'], [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}]),
