@@ -808,15 +808,13 @@ class Author(Thing):
 
 
 class User(Thing):
-    DEFAULT_PREFERENCES = {
-        'updates': 'no',
-        'public_readlog': 'no',
+    def get_default_preferences(self):
+        return {'update': 'no', 'public_readlog': 'no'}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
         # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
-    }
 
     def get_status(self):
         account = self.get_account() or {}
@@ -842,7 +840,9 @@ class User(Thing):
     def preferences(self):
         key = "%s/preferences" % self.key
         prefs = web.ctx.site.get(key)
-        return (prefs and prefs.dict().get('notifications')) or self.DEFAULT_PREFERENCES
+        return (
+            prefs and prefs.dict().get('notifications')
+        ) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs, msg='updating user preferences'):
         key = '%s/preferences' % self.key
@@ -852,7 +852,7 @@ class User(Thing):
             'type': {'key': '/type/object'},
         }
         if 'notifications' not in prefs:
-            prefs['notifications'] = self.DEFAULT_PREFERENCES
+            prefs['notifications'] = self.get_default_preferences()
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 

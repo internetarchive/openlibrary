@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from types import MappingProxyType
 from typing import Any, Literal
 
 import requests
@@ -65,22 +66,26 @@ class AmazonAPI:
     See https://webservices.amazon.com/paapi5/documentation/
     """
 
-    RESOURCES = {
-        'all': [  # Hack: pulls all resource consts from GetItemsResource
-            getattr(GetItemsResource, v) for v in vars(GetItemsResource) if v.isupper()
-        ],
-        'import': [
-            GetItemsResource.IMAGES_PRIMARY_LARGE,
-            GetItemsResource.ITEMINFO_BYLINEINFO,
-            GetItemsResource.ITEMINFO_CONTENTINFO,
-            GetItemsResource.ITEMINFO_MANUFACTUREINFO,
-            GetItemsResource.ITEMINFO_PRODUCTINFO,
-            GetItemsResource.ITEMINFO_TITLE,
-            GetItemsResource.ITEMINFO_CLASSIFICATIONS,
-            GetItemsResource.OFFERS_LISTINGS_PRICE,
-        ],
-        'prices': [GetItemsResource.OFFERS_LISTINGS_PRICE],
-    }
+    RESOURCES = MappingProxyType(
+        {
+            'all': [  # Hack: pulls all resource consts from GetItemsResource
+                getattr(GetItemsResource, v)
+                for v in vars(GetItemsResource)
+                if v.isupper()
+            ],
+            'import': [
+                GetItemsResource.IMAGES_PRIMARY_LARGE,
+                GetItemsResource.ITEMINFO_BYLINEINFO,
+                GetItemsResource.ITEMINFO_CONTENTINFO,
+                GetItemsResource.ITEMINFO_MANUFACTUREINFO,
+                GetItemsResource.ITEMINFO_PRODUCTINFO,
+                GetItemsResource.ITEMINFO_TITLE,
+                GetItemsResource.ITEMINFO_CLASSIFICATIONS,
+                GetItemsResource.OFFERS_LISTINGS_PRICE,
+            ],
+            'prices': [GetItemsResource.OFFERS_LISTINGS_PRICE],
+        }
+    )
 
     def __init__(
         self,

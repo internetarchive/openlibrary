@@ -1,4 +1,5 @@
 from copy import deepcopy
+from types import MappingProxyType
 
 import pytest
 
@@ -97,11 +98,13 @@ def test_mk_norm_equality(a, b):
 
 
 class TestExpandRecord:
-    rec = {
-        'title': 'A test full title',
-        'subtitle': 'subtitle (parens).',
-        'source_records': ['ia:test-source'],
-    }
+    rec = MappingProxyType(
+        {
+            'title': 'A test full title',
+            'subtitle': 'subtitle (parens).',
+            'source_records': ['ia:test-source'],
+        }
+    )
 
     def test_expand_record(self):
         edition = self.rec.copy()

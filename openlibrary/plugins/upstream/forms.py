@@ -77,7 +77,7 @@ class EqualToValidator(Validator):
 
 
 class RegisterForm(Form):
-    INPUTS = [
+    INPUTS = (
         Email(
             'email',
             description=_('Email'),
@@ -119,7 +119,7 @@ class RegisterForm(Form):
                 'that runs Open Library.'
             ),
         ),
-    ]
+    )
 
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
