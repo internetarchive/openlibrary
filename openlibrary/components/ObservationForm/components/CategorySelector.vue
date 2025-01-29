@@ -129,7 +129,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 h3 {
   margin-bottom: 0;
 }

@@ -140,7 +140,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .card-body {
   display: flex;
   flex-wrap: wrap;

@@ -97,7 +97,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .value-card {
   border: 1px solid #999999;
   border-radius: 4px;

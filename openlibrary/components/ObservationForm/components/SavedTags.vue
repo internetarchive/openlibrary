@@ -164,7 +164,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .no-selections-message {
   margin-bottom: 1em;
 }

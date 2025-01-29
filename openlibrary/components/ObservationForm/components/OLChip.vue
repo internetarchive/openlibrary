@@ -100,7 +100,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .chip {
   padding: 4px 12px;
   border: 1px solid #999999;

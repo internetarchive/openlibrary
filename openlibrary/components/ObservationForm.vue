@@ -162,7 +162,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .observation-form {
   padding: .5em;
 }
