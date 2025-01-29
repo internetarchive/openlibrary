@@ -57,11 +57,11 @@ def get_untracked_files(dirs: list[str], extensions: tuple[str, str] | str) -> s
 
 def _compile_translation(po, mo):
     try:
-        catalog = read_po(open(po, 'rb'))
+        with open(po, 'rb') as po_file:
+            catalog = read_po(po_file)
 
-        f = open(mo, 'wb')
-        write_mo(f, catalog)
-        f.close()
+        with open(mo, 'wb') as mo_file:
+            write_mo(mo_file, catalog)
         print('compiled', po, file=web.debug)
     except Exception as e:
         print('failed to compile', po, file=web.debug)
@@ -100,7 +100,8 @@ def validate_translations(args: list[str]):
         if os.path.exists(po_path):
             num_errors = 0
             error_print: list[str] = []
-            catalog = read_po(open(po_path, 'rb'))
+            with open(po_path, 'rb') as po_file:
+                catalog = read_po(po_file)
             for message, warnings, errors in _validate_catalog(catalog):
                 for w in warnings:
                     print(
@@ -196,9 +197,8 @@ def extract_messages(dirs: list[str], verbose: bool, skip_untracked: bool):
                 print(f"{count}\t{path}", file=sys.stderr)
 
     path = os.path.join(root, 'messages.pot')
-    f = open(path, 'wb')
-    write_po(f, catalog, include_lineno=False)
-    f.close()
+    with open(path, 'wb') as f:
+        write_po(f, catalog, include_lineno=False)
 
     print('Updated strings written to', path)
 
@@ -219,19 +219,19 @@ def update_translations(locales: list[str]):
     print(f"Updating {locales_to_update}")
 
     pot_path = os.path.join(root, 'messages.pot')
-    template = read_po(open(pot_path, 'rb'))
+    with open(pot_path, 'rb') as pot_file:
+        template = read_po(pot_file)
 
     for locale in locales_to_update:
         po_path = os.path.join(root, locale, 'messages.po')
         mo_path = os.path.join(root, locale, 'messages.mo')
 
         if os.path.exists(po_path):
-            catalog = read_po(open(po_path, 'rb'))
+            with open(po_path, 'rb') as po_file:
+                catalog = read_po(po_file)
             catalog.update(template)
-
-            f = open(po_path, 'wb')
-            write_po(f, catalog)
-            f.close()
+            with open(po_path, 'wb') as f:
+                write_po(f, catalog)
             print('updated', po_path)
         else:
             print(f"ERROR: {po_path} does not exist...")
