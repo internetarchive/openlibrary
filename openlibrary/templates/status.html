@@ -39,18 +39,19 @@ $var title: $_("Open Library server status")
   <h2> $_("Features enabled") </h2>
   <table>
     $for i in flags:
-       <tr>
-         <th>$i</th>
-	 <td>
-	 $if not isinstance(flags[i], str):
-           <ul>
-	   $for j in flags[i]:
-	      <li> $j : $flags[i][j] </li>
-	   </ul>
-	 $else:
-           $flags[i]
-	 </td>
-       </tr>
+        $if i != 'debug':
+           <tr>
+             <th>$i</th>
+             <td>
+                $if not isinstance(flags[i], str):
+                    <ul>
+                        $for j in flags[i]:
+                            <li> $j : $flags[i][j] </li>
+                    </ul>
+               $else:
+                   $flags[i]
+             </td>
+           </tr>
   </table>
   $if dev_merged_status:
       <h2> $_("Staged") </h2>
