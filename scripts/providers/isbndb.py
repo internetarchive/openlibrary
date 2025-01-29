@@ -45,7 +45,7 @@ class ISBNdb:
         'subjects',
         'title',
     )
-    INACTIVE_FIELDS: tuple[str, ...] = (
+    INACTIVE_FIELDS = (
         "copyright",
         "dewey",
         "doi",

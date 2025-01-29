@@ -18,7 +18,7 @@ class OPDS:
     xmlns_bibo = 'http://purl.org/ontology/bibo/'
     xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 
-    nsmap: MappingProxyType[None | str, str] = MappingProxyType(
+    nsmap = MappingProxyType(
         {
             None: xmlns_atom,
             'dcterms': xmlns_dcterms,
@@ -36,7 +36,7 @@ class OPDS:
     bibo = "{%s}" % xmlns_bibo
     xsi = "{%s}" % xmlns_xsi
 
-    fileExtMap: MappingProxyType[str, str] = MappingProxyType(
+    fileExtMap = MappingProxyType(
         {
             'pdf': 'application/pdf',
             'epub': 'application/epub+zip',

@@ -370,7 +370,7 @@ def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
 @public
 class MyBooksTemplate:
     # Reading log shelves
-    READING_LOG_KEYS: frozenset[str] = frozenset(
+    READING_LOG_KEYS = frozenset(
         {
             "currently-reading",
             "want-to-read",
