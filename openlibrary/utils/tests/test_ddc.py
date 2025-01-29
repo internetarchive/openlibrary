@@ -76,8 +76,8 @@ TESTS = [
         'Two Dewey numbers and one edition number',
     ),
     ('813. 54', ['813.54'], 'Space after decimal'),
-    ('813.′54', ['813.54'], 'Curly quote separator (real world)'),
-    ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),
+    ('813.′54', ['813.54'], 'Curly quote separator (real world)'),  # noqa: RUF001
+    ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),  # noqa: RUF001
     ('813. 54 (ddc21)', ['813.54'], 'catalog number with ddc prefix (real world)'),
     ('823/.92 22', ['823.92'], 'catalog number without leading 0 (real world)'),
     ("813.' 54", ['813.54'], 'Space and quote separate (real world)'),
