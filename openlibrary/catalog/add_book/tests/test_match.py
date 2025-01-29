@@ -98,7 +98,7 @@ def test_mk_norm_equality(a, b):
 
 
 class TestExpandRecord:
-    rec: MappingProxyType[str, str | list[str]] = MappingProxyType(
+    rec = MappingProxyType(
         {
             'title': 'A test full title',
             'subtitle': 'subtitle (parens).',

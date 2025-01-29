@@ -65,7 +65,7 @@ class AmazonAPI:
     See https://webservices.amazon.com/paapi5/documentation/
     """
 
-    RESOURCES: MappingProxyType[str, list[Any] | list[str]] = MappingProxyType(
+    RESOURCES = MappingProxyType(
         {
             'all': [  # Hack: pulls all resource consts from GetItemsResource
                 getattr(GetItemsResource, v)
