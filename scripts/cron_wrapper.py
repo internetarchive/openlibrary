@@ -23,7 +23,7 @@ class MonitoredJob:
             else None
         )
         self._setup_sentry(sentry_cfg.get("dns", ""))
-        self.job_name = self._get_job_name(command[0])
+        self.job_name = self._get_job_name()
         self.job_failed = False
 
     def run(self):
@@ -99,7 +99,7 @@ def _parse_args():
     )
     _parser.add_argument(
         "script_args",
-        nargs="*",
+        nargs=argparse.REMAINDER,
         help="Arguments for the wrapped script",
     )
     _parser.set_defaults(func=main)
