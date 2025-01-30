@@ -17,6 +17,7 @@ from infogami.infobase import client
 from openlibrary import accounts
 from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core import lending
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -563,6 +564,28 @@ class Work(Thing):
                 'avg_rating': round(rating_stats['avg_rating'], 2),
                 'num_ratings': rating_stats['num_ratings'],
             }
+
+    def get_awards(self) -> list:
+        if not self.key:
+            return []
+
+        work_id = extract_numeric_id_from_olid(self.key)
+        awards = Bestbook.get_awards(work_id)
+
+        return awards if awards else []
+
+    def check_if_user_awarded(self, submitter) -> bool:
+        if not self.key:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        return Bestbook.check_if_award_given(submitter, work_id)
+
+    def get_award_by_submitter(self, submitter):
+        if not self.key:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        awards = Bestbook.get_awards(work_id, submitter)
+        return awards[0] if len(awards) else []
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
