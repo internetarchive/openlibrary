@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 
 import luqum.tree
 from luqum.exceptions import ParseError
