@@ -288,7 +288,7 @@ class TestUsernameUpdate:
         assert len(list(self.db.select("observations"))) == 1
 
     def test_update_username(self):
-        self.db.multiple_insert("community_edits_queue", self.EDITS_QUEUE_SETUP_ROWS)
+        self.db.multiple_insert("community_edits_queue", EDITS_QUEUE_SETUP_ROWS)
         before_where = {"username": "@kilgore_trout"}
         after_where = {"username": "@anonymous"}
 
