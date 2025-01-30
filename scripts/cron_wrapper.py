@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Executes the given script with the given arguments, adding profiling and error reporting.
 """
