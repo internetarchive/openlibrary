@@ -156,111 +156,99 @@ class TestUpdateWorkID:
         assert resp == {'rows_changed': 0, 'rows_deleted': 0, 'failed_deletes': 1}
         assert [dict(row) for row in self.db.select("booknotes")] == rows
 
+READING_LOG_SETUP_ROWS = [
+    {
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 1,
+        "bookshelf_id": 1,
+    },
+    {
+        "username": "@kilgore_trout",
+        "work_id": 2,
+        "edition_id": 2,
+        "bookshelf_id": 1,
+    },
+    {
+        "username": "@billy_pilgrim",
+        "work_id": 1,
+        "edition_id": 1,
+        "bookshelf_id": 2,
+    },
+]
+
+BOOKNOTES_SETUP_ROWS = [
+    {
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 1,
+        "notes": "Hello",
+    },
+    {
+        "username": "@billy_pilgrim",
+        "work_id": 1,
+        "edition_id": 1,
+        "notes": "World",
+    },
+]
+
+RATINGS_SETUP_ROWS = [
+    {
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 1,
+        "rating": 4,
+    },
+    {
+        "username": "@billy_pilgrim",
+        "work_id": 5,
+        "edition_id": 1,
+        "rating": 2,
+    },
+]
+
+OBSERVATIONS_SETUP_ROWS = [
+    {
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 3,
+        "observation_type": 1,
+        "observation_value": 2,
+    },
+    {
+        "username": "@billy_pilgrim",
+        "work_id": 2,
+        "edition_id": 4,
+        "observation_type": 4,
+        "observation_value": 1,
+    },
+]
+
+EDITS_QUEUE_SETUP_ROWS = [
+    {
+        "title": "One Fish, Two Fish, Red Fish, Blue Fish",
+        "submitter": "@kilgore_trout",
+        "reviewer": None,
+        "url": "/works/merge?records=OL1W,OL2W,OL3W",
+        "status": 1,
+    },
+    {
+        "title": "The Lorax",
+        "submitter": "@kilgore_trout",
+        "reviewer": "@billy_pilgrim",
+        "url": "/works/merge?records=OL4W,OL5W,OL6W",
+        "status": 2,
+    },
+    {
+        "title": "Green Eggs and Ham",
+        "submitter": "@eliot_rosewater",
+        "reviewer": None,
+        "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
+        "status": 1,
+    },
+]
 
 class TestUsernameUpdate:
-    READING_LOG_SETUP_ROWS = (
-        MappingProxyType(
-            {
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 1,
-                "bookshelf_id": 1,
-            }
-        ),
-        MappingProxyType(
-            {
-                "username": "@kilgore_trout",
-                "work_id": 2,
-                "edition_id": 2,
-                "bookshelf_id": 1,
-            }
-        ),
-        MappingProxyType(
-            {
-                "username": "@billy_pilgrim",
-                "work_id": 1,
-                "edition_id": 1,
-                "bookshelf_id": 2,
-            }
-        ),
-    )
-    BOOKNOTES_SETUP_ROWS = (
-        MappingProxyType(
-            {
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 1,
-                "notes": "Hello",
-            }
-        ),
-        MappingProxyType(
-            {
-                "username": "@billy_pilgrim",
-                "work_id": 1,
-                "edition_id": 1,
-                "notes": "World",
-            }
-        ),
-    )
-    RATINGS_SETUP_ROWS = (
-        MappingProxyType(
-            {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4}
-        ),
-        MappingProxyType(
-            {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2}
-        ),
-    )
-    OBSERVATIONS_SETUP_ROWS = (
-        MappingProxyType(
-            {
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 3,
-                "observation_type": 1,
-                "observation_value": 2,
-            }
-        ),
-        MappingProxyType(
-            {
-                "username": "@billy_pilgrim",
-                "work_id": 2,
-                "edition_id": 4,
-                "observation_type": 4,
-                "observation_value": 1,
-            }
-        ),
-    )
-
-    EDITS_QUEUE_SETUP_ROWS = (
-        MappingProxyType(
-            {
-                "title": "One Fish, Two Fish, Red Fish, Blue Fish",
-                "submitter": "@kilgore_trout",
-                "reviewer": None,
-                "url": "/works/merge?records=OL1W,OL2W,OL3W",
-                "status": 1,
-            }
-        ),
-        MappingProxyType(
-            {
-                "title": "The Lorax",
-                "submitter": "@kilgore_trout",
-                "reviewer": "@billy_pilgrim",
-                "url": "/works/merge?records=OL4W,OL5W,OL6W",
-                "status": 2,
-            }
-        ),
-        MappingProxyType(
-            {
-                "title": "Green Eggs and Ham",
-                "submitter": "@eliot_rosewater",
-                "reviewer": None,
-                "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
-                "status": 1,
-            }
-        ),
-    )
-
     @classmethod
     def setup_class(cls):
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
@@ -271,10 +259,10 @@ class TestUsernameUpdate:
 
     def setup_method(self):
         self.db = get_db()
-        self.db.multiple_insert("bookshelves_books", self.READING_LOG_SETUP_ROWS)
-        self.db.multiple_insert("booknotes", self.BOOKNOTES_SETUP_ROWS)
-        self.db.multiple_insert("ratings", self.RATINGS_SETUP_ROWS)
-        self.db.multiple_insert("observations", self.OBSERVATIONS_SETUP_ROWS)
+        self.db.multiple_insert("bookshelves_books", READING_LOG_SETUP_ROWS)
+        self.db.multiple_insert("booknotes", BOOKNOTES_SETUP_ROWS)
+        self.db.multiple_insert("ratings", RATINGS_SETUP_ROWS)
+        self.db.multiple_insert("observations", OBSERVATIONS_SETUP_ROWS)
 
     def teardown_method(self):
         self.db.query("delete from bookshelves_books;")
@@ -343,70 +331,58 @@ class TestUsernameUpdate:
         self.db.query('delete from community_edits_queue;')
 
 
-class TestCheckIns:
-    BOOKSHELVES_EVENTS_SETUP_ROWS = (
-        MappingProxyType(
-            {
-                "id": 1,
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 2,
-                "event_type": 1,
-                "event_date": "2022-04-17",
-            }
-        ),
-        MappingProxyType(
-            {
-                "id": 2,
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 2,
-                "event_type": 2,
-                "event_date": "2022-05-10",
-            }
-        ),
-        MappingProxyType(
-            {
-                "id": 3,
-                "username": "@kilgore_trout",
-                "work_id": 1,
-                "edition_id": 2,
-                "event_type": 3,
-                "event_date": "2022-06-20",
-            }
-        ),
-        MappingProxyType(
-            {
-                "id": 4,
-                "username": "@billy_pilgrim",
-                "work_id": 3,
-                "edition_id": 4,
-                "event_type": 1,
-                "event_date": "2020",
-            }
-        ),
-        MappingProxyType(
-            {
-                "id": 5,
-                "username": "@eliot_rosewater",
-                "work_id": 3,
-                "edition_id": 4,
-                "event_type": 3,
-                "event_date": "2019-08-20",
-            }
-        ),
-        MappingProxyType(
-            {
-                "id": 6,
-                "username": "@eliot_rosewater",
-                "work_id": 3,
-                "edition_id": 4,
-                "event_type": 3,
-                "event_date": "2019-10",
-            }
-        ),
-    )
+BOOKSHELVES_EVENTS_SETUP_ROWS = [
+    {
+        "id": 1,
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 2,
+        "event_type": 1,
+        "event_date": "2022-04-17",
+    },
+    {
+        "id": 2,
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 2,
+        "event_type": 2,
+        "event_date": "2022-05-10",
+    },
+    {
+        "id": 3,
+        "username": "@kilgore_trout",
+        "work_id": 1,
+        "edition_id": 2,
+        "event_type": 3,
+        "event_date": "2022-06-20",
+    },
+    {
+        "id": 4,
+        "username": "@billy_pilgrim",
+        "work_id": 3,
+        "edition_id": 4,
+        "event_type": 1,
+        "event_date": "2020",
+    },
+    {
+        "id": 5,
+        "username": "@eliot_rosewater",
+        "work_id": 3,
+        "edition_id": 4,
+        "event_type": 3,
+        "event_date": "2019-08-20",
+    },
+    {
+        "id": 6,
+        "username": "@eliot_rosewater",
+        "work_id": 3,
+        "edition_id": 4,
+        "event_type": 3,
+        "event_date": "2019-10",
+    },
+]
 
+class TestCheckIns:
     @classmethod
     def setup_class(cls):
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
@@ -416,7 +392,7 @@ class TestCheckIns:
     def setup_method(self):
         self.db = get_db()
         self.db.multiple_insert(
-            'bookshelves_events', self.BOOKSHELVES_EVENTS_SETUP_ROWS
+            'bookshelves_events', BOOKSHELVES_EVENTS_SETUP_ROWS
         )
 
     def teardown_method(self):
@@ -527,34 +503,28 @@ class TestCheckIns:
         )
         assert BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 1) is None
 
+SETUP_ROWS = [
+    {
+        'username': '@billy_pilgrim',
+        'year': 2022,
+        'target': 5,
+        'current': 6,
+    },
+    {
+        'username': '@billy_pilgrim',
+        'year': 2023,
+        'target': 7,
+        'current': 0,
+    },
+    {
+        'username': '@kilgore_trout',
+        'year': 2022,
+        'target': 4,
+        'current': 4,
+    },
+]
 
 class TestYearlyReadingGoals:
-    SETUP_ROWS = (
-        MappingProxyType(
-            {
-                'username': '@billy_pilgrim',
-                'year': 2022,
-                'target': 5,
-                'current': 6,
-            }
-        ),
-        MappingProxyType(
-            {
-                'username': '@billy_pilgrim',
-                'year': 2023,
-                'target': 7,
-                'current': 0,
-            }
-        ),
-        MappingProxyType(
-            {
-                'username': '@kilgore_trout',
-                'year': 2022,
-                'target': 4,
-                'current': 4,
-            }
-        ),
-    )
 
     TABLENAME = YearlyReadingGoals.TABLENAME
 
@@ -566,7 +536,7 @@ class TestYearlyReadingGoals:
 
     def setup_method(self):
         self.db = get_db()
-        self.db.multiple_insert(self.TABLENAME, self.SETUP_ROWS)
+        self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
 
     def teardown_method(self):
         self.db.query('delete from yearly_reading_goals')
