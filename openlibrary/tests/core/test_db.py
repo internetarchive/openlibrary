@@ -1,5 +1,3 @@
-from types import MappingProxyType
-
 import web
 
 from openlibrary.core.booknotes import Booknotes
@@ -156,6 +154,7 @@ class TestUpdateWorkID:
         assert resp == {'rows_changed': 0, 'rows_deleted': 0, 'failed_deletes': 1}
         assert [dict(row) for row in self.db.select("booknotes")] == rows
 
+
 READING_LOG_SETUP_ROWS = [
     {
         "username": "@kilgore_trout",
@@ -247,6 +246,7 @@ EDITS_QUEUE_SETUP_ROWS = [
         "status": 1,
     },
 ]
+
 
 class TestUsernameUpdate:
     @classmethod
@@ -382,6 +382,7 @@ BOOKSHELVES_EVENTS_SETUP_ROWS = [
     },
 ]
 
+
 class TestCheckIns:
     @classmethod
     def setup_class(cls):
@@ -391,9 +392,7 @@ class TestCheckIns:
 
     def setup_method(self):
         self.db = get_db()
-        self.db.multiple_insert(
-            'bookshelves_events', BOOKSHELVES_EVENTS_SETUP_ROWS
-        )
+        self.db.multiple_insert('bookshelves_events', BOOKSHELVES_EVENTS_SETUP_ROWS)
 
     def teardown_method(self):
         self.db.query("delete from bookshelves_events;")
@@ -503,6 +502,7 @@ class TestCheckIns:
         )
         assert BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 1) is None
 
+
 SETUP_ROWS = [
     {
         'username': '@billy_pilgrim',
@@ -523,6 +523,7 @@ SETUP_ROWS = [
         'current': 4,
     },
 ]
+
 
 class TestYearlyReadingGoals:
 
