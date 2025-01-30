@@ -485,12 +485,6 @@ msgstr ""
 msgid "OR"
 msgstr ""
 
-#: login.html
-msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
-"email and password to access your Open Library account."
-msgstr ""
-
 #: account/create.html login.html
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
@@ -501,6 +495,12 @@ msgid ""
 "If you'd like to create a new, different Open Library account, you'll "
 "need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
 "logout'].submit()\">log out</a> and start the signup process afresh."
+msgstr ""
+
+#: login.html
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
 msgstr ""
 
 #: forms.py login.html
@@ -7829,7 +7829,20 @@ msgid ""
 msgstr ""
 
 #: account.py
+msgid "Email provider not recognized."
+msgstr ""
+
+#: account.py
+msgid "Password requirements not met."
+msgstr ""
+
+#: account.py
 msgid "A problem occurred and we were unable to log you in"
+msgstr ""
+
+#: account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
 msgstr ""
 
 #: account.py

@@ -97,7 +97,11 @@ def get_login_error(error_key):
         "bad_password": _("Password requirements not met."),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
-    return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
+    return (
+        LOGIN_ERRORS[error_key]
+        if error_key in LOGIN_ERRORS
+        else _("Request failed with error code: %(error_code)s", error_code=error_key)
+    )
 
 
 class availability(delegate.page):
