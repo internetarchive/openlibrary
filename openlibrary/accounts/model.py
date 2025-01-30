@@ -688,18 +688,22 @@ class InternetArchiveAccount(web.storage):
                     ia_account.test = True
                 return ia_account
 
-            elif 'screenname' not in response.get('values', {}):
-                error = OLAuthenticationError('undefined_error')
-                error.response = response
-                raise error
-
-            elif attempt >= retries:
+            # Response has returned "failure" with reasons in "values"
+            failures = response.get('values', {})
+            if 'screenname' not in failures:
+                for field in failures:
+                    # raise the first error if multiple
+                    # e.g. bad_email, bad_password
+                    error = OLAuthenticationError(f'bad_{field}')
+                    error.response = response
+                    raise error
+            elif attempt < retries:
+                _screenname = append_random_suffix(screenname)
+                attempt += 1
+            else:
                 e = OLAuthenticationError('username_registered')
                 e.value = _screenname
                 raise e
-
-            _screenname = append_random_suffix(screenname)
-            attempt += 1
 
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
