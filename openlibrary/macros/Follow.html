@@ -14,5 +14,5 @@ $ subscriber = ctx.user and ctx.user.key
       <button type="submit" class="cta-btn cta-btn--$(css_treatment)">$_("Unfollow" if following else "Follow")</button>
     </form>
   $else:
-    <a class="cta-btn cta-btn--primary" href="/account/login?redir_url=$(ctx.path)">$_("Follow")</a>
+    <a class="cta-btn cta-btn--primary" href="/account/login?redir_url=$(ctx.path)&action=follow:$(publisher)">$_("Follow")</a>
 </div>
