@@ -237,8 +237,8 @@ deploy_openlibrary() {
     fi
 
     DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
-    git tag $DEPLOY_TAG
-    git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+    git -C openlibrary tag $DEPLOY_TAG
+    git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
     check_server_access
 
@@ -297,7 +297,7 @@ deploy_openlibrary() {
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
-        " &
+        " &> /dev/null &
     done
 
     wait
