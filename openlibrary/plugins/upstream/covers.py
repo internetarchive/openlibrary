@@ -26,21 +26,30 @@ def setup():
     pass
 
 
-class image_validator:
+class ImageValidationError(Exception):
+    pass
+
+
+class ImageValidator:
     def __init__(self):
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
         self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png', '.webp'}
+
+    def validate(self, filename, data):
+        self.validate_extension(filename)
+        self.validate_size(data)
+        self.validate_image(data)
 
     def validate_size(self, file_data):
         file_size = len(file_data.read())
         file_data.seek(0)
         if file_size > self.max_file_size:
-            raise ValueError("File size exceeds 10MB limit")
+            raise ImageValidationError("File size exceeds 10MB limit")
 
     def validate_extension(self, filename):
         file_extension = os.path.splitext(filename)[1].lower()
         if file_extension not in self.allowed_extensions:
-            raise ValueError("Unsupported file extension")
+            raise ImageValidationError("Unsupported file extension")
 
     def validate_image(self, file_data):
         try:
@@ -48,7 +57,7 @@ class image_validator:
             image.verify()
             file_data.seek(0)
         except UnidentifiedImageError:
-            raise ValueError("Not a valid image file")
+            raise ImageValidationError("Not a valid image file")
 
 
 class add_cover(delegate.page):
@@ -73,7 +82,10 @@ class add_cover(delegate.page):
         # remove references to field storage objects
         web.ctx.pop("_fieldstorage", None)
 
-        data = self.upload(key, i)
+        try:
+            data = self.upload(key, i)
+        except ImageValidationError:
+            return render_template("covers/add", book, status=web.storage({"code": 1}))
 
         if coverid := data.get('id'):
             if isinstance(i.url, bytes):
@@ -89,18 +101,9 @@ class add_cover(delegate.page):
         olid = key.split("/")[-1]
 
         if i.file is not None and hasattr(i.file, 'file'):
-            file_data = i.file.file
-            filename = i.file.filename
-
-            validator = image_validator()
-            try:
-                validator.validate_extension(filename)
-                validator.validate_size(file_data)
-                validator.validate_image(file_data)
-            except ValueError as e:
-                return web.storage({'error': str(e)})
-
-            data = file_data
+            data = i.file.file
+            validator = ImageValidator()
+            validator.validate(i.file.filename, data)
         else:
             data = None
 
