@@ -1143,10 +1143,12 @@ def internalerror():
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
-        msg = render.site(render.internalerror(name))
-        raise web.internalerror(
-            web.safestr(msg), etype=exception_type, evalue=exception_value
-        )
+        msg = render.site(render.internalerror(
+            name,
+            etype=exception_type,
+            evalue=exception_value
+        ))
+        raise web.internalerror(web.safestr(msg))
 
 
 delegate.app.internalerror = internalerror
