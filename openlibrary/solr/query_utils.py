@@ -146,12 +146,9 @@ def fully_escape_query(query: str) -> str:
     return escaped
 
 def sanitize_query(query: str, chars: list[str]) -> str:
-    # if count of c in chars is odd:
-        # remove
-    # else:
-        # return query
     for c in chars:
-        query = query.replace(c, '')
+        if query.count(c) % 2 == 1:
+            query = query.replace(c, '')
     return query
 
 def luqum_parser(query: str) -> Item:
