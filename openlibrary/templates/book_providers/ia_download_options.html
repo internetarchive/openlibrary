@@ -5,13 +5,13 @@ $def with(formats, daisy)
   <p class="cta-section-title">$_("Download Options")</p>
   <ul class="ebook-download-options">
     $if formats.get('pdf'):
-      <li><a href="$formats['pdf']" title="$_('Download a PDF from Internet Archive')">$_("PDF")</a></li>
+      <li><a href="$formats['pdf']" data-ol-link-track="Download|pdf_ia" title="$_('Download a PDF from Internet Archive')">$_("PDF")</a></li>
     $if formats['txt']:
-      <li><a href="$formats['txt']" title="$_('Download a text version from Internet Archive')">$_("Plain text")</a></li>
+      <li><a href="$formats['txt']" data-ol-link-track="Download|text_ia" title="$_('Download a text version from Internet Archive')">$_("Plain text")</a></li>
     $if formats['epub']:
-      <li><a href="$formats['epub']" title="$_('Download an ePub from Internet Archive')">$_("ePub")</a></li>
+      <li><a href="$formats['epub']" data-ol-link-track="Download|epub_ia" title="$_('Download an ePub from Internet Archive')">$_("ePub")</a></li>
     $if formats['mobi']:
-      <li><a href="$formats['mobi']" title="$_('Download a MOBI file from Internet Archive')">$_("MOBI")</a></li>
-    <li><a href="$daisy" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_("DAISY")</a></li>
+      <li><a href="$formats['mobi']" data-ol-link-track="Download|mobi_ia" title="$_('Download a MOBI file from Internet Archive')">$_("MOBI")</a></li>
+    <li><a href="$daisy" data-ol-link-track="Download|daisy_ia" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_("DAISY")</a></li>
   </ul>
 </div>

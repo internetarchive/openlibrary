@@ -8,10 +8,10 @@ $ gutenberg_url = 'https://www.gutenberg.org/ebooks/' + gutenberg_id
 <ul class="ebook-download-options">
   $# There's no reliable way to determine the url for a given format, but these formats
   $# are usually available. See https://www.gutenberg.org/policy/linking.html
-  <li><a href="$gutenberg_url" title="$_('Download an HTML from Project Gutenberg')">$_("HTML")</a></li>
-  <li><a href="$gutenberg_url" title="$_('Download a text version from Project Gutenberg')">$_("Plain text")</a></li>
-  <li><a href="$gutenberg_url" title="$_('Download an ePub from Project Gutenberg')">$_("ePub")</a></li>
-  <li><a href="$gutenberg_url" title="$_('Download a Kindle file from Project Gutenberg')">$_("Kindle")</a></li>
+  <li><a href="$gutenberg_url" data-ol-link-track="Download|html_gutenberg" title="$_('Download an HTML from Project Gutenberg')">$_("HTML")</a></li>
+  <li><a href="$gutenberg_url" data-ol-link-track="Download|text_gutenberg" title="$_('Download a text version from Project Gutenberg')">$_("Plain text")</a></li>
+  <li><a href="$gutenberg_url" data-ol-link-track="Download|epub_gutenburg" title="$_('Download an ePub from Project Gutenberg')">$_("ePub")</a></li>
+  <li><a href="$gutenberg_url" data-ol-link-track="Download|kindle_gutenberg" title="$_('Download a Kindle file from Project Gutenberg')">$_("Kindle")</a></li>
   <li><a href="$gutenberg_url">$_("More at Project Gutenberg")</a></li>
 </ul>
 </div>

@@ -7,10 +7,10 @@ $ flat_id = standard_ebooks_id.replace('/', '_')
 <div class="cta-section">
 <p class="cta-section-title">$_("Download Options")</p>
 <ul class="ebook-download-options">
-  <li><a href="$base_url/text/single-page" title="$_('Download an HTML from Standard Ebooks')">$_("HTML")</a></li>
-  <li><a href="$base_url/downloads/$(flat_id).epub" title="$_('Download an ePub from Standard Ebook.')">$_("ePub")</a></li>
-  <li><a href="$base_url/downloads/$(flat_id).azw3" title="$_('Download a Kindle file from Standard Ebooks')">$_("Kindle (azw3)")</a></li>
-  <li><a href="$base_url/downloads/$(flat_id).kepub.epub" title="$_('Download a Kobo file from Standard Ebooks')">$_("Kobo (kepub)")</a></li>
+  <li><a href="$base_url/text/single-page" data-ol-link-track="Download|html_standardebooks" title="$_('Download an HTML from Standard Ebooks')">$_("HTML")</a></li>
+  <li><a href="$base_url/downloads/$(flat_id).epub" data-ol-link-track="Download|epub_standardebooks" title="$_('Download an ePub from Standard Ebook.')">$_("ePub")</a></li>
+  <li><a href="$base_url/downloads/$(flat_id).azw3" data-ol-link-track="Download|kindle_standardebooks" title="$_('Download a Kindle file from Standard Ebooks')">$_("Kindle (azw3)")</a></li>
+  <li><a href="$base_url/downloads/$(flat_id).kepub.epub" data-ol-link-track="Download|kobo_standardebooks" title="$_('Download a Kobo file from Standard Ebooks')">$_("Kobo (kepub)")</a></li>
   <li><a href="https://github.com/standardebooks/$flat_id" title="$_('View the source code for this Standard Ebook at GitHub')">$_("Source Code")</a></li>
   <li><a href="$base_url">$_("More at Standard Ebooks")</a></li>
 </ul>
