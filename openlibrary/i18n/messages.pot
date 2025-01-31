@@ -438,7 +438,7 @@ msgid "A Problem Occurred"
 msgstr ""
 
 #: internalerror.html
-msgid "We're sorry, a problem occurred wil responding to your request:"
+msgid "We're sorry, a problem occurred while responding to your request:"
 msgstr ""
 
 #: internalerror.html
