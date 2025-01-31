@@ -10,6 +10,5 @@ def searchScheme():
 
 def test_process_user_query(searchScheme):
     assert searchScheme.process_user_query('Compilation Group for the "History of Modern China') == 'Compilation Group for the History of Modern China'
-    assert searchScheme.process_user_query('"Compilation Group for the History of Modern China"') == 'Compilation Group for the History of Modern China'
-    assert searchScheme.process_user_query('Compilation Group for the "History of Modern China') != 'Compilation Group for the "History of Modern China'
-    assert searchScheme.process_user_query('Compilation Group for the "History of Modern China') != 'Compilation Group for the \"History of Modern China'
+    assert searchScheme.process_user_query('"Compilation Group for the History of Modern China"') == '"Compilation Group for the History of Modern China"'
+    assert searchScheme.process_user_query('"Compilation Group for the "History of Modern China"') == 'Compilation Group for the History of Modern China'
