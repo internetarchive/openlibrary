@@ -2,6 +2,8 @@
 (should go to web.py)
 """
 
+from types import MappingProxyType
+
 __all__ = [
     "Column",
     "Schema",
@@ -94,81 +96,93 @@ class MockAdapter(AbstractAdapter):
 
 
 class MySQLAdapter(AbstractAdapter):
-    native_types = {
-        'serial': 'int auto_increment not null',
-        'integer': 'int',
-        'float': 'float',
-        'string': 'varchar',
-        'text': 'text',
-        'datetime': 'datetime',
-        'timestamp': 'datetime',
-        'time': 'time',
-        'date': 'date',
-        'binary': 'blob',
-        'boolean': 'boolean',
-    }
-    constants = {
-        'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
-        'CURRENT_DATE': 'CURRENT_DATE',
-        'CURRENT_TIME': 'CURRENT_TIME',
-        'CURRENT_UTC_TIMESTAMP': 'UTC_TIMESTAMP',
-        'CURRENT_UTC_DATE': 'UTC_DATE',
-        'CURRENT_UTC_TIME': 'UTC_TIME',
-    }
+    native_types = MappingProxyType(
+        {
+            'serial': 'int auto_increment not null',
+            'integer': 'int',
+            'float': 'float',
+            'string': 'varchar',
+            'text': 'text',
+            'datetime': 'datetime',
+            'timestamp': 'datetime',
+            'time': 'time',
+            'date': 'date',
+            'binary': 'blob',
+            'boolean': 'boolean',
+        }
+    )
+    constants = MappingProxyType(
+        {
+            'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
+            'CURRENT_DATE': 'CURRENT_DATE',
+            'CURRENT_TIME': 'CURRENT_TIME',
+            'CURRENT_UTC_TIMESTAMP': 'UTC_TIMESTAMP',
+            'CURRENT_UTC_DATE': 'UTC_DATE',
+            'CURRENT_UTC_TIME': 'UTC_TIME',
+        }
+    )
 
     def references_to_sql(self, column_name, value):
         return {'constraint': f'foreign key ({column_name}) references {value}'}
 
 
 class PostgresAdapter(AbstractAdapter):
-    native_types = {
-        'serial': 'serial',
-        'integer': 'int',
-        'float': 'float',
-        'string': 'character varying',
-        'text': 'text',
-        'datetime': 'timestamp',
-        'timestamp': 'timestamp',
-        'time': 'time',
-        'date': 'date',
-        'binary': 'bytea',
-        'boolean': 'boolean',
-    }
-    constants = {
-        'CURRENT_TIMESTAMP': 'current_timestamp',
-        'CURRENT_DATE': 'current_date',
-        'CURRENT_TIME': 'current_time',
-        'CURRENT_UTC_TIMESTAMP': "(current_timestamp at time zone 'utc')",
-        'CURRENT_UTC_DATE': "(date (current_timestamp at timezone 'utc'))",
-        'CURRENT_UTC_TIME': "(current_time at time zone 'utc')",
-    }
+    native_types = MappingProxyType(
+        {
+            'serial': 'serial',
+            'integer': 'int',
+            'float': 'float',
+            'string': 'character varying',
+            'text': 'text',
+            'datetime': 'timestamp',
+            'timestamp': 'timestamp',
+            'time': 'time',
+            'date': 'date',
+            'binary': 'bytea',
+            'boolean': 'boolean',
+        }
+    )
+    constants = MappingProxyType(
+        {
+            'CURRENT_TIMESTAMP': 'current_timestamp',
+            'CURRENT_DATE': 'current_date',
+            'CURRENT_TIME': 'current_time',
+            'CURRENT_UTC_TIMESTAMP': "(current_timestamp at time zone 'utc')",
+            'CURRENT_UTC_DATE': "(date (current_timestamp at timezone 'utc'))",
+            'CURRENT_UTC_TIME': "(current_time at time zone 'utc')",
+        }
+    )
 
     def references_to_sql(self, column_name, value):
         return 'references ' + value
 
 
 class SQLiteAdapter(AbstractAdapter):
-    native_types = {
-        'serial': 'integer autoincrement',
-        'integer': 'integer',
-        'float': 'float',
-        'string': 'varchar',
-        'text': 'text',
-        'datetime': 'datetime',
-        'timestamp': 'datetime',
-        'time': 'datetime',
-        'date': 'date',
-        'binary': 'blob',
-        'boolean': 'boolean',
-    }
-    constants = {
-        'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
-        'CURRENT_DATE': "CURRENT_DATE",
-        'CURRENT_TIME': "CURRENT_TIME",
-        'CURRENT_UTC_TIMESTAMP': "CURRENT_TIMESTAMP",
-        'CURRENT_UTC_DATE': "CURRENT_DATE",
-        'CURRENT_UTC_TIME': "CURRENT_TIME",
-    }
+    native_types = MappingProxyType(
+        {
+            'serial': 'integer autoincrement',
+            'integer': 'integer',
+            'float': 'float',
+            'string': 'varchar',
+            'text': 'text',
+            'datetime': 'datetime',
+            'timestamp': 'datetime',
+            'time': 'datetime',
+            'date': 'date',
+            'binary': 'blob',
+            'boolean': 'boolean',
+        }
+    )
+    constants = MappingProxyType(
+        {
+            'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
+            'CURRENT_DATE': "CURRENT_DATE",
+            'CURRENT_TIME': "CURRENT_TIME",
+            'CURRENT_UTC_TIMESTAMP': "CURRENT_TIMESTAMP",
+            'CURRENT_UTC_DATE': "CURRENT_DATE",
+            'CURRENT_UTC_TIME': "CURRENT_TIME",
+        }
+    )
 
 
 register_adapter('mysql', MySQLAdapter)
