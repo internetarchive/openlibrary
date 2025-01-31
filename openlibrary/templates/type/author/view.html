@@ -118,25 +118,28 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
-                $if books_count > 1:
-                  <div id="books">
-                    $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-                  </div>
-                <p>
-                  $if input(mode="everything").mode == "everything":
-                    $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))
-                  $else:
-                    $:_('Showing ebooks only. Would you like to see <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))
-                </p>
 
                 <form method="GET" class="olform pagesearchbox">
-                  <input type="hidden" name="has_fulltext" value="true"/>
-                  $if (query_param('sort')):
-                    <input type="hidden" name="sort" value="$query_param('sort')"/>
-                  $if (query_param('mode')):
-                    <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
-                </form>
+                    <input type="hidden" name="has_fulltext" value="true"/>
+                    $if (query_param('sort')):
+                      <input type="hidden" name="sort" value="$query_param('sort')"/>
+                    $if (query_param('mode')):
+                      <input type="hidden" name="mode" value="$query_param('mode')"/>
+                    $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
+                  </form>
+        <div class="clearfix"></div>
+
+                $if books_count > 1:
+                <div id="books">
+                    <label for="sortOptions">$_('Sort by: ')</label>
+                    $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+                    $if input(mode="everything").mode == "everything":
+                        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
+                    $else:
+                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
+                </div>
+                
+
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
