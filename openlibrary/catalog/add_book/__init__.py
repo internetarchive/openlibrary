@@ -91,7 +91,7 @@ class CoverNotSaved(Exception):
         self.f = f
 
     def __str__(self):
-        return "coverstore responded with: '%s'" % self.f
+        return f"coverstore responded with: '{self.f}'"
 
 
 class RequiredField(Exception):
@@ -354,7 +354,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
     if r.status_code != 200:
         return f'{item.identifier} failed: {r.content}'
     else:
-        return "success for %s" % item.identifier
+        return f"success for {item.identifier}"
 
 
 def update_ia_metadata_for_ol_edition(edition_id):
@@ -369,7 +369,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
     data = {'error': 'No qualifying edition'}
     if edition_id:
-        ed = web.ctx.site.get('/books/%s' % edition_id)
+        ed = web.ctx.site.get(f'/books/{edition_id}')
         if ed.ocaid:
             work = ed.works[0] if ed.get('works') else None
             if work and work.key:
