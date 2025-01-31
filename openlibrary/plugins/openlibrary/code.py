@@ -1125,6 +1125,10 @@ def save_error():
 def internalerror():
     name = save_error()
 
+    import sys
+
+    exception_type, exception_value, _ = sys.exc_info()
+
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
     # Can't have sub-metrics, so can't add more info
     openlibrary.core.stats.increment('ol.internal-errors')
@@ -1139,7 +1143,9 @@ def internalerror():
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
-        msg = render.site(render.internalerror(name))
+        msg = render.site(
+            render.internalerror(name, etype=exception_type, evalue=exception_value)
+        )
         raise web.internalerror(web.safestr(msg))
 
 
