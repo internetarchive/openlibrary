@@ -8,7 +8,7 @@ from openlibrary.solr.query_utils import (
     escape_unknown_fields,
     fully_escape_query,
     luqum_parser,
-    sanitize_query
+    sanitize_query,
 )
 
 logger = logging.getLogger("openlibrary.worksearch")

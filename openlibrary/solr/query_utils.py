@@ -145,11 +145,13 @@ def fully_escape_query(query: str) -> str:
     escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
     return escaped
 
+
 def sanitize_query(query: str, chars: list[str]) -> str:
     for c in chars:
         if query.count(c) % 2 == 1:
             query = query.replace(c, '')
     return query
+
 
 def luqum_parser(query: str) -> Item:
     """
