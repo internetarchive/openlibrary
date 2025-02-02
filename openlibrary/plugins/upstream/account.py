@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 import requests
 import web
@@ -414,14 +414,15 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
-
     def perform_post_login_action(self, i, ol_account):
         if i.action:
             op, args = i.action.split(":")
             if op == "follow" and args:
                 publisher = args
                 if publisher_account := OpenLibraryAccount.get_by_username(publisher):
-                    PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
+                    PubSub.subscribe(
+                        subscriber=ol_account.username, publisher=publisher
+                    )
 
                     publisher_name = publisher_account["data"]["displayname"]
                     flash_message = f"You are now following {publisher_name}!"
