@@ -414,39 +414,18 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
-    def get_post_login_action(self, web):
-        """Extract the 'action' parameter from the query string.
-        Return the action if it is valid, else return None
-        """
-        qs = web.ctx.env.get('QUERY_STRING', "")
-        parsed_query = parse_qs(qs)
-        action = parsed_query.get("action", [None])[0]
-        if action:
-            return action
-        return action
 
     def perform_post_login_action(self, i, ol_account):
-        if not i.action or ":" not in i.action:
-            return None
+        if i.action:
+            op, args = i.action.split(":")
+            if op == "follow" and args:
+                publisher = args
+                if publisher_account := OpenLibraryAccount.get_by_username(publisher):
+                    PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
 
-        op, publisher = i.action.split(":")
-        if op != "follow":
-            return None
-
-        # Check if publisher exists
-        publisher_info = OpenLibraryAccount.get_by_username(publisher)
-        if not publisher_info:
-            return None
-
-        # Check is user has already following the publisher
-        if not PubSub.is_subscribed(
-            subscriber=ol_account.username, publisher=publisher
-        ):
-            PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
-
-        publisher_name = publisher_info["data"]["displayname"]
-        flash_message = f"You are now following {publisher_name}!"
-        return flash_message
+                    publisher_name = publisher_account["data"]["displayname"]
+                    flash_message = f"You are now following {publisher_name}!"
+                    return flash_message
 
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
@@ -458,11 +437,7 @@ class account_login(delegate.page):
             this_host = this_host.split(':', 1)[0]
         if parsed_referer.hostname != this_host:
             referer = None
-
-        # Get the post login action. Example: follow, want to read or borrow
-        action = self.get_post_login_action(web)
-
-        i = web.input(redirect=referer, action=action)
+        i = web.input(redirect=referer, action="")
         f = forms.Login()
         f['redirect'].value = i.redirect
         f['action'].value = i.action

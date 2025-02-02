@@ -1,6 +1,7 @@
 import logging
 from typing import cast
 
+from openlibrary.accounts import OpenLibraryAccount
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -16,7 +17,8 @@ class PubSub:
     @classmethod
     def subscribe(cls, subscriber, publisher):
         oldb = db.get_db()
-        return oldb.insert(cls.TABLENAME, subscriber=subscriber, publisher=publisher)
+        if not cls.is_subscribed(subscriber, publisher):
+            return oldb.insert(cls.TABLENAME, subscriber=subscriber, publisher=publisher)
 
     @classmethod
     def unsubscribe(cls, subscriber, publisher):
