@@ -1521,11 +1521,11 @@ msgid ""
 "followed."
 msgstr ""
 
-#: account/privacy.html admin/people/view.html
+#: account/privacy.html
 msgid "Yes"
 msgstr ""
 
-#: account/privacy.html admin/people/view.html books/edit/edition.html
+#: account/privacy.html books/edit/edition.html
 msgid "No"
 msgstr ""
 
@@ -1865,7 +1865,7 @@ msgstr ""
 msgid "Send It"
 msgstr ""
 
-#: account/password/reset.html admin/people/view.html
+#: account/password/reset.html
 msgid "Reset Password"
 msgstr ""
 
@@ -2141,7 +2141,7 @@ msgstr ""
 msgid "Human"
 msgstr ""
 
-#: admin/index.html admin/people/view.html
+#: admin/index.html
 msgid "Bot"
 msgstr ""
 
@@ -2303,8 +2303,7 @@ msgid "Admin Center"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html
-#: admin/people/index.html admin/people/view.html type/author/view.html
-#: type/list/view_body.html
+#: admin/people/index.html type/author/view.html type/list/view_body.html
 msgid "People"
 msgstr ""
 
@@ -2551,7 +2550,7 @@ msgstr ""
 msgid "comment"
 msgstr ""
 
-#: admin/ip/view.html admin/people/view.html
+#: admin/ip/view.html
 msgid "[Admin Center]"
 msgstr ""
 
@@ -2654,7 +2653,7 @@ msgstr ""
 msgid "Find Account"
 msgstr ""
 
-#: admin/people/index.html admin/people/view.html
+#: admin/people/index.html
 msgid "Email Address:"
 msgstr ""
 
@@ -2690,143 +2689,8 @@ msgstr ""
 msgid "profile"
 msgstr ""
 
-#: admin/people/index.html admin/people/view.html
+#: admin/people/index.html
 msgid "Edit History"
-msgstr ""
-
-#: admin/people/view.html
-msgid "block and revert all edits"
-msgstr ""
-
-#: admin/people/view.html
-msgid "block this account"
-msgstr ""
-
-#: admin/people/view.html
-#, python-format
-msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr ""
-
-#: admin/people/view.html
-msgid "login as this user"
-msgstr ""
-
-#: admin/people/view.html
-#, python-format
-msgid ""
-"Activated on <span class=\"time\">%(date)s</span> from <a "
-"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
-
-#: admin/people/view.html
-msgid "unblock this account"
-msgstr ""
-
-#: admin/people/view.html
-msgid "activate account"
-msgstr ""
-
-#: admin/people/view.html
-#, python-format
-msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Activation link expired"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Resend activation link"
-msgstr ""
-
-#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
-msgid "Name:"
-msgstr ""
-
-#: admin/people/view.html
-msgid "view profile"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Change"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Admin"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Make Human"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Make Bot"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Not available"
-msgstr ""
-
-#: admin/people/view.html
-msgid "# Edits"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Member Since:"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Last Login:"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Tags:"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Anonymize Account:"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Dry Run"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Anonymize Account"
-msgstr ""
-
-#: account.py admin/people/view.html books/mybooks_breadcrumb_select.html
-#: type/user/view.html
-msgid "Loans"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Account not activated yet."
-msgstr ""
-
-#: admin/people/view.html
-msgid "Waiting Loans"
-msgstr ""
-
-#: admin/people/view.html
-#, python-format
-msgid "%(num)d edits"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Debug Info"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Account Information"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Verifications Links"
-msgstr ""
-
-#: admin/people/view.html
-msgid "None found"
 msgstr ""
 
 #: SearchNavigation.html authors/index.html lib/nav_foot.html
@@ -3666,6 +3530,10 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html
 #, python-format
 msgid "Lists (%(count)d)"
+msgstr ""
+
+#: account.py books/mybooks_breadcrumb_select.html type/user/view.html
+msgid "Loans"
 msgstr ""
 
 #: books/mybooks_breadcrumb_select.html mybooks.py
@@ -5713,6 +5581,10 @@ msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html
 msgid "Create a new list"
+msgstr ""
+
+#: CreateListModal.html my_books/dropdown_content.html
+msgid "Name:"
 msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html

@@ -336,13 +336,12 @@ def private_collection_in(collections: list[str]) -> bool:
 
 
 def extract_year(input: str, int_only: bool = True) -> str:
-  
-    if not input:
-        return '' 
 
-    match = re.search(r'\b(\d{4})\b', input)
-    if match:
-        return match.group(1)  
+    if not input:
+        return ''
+
+    if match := re.search(r'\b(\d{4})\b', input):
+        return match.group(1)
 
     if not int_only:
         return input

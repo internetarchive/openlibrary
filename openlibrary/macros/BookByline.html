@@ -5,7 +5,7 @@ $def render_author_link(author):
   $ url = author.get('url')
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
   $if show_years and author.get('birth_date'):
-    $ birth_date_formatted = extract_year(author.get('birth_date'), int_only=False) 
+    $ birth_date_formatted = extract_year(author.get('birth_date'), int_only=False)
     $if author.get('death_date'):
       $ death_date_formatted = extract_year(author.get('death_date'), int_only=False)
     $else:
