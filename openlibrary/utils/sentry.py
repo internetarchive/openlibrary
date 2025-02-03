@@ -4,14 +4,14 @@ from dataclasses import dataclass
 
 import sentry_sdk
 import web
-from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
-from sentry_sdk.utils import capture_internal_exceptions
-
 from infogami.utils.app import (
     find_page,
     modes,
 )
 from infogami.utils.types import type_patterns
+from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
+from sentry_sdk.utils import capture_internal_exceptions
+
 from openlibrary.utils import get_software_version
 
 
@@ -83,12 +83,12 @@ class Sentry:
         app.add_processor(WebPySentryProcessor(app))
 
     def capture_exception_webpy(self):
-        with sentry_sdk.push_scope() as scope:
+        with sentry_sdk.new_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
     def capture_exception(self, ex, extras: dict | None = None):
-        with sentry_sdk.push_scope() as scope:
+        with sentry_sdk.new_scope() as scope:
             if extras:
                 for key, value in extras.items():
                     scope.set_extra(key, value)
