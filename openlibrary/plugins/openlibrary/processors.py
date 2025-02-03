@@ -1,5 +1,4 @@
-"""web.py application processors for Open Library.
-"""
+"""web.py application processors for Open Library."""
 
 import re
 from datetime import datetime

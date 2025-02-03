@@ -1,5 +1,4 @@
-"""Module for providing core functionality of lending on Open Library.
-"""
+"""Module for providing core functionality of lending on Open Library."""
 
 import datetime
 import logging

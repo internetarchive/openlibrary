@@ -1,5 +1,4 @@
-"""Library for interacting with archive.org.
-"""
+"""Library for interacting with archive.org."""
 
 import datetime
 import logging

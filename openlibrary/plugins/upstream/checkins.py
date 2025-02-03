@@ -1,5 +1,4 @@
-"""Reading log check-ins handler and services.
-"""
+"""Reading log check-ins handler and services."""
 
 import json
 from datetime import datetime
