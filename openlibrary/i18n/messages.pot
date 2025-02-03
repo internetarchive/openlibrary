@@ -6473,21 +6473,21 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid ""
-"— show <a "
-"href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"— show <a "
-"href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "Search %(author)s books"
+msgstr ""
+
+#: type/author/view.html
+msgid "Sort by: "
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html type/author/view.html
