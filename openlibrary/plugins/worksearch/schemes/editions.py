@@ -15,10 +15,23 @@ class EditionSearchScheme(SearchScheme):
         # Instance variables for EditionSearchScheme
         self.universe = ['type:work']
         self.all_fields = {
-            "key", "title", "subtitle", "alternative_title", "alternative_subtitle", 
-            "cover_i", "ebook_access", "publish_date", "lccn", "ia", "isbn", 
-            "publisher", "has_fulltext", "title_suggest", "publish_year", 
-            "language", "publisher_facet",
+            "key",
+            "title",
+            "subtitle",
+            "alternative_title",
+            "alternative_subtitle",
+            "cover_i",
+            "ebook_access",
+            "publish_date",
+            "lccn",
+            "ia",
+            "isbn",
+            "publisher",
+            "has_fulltext",
+            "title_suggest",
+            "publish_year",
+            "language",
+            "publisher_facet",
         }
         self.facet_fields: set[str] = set()
         self.field_name_map = {

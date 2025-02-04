@@ -13,7 +13,10 @@ class SubjectSearchScheme(SearchScheme):
         # Instance variables for SubjectSearchScheme
         self.universe = ['type:subject']
         self.all_fields = {
-            'key', 'name', 'subject_type', 'work_count',
+            'key',
+            'name',
+            'subject_type',
+            'work_count',
         }
         self.non_solr_fields: set[str] = set()
         self.facet_fields: set[str] = set()
@@ -28,7 +31,10 @@ class SubjectSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
         self.default_fetched_fields = {
-            'key', 'name', 'subject_type', 'work_count',
+            'key',
+            'name',
+            'subject_type',
+            'work_count',
         }
         self.facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
