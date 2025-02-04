@@ -5,7 +5,7 @@ from . import db
 
 class Booknotes(db.CommonExtras):
     TABLENAME = "booknotes"
-    PRIMARY_KEY = ["username", "work_id", "edition_id"]
+    PRIMARY_KEY = ("username", "work_id", "edition_id")
     NULL_EDITION_VALUE = -1
     ALLOW_DELETE_ON_CONFLICT = False
 

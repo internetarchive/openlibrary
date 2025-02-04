@@ -49,7 +49,7 @@ services:
     environment:
       - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
       - CONTAINER_NAMES=openlibrary-solr-1 openlibrary-solr_haproxy-1
-      - SEND_SLACK_MESSAGE=true
+      - SEND_SLACK_MESSAGE=false
     env_file:
       - ../olsystem/etc/solr_restarter.env
     volumes:
@@ -126,8 +126,6 @@ services:
     user: root
     command: docker/ol-cron-start.sh
     restart: unless-stopped
-    env_file:
-      - ../olsystem/etc/cron-jobs.env
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem

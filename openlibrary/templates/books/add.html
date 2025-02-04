@@ -28,11 +28,7 @@ $ i18n_strings = {
                 <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
-                $if work:
-                    <input type="text" id="title" disabled="disabled" value="$work.title"/>
-                    <input type="hidden" name="book_title" value="$work.title"/>
-                $else:
-                    <input type="text" name="book_title" id="title" class="title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"') required/>
+                <input type="text" id="title" name="book_title" value="$(work and work.title)" class="title" required/>
             </div>
         </div>
         <div class="formElement">
@@ -108,4 +104,3 @@ $ i18n_strings = {
         </div>
     </form>
 </div>
-

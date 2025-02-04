@@ -58,7 +58,7 @@ def parse_date(datestr: str) -> datetime.date:
     _resize_list(tokens, 3)
 
     yyyy, mm, dd = tokens[:3]
-    return datetime.date(int(yyyy), mm and int(mm) or 1, dd and int(dd) or 1)
+    return datetime.date(int(yyyy), (mm and int(mm)) or 1, (dd and int(dd)) or 1)
 
 
 def parse_daterange(datestr: str) -> tuple[datetime.date, datetime.date]:

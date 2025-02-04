@@ -31,8 +31,8 @@ $def facet(header, label, counts):
     <div class="facet $header">
         $ magic_wand_markup = ''
         $if header == 'author_key' and len(counts) > 1 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
-            $ keys = '&'.join('key=%s' % k for k, display, count in counts)
-            $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
+            $ keys = ','.join(k for k, display, count in counts)
+            $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?records=%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
         <h4 class="facetHead">$(label)$:(magic_wand_markup)</h4>
         $ num = 0
         $for k, display, count in counts:

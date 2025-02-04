@@ -3,6 +3,8 @@ OPDS helper class.
 A lightweight version of github.com/internetarchive/bookserver
 """
 
+from types import MappingProxyType
+
 import lxml.etree as ET
 
 from infogami.infobase.utils import parse_datetime
@@ -16,14 +18,16 @@ class OPDS:
     xmlns_bibo = 'http://purl.org/ontology/bibo/'
     xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 
-    nsmap = {
-        None: xmlns_atom,
-        'dcterms': xmlns_dcterms,
-        'opds': xmlns_opds,
-        'rdvocab': xmlns_rdvocab,
-        'bibo': xmlns_bibo,
-        'xsi': xmlns_xsi,
-    }
+    nsmap = MappingProxyType(
+        {
+            None: xmlns_atom,
+            'dcterms': xmlns_dcterms,
+            'opds': xmlns_opds,
+            'rdvocab': xmlns_rdvocab,
+            'bibo': xmlns_bibo,
+            'xsi': xmlns_xsi,
+        }
+    )
 
     atom = "{%s}" % xmlns_atom
     dcterms = "{%s}" % xmlns_dcterms
@@ -32,11 +36,13 @@ class OPDS:
     bibo = "{%s}" % xmlns_bibo
     xsi = "{%s}" % xmlns_xsi
 
-    fileExtMap = {
-        'pdf': 'application/pdf',
-        'epub': 'application/epub+zip',
-        'mobi': 'application/x-mobipocket-ebook',
-    }
+    fileExtMap = MappingProxyType(
+        {
+            'pdf': 'application/pdf',
+            'epub': 'application/epub+zip',
+            'mobi': 'application/x-mobipocket-ebook',
+        }
+    )
 
     ebookTypes = (
         'application/pdf',

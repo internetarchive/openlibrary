@@ -76,8 +76,8 @@ TESTS = [
         'Two Dewey numbers and one edition number',
     ),
     ('813. 54', ['813.54'], 'Space after decimal'),
-    ('813.′54', ['813.54'], 'Curly quote separator (real world)'),
-    ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),
+    ('813.′54', ['813.54'], 'Curly quote separator (real world)'),  # noqa: RUF001
+    ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),  # noqa: RUF001
     ('813. 54 (ddc21)', ['813.54'], 'catalog number with ddc prefix (real world)'),
     ('823/.92 22', ['823.92'], 'catalog number without leading 0 (real world)'),
     ("813.' 54", ['813.54'], 'Space and quote separate (real world)'),
@@ -99,13 +99,17 @@ TESTS = [
 ]
 
 
-@pytest.mark.parametrize("raw_ddc,expected,name", TESTS, ids=[t[2] for t in TESTS])
+@pytest.mark.parametrize(
+    ("raw_ddc", "expected", "name"), TESTS, ids=[t[2] for t in TESTS]
+)
 def test_noramlize_ddc(raw_ddc, expected, name):
     assert normalize_ddc(raw_ddc) == expected
 
 
 @pytest.mark.parametrize(
-    "raw_ddc,expected,name", TESTS_FROM_OCLC, ids=[t[2] for t in TESTS_FROM_OCLC]
+    ("raw_ddc", "expected", "name"),
+    TESTS_FROM_OCLC,
+    ids=[t[2] for t in TESTS_FROM_OCLC],
 )
 def test_normalize_ddc_with_oclc_spec(raw_ddc, expected, name):
     assert normalize_ddc(raw_ddc) == expected
@@ -124,7 +128,7 @@ PREFIX_TESTS = [
 
 
 @pytest.mark.parametrize(
-    "prefix,normed,name", PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
+    ("prefix", "normed", "name"), PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
 )
 def test_normalize_ddc_prefix(prefix, normed, name):
     assert normalize_ddc_prefix(prefix) == normed
@@ -138,7 +142,7 @@ RANGE_TESTS = [
 
 
 @pytest.mark.parametrize(
-    "raw,normed,name", RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
+    ("raw", "normed", "name"), RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
 )
 def test_normalize_ddc_range(raw, normed, name):
     assert normalize_ddc_range(*raw) == normed
@@ -153,7 +157,7 @@ SORTING_DDC_TEST = [
 
 
 @pytest.mark.parametrize(
-    "ddcs,outpt,name", SORTING_DDC_TEST, ids=[t[-1] for t in SORTING_DDC_TEST]
+    ("ddcs", "outpt", "name"), SORTING_DDC_TEST, ids=[t[-1] for t in SORTING_DDC_TEST]
 )
 def test_choose_sorting_ddc(ddcs, outpt, name):
     assert choose_sorting_ddc(ddcs) == outpt

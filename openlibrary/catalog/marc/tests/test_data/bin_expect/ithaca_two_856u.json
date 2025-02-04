@@ -31,14 +31,15 @@
     {
       "name": "Great Britain. Central Office of Information",
       "entity_type": "org"
+    },
+    {
+      "name": "Great Britain. Office for National Statistics",
+      "entity_type": "org"
     }
   ],
   "by_statement": "issued by the Central Office of Information",
   "publish_places": [
     "London"
-  ],
-  "contributions": [
-    "Great Britain. Office for National Statistics"
   ],
   "subjects": ["Statistics", "Periodicals"],
   "subject_places": ["Great Britain"],

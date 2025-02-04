@@ -2,12 +2,12 @@ import pytest
 
 from openlibrary.catalog.add_book import load_book
 from openlibrary.catalog.add_book.load_book import (
-    InvalidLanguage,
     build_query,
     find_entity,
     import_author,
     remove_author_honorifics,
 )
+from openlibrary.catalog.utils import InvalidLanguage
 from openlibrary.core.models import Author
 
 
@@ -38,7 +38,7 @@ unchanged_names = [
     {'entity_type': 'org', 'name': 'Organisation, Place'},
     {
         'entity_type': 'org',
-        'name': 'Shou du shi fan da xue (Beijing, China). Zhongguo shi ge yan jiu zhong xin',
+        'name': '首都师范大学 (Beijing, China). 中国诗歌硏究中心',
     },
 ]
 
@@ -89,7 +89,7 @@ class TestImportAuthor:
             mock_site.save(existing_author)
 
     @pytest.mark.parametrize(
-        ["name", "expected"],
+        ('name', 'expected'),
         [
             ("Drake von Drake", "Drake von Drake"),
             ("Dr. Seuss", "Dr. Seuss"),

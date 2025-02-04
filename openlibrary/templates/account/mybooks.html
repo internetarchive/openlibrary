@@ -10,26 +10,6 @@ $def year_span(year, use_local_year=False):
 
 <div class="mybooks-details-specific">
 
-  $if owners_page:
-    $ year = current_year()
-    $ current_goal = get_reading_goals(year=year)
-    $ hidden = 'hidden' if current_goal else ''
-    <div class="yearly-goal-section">
-      $# Hide "Set reading goal" call to action with `hidden` class if a goal has already been set:
-      <div class="chip-group $hidden">
-        <span class="chip value-chip category-chip chip--selectable goal-chip">
-          $ year_markup = year_span(year)
-          <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
-        </span>
-        $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
-        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
-      </div>
-      $if current_goal:
-        <span id="reading-goal-container">
-          $:render_template('check_ins/reading_goal_progress', [current_goal])
-        </span>
-    </div>
-
   $code:
       def compact_carousel(data):
           key, title, url = data

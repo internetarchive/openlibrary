@@ -30,11 +30,11 @@ if TYPE_CHECKING:
 
 class Batch(web.storage):
 
-    def __init__(self, mapping, *requireds, **defaults):
+    def __init__(self, mapping, *requires, **defaults):
         """
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
         """
-        super().__init__(mapping, *requireds, **defaults)
+        super().__init__(mapping, *requires, **defaults)
         self.total_submitted: int = 0
         self.total_queued: int = 0
         self.total_skipped: int = 0
@@ -55,7 +55,8 @@ class Batch(web.storage):
 
     def load_items(self, filename):
         """Adds all the items specified in the filename to this batch."""
-        items = [line.strip() for line in open(filename) if line.strip()]
+        with open(filename) as file:
+            items = [line.strip() for line in file if line.strip()]
         self.add_items(items)
 
     def dedupe_items(self, items):

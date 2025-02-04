@@ -12,8 +12,6 @@ $var title: $header_title
 
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
   <div class="mybooks-details $css">
-    $if mb.key == 'mybooks' and mb.is_my_page:
-      $:render_template("account/yrg_banner", mb.component_times)
 
     $ mb.component_times['Details header'] = time()
     <header>

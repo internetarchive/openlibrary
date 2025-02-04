@@ -1,7 +1,6 @@
 """Models of various OL objects.
 """
 
-import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -835,15 +834,13 @@ class Author(Thing):
 
 
 class User(Thing):
-    DEFAULT_PREFERENCES = {
-        'updates': 'no',
-        'public_readlog': 'no',
+    def get_default_preferences(self):
+        return {'update': 'no', 'public_readlog': 'no'}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
         # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
-    }
 
     def get_status(self):
         account = self.get_account() or {}
@@ -869,7 +866,9 @@ class User(Thing):
     def preferences(self):
         key = "%s/preferences" % self.key
         prefs = web.ctx.site.get(key)
-        return (prefs and prefs.dict().get('notifications')) or self.DEFAULT_PREFERENCES
+        return (
+            prefs and prefs.dict().get('notifications')
+        ) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs, msg='updating user preferences'):
         key = '%s/preferences' % self.key
@@ -879,7 +878,7 @@ class User(Thing):
             'type': {'key': '/type/object'},
         }
         if 'notifications' not in prefs:
-            prefs['notifications'] = self.DEFAULT_PREFERENCES
+            prefs['notifications'] = self.get_default_preferences()
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
@@ -1171,19 +1170,18 @@ class Tag(Thing):
         return self.name or "unnamed"
 
     @classmethod
-    def find(cls, tag_name, tag_type):
-        """Returns a Tag key for a given tag name and tag type."""
-        q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
-        match = list(web.ctx.site.things(q))
-        return match[0] if match else None
+    def find(cls, tag_name, tag_type=None):
+        """Returns a list of keys for Tags that match the search criteria."""
+        q = {'type': '/type/tag', 'name': tag_name}
+        if tag_type:
+            q['tag_type'] = tag_type
+        matches = list(web.ctx.site.things(q))
+        return matches
 
     @classmethod
     def create(
         cls,
-        tag_name,
-        tag_description,
-        tag_type,
-        tag_plugins,
+        tag,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1191,22 +1189,17 @@ class Tag(Thing):
         current_user = web.ctx.site.get_user()
         patron = current_user.get_username() if current_user else 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
+        tag['key'] = key
+
         from openlibrary.accounts import RunAs
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            web.ctx.site.save(
-                {
-                    'key': key,
-                    'name': tag_name,
-                    'tag_description': tag_description,
-                    'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
-                    'type': {"key": '/type/tag'},
-                },
+            t = web.ctx.site.save(
+                tag,
                 comment=comment,
             )
-            return key
+            return t
 
 
 @dataclass

@@ -78,21 +78,20 @@ class ListRecord:
                 return seed
             else:
                 return {'key': olid_to_key(seed)}
-        else:
-            if 'thing' in seed:
-                annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
+        elif 'thing' in seed:
+            annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
 
-                if is_empty_annotated_seed(annotated_seed):
-                    return ListRecord.normalize_input_seed(annotated_seed['thing'])
-                elif annotated_seed['thing']['key'].startswith('/subjects/'):
-                    return subject_key_to_seed(annotated_seed['thing']['key'])
-                else:
-                    return annotated_seed
-            elif seed['key'].startswith('/subjects/'):
-                thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
-                return subject_key_to_seed(thing_ref['key'])
+            if is_empty_annotated_seed(annotated_seed):
+                return ListRecord.normalize_input_seed(annotated_seed['thing'])
+            elif annotated_seed['thing']['key'].startswith('/subjects/'):
+                return subject_key_to_seed(annotated_seed['thing']['key'])
             else:
-                return seed
+                return annotated_seed
+        elif seed['key'].startswith('/subjects/'):
+            thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
+            return subject_key_to_seed(thing_ref['key'])
+        else:
+            return seed
 
     @staticmethod
     def from_input():
@@ -214,7 +213,9 @@ def get_list_data(list, seed, include_cover_url=True):
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
-        d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+        d['cover_url'] = (
+            cover and cover.url("S")
+        ) or "/images/icons/avatar_book-sm.png"
         if 'None' in d['cover_url']:
             d['cover_url'] = "/images/icons/avatar_book-sm.png"
 
@@ -535,7 +536,7 @@ def get_list(key, raw=False):
             },
             "name": lst.name or None,
             "type": {"key": lst.key},
-            "description": (lst.description and str(lst.description) or None),
+            "description": ((lst.description and str(lst.description)) or None),
             "seed_count": lst.seed_count,
             "meta": {
                 "revision": lst.revision,

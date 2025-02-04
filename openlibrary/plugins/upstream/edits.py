@@ -187,7 +187,7 @@ class community_edits_queue(delegate.page):
             primary_param = f'&primary={primary}' if primary else ''
             return f'/works/merge?records={",".join(olids)}{primary_param}'
         elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
-            return f'/authors/merge?key={"&key=".join(olids)}'
+            return f'/authors/merge?records={",".join(olids)}'
         return ''
 
     @staticmethod

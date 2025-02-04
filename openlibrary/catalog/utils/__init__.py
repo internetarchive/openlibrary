@@ -1,5 +1,6 @@
 import datetime
 import re
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from unicodedata import normalize
 
@@ -322,10 +323,20 @@ def publication_too_old_and_not_exempt(rec: dict) -> bool:
 def is_independently_published(publishers: list[str]) -> bool:
     """
     Return True if the book is independently published.
+
     """
-    independent_publisher_names = ['independently published', 'independent publisher']
+    independent_publisher_names = [
+        'independently published',
+        'independent publisher',
+        'createspace independent publishing platform',
+    ]
+
+    independent_publisher_names_casefolded = [
+        name.casefold() for name in independent_publisher_names
+    ]
     return any(
-        publisher.casefold() in independent_publisher_names for publisher in publishers
+        publisher.casefold() in independent_publisher_names_casefolded
+        for publisher in publishers
     )
 
 
@@ -424,3 +435,30 @@ def get_missing_fields(rec: dict) -> list[str]:
         'source_records',
     ]
     return [field for field in required_fields if rec.get(field) is None]
+
+
+class InvalidLanguage(Exception):
+    def __init__(self, code):
+        self.code = code
+
+    def __str__(self):
+        return f"invalid language code: '{self.code}'"
+
+
+def format_languages(languages: Iterable) -> list[dict[str, str]]:
+    """
+    Format language data to match Open Library's expected format.
+    For an input of ["eng", "fre"], return:
+    [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
+    """
+    if not languages:
+        return []
+
+    formatted_languages = []
+    for language in languages:
+        if web.ctx.site.get(f"/languages/{language.lower()}") is None:
+            raise InvalidLanguage(language.lower())
+
+        formatted_languages.append({'key': f'/languages/{language.lower()}'})
+
+    return formatted_languages

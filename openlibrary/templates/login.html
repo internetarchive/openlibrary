@@ -29,7 +29,6 @@ $if "dev" in ctx.features:
     $if not ctx.user:
         $:render_template("account/ia_thirdparty_logins")
         <div class="ol-signup-form__big-or">$_('OR')</div>
-        <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
 
     $if ctx.user:
         <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
@@ -38,8 +37,14 @@ $if "dev" in ctx.features:
     $else:
         <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
             $if form.note:
-                <div class="note">$form.note</div>
-
+                <div class="flash-messages">
+                    <div class="error ol-signup-form__info-box">
+                        <span>
+                            $:form.note
+                        </span>
+                    </div>
+                </div>
+            <div class="ol-signup-form__info">$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</div>
             <div class="formElement ol-signup-form__input">
                 <div class="label">
                 <label for="username">$_("Email")</label>
@@ -70,6 +75,7 @@ $if "dev" in ctx.features:
             </div>
 
             <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
+            <input type="hidden" id="action" value="$form.action.value" name="action" />
             <input type="hidden" id="debug_token" value="" name="debug_token"/>
 
             <div class="formElement bottom">

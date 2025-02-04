@@ -13,8 +13,12 @@
     {
       "birth_date": "1969",
       "name": "Garlini, Alberto",
-      "entity_type": "person",
-      "personal_name": "Garlini, Alberto"
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1971",
+      "name": "Raynaud, Vincent",
+      "entity_type": "person"
     }
   ],
   "oclc_numbers": [
@@ -30,14 +34,11 @@
   "links": [
     {
       "url": "http://catalogue.bnf.fr/ark:/12148/cb45224769s",
-      "title": "Notice et cote du catalogue de la Biblioth\u00e8que nationale de France"
+      "title": "Notice et cote du catalogue de la Bibliothèque nationale de France"
     }
   ],
   "translated_from": [
     "ita"
-  ],
-  "contributions": [
-    "Raynaud, Vincent, 1971- ..."
   ],
   "publishers": [
     "Gallimard"

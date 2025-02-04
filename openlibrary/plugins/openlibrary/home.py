@@ -38,9 +38,9 @@ CAROUSELS_PRESETS = {
 }
 
 
-def get_homepage():
+def get_homepage(devmode):
     try:
-        stats = admin.get_stats()
+        stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -65,8 +65,7 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-
-    page = mc()
+    page = mc(devmode=("dev" in web.ctx.features))
 
     if not page:
         mc(_cache='delete')

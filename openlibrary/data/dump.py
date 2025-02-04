@@ -90,7 +90,10 @@ def read_data_file(filename: str, max_lines: int = 0):
 
 def xopen(path: str, mode: str):
     if path.endswith(".gz"):
-        return gzip.open(path, mode)
+        with gzip.open(
+            path, mode
+        ) as file:  # need to add no QA when the rule is enabled
+            return file
     else:
         return open(path, mode)
 
@@ -141,7 +144,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     M = 1024 * 1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
-    files = [gzip.open(f, "wb") for f in filenames]
+    files = [gzip.open(f, "wb") for f in filenames]  # noqa: SIM115
     stdin = xopen(dump_file, "rb") if dump_file else sys.stdin.buffer
 
     # split the file into 256 chunks using hash of key

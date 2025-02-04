@@ -1414,7 +1414,7 @@ msgstr "Poznámky:"
 
 #: saved.html:34
 msgid "Add another image"
-msgstr ""
+msgstr "Přidat další obrázek"
 
 #: saved.html:41
 msgid "Finished"
@@ -1437,7 +1437,7 @@ msgstr "Další"
 #: index.html:3
 #, fuzzy
 msgid "Welcome to Open Library"
-msgstr "Přidat knhu do Open Library"
+msgstr "Vítejte v Open Library"
 
 #: edit_head.html:9
 msgid "You're in edit mode."
@@ -1471,7 +1471,7 @@ msgstr "revize"
 #: history.html:51 openlibrary/templates/history.html:36
 #, python-format
 msgid "View revision %s"
-msgstr ""
+msgstr "Zobrazit revize  %s"
 
 #: history.html:56 history.html:58
 msgid "an anonymous user"
@@ -1513,7 +1513,7 @@ msgstr ""
 
 #: nav_foot.html:7
 msgid "Top"
-msgstr ""
+msgstr "Nahoru"
 
 #: nav_foot.html:8
 msgid "Go home"
@@ -1525,7 +1525,7 @@ msgstr "Domů"
 
 #: nav_foot.html:9
 msgid "Add a new book to Open Library"
-msgstr "Přida do Open Library novou knihu"
+msgstr "Přidat do Open Library novou knihu"
 
 #: nav_foot.html:10
 msgid "Explore subjects"
@@ -1561,7 +1561,7 @@ msgstr "Pomoc"
 
 #: nav_foot.html:14
 msgid "Visit the Developers Center"
-msgstr ""
+msgstr "Navštívit vývojářské centrum"
 
 #: nav_foot.html:14
 msgid "Developers"
@@ -1618,7 +1618,7 @@ msgstr "Témata"
 
 #: nav_head.html:42 search_foot.html:59 search_head.html:25
 msgid "Advanced"
-msgstr ""
+msgstr "Pokročilé"
 
 #: authors.html:43 editions.html:34 inside.html:39 nav_head.html:47
 #: notfound.html:17 openlibrary/templates/subjects.html:46
@@ -1714,7 +1714,7 @@ msgstr "Další"
 #: search_foot.html:8 search_head.html:8
 #, fuzzy
 msgid "Place"
-msgstr "Místa"
+msgstr "Místo"
 
 #: search_foot.html:9 search_head.html:9
 msgid "Person"
@@ -1864,8 +1864,8 @@ msgstr[1] ""
 #, fuzzy, python-format
 msgid "%s ebook"
 msgid_plural "%s ebooks"
-msgstr[0] "ekniha"
-msgstr[1] ""
+msgstr[0] "%s ekniha"
+msgstr[1] "%s eknihy"
 
 #: openlibrary/templates/subjects.html:23 view.html:21
 msgid "Clear this selection"
@@ -1942,7 +1942,7 @@ msgstr ""
 #, python-format
 msgid "%s book"
 msgid_plural "%s books"
-msgstr[0] "kniha"
+msgstr[0] "%s kniha"
 msgstr[1] "%s knihy"
 
 #: view.html:532
@@ -2108,7 +2108,7 @@ msgstr "Rozdíly"
 
 #: openlibrary/templates/diff.html:151
 msgid "Both the revisions are identical."
-msgstr ""
+msgstr "Obě revize jsou identické."
 
 #: openlibrary/templates/history.html:17
 msgid "History of edits to"
@@ -2170,7 +2170,7 @@ msgstr "%s nebylo nalezeno"
 
 #: openlibrary/templates/notfound.html:10
 msgid "404 - Page Not Found"
-msgstr "404 - nebylo nalezeno"
+msgstr "404 - Stránka nenalezena"
 
 #: openlibrary/templates/notfound.html:14
 #, python-format
@@ -2190,7 +2190,7 @@ msgstr "Přístup odepřen"
 #: openlibrary/templates/permission_denied.html:26
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr ""
+msgstr "Můžete se <a href=\"%s\">přihlásit</a> pokud máte požadovaná oprávnění."
 
 #: openlibrary/templates/subjects.html:63
 msgid ""
@@ -2242,14 +2242,14 @@ msgstr "Relevance"
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "Most Editions"
-msgstr "Njvíc vydání"
+msgstr "Nejvíc vydání"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "First Published"
-msgstr "Prvního vydání"
+msgstr "Prvně vydáno"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
@@ -2273,7 +2273,7 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:256
 msgid "filters"
-msgstr ""
+msgstr "filtry"
 
 #: openlibrary/templates/work_search.html:284
 msgid "more"
@@ -2378,7 +2378,7 @@ msgstr ""
 #~ "The username you entered isn't in "
 #~ "the Open Library system. Please try "
 #~ "again?"
-#~ msgstr "Zadané uživatelské jméno není v systému Open Library. Zkusteto znovu."
+#~ msgstr "Zadané uživatelské jméno není v systému Open Library. Zkuste to znovu."
 
 #~ msgid ""
 #~ "That password seems incorrect. Please "
@@ -2436,7 +2436,7 @@ msgstr ""
 #~ msgstr "Nahlásit spam"
 
 #~ msgid "Welcome %(user)s"
-#~ msgstr "Výtejte %(user)"
+#~ msgstr "Vítejte %(user)"
 
 #~ msgid "Preferences"
 #~ msgstr "Nastavení"

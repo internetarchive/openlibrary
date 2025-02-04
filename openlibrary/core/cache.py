@@ -22,14 +22,14 @@ from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
-    "cached_property",
     "Cache",
-    "MemoryCache",
     "MemcacheCache",
+    "MemoryCache",
     "RequestCache",
-    "memoize",
-    "memcache_memoize",
+    "cached_property",
     "get_memcache",
+    "memcache_memoize",
+    "memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -266,28 +266,28 @@ class Cache:
 
     def get(self, key):
         """Returns the value for given key. Returns None if that key is not present in the cache."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def set(self, key, value, expires=0):
         """Sets a value in the cache.
         If expires is non-zero, the cache may delete that entry from the cache after expiry.
         The implementation can choose to ignore the expires argument.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def add(self, key, value, expires=0):
         """Adds a new entry in the cache. Nothing is done if there is already an entry with the same key.
 
         Returns True if a new entry is added to the cache.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def delete(self, key):
         """Deletes an entry from the cache. No error is raised if there is no entry in present in the cache with that key.
 
         Returns True if the key is deleted.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class MemoryCache(Cache):

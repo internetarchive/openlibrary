@@ -26,9 +26,11 @@ A record is loaded by calling the load function.
 import itertools
 import re
 from collections import defaultdict
+from collections.abc import Iterable
 from copy import copy
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
+from urllib.parse import urlparse
 
 import requests
 import web
@@ -36,7 +38,6 @@ import web
 from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
-    InvalidLanguage,
     build_query,
     east_in_by_statement,
     import_author,
@@ -44,6 +45,8 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    InvalidLanguage,
+    format_languages,
     get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
@@ -53,7 +56,7 @@ from openlibrary.catalog.utils import (
     published_in_future_year,
 )
 from openlibrary.core import lending
-from openlibrary.plugins.upstream.utils import safeget, strip_accents
+from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -64,8 +67,16 @@ if TYPE_CHECKING:
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
-SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900", "1900-01-01"]
+SUSPECT_PUBLICATION_DATES: Final = [
+    "1900",
+    "January 1, 1900",
+    "1900-01-01",
+    "????",
+    "01-01-1900",
+]
+SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
+ALLOWED_COVER_HOSTS: Final = ("m.media-amazon.com", "books.google.com")
 
 
 type_map = {
@@ -123,28 +134,6 @@ class SourceNeedsISBN(Exception):
         return "this source needs an ISBN"
 
 
-# don't use any of these as work titles
-bad_titles = {
-    'Publications',
-    'Works. English',
-    'Missal',
-    'Works',
-    'Report',
-    'Letters',
-    'Calendar',
-    'Bulletin',
-    'Plays',
-    'Sermons',
-    'Correspondence',
-    'Bill',
-    'Bills',
-    'Selections',
-    'Selected works',
-    'Selected works. English',
-    'The Novels',
-    'Laws, etc',
-}
-
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people']
 
 
@@ -169,13 +158,6 @@ def is_redirect(thing):
     if not thing:
         return False
     return thing.type.key == '/type/redirect'
-
-
-def get_title(e):
-    if not e.get('work_titles'):
-        return e['title']
-    wt = e['work_titles'][0]
-    return e['title'] if wt in bad_titles else e['title']
 
 
 def split_subtitle(full_title):
@@ -222,7 +204,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == mk_norm(get_title(e)):
+            if mk_norm(w['title']) == mk_norm(e['title']):
                 assert w.type.key == '/type/work'
                 return wkey
 
@@ -268,7 +250,7 @@ def new_work(edition, rec, cover_id=None):
     """
     w = {
         'type': {'key': '/type/work'},
-        'title': get_title(rec),
+        'title': rec['title'],
     }
     for s in subject_fields:
         if s in rec:
@@ -317,10 +299,9 @@ def add_cover(cover_url, ekey, account_key=None):
         'ip': web.ctx.ip,
     }
     reply = None
-    for attempt in range(10):
+    for _ in range(10):
         try:
-            payload = requests.compat.urlencode(params).encode('utf-8')
-            response = requests.post(upload_url, data=payload)
+            response = requests.post(upload_url, data=params)
         except requests.HTTPError:
             sleep(2)
             continue
@@ -544,6 +525,31 @@ def find_threshold_match(rec: dict, edition_pool: dict) -> str | None:
     return None
 
 
+def process_cover_url(
+    edition: dict, allowed_cover_hosts: Iterable[str] = ALLOWED_COVER_HOSTS
+) -> tuple[str | None, dict]:
+    """
+    Extract and validate a cover URL and remove the key from the edition.
+
+    :param edition: the dict-style edition to import, possibly with a 'cover' key.
+    :allowed_cover_hosts: the hosts added to the HTTP Proxy from which covers
+        can be downloaded
+    :returns: a valid cover URL (or None) and the updated edition with the 'cover'
+        key removed.
+    """
+    if not (cover_url := edition.pop("cover", None)):
+        return None, edition
+
+    parsed_url = urlparse(url=cover_url)
+
+    if parsed_url.netloc.casefold() in (
+        host.casefold() for host in allowed_cover_hosts
+    ):
+        return cover_url, edition
+
+    return None, edition
+
+
 def load_data(
     rec: dict,
     account_key: str | None = None,
@@ -576,10 +582,6 @@ def load_data(
         }
     """
 
-    cover_url = None
-    if 'cover' in rec:
-        cover_url = rec['cover']
-        del rec['cover']
     try:
         # get an OL style edition dict
         rec_as_edition = build_query(rec)
@@ -610,6 +612,10 @@ def load_data(
 
     if not (edition_key := edition.get('key')):
         edition_key = web.ctx.site.new_key('/type/edition')
+
+    cover_url, edition = process_cover_url(
+        edition=edition, allowed_cover_hosts=ALLOWED_COVER_HOSTS
+    )
 
     cover_id = None
     if cover_url:
@@ -811,20 +817,30 @@ def update_edition_with_rec_data(
         'lc_classifications',
         'oclc_numbers',
         'source_records',
+        'languages',
     ]
-    for f in edition_list_fields:
-        if f not in rec or not rec[f]:
+    edition_dict: dict = edition.dict()
+    for field in edition_list_fields:
+        if field not in rec:
             continue
-        # ensure values is a list
-        values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        if f in edition:
-            # get values from rec field that are not currently on the edition
-            case_folded_values = {v.casefold() for v in edition[f]}
-            to_add = [v for v in values if v.casefold() not in case_folded_values]
-            edition[f] += to_add
+
+        existing_values = edition_dict.get(field, []) or []
+        rec_values = rec.get(field, [])
+
+        # Languages in `rec` are ['eng'], etc., but import requires dict-style.
+        if field == 'languages':
+            formatted_languages = format_languages(languages=rec_values)
+            supplemented_values = existing_values + [
+                lang for lang in formatted_languages if lang not in existing_values
+            ]
         else:
-            edition[f] = to_add = values
-        if to_add:
+            case_folded_values = [v.casefold() for v in existing_values]
+            supplemented_values = existing_values + [
+                v for v in rec_values if v.casefold() not in case_folded_values
+            ]
+
+        if existing_values != supplemented_values:
+            edition[field] = supplemented_values
             need_edition_save = True
 
     # Fields that are added as a whole if absent. (Individual values are not added.)
@@ -841,7 +857,7 @@ def update_edition_with_rec_data(
             edition[f] = rec[f]
             need_edition_save = True
 
-    # Add new identifiers
+    # Add new identifiers (dict values, so different treatment from lists above.)
     if 'identifiers' in rec:
         identifiers = defaultdict(list, edition.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
@@ -1005,3 +1021,10 @@ def load(rec: dict, account_key=None, from_marc_record: bool = False) -> dict:
     if 'ocaid' in rec:
         update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply
+
+
+def setup():
+    setup_requests()
+
+
+setup()

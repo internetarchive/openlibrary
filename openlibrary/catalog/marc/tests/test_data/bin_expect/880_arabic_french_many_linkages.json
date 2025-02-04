@@ -20,18 +20,33 @@
   "notes": "Includes bibliographical references.\n\nArabic and French.",
   "authors": [
     {
-      "name": "El Moudden, Abderrahmane",
+      "name": "مودن، عبد الرحمن",
       "entity_type": "person",
-      "personal_name": "El Moudden, Abderrahmane",
       "alternate_names": [
-	"مودن، عبد الرحمن"
+	"El Moudden, Abderrahmane"
+      ]
+    },
+    {
+      "name": "بنحادة، عبد الرحيم",
+      "entity_type": "person",
+      "alternate_names": [
+	"Bin-Ḥāddah, ʻAbd al-Raḥīm"
+      ]
+    },
+    {
+      "name": "غربي، محمد لزهر",
+      "entity_type": "person",
+      "alternate_names": [
+	"Gharbi, Mohamed Lazhar"
+      ]
+    },
+    {
+      "name": "جامعة محمد الخامس. كلية الآداب و العلوم الإنسانية",
+      "entity_type": "org",
+      "alternate_names": [
+	"Jāmiʻat Muḥammad al-Khāmis. Kullīyat al-Ādāb wa-al-ʻUlūm al-Insānīyah"
       ]
     }
-  ],
-  "contributions": [
-    "Bin-Ḥāddah, ʻAbd al-Raḥīm",
-    "Gharbi, Mohamed Lazhar",
-    "Jāmiʻat Muḥammad al-Khāmis. Kullīyat al-Ādāb wa-al-ʻUlūm al-Insānīyah"
   ],
   "subjects": [
     "Political science",

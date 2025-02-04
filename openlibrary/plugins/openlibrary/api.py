@@ -325,7 +325,9 @@ class work_bookshelves(delegate.page):
                 content_type="application/json",
             )
 
-        if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
+        if (
+            (not i.dont_remove) and bookshelf_id == current_status
+        ) or bookshelf_id == -1:
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status
             )
@@ -461,8 +463,8 @@ class price_api(delegate.page):
         if id_type == 'isbn_10' and metadata['betterworldbooks'].get('price') is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
             metadata['betterworldbooks'] = (
-                isbn_13 and get_betterworldbooks_metadata(isbn_13) or {}
-            )
+                isbn_13 and get_betterworldbooks_metadata(isbn_13)
+            ) or {}
 
         # fetch book by isbn if it exists
         # TODO: perform existing OL lookup by ASIN if supplied, if possible

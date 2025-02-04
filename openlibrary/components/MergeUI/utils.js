@@ -230,6 +230,42 @@ function save_many(items, comment, action, data) {
     });
 }
 
+/**
+ * Fetches name associated with the author key
+ * @param {Object[]} works
+ * @returns {Promise<Record<string,object>} A response to the request
+ */
+export async function get_author_names(works) {
+    const authorIds = _.uniq(works).flatMap(record =>
+        (record.authors || []).map(authorEntry => authorEntry.author.key)
+    )
+
+    if (!authorIds.length) return {};
+
+    const queryParams = new URLSearchParams({
+        q: `key:(${authorIds.join(' OR ')})`,
+        mode: 'everything',
+        fields: 'key,name',
+    })
+
+    const response = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch author data');
+    }
+
+    const results = await response.json()
+
+    const authorDirectory = {}
+
+    for (const doc of results.docs) {
+        authorDirectory[doc.key] = doc.name;
+    }
+
+    return authorDirectory
+}
+
+
 // /**
 //  * @param {Object} record
 //  * @param {string} comment
