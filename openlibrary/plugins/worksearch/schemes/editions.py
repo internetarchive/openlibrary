@@ -25,18 +25,24 @@ class EditionSearchScheme(SearchScheme):
             'publishers': 'publisher',
             'subtitle': 'alternative_subtitle',
             'title': 'alternative_title',
+            # "Private" fields
+            # This is private because we'll change it to a multi-valued field instead of a
+            # plain string at the next opportunity, which will make it much more usable.
             '_ia_collection': 'ia_collection_s',
         }
         self.sorts = {
             'old': 'def(publish_year, 9999) asc',
             'new': 'publish_year desc',
             'title': 'title_sort asc',
+            # Ebook access
             'ebook_access': 'ebook_access desc',
             'ebook_access asc': 'ebook_access asc',
             'ebook_access desc': 'ebook_access desc',
+            # Key
             'key': 'key asc',
             'key asc': 'key asc',
             'key desc': 'key desc',
+            # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
             'random desc': 'random_1 desc',

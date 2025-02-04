@@ -44,15 +44,59 @@ class WorkSearchScheme(SearchScheme):
         # Instance variables for WorkSearchScheme
         self.universe = ['type:work']
         self.all_fields = {
-            "key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle",
-            "cover_i", "ebook_access", "edition_count", "edition_key", "format", "by_statement",
-            "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher",
-            "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person",
-            "place", "time", "has_fulltext", "title_suggest", "publish_year", "language",
-            "number_of_pages_median", "ia_count", "publisher_facet", "author_facet", "first_publish_year",
-            "ratings_count", "readinglog_count", "want_to_read_count", "currently_reading_count",
-            "already_read_count", "subject_key", "person_key", "place_key", "time_key", "lcc", "ddc",
-            "lcc_sort", "ddc_sort", "osp_count"
+            "key", 
+            "redirects", 
+            "title", 
+            "subtitle", 
+            "alternative_title", 
+            "alternative_subtitle",
+            "cover_i", 
+            "ebook_access", 
+            "edition_count", 
+            "edition_key", 
+            "format", 
+            "by_statement",
+            "publish_date", 
+            "lccn", 
+            "ia", 
+            "oclc", 
+            "isbn", 
+            "contributor", 
+            "publish_place", 
+            "publisher",
+            "first_sentence", 
+            "author_key", 
+            "author_name", 
+            "author_alternative_name", 
+            "subject", 
+            "person",
+            "place", 
+            "time", 
+            "has_fulltext", 
+            "title_suggest", 
+            "publish_year", 
+            "language",
+            "number_of_pages_median", 
+            "ia_count", 
+            "publisher_facet", 
+            "author_facet", 
+            "first_publish_year",
+            "ratings_count", 
+            "readinglog_count", 
+            "want_to_read_count", 
+            "currently_reading_count",
+            "already_read_count",
+            # Subjects 
+            "subject_key", 
+            "person_key", 
+            "place_key", 
+            "time_key", 
+            # Classifications
+            "lcc", 
+            "ddc",
+            "lcc_sort", 
+            "ddc_sort", 
+            "osp_count"
         }
         self.non_solr_fields = {'description', 'providers'}
         self.facet_fields = {
@@ -69,6 +113,9 @@ class WorkSearchScheme(SearchScheme):
             'title': 'alternative_title',
             'work_subtitle': 'subtitle', 
             'work_title': 'title', 
+            # "Private" fields
+            # This is private because we'll change it to a multi-valued field instead of a
+            # plain string at the next opportunity, which will make it much more usable.
             '_ia_collection': 'ia_collection_s',
         }
         self.sorts = {
@@ -84,20 +131,25 @@ class WorkSearchScheme(SearchScheme):
             'already_read': 'already_read_count desc',
             'title': 'title_sort asc',
             'scans': 'ia_count desc', 
+            # Classifications
             'lcc_sort': 'lcc_sort asc', 
             'lcc_sort asc': 'lcc_sort asc',
             'lcc_sort desc': 'lcc_sort desc', 
             'ddc_sort': 'ddc_sort asc', 
             'ddc_sort asc': 'ddc_sort asc', 
             'ddc_sort desc': 'ddc_sort desc',
+            # Ebook access
             'ebook_access': 'ebook_access desc', 
             'ebook_access asc': 'ebook_access asc', 
             'ebook_access desc': 'ebook_access desc',
+            # Open Syllabus Project
             'osp_count': 'osp_count desc', 
             'osp_count asc': 'osp_count asc', 
             'osp_count desc': 'osp_count desc',
+            # Key
             'key': 'key asc', 'key asc': 
             'key asc', 'key desc': 'key desc', 
+            # Random
             'random': 'random_1 asc', 
             'random asc': 'random_1 asc',
             'random desc': 'random_1 desc',
@@ -105,15 +157,39 @@ class WorkSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
         self.default_fetched_fields = {
-            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year',
-            'cover_i', 'cover_edition_key', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language', 'ia_collection_s',
-            'id_project_gutenberg', 'id_project_runeberg', 'id_librivox', 'id_standard_ebooks', 'id_openstax', 'id_cita_press', 'id_wikisource',
+            'key', 
+            'author_name', 
+            'author_key', 
+            'title', 
+            'subtitle', 
+            'edition_count', 
+            'ia', 
+            'has_fulltext', 
+            'first_publish_year',
+            'cover_i', 
+            'cover_edition_key', 
+            'public_scan_b', 
+            'lending_edition_s', 
+            'lending_identifier_s', 
+            'language', 
+            'ia_collection_s',
+            # FIXME: These should be fetched from book_providers, but can't cause circular
+            # dep
+            'id_project_gutenberg', 
+            'id_project_runeberg', 
+            'id_librivox', 
+            'id_standard_ebooks', 
+            'id_openstax', 
+            'id_cita_press', 
+            'id_wikisource',
         }
         self.facet_rewrites = {
-            ('public_scan', 'true'): 'ebook_access:public', ('public_scan', 'false'): '-ebook_access:public',
-            ('print_disabled', 'true'): 'ebook_access:printdisabled', ('print_disabled', 'false'): '-ebook_access:printdisabled',
-            ('has_fulltext', 'true'): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
-            ('has_fulltext', 'false'): lambda: f'ebook_access:[* TO {get_fulltext_min()} }}',
+            ('public_scan', 'true'): 'ebook_access:public',
+            ('public_scan', 'false'): '-ebook_access:public',
+            ('print_disabled', 'true'): 'ebook_access:printdisabled',
+            ('print_disabled', 'false'): '-ebook_access:printdisabled',
+            ('has_fulltext', 'true'): f'ebook_access:[{get_fulltext_min()} TO *]',
+            ('has_fulltext', 'false'): f'ebook_access:[* TO {get_fulltext_min()}]'
         }
 
     def is_search_field(self, field: str):

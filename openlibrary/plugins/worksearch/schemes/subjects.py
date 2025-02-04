@@ -20,6 +20,7 @@ class SubjectSearchScheme(SearchScheme):
         self.field_name_map: dict[str, str] = {}
         self.sorts = {
             'work_count desc': 'work_count desc',
+            # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
             'random desc': 'random_1 desc',

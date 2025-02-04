@@ -14,13 +14,21 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 class SearchScheme:
     def __init__(self):
+        # Set of queries that define the universe of this scheme
         self.universe = set()
+        # All actual solr fields that can be in a user query
         self.all_fields = set()
+        # Fields that can be read, but which aren't stored in solr
         self.non_solr_fields = set()
+        # These fields are fetched for facets and can also be url params
         self.facet_fields = set()
+        # Mapping of user-only fields to solr fields
         self.field_name_map = {}
+        # Mapping of user sort to solr sort
         self.sorts = {}
+        # Default
         self.default_fetched_fields = set()
+        # Fields that should be rewritten
         self.facet_rewrites = {}
 
     def is_search_field(self, field: str):

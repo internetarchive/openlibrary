@@ -25,6 +25,7 @@ class AuthorSearchScheme(SearchScheme):
         self._field_name_map = {}
         self._sorts = {
             'work_count desc': 'work_count desc',
+            # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
             'random desc': 'random_1 desc',
