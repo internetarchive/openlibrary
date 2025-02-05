@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import datetime
 import hashlib

@@ -115,7 +115,7 @@ def process_facet(
 
 
 def process_facet_counts(
-    facet_counts: dict[str, list]
+    facet_counts: dict[str, list],
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':

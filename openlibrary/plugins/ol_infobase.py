@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Open Library plugin for infobase.
-"""
+"""Open Library plugin for infobase."""
 
 import datetime
 import json
