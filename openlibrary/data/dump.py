@@ -90,10 +90,7 @@ def read_data_file(filename: str, max_lines: int = 0):
 
 def xopen(path: str, mode: str):
     if path.endswith(".gz"):
-        with gzip.open(
-            path, mode
-        ) as file:  # need to add no QA when the rule is enabled
-            return file
+        return gzip.open(path, mode)
     else:
         return open(path, mode)
 
