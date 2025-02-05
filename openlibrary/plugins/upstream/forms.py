@@ -32,6 +32,7 @@ Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
     Password('password', description=_('Password'), klass='required'),
     Hidden('redirect'),
+    Hidden('action'),
 )
 forms.login = Login
 
@@ -77,7 +78,7 @@ class EqualToValidator(Validator):
 
 
 class RegisterForm(Form):
-    INPUTS = [
+    INPUTS = (
         Email(
             'email',
             description=_('Email'),
@@ -119,7 +120,7 @@ class RegisterForm(Form):
                 'that runs Open Library.'
             ),
         ),
-    ]
+    )
 
     def __init__(self):
         Form.__init__(self, *self.INPUTS)

@@ -236,6 +236,10 @@ deploy_openlibrary() {
         echo "✓ Docker image is up-to-date"
     fi
 
+    DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
+    git -C openlibrary tag $DEPLOY_TAG
+    git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+
     check_server_access
 
     echo "Checking for changes in the openlibrary repo on the servers..."
@@ -270,8 +274,8 @@ deploy_openlibrary() {
     echo "Prune docker images/cache..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
-        # ssh $SERVER "docker image prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f && docker builder prune -f" 2>&1); then
+        # ssh $SERVER "docker image prune -f && docker builder prune -f"
+        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
             echo "✓"
         else
             echo "⚠"
@@ -293,9 +297,11 @@ deploy_openlibrary() {
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
-        "
-        echo "   ... $SERVER ✓"
+        " &> /dev/null &
     done
+
+    wait
+    echo "   ... Done ✓"
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -305,11 +311,6 @@ deploy_openlibrary() {
 
 # Clone booklending utils
 # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
-
-# And tag the deploy!
-# DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
-# sudo git tag $DEPLOY_TAG
-# sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
 
 # Supports:

@@ -14,7 +14,7 @@ $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
 
 $var title: $_("Sign Up to Open Library")
 
-<div class="ol-page-signup"">
+<div class="ol-page-signup">
     <div id="contentHead" class="ol-signup-hero">
         <h1 class="ol-signup-hero__title">$_("Sign Up")</h1>
         <p class="ol-signup-hero__subtitle">$_("Get your free Open Library card and borrow digital books from the nonprofit Internet Archive")</p>
@@ -60,7 +60,13 @@ $var title: $_("Sign Up to Open Library")
     $else:
         <form class="olform create create-form" name="signup" method="post" data-i18n="$json_encode(i18n_strings)" action="">
             $if form.note:
-                <div class="ol-signup-form__note">$form.note</div>
+                <div class="flash-messages">
+                    <div class="error ol-signup-form__info-box">
+                        <span>
+                            $:form.note
+                        </span>
+                    </div>
+                </div>
 
             $def screenname_url(): $_('Your URL'): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
 

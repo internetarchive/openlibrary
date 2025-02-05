@@ -745,13 +745,13 @@ def get_observation_metrics(work_olid):
 class Observations(db.CommonExtras):
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
-    PRIMARY_KEY = [
+    PRIMARY_KEY = (
         "work_id",
         "edition_id",
         "username",
         "observation_value",
         "observation_type",
-    ]
+    )
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod

@@ -43,7 +43,7 @@ def collapse_multiple_space(s: str) -> str:
     return MULTIPLE_SPACES_RE.sub(' ', s)
 
 
-VALID_CHARS = set(printable) - set("/'′’,")
+VALID_CHARS = set(printable) - set("/'′’,")  # noqa: RUF001
 
 
 def normalize_ddc(ddc: str) -> list[str]:

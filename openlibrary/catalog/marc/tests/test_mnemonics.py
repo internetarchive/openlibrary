@@ -2,10 +2,10 @@ from openlibrary.catalog.marc.mnemonics import read
 
 
 def test_read_conversion_to_marc8():
-    input_ = (
-        b'Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad,'
+    input_ = b'Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad,'  # codespell:ignore
+    output = (
+        b'Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad,'  # codespell:ignore
     )
-    output = b'Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad,'
     assert read(input_) == output
 
 
