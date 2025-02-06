@@ -8,7 +8,7 @@ from openlibrary.solr.query_utils import (
     escape_unknown_fields,
     fully_escape_query,
     luqum_parser,
-    handle_odd_symbol_count
+    sanitize_solr_symbols
 )
 
 logger = logging.getLogger("openlibrary.worksearch")
@@ -83,7 +83,7 @@ class SearchScheme:
             return q_param
 
         try:
-            q_param = handle_odd_symbol_count(q_param, ['"'])
+            q_param = sanitize_solr_symbols(q_param, ['"'])
             q_param = escape_unknown_fields(
                 (
                     # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now,
@@ -104,7 +104,6 @@ class SearchScheme:
             logger.warning("Invalid lucene query", exc_info=True)
             # Escape everything we can
             q_tree = luqum_parser(fully_escape_query(q_param))
-            print("---fully_escaped---:", q_tree)
 
         q_tree = self.transform_user_query(q_param, q_tree)
 
