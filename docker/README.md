@@ -1,6 +1,6 @@
 # Welcome to the Installation Guide for Open Library Developers
 
-1. [Pull code locally](#clone-the-open-library-repository)
+1. [Pull code locally](#pull-code-locally)
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)
 4. [Build the project](#build-the-project)
