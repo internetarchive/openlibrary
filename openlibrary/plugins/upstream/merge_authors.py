@@ -1,5 +1,4 @@
-"""Merge authors.
-"""
+"""Merge authors."""
 
 import json
 import re

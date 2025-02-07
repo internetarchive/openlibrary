@@ -1,5 +1,4 @@
-"""Subject pages.
-"""
+"""Subject pages."""
 
 import datetime
 import json
