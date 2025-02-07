@@ -449,7 +449,9 @@ msgid ""
 msgstr ""
 
 #: internalerror.html
-msgid "Return to the <a href=\"javascript:history.back()\">previous page</a>?"
+msgid ""
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
 msgstr ""
 
 #: lib/nav_head.html library_explorer.html
