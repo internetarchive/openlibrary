@@ -146,7 +146,7 @@ export async function pasteImage() {
 
             // Show the upload button and update its text
             const uploadButton = document.getElementById('uploadButtonPaste');
-            uploadButton.classList.add("visible")
+            uploadButton.classList.add('visible')
 
             return formData;
         }
@@ -168,7 +168,6 @@ export function initPasteForm(coverForm) {
         event.preventDefault();
         if (formData) {
             showLoadingIndicator();
-            console.log('Submitting form with data:', formData);
             coverForm.submit();
         }
     });

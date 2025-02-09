@@ -295,7 +295,7 @@ jQuery(function () {
                     module.initCoversSaved();
                 }
                 if (coverForm) {
-                        module.initPasteForm(coverForm);
+                    module.initPasteForm(coverForm);
                 }
             });
     }

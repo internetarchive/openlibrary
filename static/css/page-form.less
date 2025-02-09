@@ -145,20 +145,7 @@ div#revertLink,
   }
 }
 
-// Stlying for the new cover form accepting Copy/Pasted images
-
-.popAlert {
-  &#errors {
-    display: none;
-    &.visible {
-      display: block;
-    }
-  }
-}
-
-.imageIntro {
-  margin-bottom: 20px;
-}
+// Styling for the new cover form accepting Copy/Pasted images
 
 .ol-cover-form {
   margin-bottom: 20px;
@@ -194,30 +181,39 @@ div#revertLink,
       display: none;
     }
 
-    #uploadButtonPaste,
-    #pasteButton {
-        width: auto;
-        &.visible {
-            display: block;
-        }
+    .paste-button {
+      width: auto;
+      &::after {
+        content: "No Image Pasted";
+      }
     }
 
-    #uploadButtonPaste {
-        display: none;
-        &.visible {
-            &::after {
-                content: 'Use this image';
-            }
-            & ~ #pasteButton::after {
-                content: 'Change Image';
-            }
-        }
-    }
-
-    #pasteButton {
+    .upload-button {
+      width: auto;
+      display: none !important;
+      &.visible {
+        display: block !important;
         &::after {
-            content: 'No Image Pasted';
+          display: block;
+          content: "Use this image";
         }
+        & + .paste-button::after {
+          content: "Change Image";
+        }
+      }
     }
   }
+}
+
+.popAlert {
+  &#errors {
+    display: none;
+    &.visible {
+      display: block;
+    }
+  }
+}
+
+.imageIntro {
+  margin-bottom: 20px;
 }
