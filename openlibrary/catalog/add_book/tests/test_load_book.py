@@ -141,7 +141,6 @@ class TestImportAuthor:
         """
         Highest priority match is OL key.
         """
-        self.add_three_existing_authors(mock_site)
 
         # Author with VIAF
         author = {
@@ -166,7 +165,7 @@ class TestImportAuthor:
         # We ideally shouldn't ever have a case where different authors have the same VIAF, but this demonstrates priority.
         searched_author = {
             "name": "William H. Brewer",
-            "key": "/authors/OL4A",
+            "ol_id": "OL4A",
             "identifiers": {"viaf": "12345678"},
         }
         found = import_author(searched_author)
@@ -176,7 +175,6 @@ class TestImportAuthor:
         """
         Next highest priority match is any other remote identifier, such as VIAF, Goodreads ID, Amazon ID, etc.
         """
-        self.add_three_existing_authors(mock_site)
 
         # Author with VIAF
         author = {
@@ -209,8 +207,6 @@ class TestImportAuthor:
         """
         Next highest priority match is name, birth date, and death date.
         """
-        self.add_three_existing_authors(mock_site)
-
         # Exact name match with no birth or death date
         author = {
             "name": "William H. Brewer",
