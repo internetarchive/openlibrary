@@ -31,7 +31,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
-from openlibrary.plugins.upstream.utils import get_author_config
+from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
@@ -819,7 +819,8 @@ class Author(Thing):
         # Count
         matches = 0
         conflicts = 0
-        for id in get_author_config():
+        config = get_identifier_config("author")
+        for id in config["identifiers"]:
             identifier: str = id.name
             if identifier in output and identifier in incoming_ids:
                 if output[identifier] != incoming_ids[identifier]:

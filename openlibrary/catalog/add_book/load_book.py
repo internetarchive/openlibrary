@@ -151,7 +151,8 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return obj
 
     def get_redirected_authors(authors: list["Author"]):
-        if any(a.type.key != '/type/author' for a in authors):
+        keys = [a.type.key for a in authors]
+        if any(k != '/type/author' for k in keys):
             seen: set[dict] = set()
             all_authors = [
                 walk_redirects(a, seen) for a in authors if a['key'] not in seen
@@ -161,7 +162,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
 
     # Look for OL ID first.
     if (key := author.get("ol_id")) and (
-        reply := list(web.ctx.site.things({"type": "/type/author", "key~": key}))
+        reply := list(web.ctx.site.things({"type": "/type/author", "key~": f'/authors/{key}'}))
     ):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([web.ctx.site.get(k) for k in reply])
@@ -182,7 +183,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         highest_matches = 0
         selected_match = None
         for a in matched_authors:
-            # merge_remote_ids will be in #10092
             _, matches = a.merge_remote_ids(identifiers)
             if matches > highest_matches:
                 selected_match = a
@@ -252,7 +252,6 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     things = find_author(author)
     if "identifiers" in author:
         for index, t in enumerate(things):
-            # merge_remote_ids will be in #10092
             t.remote_ids, _ = t.merge_remote_ids(author["identifiers"])
             things[index] = t
     return things[0] if things else None
@@ -314,7 +313,7 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     ):
         if f in author:
             a[f] = author[f]
-    # Import record hitting endpoing should list external IDs under "identifiers", but needs to be "remote_ids" when going into the DB.
+    # Import record hitting endpoint should list external IDs under "identifiers", but needs to be "remote_ids" when going into the DB.
     if "identifiers" in author:
         a["remote_ids"] = author["identifiers"]
     return a
