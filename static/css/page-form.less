@@ -144,3 +144,80 @@ div#revertLink,
     float: left;
   }
 }
+
+// Stlying for the new cover form accepting Copy/Pasted images
+
+.popAlert {
+  &#errors {
+    display: none;
+    &.visible {
+      display: block;
+    }
+  }
+}
+
+.imageIntro {
+  margin-bottom: 20px;
+}
+
+.ol-cover-form {
+  margin-bottom: 20px;
+
+  .label {
+    margin-bottom: 10px;
+  }
+
+  .input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  &--ia {
+    &_image {
+      height: 200px;
+    }
+  }
+
+  &--clipboard {
+    #image {
+      max-width: 100%;
+      max-height: 400px;
+      display: none;
+
+      &.visible {
+        display: block;
+      }
+    }
+
+    #hiddenFileInput {
+      display: none;
+    }
+
+    #uploadButtonPaste,
+    #pasteButton {
+        width: auto;
+        &.visible {
+            display: block;
+        }
+    }
+
+    #uploadButtonPaste {
+        display: none;
+        &.visible {
+            &::after {
+                content: 'Use this image';
+            }
+            & ~ #pasteButton::after {
+                content: 'Change Image';
+            }
+        }
+    }
+
+    #pasteButton {
+        &::after {
+            content: 'No Image Pasted';
+        }
+    }
+  }
+}

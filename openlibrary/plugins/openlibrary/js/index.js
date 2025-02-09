@@ -295,10 +295,7 @@ jQuery(function () {
                     module.initCoversSaved();
                 }
                 if (coverForm) {
-                    document.getElementById('pasteButton').addEventListener('click', async () => {
-                        const formData = await module.pasteImage();
-                        module.initPasteForm(formData);
-                    });
+                        module.initPasteForm(coverForm);
                 }
             });
     }

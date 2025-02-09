@@ -45,18 +45,21 @@ function add_iframe(selector, src) {
         .attr('src', src);
 }
 
+export function showLoadingIndicator() {
+    const loadingIndicator = document.querySelector('.loadingIndicator');
+    const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
+
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+        formDivs.forEach(div => div.classList.add('hidden'));
+    }
+}
+
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
-    $('.ol-cover-form').on('submit', function () {
-        const loadingIndicator = document.querySelector('.loadingIndicator');
-        const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
-
-        if (loadingIndicator) {
-            loadingIndicator.classList.remove('hidden');
-            formDivs.forEach(div => div.classList.add('hidden'));
-        }
-    })
-
+    $('.ol-cover-form').on('submit', function() {
+        showLoadingIndicator();
+    });
 
     $('.column').sortable({
         connectWith: '.trash'
@@ -128,7 +131,7 @@ export async function pasteImage() {
             const blob = await item.getType(mimeType);
             const image = document.getElementById('image');
             image.src = URL.createObjectURL(blob);
-            image.style.display = 'block';
+            image.classList.add('visible');
 
             // Update the global formData with the new image blob
             formData = new FormData();
@@ -143,11 +146,7 @@ export async function pasteImage() {
 
             // Show the upload button and update its text
             const uploadButton = document.getElementById('uploadButtonPaste');
-            uploadButton.style.display = 'inline';
-            uploadButton.innerText = 'Use this image';
-
-            // Update the paste button text
-            document.getElementById('pasteButton').innerText = 'Change Image';
+            uploadButton.classList.add("visible")
 
             return formData;
         }
@@ -157,23 +156,20 @@ export async function pasteImage() {
     }
 }
 
-export function initPasteForm(formData) {
-    document.getElementById('uploadButtonPaste').addEventListener('click', function(event) {
-        event.preventDefault(); // Prevent the default form submission
+export function initPasteForm(coverForm) {
+    const pasteButton = coverForm.querySelector('#pasteButton');
+    let formData = null;
 
-        const form = document.getElementById('clipboardForm');
+    pasteButton.addEventListener('click', async () => {
+        formData = await pasteImage(coverForm);
+    });
+
+    coverForm.addEventListener('submit', (event) => {
+        event.preventDefault();
         if (formData) {
-            // Show the loading indicator
-            const loadingIndicator = document.querySelector('.loadingIndicator');
-            const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
-
-            if (loadingIndicator) {
-                loadingIndicator.classList.remove('hidden');
-                formDivs.forEach(div => div.classList.add('hidden'));
-            }
-
-            // Submit the form
-            form.submit();
+            showLoadingIndicator();
+            console.log('Submitting form with data:', formData);
+            coverForm.submit();
         }
     });
 }
