@@ -162,7 +162,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
 
     # Look for OL ID first.
     if (key := author.get("ol_id")) and (
-        reply := list(web.ctx.site.things({"type": "/type/author", "key~": f'/authors/{key}'}))
+        reply := list(
+            web.ctx.site.things({"type": "/type/author", "key~": f'/authors/{key}'})
+        )
     ):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([web.ctx.site.get(k) for k in reply])

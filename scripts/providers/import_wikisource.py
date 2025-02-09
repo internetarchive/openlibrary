@@ -303,8 +303,16 @@ class BookRecord:
             output["authors"] = [
                 {
                     "name": author.friendly_name,
-                    **({"birth_date": author.birth_date} if author.birth_date is not None else {}),
-                    **({"death_date": author.death_date} if author.death_date is not None else {}),
+                    **(
+                        {"birth_date": author.birth_date}
+                        if author.birth_date is not None
+                        else {}
+                    ),
+                    **(
+                        {"death_date": author.death_date}
+                        if author.death_date is not None
+                        else {}
+                    ),
                     "identifiers": author.identifiers,
                     **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
                 }
@@ -408,7 +416,7 @@ def update_record_with_wikisource_metadata(
                     )
         except ValueError:
             pass
-        
+
     # Same goes for illustrators.
     if not book.illustrators:
         try:
@@ -504,9 +512,7 @@ def update_import_with_wikidata_api_response(
         author_map[author_id].append(book_id)
     # If author isn't a WD object, add them as plaintext
     elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-        impt.add_authors(
-            [Author(friendly_name=obj["authorLabel"]["value"])]
-        )
+        impt.add_authors([Author(friendly_name=obj["authorLabel"]["value"])])
 
     # Illustrators
     if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
@@ -694,7 +700,7 @@ WHERE {
                 if "title" in obj and "value" in obj["title"]
                 else obj["itemLabel"]["value"]
             )
-            
+
             book_id = get_wd_item_id(obj["item"]["value"])
             impt = imports[book_id]
 
@@ -811,12 +817,10 @@ WHERE {
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
 
             # Don't include author if their name is incomplete, for whatever reason
-            if not("contributorLabel" in obj and "value" in obj["contributorLabel"]):
+            if not ("contributorLabel" in obj and "value" in obj["contributorLabel"]):
                 continue
 
-            contributor = Author(
-                friendly_name=obj["contributorLabel"]["value"]
-            )
+            contributor = Author(friendly_name=obj["contributorLabel"]["value"])
 
             if "birthDate" in obj and "value" in obj["birthDate"]:
                 contributor.birth_date = extract_year(obj["birthDate"]["value"])
