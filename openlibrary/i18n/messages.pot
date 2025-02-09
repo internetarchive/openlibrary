@@ -4324,10 +4324,6 @@ msgid "Or, paste an image from your clipboard"
 msgstr ""
 
 #: covers/add.html
-msgid "No Image Pasted"
-msgstr ""
-
-#: covers/add.html
 msgid "Uploading..."
 msgstr ""
 
