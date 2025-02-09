@@ -338,10 +338,10 @@ def private_collection_in(collections: list[str]) -> bool:
 def extract_year(input: str, int_only: bool = True) -> str:
     """Extracts the year from an author's birth or death date."""
     if not input:
-        return '' 
+        return ''
 
     if int_only:
-        pattern = r'\d{4}' 
+        pattern = r'\d{4}'
     else:
         pattern = r'[0-9xX?]{4}'
 
