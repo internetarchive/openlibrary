@@ -7,6 +7,7 @@ import web
 
 DEFAULT_RECAPTCHA_TIMEOUT = 3
 
+
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key, timeout=DEFAULT_RECAPTCHA_TIMEOUT):
         self.public_key = public_key
