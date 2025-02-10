@@ -314,7 +314,9 @@ class BookRecord:
                         else {}
                     ),
                     **(
-                        {"identifiers": author.identifiers,}
+                        {
+                            "identifiers": author.identifiers,
+                        }
                         if len(author.identifiers.keys()) > 0
                         else {}
                     ),

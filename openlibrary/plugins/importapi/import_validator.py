@@ -3,7 +3,11 @@ from typing import Annotated, Any, Final, TypeVar
 from annotated_types import MinLen
 from pydantic import BaseModel, ValidationError, model_validator, root_validator
 
-from openlibrary.catalog.add_book import SUSPECT_AUTHOR_NAMES, SUSPECT_PUBLICATION_DATES, SUSPECT_DATE_EXEMPT_SOURCES
+from openlibrary.catalog.add_book import (
+    SUSPECT_AUTHOR_NAMES,
+    SUSPECT_DATE_EXEMPT_SOURCES,
+    SUSPECT_PUBLICATION_DATES,
+)
 
 T = TypeVar("T")
 
@@ -40,7 +44,7 @@ class CompleteBook(BaseModel):
         )
         if is_exempt:
             return values
-        
+
         if values.get("publish_date") in SUSPECT_PUBLICATION_DATES:
             values.pop("publish_date")
 
