@@ -1,6 +1,9 @@
 # Welcome to the Installation Guide for Open Library Developers
 
-1. [Pull code locally](#clone-the-open-library-repository)
+> [!TIP]
+> Want to try Open Library in your browser without having to install anything on your personal computer? Try (experimental) Gitpod integration! [![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)  
+
+1. [Pull code locally](#pull-code-locally)
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)
 4. [Build the project](#build-the-project)
@@ -8,10 +11,10 @@
 6. [Update code dependencies](#code-updates)
 7. [Teardown commands](#teardown-commands)
 8. [Full reset](#fully-resetting-your-environment)
-9. [Useful docker commands](#Useful-Runtime-Commands)
+9. [Useful docker commands](#useful-runtime-commands)
 10. [Troubleshooting](#troubleshooting)
-11. [Developing the Dockerfile](#Developing-the-Dockerfile) and [Debugging and Profiling docker images](#Debugging-and-Profiling-the-docker-image)
-12. [Technical Notes](#Technical-notes)
+11. [Developing the Dockerfile](#developing-the-dockerfile) and [Debugging and Profiling docker images](#debugging-and-profiling-the-docker-image)
+12. [Technical Notes](#technical-notes)
 
 ## Pull code locally
 
