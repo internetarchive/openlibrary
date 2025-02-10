@@ -5,11 +5,13 @@ import logging
 import requests
 import web
 
+DEFAULT_RECAPTCHA_TIMEOUT = 3
 
 class Recaptcha(web.form.Input):
-    def __init__(self, public_key, private_key):
+    def __init__(self, public_key, private_key, timeout=DEFAULT_RECAPTCHA_TIMEOUT):
         self.public_key = public_key
         self._private_key = private_key
+        self._timeout = timeout
         validator = web.form.Validator('Recaptcha failed', self.validate)
 
         web.form.Input.__init__(self, 'recaptcha', validator)
@@ -28,7 +30,7 @@ class Recaptcha(web.form.Input):
         }
 
         try:
-            r = requests.get(url, params=params, timeout=3)
+            r = requests.get(url, params=params, timeout=self._timeout)
         except requests.exceptions.RequestException as e:
             logging.getLogger("openlibrary").exception(
                 'Recaptcha call failed: letting user through'
