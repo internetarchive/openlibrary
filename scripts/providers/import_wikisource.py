@@ -313,7 +313,11 @@ class BookRecord:
                         if author.death_date is not None
                         else {}
                     ),
-                    "identifiers": author.identifiers,
+                    **(
+                        {"identifiers": author.identifiers,}
+                        if len(author.identifiers.keys()) > 0
+                        else {}
+                    ),
                     **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
                 }
                 for author in self.authors
