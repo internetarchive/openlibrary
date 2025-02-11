@@ -315,9 +315,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (
-            'inlibrary' in collections
-        ) and not self.is_in_private_collection()
+        return ('inlibrary' in collections) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""

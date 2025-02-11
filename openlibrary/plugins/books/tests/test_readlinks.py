@@ -5,7 +5,7 @@ from openlibrary.plugins.books import readlinks
 
 
 @pytest.mark.parametrize(
-    ("collections" ,"options" ,"expected"),
+    ("collections", "options", "expected"),
     [
         (['inlibrary'], {}, 'lendable'),
         (['printdisabled'], {}, 'restricted'),
