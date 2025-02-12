@@ -1,13 +1,17 @@
-$def with (name)
+$def with (name, etype=None, evalue=None)
 
 $var title: $_("Internal Error")
 
 <div id="contentHead">
-    <h1>$_("Hmm...")</h1>
+    <h1>$_("A Problem Occurred")</h1>
 </div>
 
 <div id="contentBody">
-    <p>$_("Sorry. There seems to be a problem with what you were just looking at.")</p>
-    <p>$:_('We\'ve noted the error %s and will look into it as soon as possible. Head for <a href="/">home</a>?', name)</p>
-
+    <p>$_("We're sorry, a problem occurred while responding to your request:")</p>
+    <code>
+        $etype
+        $evalue
+    </code>
+    <p>$:_("The reference code %s has been created to track this error and we will investigate as we're able.", name)</p>
+    <p>$:_('Return to the <a class="go-back-link" href="javascript:;">previous page</a>?')</p>
 </div>
