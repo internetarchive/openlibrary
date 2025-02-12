@@ -55,7 +55,7 @@ delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
-#delegate.app.add_processor(processors.RequireLogoutProcessor())
+# delegate.app.add_processor(processors.RequireLogoutProcessor())
 
 try:
     from infogami.plugins.api import code as api
