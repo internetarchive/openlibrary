@@ -599,8 +599,8 @@ function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
                 progress.innerHTML = html
                 yearlyGoalElem.appendChild(progress)
 
-                // Hide the "Set 20XX reading goal" link:
-                const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
+                // Hide the desktop "Set 20XX reading goal" link:
+                const link = yearlyGoalElem.querySelector('.set-reading-goal-link:not(.li-title-desktop)');
                 if (link) {
                     link.classList.add('hidden'); // To handle the specific link element
                 }
