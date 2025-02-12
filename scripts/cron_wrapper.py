@@ -23,7 +23,7 @@ class MonitoredJob:
             if statsd_cfg
             else None
         )
-        self._setup_sentry(sentry_cfg.get("dns", ""))
+        self._setup_sentry(sentry_cfg.get("dsn", ""))
         self.job_name = self._get_job_name()
         self.job_failed = False
 
@@ -54,8 +54,8 @@ class MonitoredJob:
             self.command, text=True, stdout=sys.stdout, stderr=sys.stderr, check=True
         )
 
-    def _setup_sentry(self, dns):
-        sentry_sdk.init(dns=dns, trace_sample_rate=1.0)  # Configure?
+    def _setup_sentry(self, dsn):
+        sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0)  # Configure?
 
     def _setup_statsd(self, host, port):
         return StatsClient(host, port)
