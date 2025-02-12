@@ -416,7 +416,9 @@ function deleteEvent(rootElem, workOlid, eventId) {
  */
 export function initYearlyGoalPrompt(links) {
     for (const link of links) {
-        link.addEventListener('click', onYearlyGoalClick)
+        if (!link.classList.contains('goal-set')) {
+            link.addEventListener('click', onYearlyGoalClick)
+        }
     }
 }
 
