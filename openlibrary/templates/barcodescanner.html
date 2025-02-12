@@ -3,5 +3,6 @@ $def with ()
 $var title: $_('Barcode Scanner (Beta)')
 
 $ ctx.setdefault("show_ol_shell", False)
+$ current_user = ctx.user.key if ctx.user else ""
 
-$:render_component('BarcodeScanner')
+$:render_component('BarcodeScanner', attrs=dict(user_key=current_user))
