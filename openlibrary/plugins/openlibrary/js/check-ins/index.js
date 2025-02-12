@@ -412,19 +412,20 @@ function deleteEvent(rootElem, workOlid, eventId) {
 /**
  * Adds listener to open reading goal modal.
  *
- * Updates yearly goal form's current year to the patron's
- * local year.
- *
  * @param {HTMLCollection<HTMLElement>} links Prompts for adding a reading goal
  */
 export function initYearlyGoalPrompt(links) {
-    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
-
     for (const link of links) {
-        link.addEventListener('click', function() {
-            yearlyGoalModal.showModal()
-        })
+        link.addEventListener('click', onYearlyGoalClick)
     }
+}
+
+/**
+ * Finds and shows the yearly goal modal.
+ */
+function onYearlyGoalClick() {
+    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
+    yearlyGoalModal.showModal()
 }
 
 /**
@@ -599,10 +600,15 @@ function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
                 progress.innerHTML = html
                 yearlyGoalElem.appendChild(progress)
 
-                // Hide the desktop "Set 20XX reading goal" link:
-                const link = yearlyGoalElem.querySelector('.set-reading-goal-link:not(.li-title-desktop)');
+                const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
                 if (link) {
-                    link.classList.add('hidden'); // To handle the specific link element
+                    if (link.classList.contains('li-title-desktop')) {
+                        // Remove click listener in mobile views
+                        link.removeEventListener("click", onYearlyGoalClick)
+                    } else {
+                        // Hide desktop "set 20XX reading goal" link
+                        link.classList.add('hidden');
+                    }
                 }
 
                 const progressEditLink = progress.querySelector('.edit-reading-goal-link')
