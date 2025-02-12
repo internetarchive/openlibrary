@@ -146,6 +146,15 @@ def fully_escape_query(query: str) -> str:
     return escaped
 
 
+# Ensure solr special symbols are valid in query
+def sanitize_solr_symbols(query: str, chars: list[str]) -> str:
+    for c in chars:
+        # Handles unclosed symbols (i.e. adding closing '"' for Solr Terms)
+        if c in ('"') and query.count(c) % 2 == 1:
+            query = query + f'{c}'
+    return query
+
+
 def luqum_parser(query: str) -> Item:
     """
     Parses a lucene-like query, with the special binding rules of Open Library.
