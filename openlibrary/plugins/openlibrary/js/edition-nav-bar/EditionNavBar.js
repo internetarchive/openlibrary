@@ -23,7 +23,12 @@ export default class EdtionNavBar {
          * The mobile-only navigation arrow. Not guaranteed to exist.
          * @type {HTMLElement|null}
          */
-        this.navArrow = navbarWrapper.querySelector('.nav-arrow')
+        this.navArrowLeft = navbarWrapper.querySelector('.nav-arrow-left')
+        /**
+         * The mobile-only navigation arrow. Not guaranteed to exist.
+         * @type {HTMLElement|null}
+         */
+        this.navArrowRight = navbarWrapper.querySelector('.nav-arrow-right')
         /**
          * References each nav item in this navbar.
          * @type {Array<HTMLLIElement>}
@@ -64,8 +69,17 @@ export default class EdtionNavBar {
         }
 
         // Add click listener to mobile-only navigation arrow:
-        if (this.navArrow) {
-            this.navArrow.addEventListener('click', () => {
+        if (this.navArrowLeft) {
+            this.navArrowLeft.addEventListener('click', () => {
+                if (this.selectedIndex > 0) {
+                    --this.selectedIndex
+                    this.navItems[this.selectedIndex].children[0].click()
+                }
+            })
+        }
+
+        if (this.navArrowRight) {
+            this.navArrowRight.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
                     // Simulate click on the next nav item:
                     ++this.selectedIndex
@@ -89,7 +103,7 @@ export default class EdtionNavBar {
         if (navbarHeight > 0) {
             let i = this.navItems.length
             // 10 is for a little bit of padding
-            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) {}
+            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) { }
             if (i !== this.selectedIndex) {
                 this.selectedIndex = i
                 this.selectElement(this.navItems[i])
@@ -109,7 +123,8 @@ export default class EdtionNavBar {
 
         this.navbarElem.scrollTo({
             left: selectedItem.offsetLeft - (this.navbarElem.clientWidth - selectedItem.offsetWidth) / 2,
-            behavior: 'instant'})
+            behavior: 'instant'
+        })
     }
 
     /**
