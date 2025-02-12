@@ -86,7 +86,7 @@ export default class SelectionManager {
     processClick(clickEvent) {
         // If there is text selection or the click is on a link that isn't a select handle, don't do anything
         if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button').length > 0 &&
+            ($(clickEvent.target).closest('a, button, details').length > 0 &&
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
