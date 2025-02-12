@@ -303,7 +303,7 @@ class account_create(delegate.page):
     def POST(self):
         f: forms.RegisterForm = self.get_form()
 
-        if f.validates(web.input()):
+        if f.validates(web.input(email="")):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
