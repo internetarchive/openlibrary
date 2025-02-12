@@ -1334,6 +1334,7 @@ def setup_template_globals():
         get_book_provider,
         get_book_provider_by_name,
         get_cover_url,
+        get_dimensions_cover,
     )
 
     def get_supported_languages():
@@ -1374,6 +1375,7 @@ def setup_template_globals():
             'get_book_provider': get_book_provider,
             'get_book_provider_by_name': get_book_provider_by_name,
             'get_cover_url': get_cover_url,
+            'get_dimensions_cover': get_dimensions_cover,
             # bad use of globals
             'is_bot': is_bot,
             'time': time,
