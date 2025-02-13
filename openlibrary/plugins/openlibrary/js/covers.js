@@ -45,7 +45,7 @@ function add_iframe(selector, src) {
         .attr('src', src);
 }
 
-export function showLoadingIndicator() {
+function showLoadingIndicator() {
     const loadingIndicator = document.querySelector('.loadingIndicator');
     const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
 
@@ -117,7 +117,7 @@ export function initCoversSaved() {
 }
 
 // This function will be triggered when the user clicks the "Paste" button
-export async function pasteImage() {
+async function pasteImage() {
     let formData = null;
     try {
         const clipboardItems = await navigator.clipboard.read();
