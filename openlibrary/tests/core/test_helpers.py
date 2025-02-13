@@ -109,6 +109,19 @@ def test_commify():
     assert h.commify(1234567, lang="te") == "12,34,567"
 
 
+def test_extract_year():
+    assert h.extract_year("1980") == "1980"
+    assert h.extract_year("2005-03-14") == "2005"
+    assert h.extract_year("7 Dec 1999") == "1999"
+
+    assert h.extract_year("19xx", int_only=False) == "19xx"
+    assert h.extract_year("6 Jan 19??", int_only=False) == "19??"
+    assert h.extract_year("Year 20XX", int_only=False) == "20XX"
+
+    assert h.extract_year("No year here") == ""
+    assert h.extract_year("Year 123", int_only=False) == ""
+
+
 def test_truncate():
     assert h.truncate("hello", 6) == "hello"
     assert h.truncate("hello", 5) == "hello"
