@@ -129,9 +129,11 @@ export async function pasteImage() {
             const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
             const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
             const blob = await item.getType(mimeType);
-            const image = document.getElementById('image');
+            const image = document.createElement('img');
             image.src = URL.createObjectURL(blob);
-            image.classList.add('visible');
+            image.alt = ""
+            const imageContainer = document.querySelector(".image-container")
+            imageContainer.replaceChildren(image)
 
             // Update the global formData with the new image blob
             formData = new FormData();
