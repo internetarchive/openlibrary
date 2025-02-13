@@ -164,7 +164,7 @@ export function initPasteForm(coverForm) {
 
     pasteButton.addEventListener('click', async () => {
         formData = await pasteImage(coverForm);
-        pasteButton.textContent = "Change Image"
+        pasteButton.textContent = 'Change Image'
     });
 
     coverForm.addEventListener('submit', (event) => {
