@@ -842,7 +842,6 @@ def test_missing_source_records(mock_site, add_languages):
             "type": {"key": "/type/edition"},
             "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
             "publishers": ["Bedford Books"],
-            "ia_box_id": ["IA127618"],
             "key": "/books/OL1023483M",
             "authors": [{"key": "/authors/OL592898A"}],
             "publish_places": ["Boston"],

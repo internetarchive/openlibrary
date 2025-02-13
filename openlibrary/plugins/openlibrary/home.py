@@ -290,7 +290,7 @@ def format_book_data(book, fetch_availability=True):
     if fetch_availability and d.ocaid:
         collections = ia.get_metadata(d.ocaid).get('collection', [])
 
-        if 'lendinglibrary' in collections or 'inlibrary' in collections:
+        if 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")
         else:
             d.read_url = book.url("/borrow")

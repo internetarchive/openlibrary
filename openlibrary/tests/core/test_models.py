@@ -13,12 +13,12 @@ class MockSite:
 
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
-        return ['lendinglibrary']
+        return ['inlibrary']
 
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
-        return ['lendinglibrary', 'georgetown-university-law-library-rr']
+        return ['inlibrary', 'georgetown-university-law-library-rr']
 
 
 class TestEdition:
