@@ -144,7 +144,7 @@ async function prepareRecentComments(leads) {
             }
             return false
         })
-        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Response%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+label%3A%22Needs%3A+Response%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`
         if (leadIssuesAwaitingComments.length > 0) {
             output.push(`  • <${searchResultsUrl}|${leadIssuesAwaitingComments.length} issue(s)> need response from ${lead.slackId}`)
             isUpToDate = false
