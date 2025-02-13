@@ -131,8 +131,8 @@ export async function pasteImage() {
             const blob = await item.getType(mimeType);
             const image = document.createElement('img');
             image.src = URL.createObjectURL(blob);
-            image.alt = ""
-            const imageContainer = document.querySelector(".image-container")
+            image.alt = ''
+            const imageContainer = document.querySelector('.image-container')
             imageContainer.replaceChildren(image)
 
             // Update the global formData with the new image blob
