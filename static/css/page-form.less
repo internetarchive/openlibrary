@@ -176,26 +176,10 @@ div#revertLink,
       display: none;
     }
 
-    .paste-button {
-      width: auto;
-      &::after {
-        content: "No Image Pasted";
-      }
-    }
-
+    .paste-button,
     .upload-button {
       width: auto;
-      display: none !important;
-      &.visible {
-        display: block !important;
-        &::after {
-          display: block;
-          content: "Use this image";
-        }
-        & + .paste-button::after {
-          content: "Change Image";
-        }
-      }
+    }
     }
   }
 }
