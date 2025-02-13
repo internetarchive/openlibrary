@@ -14,11 +14,11 @@ $else:
     $ guideline = _("Cover Guidelines")
 
 <div class="popAlert" id="errors">
-    $if status:
-      $if status.code == 1: $_("Please provide a valid image.")
-      $elif status.code == 2: $_("Please provide an image URL.")
-      $elif status.code == 3: $_("Please provide a valid image.")
-  </div>
+$if status:
+    $if status.code == 1: $_("Please provide a valid image.")
+    $elif status.code == 2: $_("Please provide an image URL.")
+    $elif status.code == 3: $_("Please provide a valid image.")
+</div>
 
 <div class="imageIntro">$intro  <span>$:_('Learn more by reading our <a href="/help/faq/editing#picture" target="blank">%(guidelines)s</a>.', guidelines=guideline)</span></div>
 $if doc.type.key == "/type/work":
