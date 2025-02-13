@@ -146,9 +146,9 @@ async function pasteImage() {
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files; // This sets the file input with the image
 
-            // Show the upload button and update its text
+            // Show the upload button
             const uploadButton = document.getElementById('uploadButtonPaste');
-            uploadButton.classList.add('visible')
+            uploadButton.classList.remove('hidden')
 
             return formData;
         }
