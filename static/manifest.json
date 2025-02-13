@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
     "name": "Open Library: A page for every book published",
-    "description": "An open, editable library catalog for every book published.",
+    "description": "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
@@ -38,6 +38,78 @@
             "text": "q"
         }
     },
+      "screenshots": [
+        {
+          "src": "/images/Screenshots/MainPageDesktop.jpeg",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Main Page - Desktop"
+        },
+        {
+          "src": "/images/Screenshots/SearchBooksDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Search Books - Desktop"
+        },
+        {
+          "src": "/images/Screenshots/StudentLibraryDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Student Library - Desktop"
+        },
+        {
+          "src": "/images/Screenshots/TrendingDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Trending - Desktop"
+        },
+        {
+          "src": "/images/Screenshots/ListsDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Lists - Desktop"
+        },
+        {
+          "src": "/images/Screenshots/MainPageMobile.jpg",
+          "sizes": "360x640",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Main Page - Mobile"
+        },
+        {
+          "src": "/images/Screenshots/SearchMobile.jpg",
+          "sizes": "360x640",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Search Books - Mobile"
+        },
+        {
+          "src": "/images/Screenshots/StudentLibraryMobile.jpg",
+          "sizes": "360x640",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Student Library - Mobile"
+        },
+        {
+          "src": "/images/Screenshots/TrendingMobile.jpg",
+          "sizes": "360x640",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Trending - Mobile"
+        },
+        {
+          "src": "/images/Screenshots/ListsMobile.jpg",
+          "sizes": "360x640",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Lists - Mobile"
+        }
+      ],
     "shortcuts": [
       {
         "name": "My Books",
@@ -79,5 +151,5 @@
         "url": "/advancedsearch",
         "description": "Search for books using specific fields like publication date"
       }
-  ]
+]
 }
