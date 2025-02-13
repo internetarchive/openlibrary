@@ -1,5 +1,5 @@
 $def with (page)
-
+$ author_config = get_identifier_config('author')
 $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
@@ -107,7 +107,7 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="hiddenAuthorIdentifiers"></div>
                         <div id="identifiers-display">
                             $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian()
-                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=dict(get_identifier_config('author'))))
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
                         </div>
                         <br>
                         <fieldset class="major">
