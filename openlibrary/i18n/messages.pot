@@ -948,10 +948,6 @@ msgid "Ebooks"
 msgstr ""
 
 #: work_search.html
-msgid "Print Disabled"
-msgstr ""
-
-#: work_search.html
 msgid "This is only visible to super librarians."
 msgstr ""
 
