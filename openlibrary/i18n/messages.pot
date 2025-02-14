@@ -7663,6 +7663,11 @@ msgstr ""
 msgid "Have read"
 msgstr ""
 
+#: StarRatingsStats.html
+#, python-format
+msgid "Profile picture for %s"
+msgstr ""
+
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
