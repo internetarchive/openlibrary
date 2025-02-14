@@ -37,7 +37,7 @@ QUERY_PARSER_TESTS = {
     ),
     'Unmatched double-quote': (
         'title:Compilation Group for the "History of Modern China',
-        'title\:Compilation Group for the \\"History of Modern China'
+        'title\\:Compilation Group for the \\"History of Modern China',
     ),
     'Leading text': (
         'query here title:food rules author:pollan',
