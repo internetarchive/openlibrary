@@ -49,12 +49,15 @@ a.cta-btn {
     cursor: default;
   }
 
-  &--available, &--preview, &--primary {
+  // This one is the same as unavailable
+  // Add &--unavailable here to reduce redundant
+  &--available, &--preview, &--primary, &--unavailable {
     background-color: @primary-blue;
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
 
+  // Does this mean unavailable>
   &--available:disabled, &--preview:disabled, &--primary:disabled {
     background-color: @grey;
     cursor: default;
@@ -68,11 +71,12 @@ a.cta-btn {
     justify-content: center;
   }
 
-  &--unavailable {
-    background-color: @primary-blue;
-    color: @white;
-    &:hover { background-color: darken(@primary-blue, 20%); }
-  }
+  // This one is the same as &available
+  // &--unavailable {
+  //   background-color: @primary-blue;
+  //   color: @white;
+  //   &:hover { background-color: darken(@primary-blue, 20%); }
+  // }
 
   &--shell&--external {
     background-blend-mode: difference;
@@ -134,6 +138,7 @@ a.cta-btn {
   }
 }
 
+// I don't think this class is use in any places. This should be deleted.
 // Button inside carousel
 .carousel-section .cta-btn {
   white-space: nowrap;
