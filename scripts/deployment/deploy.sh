@@ -1,19 +1,20 @@
 #!/bin/bash
 
-handle_error() {
-    echo -e "\n\nERR" >&2
+clean_exit() {
     if [ -n "$TMP_DIR" ]; then
         cleanup "$TMP_DIR"
     fi
     exit 1
 }
 
+handle_error() {
+    echo -e "\n\nERR" >&2
+    clean_exit
+}
+
 handle_exit() {
     echo -e "\n\nSIGINT" >&2
-    if [ -n "$TMP_DIR" ]; then
-        cleanup "$TMP_DIR"
-    fi
-    exit 1
+    clean_exit
 }
 
 trap 'handle_error' ERR
@@ -24,7 +25,6 @@ set -e
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-IGNORE_CHANGES=${IGNORE_CHANGES:-0}
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -43,6 +43,20 @@ cleanup() {
     rm -rf $TMP_DIR
 }
 
+# Show a looping y/n prompt
+wait_yn() {
+    local prompt=$1
+
+    while true; do
+        read -p "$prompt (y/n) " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) clean_exit;;
+            * ) ;;
+        esac
+    done
+}
+
 check_for_local_changes() {
     SERVER=$1
     REPO_DIR=$2
@@ -53,15 +67,17 @@ check_for_local_changes() {
 
     if [ -z "$OUTPUT" ]; then
         echo "✓"
-    elif [ $IGNORE_CHANGES -eq 1 ]; then
-        echo "✗ (ignored)"
     else
         echo "✗"
-        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them before deploying."
-        echo "Or, set IGNORE_CHANGES=1 to ignore this check."
-        ssh -t $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all"
-        cleanup "$TMP_DIR"
-        exit 1
+        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
+        ssh -t $SERVER "
+            cd $REPO_DIR
+            sudo git status --porcelain --untracked-files=all
+            echo ''
+            sudo git diff
+        "
+
+        wait_yn "Ignore changes and continue?"
     fi
 }
 
