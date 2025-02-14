@@ -202,7 +202,7 @@ def _get_from_web(id: str) -> WikidataEntity | None:
     except requests.exceptions.HTTPError as err:
         from openlibrary.plugins.openlibrary.sentry import sentry
 
-        if sentry.enabled:
+        if sentry and sentry.enabled:
             sentry.capture_exception(err)
 
         logger.error(f'Wikidata Response: {err.response.status_code}, id: {id}')
