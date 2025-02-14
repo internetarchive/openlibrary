@@ -481,7 +481,7 @@ class WorkSearchScheme(SearchScheme):
                 # edition query (because no fields in the user's work query apply),
                 # we use the special value *:* to match everything, but still get
                 # boosting.
-                v=ed_q.replace('"', '\\"') or '*:*',
+                v=(ed_q if '\\"' in ed_q else ed_q.replace('"', '\\"') or '*:*'),
                 # bq (boost query): Boost which edition is promoted to the top
                 bq=' '.join(
                     (
