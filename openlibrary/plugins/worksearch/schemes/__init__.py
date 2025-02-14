@@ -104,7 +104,6 @@ class SearchScheme:
             q_tree = luqum_parser(fully_escape_query(q_param))
 
         q_tree = self.transform_user_query(q_param, q_tree)
-
         return str(q_tree)
 
     def transform_user_query(
