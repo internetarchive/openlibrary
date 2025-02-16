@@ -43,6 +43,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
+    $if original_url:
+    <div class="notification redirect-notification">
+        Redirected from <a href="${original_url}">${original_url}</a>.
+    </div>
+
     $:macros.databarView(page)
 
     <h1 itemprop="name">$title</h1>
@@ -106,7 +111,8 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
         $if page.location:
             <div class="section hidden">
-                <h6 class="collapse black uppercase">$_("Location")</h6>
+                <!-- lara afont: i changed this to use h3 headers -->
+                <h3 class="collapse black uppercase">$_("Location")</h3>
                 $page.location
             </div>
         <span class="mobile-only">
@@ -157,6 +163,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section link-box link-box--with-header">
+                    <!-- lara afont: i changed this to use h3 headers -->
                     <h3 class="collapse black uppercase">$label</h3>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
@@ -209,6 +216,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $if page.alternate_names:
             $if page.alternate_names != [""]:
                 <div class="section">
+                    <!-- lara afont: i changed this to use h3 headers -->
                     <h3>$_("Alternative names")</h3>
                     <ul class="booklinks sansserif">
                         $for alternate_name in page.alternate_names:
