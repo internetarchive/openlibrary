@@ -1,9 +1,12 @@
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
-from lxml import etree
 from pathlib import Path
+
+import lxml.etree
 import pytest
+from lxml import etree
+
+from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
 
 xml_samples = [
     ('bijouorannualofl1828cole', {}),
@@ -238,16 +241,18 @@ TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestSubjects:
-    @pytest.mark.parametrize('item,expected', xml_samples)
+    @pytest.mark.parametrize(('item', 'expected'), xml_samples)
     def test_subjects_xml(self, item, expected):
         filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
-        element = etree.parse(filepath).getroot()
+        element = etree.parse(
+            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         if element.tag != record_tag and element[0].tag == record_tag:
             element = element[0]
         rec = MarcXml(element)
         assert read_subjects(rec) == expected
 
-    @pytest.mark.parametrize('item,expected', bin_samples)
+    @pytest.mark.parametrize(('item', 'expected'), bin_samples)
     def test_subjects_bin(self, item, expected):
         filepath = TEST_DATA / 'bin_input' / item
         rec = MarcBinary(filepath.read_bytes())

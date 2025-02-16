@@ -1,7 +1,8 @@
 import web
+
 from openlibrary.plugins.worksearch.code import (
-    process_facet,
     get_doc,
+    process_facet,
 )
 
 
@@ -27,6 +28,9 @@ def test_get_doc():
             'lending_edition_s': 'OL1111795M',
             'public_scan_b': False,
             'title': 'The computer glossary',
+            'ratings_average': None,
+            'ratings_count': None,
+            'want_to_read_count': None,
         }
     )
     assert doc == web.storage(
@@ -58,10 +62,15 @@ def test_get_doc():
             'cover_edition_key': 'OL1111795M',
             'languages': [],
             'id_project_gutenberg': [],
+            'id_project_runeberg': [],
             'id_librivox': [],
             'id_standard_ebooks': [],
             'id_openstax': [],
             'id_cita_press': [],
+            'id_wikisource': [],
             'editions': [],
+            'ratings_average': None,
+            'ratings_count': None,
+            'want_to_read_count': None,
         }
     )

@@ -1,5 +1,5 @@
-from datetime import datetime
 import re
+from datetime import datetime
 
 import pytest
 
@@ -33,7 +33,7 @@ def parse_datetime(value: datetime | str) -> datetime:
 
 
 @pytest.mark.parametrize(
-    "data,expected",
+    ("data", "expected"),
     [
         ({}, {}),
         ({"value": "", "type": "/type/text"}, ""),

@@ -1,31 +1,34 @@
 import json
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Final, Literal, cast
+
 import web
+from web.template import TemplateResult
 
-from typing import Final, Literal, cast
-
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, safeint, render
-
-from openlibrary.i18n import gettext as _
-
+from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.dateutil import current_year
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+)
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
     get_loans_of_user,
 )
+from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.core.models import LoggedBooksData
-from openlibrary.core.models import User
-from openlibrary.core.follows import PubSub
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.i18n import gettext as _
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import current_year
 
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import List
+    from openlibrary.plugins.upstream.models import Work
 
 RESULTS_PER_PAGE: Final = 25
 
@@ -33,7 +36,7 @@ RESULTS_PER_PAGE: Final = 25
 class avatar(delegate.page):
     path = "/people/([^/]+)/avatar"
 
-    def GET(self, username):
+    def GET(self, username: str):
         url = User.get_avatar_url(username)
         raise web.seeother(url)
 
@@ -41,7 +44,7 @@ class avatar(delegate.page):
 class mybooks_home(delegate.page):
     path = "/people/([^/]+)/books"
 
-    def GET(self, username):
+    def GET(self, username: str) -> TemplateResult:
         """Renders the template for the my books overview page
 
         The other way to get to this page is /account/books which is
@@ -59,12 +62,13 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(loans)})
+            loans = web.Storage({"docs": [], "total_results": len(myloans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
-                book = web.ctx.site.get(loan['book'])
-                book.loan = loan
-                loans.docs.append(book)
+                # Book will be None if no OL edition exists for the book
+                if book := web.ctx.site.get(loan['book']):
+                    book.loan = loan
+                    loans.docs.append(book)
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
@@ -149,47 +153,6 @@ class mybooks_feed(delegate.page):
                 user=mb.me,
             )
             return mb.render(header_title=_("My Feed"), template=template)
-        raise web.seeother(mb.user.key)
-
-
-class mybooks_sponsorships(delegate.page):
-    path = "/people/([^/]+)/books/sponsorships"
-
-    def GET(self, username, key="sponsorships"):
-        i = web.input(
-            page=1,
-            sort='desc',
-            q="",
-            checkin_year=None,
-            results_per_page=RESULTS_PER_PAGE,
-        )
-        mb = MyBooksTemplate(username, key)
-        if mb.sponsorships:
-            docs = (
-                add_availability(
-                    web.ctx.site.get_many(
-                        [
-                            '/books/%s' % doc['openlibrary_edition']
-                            for doc in mb.sponsorships
-                        ]
-                    )
-                )
-                if mb.sponsorships
-                else None
-            )
-            template = render['account/reading_log'](
-                docs,
-                mb.key,
-                len(docs),
-                mb.counts['sponsorships'],
-                mb.is_my_page,
-                i.page,
-                sort_order=i.sort,
-                user=mb.me,
-                q=i.q,
-                results_per_page=i.results_per_page,
-            )
-            return mb.render(header_title=_("Sponsorships"), template=template)
         raise web.seeother(mb.user.key)
 
 
@@ -343,10 +306,8 @@ class public_my_books_json(delegate.page):
             )
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if (
-            is_public
-            or logged_in_user
-            and logged_in_user.key.split('/')[-1] == username
+        if is_public or (
+            logged_in_user and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit, q=i.q).docs
@@ -398,7 +359,7 @@ class public_my_books_json(delegate.page):
 
 
 @public
-def get_patrons_work_read_status(username, work_key):
+def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
     if not username:
         return None
     work_id = extract_numeric_id_from_olid(work_key)
@@ -409,7 +370,13 @@ def get_patrons_work_read_status(username, work_key):
 @public
 class MyBooksTemplate:
     # Reading log shelves
-    READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
+    READING_LOG_KEYS = frozenset(
+        {
+            "currently-reading",
+            "want-to-read",
+            "already-read",
+        }
+    )
 
     # Keys that can be accessed when not logged in
     PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"} | {"mybooks"}
@@ -420,13 +387,12 @@ class MyBooksTemplate:
         "loans",
         "feed",
         "waitlist",
-        "sponsorships",
         "notes",
         "observations",
         "imports",
     }
 
-    def __init__(self, username, key):
+    def __init__(self, username: str, key: str) -> None:
         """The following is data required by every My Books sub-template (e.g. sidebar)"""
         self.username = username
         self.user = web.ctx.site.get('/people/%s' % self.username)
@@ -445,7 +411,6 @@ class MyBooksTemplate:
             else -1
         )
         self.key = key.lower()
-        self.sponsorships = []
 
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
@@ -455,21 +420,19 @@ class MyBooksTemplate:
             else {}
         )
 
-        self.reading_goals = []
+        self.reading_goals: list = []
         self.selected_year = None
 
-        if self.me and self.is_my_page or self.is_public:
+        if (self.me and self.is_my_page) or self.is_public:
             self.counts['followers'] = PubSub.count_followers(self.username)
             self.counts['following'] = PubSub.count_following(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
-            self.sponsorships = get_sponsored_editions(self.user)
-            self.counts['sponsorships'] = len(self.sponsorships)
 
-        self.component_times = {}
+        self.component_times: dict = {}
 
-    def render_sidebar(self):
+    def render_sidebar(self) -> TemplateResult:
         return render['account/sidebar'](
             self.username,
             self.key,
@@ -480,7 +443,9 @@ class MyBooksTemplate:
             self.component_times,
         )
 
-    def render(self, template, header_title, page=None):
+    def render(
+        self, template: TemplateResult, header_title: str, page: "List | None" = None
+    ) -> TemplateResult:
         """
         Gather the data necessary to render the My Books template, and then
         render the template.
@@ -496,22 +461,22 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
-    READING_LOG_KEY_TO_SHELF: dict[READING_LOG_KEYS, PRESET_SHELVES] = {
-        "want-to-read": "Want to Read",
-        "already-read": "Already Read",
-        "currently-reading": "Currently Reading",
-    }
+    READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = (
+        MappingProxyType(
+            {
+                "want-to-read": "Want to Read",
+                "already-read": "Already Read",
+                "currently-reading": "Currently Reading",
+            }
+        )
+    )
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
 
     @property
-    def lists(self):
-        return self.user.get_lists()
-
-    @property
-    def sponsorship_counts(self):
-        return {'sponsorships': len(get_sponsored_editions(self.user))}
+    def lists(self) -> list:
+        return self.user.get_lists(limit=1000)
 
     @property
     def booknotes_counts(self):
@@ -520,12 +485,11 @@ class ReadingLog:
     @property
     def get_sidebar_counts(self):
         counts = self.reading_log_counts
-        counts.update(self.sponsorship_counts)
         counts.update(self.booknotes_counts)
         return counts
 
     @property
-    def reading_log_counts(self):
+    def reading_log_counts(self) -> dict[str, int]:
         counts = (
             Bookshelves.count_total_books_logged_by_user_per_shelf(
                 self.user.get_username()
@@ -612,11 +576,11 @@ def add_read_statuses(username, works):
 class PatronBooknotes:
     """Manages the patron's book notes and observations"""
 
-    def __init__(self, user):
+    def __init__(self, user: User) -> None:
         self.user = user
         self.username = user.key.split('/')[-1]
 
-    def get_notes(self, limit=RESULTS_PER_PAGE, page=1):
+    def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(
             self.username, limit=limit, page=page
         )
@@ -633,7 +597,7 @@ class PatronBooknotes:
             }
         return notes
 
-    def get_observations(self, limit=RESULTS_PER_PAGE, page=1):
+    def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         observations = Observations.get_observations_grouped_by_work(
             self.username, limit=limit, page=page
         )
@@ -648,10 +612,12 @@ class PatronBooknotes:
             entry['observations'] = convert_observation_ids(ids)
         return observations
 
-    def _get_work(self, work_key):
+    def _get_work(self, work_key: str) -> "Work | None":
         return web.ctx.site.get(work_key)
 
-    def _get_work_details(self, work):
+    def _get_work_details(
+        self, work: "Work"
+    ) -> dict[str, list[str] | str | int | None]:
         author_keys = [a.author.key for a in work.get('authors', [])]
 
         return {
@@ -665,7 +631,7 @@ class PatronBooknotes:
         }
 
     @classmethod
-    def get_counts(cls, username):
+    def get_counts(cls, username: str) -> dict[str, int]:
         return {
             'notes': Booknotes.count_works_with_notes_by_user(username),
             'observations': Observations.count_distinct_observations(username),

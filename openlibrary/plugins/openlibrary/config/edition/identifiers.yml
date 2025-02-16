@@ -191,10 +191,6 @@ identifiers:
 -   label: LCCN
     name: lccn
     url: https://lccn.loc.gov/@@@
--   label: LearnAwesome.org
-    name: learnawesome
-    url: https://learnawesome.org/#/item/@@@
-    website: https://learnawesome.org
 -   label: Library Thing
     name: librarything
     url: https://www.librarything.com/work/@@@
@@ -245,10 +241,20 @@ identifiers:
     name: project_gutenberg
     url: https://www.gutenberg.org/ebooks/@@@
     website: https://www.gutenberg.org
+-   label: Project Runeberg
+    name: project_runeberg
+    notes: Should be a string of alphanumeric characters (/[0-9a-z/.-]+/)
+    url: https://runeberg.org/@@@/
+    website: https://runeberg.org/
 -   label: Scribd
     name: scribd
     url: https://www.scribd.com/doc/@@@/
     website: https://www.scribd.com/
+-   label: SBN/ICCU (National Library Service of Italy)
+    name: opac_sbn
+    note: pattern is /^\D{2}[A-Z0-3][E\d]\d{6}$/
+    url: http://id.sbn.it/bid/@@@
+    website: https://opac.sbn.it/
 -   label: Shelfari
     name: shelfari
     notes: merged with goodreads.com

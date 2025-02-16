@@ -15,13 +15,14 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
-import web
-from openlibrary.accounts.model import OpenLibraryAccount
-from . import helpers as h
-from .sendmail import sendmail_with_template
-from . import db
-from . import lending
 
+import web
+
+from openlibrary.accounts.model import OpenLibraryAccount
+
+from . import helpers as h
+from . import lending
+from .sendmail import sendmail_with_template
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -51,7 +52,7 @@ class WaitingLoan(dict):
             username = account.username
         elif userid.startswith('ol:'):
             username = userid[len("ol:") :]
-        return "/people/%s" % username
+        return f"/people/{username}"
 
     def get_user(self):
         user_key = self.get_user_key()

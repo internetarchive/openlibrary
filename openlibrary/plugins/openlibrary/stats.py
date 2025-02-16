@@ -1,5 +1,4 @@
-"""Hooks for collecting performance stats.
-"""
+"""Hooks for collecting performance stats."""
 
 import logging
 import os
@@ -10,13 +9,13 @@ import traceback
 from types import TracebackType
 from typing import Any
 
-from infogami.utils.app import find_page, find_view, find_mode
-from openlibrary.core import stats as graphite_stats
 import web
-from infogami import config
-from infogami.utils import delegate, stats
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
+from infogami import config
+from infogami.utils import stats
+from infogami.utils.app import find_mode, find_page, find_view
+from openlibrary.core import stats as graphite_stats
 
 logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
@@ -27,7 +26,7 @@ filters: dict[str, Any] = {}
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
-    global filters
+
     if not summary:
         return
     try:
@@ -46,7 +45,7 @@ def evaluate_and_store_stat(name, stat, summary):
             else:
                 logger.warning("No storage item specified for stat %s", name)
     except Exception as k:
-        logger.warning("Error while storing stats (%s). Complete traceback follows" % k)
+        logger.warning(f"Error while storing stats ({k}). Complete traceback follows")
         logger.warning(traceback.format_exc())
 
 
@@ -100,7 +99,7 @@ def stats_hook():
 
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
-    return '"%s"' % s
+    return f'"{s}"'
 
 
 labels = {
@@ -133,7 +132,7 @@ def process_stats(stats):
 
 
 def register_filter(name, function):
-    global filters
+
     filters[name] = function
 
 

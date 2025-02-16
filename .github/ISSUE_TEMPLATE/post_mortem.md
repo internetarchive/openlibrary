@@ -19,7 +19,11 @@ assignees: ''
 <!-- What did investigation reveal to be the cause? -->
 
 - **What fixed it?**
-<!-- What fixed the problem? -->
+
+- **What was the impact?**
+
+- **What could have gone better?**
+<!-- What about our processes could have been improved? -->
 
 - **Followup actions:**
 <!-- Note any resulting changes or decisions -->

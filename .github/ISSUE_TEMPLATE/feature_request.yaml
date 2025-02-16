@@ -1,50 +1,57 @@
 name: Feature Request
-description: Suggest a new idea for this project
-labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead"]
+description: Propose a change or feature to Open Library
+labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
 body:
   - type: markdown
     attributes:
       value: |
-        **IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.**
-
-        Thanks for showing interest in adding new features to Open Library! 👍
+        > [!IMPORTANT]
+        > Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.
 
   - type: textarea
     attributes:
-      label: Problem
-      description: Describe the problem that this feature will address.
+      label: Feature Request
+      description: Provide a brief summary of the proposed feature and any details, designs, or screenshots that may be relevant.
       value: |
-        ### A clear and concise description of what you want to happen
+        ### Problem / Opportunity
+        <!-- Describe: What is the problem this proposal addresses & for which audience(s)? -->
 
-        ### Expected behaviour / screenshots (ex: Figma design screenshots for UI feature)
+        <!-- Justify: Why should we work on this and what is the measurable impact? -->
 
-        ### Additional Context
+        <!-- Define Success: How will we know when the problem is solved? -->
 
-  - type: textarea
-    attributes:
-      label: Proposal & Constraints
-      description: Describe the proposed solution and possible constraints
-      value: |
-        ### What is the proposed solution / implementation?
+        ### Proposal
+        <!-- Brief overview of your proposed solution -->
 
-        ### Is there a precedent of this approach succeeding elsewhere?
-
-        ### Which suggestions or requirements should be considered for how feature needs to appear or be implemented?
+        <!-- Relevant designs, screenshots, or reference implementations that may help reviewers evaluate your proposal -->
+    validations:
+      required: true
 
   - type: textarea
     attributes:
-      label: Leads
-      description: |
-        Please leave this section blank for maintainers if you are unsure what to enter
+      label: Breakdown
+      description: If you are unsure what to enter, please leave this section blank for leads/maintainers
       value: |
         ### Related files
-        <!-- Files related to the implementation of feature; this is super useful for new contributors who might want to contribute! If you're not sure, leave this blank; a maintainer will add them. -->
+        <!-- Add links to files relevant to the implementation of this proposal; useful for good first issues -->
+        Refer to [this map of common Endpoints](https://github.com/internetarchive/openlibrary/wiki/Endpoints):
+        *
+
+        ### Requirements Checklist
+        Checklist of requirements that need to be satisfied in order for this issue to be closed:
+        * [ ]
 
         ### Stakeholders
-        <!-- @ tag stakeholders of this feature if any -->
+        <!-- @ tag stakeholders of this feature, clarify their stake, and specify what checkoff is required from them -->
+        *
+
         <hr>
 
         ### Instructions for Contributors
         <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
+        * **Before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) or pushing up changes to a PR, please first [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date, as the pre-commit bot may add commits to your PRs upstream.
 
-        - Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to Github, because the pre-commit bot may add commits to your PRs upstream.
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for showing interest in adding new features to Open Library! 👍

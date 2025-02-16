@@ -12,4 +12,6 @@ $def with (goal=None, year=None, update=False)
   <button class="cta-btn cta-btn--shell reading-goal-submit-button" type="submit" data-ol-link-track="YearlyReadingGoals|SubmitGoal">$_("Submit")</button>
   $if goal:
     <div class="small">$_('Enter "0" to unset your reading goal. Your check-ins will be preserved.')</div>
+  $else:
+    <a class="small" href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library" target="_blank">$_('Learn More')</a>
 </form>

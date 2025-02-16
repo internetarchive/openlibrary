@@ -1,20 +1,21 @@
 import web
-from infogami.infobase.client import ClientException
-from infogami.core import forms
 
-from openlibrary.i18n import lgettext as _
-from openlibrary.utils.form import (
-    Form,
-    Textbox,
-    Email,
-    Password,
-    Checkbox,
-    Hidden,
-    Validator,
-    RegexpValidator,
-)
+from infogami.core import forms
+from infogami.infobase.client import ClientException
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
+from openlibrary.i18n import lgettext as _
+from openlibrary.utils.form import (
+    Checkbox,
+    Email,
+    Form,
+    Hidden,
+    Password,
+    RegexpValidator,
+    Textbox,
+    Validator,
+)
+
 from . import spamcheck
 
 
@@ -31,6 +32,7 @@ Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
     Password('password', description=_('Password'), klass='required'),
     Hidden('redirect'),
+    Hidden('action'),
 )
 forms.login = Login
 
@@ -43,7 +45,7 @@ email_not_already_used = Validator(
 )
 email_not_disposable = Validator(
     _("Disposable email not permitted"),
-    lambda email: not email.lower().endswith('dispostable.com'),
+    lambda email: not email.lower().endswith('@dispostable.com'),
 )
 email_domain_not_blocked = Validator(
     _("Your email provider is not recognized."),
@@ -58,7 +60,10 @@ vlogin = RegexpValidator(
     r"^[A-Za-z0-9\-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
 )
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
-vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
+vemail = RegexpValidator(
+    r".*@.*\..*",
+    _("Must be a valid email address"),
+)
 
 
 class EqualToValidator(Validator):
@@ -73,7 +78,7 @@ class EqualToValidator(Validator):
 
 
 class RegisterForm(Form):
-    INPUTS = [
+    INPUTS = (
         Email(
             'email',
             description=_('Email'),
@@ -115,7 +120,7 @@ class RegisterForm(Form):
                 'that runs Open Library.'
             ),
         ),
-    ]
+    )
 
     def __init__(self):
         Form.__init__(self, *self.INPUTS)

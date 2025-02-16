@@ -57,13 +57,23 @@
 .last-read-date,
 .check-in-prompt {
   border-radius: 0 0 5px 5px;
-  padding: 4px 9px;
+  padding: 5px 0;
   margin-top: -15px;
-  padding-top: 9px;
+  margin-bottom: 5px;
   border: 1px solid @light-grey;
-  font-size: .8em;
+  font-size: @font-size-label-medium;
   text-align: center;
   background: linear-gradient(to bottom, transparent 80%, @lightest-grey);
+
+  a {
+    display: inline-block;
+    padding: 8px 7px;
+    transition: background-color .2s;
+    border-radius: 4px;
+  }
+  a:hover {
+    background-color: @icon-link-grey;
+  }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
@@ -106,28 +116,14 @@
 }
 
 /* Styles for check-in prompt, located below reading log dropper */
-.last-read-date {
-  margin-bottom: 5px;
-
-  .date-display {
-    display: flex;
-    justify-content: space-between;
-
-    .read-label {
-      font-weight: 700;
-    }
-  }
-}
-
 .check-in-prompt {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 5px;
-
   .prompt-options {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
+    white-space: nowrap;
+  }
+
+  .prompt-copy {
+    display: inline-block;
+    padding-top: 8px;
   }
 }
 
@@ -153,27 +149,17 @@
   color: @dark-grey;
   padding: 5px 0;
 
-  &__heading,
-  &__details {
-    width: fit-content;
-  }
-
-  &__heading {
-    font-weight: 900;
-  }
-
   &__body {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   &__progress-bar {
     background-color: @light-grey;
     border-radius: 5px;
     height: 20px;
-    margin: 5px 5px 0 0;
-    width: 50%;
+    margin: auto;
+    width: 85%;
+    margin-bottom: 10px;
   }
 
   &__completed {
@@ -184,21 +170,22 @@
   }
 
   &__details {
-    align-self: unset;
-    margin-left: 5px;
+    display: flex;
+    justify-content: space-between;
+    width: 97%;
+    margin: auto;
   }
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: @width-breakpoint-tablet) {
   .reading-goal-progress {
-    &__body {
-      flex-direction: row;
-    }
-    &__progress-bar {
-      width: 33%;
-    }
+    padding: 15px 0 0;
+
     &__details {
-      align-self: center;
+      display: flex;
+      justify-content: space-between;
+      width: 85%;
+      margin: auto;
     }
   }
 }

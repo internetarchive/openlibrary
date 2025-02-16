@@ -3,17 +3,21 @@
 This should go into infogami.
 """
 
-import web
 import json
+
+import web
 import yaml
 
-from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template, safeint
-from infogami.utils.view import add_flash_message  # TODO: unused import?
-from infogami.utils import features
-
-from openlibrary.utils import dateutil
+from infogami.utils import delegate, features
+from infogami.utils.view import (
+    add_flash_message,  # noqa: F401 side effects may be needed
+    public,
+    render,
+    render_template,
+    safeint,
+)  # TODO: unused import?
 from openlibrary.plugins.upstream.utils import get_changes
+from openlibrary.utils import dateutil
 
 
 @public
@@ -57,7 +61,7 @@ class index(delegate.page):
         return render_template("recentchanges/index", query)
 
     def handle_encoding(self, query, encoding):
-        i = web.input(bot="", limit=100, offset=0, text="false")
+        i = web.input(bot="", limit=100, offset=0, text="false", author="")
 
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
@@ -65,6 +69,10 @@ class index(delegate.page):
             query['bot'] = True
         elif i.bot.lower() == "false":
             query['bot'] = False
+
+        # Handle author query parameter
+        if i.author:
+            query['author'] = i.author
 
         # and limit and offset business too
         limit = safeint(i.limit, 100)

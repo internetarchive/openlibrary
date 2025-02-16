@@ -1,29 +1,27 @@
-"""Interface to import queue.
-"""
+"""Interface to import queue."""
 
+import contextlib
+import datetime
+import json
+import logging
+import time
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
-import logging
-import datetime
-import time
 import web
-import json
-
 from psycopg2.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
 from web.db import ResultSet
 
-from . import db
-
-import contextlib
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
 
+from . import db
+
 logger = logging.getLogger("openlibrary.imports")
 
-STAGED_SOURCES: Final = ('amazon', 'idb')
+STAGED_SOURCES: Final = ('amazon', 'idb', 'google_books')
 
 if TYPE_CHECKING:
     from openlibrary.core.models import Edition
@@ -31,11 +29,11 @@ if TYPE_CHECKING:
 
 class Batch(web.storage):
 
-    def __init__(self, mapping, *requireds, **defaults):
+    def __init__(self, mapping, *requires, **defaults):
         """
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
         """
-        super().__init__(mapping, *requireds, **defaults)
+        super().__init__(mapping, *requires, **defaults)
         self.total_submitted: int = 0
         self.total_queued: int = 0
         self.total_skipped: int = 0
@@ -56,7 +54,8 @@ class Batch(web.storage):
 
     def load_items(self, filename):
         """Adds all the items specified in the filename to this batch."""
-        items = [line.strip() for line in open(filename) if line.strip()]
+        with open(filename) as file:
+            items = [line.strip() for line in file if line.strip()]
         self.add_items(items)
 
     def dedupe_items(self, items):

@@ -1,13 +1,13 @@
-import requests
-
-from infogami import config
-from lxml import etree
 from time import sleep
 
+import lxml.etree
+import requests
+from lxml import etree
+
+from infogami import config
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.core import ia
-
 
 IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = f'{IA_BASE_URL}/download/'
@@ -55,7 +55,9 @@ def get_marc_record_from_ia(
     # If that fails, try marc.xml
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).content
-        root = etree.fromstring(data)
+        root = etree.fromstring(
+            data, parser=lxml.etree.XMLParser(resolve_entities=False)
+        )
         return MarcXml(root)
     return None
 

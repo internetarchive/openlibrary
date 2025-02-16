@@ -1,0 +1,22 @@
+$def with (page)
+
+$ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
+
+<div class="head" id="subjectRelated">
+  <h2>$_("Related...")</h2>
+</div>
+
+$def renderSubjects(subjects):
+    $if len(subjects) > 0:
+        <span class="subject">
+        $for s in subjects:
+            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+        </span>
+    $else:
+        <span class="title"><em>$_("None found.")</em></span>
+
+$for category, label, limit in subject_list:
+    <div class="contentQuarter link-box link-box--with-header">
+      <h3 class="black collapse uppercase">$label</h3>
+      $:renderSubjects(page[category][:limit])
+    </div>

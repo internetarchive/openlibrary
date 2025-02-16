@@ -28,7 +28,7 @@ The following describes what each plugin directory does, by convention, in decre
 * importapi -- defines our book import API endpoints
   * `code.py` again defines most of the core logic we care about
 * admin -- our admin pages and logic
-* books -- old-stype book APIs (likely not relevant)
+* books -- old-style book APIs (likely not relevant)
 
 ## Code.py
 

@@ -3,9 +3,10 @@
 (this should go to web.py)
 """
 
-import web
 import copy
 import re
+
+import web
 
 from infogami.utils.view import render
 

@@ -1,6 +1,6 @@
-from datetime import datetime
 import logging
 from collections.abc import Callable
+from datetime import datetime
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
@@ -15,6 +15,7 @@ class SubjectSearchScheme(SearchScheme):
         'subject_type',
         'work_count',
     }
+    non_solr_fields: set[str] = set()
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
     sorts = {

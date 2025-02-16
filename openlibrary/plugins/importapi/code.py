@@ -1,43 +1,41 @@
-"""Open Library Import API
-"""
-
-from infogami.plugins.api.code import add_hook
-from infogami.infobase.client import ClientException
-
-from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog import add_book
-from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts, records
-from openlibrary.core import ia
-from openlibrary.plugins.upstream.utils import (
-    LanguageNoMatchError,
-    get_abbrev_from_full_lang_name,
-    LanguageMultipleMatchError,
-    get_location_and_publisher,
-)
-from openlibrary.utils.isbn import get_isbn_10s_and_13s
-
-import web
+"""Open Library Import API"""
 
 import base64
 import json
+import logging
 import re
+import urllib
+from typing import Any
 
+import lxml.etree
+import web
+from lxml import etree
 from pydantic import ValidationError
 
+from infogami.infobase.client import ClientException
+from infogami.plugins.api.code import add_hook
+from openlibrary import accounts, records
+from openlibrary.catalog import add_book
+from openlibrary.catalog.get_ia import get_from_archive_bulk, get_marc_record_from_ia
+from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
+from openlibrary.catalog.marc.marc_xml import MarcXml
+from openlibrary.catalog.marc.parse import read_edition
+from openlibrary.catalog.utils import get_non_isbn_asin
+from openlibrary.core import ia
 from openlibrary.plugins.importapi import (
     import_edition_builder,
     import_opds,
     import_rdf,
 )
-from lxml import etree
-import logging
-
-import urllib
-
+from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.upstream.utils import (
+    LanguageMultipleMatchError,
+    LanguageNoMatchError,
+    get_abbrev_from_full_lang_name,
+    get_location_and_publisher,
+    safeget,
+)
+from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
@@ -77,7 +75,9 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     """
     data = data.strip()
     if b'<?xml' in data[:10]:
-        root = etree.fromstring(data)
+        root = etree.fromstring(
+            data, parser=lxml.etree.XMLParser(resolve_entities=False)
+        )
         if root.tag == '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF':
             edition_builder = import_rdf.parse(root)
             format = 'rdf'
@@ -97,6 +97,24 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
             raise DataError('unrecognized-XML-format')
     elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
+
+        # Only look to the import_item table if a record is incomplete.
+        # This is the minimum to achieve a complete record. See:
+        # https://github.com/internetarchive/openlibrary/issues/9440
+        # import_validator().validate() requires more fields.
+        minimum_complete_fields = ["title", "authors", "publish_date"]
+        is_complete = all(obj.get(field) for field in minimum_complete_fields)
+        if not is_complete:
+            isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
+            isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
+            identifier = to_isbn_13(isbn_13 or isbn_10 or "")
+
+            if not identifier:
+                identifier = get_non_isbn_asin(rec=obj)
+
+            if identifier:
+                supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
+
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
@@ -114,6 +132,39 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
+
+
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found,
+    uses select metadata to supplement empty fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'description',
+        'isbn_10',
+        'isbn_13',
+        'number_of_pages',
+        'physical_format',
+        'publish_date',
+        'publishers',
+        'title',
+        'source_records',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if field == "source_records":
+                rec[field].extend(import_item_metadata.get(field))
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
 
 
 class importapi:
@@ -134,7 +185,7 @@ class importapi:
         try:
             edition, _ = parse_data(data)
 
-        except DataError as e:
+        except (DataError, json.JSONDecodeError) as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
             return self.error('invalid-value', str(e).replace('\n', ': '))
@@ -607,18 +658,17 @@ class ils_search:
                 d[i] = identifiers[i]
             d.update(doc)
 
+        elif authenticated:
+            d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
+            for i in keys:
+                if i.startswith('/books'):
+                    d['editions'].append(i)
+                if i.startswith('/works'):
+                    d['works'].append(i)
+                if i.startswith('/authors'):
+                    d['authors'].append(i)
         else:
-            if authenticated:
-                d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
-                for i in keys:
-                    if i.startswith('/books'):
-                        d['editions'].append(i)
-                    if i.startswith('/works'):
-                        d['works'].append(i)
-                    if i.startswith('/authors'):
-                        d['authors'].append(i)
-            else:
-                d = {'status': 'notfound'}
+            d = {'status': 'notfound'}
         return d
 
 

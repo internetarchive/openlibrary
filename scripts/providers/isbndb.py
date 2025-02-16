@@ -1,11 +1,11 @@
-import re
 import json
 import logging
 import os
-from typing import Any, Final
-import requests
-
+import re
 from json import JSONDecodeError
+from typing import Any, Final
+
+import requests
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
@@ -34,7 +34,7 @@ def is_nonbook(binding: str, nonbooks: list[str]) -> bool:
 
 
 class ISBNdb:
-    ACTIVE_FIELDS = [
+    ACTIVE_FIELDS: tuple[str, ...] = (
         'authors',
         'isbn_13',
         'languages',
@@ -44,8 +44,8 @@ class ISBNdb:
         'source_records',
         'subjects',
         'title',
-    ]
-    INACTIVE_FIELDS = [
+    )
+    INACTIVE_FIELDS = (
         "copyright",
         "dewey",
         "doi",
@@ -57,7 +57,7 @@ class ISBNdb:
         'lc_classifications',
         'pagination',
         'weight',
-    ]
+    )
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     def __init__(self, data: dict[str, Any]):

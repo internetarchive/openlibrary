@@ -4,8 +4,8 @@ import socket
 import sys
 import time
 import urllib.request
-from collections.abc import Callable, Generator
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 
@@ -29,7 +29,7 @@ def mock_urlopen(*args, **kwargs):
     return MockRead()
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_patched_hide(monkeypatch) -> hide.HashIP:
     """
     Patch hide's call to urllib so we can use the same key and not rely
@@ -43,7 +43,7 @@ def get_patched_hide(monkeypatch) -> hide.HashIP:
     return hash_ip
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_patched_mktable(monkeypatch, tmp_path) -> mktable.HashIP:
     """
     Patch mktable's call to url so we can use the same key and not rely
@@ -93,12 +93,14 @@ class TestReveal:
 207.241.224.2 archive.org - [04/Apr/2023:12:34:56 +0000] "GET /example.html HTTP/1.1" 200 1234 "http://www.example.com/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0"
 0.1.2.3 not_in_real_ips - [04/Apr/2023:12:34:56 +0000] "GET /example.html HTTP/1.1" 200 1234 "http://www.example.com/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0"
 """
-    real_ips = {
-        "0.81.159.57": b"8.8.8.8",
-        "0.168.131.52": b"93.184.216.34",
-        "0.128.68.105": b"207.241.224.2",
-        "0.245.206.5": b"127.0.0.1",
-    }
+    real_ips: MappingProxyType[str, bytes] = MappingProxyType(
+        {
+            "0.81.159.57": b"8.8.8.8",
+            "0.168.131.52": b"93.184.216.34",
+            "0.128.68.105": b"207.241.224.2",
+            "0.245.206.5": b"127.0.0.1",
+        }
+    )
 
     def test_reveal_no_replace(self, monkeypatch, capsys) -> None:
         monkeypatch.setattr(sys, "stdin", io.StringIO(self.fake_lighttpd_access_log))

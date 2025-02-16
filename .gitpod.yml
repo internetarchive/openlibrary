@@ -29,7 +29,9 @@ tasks:
   # init runs once for each commit to the default branch
   init: docker compose up --no-start && gp sync-done docker-up
   # command runs each time a user starts their workspace
-  command: docker compose up
+  command: |
+    export OL_COVERSTORE_PUBLIC_URL="https://7075-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+    docker compose up
 - name: dev shell
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh

@@ -1,8 +1,8 @@
 # from py.test import config
 import json
+import urllib
 
 import cookielib
-import urllib
 
 from openlibrary import accounts
 from openlibrary.core import models

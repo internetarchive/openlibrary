@@ -23,9 +23,11 @@ $if not work_key:
 $if not ctx.user:
   $ additional_classes += ' generic-dropper--disabled'
 
+$ data = { "work-key": work_key or "" }
+
 $ primary_action = render_template('my_books/primary_action', work_key, edition_key, (ctx.user and ctx.user.key), users_work_read_status, page_url)
 $ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
-$:render_template('lib/dropper', primary_action, dropdown_content, classes=additional_classes)
+$:render_template('lib/dropper', primary_action, dropdown_content, classes=additional_classes, data=data)
 
 $if work_key:
     $ last_read_date = get_latest_read_date(work_key)

@@ -11,6 +11,7 @@ import {
 } from './idValidation';
 import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
+import { trimInputValues } from './utils.js';
 
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
@@ -231,14 +232,6 @@ export function validateIdentifiers(data) {
     return true;
 }
 
-export function initIdentifierValidation() {
-    initJqueryRepeat();
-    $('#identifiers').repeat({
-        vars: {prefix: 'edition--'},
-        validate: function(data) {return validateIdentifiers(data)},
-    });
-}
-
 export function initClassificationValidation() {
     initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
@@ -300,6 +293,11 @@ export function initWorksMultiInputAutocomplete() {
                     formatItem: render_work_autocomplete_item,
                 });
         });
+    });
+
+    // Show the new work options checkboxes only if "New work" selected
+    $('input[name="works--0"]').on('autocompleteselect', function(_event, ui) {
+        $('.new-work-options').toggle(ui.item.key === '__new__');
     });
 }
 
@@ -492,6 +490,8 @@ export function initEdit() {
     var tab = hash.split('/')[0];
     var link = `#link_${tab.substring(1)}`;
     var fieldname = `:input${hash.replace('/', '-')}`;
+
+    trimInputValues('.olform input');
 
     $(link).trigger('click');
 

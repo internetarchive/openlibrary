@@ -1,7 +1,7 @@
 $def with (loan, book)
 
 <div data-userid="$(loan['userid'])">
-  Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+  $_('Borrowed %(date)s', date=datestr(datetime_from_utc_timestamp(loan['loaned_at'])))
 </div>
 $ wlsize = book.get_waitinglist_size()
 $if wlsize:
@@ -12,8 +12,8 @@ $if wlsize:
 <div>
     $if loan['expiry'] is None:
         $# Not yet fulfilled
-        <span class="red">Not yet downloaded. </span><br/>
-        <a href="$loan['loan_link']">Download Now</a>
+        <span class="red">$_("Not yet downloaded.") </span><br/>
+        <a href="$loan['loan_link']">$_("Download Now")</a>
     $else:
         $:macros.FormatExpiry(loan['expiry'])
 </div>

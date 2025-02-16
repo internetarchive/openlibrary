@@ -10,23 +10,31 @@ import web
 
 from infogami import config
 from infogami.core import code as core
+from infogami.infobase import client
 from infogami.plugins.api.code import jsonapi, make_query
 from infogami.plugins.api.code import request as infogami_request
-
-from infogami.infobase import client
-from infogami.utils import delegate, app, types
-from infogami.utils.view import public, safeint, render
-from infogami.utils.view import render_template  # used for its side effects
-from infogami.utils.context import context
-
-from openlibrary import accounts
-
-from openlibrary.plugins.upstream import addbook, addtag, covers, models, utils
-from openlibrary.plugins.upstream import spamcheck
-from openlibrary.plugins.upstream import merge_authors
-from openlibrary.plugins.upstream import edits
-from openlibrary.plugins.upstream import checkins
-from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from infogami.utils import delegate
+from infogami.utils.context import context  # noqa: F401 side effects may be needed
+from infogami.utils.view import (
+    public,
+    render,
+    render_template,  # used for its side effects
+    safeint,
+)
+from openlibrary import accounts  # noqa: F401 side effects may be needed
+from openlibrary.plugins.upstream import (
+    addbook,
+    addtag,
+    borrow,  # noqa: F401 side effects may be needed
+    checkins,
+    covers,
+    edits,
+    merge_authors,
+    models,
+    recentchanges,  # noqa: F401 side effects may be needed
+    spamcheck,
+    utils,
+)  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
@@ -60,8 +68,8 @@ class history(delegate.mode):
         history = json.loads(
             infogami_request('/versions', data={'query': json.dumps(query)})
         )
-        for i, row in enumerate(history):
-            history[i].pop("ip")
+        for _, row in enumerate(history):
+            row.pop("ip")
         return json.dumps(history)
 
 
@@ -71,7 +79,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:
@@ -131,11 +139,14 @@ class merge_work(delegate.page):
     def GET(self):
         i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
         has_access = user and (
             (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
         )
         if not has_access:
-            raise web.HTTPError('403 Forbidden')
+            raise web.forbidden()
 
         optional_kwargs = {}
         if not (user.is_admin() or user.is_super_librarian()):
@@ -378,7 +389,7 @@ def setup():
     data.setup()
 
     # setup template globals
-    from openlibrary.i18n import ugettext, ungettext, gettext_territory
+    from openlibrary.i18n import gettext_territory, ugettext, ungettext
 
     web.template.Template.globals.update(
         {

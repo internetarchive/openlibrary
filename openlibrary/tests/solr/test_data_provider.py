@@ -7,7 +7,7 @@ from openlibrary.solr.data_provider import BetterDataProvider
 
 
 class TestBetterDataProvider:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_get_document(self):
         mock_site = MagicMock()
         dp = BetterDataProvider(
@@ -30,7 +30,7 @@ class TestBetterDataProvider:
         await dp.get_document('/works/OL1W')
         assert mock_site.get_many.call_count == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_clear_cache(self):
         mock_site = MagicMock()
         dp = BetterDataProvider(

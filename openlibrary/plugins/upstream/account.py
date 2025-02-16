@@ -1,53 +1,49 @@
-from datetime import datetime
 import json
 import logging
-import re
-import requests
-from typing import Any, TYPE_CHECKING, Final
-from collections.abc import Callable
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
+from datetime import datetime
 from math import ceil
+from typing import TYPE_CHECKING, Any, Final
+from urllib.parse import urlparse
 
+import requests
 import web
 
-from infogami.utils import delegate
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
+from infogami.infobase.client import ClientException
+from infogami.utils import delegate
 from infogami.utils.view import (
-    require_login,
+    add_flash_message,
     render,
     render_template,
-    add_flash_message,
+    require_login,
 )
-from infogami.infobase.client import ClientException
-import infogami.core.code as core
-
 from openlibrary import accounts
-from openlibrary.i18n import gettext as _
-from openlibrary.core import stats
-from openlibrary.core import helpers as h, lending
+from openlibrary.accounts import (
+    InternetArchiveAccount,
+    OLAuthenticationError,
+    OpenLibraryAccount,
+    audit_accounts,
+    clear_cookies,
+    valid_email,
+)
+from openlibrary.core import helpers as h
+from openlibrary.core import lending, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     get_items_and_add_availability,
     s3_loan_api,
 )
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.follows import PubSub
-
-from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
-from openlibrary.accounts import (
-    audit_accounts,
-    Account,
-    OpenLibraryAccount,
-    InternetArchiveAccount,
-    valid_email,
-    clear_cookies,
-    OLAuthenticationError,
-)
+from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import borrow, forms, utils
+from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
@@ -94,9 +90,18 @@ def get_login_error(error_key):
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
         ),
+        "request_timeout": _(
+            "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
+        ),
+        "bad_email": _("Email provider not recognized."),
+        "bad_password": _("Password requirements not met."),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
-    return LOGIN_ERRORS[error_key]
+    return (
+        LOGIN_ERRORS[error_key]
+        if error_key in LOGIN_ERRORS
+        else _("Request failed with error code: %(error_code)s", error_code=error_key)
+    )
 
 
 class availability(delegate.page):
@@ -298,7 +303,7 @@ class account_create(delegate.page):
     def POST(self):
         f: forms.RegisterForm = self.get_form()
 
-        if f.validates(web.input()):
+        if f.validates(web.input(email="")):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
@@ -329,7 +334,8 @@ class account_create(delegate.page):
                 from openlibrary.plugins.openlibrary.sentry import sentry
 
                 if sentry.enabled:
-                    sentry.capture_exception(e)
+                    extra = {'response': e.response} if hasattr(e, 'response') else None
+                    sentry.capture_exception(e, extras=extra)
 
         return render['account/create'](f)
 
@@ -347,7 +353,9 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
+        from openlibrary.plugins.openlibrary.code import (
+            BadRequest,  # noqa: F401 side effects may be needed
+        )
 
         d = json.loads(web.data())
         email = d.get('email', "")
@@ -413,14 +421,34 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
+    def perform_post_login_action(self, i, ol_account):
+        if i.action:
+            op, args = i.action.split(":")
+            if op == "follow" and args:
+                publisher = args
+                if publisher_account := OpenLibraryAccount.get_by_username(publisher):
+                    PubSub.subscribe(
+                        subscriber=ol_account.username, publisher=publisher
+                    )
+
+                    publisher_name = publisher_account["data"]["displayname"]
+                    flash_message = f"You are now following {publisher_name}!"
+                    return flash_message
+
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if 'openlibrary.org' not in referer or referer.endswith('openlibrary.org/'):
+        parsed_referer = urlparse(referer)
+        this_host = web.ctx.host
+        if ':' in this_host:
+            # Remove port number
+            this_host = this_host.split(':', 1)[0]
+        if parsed_referer.hostname != this_host:
             referer = None
-        i = web.input(redirect=referer)
+        i = web.input(redirect=referer, action="")
         f = forms.Login()
         f['redirect'].value = i.redirect
+        f['action'].value = i.action
         return render.login(f)
 
     def POST(self):
@@ -464,6 +492,11 @@ class account_login(delegate.page):
             "/account/login",
             "/account/create",
         ]
+
+        # Processing post login action
+        if flash_message := self.perform_post_login_action(i, ol_account):
+            add_flash_message('note', _(flash_message))
+
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         stats.increment('ol.account.xauth.login')
@@ -570,11 +603,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        if not 3 <= len(username) <= 20:
-            return _('Username must be between 3-20 characters')
-        if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
-            return _('Username may only contain numbers, letters, - or _')
-
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
             return _("Username unavailable")
@@ -585,9 +613,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        if not (email and re.match(r'.*@.*\..*', email)):
-            return _('Must be a valid email address')
-
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
@@ -679,32 +704,6 @@ class account_ia_email_forgot(delegate.page):
         else:
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
-
-
-class account_ol_email_forgot(delegate.page):
-    path = "/account/email/forgot"
-
-    def GET(self):
-        return render_template('account/email/forgot')
-
-    def POST(self):
-        i = web.input(username='', password='')
-        err = ""
-        act = OpenLibraryAccount.get(username=i.username)
-
-        if act:
-            if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
-                return render_template('account/email/forgot', email=act.email)
-            else:
-                err = "Incorrect password"
-
-        elif valid_email(i.username):
-            err = "Please enter a username, not an email"
-
-        else:
-            err = "Sorry, this user does not exist"
-
-        return render_template('account/email/forgot', err=err)
 
 
 class account_password_forgot(delegate.page):
@@ -856,29 +855,6 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
         raise web.seeother(f'/people/{username}/books')
-
-
-# This would be by the civi backend which would require the api keys
-class fake_civi(delegate.page):
-    path = "/internal/fake/civicrm"
-
-    def GET(self):
-        i = web.input(entity='Contact')
-        contact = {'values': [{'contact_id': '270430'}]}
-        contributions = {
-            'values': [
-                {
-                    "receive_date": "2019-07-31 08:57:00",
-                    "custom_52": "9780062457714",
-                    "total_amount": "50.00",
-                    "custom_53": "ol",
-                    "contact_id": "270430",
-                    "contribution_status": "",
-                }
-            ]
-        }
-        entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(json.dumps(entity), content_type="application/json")
 
 
 class import_books(delegate.page):
@@ -1358,7 +1334,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     # Create 'placeholders' dicts for items in the Internet Archive loan history,
     # but absent from Open Library, and then add loan history.
     # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
-    # loan. No apparenty way to distinguish between current and past loans with
+    # loan. No apparently way to distinguish between current and past loans with
     # this API call.
     ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
     for ia_only_loan in ia_only_loans:

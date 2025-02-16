@@ -4,7 +4,7 @@
     "eslint-plugin-no-jquery"
   ],
   "extends": [
-    "plugin:vue/essential",
+    "plugin:vue/vue3-essential",
     "plugin:no-jquery/deprecated"
   ],
   "env": {

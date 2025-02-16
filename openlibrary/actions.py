@@ -1,8 +1,8 @@
-"""Custom OL Actions.
-"""
+"""Custom OL Actions."""
+
+import sys
 
 import infogami
-import sys
 
 
 @infogami.action

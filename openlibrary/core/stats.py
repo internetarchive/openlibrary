@@ -38,7 +38,7 @@ def create_stats_client(cfg=config):
 
 def put(key, value, rate=1.0):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
-    global client
+
     if client:
         pystats_logger.debug(f"Putting {value} as {key}")
         client.timing(key, value, rate)
@@ -46,14 +46,26 @@ def put(key, value, rate=1.0):
 
 def increment(key, n=1, rate=1.0):
     "Increments the value of ``key`` by ``n``"
-    global client
+
     if client:
-        pystats_logger.debug("Incrementing %s" % key)
+        pystats_logger.debug(f"Incrementing {key}")
         for i in range(n):
             try:
                 client.increment(key, sample_rate=rate)
             except AttributeError:
                 client.incr(key, rate=rate)
+
+
+def gauge(key: str, value: int, rate: float = 1.0) -> None:
+    """
+    Gauges are a constant data type. Ordinarily the rate should be 1.0.
+
+    See https://statsd.readthedocs.io/en/v3.3/types.html#gauges
+    """
+
+    if client:
+        pystats_logger.debug(f"Updating gauge {key} to {value}")
+        client.gauge(key, value, rate=rate)
 
 
 client = create_stats_client()

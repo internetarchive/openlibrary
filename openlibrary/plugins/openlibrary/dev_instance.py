@@ -4,6 +4,7 @@ This module is imported only if dev_instance is set to True in openlibrary confi
 """
 
 import web
+
 import infogami
 from infogami.utils import delegate
 from openlibrary.core.task import oltask

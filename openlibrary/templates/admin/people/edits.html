@@ -1,6 +1,6 @@
 $def with (account, paginate=True)
 
-$var title: [Admin Center] Edits of $account.displayname
+$var title: $_('[Admin Center] Edits of %(user)s', user=account.displayname)
 
 $if paginate:
     $ page = safeint(query_param('page', '1'))

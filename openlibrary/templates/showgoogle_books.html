@@ -1,0 +1,12 @@
+$def with (isbn)
+$# Template entry point for Google Books
+$# e.g. /show-records/google_books:0803226616
+$var title: $_("Record details of") google_books:$isbn
+
+<div id="contentHead">
+    <h1>$_("Record details of") google_books:$isbn</h1>
+</div>
+
+<div id="contentBody">
+    <p>$:_('This record came from') <a href="https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn">https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn.</p>
+</div>

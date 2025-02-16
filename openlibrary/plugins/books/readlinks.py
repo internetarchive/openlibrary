@@ -3,18 +3,18 @@ Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
 
-import sys
 import re
-import requests
+import sys
 
+import requests
 import web
-from openlibrary.core import ia
-from openlibrary.core import helpers
-from openlibrary.api import OpenLibrary
-from openlibrary.plugins.books import dynlinks
-from infogami.utils.delegate import register_exception
-from infogami.utils import stats
+
 from infogami import config
+from infogami.utils import stats
+from infogami.utils.delegate import register_exception
+from openlibrary.api import OpenLibrary  # noqa: F401 side effects may be needed
+from openlibrary.core import helpers, ia
+from openlibrary.plugins.books import dynlinks
 
 
 def key_to_olid(key):
@@ -105,16 +105,9 @@ class ReadProcessor:
     def __init__(self, options):
         self.options = options
 
-    def get_item_status(self, ekey, iaid, collections, subjects) -> str:
-        if 'lendinglibrary' in collections:
-            status = 'lendable' if 'Lending library' in subjects else 'restricted'
-        elif 'inlibrary' in collections:
-            status = 'restricted'
-            if 'In library' in subjects:  # self.get_inlibrary() is deprecated
-                if self.options.get('debug_items'):
-                    status = 'restricted - not inlib'
-                elif self.options.get('show_inlibrary'):
-                    status = 'lendable'
+    def get_item_status(self, ekey, iaid, collections) -> str:
+        if 'inlibrary' in collections:
+            status = 'lendable'
         else:
             status = 'restricted' if 'printdisabled' in collections else 'full access'
 
@@ -199,10 +192,8 @@ class ReadProcessor:
         else:
             wkey = None
         work = None
-        subjects = []
         if wkey:
             work = self.works.get(wkey)
-            subjects = work.get('subjects', [])
             iaids = self.wkey_to_iaids[wkey]
             # rearrange so any scan for this edition is first
             if orig_iaid and orig_iaid in iaids:
@@ -229,7 +220,7 @@ class ReadProcessor:
                 status = 'missing'
             else:
                 ekey = edition.get('key', '')
-                status = self.get_item_status(ekey, iaid, collections, subjects)
+                status = self.get_item_status(ekey, iaid, collections)
             return status
 
         def getdate(self, iaid):
@@ -261,7 +252,6 @@ class ReadProcessor:
                 'lendable': 2,
                 'checked out': 3,
                 'restricted': 4,
-                'restricted - not inlib': 4,
                 'missing': 5,
             }
             return (isexact, statusvals[status], date)
@@ -347,18 +337,6 @@ class ReadProcessor:
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
         self.iaid_to_ed = {ed['ocaid']: ed for ed in eds.values()}
-        # self.iaid_to_ekey = dict((iaid, ed['key'])
-        #                            for iaid, ed in self.iaid_to_ed.items())
-
-        # Work towards building a dict of iaid loanability,
-        # def has_lending_collection(meta):
-        #     collections = meta.get("collection", [])
-        #     return 'lendinglibrary' in collections or 'inlibrary' in collections
-        # in case site.store supports get_many (unclear)
-        # maybe_loanable_iaids = [iaid for iaid in iaids
-        #                         if has_lending_collection(self.iaid_to_meta.get(iaid, {}))]
-        # loanable_ekeys = [self.iaid_to_ekey.get(iaid) for iaid in maybe_loanable_iaids]
-        # loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
 
         result = {}
         for r in requests:

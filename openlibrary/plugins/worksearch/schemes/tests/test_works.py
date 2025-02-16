@@ -1,5 +1,7 @@
 from unittest.mock import patch
+
 import pytest
+
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 # {'Test name': ('query', fields[])}
@@ -107,7 +109,9 @@ QUERY_PARSER_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,parsed_query", QUERY_PARSER_TESTS.values(), ids=QUERY_PARSER_TESTS.keys()
+    ('query', 'parsed_query'),
+    QUERY_PARSER_TESTS.values(),
+    ids=QUERY_PARSER_TESTS.keys(),
 )
 def test_process_user_query(query, parsed_query):
     s = WorkSearchScheme()
@@ -123,7 +127,7 @@ EDITION_KEY_TESTS = {
 }
 
 
-@pytest.mark.parametrize("query,edQuery", EDITION_KEY_TESTS.items())
+@pytest.mark.parametrize(('query', 'edQuery'), EDITION_KEY_TESTS.items())
 def test_q_to_solr_params_edition_key(query, edQuery):
     import web
 

@@ -1,7 +1,7 @@
 $def with (list, editions, works, authors)
 <html>
 <head>
-    <title>$list.name - Editions</title>
+    <title>$_('%(list)s - Editions', list=list.name)</title>
     <style type="text/css">
         h3.title {
             display: inline;
@@ -20,7 +20,7 @@ $def with (list, editions, works, authors)
                 $for a in authors:
                     <a href="$request.home$a.url()">$a.name</a>$cond(not loop.last, ", ")
             $else:
-                <em>Unknown authors</em>
+                <em>$_("Unknown authors")</em>
         </span>
     <ul>
     $for book in editions:
@@ -35,9 +35,9 @@ $def with (list, editions, works, authors)
                 $elif book.first_publish_date:
                     $book.publish_date
                 $elif book.publishers:
-                    <em>Publish date unknown</em>, $(', '.join(book.publishers))
+                    <em>$_("Publish date unknown")</em>, $(', '.join(book.publishers))
                 $else:
-                    <em>Publisher unknown</em>
+                    <em>$_("Publisher unknown")</em>
             </div>
             <br/>
         </li>
@@ -46,7 +46,7 @@ $def with (list, editions, works, authors)
     $for book in works:
         <li>
             <h3 class="title">
-                <a href="$request.home$book.url()">$book.get('title', 'Title unknown')</a>
+                <a href="$request.home$book.url()">$book.get('title', _('Title unknown'))</a>
             </h3>
             by $:render_authors(book)
 
@@ -54,7 +54,7 @@ $def with (list, editions, works, authors)
                 $if book.first_publish_year:
                     $book.first_publish_year
                 $else:
-                    <em>First publish date unknown</em>
+                    <em>$_("First publish date unknown")</em>
             </div>
             <br/>
         </li>
@@ -63,7 +63,7 @@ $def with (list, editions, works, authors)
     $for author in authors:
         <li>
             <h3 class="title">
-                <a href="$request.home$author.url()">$author.get('name', 'Name unknown')</a>
+                <a href="$request.home$author.url()">$author.get('name', _('Name unknown'))</a>
             </h3>
             $if author.birth_date:
                 ( $author.birth_date

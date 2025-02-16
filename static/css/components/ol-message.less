@@ -1,0 +1,32 @@
+@import (less) "less/colors.less";
+@import (less) "less/font-families.less";
+
+.ol-message {
+  font-size: @font-size-body-medium;
+  border-radius: 8px;
+  padding: 8px;
+
+  &, &--info {
+    background-color: hsl(hue(@primary-blue), saturation(@primary-blue), 90%);
+    color: hsl(hue(@primary-blue), saturation(@primary-blue), 35%);
+    border: 1px solid currentColor;
+  }
+
+  &--warning {
+    background-color: hsl(hue(@orange), saturation(@orange), 90%);
+    color: hsl(hue(@orange), saturation(@orange), 35%);
+    border: 1px solid currentColor;
+  }
+
+  &--success {
+    background-color: hsl(hue(@olive), saturation(@olive), 90%);
+    color: hsl(hue(@olive), saturation(@olive), 35%);
+    border: 1px solid currentColor;
+  }
+
+  &--error {
+    background-color: hsl(hue(@red), saturation(@red), 90%);
+    color: hsl(hue(@red), saturation(@red), 35%);
+    border: 1px solid currentColor;
+  }
+}

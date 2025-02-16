@@ -1,8 +1,8 @@
+import gzip
+import json
 import logging
 import os
-import json
 import sqlite3
-import gzip
 from contextlib import closing
 from pathlib import Path
 
@@ -14,7 +14,6 @@ def get_osp_dump_location() -> Path | None:
     """
     Get whether the location of the Open Syllabus project counts dump
     """
-    global osp_dump_location
     return osp_dump_location
 
 

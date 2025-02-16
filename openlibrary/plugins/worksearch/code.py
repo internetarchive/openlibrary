@@ -1,17 +1,18 @@
-from dataclasses import dataclass
-import itertools
-import time
 import copy
+import itertools
 import json
 import logging
 import re
-from typing import Any, cast
+import time
+import urllib
 from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any, cast
 from unicodedata import normalize
+
 import requests
 import web
 from requests import Response
-import urllib
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -19,24 +20,24 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
-from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
     has_solr_editions_enabled,
 )
-from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.isbn import normalize_isbn
-
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -54,6 +55,22 @@ if hasattr(config, 'plugin_worksearch'):
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+
+@public
+def get_facet_map() -> tuple[tuple[str, str]]:
+    return (
+        ('has_fulltext', _('eBook?')),
+        ('language', _('Language')),
+        ('author_key', _('Author')),
+        ('subject_facet', _('Subjects')),
+        ('first_publish_year', _('First published')),
+        ('publisher_facet', _('Publisher')),
+        ('person_facet', _('People')),
+        ('place_facet', _('Places')),
+        ('time_facet', _('Times')),
+        ('public_scan_b', _('Classic eBooks')),
+    )
 
 
 @public
@@ -98,7 +115,7 @@ def process_facet(
 
 
 def process_facet_counts(
-    facet_counts: dict[str, list]
+    facet_counts: dict[str, list],
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':
@@ -130,7 +147,7 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
-def run_solr_query(
+def run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -174,7 +191,7 @@ def run_solr_query(
     facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
     if facet and facet_fields:
         params.append(('facet', 'true'))
-        for facet in facet_fields:
+        for facet in facet_fields:  # noqa: PLR1704
             if isinstance(facet, str):
                 params.append(('facet.field', facet))
             elif isinstance(facet, dict):
@@ -216,7 +233,9 @@ def run_solr_query(
         q = f'{q} {params_q}' if q else params_q
 
     if q:
-        solr_fields = set(fields or scheme.default_fetched_fields)
+        solr_fields = (
+            set(fields or scheme.default_fetched_fields) - scheme.non_solr_fields
+        )
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
@@ -236,6 +255,12 @@ def run_solr_query(
     solr_result = response.json() if response else None
     end_time = time.time()
     duration = end_time - start_time
+
+    if solr_result is not None:
+        non_solr_fields = set(fields) & scheme.non_solr_fields
+        if non_solr_fields:
+            scheme.add_non_solr_fields(non_solr_fields, solr_result)
+
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
@@ -293,6 +318,7 @@ def do_search(
     sort: str | None,
     page=1,
     rows=100,
+    facet=False,
     spellcheck_count=None,
 ):
     """
@@ -300,15 +326,28 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
+    # If you want work_search page html to extend default_fetched_fields:
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
     if web.cookies(sfw="").sfw == 'yes':
-        fields = list(
-            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject'}
-        )
-    else:
-        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
+        fields |= {'subject'}
+
     return run_solr_query(
-        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
+        WorkSearchScheme(),
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(fields),
+        facet=facet,
     )
 
 
@@ -349,10 +388,12 @@ def get_doc(doc: SolrDocument):
         cover_edition_key=doc.get('cover_edition_key', None),
         languages=doc.get('language', []),
         id_project_gutenberg=doc.get('id_project_gutenberg', []),
+        id_project_runeberg=doc.get('id_project_runeberg', []),
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
         id_cita_press=doc.get('id_cita_press', []),
+        id_wikisource=doc.get('id_wikisource', []),
         editions=[
             web.storage(
                 {
@@ -363,6 +404,9 @@ def get_doc(doc: SolrDocument):
             )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
+        ratings_average=doc.get('ratings_average', None),
+        ratings_count=doc.get('ratings_count', None),
+        want_to_read_count=doc.get('want_to_read_count', None),
     )
 
 
@@ -813,7 +857,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '*').split(',')
+        fields = WorkSearchScheme.default_fetched_fields
+        if _fields := query.pop('fields', ''):
+            fields = _fields.split(',')
+
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -834,9 +881,13 @@ class search_json(delegate.page):
             facet=False,
             spellcheck_count=spellcheck_count,
         )
+        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+        # force all other params to appear before `docs` in json
+        docs = response['docs']
+        del response['docs']
+        response['docs'] = docs
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
@@ -844,11 +895,13 @@ class search_json(delegate.page):
 def setup():
     from openlibrary.plugins.worksearch import (
         autocomplete,
-        subjects,
+        bulk_search,
         languages,
         publishers,
+        subjects,
     )
 
+    bulk_search.setup()
     autocomplete.setup()
     subjects.setup()
     publishers.setup()

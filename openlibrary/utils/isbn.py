@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from isbnlib import canonical
 
 
@@ -82,7 +83,7 @@ def normalize_isbn(isbn: str) -> str | None:
     string or None.
     Does NOT validate length or checkdigits.
     """
-    return isbn and canonical(isbn) or None
+    return (isbn and canonical(isbn)) or None
 
 
 def get_isbn_10_and_13(isbn: str) -> tuple[str | None, str | None]:

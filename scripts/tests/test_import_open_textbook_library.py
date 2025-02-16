@@ -1,9 +1,10 @@
 import pytest
+
 from ..import_open_textbook_library import map_data
 
 
 @pytest.mark.parametrize(
-    "input_data, expected_output",
+    ("input_data", "expected_output"),
     [
         (
             # Test case 1: Basic case with all fields present

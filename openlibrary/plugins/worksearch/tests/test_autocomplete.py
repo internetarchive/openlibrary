@@ -1,8 +1,9 @@
 import json
 from unittest.mock import patch
-from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
+
 import web
 
+from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
 from openlibrary.utils.solr import Solr
 
 
@@ -24,7 +25,7 @@ def test_autocomplete():
             == 'title:"foo"^2 OR title:(foo*) OR name:"foo"^2 OR name:(foo*)'
         )
         # check kwargs
-        assert mock_solr_select.call_args.kwargs['fq'] == ['-type:edition']
+        assert mock_solr_select.call_args.kwargs['fq'] == ('-type:edition',)
         assert mock_solr_select.call_args.kwargs['q_op'] == 'AND'
         assert mock_solr_select.call_args.kwargs['rows'] == 5
 
@@ -63,7 +64,7 @@ def test_works_autocomplete():
         # assert solr_select called with correct params
         assert mock_solr_select.call_args[0][0] == 'title:"foo"^2 OR title:(foo*)'
         # check kwargs
-        assert mock_solr_select.call_args.kwargs['fq'] == ['type:work']
+        assert mock_solr_select.call_args.kwargs['fq'] == ('type:work',)
         # check result
         assert result == [
             {

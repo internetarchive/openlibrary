@@ -1,6 +1,8 @@
-import pytest
 import re
+
+import pytest
 import web
+
 from infogami import config
 from infogami.utils import delegate
 
@@ -9,11 +11,11 @@ try:  # newer versions of web.py
 except ImportError:  # older versions of web.py
     from web import AppBrowser
 
-from openlibrary.mocks.mock_infobase import mock_site, MockConnection
+from openlibrary.mocks.mock_infobase import MockConnection, mock_site
 from openlibrary.plugins import ol_infobase
 
 
-@pytest.fixture()
+@pytest.fixture
 def ol(request):
     """ol funcarg for pytest tests.
 
@@ -50,7 +52,7 @@ class OLBrowser(AppBrowser):
 class OL:
     """Mock OL object for all tests."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def __init__(self, request, monkeypatch):
         self.request = request
 
@@ -68,7 +70,7 @@ class OL:
         return OLBrowser(delegate.app)
 
     def setup_config(self):
-        config.from_address = "Open Library <noreply@openlibrary.org>"
+        config.from_address = "Open Library <noreply@archive.org>"
 
     def _load_plugins(self, request):
         def create_site():

@@ -20,21 +20,21 @@ export function initCoversChange() {
     $('.coverPop')
         .on('click', function () {
             // clear the content of #imagesAdd and #imagesManage before adding new
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
-                $('#imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
             }
             setTimeout(function () {
                 // add iframe to add images
-                add_iframe('#imagesAdd', add_url);
+                add_iframe('.imagesAdd', add_url);
                 // add iframe to manage images
-                add_iframe('#imagesManage', manage_url);
+                add_iframe('.imagesManage', manage_url);
             }, 0);
         })
         .on('cbox_cleanup', function () {
-            $('#imagesAdd').html('');
-            $('#imagesManage').html('');
+            $('.imagesAdd').html('');
+            $('.imagesManage').html('');
         });
 }
 
@@ -45,18 +45,21 @@ function add_iframe(selector, src) {
         .attr('src', src);
 }
 
+function showLoadingIndicator() {
+    const loadingIndicator = document.querySelector('.loadingIndicator');
+    const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
+
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+        formDivs.forEach(div => div.classList.add('hidden'));
+    }
+}
+
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
-    $('.ol-cover-form').on('submit', function () {
-        const loadingIndicator = document.querySelector('.loadingIndicator');
-        const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
-
-        if (loadingIndicator) {
-            loadingIndicator.classList.remove('hidden');
-            formDivs.forEach(div => div.classList.add('hidden'));
-        }
-    })
-
+    $('.ol-cover-form').on('submit', function() {
+        showLoadingIndicator();
+    });
 
     $('.column').sortable({
         connectWith: '.trash'
@@ -111,4 +114,64 @@ export function initCoversSaved() {
         }
         parent.$(cover_selector).attr('src', cover_url);
     }
+}
+
+// This function will be triggered when the user clicks the "Paste" button
+async function pasteImage() {
+    let formData = null;
+    try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg') && !item.types.includes('image/jpg')) {
+                continue;
+            }
+
+            const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
+            const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
+            const blob = await item.getType(mimeType);
+            const image = document.createElement('img');
+            image.src = URL.createObjectURL(blob);
+            image.alt = ''
+            const imageContainer = document.querySelector('.image-container')
+            imageContainer.replaceChildren(image)
+
+            // Update the global formData with the new image blob
+            formData = new FormData();
+            formData.append('file', blob, `pasted-image.${fileExtension}`);
+
+            // Automatically fill in the hidden file input with the FormData
+            const fileInput = document.getElementById('hiddenFileInput');
+            const file = new File([blob], `pasted-image.${fileExtension}`, { type: mimeType });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files; // This sets the file input with the image
+
+            // Show the upload button
+            const uploadButton = document.getElementById('uploadButtonPaste');
+            uploadButton.classList.remove('hidden')
+
+            return formData;
+        }
+        alert('No image found in clipboard');
+    } catch (error) {
+
+    }
+}
+
+export function initPasteForm(coverForm) {
+    const pasteButton = coverForm.querySelector('#pasteButton');
+    let formData = null;
+
+    pasteButton.addEventListener('click', async () => {
+        formData = await pasteImage(coverForm);
+        pasteButton.textContent = 'Change Image'
+    });
+
+    coverForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (formData) {
+            showLoadingIndicator();
+            coverForm.submit();
+        }
+    });
 }

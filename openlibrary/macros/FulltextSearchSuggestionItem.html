@@ -1,0 +1,91 @@
+$def with (doc, snippet=None, attrs=None, blur=False)
+
+$code:
+  max_rendered_authors = 9
+  doc_type = (
+    'infogami_work' if doc.get('type', {}).get('key') == '/type/work' else
+    'infogami_edition' if doc.get('type', {}).get('key') == '/type/edition' else
+    'solr_work' if not doc.get('editions') else
+    'solr_edition'
+  )
+
+  selected_ed = doc
+  if doc_type == 'solr_edition':
+    selected_ed = doc.get('editions')[0]
+
+  book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
+  if doc_type == 'solr_edition':
+    work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
+  else:
+    book_provider = get_book_provider(doc)
+    if book_provider and doc_type.endswith('_work'):
+      work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
+    else:
+      work_edition_url = book_url
+
+  work_edition_all_url = work_edition_url
+  if '?' in work_edition_url:
+    work_edition_all_url += '&mode=all'
+  else:
+    work_edition_all_url += '?mode=all'
+
+  edition_work = None
+  if doc_type == 'infogami_edition' and 'works' in doc:
+    edition_work = doc['works'][0]
+
+  full_title = selected_ed.get('title', '') + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
+  if doc_type == 'infogami_edition' and edition_work:
+    full_work_title = edition_work.get('title', '') + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
+  else:
+    full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
+
+$ blur_cover = "fsi__bookcover-img-blur" if blur else ""
+
+<div class="fsi" itemscope itemtype="https://schema.org/Book" $:attrs>
+  <div class="fsi__main">
+    <span class="fsi__book-cover">
+      $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
+      <a data-ol-link-track="SearchInsideSuggestion|BookClick" href="$work_edition_url">
+        <img class="fsi__book-cover-img $blur_cover"
+              itemprop="image"
+              src="$cover"
+              alt="$_('Cover of: %(title)s', title=full_title)"
+              title="$_('Cover of: %(title)s', title=full_title)" />
+      </a>
+    </span>
+    <div class="fsi__book-details">
+      <div class="fsi__title-author">
+        <h3 class="fsi__book-title" itemprop="name">
+          <a itemprop="url" data-ol-link-track="SearchInsideSuggestion|BookClick" href="$work_edition_url">$full_title</a>
+        </h3>
+        <p class="fsi__book-author" itemprop="author" itemscope itemtype="https://schema.org/Organization">
+          $ authors = None
+          $if doc_type == 'infogami_work':
+            $ authors = doc.get_authors()
+          $elif doc_type == 'infogami_edition':
+            $ authors = edition_work.get_authors() if edition_work else doc.get_authors()
+          $elif doc_type.startswith('solr_'):
+            $if 'authors' in doc:
+              $ authors = doc['authors']
+            $elif 'author_key' in doc:
+              $ authors = [ { 'key': '/authors/' + key, 'name': name } for key, name in zip(doc['author_key'], doc['author_name']) ]
+          $if not authors:
+            <em>$_('Unknown author')</em>
+          $else:
+            $code:
+              author_data = [
+                {
+                  'name': a.get('name') or a.get('author', {}).get('name'),
+                  'url': (a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key'))
+                }
+                for a in authors
+              ]
+            $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
+        </p>
+    </div>
+    $if snippet:
+      $:snippet
+    </div>
+  </div>
+</div>
+

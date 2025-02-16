@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
-from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc
-from openlibrary import config
+import argparse
+import json
+import sys
 from ftplib import FTP
 from time import sleep
-from lxml import etree
-import sys
+
 import httplib
-import json
-import argparse
+import lxml.etree
+from lxml import etree
+
+from openlibrary import config
+from openlibrary.catalog.importer.scribe import BadImport
+from openlibrary.catalog.read_rc import read_rc  # noqa: F401 side effects may be needed
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')
@@ -57,7 +60,9 @@ attempts = 10
 wait = 5
 for attempt in range(attempts):
     try:
-        root = etree.parse(url).getroot()
+        root = etree.parse(
+            url, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         break
     except:
         if attempt == attempts - 1:
@@ -96,8 +101,6 @@ if to_upload:
 else:
     ftp.close()
     sys.exit(0)
-
-bad = open(c['log_location'] + 'lc_marc_bad_import', 'a')
 
 
 def iter_marc(data):
@@ -145,31 +148,32 @@ for f in to_upload:
         continue
 
     loc_file = item_id + '/' + f
-    for pos, length, marc_data in iter_marc(data):
-        loc = '%s:%d:%d' % (loc_file, pos, length)
-        headers['x-archive-meta-source-record'] = 'marc:' + loc
-        try:
-            h1 = httplib.HTTPConnection('openlibrary.org')
-            h1.request('POST', import_api_url, marc_data, headers)
+    with open(c['log_location'] + 'lc_marc_bad_import', 'a') as bad:
+        for pos, length, marc_data in iter_marc(data):
+            loc = '%s:%d:%d' % (loc_file, pos, length)
+            headers['x-archive-meta-source-record'] = 'marc:' + loc
             try:
-                res = h1.getresponse()
-            except httplib.BadStatusLine:
-                raise BadImport
-            body = res.read()
-            if res.status != 200:
-                raise BadImport
-            else:
+                h1 = httplib.HTTPConnection('openlibrary.org')
+                h1.request('POST', import_api_url, marc_data, headers)
                 try:
-                    reply = json.loads(body)
-                except ValueError:
-                    print(('not JSON:', repr(body)))
+                    res = h1.getresponse()
+                except httplib.BadStatusLine:
                     raise BadImport
-            assert res.status == 200
-            print(reply)
-            assert reply['success']
-            h1.close()
-        except BadImport:
-            print(loc, file=bad)
-            bad.flush()
+                body = res.read()
+                if res.status != 200:
+                    raise BadImport
+                else:
+                    try:
+                        reply = json.loads(body)
+                    except ValueError:
+                        print(('not JSON:', repr(body)))
+                        raise BadImport
+                assert res.status == 200
+                print(reply)
+                assert reply['success']
+                h1.close()
+            except BadImport:
+                print(loc, file=bad)
+                bad.flush()
 
 ftp.close()

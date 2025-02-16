@@ -1,8 +1,10 @@
-from openlibrary.mocks.mock_infobase import MockSite
-from .. import utils
-from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
-import web
 import pytest
+import web
+
+from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
+from openlibrary.mocks.mock_infobase import MockSite
+
+from .. import utils
 
 
 def test_url_quote():

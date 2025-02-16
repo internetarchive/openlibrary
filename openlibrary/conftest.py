@@ -1,5 +1,4 @@
-"""pytest configuration for openlibrary
-"""
+"""pytest configuration for openlibrary"""
 
 import pytest
 import web
@@ -7,12 +6,15 @@ import web
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
-from openlibrary.i18n import gettext
 from openlibrary.core import helpers
-
-from openlibrary.mocks.mock_infobase import mock_site
-from openlibrary.mocks.mock_ia import mock_ia
-from openlibrary.mocks.mock_memcache import mock_memcache
+from openlibrary.i18n import gettext
+from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401 side effects may be needed
+from openlibrary.mocks.mock_infobase import (
+    mock_site,  # noqa: F401 side effects may be needed
+)
+from openlibrary.mocks.mock_memcache import (
+    mock_memcache,  # noqa: F401 side effects may be needed
+)
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +46,7 @@ def no_sleep(monkeypatch):
     monkeypatch.setattr("time.sleep", mock_sleep)
 
 
-@pytest.fixture()
+@pytest.fixture
 def monkeytime(monkeypatch):
     cur_time = 1
 
@@ -59,12 +61,12 @@ def monkeytime(monkeypatch):
     monkeypatch.setattr("time.sleep", sleep)
 
 
-@pytest.fixture()
+@pytest.fixture
 def wildcard():
     return Wildcard()
 
 
-@pytest.fixture()
+@pytest.fixture
 def render_template(request):
     """Utility to test templates."""
     template.load_templates("openlibrary")
@@ -85,25 +87,18 @@ def render_template(request):
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    def undo():
-        ol_infobase.init_plugin = init_plugin
-
-    request.addfinalizer(undo)
-
     from openlibrary.plugins.openlibrary import code
 
     web.config.db_parameters = {}
     code.setup_template_globals()
-
-    def finalizer():
-        template.disktemplates.clear()
-        web.ctx.clear()
-
-    request.addfinalizer(finalizer)
 
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
         d = infobase_render_template(name, *a, **kw)
         return str(d) if as_string else d
 
-    return render
+    yield render
+
+    ol_infobase.init_plugin = init_plugin
+    template.disktemplates.clear()
+    web.ctx.clear()

@@ -5,7 +5,8 @@ const classTypeSuffixes = {
     subjects: '--subject',
     subject_people: '--person',
     subject_places: '--place',
-    subject_times: '--time'
+    subject_times: '--time',
+    collections: '--collection'
 }
 
 /**

@@ -3,11 +3,11 @@ $def with ()
 $ _x = ctx.setdefault('cssfile', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
-$var title: [Admin Center] IP Addresses
+$var title: $_("[Admin Center] IP Addresses")
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>IP Addresses</h1>
+    <h1>$_("IP Addresses")</h1>
 </div>
 
 <div id="contentBody">
@@ -17,27 +17,27 @@ $var title: [Admin Center] IP Addresses
      <tr>
           <th>$_("Date/Time")</th>
           <th>$_("IP address")</th>
-          <th>Admin Comment</th>
+          <th>$_("Admin Comment")</th>
           <th>&nbsp;</th>
           <th>$_("# of edits")</th>
      </tr>
 </thead>
      <tr>
-          <td class="time">x minutes ago</td>
-          <td class="displayname"><a href="#">IP</a></td>
-          <td class="path" colspan="2">comment</td>
+          <td class="time">$_("x minutes ago")</td>
+          <td class="displayname"><a href="#">$_("IP")</a></td>
+          <td class="path" colspan="2">$_("comment")</td>
           <td class="comment">###</td>
      </tr>
      <tr>
-          <td class="time">x minutes ago</td>
-          <td class="displayname"><a href="#">IP</a></td>
-          <td class="path" colspan="2">comment</td>
+          <td class="time">$_("x minutes ago")</td>
+          <td class="displayname"><a href="#">$_("IP")</a></td>
+          <td class="path" colspan="2">$_("comment")</td>
           <td class="comment">###</td>
      </tr>
      <tr>
-          <td class="time">x minutes ago</td>
-          <td class="displayname"><a href="#">IP</a></td>
-          <td class="path" colspan="2">comment</td>
+          <td class="time">$_("x minutes ago")</td>
+          <td class="displayname"><a href="#">$_("IP")</a></td>
+          <td class="path" colspan="2">$_("comment")</td>
           <td class="comment">###</td>
      </tr>
      </table>

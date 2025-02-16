@@ -18,8 +18,8 @@ import re
 import struct
 import sys
 import time
-from typing import Final
 import urllib.request
+from typing import Final
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
 if not SEED_PATH:
@@ -44,7 +44,10 @@ class HashIP:
         """Set the database."""
         # Catching file-locking errors makes testing easier.
         try:
-            self.real_ips = dbm.ndbm.open(self.real_ip_prefix + str(self.yday), "c")
+            self.real_ips = dbm.ndbm.open(  # noqa: SIM115
+                self.real_ip_prefix + str(self.yday), "c"
+            )
+            # the connection is handled manually to be able to resync. The context manager interfiere with this.
         except dbm.ndbm.error as e:
             if "Resource temporarily unavailable" in str(e):
                 pass

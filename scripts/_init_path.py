@@ -1,9 +1,8 @@
-"""Helper to add openlibrary module to sys.path.
-"""
+"""Helper to add openlibrary module to sys.path."""
 
 import os
-from os.path import abspath, realpath, join, dirname, pardir
 import sys
+from os.path import abspath, dirname, join, pardir, realpath
 
 path = __file__.replace('.pyc', '.py')
 scripts_root = dirname(realpath(path))

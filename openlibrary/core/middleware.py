@@ -1,9 +1,9 @@
-"""WSGI middleware used in Open Library.
-"""
+"""WSGI middleware used in Open Library."""
+
+import gzip
+from io import BytesIO
 
 import web
-from io import BytesIO
-import gzip
 
 
 class GZipMiddleware:

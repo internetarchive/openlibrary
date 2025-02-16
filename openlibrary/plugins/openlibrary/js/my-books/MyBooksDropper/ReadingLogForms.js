@@ -3,12 +3,16 @@
  * @module my-books/MyBooksDropper/ReadingLogForms
  */
 
+
+/**
+ * @typedef {string} ReadingLogShelf
+ */
 /**
  * Enum for reading log shelf values.
  * @readonly
- * @enum {string}
+ * @enum {ReadingLogShelf}
  */
-const ReadingLogShelves = {
+export const ReadingLogShelves = {
     WANT_TO_READ: '1',
     CURRENTLY_READING: '2',
     ALREADY_READ: '3'
@@ -260,5 +264,23 @@ export class ReadingLogForms {
         }
 
         transitioningButton.classList.add('hidden')
+    }
+
+    /**
+     * Returns the display string used to denote the given reading log shelf ID.
+     *
+     * @param shelfId {ReadingLogShelf}
+     */
+    getDisplayString(shelfId) {
+        const matchingFormElem = Array.from(this.readingLogForms).find(elem => {
+            if (elem === this.primaryForm) {
+                return false
+            }
+            const bookshelfInput = elem.querySelector('input[name=bookshelf_id]')
+            return shelfId === bookshelfInput.value
+        })
+
+        const formButton = matchingFormElem.querySelector('button')
+        return formButton.textContent
     }
 }

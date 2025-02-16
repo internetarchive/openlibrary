@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-import web
 import os
 import smtplib
 import sys
 from email.mime.text import MIMEText
 
-password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
+import web
+
+with open(os.path.expanduser('~/.openlibrary_db_password')) as f:
+    password = f.read()
 if password.endswith('\n'):
     password = password[:-1]
 db_error = web.database(

@@ -1,8 +1,8 @@
-"""Infobase schema for Open Library
-"""
+"""Infobase schema for Open Library"""
+
+import web
 
 from infogami.infobase import dbstore
-import web
 
 
 def get_schema():

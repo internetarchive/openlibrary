@@ -1,5 +1,6 @@
 import logging
 from typing import cast
+
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -10,12 +11,15 @@ logger = logging.getLogger(__name__)
 
 class PubSub:
     TABLENAME = "follows"
-    PRIMARY_KEY = ["subscriber", "publisher"]
+    PRIMARY_KEY = ("subscriber", "publisher")
 
     @classmethod
     def subscribe(cls, subscriber, publisher):
         oldb = db.get_db()
-        return oldb.insert(cls.TABLENAME, subscriber=subscriber, publisher=publisher)
+        if not cls.is_subscribed(subscriber, publisher):
+            return oldb.insert(
+                cls.TABLENAME, subscriber=subscriber, publisher=publisher
+            )
 
     @classmethod
     def unsubscribe(cls, subscriber, publisher):
@@ -105,7 +109,7 @@ class PubSub:
 
         # Add keys
         for i, rb in enumerate(recent_books):
-            recent_books[i].key = f'/works/OL{recent_books[i].work_id}W'
+            recent_books[i].key = f'/works/OL{rb.work_id}W'
 
         return Bookshelves.fetch(recent_books)
 

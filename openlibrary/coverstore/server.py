@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""coverstore server.
-"""
+"""coverstore server."""
 
 import sys
-import yaml
-import web
 
-from openlibrary.coverstore import config, code, archive
+import web
+import yaml
+
+from openlibrary.coverstore import archive, code, config
 from openlibrary.utils.sentry import Sentry
 
 

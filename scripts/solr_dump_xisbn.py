@@ -28,8 +28,8 @@
 """
 import asyncio
 import sys
-from typing import Literal
 from collections.abc import AsyncGenerator
+from typing import Literal
 
 import httpx
 

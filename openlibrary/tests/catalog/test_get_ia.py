@@ -1,10 +1,11 @@
-import pytest
 from pathlib import Path
-from openlibrary.catalog import get_ia
-from openlibrary.core import ia
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
+import pytest
+
+from openlibrary.catalog import get_ia
+from openlibrary.catalog.marc.marc_binary import BadLength, BadMARC, MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
+from openlibrary.core import ia
 
 TEST_DATA = Path(__file__).parents[2] / 'catalog' / 'marc' / 'tests' / 'test_data'
 
@@ -34,13 +35,13 @@ def return_test_marc_data(url, test_data_subdir='xml_input'):
 
 
 class TestGetIA:
-    bad_marcs = [
+    bad_marcs: tuple[str, ...] = (
         'dasrmischepriv00rein',  # binary representation of unicode interpreted as unicode codepoints
         'lesabndioeinas00sche',  # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
         'poganucpeoplethe00stowuoft',  # junk / unexpected character at end of publishers in field 260
-    ]
+    )
 
-    bin_items = [
+    bin_items: tuple[str, ...] = (
         '0descriptionofta1682unit',
         '13dipolarcycload00burk',
         'bijouorannualofl1828cole',
@@ -56,9 +57,9 @@ class TestGetIA:
         'secretcodeofsucc00stjo',
         'thewilliamsrecord_vol29b',
         'warofrebellionco1473unit',
-    ]
+    )
 
-    xml_items = [
+    xml_items: tuple[str, ...] = (
         '1733mmoiresdel00vill',  # no <?xml
         '0descriptionofta1682unit',  # has <?xml
         'cu31924091184469',  # is <collection>
@@ -81,7 +82,7 @@ class TestGetIA:
         'soilsurveyrepor00statgoog',
         'warofrebellionco1473unit',
         'zweibchersatir01horauoft',
-    ]
+    )
 
     @pytest.mark.parametrize('item', bin_items)
     def test_get_marc_record_from_ia(self, item, monkeypatch):

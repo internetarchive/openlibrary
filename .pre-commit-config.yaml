@@ -11,7 +11,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -32,17 +32,18 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.9.4
     hooks:
       - id: ruff
+        args: [ --fix ]
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 25.1.0
     hooks:
       - id: black  # See pyproject.toml for args
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
@@ -50,24 +51,28 @@ repos:
         args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.2
+    rev: v0.16.6
     hooks:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.14.1
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
-          - types-all
+          - types-PyYAML
+          - types-aiofiles
+          - types-python-dateutil
+          - types-requests
+          - types-simplejson
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.18
+    rev: v0.23
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.5.0
+    rev: v9.19.0
     hooks:
       - id: eslint
         types: [file]

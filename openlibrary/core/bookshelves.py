@@ -1,14 +1,16 @@
 import logging
-
-import web
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Literal, cast, Any, Final, TypedDict
-from collections.abc import Iterable
-from openlibrary.plugins.worksearch.search import get_solr
+from types import MappingProxyType
+from typing import Any, Final, Literal, TypedDict, cast
 
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+import web
+
 from infogami.infobase.utils import flatten
+from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -24,15 +26,23 @@ class WorkReadingLogSummary(TypedDict):
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
-    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
-    PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
+    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'Want to Read': 1,
+            'Currently Reading': 2,
+            'Already Read': 3,
+        }
+    )
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON = {
-        'want_to_read': 1,
-        'currently_reading': 2,
-        'already_read': 3,
-    }
+    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'want_to_read': 1,
+            'currently_reading': 2,
+            'already_read': 3,
+        }
+    )
 
     @classmethod
     def summary(cls):
@@ -155,8 +165,8 @@ class Bookshelves(db.CommonExtras):
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
         """
-        from openlibrary.plugins.worksearch.code import get_solr_works
         from openlibrary.core.lending import get_availabilities
+        from openlibrary.plugins.worksearch.code import get_solr_works
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
@@ -626,7 +636,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
-    def get_users_read_status_of_work(cls, username: str, work_id: str) -> str | None:
+    def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
         or (3) already read. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one

@@ -1,11 +1,13 @@
 import pytest
+
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     luqum_parser,
     luqum_remove_child,
+    luqum_remove_field,
     luqum_replace_child,
-    luqum_traverse,
     luqum_replace_field,
+    luqum_traverse,
 )
 
 REMOVE_TESTS = {
@@ -18,7 +20,7 @@ REMOVE_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,to_rem,expected", REMOVE_TESTS.values(), ids=REMOVE_TESTS.keys()
+    ('query', 'to_rem', 'expected'), REMOVE_TESTS.values(), ids=REMOVE_TESTS.keys()
 )
 def test_luqum_remove_child(query: str, to_rem: str, expected: str):
     def fn(query: str, remove: str) -> str:
@@ -51,7 +53,9 @@ REPLACE_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,to_rep,rep_with,expected", REPLACE_TESTS.values(), ids=REPLACE_TESTS.keys()
+    ('query', 'to_rep', 'rep_with', 'expected'),
+    REPLACE_TESTS.values(),
+    ids=REPLACE_TESTS.keys(),
 )
 def test_luqum_replace_child(query: str, to_rep: str, rep_with: str, expected: str):
     def fn(query: str, to_replace: str, replace_with: str) -> str:
@@ -88,14 +92,40 @@ def test_luqum_parser():
     assert fn('NOT title:foo bar') == 'NOT title:foo bar'
 
 
-def test_luqum_replace_fields():
+def test_luqum_replace_field():
     def replace_work_prefix(string: str):
         return string.partition(".")[2] if string.startswith("work.") else string
 
     def fn(query: str) -> str:
-        return luqum_replace_field(luqum_parser(query), replace_work_prefix)
+        q = luqum_parser(query)
+        luqum_replace_field(q, replace_work_prefix)
+        return str(q)
 
     assert fn('work.title:Bob') == 'title:Bob'
     assert fn('title:Joe') == 'title:Joe'
     assert fn('work.title:Bob work.title:OL5M') == 'title:Bob title:OL5M'
     assert fn('edition_key:Joe OR work.title:Bob') == 'edition_key:Joe OR title:Bob'
+
+
+def test_luqum_remove_field():
+    def fn(query: str) -> str:
+        q = luqum_parser(query)
+        try:
+            luqum_remove_field(q, lambda x: x.startswith("edition."))
+            return str(q).strip()
+        except EmptyTreeError:
+            return '*:*'
+
+    assert fn('edition.title:Bob') == '*:*'
+    assert fn('title:Joe') == 'title:Joe'
+    assert fn('edition.title:Bob edition.title:OL5M') == '*:*'
+    assert fn('edition_key:Joe OR edition.title:Bob') == 'edition_key:Joe'
+    assert fn('edition.title:Joe OR work.title:Bob') == 'work.title:Bob'
+
+    # Test brackets
+    assert fn('(edition.title:Bob)') == '*:*'
+    assert fn('(edition.title:Bob OR edition.title:OL5M)') == '*:*'
+    # Note some weirdness with spaces
+    assert fn('(edition.title:Bob OR work.title:OL5M)') == '( work.title:OL5M)'
+    assert fn('edition.title:Bob OR (work.title:OL5M)') == '(work.title:OL5M)'
+    assert fn('edition.title: foo bar bar author: blah') == 'author:blah'

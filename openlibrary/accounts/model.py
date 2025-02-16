@@ -1,32 +1,29 @@
-"""
+""" """
 
-"""
-
-import secrets
-import time
 import datetime
 import hashlib
 import hmac
-import random
-import string
-from typing import TYPE_CHECKING
-import uuid
 import logging
-import requests
+import random
+import secrets
+import string
+import time
+import uuid
+from typing import TYPE_CHECKING
 
-from validate_email import validate_email
+import requests
 import web
+from validate_email import validate_email
 
 from infogami import config
-from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
-
-from openlibrary.core import stats, helpers
+from infogami.utils.view import public, render_template
+from openlibrary.core import helpers, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.edits import CommunityEditsQueue
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -103,7 +100,7 @@ def generate_uuid():
 
 def send_verification_email(username, email):
     """Sends account verification email."""
-    key = "account/%s/verify" % username
+    key = f"account/{username}/verify"
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
@@ -122,7 +119,7 @@ def create_link_doc(key, username, email):
     """
     code = generate_uuid()
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     expires = now + datetime.timedelta(days=14)
 
     return {
@@ -162,7 +159,7 @@ class Account(web.storage):
 
     def get_edit_count(self):
         user = self.get_user()
-        return user and user.get_edit_count() or 0
+        return (user and user.get_edit_count()) or 0
 
     @property
     def registered_on(self):
@@ -215,7 +212,7 @@ class Account(web.storage):
         """Unblocks this account."""
         web.ctx.site.update_account(self.username, status="active")
 
-    def is_blocked(self):
+    def is_blocked(self) -> bool:
         """Tests if this account is blocked."""
         return getattr(self, 'status', '') == "blocked"
 
@@ -289,14 +286,14 @@ class Account(web.storage):
         return doc.get_creation_info()
 
     def get_activation_link(self):
-        key = "account/%s/verify" % self.username
+        key = f"account/{self.username}/verify"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self):
-        key = "account/%s/password" % self.username
+        key = f"account/{self.username}/password"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
@@ -308,11 +305,11 @@ class Account(web.storage):
             type="account-link", name="username", value=self.username
         )
 
-    def get_tags(self):
+    def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
         return self.get("tags", [])
 
-    def has_tag(self, tag):
+    def has_tag(self, tag: str) -> bool:
         return tag in self.get_tags()
 
     def add_tag(self, tag):
@@ -467,7 +464,7 @@ class OpenLibraryAccount(Account):
             raise ValueError('something_went_wrong')
 
         if verified:
-            key = "account/%s/verify" % username
+            key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
             web.ctx.site.store[key] = doc
             web.ctx.site.activate_account(username=username)
@@ -483,7 +480,14 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
-    def get(cls, link=None, email=None, username=None, key=None, test=False):
+    def get(
+        cls,
+        link: str | None = None,
+        email: str | None = None,
+        username: str | None = None,
+        key: str | None = None,
+        test: bool = False,
+    ) -> 'OpenLibraryAccount | None':
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -503,7 +507,9 @@ class OpenLibraryAccount(Account):
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(cls, username, test=False):
+    def get_by_username(
+        cls, username: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1
@@ -522,7 +528,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link, test=False):
+    def get_by_link(cls, link: str, test: bool = False) -> 'OpenLibraryAccount | None':
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -532,7 +538,9 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(cls, email, test=False):
+    def get_by_email(
+        cls, email: str, test: bool = False
+    ) -> 'OpenLibraryAccount | None':
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
@@ -573,7 +581,7 @@ class OpenLibraryAccount(Account):
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        itemname = itemname if itemname.startswith('@') else '@%s' % itemname
+        itemname = itemname if itemname.startswith('@') else f'@{itemname}'
 
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname
@@ -612,8 +620,8 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def create(
@@ -655,16 +663,22 @@ class InternetArchiveAccount(web.storage):
         _screenname = screenname
         attempt = 0
         while True:
-            response = cls.xauth(
-                'create',
-                email=email,
-                password=password,
-                screenname=_screenname,
-                notifications=notifications,
-                test=test,
-                verified=verified,
-                service='openlibrary',
-            )
+            try:
+                response = cls.xauth(
+                    'create',
+                    email=email,
+                    password=password,
+                    screenname=_screenname,
+                    notifications=notifications,
+                    test=test,
+                    verified=verified,
+                    service='openlibrary',
+                )
+            except requests.HTTPError as err:
+                status_code = err.response.status_code
+                if status_code == 504:
+                    raise OLAuthenticationError("request_timeout")
+                raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -672,16 +686,22 @@ class InternetArchiveAccount(web.storage):
                     ia_account.test = True
                 return ia_account
 
-            elif 'screenname' not in response.get('values', {}):
-                raise OLAuthenticationError('undefined_error')
-
-            elif attempt >= retries:
+            # Response has returned "failure" with reasons in "values"
+            failures = response.get('values', {})
+            if 'screenname' not in failures:
+                for field in failures:
+                    # raise the first error if multiple
+                    # e.g. bad_email, bad_password
+                    error = OLAuthenticationError(f'bad_{field}')
+                    error.response = response
+                    raise error
+            elif attempt < retries:
+                _screenname = append_random_suffix(screenname)
+                attempt += 1
+            else:
                 e = OLAuthenticationError('username_registered')
                 e.value = _screenname
                 raise e
-
-            _screenname = append_random_suffix(screenname)
-            attempt += 1
 
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
@@ -713,6 +733,9 @@ class InternetArchiveAccount(web.storage):
             params['developer'] = test
 
         response = requests.post(url, params=params, json=data)
+        if response.status_code == 504 and op == "create":
+            response.raise_for_status()
+
         try:
             # This API should always return json, even on error (Unless
             # the server is down or something :P)
@@ -932,6 +955,7 @@ def audit_accounts(
 
 
 @public
-def get_internet_archive_id(key):
+def get_internet_archive_id(key: str) -> str | None:
     username = key.split('/')[-1]
-    return OpenLibraryAccount.get(username=username).itemname
+    ol_account = OpenLibraryAccount.get(username=username)
+    return ol_account.itemname if ol_account else None

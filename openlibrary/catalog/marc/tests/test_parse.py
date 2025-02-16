@@ -1,17 +1,19 @@
 import json
-import pytest
+from collections.abc import Iterable
+from pathlib import Path
 
-from openlibrary.catalog.marc.parse import (
-    read_author_person,
-    read_edition,
-    NoTitle,
-    SeeAlsoAsTitle,
-)
+import lxml.etree
+import pytest
+from lxml import etree
+
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
-from lxml import etree
-from pathlib import Path
-from collections.abc import Iterable
+from openlibrary.catalog.marc.parse import (
+    NoTitle,
+    SeeAlsoAsTitle,
+    read_author_person,
+    read_edition,
+)
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
@@ -46,6 +48,7 @@ bin_samples = [
     'ithaca_college_75002321.mrc',
     'lc_0444897283.mrc',
     'lc_1416500308.mrc',
+    'lesnoirsetlesrou0000garl_meta.mrc',
     'ocm00400866.mrc',
     'secretcodeofsucc00stjo_meta.mrc',
     'uoft_4351105_1626.mrc',
@@ -71,6 +74,8 @@ bin_samples = [
     'henrywardbeecher00robauoft_meta.mrc',
     'thewilliamsrecord_vol29b_meta.mrc',
     '13dipolarcycload00burk_meta.mrc',
+    '710_org_name_in_direct_order.mrc',
+    '830_series.mrc',
     '880_alternate_script.mrc',
     '880_table_of_contents.mrc',
     '880_Nihon_no_chasho.mrc',
@@ -94,7 +99,9 @@ class TestParseMARCXML:
     def test_xml(self, i):
         expect_filepath = (TEST_DATA / 'xml_expect' / i).with_suffix('.json')
         filepath = TEST_DATA / 'xml_input' / f'{i}_marc.xml'
-        element = etree.parse(filepath).getroot()
+        element = etree.parse(
+            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
             element = element[0]
@@ -133,10 +140,8 @@ class TestParseMARCBinary:
             )
         j = json.load(expect_filepath.open())
         assert j, f'Unable to open test data: {expect_filepath}'
-        assert sorted(edition_marc_bin) == sorted(
-            j
-        ), f'Processed binary MARC fields do not match expectations in {expect_filepath}'
         msg = f'Processed binary MARC values do not match expectations in {expect_filepath}'
+        assert sorted(edition_marc_bin) == sorted(j), msg
         for key, value in edition_marc_bin.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
                 assert len(value) == len(j[key]), msg
@@ -157,7 +162,7 @@ class TestParseMARCBinary:
         with pytest.raises(NoTitle):
             read_edition(rec)
 
-    @pytest.mark.parametrize('marcfile,expect', date_tests)
+    @pytest.mark.parametrize(('marcfile', 'expect'), date_tests)
     def test_dates(self, marcfile, expect):
         filepath = TEST_DATA / 'bin_input' / marcfile
         rec = MarcBinary(filepath.read_bytes())
@@ -172,11 +177,16 @@ class TestParse:
           <subfield code="a">Rein, Wilhelm,</subfield>
           <subfield code="d">1809-1865.</subfield>
         </datafield>"""
-        test_field = DataField(None, etree.fromstring(xml_author))
+        test_field = DataField(
+            None,
+            etree.fromstring(
+                xml_author, parser=lxml.etree.XMLParser(resolve_entities=False)
+            ),
+        )
         result = read_author_person(test_field)
 
         # Name order remains unchanged from MARC order
-        assert result['name'] == result['personal_name'] == 'Rein, Wilhelm'
+        assert result['name'] == 'Rein, Wilhelm'
         assert result['birth_date'] == '1809'
         assert result['death_date'] == '1865'
         assert result['entity_type'] == 'person'

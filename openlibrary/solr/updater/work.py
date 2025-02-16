@@ -1,16 +1,17 @@
-from collections import defaultdict
-from collections.abc import Iterable
 import datetime
-from functools import cached_property
 import itertools
 import logging
-from math import ceil
 import re
-from statistics import median
 import time
+from collections import defaultdict
+from collections.abc import Iterable
+from functools import cached_property
+from math import ceil
+from statistics import median
 from typing import Optional, TypedDict, cast
-from openlibrary.core import helpers as h
+
 import openlibrary.book_providers as bp
+from openlibrary.core import helpers as h
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
@@ -18,7 +19,7 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
@@ -233,9 +234,9 @@ def datetimestr_to_int(datestr):
         try:
             t = h.parse_datetime(datestr)
         except (TypeError, ValueError):
-            t = datetime.datetime.utcnow()
+            t = datetime.datetime.now()
     else:
-        t = datetime.datetime.utcnow()
+        t = datetime.datetime.now()
 
     return int(time.mktime(t.timetuple()))
 
@@ -262,7 +263,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._solr_editions = [
-            EditionSolrBuilder(e, self._ia_metadata.get(e.get('ocaid', '').strip()))
+            EditionSolrBuilder(
+                e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
+            )
             for e in self._editions
         ]
 
@@ -336,8 +339,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def osp_count(self) -> int | None:
-        if not get_solr_next():
-            return None
         return get_total_by_olid(self.key)
 
     @property
@@ -577,8 +578,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def format(self) -> set[str]:
-        if not get_solr_next():
-            return set()
         return {ed.format for ed in self._solr_editions if ed.format}
 
     @property
@@ -639,13 +638,13 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_name(self) -> list[str]:
         return [a.get('name', '') for a in self._authors]
 
-    @property
+    @cached_property
     def author_alternative_name(self) -> set[str]:
         return {
             alt_name for a in self._authors for alt_name in a.get('alternate_names', [])
         }
 
-    @property
+    @cached_property
     def author_facet(self) -> list[str]:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 

@@ -1,7 +1,9 @@
-from .. import code
-from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
-import web
 import pytest
+import web
+
+from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
+
+from .. import code
 
 
 def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:  # noqa F811
@@ -56,7 +58,7 @@ def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:  # noqa F
 
 
 @pytest.mark.parametrize(
-    "tc,exp",
+    ("tc", "exp"),
     [("Frisian", "Multiple language matches"), ("Fake Lang", "No language matches")],
 )
 def test_get_ia_record_logs_warning_when_language_has_multiple_matches(
@@ -93,7 +95,7 @@ def test_get_ia_record_logs_warning_when_language_has_multiple_matches(
     assert exp in caplog.text
 
 
-@pytest.mark.parametrize("tc,exp", [(5, 1), (4, 4), (3, 3)])
+@pytest.mark.parametrize(("tc", "exp"), [(5, 1), (4, 4), (3, 3)])
 def test_get_ia_record_handles_very_short_books(tc, exp) -> None:
     """
     Because scans have extra images for the cover, etc, and the page count from

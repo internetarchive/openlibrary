@@ -41,7 +41,7 @@ $def render_carousel_cover(book, lazy, layout):
     $ cover_url = False
 
   $if book.get('authors'):
-    $ author_names = [author.name for author in book.authors]
+    $ author_names = [author.name or _('name missing') for author in book.authors]
   $elif book.get('author_name'):
     $ author_names = book.get('author_name', [])
   $else:

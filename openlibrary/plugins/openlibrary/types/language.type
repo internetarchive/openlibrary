@@ -19,7 +19,7 @@
         'type': {
             'key': '/type/property'
         },
-        'unique': True
+        'unique': true
     }, {
         'expected_type': {
             'key': '/type/string'
@@ -28,7 +28,26 @@
         'type': {
             'key': '/type/property'
         },
-        'unique': True
+        'unique': true
+    }, {
+        'expected_type': {
+            'key': '/type/boolean'
+        },
+        'name': 'deprecated',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': true
+    }, {
+        'expected_type': {
+            'key': '/type/language'
+        },
+        'name': 'current',
+        'description': 'The current language code to use, if this code is deprecated and has a unambiguous alternative.',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': true
     }],
     'type': {
         'key': '/type/type'

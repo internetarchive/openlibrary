@@ -6,7 +6,7 @@ $var title: $page.name
     $:macros.databarView(page)
 
     <span class="tag">
-        / <a href="/local_ids">Local IDs</a> / $page.urn_prefix
+        / <a href="/local_ids">$_("Local IDs")</a> / $page.urn_prefix
     </span>
 
     <h1>$page.name</h1>
@@ -19,15 +19,15 @@ $var title: $page.name
        <span class="tag"><a href="//archive.org/details/$page.source_ocaid">$page.source_ocaid</a></span>
     </div>
     <div>
-       <span class="title">ID location</span>
+       <span class="title">$_("ID location")</span>
        <span class="tag">$page.id_location</span>
     </div>
     <div>
-       <span class="title">Barcode regex</span>
+       <span class="title">$_("Barcode regex")</span>
        <span class="tag">$page.barcode</span>
     </div>
     <div>
-       <span class="title">URN $_("prefix")</span>
+       <span class="title">$_("URN prefix")</span>
        <span class="tag">$page.urn_prefix</span>
     </div>
     <div>

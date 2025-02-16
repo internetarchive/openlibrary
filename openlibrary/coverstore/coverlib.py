@@ -1,20 +1,19 @@
 """Cover management."""
 
 import datetime
-from logging import getLogger
 import os
-
 from io import BytesIO
+from logging import getLogger
 
-from PIL import Image
 import web
+from PIL import Image
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["save_image", "read_image", "read_file"]
+__all__ = ["read_file", "read_image", "save_image"]
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
@@ -72,7 +71,7 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
 
         img = Image.open(BytesIO(data))
         if img.mode != 'RGB':
-            img = img.convert('RGB')
+            img = img.convert('RGB')  # type: ignore[assignment]
 
         for name, size in config.image_sizes.items():
             path = f"{path_prefix}-{name}.jpg"
@@ -126,9 +125,7 @@ def read_file(path):
 
 def read_image(d, size):
     if size:
-        filename = (
-            d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
-        )
+        filename = d['filename_' + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:
         filename = d.filename
     path = find_image_path(filename)

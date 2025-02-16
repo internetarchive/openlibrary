@@ -1,15 +1,15 @@
-from pymarc import MARC8ToUnicode
-from unicodedata import normalize
 from collections.abc import Iterator
+from unicodedata import normalize
+
+from pymarc import MARC8ToUnicode
 
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.marc.marc_base import (
-    MarcBase,
-    MarcFieldBase,
-    MarcException,
     BadMARC,
+    MarcBase,
+    MarcException,
+    MarcFieldBase,
 )
-
 
 marc8 = MARC8ToUnicode(quiet=True)
 
@@ -182,5 +182,5 @@ class MarcBinary(MarcBase):
         tag_line = data[offset + 1 : offset + length + 1]
         # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
         if line[0:2] != '00' and tag_line[1:8] == b'{llig}\x1f':
-            tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
+            tag_line = tag_line[0] + '\ufe20' + tag_line[7:]
         return tag_line

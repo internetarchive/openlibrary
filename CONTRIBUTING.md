@@ -7,7 +7,7 @@ This welcome section is intended for new contributors.
 2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
     * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
 3. **Getting Started:**
-    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs)
 4. **Contributing:**
     * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
@@ -65,8 +65,8 @@ For instructions on setting up a local developer's instance of Open Library, ple
 
 [![archive org_details_openlibrary-developer-docs_zoom_0 mp4_autoplay=1 start=2](https://user-images.githubusercontent.com/978325/91351305-ef10ee00-e79c-11ea-9bfb-c2733696ec58.png)](https://archive.org/details/openlibrary-developer-docs/zoom_0.mp4)
 
+Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for more information about getting set up, understanding the codebase, contributing, and more.  Check out the sidebar for links to relevant topics.
 
-Also, refer to the [Quickstart Guide](https://github.com/internetarchive/openlibrary/wiki/Getting-Started).
 [Here's a handy cheat sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) if you are new to using Git.
 
 ## Common Setup Tasks
@@ -90,7 +90,7 @@ Our login process on Open Library's dev instance is a bit funky. You need to cor
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
 ### Our Roadmap(s)
 You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).

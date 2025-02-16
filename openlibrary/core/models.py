@@ -1,45 +1,43 @@
-"""Models of various OL objects.
-"""
+"""Models of various OL objects."""
 
-from datetime import datetime, timedelta
 import logging
-from openlibrary.core.vendors import get_amazon_metadata
-
-import web
-import json
-import requests
-from typing import Any
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, TypedDict
+from urllib.parse import urlencode
+
+import requests
+import web
 
 from infogami.infobase import client
 
-from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
-
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
+from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core import lending
-from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
-from openlibrary.core.helpers import private_collection_in
+from openlibrary.core.helpers import (
+    parse_datetime,
+    private_collection_in,
+    safesort,
+    urlsafe,
+)
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils import extract_numeric_id_from_olid, dateutil
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
+from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
+from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
 from . import cache, waitinglist
-
-from urllib.parse import urlencode
-from pydantic import ValidationError
-
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
-from ..accounts import OpenLibraryAccount
-from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -219,8 +217,17 @@ class Thing(client.Thing):
         }
 
 
+class ThingReferenceDict(TypedDict):
+    key: ThingKey
+
+
 class Edition(Thing):
     """Class to represent /type/edition objects in OL."""
+
+    table_of_contents: list[dict] | list[str] | list[str | dict] | None
+    """
+    Should be a list of dict; the other types are legacy
+    """
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -286,7 +293,7 @@ class Edition(Thing):
                 d['borrowed'] = doc.get("borrowed") == "true"
                 d['daisy_only'] = False
             elif 'printdisabled' not in collections:
-                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+                d['read_url'] = f"https://archive.org/stream/{self.ocaid}"
                 d['daisy_only'] = False
         return d
 
@@ -297,7 +304,6 @@ class Edition(Thing):
         collections = self.get_ia_collections()
         return bool(collections) and (
             'printdisabled' in collections
-            or 'lendinglibrary' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
         )
 
@@ -309,9 +315,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or 'inlibrary' in collections
-        ) and not self.is_in_private_collection()
+        return ('inlibrary' in collections) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
@@ -321,27 +325,6 @@ class Edition(Thing):
     def ia_metadata(self):
         ocaid = self.get('ocaid')
         return get_metadata(ocaid) if ocaid else {}
-
-    @property  # type: ignore[misc]
-    @cache.method_memoize
-    def sponsorship_data(self):
-        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get(
-            'collection', []
-        )
-        if not was_sponsored:
-            return None
-
-        donor = self.ia_metadata.get('donor')
-
-        return web.storage(
-            {
-                'donor': donor,
-                'donor_account': (
-                    OpenLibraryAccount.get_by_link(donor) if donor else None
-                ),
-                'donor_msg': self.ia_metadata.get('donor_msg'),
-            }
-        )
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book."""
@@ -427,7 +410,7 @@ class Edition(Thing):
             if book_id == asin:
                 query = {"type": "/type/edition", 'identifiers': {'amazon': asin}}
             else:
-                query = {"type": "/type/edition", 'isbn_%s' % len(book_id): book_id}
+                query = {"type": "/type/edition", f'isbn_{len(book_id)}': book_id}
 
             if matches := web.ctx.site.things(query):
                 return web.ctx.site.get(matches[0])
@@ -821,15 +804,13 @@ class Author(Thing):
 
 
 class User(Thing):
-    DEFAULT_PREFERENCES = {
-        'updates': 'no',
-        'public_readlog': 'no',
+    def get_default_preferences(self):
+        return {'update': 'no', 'public_readlog': 'no'}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
         # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
-    }
 
     def get_status(self):
         account = self.get_account() or {}
@@ -853,25 +834,27 @@ class User(Thing):
         return self.key.split("/")[-1]
 
     def preferences(self):
-        key = "%s/preferences" % self.key
+        key = f"{self.key}/preferences"
         prefs = web.ctx.site.get(key)
-        return (prefs and prefs.dict().get('notifications')) or self.DEFAULT_PREFERENCES
+        return (
+            prefs and prefs.dict().get('notifications')
+        ) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs, msg='updating user preferences'):
-        key = '%s/preferences' % self.key
+        key = f'{self.key}/preferences'
         old_prefs = web.ctx.site.get(key)
         prefs = (old_prefs and old_prefs.dict()) or {
             'key': key,
             'type': {'key': '/type/object'},
         }
         if 'notifications' not in prefs:
-            prefs['notifications'] = self.DEFAULT_PREFERENCES
+            prefs['notifications'] = self.get_default_preferences()
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
     def is_usergroup_member(self, usergroup):
         if not usergroup.startswith('/usergroup/'):
-            usergroup = '/usergroup/%s' % usergroup
+            usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
 
     def is_subscribed_user(self, username):
@@ -896,9 +879,6 @@ class User(Thing):
 
     def is_super_librarian(self):
         return self.is_usergroup_member('/usergroup/super-librarians')
-
-    def in_sponsorship_beta(self):
-        return self.is_usergroup_member('/usergroup/sponsors')
 
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
@@ -929,7 +909,7 @@ class User(Thing):
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username):
         username = username.split('/people/')[-1]
-        user = web.ctx.site.get('/people/%s' % username)
+        user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
 
         return f'https://archive.org/services/img/{itemname}'
@@ -1003,7 +983,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow
+        from ..plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
         loans = (
             lending.get_cached_loans_of_user(self.key)
@@ -1056,7 +1036,7 @@ class User(Thing):
         """
         extra_attrs = ''
         if cls:
-            extra_attrs += 'class="%s" ' % cls
+            extra_attrs += f'class="{cls}" '
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
@@ -1069,11 +1049,11 @@ class UserGroup(Thing):
     @classmethod
     def from_key(cls, key: str):
         """
-        :param str key: e.g. /usergroup/sponsor-waitlist
+        :param str key: e.g. /usergroup/foo
         :rtype: UserGroup | None
         """
         if not key.startswith('/usergroup/'):
-            key = "/usergroup/%s" % key
+            key = f"/usergroup/{key}"
         return web.ctx.site.get(key)
 
     def add_user(self, userkey: str) -> None:
@@ -1160,19 +1140,18 @@ class Tag(Thing):
         return self.name or "unnamed"
 
     @classmethod
-    def find(cls, tag_name, tag_type):
-        """Returns a Tag object for a given tag name and tag type."""
-        q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
-        match = list(web.ctx.site.things(q))
-        return match[0] if match else None
+    def find(cls, tag_name, tag_type=None):
+        """Returns a list of keys for Tags that match the search criteria."""
+        q = {'type': '/type/tag', 'name': tag_name}
+        if tag_type:
+            q['tag_type'] = tag_type
+        matches = list(web.ctx.site.things(q))
+        return matches
 
     @classmethod
     def create(
         cls,
-        tag_name,
-        tag_description,
-        tag_type,
-        tag_plugins,
+        tag,
         ip='127.0.0.1',
         comment='New Tag',
     ):
@@ -1180,22 +1159,17 @@ class Tag(Thing):
         current_user = web.ctx.site.get_user()
         patron = current_user.get_username() if current_user else 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
+        tag['key'] = key
+
         from openlibrary.accounts import RunAs
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            web.ctx.site.save(
-                {
-                    'key': key,
-                    'name': tag_name,
-                    'tag_description': tag_description,
-                    'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
-                    'type': {"key": '/type/tag'},
-                },
+            t = web.ctx.site.save(
+                tag,
                 comment=comment,
             )
-            return key
+            return t
 
 
 @dataclass

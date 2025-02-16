@@ -7,6 +7,7 @@ import {
     isFormatValidIsbn13,
     isValidLccn
 } from './idValidation.js'
+import { trimInputValues } from './utils.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -14,18 +15,20 @@ let invalidIsbn13;
 let invalidLccn;
 let emptyId;
 
+const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
+const addBookForm = $('form#addbook');
+
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
-        $('form#addbook').trigger('submit');
+        addBookForm.trigger('submit');
     });
     $('#bookAddCont').on('click', function() {
         $('input#work').val('none-of-these');
-        $('form#addbook').trigger('submit');
+        addBookForm.trigger('submit');
     });
 
-    const i18nStrings = JSON.parse(document.querySelector('#id-errors').dataset.i18n)
     invalidChecksum = i18nStrings.invalid_checksum;
     invalidIsbn10 = i18nStrings.invalid_isbn10;
     invalidIsbn13 = i18nStrings.invalid_isbn13;
@@ -36,6 +39,17 @@ export function initAddBookImport () {
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
+
+    $('#publish_date').on('blur', validatePublishDate);
+
+    trimInputValues('input')
+
+    // Prevents submission if the publish date is > 1 year in the future
+    addBookForm.on('submit', function() {
+        if ($('#publish-date-errors').hasClass('hidden')) {
+            return true;
+        } else return false;
+    })
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
@@ -137,6 +151,7 @@ function parseAndValidateLccn(event, idValue) {
 function autoCompleteIdName(){
     const idValue = document.querySelector('input#id_value').value.trim();
     const idValueIsbn = parseIsbn(idValue);
+    const currentSelection = document.getElementById('id_name').value;
 
     if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
         document.getElementById('id_name').value = 'isbn_10';
@@ -151,6 +166,25 @@ function autoCompleteIdName(){
     }
 
     else {
-        document.getElementById('id_name').value = '';
+        document.getElementById('id_name').value = currentSelection || '';
+    }
+}
+
+function validatePublishDate() {
+    // validate publish-date to make sure the date is not in future
+    // used in templates/books/add.html
+    const publish_date = this.value;
+    // if it doesn't have even three digits then it can't be a future date
+    const tokens = /(\d{3,})/.exec(publish_date);
+    const year = new Date().getFullYear();
+    const isValidDate = tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+
+    const errorDiv = document.getElementById('publish-date-errors');
+
+    if (!isValidDate) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = i18nStrings['invalid_publish_date'];
+    } else {
+        errorDiv.classList.add('hidden');
     }
 }

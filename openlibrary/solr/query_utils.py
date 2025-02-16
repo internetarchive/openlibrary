@@ -1,8 +1,9 @@
-from typing import Literal, Optional
-from collections.abc import Callable
-from luqum.parser import parser
-from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary
 import re
+from collections.abc import Callable
+from typing import Literal
+
+from luqum.parser import parser
+from luqum.tree import BaseOperation, Group, Item, SearchField, Unary, Word
 
 
 class EmptyTreeError(Exception):
@@ -20,7 +21,7 @@ def luqum_remove_child(child: Item, parents: list[Item]):
     parent = parents[-1] if parents else None
     if parent is None:
         # We cannot remove the element if it is the root of the tree
-        raise EmptyTreeError()
+        raise EmptyTreeError
     elif isinstance(parent, (BaseOperation, Group, Unary)):
         new_children = tuple(c for c in parent.children if c != child)
         if not new_children:
@@ -30,7 +31,9 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         else:
             parent.children = new_children
     else:
-        raise ValueError("Not supported for generic class Item")
+        raise NotImplementedError(
+            f"Not implemented for Item subclass: {parent.__class__.__name__}"
+        )
 
 
 def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
@@ -270,9 +273,9 @@ def query_dict_to_str(
     return result
 
 
-def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
+def luqum_replace_field(query: Item, replacer: Callable[[str], str]) -> None:
     """
-    Replaces portions of a field, as indicated by the replacement function.
+    In-place replaces portions of a field, as indicated by the replacement function.
 
     :param query: Passed in the form of a luqum tree
     :param replacer: function called on each query.
@@ -280,4 +283,15 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     for sf, _ in luqum_traverse(query):
         if isinstance(sf, SearchField):
             sf.name = replacer(sf.name)
-    return str(query)
+
+
+def luqum_remove_field(query: Item, predicate: Callable[[str], bool]) -> None:
+    """
+    In-place removes fields from a query, as indicated by the predicate function.
+
+    :param query: Passed in the form of a luqum tree
+    :param predicate: function called on each query.
+    """
+    for sf, parents in luqum_traverse(query):
+        if isinstance(sf, SearchField) and predicate(sf.name):
+            luqum_remove_child(sf, parents)

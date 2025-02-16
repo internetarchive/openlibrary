@@ -1,7 +1,9 @@
-from .. import code
-from io import StringIO
-import web
 import datetime
+from io import StringIO
+
+import web
+
+from .. import code
 
 
 def test_tarindex_path():

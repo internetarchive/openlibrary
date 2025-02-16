@@ -2,15 +2,15 @@ $def with(loans)
 $ carousel = loans_carousel(loans)
 $if carousel:
     <div class="head">
-        <h2 class="home-h2"><a href="/account/loans">My Books</a></h2>
+        <h2 class="home-h2"><a href="/account/loans">$_("My Books")</a></h2>
         <hr/>
         <p class="sansserif large collapse">
           &nbsp;
           $if len(loans):
               $ loans_remaining = 5 - len(loans)
-              You can still <a href="/borrow">borrow</a> $loans_remaining more book$("" if loans_remaining == 1 else "s") until you've hit the limit!
+              $:ungettext('You can still <a href="/borrow">borrow</a> one more book until you\'ve hit the limit!', 'You can still <a href="/borrow">borrow</a> %(count)d more books until you\'ve hit the limit!', loans_remaining, count=loans_remaining)
           $else:
-              You have reached the borrowing limit. Please return a book to checkout something new.
+              $_("You have reached the borrowing limit. Please return a book to checkout something new.")
         </p>
     </div>
 

@@ -46,7 +46,7 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
       } if isbn else None
 
       # Fetch price data
-      if not is_bot() and prices and isbn:
+      if False and not is_bot() and prices and isbn:
         bwb_metadata = get_betterworldbooks_metadata(isbn)
         bwb['price'] = bwb_metadata and bwb_metadata.get('price')
         if amazon:

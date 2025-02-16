@@ -5,7 +5,7 @@
 import myBooksStore from './store'
 import { ReadDateComponents } from './MyBooksDropper/ReadDateComponents'
 import { ReadingLists } from './MyBooksDropper/ReadingLists'
-import { ReadingLogForms } from './MyBooksDropper/ReadingLogForms'
+import {ReadingLogForms, ReadingLogShelves} from './MyBooksDropper/ReadingLogForms'
 import { Dropper } from '../dropper/Dropper'
 import { removeChildren } from '../utils'
 
@@ -71,6 +71,13 @@ export class MyBooksDropper extends Dropper {
          * @member {ReadingLogForms}
          */
         this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
+
+        /**
+         * The work key associated with this dropper, if any.
+         *
+         * @member {string|undefined}
+         */
+        this.workKey = this.dropper.dataset.workKey
     }
 
     /**
@@ -158,6 +165,30 @@ export class MyBooksDropper extends Dropper {
         }
     }
 
+    /**
+     * Updates this dropper's primary button's state and display to show that a book is active on the
+     * given shelf.
+     *
+     * When we update to the "Already Read" shelf, the appropriate last read date affordance is
+     * displayed.
+     *
+     * @param shelf {ReadingLogShelf}
+     */
+    updateShelfDisplay(shelf) {
+        this.readingLogForms.updateActivatedStatus(true)
+        this.readingLogForms.updatePrimaryBookshelfId(Number(shelf))
+        this.readingLogForms.updatePrimaryButtonText(this.readingLogForms.getDisplayString(shelf))
+
+        if (this.readDateComponents) {
+            if (!this.readDateComponents.hasReadDate() && shelf === ReadingLogShelves.ALREADY_READ) {
+                this.readDateComponents.showDatePrompt()
+            } else {
+                this.readDateComponents.hideDatePrompt()
+            }
+        }
+    }
+
+    // Dropper overrides:
     /**
      * Updates store with reference to the opened dropper.
      *

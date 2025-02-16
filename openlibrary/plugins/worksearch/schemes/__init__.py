@@ -3,6 +3,7 @@ from collections.abc import Callable
 
 import luqum.tree
 from luqum.exceptions import ParseError
+
 from openlibrary.solr.query_utils import (
     escape_unknown_fields,
     fully_escape_query,
@@ -17,6 +18,8 @@ class SearchScheme:
     universe: list[str]
     # All actual solr fields that can be in a user query
     all_fields: set[str]
+    # Fields that can be read, but which aren't stored in solr
+    non_solr_fields: set[str]
     # These fields are fetched for facets and can also be url params
     facet_fields: set[str]
     # Mapping of user-only fields to solr fields
@@ -120,3 +123,6 @@ class SearchScheme:
         cur_solr_params: list[tuple[str, str]],
     ) -> list[tuple[str, str]]:
         return [('q', q)]
+
+    def add_non_solr_fields(self, solr_fields: set[str], solr_result: dict) -> None:
+        raise NotImplementedError

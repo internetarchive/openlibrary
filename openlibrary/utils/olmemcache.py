@@ -1,8 +1,9 @@
 """Memcache interface to store data in memcached."""
 
 import memcache
-from openlibrary.utils.olcompress import OLCompressor
 import web
+
+from openlibrary.utils.olcompress import OLCompressor
 
 
 class Client:

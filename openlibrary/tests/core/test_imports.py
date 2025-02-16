@@ -1,10 +1,10 @@
-import pytest
 from typing import Final
+
+import pytest
 import web
 
 from openlibrary.core.db import get_db
 from openlibrary.core.imports import Batch, ImportItem
-
 
 IMPORT_ITEM_DDL: Final = """
 CREATE TABLE import_item (
@@ -102,21 +102,21 @@ def setup_item_db():
     db.query('delete from import_item;')
 
 
-@pytest.fixture()
+@pytest.fixture
 def import_item_db(setup_item_db):
     setup_item_db.multiple_insert('import_item', IMPORT_ITEM_DATA)
     yield setup_item_db
     setup_item_db.query('delete from import_item;')
 
 
-@pytest.fixture()
+@pytest.fixture
 def import_item_db_staged(setup_item_db):
     setup_item_db.multiple_insert('import_item', IMPORT_ITEM_DATA_STAGED)
     yield setup_item_db
     setup_item_db.query('delete from import_item;')
 
 
-@pytest.fixture()
+@pytest.fixture
 def import_item_db_staged_and_pending(setup_item_db):
     setup_item_db.multiple_insert('import_item', IMPORT_ITEM_DATA_STAGED_AND_PENDING)
     yield setup_item_db
@@ -149,7 +149,7 @@ class TestImportItem:
         assert isinstance(items, map)
 
     @pytest.mark.parametrize(
-        'ia_id, expected',
+        ('ia_id', 'expected'),
         [
             ('unique_id_1', [1, 3]),
             ('unique_id_2', [2]),

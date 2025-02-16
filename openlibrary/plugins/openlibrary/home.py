@@ -1,20 +1,19 @@
-"""Controller for home page.
-"""
+"""Controller for home page."""
 
-import random
-import web
 import logging
+import random
 
-from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+import web
+
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import storify
-from infogami import config
-
+from infogami.utils import delegate
+from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
 from openlibrary.plugins.worksearch import search, subjects
+from openlibrary.utils import dateutil
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -38,9 +37,9 @@ CAROUSELS_PRESETS = {
 }
 
 
-def get_homepage():
+def get_homepage(devmode):
     try:
-        stats = admin.get_stats()
+        stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -65,8 +64,7 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-
-    page = mc()
+    page = mc(devmode=("dev" in web.ctx.features))
 
     if not page:
         mc(_cache='delete')
@@ -292,7 +290,7 @@ def format_book_data(book, fetch_availability=True):
     if fetch_availability and d.ocaid:
         collections = ia.get_metadata(d.ocaid).get('collection', [])
 
-        if 'lendinglibrary' in collections or 'inlibrary' in collections:
+        if 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")
         else:
             d.read_url = book.url("/borrow")

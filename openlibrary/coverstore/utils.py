@@ -1,21 +1,20 @@
 """Utilities for coverstore"""
 
+import contextlib
 import json
 import mimetypes
 import os
 import random
 import socket
 import string
+from io import IOBase as file
+from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
+from urllib.parse import urlencode as real_urlencode
 
 import requests
 import web
-from urllib.parse import urlsplit, urlunsplit, parse_qsl, unquote, unquote_plus  # type: ignore[attr-defined]
-from urllib.parse import urlencode as real_urlencode
 
 from openlibrary.coverstore import config, oldb
-
-from io import IOBase as file
-import contextlib
 
 socket.setdefaulttimeout(10.0)
 
@@ -157,7 +156,7 @@ def urlencode(data):
                 out.append(
                     f'Content-Disposition: form-data; name="{key}"; filename="{value.name}"'
                 )
-                out.append('Content-Type: %s' % get_content_type(value.name))
+                out.append(f'Content-Type: {get_content_type(value.name)}')
                 out.append('')
                 out.append(value.read())
             elif isinstance(value, list):
@@ -165,7 +164,7 @@ def urlencode(data):
                     encode(key, v)
             else:
                 out.append('--' + BOUNDARY)
-                out.append('Content-Disposition: form-data; name="%s"' % key)
+                out.append(f'Content-Disposition: form-data; name="{key}"')
                 out.append('')
                 out.append(value)
 
@@ -175,7 +174,7 @@ def urlencode(data):
         for k, v in data.items():
             encode(k, v, out)
         body = CRLF.join(out)
-        content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+        content_type = f'multipart/form-data; boundary={BOUNDARY}'
         return content_type, body
 
 

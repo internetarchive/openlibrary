@@ -16,18 +16,18 @@ $var title: $page.key
        <span class="tag">$page.kind</span>
     </div>
 
-    <h2>Properties</h2>
+    <h2>$_("Properties")</h2>
 
     <ul class="booklinks sansserif">
     $for p in page.properties:
-        <li><b>$p.name$cond(not p.unique, "[]")</b> <span class="smaller" style="display: inline;">of type</span> <a href="$p.expected_type.key">$p.expected_type.key</a></li>
+        <li><b>$p.name$cond(not p.unique, "[]")</b> <span class="smaller" style="display: inline;">$_("of type")</span> <a href="$p.expected_type.key">$p.expected_type.key</a></li>
     </ul>
 
 $if page.backreferences:
     <h2>$_("Backreferences")</h2>
     <ul class="booklinks sansserif">
     $for p in page.backreferences:
-        <li><b>$p.name</b> <span class="smaller" style="display: inline;">from</span> <a href="$p.expected_type.key">$p.expected_type.key</a>.$p.property_name</li>
+        <li><b>$p.name</b> <span class="smaller" style="display: inline;">$_("from")</span> <a href="$p.expected_type.key">$p.expected_type.key</a>.$p.property_name</li>
     </ul>
 
     <div class="clearfix"></div>

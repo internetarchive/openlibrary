@@ -8,7 +8,6 @@ import $ from 'jquery';
  * @param {String} searchMode
  */
 export function addModeInputsToForm($form, searchMode) {
-    $('input[value=\'Protected DAISY\']').remove();
     $('input[name=\'has_fulltext\']').remove();
 
     let url = $form.attr('action');
@@ -20,10 +19,6 @@ export function addModeInputsToForm($form, searchMode) {
         if (searchMode !== 'everything') {
             $form.append('<input type="hidden" name="has_fulltext" value="true"/>');
             url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
-        }
-        if (searchMode === 'printdisabled') {
-            $form.append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-            url += `${url.indexOf('?') > -1 ? '&' : '?'}subject_facet=Protected DAISY`;
         }
 
         $form.attr('action', url);
@@ -115,7 +110,7 @@ PersistentValue.DEFAULT_OPTIONS = {
 };
 
 
-const MODES = ['everything', 'ebooks', 'printdisabled'];
+const MODES = ['everything', 'ebooks'];
 const DEFAULT_MODE = 'everything';
 /** Search mode; {@see MODES} */
 export const mode = new PersistentValue('mode', {

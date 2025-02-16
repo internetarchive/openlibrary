@@ -1,15 +1,19 @@
 $def with (page)
 
-$var title: $page.name
+$ name = page.name
+$if page.deprecated:
+    $ name += f' [{_("deprecated")}]'
+
+$var title: $name
 
 <div id="contentHead">
     $:macros.databarView(page)
 
     <span class="tag">
-        / <a href="/languages">languages</a> / $page.code
+        / <a href="/languages">$_("languages")</a> / $page.code
     </span>
 
-    <h1>$page.name</h1>
+    <h1>$name</h1>
 </div>
 
 <div id="contentBody">
@@ -23,6 +27,11 @@ $var title: $page.name
        <span class="title">$_("Name")</span>
        <span class="tag">$page.name</span>
     </div>
+    $if page.current:
+       <div>
+           <span class="title">$_("Current")</span>
+	   <span class="tag"><a href="$page.current">$page.current</a></span>
+       </div>
 
     <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(page.name))</p>
 

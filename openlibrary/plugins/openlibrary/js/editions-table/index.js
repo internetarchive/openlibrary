@@ -6,7 +6,6 @@ const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
     var rowCount;
-    let currentLength;
 
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
@@ -26,46 +25,59 @@ export function initEditionsTable() {
             $(this).attr('title','Available to read');
         }
     });
-    $('#editions th.read span').html('&nbsp;&uarr;');
-    $('#editions th').on('mouseup', function(){
+
+    function toggleSorting(e) {
         $('#editions th span').html('');
-        $(this).find('span').html('&nbsp;&uarr;');
-        if ($(this).hasClass('sorting_asc')) {
-            $(this).find('span').html('&nbsp;&darr;');
-        } else if ($(this).hasClass('sorting_desc')) {
-            $(this).find('span').html('&nbsp;&uarr;');
+        $(e).find('span').html('&nbsp;&uarr;');
+        if ($(e).hasClass('sorting_asc')) {
+            $(e).find('span').html('&nbsp;&darr;');
+        } else if ($(e).hasClass('sorting_desc')) {
+            $(e).find('span').html('&nbsp;&uarr;');
         }
+    }
+
+    $('#editions th.read span').html('&nbsp;&uarr;');
+    $('#editions th').on('mouseup', function() {
+        toggleSorting(this)
     });
 
     $('#editions').on('length.dt', function(e, settings, length) {
+        togglePaginationVisibility(length);
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
-    rowCount = $('#editions tbody tr').length;
-    if (rowCount < 4) {
-        $('#editions').DataTable({
-            aoColumns: [{sType: 'html'},null],
-            order: [ [1,'asc'] ],
-            bPaginate: false,
-            bInfo: false,
-            bFilter: false,
-            bStateSave: false,
-            bAutoWidth: false
-        });
-    } else {
-        currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
+    $('#editions th').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            toggleSorting(this);
+        }
+    })
 
-        $('#editions').DataTable({
-            aoColumns: [{sType: 'html'},null],
-            order: [ [1,'asc'] ],
-            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
-            bPaginate: true,
-            bInfo: true,
-            sPaginationType: 'full_numbers',
-            bFilter: true,
-            bStateSave: false,
-            bAutoWidth: false,
-            pageLength: currentLength ? currentLength : DEFAULT_LENGTH
-        });
+    rowCount = $('#editions tbody tr').length;
+    const currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
+
+    $('#editions').DataTable({
+        aoColumns: [{ sType: 'html' }, null],
+        order: [[1, 'asc']],
+        lengthMenu: [[3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All']],
+        bPaginate: true, // Always allow pagination initially
+        bInfo: true,
+        sPaginationType: 'full_numbers',
+        bFilter: true,
+        bStateSave: false,
+        bAutoWidth: false,
+        pageLength: currentLength,
+    });
+
+    // Toggle pagination visibility based on row count and selected length
+    function togglePaginationVisibility(selectedLength) {
+        const paginationElement = $('.dataTables_paginate.paging_full_numbers');
+        if (rowCount <= selectedLength || selectedLength === -1) {
+            paginationElement.hide();
+        } else {
+            paginationElement.show();
+        }
     }
+
+    // Initial pagination visibility toggle
+    togglePaginationVisibility(currentLength);
 }

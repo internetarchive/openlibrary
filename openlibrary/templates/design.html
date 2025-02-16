@@ -3,35 +3,37 @@ $# /developers/design
 $ _x = ctx.setdefault('cssfile', 'design')
 
 <div class="design-pattern-library">
-  <h1>Design Pattern Library</h1>
+  <h1>$_("Design Pattern Library")</h1>
   <article class="design-pattern">
-    <h2>Fonts</h2>
+    <h2>$_("Fonts")</h2>
     <hr/>
-    <h3>Font-size</h3>
+    <h3>$_("Font-size")</h3>
     <section>
-      <h1>h1.</h1>
-      <h2>h2.</h2>
-      <h3>h3.</h3>
-      <h4>h4.</h4>
+      <code>
+        <h1>h1.</h1> $# detect-missing-i18n-skip-line
+        <h2>h2.</h2> $# detect-missing-i18n-skip-line
+        <h3>h3.</h3> $# detect-missing-i18n-skip-line
+        <h4>h4.</h4> $# detect-missing-i18n-skip-line
+      </code>
     </section>
 
-    <h3>Font-family</h3>
+    <h3>$_("Font-family")</h3>
     <section>
-      <li class="sansserif">Sans-serif: Verdana</li>
-      <li class="serif">Serif: Georgia</li>
+      <li class="sansserif">$_("Sans-serif: Verdana")</li>
+      <li class="serif">$_("Serif: Georgia")</li>
     </section>
   </article>
 
   <article class="design-pattern">
-    <h2>Colors</h2>
+    <h2>$_("Colors")</h2>
     <hr/>
-    <h3>Defaults</h3>
+    <h3>$_("Defaults")</h3>
     <section>
       <ul class="color-swatch">
-        <li><span class="color-block color-block-background"></span> Background</li>
-        <li><span class="color-block color-block-primary-cta"></span> Primary Call To Action</li>
-        <li><span class="color-block color-block-link-unclicked"></span> Link (unclicked)</li>
-        <li><span class="color-block color-block-link-clicked"></span> Link (clicked)</li>
+        <li><span class="color-block color-block-background"></span> $_("Background")</li>
+        <li><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
+        <li><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
+        <li><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
       </ul>
     </section>
   </article>

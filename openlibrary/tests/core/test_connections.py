@@ -1,6 +1,7 @@
 # This will be moved to core soon.
-from openlibrary.plugins.openlibrary import connection as connections
 import json
+
+from openlibrary.plugins.openlibrary import connection as connections
 
 
 class MockConnection:

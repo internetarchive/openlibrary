@@ -1,29 +1,27 @@
 import logging
 import re
+import sys
+from collections import defaultdict
 from functools import cached_property
 
-import sys
 import web
+from isbnlib import NotValidISBNError, canonical, mask
 
-from collections import defaultdict
-from isbnlib import canonical, mask, NotValidISBNError
-
-from infogami import config
+from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
-from infogami.utils.view import safeint
 from infogami.utils import stats
-
-from openlibrary.core import models, ia
+from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
+from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
-from openlibrary.core import lending
-
-from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
-from openlibrary.plugins.upstream import account
-from openlibrary.plugins.upstream import borrow
+from openlibrary.plugins.upstream import (
+    account,  # noqa: F401 side effects may be needed
+    borrow,
+)
+from openlibrary.plugins.upstream.table_of_contents import TableOfContents
+from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
-
-from openlibrary.utils import dateutil
+from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.lccn import normalize_lccn
 
@@ -57,9 +55,10 @@ class Edition(models.Edition):
 
     def get_authors(self):
         """Added to provide same interface for work and edition"""
+        work_authors = self.works[0].get_authors() if self.works else []
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return authors
+        return work_authors + authors
 
     def get_covers(self):
         """
@@ -70,7 +69,7 @@ class Edition(models.Edition):
 
     def get_cover(self):
         covers = self.get_covers()
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size):
         if cover := self.get_cover():
@@ -103,6 +102,15 @@ class Edition(models.Edition):
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
 
+    def get_worldcat_url(self):
+        url = 'https://search.worldcat.org/'
+        if self.get('oclc_numbers'):
+            return f'{url}/title/{self.oclc_numbers[0]}'
+        elif self.get_isbn13():
+            # Handles both isbn13 & 10
+            return f'{url}/isbn/{self.get_isbn13()}'
+        return f'{url}/search?q={self.title}'
+
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
@@ -116,7 +124,7 @@ class Edition(models.Edition):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(
-            get_edition_config().identifiers, names, self.identifiers
+            get_identifier_config('edition').identifiers, names, self.identifiers
         )
 
     def get_ia_meta_fields(self):
@@ -141,11 +149,7 @@ class Edition(models.Edition):
         if not meta_fields:
             return
         v = meta_fields['collection']
-        return 'printdisabled' in v or 'lendinglibrary' in v
-
-    #      def is_lending_library(self):
-    #         collections = self.get_ia_collections()
-    #         return 'lendinglibrary' in collections
+        return 'printdisabled' in v
 
     def get_lending_resources(self):
         """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
@@ -160,21 +164,9 @@ class Edition(models.Edition):
         #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
         # </external-identifier>
 
-        itemid = self.ocaid
-        if not itemid:
+        if not self.ocaid:
             return []
-
-        lending_resources = []
-        # Check if available for in-browser lending - marked with 'browserlending' collection
-        browserLendingCollections = ['browserlending']
-        for collection in self.get_ia_meta_fields()['collection']:
-            if collection in browserLendingCollections:
-                lending_resources.append('bookreader:%s' % self.ocaid)
-                break
-
-        lending_resources.extend(self.get_ia_meta_fields()['external-identifier'])
-
-        return lending_resources
+        return self.get_ia_meta_fields()['external-identifier']
 
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
@@ -350,10 +342,15 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
+        if not d.items():
+            self.identifiers = None
+
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
-            get_edition_config().classifications, names, self.classifications
+            get_identifier_config('edition').classifications,
+            names,
+            self.classifications,
         )
 
     def set_classifications(self, classifications):
@@ -378,6 +375,9 @@ class Edition(models.Edition):
             else:
                 self.classifications[name] = value
 
+        if not self.classifications.items():
+            self.classifications = None
+
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
         w = self.weight
@@ -398,33 +398,22 @@ class Edition(models.Edition):
                 d
             )
 
-    def get_toc_text(self):
-        def format_row(r):
-            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
+    def get_toc_text(self) -> str:
+        if toc := self.get_table_of_contents():
+            return toc.to_markdown()
+        return ""
 
-        return "\n".join(format_row(r) for r in self.get_table_of_contents())
+    def get_table_of_contents(self) -> TableOfContents | None:
+        if not self.table_of_contents:
+            return None
 
-    def get_table_of_contents(self):
-        def row(r):
-            if isinstance(r, str):
-                level = 0
-                label = ""
-                title = r
-                pagenum = ""
-            else:
-                level = safeint(r.get('level', '0'), 0)
-                label = r.get('label', '')
-                title = r.get('title', '')
-                pagenum = r.get('pagenum', '')
+        return TableOfContents.from_db(self.table_of_contents)
 
-            r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
-            return r
-
-        d = [row(r) for r in self.table_of_contents]
-        return [row for row in d if any(row.values())]
-
-    def set_toc_text(self, text):
-        self.table_of_contents = parse_toc(text)
+    def set_toc_text(self, text: str | None):
+        if text:
+            self.table_of_contents = TableOfContents.from_markdown(text).to_db()
+        else:
+            self.table_of_contents = None
 
     def get_links(self):
         links1 = [
@@ -499,7 +488,7 @@ class Author(models.Author):
 
     def get_photo(self):
         photos = self.get_photos()
-        return photos and photos[0] or None
+        return (photos and photos[0]) or None
 
     def get_photo_url(self, size):
         photo = self.get_photo()
@@ -605,7 +594,7 @@ class Work(models.Work):
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
-        return covers and covers[0] or None
+        return (covers and covers[0]) or None
 
     def get_cover_url(self, size, use_solr=True):
         cover = self.get_cover(use_solr=use_solr)
@@ -771,6 +760,66 @@ class Work(models.Work):
             record['subtitle'] = self.subtitle
         return record
 
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        names = []
+        return self._process_identifiers(
+            get_identifier_config('work').identifiers, names, self.identifiers
+        )
+
+    def set_identifiers(self, identifiers):
+        """Updates the work from identifiers specified as (name, value) pairs."""
+
+        d = {}
+        if identifiers:
+            for id in identifiers:
+                if 'name' not in id or 'value' not in id:
+                    continue
+                name, value = id['name'], id['value']
+                if value is not None:
+                    d.setdefault(name, []).append(value)
+
+        self.identifiers = {}
+
+        for name, value in d.items():
+            self.identifiers[name] = value
+
+        if not d.items():
+            self.identifiers = None
+
+    def _process_identifiers(self, config_, names, values):
+        id_map = {}
+        for id in config_:
+            id_map[id.name] = id
+            id.setdefault("label", id.name)
+            id.setdefault("url_format", None)
+
+        d = MultiDict()
+
+        def process(name, value):
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
+                for v in value:
+                    d[id.name] = web.storage(
+                        name=id.name,
+                        label=id.label,
+                        value=v,
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
+                    )
+
+        for name in names:
+            process(name, self[name])
+
+        for name in values:
+            process(name, values[name])
+
+        return d
+
 
 class Subject(client.Thing):
     pass
@@ -903,7 +952,7 @@ class Changeset(client.Changeset):
             {"kind": "undo", "data": {"parent_changeset": self.id}}
         )
         # return the first undo changeset
-        self._undo_changeset = changesets and changesets[-1] or None
+        self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
 
 

@@ -2,7 +2,7 @@ $def with (page)
 
 $ _x = ctx.setdefault('cssfile', 'edit')
 
-$var title: Editing $page.displayname
+$var title: $_('Editing %(name)s', name=page.displayname)
 
 <div id="contentHead">
     <h1>
