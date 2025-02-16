@@ -111,7 +111,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
         $if page.location:
             <div class="section hidden">
-                <!-- lara afont: i changed this to use h3 headers -->
+                <!-- lara afont: i changed this to use h3 headers! -->
                 <h3 class="collapse black uppercase">$_("Location")</h3>
                 $page.location
             </div>
@@ -163,7 +163,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section link-box link-box--with-header">
-                    <!-- lara afont: i changed this to use h3 headers -->
+                    <!-- lara afont: i changed this to use h3 headers! -->
                     <h3 class="collapse black uppercase">$label</h3>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
@@ -216,7 +216,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $if page.alternate_names:
             $if page.alternate_names != [""]:
                 <div class="section">
-                    <!-- lara afont: i changed this to use h3 headers -->
+                    <!-- lara afont: i changed this to use h3 headers! -->
                     <h3>$_("Alternative names")</h3>
                     <ul class="booklinks sansserif">
                         $for alternate_name in page.alternate_names:
