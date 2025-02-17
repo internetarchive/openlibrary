@@ -11,7 +11,6 @@ from typing import Any, cast
 from unicodedata import normalize
 
 import requests
-from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 import web
 from requests import Response
 
@@ -30,6 +29,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -615,19 +615,22 @@ class advancedsearch(delegate.page):
     def GET(self):
         return render_template("search/advancedsearch.html")
 
+
 # searches for lists and returns results in html format
 class list_search(delegate.page):
     path = '/search/lists'
 
-    def GET(self): # referenced subject_search
-        i = web.input(q='', offset='0', limit='10') # get user input with defaults
-        offset = safeint(i.offset, 0) # convert offset to integer
+    def GET(self):  # referenced subject_search
+        i = web.input(q='', offset='0', limit='10')  # get user input with defaults
+        offset = safeint(i.offset, 0)  # convert offset to integer
         limit = safeint(i.limit, 10)
-        limit = min(100, limit) # convert limit to integer
+        limit = min(100, limit)  # convert limit to integer
 
-        lists = self.get_results(i.q, offset=offset, limit=limit) # search using Solr
+        lists = self.get_results(i.q, offset=offset, limit=limit)  # search using Solr
 
-        return render_template('search/lists.tmpl', q=i.q, lists=lists) # render results
+        return render_template(
+            'search/lists.tmpl', q=i.q, lists=lists
+        )  # render results
 
     def get_results(elf, q, offset=0, limit=100, fields='*', sort=''):
         # searches for list using Solr instead of site.things()
@@ -638,10 +641,11 @@ class list_search(delegate.page):
             offset=offset,
             rows=limit,
             fields=fields,
-            sort = "created_desc" # default sorting with most recently created lists first
+            sort="created_desc",  # default sorting with most recently created lists first
         )
 
         return response
+
 
 # inherits from list_search but modifies the GET response to return results in JSON format
 class list_search_json(list_search):
@@ -659,8 +663,8 @@ class list_search_json(list_search):
 
         raw_resp = response.raw_resp['response']
         for doc in raw_resp['docs']:
-            doc['type'] = "list" # add type field to show it is a list result
-            doc['created'] = doc.get('created', '') # add a user-friendly created field
+            doc['type'] = "list"  # add type field to show it is a list result
+            doc['created'] = doc.get('created', '')  # add a user-friendly created field
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(raw_resp))

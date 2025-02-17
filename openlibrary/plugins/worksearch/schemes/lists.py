@@ -6,14 +6,15 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
 # define a search scheme for lists, similar to SubjectSearchScheme
 class ListSearchScheme(SearchScheme):
-    universe = ['type:list'] # this search only applies to list type documents
+    universe = ['type:list']  # this search only applies to list type documents
     all_fields = {
-        'key', # unique identifier for the list
-        'name', # name/title of the list
-        'description', # short description of the list
-        'created', # timestamp when the list was created
+        'key',  # unique identifier for the list
+        'name',  # name/title of the list
+        'description',  # short description of the list
+        'created',  # timestamp when the list was created
     }
 
     # kept the same form SubjectSearchScheme
@@ -22,10 +23,9 @@ class ListSearchScheme(SearchScheme):
     field_name_map: dict[str, str] = {}
 
     sorts = {
-        'created desc' : 'created desc', # sort by newest lists first (default)
-        'created asc' : 'created asc', # sort by oldest lists first
-        'name asc' : 'name asc', # sort alphabetically
-
+        'created desc': 'created desc',  # sort by newest lists first (default)
+        'created asc': 'created asc',  # sort by oldest lists first
+        'name asc': 'name asc',  # sort alphabetically
         # Random (kept from SubjectSearchScheme)
         'random': 'random_1 asc',
         'random asc': 'random_1 asc',
@@ -51,7 +51,7 @@ class ListSearchScheme(SearchScheme):
         cur_solr_params: list[tuple[str, str]],
     ) -> list[tuple[str, str]]:
         return [
-            ('q', q), # actual query string
-            ('q.op', 'AND'), # use 'AND" for matching multiple words in search queries
-            ('defType', 'edismax'), # use edismax parser for better full-text search
+            ('q', q),  # actual query string
+            ('q.op', 'AND'),  # use 'AND" for matching multiple words in search queries
+            ('defType', 'edismax'),  # use edismax parser for better full-text search
         ]
