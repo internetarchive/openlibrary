@@ -30,6 +30,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -615,48 +616,58 @@ class advancedsearch(delegate.page):
         return render_template("search/advancedsearch.html")
 
 
+# searches for lists and returns results in html format
 class list_search(delegate.page):
     path = '/search/lists'
 
-    def GET(self):
-        i = web.input(q='', offset='0', limit='10')
+    def GET(self):  # referenced subject_search
+        i = web.input(q='', offset='0', limit='10')  # get user input with defaults
+        offset = safeint(i.offset, 0)  # convert offset to integer
+        limit = safeint(i.limit, 10)
+        limit = min(100, limit)  # convert limit to integer
 
-        lists = self.get_results(i.q, i.offset, i.limit)
+        lists = self.get_results(i.q, offset=offset, limit=limit)  # search using Solr
 
-        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+        return render_template(
+            'search/lists.tmpl', q=i.q, lists=lists
+        )  # render results
 
-    def get_results(self, q, offset=0, limit=100):
-        if 'env' not in web.ctx:
-            delegate.fakeload()
-
-        keys = web.ctx.site.things(
-            {
-                "type": "/type/list",
-                "name~": q,
-                "limit": int(limit),
-                "offset": int(offset),
-            }
+    def get_results(elf, q, offset=0, limit=100, fields='*', sort=''):
+        # searches for list using Solr instead of site.things()
+        # used author_search as reference
+        response = run_solr_query(
+            ListSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            fields=fields,
+            sort="created_desc",  # default sorting with most recently created lists first
         )
 
-        return web.ctx.site.get_many(keys)
+        return response
 
 
+# inherits from list_search but modifies the GET response to return results in JSON format
 class list_search_json(list_search):
+    # used subject_search_json as a reference
     path = '/search/lists'
     encoding = 'json'
 
     def GET(self):
         i = web.input(q='', offset=0, limit=10)
         offset = safeint(i.offset, 0)
-        limit = safeint(i.limit, 10)
-        limit = min(100, limit)
+        limit = safeint(i.limit, 100)
+        limit = min(1000, limit)
 
-        docs = self.get_results(i.q, offset=offset, limit=limit)
+        response = self.get_results(i.q, offset=offset, limit=limit)
 
-        response = {'start': offset, 'docs': [doc.preview() for doc in docs]}
+        raw_resp = response.raw_resp['response']
+        for doc in raw_resp['docs']:
+            doc['type'] = "list"  # add type field to show it is a list result
+            doc['created'] = doc.get('created', '')  # add a user-friendly created field
 
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        return delegate.RawText(json.dumps(raw_resp))
 
 
 class subject_search(delegate.page):

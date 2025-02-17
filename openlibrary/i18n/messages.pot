@@ -936,8 +936,8 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/subjects.html
-#: work_search.html
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
