@@ -606,7 +606,7 @@ function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
                 if (link) {
                     if (link.classList.contains('li-title-desktop')) {
                         // Remove click listener in mobile views
-                        link.removeEventListener("click", onYearlyGoalClick)
+                        link.removeEventListener('click', onYearlyGoalClick)
                     } else {
                         // Hide desktop "set 20XX reading goal" link
                         link.classList.add('hidden');
