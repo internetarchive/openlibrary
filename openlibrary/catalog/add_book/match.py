@@ -10,6 +10,7 @@ re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
 
 type ThresholdResult = tuple[str, str, int]  # (field/category, result, score)
 
+DATE_MISMATCH = -800
 ISBN_MATCH = 85
 THRESHOLD = 875
 
@@ -211,7 +212,7 @@ def compare_date(e1: dict, e2: dict) -> ThresholdResult:
     if ('publish_date' not in e1) and ('publish_date' not in e2):
         return ('date', 'values missing', 0)
     if ('publish_date' in e1) ^ ('publish_date' in e2):
-        return ('date', 'value missing', -250)
+        return ('date', 'value missing', DATE_MISMATCH)
     if e1['publish_date'] == e2['publish_date']:
         return ('date', 'exact match', 200)
     try:
@@ -221,7 +222,7 @@ def compare_date(e1: dict, e2: dict) -> ThresholdResult:
             return ('date', '+/-2 years', -25)
     except (ValueError, TypeError):
         pass
-    return ('date', 'mismatch', -250)
+    return ('date', 'mismatch', DATE_MISMATCH)
 
 
 def compare_isbn(e1: dict, e2: dict) -> ThresholdResult:
@@ -232,9 +233,6 @@ def compare_isbn(e1: dict, e2: dict) -> ThresholdResult:
             if i == j:
                 return ('ISBN', 'match', ISBN_MATCH)
     return ('ISBN', 'mismatch', -225)
-
-
-# 450 + 200 + 85 + 200
 
 
 def level1_match(e1: dict, e2: dict) -> list[ThresholdResult]:
