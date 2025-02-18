@@ -137,7 +137,7 @@ class SourceNeedsISBN(Exception):
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people']
 
 
-def normalize(s):
+def normalize(s: str) -> str:
     """Strip non-alphanums and truncate at 25 chars."""
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
@@ -160,7 +160,7 @@ def is_redirect(thing):
     return thing.type.key == '/type/redirect'
 
 
-def split_subtitle(full_title):
+def split_subtitle(full_title: str):
     """
     Splits a title into (title, subtitle),
     strips parenthetical tags. Used for bookseller
@@ -220,7 +220,6 @@ def build_author_reply(authors_in, edits, source):
     :rtype: tuple
     :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply
     """
-
     authors = []
     author_reply = []
     for a in authors_in:
@@ -386,7 +385,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
     return data
 
 
-def normalize_record_bibids(rec):
+def normalize_record_bibids(rec: dict):
     """
     Returns the Edition import record with all ISBN fields and LCCNs cleaned.
 
@@ -406,7 +405,7 @@ def normalize_record_bibids(rec):
     return rec
 
 
-def isbns_from_record(rec):
+def isbns_from_record(rec: dict) -> list[str]:
     """
     Returns a list of all isbns from the various possible isbn fields.
 
@@ -417,7 +416,7 @@ def isbns_from_record(rec):
     return isbns
 
 
-def build_pool(rec):
+def build_pool(rec: dict) -> dict[str, list[str]]:
     """
     Searches for existing edition matches on title and bibliographic keys.
 
@@ -440,7 +439,6 @@ def build_pool(rec):
     # Find records with matching ISBNs
     if isbns := isbns_from_record(rec):
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
-
     return {k: list(v) for k, v in pool.items() if v}
 
 
@@ -451,7 +449,6 @@ def find_quick_match(rec: dict) -> str | None:
     :param dict rec: Edition record
     :return: First key matched of format "/books/OL..M" or None if no match found.
     """
-
     if 'openlibrary' in rec:
         return '/books/' + rec['openlibrary']
 
@@ -480,14 +477,14 @@ def find_quick_match(rec: dict) -> str | None:
     return None
 
 
-def editions_matched(rec, key, value=None):
+def editions_matched(rec: dict, key: str, value=None) -> list[str]:
     """
     Search OL for editions matching record's 'key' value.
 
     :param dict rec: Edition import record
     :param str key: Key to search on, e.g. 'isbn_'
     :param list|str value: Value or Values to use, overriding record values
-    :rtpye: list
+    :rtype: list
     :return: List of edition keys ["/books/OL..M",]
     """
     if value is None and key not in rec:
@@ -500,11 +497,11 @@ def editions_matched(rec, key, value=None):
     return ekeys
 
 
-def find_threshold_match(rec: dict, edition_pool: dict) -> str | None:
+def find_threshold_match(rec: dict, edition_pool: dict[str, list[str]]) -> str | None:
     """
     Find the best match for rec in edition_pool and return its key.
     :param dict rec: the new edition we are trying to match.
-    :param list edition_pool: list of possible edition key matches, output of build_pool(import record)
+    :param dict edition_pool: edition key matches, output of build_pool(import record)
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
     seen = set()

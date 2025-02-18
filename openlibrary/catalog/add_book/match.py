@@ -60,7 +60,6 @@ def normalize(s: str) -> str:
     by lowercasing, unicode -> NFC,
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
-
     s = unicodedata.normalize('NFC', s)
     s = s.replace(' & ', ' and ')
     s = re_whitespace_and_punct.sub(' ', s.lower()).strip()
@@ -153,7 +152,7 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
     return expanded_rec
 
 
-def build_titles(title: str):
+def build_titles(title: str) -> dict[str, str | list[str]]:
     """
     Uses a full title to create normalized and short title versions.
     Used for expanding a set of title variants for matching,
@@ -181,11 +180,11 @@ def build_titles(title: str):
     }
 
 
-def within(a, b, distance):
+def within(a, b, distance) -> bool:
     return abs(a - b) <= distance
 
 
-def compare_country(e1: dict, e2: dict):
+def compare_country(e1: dict, e2: dict) -> tuple:
     field = 'publish_country'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -197,7 +196,7 @@ def compare_country(e1: dict, e2: dict):
     return (field, 'mismatch', -205)
 
 
-def compare_lccn(e1: dict, e2: dict):
+def compare_lccn(e1: dict, e2: dict) -> tuple:
     field = 'lccn'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -206,9 +205,11 @@ def compare_lccn(e1: dict, e2: dict):
     return (field, 'mismatch', -320)
 
 
-def compare_date(e1: dict, e2: dict):
-    if 'publish_date' not in e1 or 'publish_date' not in e2:
-        return ('date', 'value missing', 0)
+def compare_date(e1: dict, e2: dict) -> tuple:
+    if ('publish_date' not in e1) and ('publish_date' not in e2):
+        return ('date', 'values missing', 0)
+    if ('publish_date' in e1) ^ ('publish_date' in e2):
+        return ('date', 'value missing', -250)
     if e1['publish_date'] == e2['publish_date']:
         return ('date', 'exact match', 200)
     try:
@@ -216,13 +217,12 @@ def compare_date(e1: dict, e2: dict):
         e2_pub = int(e2['publish_date'])
         if within(e1_pub, e2_pub, 2):
             return ('date', '+/-2 years', -25)
-        else:
-            return ('date', 'mismatch', -250)
-    except ValueError as TypeError:
-        return ('date', 'mismatch', -250)
+    except (ValueError, TypeError):
+        pass
+    return ('date', 'mismatch', -250)
 
 
-def compare_isbn(e1: dict, e2: dict):
+def compare_isbn(e1: dict, e2: dict) -> tuple:
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
     for i in e1['isbn']:
@@ -235,7 +235,7 @@ def compare_isbn(e1: dict, e2: dict):
 # 450 + 200 + 85 + 200
 
 
-def level1_match(e1: dict, e2: dict):
+def level1_match(e1: dict, e2: dict) -> list[tuple]:
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -254,7 +254,7 @@ def level1_match(e1: dict, e2: dict):
     return score
 
 
-def level2_match(e1: dict, e2: dict):
+def level2_match(e1: dict, e2: dict) -> list[tuple]:
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -274,7 +274,7 @@ def level2_match(e1: dict, e2: dict):
     return score
 
 
-def compare_author_fields(e1_authors, e2_authors):
+def compare_author_fields(e1_authors, e2_authors) -> bool:
     for i in e1_authors:
         for j in e2_authors:
             if normalize(i['db_name']) == normalize(j['db_name']):
@@ -284,7 +284,7 @@ def compare_author_fields(e1_authors, e2_authors):
     return False
 
 
-def compare_author_keywords(e1_authors, e2_authors):
+def compare_author_keywords(e1_authors, e2_authors) -> tuple:
     max_score = 0
     for i in e1_authors:
         for j in e2_authors:
@@ -300,7 +300,7 @@ def compare_author_keywords(e1_authors, e2_authors):
         return ('authors', 'mismatch', -200)
 
 
-def compare_authors(e1: dict, e2: dict):
+def compare_authors(e1: dict, e2: dict) -> tuple:
     """
     Compares the authors of two edition representations and
     returns a evaluation and score.
@@ -340,7 +340,7 @@ def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
 
 
-def substr_match(a: str, b: str):
+def substr_match(a: str, b: str) -> bool:
     return a.find(b) != -1 or b.find(a) != -1
 
 
@@ -409,7 +409,7 @@ def compare_number_of_pages(amazon, marc):
         return ('pagination', 'non-match (by more than 10)', -225)
 
 
-def short_part_publisher_match(p1, p2):
+def short_part_publisher_match(p1: str, p2: str) -> bool:
     pub1 = p1.split()
     pub2 = p2.split()
     if len(pub1) == 1 or len(pub2) == 1:
@@ -417,7 +417,7 @@ def short_part_publisher_match(p1, p2):
     return all(substr_match(i, j) for i, j in zip(pub1, pub2))
 
 
-def compare_publisher(e1: dict, e2: dict):
+def compare_publisher(e1: dict, e2: dict) -> tuple:
     if 'publishers' in e1 and 'publishers' in e2:
         for e1_pub in e1['publishers']:
             e1_norm = normalize(e1_pub)
