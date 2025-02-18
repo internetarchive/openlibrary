@@ -121,7 +121,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       <li class="hide-me">
         <a class="btn"
            href="/account/login">$_("Log In")</a></li>
-      <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
+           $ redir = query_param('redirect', '') and "?redirect=" + query_param('redirect')
+      <li><a class="btn primary" href="/account/create$redir">$_("Sign Up")</a></li>
     </ul>
 
   $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")

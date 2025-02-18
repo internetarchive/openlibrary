@@ -302,8 +302,17 @@ class account_create(delegate.page):
 
     def POST(self):
         f: forms.RegisterForm = self.get_form()
+        
+        i = web.input()
 
-        if f.validates(web.input(email="")):
+        # Get the 'redirect' parameter from the request (if any)
+        redirect_url = i.get('redirect', None)
+
+        # Set a 'cta' cookie to persist the redirect value
+        if redirect_url:
+            web.setcookie("cta", redirect_url, expires=3600, path="/")
+
+        if f.validates(web.input()):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
@@ -479,6 +488,7 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
+
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
@@ -488,6 +498,15 @@ class account_login(delegate.page):
                 '1',
                 expires=(3600 * 24 * 365),
             )
+
+        # Extract `cta` value from the cookie
+        cta_redirect = web.cookies().get("cta")
+
+        # Clear the `cta` cookie immediately after retrieving it
+        if cta_redirect:
+            web.setcookie("cta", "", expires=-1, path="/")
+
+        # Validate and adjust the redirect URL
         blacklist = [
             "/account/login",
             "/account/create",
@@ -499,6 +518,11 @@ class account_login(delegate.page):
 
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
+
+        # Append CTA parameter if it exists
+        if cta_redirect:
+            i.redirect += ("&" if "?" in i.redirect else "?") + f"cta={web.websafe(cta_redirect)}"
+
         stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
