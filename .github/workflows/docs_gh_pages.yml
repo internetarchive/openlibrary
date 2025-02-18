@@ -37,22 +37,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: internetarchive/openlibrary.wiki
-          fetch-depth: 0 # Not needed if lastUpdated is not enabled
-      # - uses: pnpm/action-setup@v3 # Uncomment this block if you're using pnpm
-      #   with:
-      #     version: 9 # Not needed if you've set "packageManager" in package.json
-      # - uses: oven-sh/setup-bun@v1 # Uncomment this if you're using Bun
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm # or pnpm / yarn
+          cache: npm
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
-        run: npm ci # or pnpm install / yarn install / bun install
+        run: npm ci
       - name: Build with VitePress
-        run: npm run docs:build # or pnpm docs:build / yarn docs:build / bun run docs:build
+        run: npm run docs:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
