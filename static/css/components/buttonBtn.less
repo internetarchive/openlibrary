@@ -5,6 +5,7 @@
 .btn {
   text-align: center;
   padding: 5px 10px;
+
   &.primary {
     // For input[type=submit]
     border: none;
@@ -14,10 +15,9 @@
     border-radius: 5px;
   }
 }
-a {
-  &.btn {
-    text-decoration: none;
-  }
+
+a.btn {
+  text-decoration: none;
 }
 
 /* These should be in their own chip.less file */
@@ -27,33 +27,33 @@ a {
   border-radius: 16px;
   user-select: none;
   width: fit-content;
-}
 
-.chip a{
-  text-decoration: none;
-}
+  &--selectable {
+    cursor: pointer;
+  }
+  
+  &--selectable:hover {
+    background-color: @grey-e7e7e7;
+  }
+  
+  &--selected {
+    border-color: @primary-blue;
+    color: @primary-blue;
+    background-color: @grey-e7e7e7;
+  }
+  
+  &--selected:hover {
+    background-color: @white;
+  }
+  
+  &-group {
+    display: flex;
+    flex-flow: wrap;
+  }
 
-.chip--selectable {
-  cursor: pointer;
-}
-
-.chip--selectable:hover {
-  background-color: @grey-e7e7e7;
-}
-
-.chip--selected {
-  border-color: @primary-blue;
-  color: @primary-blue;
-  background-color: @grey-e7e7e7;
-}
-
-.chip--selected:hover {
-  background-color: @white;
-}
-
-.chip-group {
-  display: flex;
-  flex-flow: wrap;
+  a {
+    text-decoration: none;
+  }
 }
 
 .category-chip {
