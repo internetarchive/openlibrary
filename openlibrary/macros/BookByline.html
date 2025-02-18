@@ -13,19 +13,11 @@ $def render_author_link(author):
   $rendered_name
 
   $if show_years:
-    $ birth_year = ''
-    $ death_year = ''
-    $if author.get('birth_date'):
-      $ birth_year = extract_year(author.get('birth_date'), int_only=False)
-    $if author.get('death_date'):
-      $ death_year = extract_year(author.get('death_date'), int_only=False)
+    $ birth_year = extract_year(author.get('birth_date', ''), int_only=False)
+    $ death_year = extract_year(author.get('death_date', ''), int_only=False)
 
-    $if birth_year and death_year:
+    $if birth_year or death_year:
       ($birth_year – $death_year)
-    $elif birth_year:
-      ($birth_year - )
-    $elif death_year:
-      ( - $death_year)
 
   $if url:
     </a>
