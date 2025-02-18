@@ -1,0 +1,1 @@
+import{_ as r,c as t,o as n,ag as a}from"./chunks/framework.BRQrZDXk.js";const p=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"History.md","filePath":"History.md"}'),o={name:"History.md"};function i(s,e,l,h,g,c){return n(),t("div",null,e[0]||(e[0]=[a("",1)]))}const b=r(o,[["render",i]]);export{p as __pageData,b as default};
