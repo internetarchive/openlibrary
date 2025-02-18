@@ -396,11 +396,11 @@ def normalize_record_bibids(rec: dict):
     for field in ('isbn_13', 'isbn_10', 'isbn'):
         if rec.get(field):
             rec[field] = [
-                normalize_isbn(isbn) for isbn in rec.get(field) if normalize_isbn(isbn)
+                normalize_isbn(isbn) for isbn in rec.get(field, '') if normalize_isbn(isbn)
             ]
     if rec.get('lccn'):
         rec['lccn'] = [
-            normalize_lccn(lccn) for lccn in rec.get('lccn') if normalize_lccn(lccn)
+            normalize_lccn(lccn) for lccn in rec.get('lccn', '') if normalize_lccn(lccn)
         ]
     return rec
 
@@ -727,7 +727,7 @@ def normalize_import_record(rec: dict) -> None:
 
     # Split subtitle if required and not already present
     if ':' in rec.get('title', '') and not rec.get('subtitle'):
-        title, subtitle = split_subtitle(rec.get('title'))
+        title, subtitle = split_subtitle(rec.get('title', ''))
         if subtitle:
             rec['title'] = title
             rec['subtitle'] = subtitle

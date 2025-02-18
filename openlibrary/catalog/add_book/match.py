@@ -152,7 +152,7 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
     return expanded_rec
 
 
-def build_titles(title: str) -> dict[str, str | list[str]]:
+def build_titles(title: str) -> dict:
     """
     Uses a full title to create normalized and short title versions.
     Used for expanding a set of title variants for matching,
@@ -432,9 +432,7 @@ def compare_publisher(e1: dict, e2: dict) -> tuple:
                 elif short_part_publisher_match(e1_norm, e2_norm):
                     return ('publisher', 'match', 100)
         return ('publisher', 'mismatch', -51)
-
-    if 'publishers' not in e1 or 'publishers' not in e2:
-        return ('publisher', 'either missing', 0)
+    return ('publisher', 'either missing', 0)
 
 
 def threshold_match(
