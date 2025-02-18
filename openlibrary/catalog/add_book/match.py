@@ -8,6 +8,8 @@ re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 re_brackets = re.compile(r'^(.+)\[.*?\]$')
 re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
 
+type ThresholdResult = tuple[str, str, int]  # (field/category, result, score)
+
 ISBN_MATCH = 85
 THRESHOLD = 875
 
@@ -184,7 +186,7 @@ def within(a, b, distance) -> bool:
     return abs(a - b) <= distance
 
 
-def compare_country(e1: dict, e2: dict) -> tuple:
+def compare_country(e1: dict, e2: dict) -> ThresholdResult:
     field = 'publish_country'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -196,7 +198,7 @@ def compare_country(e1: dict, e2: dict) -> tuple:
     return (field, 'mismatch', -205)
 
 
-def compare_lccn(e1: dict, e2: dict) -> tuple:
+def compare_lccn(e1: dict, e2: dict) -> ThresholdResult:
     field = 'lccn'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -205,7 +207,7 @@ def compare_lccn(e1: dict, e2: dict) -> tuple:
     return (field, 'mismatch', -320)
 
 
-def compare_date(e1: dict, e2: dict) -> tuple:
+def compare_date(e1: dict, e2: dict) -> ThresholdResult:
     if ('publish_date' not in e1) and ('publish_date' not in e2):
         return ('date', 'values missing', 0)
     if ('publish_date' in e1) ^ ('publish_date' in e2):
@@ -222,7 +224,7 @@ def compare_date(e1: dict, e2: dict) -> tuple:
     return ('date', 'mismatch', -250)
 
 
-def compare_isbn(e1: dict, e2: dict) -> tuple:
+def compare_isbn(e1: dict, e2: dict) -> ThresholdResult:
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
     for i in e1['isbn']:
@@ -235,7 +237,7 @@ def compare_isbn(e1: dict, e2: dict) -> tuple:
 # 450 + 200 + 85 + 200
 
 
-def level1_match(e1: dict, e2: dict) -> list[tuple]:
+def level1_match(e1: dict, e2: dict) -> list[ThresholdResult]:
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -254,7 +256,7 @@ def level1_match(e1: dict, e2: dict) -> list[tuple]:
     return score
 
 
-def level2_match(e1: dict, e2: dict) -> list[tuple]:
+def level2_match(e1: dict, e2: dict) -> list[ThresholdResult]:
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -284,7 +286,7 @@ def compare_author_fields(e1_authors, e2_authors) -> bool:
     return False
 
 
-def compare_author_keywords(e1_authors, e2_authors) -> tuple:
+def compare_author_keywords(e1_authors, e2_authors) -> ThresholdResult:
     max_score = 0
     for i in e1_authors:
         for j in e2_authors:
@@ -300,7 +302,7 @@ def compare_author_keywords(e1_authors, e2_authors) -> tuple:
         return ('authors', 'mismatch', -200)
 
 
-def compare_authors(e1: dict, e2: dict) -> tuple:
+def compare_authors(e1: dict, e2: dict) -> ThresholdResult:
     """
     Compares the authors of two edition representations and
     returns a evaluation and score.
@@ -308,7 +310,7 @@ def compare_authors(e1: dict, e2: dict) -> tuple:
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
     :rtype: tuple
-    :return: str?, message, score
+    :return: field/category, message, score
     """
     if 'authors' in e1 and 'authors' in e2:  # noqa: SIM102
         if compare_author_fields(e1['authors'], e2['authors']):
@@ -417,7 +419,7 @@ def short_part_publisher_match(p1: str, p2: str) -> bool:
     return all(substr_match(i, j) for i, j in zip(pub1, pub2))
 
 
-def compare_publisher(e1: dict, e2: dict) -> tuple:
+def compare_publisher(e1: dict, e2: dict) -> ThresholdResult:
     if 'publishers' in e1 and 'publishers' in e2:
         for e1_pub in e1['publishers']:
             e1_norm = normalize(e1_pub)
