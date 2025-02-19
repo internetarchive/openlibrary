@@ -5,7 +5,7 @@ import logging
 import requests
 import web
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("openlibrary")
 
 
 class Recaptcha(web.form.Input):
