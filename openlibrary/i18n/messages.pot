@@ -5714,8 +5714,8 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
-msgid "Review"
+#: merge_request_table/table_row.html
+msgid "Review <!-- (merge request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6592,6 +6592,10 @@ msgstr ""
 
 #: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
+msgstr ""
+
+#: type/edition/modal_links.html
+msgid "Review"
 msgstr ""
 
 #: type/edition/title_and_author.html
