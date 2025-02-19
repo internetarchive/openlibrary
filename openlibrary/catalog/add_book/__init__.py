@@ -396,7 +396,9 @@ def normalize_record_bibids(rec: dict):
     for field in ('isbn_13', 'isbn_10', 'isbn'):
         if rec.get(field):
             rec[field] = [
-                normalize_isbn(isbn) for isbn in rec.get(field, '') if normalize_isbn(isbn)
+                normalize_isbn(isbn)
+                for isbn in rec.get(field, '')
+                if normalize_isbn(isbn)
             ]
     if rec.get('lccn'):
         rec['lccn'] = [

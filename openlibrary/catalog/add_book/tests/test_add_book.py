@@ -1871,7 +1871,8 @@ class TestNormalizeImportRecord:
 
 
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
-    # An existing light title + ISBN only record
+    # An existing light title + ISBN only record should not match an
+    # incoming pre-ISBN record.
     existing_edition = {
         'key': '/books/OL113M',
         # NO author
