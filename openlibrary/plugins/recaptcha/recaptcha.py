@@ -38,5 +38,6 @@ class Recaptcha(web.form.Input):
         data = r.json()
         if not data.get('success', False) and 'error-codes' in data:
             logger.error(f"Recaptcha Error: {data['error-codes']}")
+            return True
 
         return data.get('success', '')
