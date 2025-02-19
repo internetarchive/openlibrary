@@ -17,13 +17,11 @@ export function initSignupForm() {
     const USERNAME_MINLENGTH = 3;
     const USERNAME_MAXLENGTH = 20;
 
-    if (window.grecaptcha) {
-        // Callback that is called when grecaptcha.execute() is successful
-        function submitCreateAccountForm() {
-            signupForm.submit();
-        }
-        window.submitCreateAccountForm = submitCreateAccountForm
+    // Callback that is called when grecaptcha.execute() is successful
+    function submitCreateAccountForm() {
+        signupForm.submit();
     }
+    window.submitCreateAccountForm = submitCreateAccountForm
 
     // Checks whether reportValidity exists for cross-browser compatibility
     // Includes invalid input count to account for checks not covered by reportValidity
