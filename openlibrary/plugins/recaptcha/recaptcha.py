@@ -6,6 +6,8 @@ import requests
 import web
 
 
+logger = logging.getLogger(__name__)
+
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
         self.public_key = public_key
@@ -30,9 +32,13 @@ class Recaptcha(web.form.Input):
         try:
             r = requests.get(url, params=params, timeout=3)
         except requests.exceptions.RequestException as e:
-            logging.getLogger("openlibrary").exception(
+            logger.exception(
                 'Recaptcha call failed: letting user through'
             )
             return True
 
-        return r.json().get('success', '')
+        data = r.json()
+        if not data.get('success', False) and 'error-codes' in data:
+            logger.error(f"Recaptcha Error: {data['error-codes']}")
+
+        return data.get('success', '')
