@@ -5,8 +5,8 @@ import logging
 import requests
 import web
 
-
 logger = logging.getLogger(__name__)
+
 
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
@@ -32,9 +32,7 @@ class Recaptcha(web.form.Input):
         try:
             r = requests.get(url, params=params, timeout=3)
         except requests.exceptions.RequestException as e:
-            logger.exception(
-                'Recaptcha call failed: letting user through'
-            )
+            logger.exception('Recaptcha call failed: letting user through')
             return True
 
         data = r.json()
