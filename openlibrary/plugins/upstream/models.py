@@ -743,7 +743,7 @@ class Work(models.Work):
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
         ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability_of_ocaids(ocaids) if ocaids else {}
+        availability = lending.get_availability('identifier', ocaids)
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
