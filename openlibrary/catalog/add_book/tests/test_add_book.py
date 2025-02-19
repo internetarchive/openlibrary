@@ -1151,7 +1151,10 @@ def test_preisbn_import_does_not_match_existing_undated_isbn_record(mock_site) -
     }
     existing_work = {
         'authors': [
-            {'author': {'key': '/authors/OL21594A'}, 'type': {'key': '/type/author_role'}}
+            {
+                'author': {'key': '/authors/OL21594A'},
+                'type': {'key': '/type/author_role'},
+            }
         ],
         'key': '/works/OL16W',
         'title': 'Sense and Sensibility',
@@ -1181,7 +1184,9 @@ def test_preisbn_import_does_not_match_existing_undated_isbn_record(mock_site) -
     assert reply['authors'][0]['key'] == '/authors/OL21594A'
     assert reply['work']['status'] == 'matched'
     assert reply['work']['key'] == '/works/OL16W'
-    assert reply['edition']['status'] == 'created'  # New edition is created, not matched
+    assert (
+        reply['edition']['status'] == 'created'
+    )  # New edition is created, not matched
 
 
 def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
