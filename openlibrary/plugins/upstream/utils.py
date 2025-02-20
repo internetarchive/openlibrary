@@ -1186,6 +1186,7 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     return _get_identifier_config(identifier)
 
+
 @public
 def get_user_lang_marc() -> str:
     return convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
