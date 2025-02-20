@@ -37,18 +37,6 @@ describe('SearchBar', () => {
             expect(sb.facet.read()).toBe(originalValue);
         });
 
-        test('Sets input value from q param', () => {
-            sb.initFromUrlParams({q: 'Harry Potter'});
-            expect(sb.$input.val()).toBe('Harry Potter');
-        });
-
-        test('Remove title prefix from q param', () => {
-            sb.initFromUrlParams({q: 'title:"Harry Potter"', facet: 'title'});
-            expect(sb.$input.val()).toBe('Harry Potter');
-            sb.initFromUrlParams({q: 'title: "Harry"', facet: 'title'});
-            expect(sb.$input.val()).toBe('Harry');
-        });
-
         test('Persists value in url param', () => {
             expect(localStorage.getItem('facet')).not.toBe('title');
             sb.initFromUrlParams({facet: 'title'});

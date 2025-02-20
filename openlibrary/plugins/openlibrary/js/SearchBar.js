@@ -164,17 +164,6 @@ export class SearchBar {
         if (urlParams.facet in FACET_TO_ENDPOINT) {
             this.facet.write(urlParams.facet);
         }
-
-        if (urlParams.q && window.location.pathname.match(/^\/search/)) {
-            let q = urlParams.q.replace(/\+/g, ' ');
-            if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
-                const parts = q.split('"');
-                if (parts.length === 3) {
-                    q = parts[1];
-                }
-            }
-            this.$input.val(q);
-        }
     }
 
     submitForm() {
