@@ -8,13 +8,14 @@ import web
 logger = logging.getLogger("openlibrary")
 
 INVALIDATING_ERRORS = [
-                "invalid-input-secret",
-                "missing-input-secret",
-                "missing-input-response",
-                "invalid-input-response",
-                "bad-request",
-                "timeout-or-duplicate",
-            ]
+    "invalid-input-secret",
+    "missing-input-secret",
+    "missing-input-response",
+    "invalid-input-response",
+    "bad-request",
+    "timeout-or-duplicate",
+]
+
 
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
