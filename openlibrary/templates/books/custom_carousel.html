@@ -107,7 +107,7 @@ $if test or (books and len(books) >= min_books):
           $for index, book in enumerate(books or []):
               $ book2 = book.get('editions', {}).get('docs', [None])[0] or book
               $ book2['authors'] = book['authors'] if 'authors' in book else []
-              $:render_carousel_cover(book2, index > 5)
+              $:render_carousel_cover(book2, index > 5, layout)
         </div>
       </div>
     </div>
