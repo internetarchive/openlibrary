@@ -2,9 +2,9 @@ import json
 from time import time
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.core.fulltext import fulltext_search
 
 RESULTS_PER_PAGE = 20

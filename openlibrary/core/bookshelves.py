@@ -6,8 +6,8 @@ from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 
 import web
-
 from infogami.infobase.utils import flatten
+
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
