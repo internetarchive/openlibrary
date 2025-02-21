@@ -483,7 +483,6 @@ class WorkSearchScheme(SearchScheme):
             # neeed to specify it twice.
             new_params.append(('editions.userEdQuery', ed_q or '*:*'))
 
-
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
                 qf='text alternative_title^4 author_name^4',
