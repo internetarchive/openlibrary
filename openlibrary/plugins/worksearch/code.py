@@ -24,6 +24,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
+    safeget,
     urlencode,
 )
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -134,7 +135,6 @@ def execute_solr_query(
     stats.begin("solr", url=url)
     try:
         response = get_solr().raw_request(solr_path, urlencode(params))
-        response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -252,11 +252,11 @@ def run_solr_query(  # noqa: PLR0912
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
     response = execute_solr_query(solr_select_url, params)
-    solr_result = response.json() if response else None
+    solr_result = response.json() if response is not None else None
     end_time = time.time()
     duration = end_time - start_time
 
-    if solr_result is not None:
+    if safeget(lambda: solr_result['response']['docs']):
         non_solr_fields = set(fields) & scheme.non_solr_fields
         if non_solr_fields:
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
