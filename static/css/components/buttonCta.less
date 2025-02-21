@@ -5,8 +5,7 @@
 @import "../less/index.less";
 
 // `a` specificity is needed to override default anchor styles
-.cta-btn,
-a.cta-btn {
+.cta-btn, a.cta-btn {
   font-size: 16px;
   color: @white;
   width: 100%;
@@ -23,7 +22,6 @@ a.cta-btn {
   background-color: @grey;
   line-height: 1.5em;
   text-decoration: none;
-
   transition: background-color .2s;
 
   .btn-icon {
@@ -38,7 +36,9 @@ a.cta-btn {
     background-position: center;
   }
 
-  .btn-label { padding: 0 10px; }
+  .btn-label { 
+    padding: 0 10px; 
+  }
 
   &:link, &:visited {
     color: @white;
@@ -49,10 +49,13 @@ a.cta-btn {
     cursor: default;
   }
 
-  &--available, &--preview, &--primary {
+  &--available, &--preview, &--primary, &--unavailable {
     background-color: @primary-blue;
     color: @white;
-    &:hover { background-color: darken(@primary-blue, 20%); }
+
+    &:hover { 
+      background-color: darken(@primary-blue, 20%); 
+    }
   }
 
   &--available:disabled, &--preview:disabled, &--primary:disabled {
@@ -68,12 +71,6 @@ a.cta-btn {
     justify-content: center;
   }
 
-  &--unavailable {
-    background-color: @primary-blue;
-    color: @white;
-    &:hover { background-color: darken(@primary-blue, 20%); }
-  }
-
   &--shell&--external {
     background-blend-mode: difference;
   }
@@ -81,15 +78,18 @@ a.cta-btn {
   &--shell, &--shell:link, &--shell:visited {
     .shell-btn--active();
   }
+
   &--shell:disabled {
     border: 2px solid @light-grey;
     color: @light-grey;
     cursor: default;
   }
+
   &--sponsor {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
+
   &--vanilla, &--vanilla:visited, &--vanilla:link {
     padding: 5px;
     border: 2px solid @light-grey;
@@ -111,6 +111,7 @@ a.cta-btn {
     &:visited {
       color: @grey;
     }
+    
     &:hover {
       background-color: darken(@red, 20%);
     }
