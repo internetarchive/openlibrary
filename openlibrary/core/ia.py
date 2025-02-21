@@ -1,5 +1,4 @@
-"""Library for interacting with archive.org.
-"""
+"""Library for interacting with archive.org."""
 
 import datetime
 import logging
@@ -35,7 +34,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
         else:
             logger.info(f'{r.status_code} response received from {url}')
     except Exception as e:
-        logger.exception('Exception occurred accessing %s.' % url)
+        logger.exception(f'Exception occurred accessing {url}.')
     stats.end()
     return api_response
 
@@ -124,7 +123,7 @@ def get_cover_url(item_id):
 
 
 def get_item_manifest(item_id, item_server, item_path):
-    url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
+    url = f'https://{item_server}/BookReader/BookReaderJSON.php'
     url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
     return get_api_response(url)
 
@@ -205,7 +204,6 @@ class ItemEdition(dict):
             metadata.get("noindex") == "true"
             and "printdisabled" not in collections
             and "inlibrary" not in collections
-            and "lendinglibrary" not in collections
         ):
             return "noindex-true"
         # Gio - April 2016

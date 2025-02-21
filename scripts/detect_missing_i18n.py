@@ -43,7 +43,7 @@ regex_skip_previous_line = r"^\s*\$?" + skip_directive
 # - Not concerned about HTML elements whose untranslated contents follow a newline, i.e. <p>\nsome untranslated text\n<p>.
 # - Don't want to flag false positives where > characters are not part of tags, so this regex looks for a complete opening tag.
 # TODO: replace the huge punctuation array with \p{L} - only supported in pip regex and not re
-punctuation = r"[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!xX✓×@\"'†★]"
+punctuation = r"[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!xX✓×@\"'†★]"  # noqa: RUF001
 htmlents = r"&[a-z0-9]+;"
 variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|\$[\{][^\}]+[\}]|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
 urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[A-Za-z]{2}[a-z]?"

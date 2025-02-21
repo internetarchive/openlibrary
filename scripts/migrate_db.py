@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Script to migrate the OL database to latest schema.
-"""
+"""Script to migrate the OL database to latest schema."""
 
 import itertools
 import json

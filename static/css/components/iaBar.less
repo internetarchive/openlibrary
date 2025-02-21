@@ -12,6 +12,11 @@
   // This is to right align the donate button and language dropdown
   .iaLogo {
     flex: 1;
+    img {
+      max-width: 160px;
+      min-width: 60px;
+      width: 100%;
+    }
   }
   .ghost-btn {
     margin-right: 20px;
@@ -49,5 +54,16 @@
   }
   .topNotice-logo {
     font-size: 24px;
+  }
+
+  @media only screen and (max-width: @width-breakpoint-mobile) {
+    .iabar-mobile {
+      font-size: .9em;
+    }
+    .ghost-btn.iabar-mobile {
+      padding: 5px 7px;
+      margin-right: 10px;
+      margin-left: 10px;
+    }
   }
 }

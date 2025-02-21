@@ -2,6 +2,7 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
+from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 
 import web
@@ -25,15 +26,23 @@ class WorkReadingLogSummary(TypedDict):
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
-    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
-    PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
+    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'Want to Read': 1,
+            'Currently Reading': 2,
+            'Already Read': 3,
+        }
+    )
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON = {
-        'want_to_read': 1,
-        'currently_reading': 2,
-        'already_read': 3,
-    }
+    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'want_to_read': 1,
+            'currently_reading': 2,
+            'already_read': 3,
+        }
+    )
 
     @classmethod
     def summary(cls):

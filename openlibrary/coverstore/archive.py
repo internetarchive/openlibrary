@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Utility to move files from local disk to zip files and update the paths in the db"""
 
 import glob

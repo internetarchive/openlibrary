@@ -149,11 +149,7 @@ class Edition(models.Edition):
         if not meta_fields:
             return
         v = meta_fields['collection']
-        return 'printdisabled' in v or 'lendinglibrary' in v
-
-    #      def is_lending_library(self):
-    #         collections = self.get_ia_collections()
-    #         return 'lendinglibrary' in collections
+        return 'printdisabled' in v
 
     def get_lending_resources(self):
         """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
@@ -168,21 +164,9 @@ class Edition(models.Edition):
         #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
         # </external-identifier>
 
-        itemid = self.ocaid
-        if not itemid:
+        if not self.ocaid:
             return []
-
-        lending_resources = []
-        # Check if available for in-browser lending - marked with 'browserlending' collection
-        browserLendingCollections = ['browserlending']
-        for collection in self.get_ia_meta_fields()['collection']:
-            if collection in browserLendingCollections:
-                lending_resources.append('bookreader:%s' % self.ocaid)
-                break
-
-        lending_resources.extend(self.get_ia_meta_fields()['external-identifier'])
-
-        return lending_resources
+        return self.get_ia_meta_fields()['external-identifier']
 
     def get_lending_resource_id(self, type):
         if type == 'bookreader':

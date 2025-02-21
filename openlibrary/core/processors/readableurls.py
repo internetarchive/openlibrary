@@ -1,5 +1,4 @@
-"""Various web.py application processors used in OL.
-"""
+"""Various web.py application processors used in OL."""
 
 import logging
 import os
@@ -29,14 +28,14 @@ class ReadableUrlProcessor:
     The changequery function is also customized to support this.
     """
 
-    patterns = [
+    patterns = (
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
         (r'/[/\w\-]+/OL\d+L', '/type/list', 'name', 'unnamed'),
         (r'/\w+/OL\d+T', '/type/tag', 'name', 'untitled'),
-    ]
+    )
 
     def __call__(self, handler):
         # temp hack to handle languages and users during upstream-to-www migration

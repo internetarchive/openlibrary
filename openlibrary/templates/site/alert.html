@@ -10,8 +10,8 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
     <div class="iaBar">
         <a class="iaLogo" href="https://archive.org"><img alt="$_('Internet Archive logo')" src="/static/images/ia-logo.svg" width="160"></a>
         $# detect-missing-i18n-skip-line
-        <a class="ghost-btn" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
-      <div class="language-component header-dropdown">
+        <a class="ghost-btn iabar-mobile" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
+        <div class="language-component header-dropdown iabar-mobile">
         <details>
           <summary>
             <span>$active_ui_lang['localized'] ($active_ui_lang['code'])</span>

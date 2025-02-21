@@ -1,5 +1,4 @@
-"""Module for providing core functionality of lending on Open Library.
-"""
+"""Module for providing core functionality of lending on Open Library."""
 
 import datetime
 import logging
@@ -176,7 +175,7 @@ def compose_ia_url(
         sorts = ['']
     for sort in sorts:
         params.append(('sort[]', sort))
-    base_url = "http://%s/advancedsearch.php" % config_bookreader_host
+    base_url = f"http://{config_bookreader_host}/advancedsearch.php"
     return base_url + '?' + urlencode(params)
 
 
@@ -286,11 +285,11 @@ def get_available(
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many(['/books/%s' % olid for olid in results.values()])
+        books = web.ctx.site.get_many([f'/books/{olid}' for olid in results.values()])
         books = add_availability(books)
         return books
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_available(%s)" % url)
+        logger.exception(f"get_available({url})")
         return {'error': 'request_timeout'}
 
 
@@ -566,12 +565,12 @@ def is_loaned_out_on_acs4(identifier: str) -> bool:
 
 def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
-    url = "https://archive.org/services/borrow/%s?action=status" % identifier
+    url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
         response = requests.get(url).json()
         return response and response.get('checkedout')
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("is_loaned_out_on_ia(%s)" % identifier)
+        logger.exception(f"is_loaned_out_on_ia({identifier})")
         return None
 
 
@@ -607,12 +606,12 @@ def get_loan(identifier, user_key=None):
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_loan(%s) 1 of 2" % identifier)
+        logger.exception(f"get_loan({identifier}) 1 of 2")
 
     try:
         _loan = _get_ia_loan(identifier, account and account.itemname)
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_loan(%s) 2 of 2" % identifier)
+        logger.exception(f"get_loan({identifier}) 2 of 2")
 
     return _loan
 
@@ -654,6 +653,9 @@ def get_user_waiting_loans(user_key):
     Returns [] if user has no waitingloans.
     """
     from .waitinglist import WaitingLoan
+
+    if "site" not in web.ctx:
+        delegate.fakeload()
 
     try:
         account = OpenLibraryAccount.get(key=user_key)

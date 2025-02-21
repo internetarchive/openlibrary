@@ -17,8 +17,6 @@ $def with (q_param, search_response, get_doc, param, page, rows)
         <label for="mode-search-everything">$_('Everything')</label>
         <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
         <label for="mode-search-ebooks">$_('Ebooks')</label>
-        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-        <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
       $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
         <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">

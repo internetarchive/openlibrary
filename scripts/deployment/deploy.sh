@@ -1,19 +1,20 @@
 #!/bin/bash
 
-handle_error() {
-    echo -e "\n\nERR" >&2
+clean_exit() {
     if [ -n "$TMP_DIR" ]; then
         cleanup "$TMP_DIR"
     fi
     exit 1
 }
 
+handle_error() {
+    echo -e "\n\nERR" >&2
+    clean_exit
+}
+
 handle_exit() {
     echo -e "\n\nSIGINT" >&2
-    if [ -n "$TMP_DIR" ]; then
-        cleanup "$TMP_DIR"
-    fi
-    exit 1
+    clean_exit
 }
 
 trap 'handle_error' ERR
@@ -24,7 +25,6 @@ set -e
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-IGNORE_CHANGES=${IGNORE_CHANGES:-0}
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -43,6 +43,20 @@ cleanup() {
     rm -rf $TMP_DIR
 }
 
+# Show a looping y/n prompt
+wait_yn() {
+    local prompt=$1
+
+    while true; do
+        read -p "$prompt (y/n) " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) clean_exit;;
+            * ) ;;
+        esac
+    done
+}
+
 check_for_local_changes() {
     SERVER=$1
     REPO_DIR=$2
@@ -53,15 +67,17 @@ check_for_local_changes() {
 
     if [ -z "$OUTPUT" ]; then
         echo "✓"
-    elif [ $IGNORE_CHANGES -eq 1 ]; then
-        echo "✗ (ignored)"
     else
         echo "✗"
-        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them before deploying."
-        echo "Or, set IGNORE_CHANGES=1 to ignore this check."
-        ssh -t $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all"
-        cleanup "$TMP_DIR"
-        exit 1
+        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
+        ssh -t $SERVER "
+            cd $REPO_DIR
+            sudo git status --porcelain --untracked-files=all
+            echo ''
+            sudo git diff
+        "
+
+        wait_yn "Ignore changes and continue?"
     fi
 }
 
@@ -236,6 +252,10 @@ deploy_openlibrary() {
         echo "✓ Docker image is up-to-date"
     fi
 
+    DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
+    git -C openlibrary tag $DEPLOY_TAG
+    git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+
     check_server_access
 
     echo "Checking for changes in the openlibrary repo on the servers..."
@@ -270,8 +290,8 @@ deploy_openlibrary() {
     echo "Prune docker images/cache..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
-        # ssh $SERVER "docker image prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f && docker builder prune -f" 2>&1); then
+        # ssh $SERVER "docker image prune -f && docker builder prune -f"
+        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
             echo "✓"
         else
             echo "⚠"
@@ -293,9 +313,11 @@ deploy_openlibrary() {
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
-        "
-        echo "   ... $SERVER ✓"
+        " &> /dev/null &
     done
+
+    wait
+    echo "   ... Done ✓"
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -305,11 +327,6 @@ deploy_openlibrary() {
 
 # Clone booklending utils
 # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
-
-# And tag the deploy!
-# DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
-# sudo git tag $DEPLOY_TAG
-# sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
 
 # Supports:

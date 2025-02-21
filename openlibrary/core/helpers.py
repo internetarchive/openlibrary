@@ -1,5 +1,4 @@
-"""Generic helper functions to use in the templates and the webapp.
-"""
+"""Generic helper functions to use in the templates and the webapp."""
 
 import json
 import re
@@ -335,12 +334,17 @@ def private_collection_in(collections: list[str]) -> bool:
     return any(x in private_collections() for x in collections)
 
 
-def extract_year(input: str) -> str:
+def extract_year(input: str, int_only: bool = True) -> str:
     """Extracts the year from an author's birth or death date."""
-    if result := re.search(r'\d{4}', input):
-        return result.group()
+    if int_only:
+        pattern = r'\d{4}'
     else:
-        return ''
+        pattern = r'[0-9xX?]{4}'
+
+    if result := re.search(pattern, input):
+        return result.group()
+
+    return ''
 
 
 def _get_helpers():

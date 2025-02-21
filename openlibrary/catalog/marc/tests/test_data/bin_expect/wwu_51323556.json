@@ -119,13 +119,11 @@
   "publish_country": "enk",
   "authors": [
     {
-      "personal_name": "Goodchild, Michael F.",
       "name": "Goodchild, Michael F.",
       "entity_type": "person"
     },
     {
       "birth_date": "1940",
-      "personal_name": "Janelle, Donald G.",
       "name": "Janelle, Donald G.",
       "entity_type": "person"
     }

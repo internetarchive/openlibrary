@@ -1,5 +1,4 @@
-"""Publisher pages
-"""
+"""Publisher pages"""
 
 import logging
 

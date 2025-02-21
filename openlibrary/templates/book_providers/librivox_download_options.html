@@ -5,7 +5,7 @@ $def with(librivox_id, ocaid)
 <p class="cta-section-title">$_("Download Options")</p>
 <ul class="ebook-download-options">
   $if ocaid:
-    <li><a href="http://www.archive.org/download/$(ocaid)/$(ocaid)_64kb_mp3.zip" title="$_('Download a ZIP file of the whole book from Internet Archive')">$_("Whole Book MP3")</a></li>
+    <li><a href="http://www.archive.org/download/$(ocaid)/$(ocaid)_64kb_mp3.zip" data-ol-link-track="Download|mp3zip_librivox_ia" title="$_('Download a ZIP file of the whole book from Internet Archive')">$_("Whole Book MP3")</a></li>
   <li><a href="https://librivox.org/rss/$librivox_id" title="$_('Get the RSS Feed from LibriVox')">$_("RSS Feed")</a></li>
   <li><a href="https://librivox.org/$librivox_id">$_("More at LibriVox")</a></li>
 </ul>

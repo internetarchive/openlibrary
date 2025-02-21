@@ -1,5 +1,4 @@
-"""Handle book cover/author photo upload.
-"""
+"""Handle book cover/author photo upload."""
 
 import os
 from logging import getLogger
@@ -29,7 +28,7 @@ def setup():
 class image_validator:
     def __init__(self):
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
-        self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png'}
+        self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png', '.webp'}
 
     def validate_size(self, file_data):
         file_size = len(file_data.read())

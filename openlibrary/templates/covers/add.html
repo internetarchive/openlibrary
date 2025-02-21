@@ -13,7 +13,7 @@ $else:
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
-<div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
+<div class="popAlert" id="errors">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
     $elif status.code == 2: $_("Please provide an image URL.")
@@ -49,11 +49,27 @@ $if doc.type.key == "/type/work":
         <label for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
     </div>
     <div class="input">
-        <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png" required/>
+        <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png, .webp" required/>
         <button type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
     </div>
 </form>
 
+<form id="clipboardForm" class="ol-cover-form ol-cover-form--clipboard" method="post" enctype="multipart/form-data" action="$action">
+    <div class="label">
+        <label for="coverClipboard">$_("Or, paste an image from your clipboard")</label>
+    </div>
+
+    <div class="image-container"></div>
+
+    <input type="file" name="file" id="hiddenFileInput" aria-label="Hidden file input" />
+
+    <div class="button-container">
+        <button type="button" id="pasteButton" class="cta-btn cta-btn--vanilla paste-button" aria-label="$_('Paste image from clipboard')">$_("No Image Pasted")</button>
+        <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla upload-button hidden" aria-label="$_('Upload image')">$_("Upload Image")</button>
+    </div>
+</form>
+
+$:macros.LoadingIndicator(_("Uploading..."))
 $#<form class="ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
 $#    <div class="label">
 $#        <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
@@ -77,5 +93,3 @@ $if doc.type.key == "/type/edition" and doc.ocaid:
             <button type="submit" id="coverIA" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Use this image")</button>
         </div>
     </form>
-
-$:macros.LoadingIndicator(_("Uploading..."))

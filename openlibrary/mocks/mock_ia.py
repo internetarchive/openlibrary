@@ -1,5 +1,4 @@
-"""Mock of openlibrary.core.ia module.
-"""
+"""Mock of openlibrary.core.ia module."""
 
 import pytest
 

@@ -1,5 +1,4 @@
-"""Interface to import queue.
-"""
+"""Interface to import queue."""
 
 import contextlib
 import datetime
@@ -30,11 +29,11 @@ if TYPE_CHECKING:
 
 class Batch(web.storage):
 
-    def __init__(self, mapping, *requireds, **defaults):
+    def __init__(self, mapping, *requires, **defaults):
         """
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
         """
-        super().__init__(mapping, *requireds, **defaults)
+        super().__init__(mapping, *requires, **defaults)
         self.total_submitted: int = 0
         self.total_queued: int = 0
         self.total_skipped: int = 0

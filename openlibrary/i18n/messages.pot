@@ -434,18 +434,24 @@ msgid "Internal Error"
 msgstr ""
 
 #: internalerror.html
-msgid "Hmm..."
+msgid "A Problem Occurred"
 msgstr ""
 
 #: internalerror.html
-msgid "Sorry. There seems to be a problem with what you were just looking at."
+msgid "We're sorry, a problem occurred while responding to your request:"
 msgstr ""
 
 #: internalerror.html
 #, python-format
 msgid ""
-"We've noted the error %s and will look into it as soon as possible. Head "
-"for <a href=\"/\">home</a>?"
+"The reference code %s has been created to track this error and we will "
+"investigate as we're able."
+msgstr ""
+
+#: internalerror.html
+msgid ""
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
 msgstr ""
 
 #: lib/nav_head.html library_explorer.html
@@ -485,12 +491,6 @@ msgstr ""
 msgid "OR"
 msgstr ""
 
-#: login.html
-msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
-"email and password to access your Open Library account."
-msgstr ""
-
 #: account/create.html login.html
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
@@ -501,6 +501,12 @@ msgid ""
 "If you'd like to create a new, different Open Library account, you'll "
 "need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
 "logout'].submit()\">log out</a> and start the signup process afresh."
+msgstr ""
+
+#: login.html
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
 msgstr ""
 
 #: forms.py login.html
@@ -942,10 +948,6 @@ msgid "Ebooks"
 msgstr ""
 
 #: work_search.html
-msgid "Print Disabled"
-msgstr ""
-
-#: work_search.html
 msgid "This is only visible to super librarians."
 msgstr ""
 
@@ -1351,6 +1353,11 @@ msgstr ""
 msgid "This reader has chosen to make their Reading Log private."
 msgstr ""
 
+#: account/mybooks.html
+#, python-format
+msgid "%(year_span)s reading goal"
+msgstr ""
+
 #: account/mybooks.html account/sidebar.html
 msgid "Untitled list"
 msgstr ""
@@ -1734,10 +1741,6 @@ msgstr ""
 msgid "Set %(year_span)s reading goal"
 msgstr ""
 
-#: account/sidebar.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
 msgstr ""
@@ -1791,6 +1794,10 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
+msgstr ""
+
+#: account/view.html
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/view.html books/mybooks_breadcrumb_select.html
@@ -4398,11 +4405,31 @@ msgid "Upload"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Or, paste an image from your clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "Paste image from clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "No Image Pasted"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload image"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload Image"
 msgstr ""
 
 #: covers/add.html
 msgid "Uploading..."
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/author_photo.html
@@ -4764,58 +4791,6 @@ msgid "%s book"
 msgid_plural "%s books"
 msgstr[0] ""
 msgstr[1] ""
-
-#: languages/language_list.html
-msgid "Czech"
-msgstr ""
-
-#: languages/language_list.html
-msgid "German"
-msgstr ""
-
-#: languages/language_list.html
-msgid "English"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Spanish"
-msgstr ""
-
-#: languages/language_list.html
-msgid "French"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Croatian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Italian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Portuguese"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Hindi"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Sardinian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Telugu"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Ukrainian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Chinese"
-msgstr ""
 
 #: languages/notfound.html
 #, python-format
@@ -5687,8 +5662,8 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
-msgid "Review"
+#: merge_request_table/table_row.html
+msgid "Review <!-- (merge request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6567,6 +6542,10 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "Review"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -7291,6 +7270,10 @@ msgid ""
 msgstr ""
 
 #: EditionNavBar.html
+msgid "Go to previous section"
+msgstr ""
+
+#: EditionNavBar.html
 msgid "Overview"
 msgstr ""
 
@@ -7829,7 +7812,20 @@ msgid ""
 msgstr ""
 
 #: account.py
+msgid "Email provider not recognized."
+msgstr ""
+
+#: account.py
+msgid "Password requirements not met."
+msgstr ""
+
+#: account.py
 msgid "A problem occurred and we were unable to log you in"
+msgstr ""
+
+#: account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
 msgstr ""
 
 #: account.py

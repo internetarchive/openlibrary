@@ -36,7 +36,9 @@ def log(*args) -> None:
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format."""
     start_time = datetime.now()
+    total = 0
     for i, raw_json_data in enumerate(json_records):
+        total += 1
         if i % 1_000_000 == 0:
             log(f"print_dump {i:,}")
         d = json.loads(raw_json_data)
@@ -69,7 +71,7 @@ def print_dump(json_records, filter=None):
 
         print("\t".join([type_key, key, str(d["revision"]), timestamp, json_data]))
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"    print_dump() processed {i:,} records in {minutes:,} minutes.")
+    log(f"    print_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
 def read_data_file(filename: str, max_lines: int = 0):
@@ -79,21 +81,20 @@ def read_data_file(filename: str, max_lines: int = 0):
     """
     start_time = datetime.now()
     log(f"read_data_file({filename}, max_lines={max_lines if max_lines else 'all'})")
+    total = 0
     for i, line in enumerate(xopen(filename, "rt")):
+        total += 1
         thing_id, revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
         if max_lines and i >= max_lines:
             break
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"read_data_file() processed {i:,} records in {minutes:,} minutes.")
+    log(f"read_data_file() processed {total:,} records in {minutes:,} minutes.")
 
 
 def xopen(path: str, mode: str):
     if path.endswith(".gz"):
-        with gzip.open(
-            path, mode
-        ) as file:  # need to add no QA when the rule is enabled
-            return file
+        return gzip.open(path, mode)
     else:
         return open(path, mode)
 
@@ -105,14 +106,16 @@ def read_tsv(file, strip=True):
     if isinstance(file, str):
         file = xopen(file, "rt")
 
+    total = 0
     for i, line in enumerate(file):
+        total += 1
         if i % 1_000_000 == 0:
             log(f"read_tsv {i:,}")
         if strip:
             line = line.strip()
         yield line.split("\t")
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f" read_tsv() processed {i:,} records in {minutes:,} minutes.")
+    log(f" read_tsv() processed {total:,} records in {minutes:,} minutes.")
 
 
 def generate_cdump(data_file, date=None):
@@ -144,12 +147,14 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     M = 1024 * 1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
-    files = [gzip.open(f, "wb") for f in filenames]
+    files = [gzip.open(f, "wb") for f in filenames]  # noqa: SIM115
     stdin = xopen(dump_file, "rb") if dump_file else sys.stdin.buffer
 
     # split the file into 256 chunks using hash of key
     log("sort_dump", dump_file or "stdin")
+    total = 0
     for i, line in enumerate(stdin):
+        total += 1
         if i % 1_000_000 == 0:
             log(f"sort_dump {i:,}")
 
@@ -170,7 +175,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         if status != 0:
             raise Exception("sort failed with status %d" % status)
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"sort_dump() processed {i:,} records in {minutes:,} minutes.")
+    log(f"sort_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
 def generate_dump(cdump_file=None):
@@ -231,7 +236,9 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         files[t] = xopen(format % tname, "wt")
 
     stdin = xopen(dump_file, "rt") if dump_file else sys.stdin
+    total = 0
     for i, line in enumerate(stdin):
+        total += 1
         if i % 1_000_000 == 0:
             log(f"split_dump {i:,}")
         type, rest = line.split("\t", 1)
@@ -243,14 +250,16 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     for f in files.values():
         f.close()
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"split_dump() processed {i:,} records in {minutes:,} minutes.")
+    log(f"split_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
     log(f"make_index({dump_file})")
     start_time = datetime.now()
+    total = 0
     for i, line in enumerate(read_tsv(dump_file)):
+        total += 1
         type, key, revision, timestamp, json_data = line
         data = json.loads(json_data)
         if type in ("/type/edition", "/type/work"):
@@ -271,7 +280,7 @@ def make_index(dump_file):
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"make_index() processed {i:,} records in {minutes:,} minutes.")
+    log(f"make_index() processed {total:,} records in {minutes:,} minutes.")
 
 
 def _process_key(key):
