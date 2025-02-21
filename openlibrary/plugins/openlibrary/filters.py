@@ -8,7 +8,6 @@ import re
 logger = logging.getLogger("openlibrary.stats_filters")
 
 import web
-
 from infogami import config
 
 
