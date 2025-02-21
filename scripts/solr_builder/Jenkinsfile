@@ -1,8 +1,8 @@
 pipeline {
   agent {
-    dockerfile {
-      filename 'Dockerfile'
-      dir 'scripts/solr_builder'
+    docker {
+      // filename 'Dockerfile'
+      image 'openlibrary/solr-builder:latest'
       // Needed to make docker-in-docker work
       args '-v /var/run/docker.sock:/var/run/docker.sock'
       args '-v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data'
