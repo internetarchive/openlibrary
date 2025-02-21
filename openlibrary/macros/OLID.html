@@ -8,8 +8,8 @@ $ title = edition.title
 $if(olid == q):
     <a href="$edition.key">$title</a>
     <h6>$edition.get_authors()</h6>
-    <img src="/books/add?work=$edition.key" />
+    <img src="/books/add?work=$edition.key" alt="$title"/>
 $else:
     <a href="$result">$olid</a>
     <h6>$edition.get_authors()</h6>
-    <img src="/books/add?work=$olid" />
+    <img src="/books/add?work=$olid" alt="$olid" />
