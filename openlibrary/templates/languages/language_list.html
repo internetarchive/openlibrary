@@ -1,6 +1,6 @@
 $def with (classes='')
 
 <ul class="locale-options $classes">
-  $for lang_code, lang_data in supported_langs.items():
-    <li><a href="#" lang="$lang_code" data-lang-id="$lang_code" title="$_(lang_data['localized'])">$(lang_data['native']) ($lang_code)</a></li> $# detect-missing-i18n-skip-line
+  $for lang in get_supported_languages().values():
+    <li><a href="#" lang="$lang['code']" data-lang-id="$lang['code']" title="$lang['localized']">$lang['native'] ($lang['code'])</a></li> $# detect-missing-i18n-skip-line
 </ul>
