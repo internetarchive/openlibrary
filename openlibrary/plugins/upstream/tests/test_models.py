@@ -99,3 +99,5 @@ class TestModels:
     def test_olid_link(self):
         edition = models.Edition(web.ctx.site, '/books/OL42679M', web.Storage())
         assert edition.key == '/books/OL42679M'
+        assert edition.title is not None
+        assert edition.get_authors() is not None
