@@ -45,6 +45,16 @@ $def with (q_param, search_response, get_doc, param, page, rows)
 
 <!-- results -->
 
+    $if search_response.error:
+      $ add_flash_message("error", _("The search engine returned an error."))
+      $if is_feature_enabled('debug'):
+        <div class="ol-message ol-message--warning">
+          <h3>$_("Solr Debugging:")</h3>
+          $search_response.error['msg']
+          <hr>
+          $_("Full URL:") <a href="$search_response.solr_select" target="_blank">$search_response.solr_select</a>
+        </div>
+
     $if param and not search_response.docs:
         $if ctx.path == '/search':
             $ path_id = 'books'
@@ -94,18 +104,18 @@ $def with (q_param, search_response, get_doc, param, page, rows)
 
 <!-- facets -->
 
-$if search_response.error:
-    <h3>$_("BARF! Search engine ERROR!")</h3>
-    <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
-$elif param and len(search_response.docs):
+
+$if not search_response.error and param and len(search_response.docs):
     $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
-
-    $if param and not search_response.error and len(search_response.docs):
-        $if ctx.user and ctx.user.is_admin():
-            <div id="adminTiming" class="small sansserif clearfix">
-                <br/><span class="adminOnly">$_('Searching solr took %(count)s seconds', count="%.2f" % search_response.time)</span>
-            </div>
+    $if search_response and ctx.user and ctx.user.is_admin():
+      <div id="adminTiming" class="small sansserif clearfix">
+        <a
+          class="adminOnly"
+          href="$search_response.solr_select"
+          target="_blank"
+        >$_('Searching solr took %(count)s seconds', count="%.2f" % search_response.time)</a>
+      </div>
   </div>
 </div>

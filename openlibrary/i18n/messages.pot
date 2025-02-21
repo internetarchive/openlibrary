@@ -956,6 +956,18 @@ msgid "Solr Editions"
 msgstr ""
 
 #: work_search.html
+msgid "The search engine returned an error."
+msgstr ""
+
+#: work_search.html
+msgid "Solr Debugging:"
+msgstr ""
+
+#: work_search.html
+msgid "Full URL:"
+msgstr ""
+
+#: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
 msgstr ""
@@ -975,10 +987,6 @@ msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
 msgstr[1] ""
-
-#: work_search.html
-msgid "BARF! Search engine ERROR!"
-msgstr ""
 
 #: work_search.html
 #, python-format
