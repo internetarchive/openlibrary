@@ -5,12 +5,10 @@ from openlibrary.core import lending
 
 class TestAddAvailability:
     def test_reads_ocaids(self, monkeypatch):
-        def mock_get_availability_of_ocaids(ocaids):
+        def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'available'}}
 
-        monkeypatch.setattr(
-            lending, "get_availability_of_ocaids", mock_get_availability_of_ocaids
-        )
+        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
 
         f = lending.add_availability
         assert f([{'ocaid': 'foo'}]) == [
@@ -31,12 +29,10 @@ class TestAddAvailability:
         assert f([{}]) == [{}]
 
     def test_handles_availability_none(self, monkeypatch):
-        def mock_get_availability_of_ocaids(ocaids):
+        def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'error'}}
 
-        monkeypatch.setattr(
-            lending, "get_availability_of_ocaids", mock_get_availability_of_ocaids
-        )
+        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
 
         f = lending.add_availability
         r = f([{'ocaid': 'foo'}])
