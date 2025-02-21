@@ -477,6 +477,12 @@ class WorkSearchScheme(SearchScheme):
             # the user's work query apply), we use the special value *:* to
             # match everything, but still get boosting.
             new_params.append(('userEdQuery', ed_q or '*:*'))
+            # Needs to also set this on the editions subquery; subqueries appear
+            # to have their own scope for template parameters, so in order
+            # for `userEdQuery` to be available to `editions.q`, we will
+            # neeed to specify it twice.
+            new_params.append(('editions.userEdQuery', ed_q or '*:*'))
+
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
