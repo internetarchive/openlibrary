@@ -1,4 +1,5 @@
 import re
+
 from openlibrary.catalog.add_book.match import normalize
 
 re_split_parts = re.compile('(.*?[. ]+)')
