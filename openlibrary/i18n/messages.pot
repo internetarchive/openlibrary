@@ -4774,10 +4774,6 @@ msgid_plural "%s books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: languages/language_list.html
-msgid "localized"
-msgstr ""
-
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
