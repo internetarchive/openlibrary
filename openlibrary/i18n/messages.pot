@@ -7322,6 +7322,10 @@ msgid ""
 msgstr ""
 
 #: EditionNavBar.html
+msgid "Go to previous section"
+msgstr ""
+
+#: EditionNavBar.html
 msgid "Overview"
 msgstr ""
 
