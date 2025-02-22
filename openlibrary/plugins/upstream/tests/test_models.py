@@ -1,11 +1,7 @@
-"""
-Capture some of the unintuitive aspects of Storage, Things, and Works
-"""
-
 import web
-from infogami.infobase import client
 
 import openlibrary.core.lists.model as list_model
+from infogami.infobase import client
 from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import models
@@ -99,3 +95,5 @@ class TestModels:
     def test_olid_link(self):
         edition = models.Edition(web.ctx.site, '/books/OL42679M', web.Storage())
         assert edition.key == '/books/OL42679M'
+        assert edition.title is not None
+        assert edition.get_authors() is not None
