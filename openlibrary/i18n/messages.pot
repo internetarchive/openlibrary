@@ -4792,58 +4792,6 @@ msgid_plural "%s books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: languages/language_list.html
-msgid "Czech"
-msgstr ""
-
-#: languages/language_list.html
-msgid "German"
-msgstr ""
-
-#: languages/language_list.html
-msgid "English"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Spanish"
-msgstr ""
-
-#: languages/language_list.html
-msgid "French"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Croatian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Italian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Portuguese"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Hindi"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Sardinian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Telugu"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Ukrainian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Chinese"
-msgstr ""
-
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
@@ -5714,8 +5662,8 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
-msgid "Review"
+#: merge_request_table/table_row.html
+msgid "Review <!-- (merge request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6594,6 +6542,10 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "Review"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -7315,6 +7267,10 @@ msgid ""
 "Open Library is a project of the <a "
 "href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
 "profit"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Go to previous section"
 msgstr ""
 
 #: EditionNavBar.html
