@@ -76,35 +76,35 @@
         },
         {
           "src": "/images/Screenshots/MainPageMobile.jpg",
-          "sizes": "360x640",
+          "sizes": "750x1334",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Main Page - Mobile"
         },
         {
           "src": "/images/Screenshots/SearchMobile.jpg",
-          "sizes": "360x640",
+          "sizes": "750x1334",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Search Books - Mobile"
         },
         {
           "src": "/images/Screenshots/StudentLibraryMobile.jpg",
-          "sizes": "360x640",
+          "sizes": "750x1334",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Student Library - Mobile"
         },
         {
           "src": "/images/Screenshots/TrendingMobile.jpg",
-          "sizes": "360x640",
+          "sizes": "750x1334",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Trending - Mobile"
         },
         {
           "src": "/images/Screenshots/ListsMobile.jpg",
-          "sizes": "360x640",
+          "sizes": "750x1334",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Lists - Mobile"
