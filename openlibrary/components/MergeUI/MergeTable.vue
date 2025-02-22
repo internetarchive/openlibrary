@@ -191,11 +191,11 @@ export default {
         },
 
         async merge() {
-            if (!this.master_key || !this.enhancedRecords || !this.editions)
+            if (!this.master_key || !this.records || !this.editions)
                 return undefined;
 
-            const master = this.enhancedRecords.find(r => r.key === this.master_key);
-            const all_dupes = this.enhancedRecords
+            const master = this.records.find(r => r.key === this.master_key);
+            const all_dupes = this.recordecords
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
@@ -212,7 +212,7 @@ export default {
                 list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
             };
 
-            const unmergeable_works = this.enhancedRecords
+            const unmergeable_works = this.records
                 .filter(work => work.type.key === '/type/work' &&
                 this.selected[work.key] &&
                 work.key !== this.master_key &&
