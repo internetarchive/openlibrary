@@ -1,7 +1,3 @@
-"""
-Capture some of the unintuitive aspects of Storage, Things, and Works
-"""
-
 import web
 
 import openlibrary.core.lists.model as list_model
@@ -95,3 +91,9 @@ class TestModels:
         assert user.get_safe_mode() == "no"
         user.save_preferences({'safe_mode': 'yes'})
         assert user.get_safe_mode() == 'yes'
+
+    def test_olid_link(self):
+        edition = models.Edition(web.ctx.site, '/books/OL42679M', web.Storage())
+        assert edition.key == '/books/OL42679M'
+        assert edition.title is not None
+        assert edition.get_authors() is not None
