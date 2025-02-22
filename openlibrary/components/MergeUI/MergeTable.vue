@@ -195,7 +195,7 @@ export default {
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
-            const all_dupes = this.recordecords
+            const all_dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
