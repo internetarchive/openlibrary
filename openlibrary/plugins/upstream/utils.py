@@ -1182,16 +1182,6 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@public
-def get_user_lang_marc() -> str:
-    return convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
-
-
-@public
-def get_author_config():
-    return _get_author_config()
-
-
 @web.memoize
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
