@@ -105,7 +105,7 @@ $if test or (books and len(books) >= min_books):
         <div class="carousel $grid $compact $loadjs"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
-              $ book2 = book.get('editions', {}).get('docs', [None])[0] or book
+              $ book2 = storage(book.get('editions', {}).get('docs', [None])[0] or book)
               $ book2['authors'] = book['authors'] if 'authors' in book else []
               $:render_carousel_cover(book2, index > 5, layout)
         </div>
