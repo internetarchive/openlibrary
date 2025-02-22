@@ -50,8 +50,12 @@ $if test or (books and len(books) >= min_books):
         <div class="carousel $grid $compact $loadjs"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
+<<<<<<< HEAD
               $ lazy_load = index > 5
               $ book2 = book.get('editions', {}).get('docs', [None])[0] or book
+=======
+              $ book2 = storage(book.get('editions', {}).get('docs', [None])[0] or book)
+>>>>>>> 91f253db6 (Fixed misc errors, removed incomplete 'require_user_lang' functionality.)
               $ book2['authors'] = book['authors'] if 'authors' in book else []
               $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
         </div>

@@ -13,7 +13,6 @@ export function initCarouselsPartials() {
             data: {
                 workid: carouselElement.dataset.workid,
                 _component: 'RelatedWorkCarousel',
-                lang: new URLSearchParams(window.location.search).get('lang')
             },
             datatype: 'json',
             success: function (response) {
