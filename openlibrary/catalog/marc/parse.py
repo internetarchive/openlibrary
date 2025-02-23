@@ -36,16 +36,22 @@ ROLES = {
     # MARC 21 relator codes
     # https://www.loc.gov/marc/relators/relacode.html
     'art': 'Artist',
+    'aui': 'Author of introduction',
     'aut': 'Author',
     'clr': 'Colorist',
     'com': 'Compiler',
+    'edc': 'Editor of compilation',
     'edt': 'Editor',
     'ill': 'Illustrator',
     'ltr': 'Letterer',
     'trl': 'Translator',
+    'win': 'Writer of introduction',
+    'wpr': 'Writer of preface',
     # Non-standard terms from $e
     'ed.': 'Editor',
     'comp.': 'Compiler',
+    'ill.': 'Illustrator',
+    'tr.': 'Translator',
 }
 
 
