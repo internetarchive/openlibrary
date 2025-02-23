@@ -48,8 +48,8 @@ ROLES = {
     'win': 'Writer of introduction',
     'wpr': 'Writer of preface',
     # Non-standard terms from $e
-    'ed.': 'Editor',
     'comp.': 'Compiler',
+    'ed.': 'Editor',
     'ill.': 'Illustrator',
     'tr.': 'Translator',
 }
