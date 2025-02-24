@@ -461,6 +461,7 @@ class account_login(delegate.page):
             test=False,
             access=None,
             secret=None,
+            action="",
         )
         email = i.username  # XXX username is now email
         audit = audit_accounts(
