@@ -508,10 +508,13 @@ class Test_From_MARC:
         assert a[0].name == 'Joseph A. Pechman'
         assert a[0].birth_date == '1918'
         assert a[1].name == 'P. Michael Timpane'
-        assert a[2].name == 'Brookings Institution, Washington, D.C. Panel on Social Experimentation'
+        assert (
+            a[2].name
+            == 'Brookings Institution, Washington, D.C. Panel on Social Experimentation'
+        )
         roles = [a.role for a in w.authors]
         # First two "authors" have Editor roles
-        assert roles[0]  == roles[1] == 'Editor'
+        assert roles[0] == roles[1] == 'Editor'
         # Last has no role specified, general "author"
         assert isinstance(roles[2], Nothing)
 
