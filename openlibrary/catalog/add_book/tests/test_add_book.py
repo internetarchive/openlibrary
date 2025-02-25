@@ -492,6 +492,29 @@ class Test_From_MARC:
         assert a.name == 'Laura K. Egendorf'
         assert a.birth_date == '1973'
 
+    def test_editior_role_from_700(self, mock_site, add_languages):
+        marc = '../../../marc/tests/test_data/bin_input/ithaca_college_75002321.mrc'
+        data = open_test_data(marc).read()
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:test_editior_role_from_700']
+        reply = load(rec)
+        assert reply['success'] is True
+        # authors from 700
+        akeys = [a['key'] for a in reply['authors']]
+        wkey = reply['work']['key']
+        a = [mock_site.get(akey) for akey in akeys]
+        w = mock_site.get(wkey)
+        assert a[0].type.key == '/type/author'
+        assert a[0].name == 'Joseph A. Pechman'
+        assert a[0].birth_date == '1918'
+        assert a[1].name == 'P. Michael Timpane'
+        assert a[2].name == 'Brookings Institution, Washington, D.C. Panel on Social Experimentation'
+        roles = [a.role for a in w.authors]
+        # First two "authors" have Editor roles
+        assert roles[0]  == roles[1] == 'Editor'
+        # Last has no role specified, general "author"
+        assert isinstance(roles[2], Nothing)
+
     def test_from_marc_reimport_modifications(self, mock_site, add_languages):
         src = 'v38.i37.records.utf8--16478504-1254'
         marc = MarcBinary(open_test_data(src).read())
