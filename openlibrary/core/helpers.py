@@ -60,7 +60,9 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html: str, encoding: str = 'utf8', accept_attrs: None | list = None) -> str:
+def sanitize(
+    html: str, encoding: str = 'utf8', accept_attrs: None | list = None
+) -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
