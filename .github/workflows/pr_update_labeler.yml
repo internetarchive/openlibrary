@@ -6,8 +6,8 @@ on:
     branches:
       - master
 jobs:
-  if: github.repository_owner == 'internetarchive'
   labeler:
+    if: github.repository_owner == 'internetarchive'
     permissions:
       contents: read
       pull-requests: write
