@@ -381,7 +381,9 @@ def get_availability(
             "x-preferred-client-id": web.ctx.env.get(
                 'HTTP_X_FORWARDED_FOR', 'ol-internal'
             ),
+            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
+            "user-agent": "Open Library Site",
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
