@@ -60,7 +60,7 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html: str, encoding: str = 'utf8') -> str:
+def sanitize(html: str, encoding: str = 'utf8', accept_attrs: None | list = None) -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
@@ -98,10 +98,11 @@ def sanitize(html: str, encoding: str = 'utf8') -> str:
                 return html
         else:
             raise
-
+    _accept_attrs = set(accept_attrs) if accept_attrs else set()
+    safe_attrs = genshi.filters.HTMLSanitizer.SAFE_ATTRS | _accept_attrs
     stream = (
         html
-        | genshi.filters.HTMLSanitizer()
+        | genshi.filters.HTMLSanitizer(safe_attrs=safe_attrs)
         | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     )
     return stream.render()
