@@ -444,9 +444,6 @@ $ })
                 $else:
                     $ exclude = ["ocaid"]
 
-                $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
-                $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
-
                 $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenEditionIdentifiers', multiple='true', popular_ids=popular,admin=str(is_privileged_user)))
             </div>
         </div>

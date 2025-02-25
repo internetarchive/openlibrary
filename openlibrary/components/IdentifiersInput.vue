@@ -5,7 +5,7 @@
         <select class="form-control" v-model="selectedIdentifier" name="name">
           <option disabled value="">Select one</option>
           <template v-if="hasPopularIds">
-            <option v-for="entry in popularIdDict" :key="entry.name" :value="entry.name">
+            <option v-for="entry in popularIds" :key="entry.name" :value="entry.name">
               {{ entry.label }}
             </option>
             <option disabled value="">---</option>
@@ -100,7 +100,10 @@ export default {
          * Expects a list containing the name field from the
          * respective identifiers.yaml file
         */
-        popular_ids: {},
+        popular_ids: {
+            type: String,
+            default: '',
+        },
     },
 
     // Data is for internal stuff. This needs to be a function so that we get
@@ -117,18 +120,12 @@ export default {
         parsedConfig: function() {
             return JSON.parse(decodeURIComponent(this.id_config_string))
         },
-        popularIdDict: function() {
+        popularIds: function() {
             if (this.popular_ids) {
-                let popularConfig = JSON.parse(decodeURIComponent(this.popular_ids))
-                popularConfig = this.parsedConfig.filter((config) => {
-                    if (popularConfig.includes(config.name)) {
-                        return true;
-                    }
-                    return false;
-                })
-                return Object.fromEntries(popularConfig.map(e => [e.name, e]))
+                const popularIdNames = JSON.parse(decodeURIComponent(this.popular_ids));
+                return this.parsedConfig.filter((config) => popularIdNames.includes(config.name));
             }
-            return {};
+            return [];
         },
         identifierConfigsByKey: function() {
             return Object.fromEntries(this.parsedConfig.map(e => [e.name, e]));
@@ -143,8 +140,8 @@ export default {
             return this.selectedIdentifier !== '' && this.inputValue !== '';
         },
         hasPopularIds: function() {
-            return Object.keys(this.popularIdDict).length !== 0;
-        },
+            return Object.keys(this.popularIds).length !== 0;
+        }
     },
 
     methods: {
