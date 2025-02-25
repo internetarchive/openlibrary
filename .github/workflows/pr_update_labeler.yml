@@ -6,6 +6,7 @@ on:
     branches:
       - master
 jobs:
+  if: github.repository_owner == 'internetarchive'
   labeler:
     permissions:
       contents: read
