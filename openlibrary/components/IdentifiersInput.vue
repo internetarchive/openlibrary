@@ -80,14 +80,16 @@ export default {
             type: String,
             required: true
         },
+        /*
+        Where to save; eg author--remote_ids-- for authors or
+        edition--identifiers-- for editions
+        */
         input_prefix: {
-            /*
-            Where to save; eg author--remote_ids-- for authors or
-            edition--identifiers-- for editions
-            */
             type: String
         },
-        /* Editions and works can have multiple identifiers in the form of a list */
+        /** Editions and works can have multiple identifiers in the form of a list
+         * Not applicable to author identifiers
+         */
         multiple: {
             type: String,
             default: 'false',
@@ -117,18 +119,18 @@ export default {
     },
 
     computed: {
-        parsedConfig: function() {
+        idConfigs: function() {
             return JSON.parse(decodeURIComponent(this.id_config_string))
         },
         popularIds: function() {
             if (this.popular_ids) {
                 const popularIdNames = JSON.parse(decodeURIComponent(this.popular_ids));
-                return this.parsedConfig.filter((config) => popularIdNames.includes(config.name));
+                return this.idConfigs.filter((config) => popularIdNames.includes(config.name));
             }
             return [];
         },
         identifierConfigsByKey: function() {
-            return Object.fromEntries(this.parsedConfig.map(e => [e.name, e]));
+            return Object.fromEntries(this.idConfigs.map(e => [e.name, e]));
         },
         isAdmin: function() {
             return this.admin.toLowerCase() === 'true';
