@@ -96,6 +96,7 @@ def get_login_error(error_key):
         "bad_email": _("Email provider not recognized."),
         "bad_password": _("Password requirements not met."),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
+        "security_error": _("Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"),
     }
     return (
         LOGIN_ERRORS[error_key]
