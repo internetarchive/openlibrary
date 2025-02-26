@@ -7832,6 +7832,12 @@ msgid "A problem occurred and we were unable to log you in"
 msgstr ""
 
 #: account.py
+msgid ""
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
+msgstr ""
+
+#: account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
 msgstr ""
