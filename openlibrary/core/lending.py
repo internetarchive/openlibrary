@@ -52,6 +52,10 @@ class PatronAccessException(Exception):
         super().__init__(self.message)
 
 
+class AvailabilityServiceError(Exception):
+    pass
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_v2_url = cast(str, None)
@@ -322,6 +326,7 @@ class AvailabilityStatus(TypedDict):
 
 class AvailabilityServiceResponse(TypedDict):
     success: bool
+    error: str | None
     responses: dict[str, AvailabilityStatus]
 
 
@@ -389,18 +394,24 @@ def get_availability(
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        response = cast(
-            AvailabilityServiceResponse,
-            requests.get(
-                config_ia_availability_api_v2_url,
-                params={
-                    id_type: ','.join(ids_to_fetch),
-                    "scope": "printdisabled",
-                },
-                headers=headers,
-                timeout=10,
-            ).json(),
+        resp = requests.get(
+            config_ia_availability_api_v2_url,
+            params={
+                id_type: ','.join(ids_to_fetch),
+                "scope": "printdisabled",
+            },
+            headers=headers,
+            timeout=10,
         )
+
+        # This API should always return 200
+        resp.raise_for_status()
+
+        response = cast(AvailabilityServiceResponse, resp.json())
+
+        if not response['success']:
+            raise AvailabilityServiceError(response['error'])
+
         uncached_values = {
             _id: update_availability_schema_to_v2(
                 availability,
