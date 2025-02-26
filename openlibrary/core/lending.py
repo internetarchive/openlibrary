@@ -381,24 +381,32 @@ def get_availability(
             "x-preferred-client-id": web.ctx.env.get(
                 'HTTP_X_FORWARDED_FOR', 'ol-internal'
             ),
+            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
+            "user-agent": "Open Library Site",
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        response = cast(
-            AvailabilityServiceResponse,
-            requests.get(
-                config_ia_availability_api_v2_url,
-                params={
-                    id_type: ','.join(ids_to_fetch),
-                    "scope": "printdisabled",
-                },
-                headers=headers,
-                timeout=10,
-            ).json(),
+        resp = requests.get(
+            config_ia_availability_api_v2_url,
+            params={
+                id_type: ','.join(ids_to_fetch),
+                "scope": "printdisabled",
+            },
+            headers=headers,
+            timeout=10,
         )
+
+        if resp.status_code != 200:
+            logger.error(f"lending.get_availability {resp.status_code} response")
+            print(
+                f"lending.get_availability {resp.status_code} response",
+                resp.text,
+            )
+
+        response = cast(AvailabilityServiceResponse, resp.json())
         uncached_values = {
             _id: update_availability_schema_to_v2(
                 availability,
