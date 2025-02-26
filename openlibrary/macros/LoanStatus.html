@@ -126,8 +126,8 @@ $elif availability.get('is_lendable'):
       >$_("Checked Out")</a>
     </div>
 
-$elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
-  $:macros.BookPreview(ocaid, analytics_attr, show_only=True)
+$elif True:
+  $:macros.BookPreview(ocaid,show_only=True, vanilla=False)
   $if secondary_action:
       $:macros.BookSearchInside(ocaid)
 
