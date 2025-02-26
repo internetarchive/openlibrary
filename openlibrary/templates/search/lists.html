@@ -1,4 +1,14 @@
-$def with (q, lists)
+$def with (get_results)
+
+# added pagination (used subjects.html as a reference)
+$ q = query_param('q', '').strip()
+$ results_per_page = 100
+$ page = query_param('page')
+$if page:
+    $ page = int(page)
+$else:
+    $ page = 1
+$ offset = (page - 1) * results_per_page
 
 $var title: $_('Search results for Lists')
 
@@ -8,25 +18,44 @@ $var title: $_('Search results for Lists')
 
 <div id="contentBody">
   $:macros.SearchNavigation()
+
   <div class="section">
     <form class="siteSearch olform" action="/search/lists">
       $:render_template("search/searchbox", q=q)
     </form>
   </div>
 
-  $if lists:
-    <div class="mybooks-list">
-      <ul id="listResults" class="list-books">
-      $for list in lists:
-        <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
-      </ul>
-    </div>
-  $elif q:
-    <center>
-      <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
-      <hr>
-    </center>
-    <div id="fulltext-search-suggestion" data-query="$q">
+  $ results = get_results(q, offset=offset, limit=results_per_page)
+
+  $if q and results.error: # added error handling (used subjects.html as a reference)
+    <strong>
+      $for line in results.error.splitlines():
+        $line
+        $if not loop.last:
+          <br>
+    </strong>
+
+  $if q and not results.error:
+    $if results.num_found: # displays total number of results found
+      <div class="search-results-stats">
+        $ungettext('%(count)s hit', '%(count)s hits', results.num_found, count=commify(results.num_found))
+      </div>
+
+      <div class="mybooks-list">
+        <ul id="listResults" class="list-books">
+          $for list in results.docs: # iterates over result.docs instead of lists for consistency with authors.html and subjects.html
+            <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
+        </ul>
+      </div>
+
+      $:macros.Pager(page, results.num_found, results_per_page)
+
+    $else:
+      <center>
+        <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
+        <hr>
+      </center>
+      <div id="fulltext-search-suggestion" data-query="$q">
         $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-    </div>
+      </div>
 </div>
