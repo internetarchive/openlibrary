@@ -5,6 +5,7 @@ on:
 
 jobs:
   label-stale:
+    if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
     permissions:
       issues: write

@@ -748,71 +748,6 @@ msgstr ""
 msgid "Disambiguations"
 msgstr ""
 
-#: support.html
-msgid "How can we help?"
-msgstr ""
-
-#: support.html
-msgid ""
-"Your question has been sent to our support team. We'll get back to you "
-"shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact"
-" us on Twitter</a>."
-msgstr ""
-
-#: support.html
-msgid ""
-"Please check our <a href=\"/help/\">Help Pages</a> and <a "
-"href=\"/help/faq\">Frequently Asked Questions</a> (FAQ) to see if your "
-"question is answered there. Thank you."
-msgstr ""
-
-#: support.html
-msgid "Your Name"
-msgstr ""
-
-#: support.html
-msgid "Your Email Address"
-msgstr ""
-
-#: support.html
-msgid "We'll need this if you want a reply"
-msgstr ""
-
-#: support.html
-msgid ""
-"If you wish to be contacted by other means, please add your contact "
-"preference and details to your question."
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html support.html
-msgid "Subject"
-msgstr ""
-
-#: support.html
-msgid "Your Question"
-msgstr ""
-
-#: support.html
-msgid "Note: our staff will likely only be able respond in English."
-msgstr ""
-
-#: support.html
-msgid ""
-"If you encounter an error message, please include it. For questions about"
-" our books, please provide the title/author or Open Library ID."
-msgstr ""
-
-#: support.html
-msgid "Send"
-msgstr ""
-
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html type/tag/form.html
-msgid "Cancel"
-msgstr ""
-
 #: trending.html
 msgid "Now"
 msgstr ""
@@ -1496,6 +1431,13 @@ msgstr ""
 #: EditButtons.html account/notifications.html account/privacy.html
 #: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
+msgstr ""
+
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
+#: my_books/dropdown_content.html type/tag/form.html
+msgid "Cancel"
 msgstr ""
 
 #: EditionNavBar.html account/observations.html
@@ -5097,10 +5039,6 @@ msgid "Release Notes"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Twitter"
-msgstr ""
-
-#: lib/nav_foot.html
 msgid "GitHub"
 msgstr ""
 
@@ -5196,6 +5134,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html search/advancedsearch.html
+msgid "Subject"
 msgstr ""
 
 #: lib/nav_head.html

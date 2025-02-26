@@ -12,6 +12,7 @@ env:
   LEADS_G_CONFIG: '.github/workflows/config/weekly_status_report_openlibrary_leads_g.json'
 jobs:
   create_and_publish_report:
+    if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
