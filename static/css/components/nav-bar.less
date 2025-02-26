@@ -26,8 +26,11 @@
     border-bottom: 2px solid @link-blue;
   }
 
-  &:not(.work-menu) li:hover a {
-    border-bottom: 2px solid @link-blue;
+  /* Apply hover effect only if it's not selected */
+  &:not(.work-menu) li:not(.selected):hover a {
+    background-color: lighten(@grey, 40%);
+    border-radius: 6px;
+    transition: background-color .2s ease-in-out, border-radius .2s ease-in-out;
   }
   /* stylelint-enable selector-max-specificity */
 }
