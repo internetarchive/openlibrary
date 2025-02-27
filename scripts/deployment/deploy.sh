@@ -36,6 +36,18 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# Check if any critical cron jobs are running:
+CRITICAL_JOBS="oldump.sh|expire_accounts.py|manage-imports.py|process_partner_data.sh|update_stale_work_references.py|promise_batch_imports.py"
+
+RUNNING_CRONS=$(ssh ol-home0.us.archive.org docker exec openlibrary-cron-jobs-1 ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS")
+KILL_CRON=${KILL_CRON:-""}
+
+# If KILL_CRON is an empty string and there are running jobs, exit early
+if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
+  echo "Critical cron jobs are currently running.  Halting deployment"
+  exit 1
+fi
+
 cleanup() {
     TMP_DIR=$1
     echo ""
