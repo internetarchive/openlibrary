@@ -45,7 +45,8 @@ class TestGetAvailability:
         with patch("openlibrary.core.lending.requests.get") as mock_get:
             mock_get.return_value = Mock()
             mock_get.return_value.json.return_value = {
-                "responses": {"foo": {"status": "open"}}
+                "success": True,
+                "responses": {"foo": {"status": "open"}},
             }
 
             foo_expected = {
@@ -74,7 +75,8 @@ class TestGetAvailability:
 
             # Now should make a call for just the new identifier
             mock_get.return_value.json.return_value = {
-                "responses": {"bar": {"status": "error"}}
+                "success": True,
+                "responses": {"bar": {"status": "error"}},
             }
             r3 = lending.get_availability("identifier", ["foo", "bar"])
             assert mock_get.call_count == 2
