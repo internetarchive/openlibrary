@@ -6,16 +6,8 @@
 @import "../less/index.less";
 
 // `a` specificity is needed to override default anchor styles
-.cta-btn,
-a.cta-btn {
-  &--available {
-    &--load {
-      background: url(/static/images/indicator.gif) center center no-repeat;
-      background-color: @primary-blue !important;
-      opacity: .6;
-    }
-  }
-  &--unavailable {
+.cta-btn, a.cta-btn {
+  &--available, &--unavailable {
     &--load {
       background: url(/static/images/indicator.gif) center center no-repeat;
       background-color: @primary-blue !important;
