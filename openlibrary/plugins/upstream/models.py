@@ -22,7 +22,11 @@ from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
+from openlibrary.utils.isbn import (
+    isbn_10_to_isbn_13,
+    isbn_13_to_isbn_10,
+    normalize_isbn,
+)
 from openlibrary.utils.lccn import normalize_lccn
 
 
