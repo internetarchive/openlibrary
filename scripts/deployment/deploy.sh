@@ -25,6 +25,7 @@ set -e
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+KILL_CRON=${KILL_CRON:-""}
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -55,6 +56,25 @@ wait_yn() {
             * ) ;;
         esac
     done
+}
+
+check_crons() {
+    # Check if any critical cron jobs are running:
+    CRITICAL_JOBS="oldump.sh|process_partner_data.sh|update_stale_work_references.py|promise_batch_imports.py"
+
+    echo ""
+    echo -n "Checking for running critical cron jobs... "
+    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS")
+
+    # If KILL_CRON is an empty string and there are running jobs, exit early
+    if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
+        echo "✗"
+        echo "Critical cron jobs are currently running. Halting deployment:"
+        echo "$RUNNING_CRONS"
+        exit 1
+    else
+        echo "✓"
+    fi
 }
 
 check_for_local_changes() {
@@ -147,6 +167,7 @@ deploy_olsystem() {
     echo "Deploying to: $SERVERS"
 
     check_server_access
+    check_crons
 
     TMP_DIR=${TMP_DIR:-$(mktemp -d)}
     cd $TMP_DIR
@@ -257,6 +278,7 @@ deploy_openlibrary() {
     git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
     check_server_access
+    check_crons
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do

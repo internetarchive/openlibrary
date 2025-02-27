@@ -957,6 +957,18 @@ msgid "Solr Editions"
 msgstr ""
 
 #: work_search.html
+msgid "The search engine returned an error."
+msgstr ""
+
+#: work_search.html
+msgid "Solr Debugging:"
+msgstr ""
+
+#: work_search.html
+msgid "Full URL:"
+msgstr ""
+
+#: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
 msgstr ""
@@ -976,10 +988,6 @@ msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
 msgstr[1] ""
-
-#: work_search.html
-msgid "BARF! Search engine ERROR!"
-msgstr ""
 
 #: work_search.html
 #, python-format
@@ -8003,6 +8011,11 @@ msgid "A problem occurred and we were unable to log you in"
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
+msgid ""
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
+msgstr ""
+
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
 msgstr ""

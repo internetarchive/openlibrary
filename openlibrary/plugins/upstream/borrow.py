@@ -155,7 +155,7 @@ class borrow(delegate.page):
 
         # Make a call to availability v2 update the subjects according
         # to result if `open`, redirect to bookreader
-        response = lending.get_availability_of_ocaid(edition.ocaid)
+        response = lending.get_availability('identifier', [edition.ocaid])
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
             from openlibrary.plugins.openlibrary.code import is_bot

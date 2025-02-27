@@ -22,7 +22,11 @@ from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import (
+    isbn_10_to_isbn_13,
+    isbn_13_to_isbn_10,
+    normalize_isbn,
+)
 from openlibrary.utils.lccn import normalize_lccn
 
 
@@ -114,11 +118,12 @@ class Edition(models.Edition):
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
-        try:
-            isbn = mask(isbns[0])
-        except NotValidISBNError:
-            return isbns[0]
-        return isbn or isbns[0]
+        if isbn := normalize_isbn(isbns[0]):
+            try:
+                isbn = mask(isbns[0])
+            except NotValidISBNError:
+                return isbn
+        return isbn
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
@@ -727,7 +732,7 @@ class Work(models.Work):
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
         ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability_of_ocaids(ocaids) if ocaids else {}
+        availability = lending.get_availability('identifier', ocaids)
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
