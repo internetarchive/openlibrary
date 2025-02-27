@@ -59,7 +59,7 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
         availability = get_availability('identifier', ocaids)
         if 'error' in availability:
-            return []
+            return {"hits": {"hits": []}}
         editions = web.ctx.site.get_many(
             [
                 '/books/%s' % availability[ocaid].get('openlibrary_edition')
