@@ -29,8 +29,7 @@ $if author_names:
 $else:
   $ byline = ''
 
-$ modifier = ''
-$ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+$ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_key')
 
 <div class="book carousel__item">
   <div class="book-cover">

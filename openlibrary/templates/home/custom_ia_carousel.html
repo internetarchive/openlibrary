@@ -2,12 +2,13 @@ $def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, t
 
 $code:
   title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
-  load_more_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=True)
   books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit) if not test else []
   sorts = ','.join(sorts) if sorts else ''
   load_more_config = {
     "queryType": "BROWSE",
-    "q": load_more_url,
+    "q": query,
+    "subject": subject,
+    "sorts": sorts,
     "mode": "page",
     "limit": limit
   }

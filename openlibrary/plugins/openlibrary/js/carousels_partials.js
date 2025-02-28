@@ -18,7 +18,6 @@ export function initCarouselsPartials() {
             success: function (response) {
                 loadingIndicator.classList.add('hidden');
                 if (response) {
-                    response = JSON.parse(response);
                     carouselElement.insertAdjacentHTML('beforeend', response[0]);
                     carouselElement.querySelectorAll('.carousel--progressively-enhanced')
                         .forEach(el => new Carousel($(el)).init());

@@ -7,7 +7,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
-from openlibrary.core.lending import get_available
+from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.utils import dateutil
@@ -65,7 +65,6 @@ class CarouselCardPartial:
                 )
             )
 
-        # Return partials dict:
         return {"partials": [str(template) for template in cards]}
 
     def _make_book_query(self, query_type: str, params: dict) -> list:
@@ -81,14 +80,28 @@ class CarouselCardPartial:
         raise ValueError("Unknown query type")
 
     def _do_search_query(self, params: dict) -> list:
-        fields = 'key,title,subtitle,author_name,cover_i,ia,availability,id_project_gutenberg,id_project_runeberg,id_librivox,id_standard_ebooks,id_openstax'
+        fields = [
+            'key',
+            'title',
+            'subtitle',
+            'author_name',
+            'cover_i',
+            'ia',
+            'availability',
+            'id_project_gutenberg',
+            'id_project_runeberg',
+            'id_librivox',
+            'id_standard_ebooks',
+            'id_openstax',
+            'editions',
+        ]
         query = params.get("q", "")
         sort = params.get("sorts", "new")  # XXX : check "new" assumption
         limit = int(params.get("limit", 20))
         page = int(params.get("page", 1))
         query_params = {
             "q": query,
-            "fields": fields,
+            "fields": ",".join(fields),
         }
         if fulltext := params.get("hasFulltextOnly"):
             query_params['has_fulltext'] = 'true'
@@ -99,8 +112,19 @@ class CarouselCardPartial:
         return results.get("docs", [])
 
     def _do_browse_query(self, params: dict) -> list:
-        url = params.get("q", "")
-
+        query = params.get("q", "")
+        subject = params.get("subject", "")
+        sorts = params.get("sorts", "").split(',')
+        limit = int(params.get("limit", 18))
+        page = int(params.get("page", 1))
+        url = compose_ia_url(
+            query=query,
+            limit=limit,
+            page=page,
+            subject=subject,
+            sorts=sorts,
+            advanced=True,
+        )
         results = get_available(url=url)
         return results if "error" not in results else []
 
@@ -114,7 +138,7 @@ class CarouselCardPartial:
     def _do_subjects_query(self, params: dict) -> list:
         pseudoKey = params.get("q", "")
         offset = int(params.get("page", 1))
-        limit = int(params.get("limit", 20))
+        limit = int(params.get("limit", 18))
 
         subject = get_subject(pseudoKey, offset=offset, limit=limit)
         return subject.get("works", [])
@@ -196,7 +220,7 @@ class Partials(delegate.page):
                 ].FulltextSearchSuggestion(query, data)
             partial = {"partials": str(macro)}
 
-        return delegate.RawText(json.dumps(partial))
+        return delegate.RawText(json.dumps(partial), content_type='application/json')
 
 
 def setup():
