@@ -1,10 +1,12 @@
 import array
 import datetime
 import io
+import itertools
 import json
 import logging
 import os
 import textwrap
+from typing import cast
 
 import requests
 import web
@@ -494,11 +496,21 @@ class delete:
             return f'no such id: {id}'
 
 
-def render_list_preview_image(lst_key):
+def render_list_preview_image(lst_key: str):
     """This function takes a list of five books and puts their covers in the correct
     locations to create a new image for social-card"""
-    lst = web.ctx.site.get(lst_key)
-    five_seeds = lst.seeds[0:5]
+    from openlibrary.core.lists.model import List
+
+    lst = cast(List, web.ctx.site.get(lst_key))
+    five_covers = itertools.islice(
+        (
+            cover
+            for seed in lst.get_seeds()
+            if seed._type != "subject" and (cover := seed.get_cover())
+        ),
+        0,
+        5,
+    )
     background = Image.open(
         "/openlibrary/static/images/Twitter_Social_Card_Background.png"
     )
@@ -507,22 +519,18 @@ def render_list_preview_image(lst_key):
 
     W, H = background.size
     image = []
-    for seed in five_seeds:
-        cover = seed.get_cover()
+    for cover in five_covers:
+        response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
+        image_bytes = io.BytesIO(response.content)
 
-        if cover:
-            response = requests.get(
-                f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg"
-            )
-            image_bytes = io.BytesIO(response.content)
+        img = Image.open(image_bytes)
 
-            img = Image.open(image_bytes)
+        basewidth = 162
+        wpercent = basewidth / float(img.size[0])
+        hsize = int(float(img.size[1]) * float(wpercent))
+        img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+        image.append(img)
 
-            basewidth = 162
-            wpercent = basewidth / float(img.size[0])
-            hsize = int(float(img.size[1]) * float(wpercent))
-            img = img.resize((basewidth, hsize), Image.LANCZOS)
-            image.append(img)
     max_height = 0
     for img in image:
         max_height = max(img.size[1], max_height)
@@ -531,7 +539,7 @@ def render_list_preview_image(lst_key):
         background.paste(img, (start_width, 174 + max_height - img.size[1]))
         start_width += 184
 
-    logo = logo.resize((120, 74), Image.LANCZOS)
+    logo = logo.resize((120, 74), Image.Resampling.LANCZOS)
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
@@ -542,7 +550,7 @@ def render_list_preview_image(lst_key):
         "/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28
     )
 
-    para = textwrap.wrap(lst.name, width=45)
+    para = textwrap.wrap(lst.name or 'Untitled List', width=45)
     current_h = 42
 
     author_text = "A list on Open Library"
