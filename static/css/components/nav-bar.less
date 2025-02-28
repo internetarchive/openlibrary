@@ -24,10 +24,16 @@
   &:not(.work-menu) li.selected a {
     color: @link-blue;
     border-bottom: 2px solid @link-blue;
+    background-color: lighten(@link-blue, 55%) !important;
+    border-radius: 6px !important;
+
+    border-top: 1px solid fade(@link-blue, 30%);
+    border-right: 1px solid fade(@link-blue, 30%);
   }
 
   &:not(.work-menu) li:hover a {
-    border-bottom: 2px solid @link-blue;
+    background-color: lighten(@link-blue, 60%);
+    border-radius: 12px;
   }
   /* stylelint-enable selector-max-specificity */
 }
