@@ -71,7 +71,8 @@ class memcache_memoize:
         self.prethread = prethread
         self.hash_args = hash_args
 
-    def _get_memcache(self):
+    @property
+    def memcache(self):
         if self._memcache is None:
             servers = config.get("memcache_servers")
             if servers:
@@ -80,18 +81,11 @@ class memcache_memoize:
                 web.debug(
                     "Could not find memcache_servers in the configuration. Used dummy memcache."
                 )
-                try:
-                    import mockcache  # Only supports legacy Python
+                from pymemcache.test.utils import MockMemcacheClient
 
-                    self._memcache = mockcache.Client()
-                except ImportError:  # Python 3
-                    from pymemcache.test.utils import MockMemcacheClient
-
-                    self._memcache = MockMemcacheClient()
+                self._memcache = MockMemcacheClient()
 
         return self._memcache
-
-    memcache = property(_get_memcache)
 
     def _generate_key_prefix(self):
         try:
@@ -229,10 +223,13 @@ class memcache_memoize:
         """
         key = self.compute_key(args, kw)
         stats.begin("memcache.get", key=key)
-        json_str = self.memcache.get(key)
+        json_str = cast(str, self.memcache.get(key))
         stats.end(hit=bool(json_str))
 
-        return json_str and json.loads(json_str)
+        if json_str:
+            return cast(tuple[Any, float], json.loads(json_str))
+        else:
+            return None
 
 
 ####
@@ -327,14 +324,9 @@ class MemcacheCache(Cache):
             web.debug(
                 "Could not find memcache_servers in the configuration. Used dummy memcache."
             )
-            try:
-                import mockcache
+            from pymemcache.test.utils import MockMemcacheClient
 
-                return mockcache.Client()
-            except ImportError:
-                from pymemcache.test.utils import MockMemcacheClient
-
-                return MockMemcacheClient()
+            return MockMemcacheClient()
 
     def _encode_key(self, key: str) -> str:
         return cast(str, web.safestr(key))
