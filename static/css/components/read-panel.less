@@ -15,7 +15,8 @@
 }
 
 .read-options,
-.Tools .btn-notice {
+.btn-notice {
+  line-height: 1.5em;
   font-size: 1em;
   padding: 15px;
   margin-bottom: 10px;
@@ -24,12 +25,13 @@
   border: 1px solid @lighter-grey;
   margin-top: 0;
 
-  .cta-btn {
+  .cta-btn, .cta-btn.cta-btn--no-pointer {
     margin-bottom: 10px;
   }
 
+  // Some preview rules are too specific and need to be rewritten
   // Preview button appears styled as a text link with a book icon
-  .cta-btn--preview {
+  .cta-btn.cta-btn--preview {
     color: @primary-blue;
     text-decoration: none;
     position: relative;
@@ -75,10 +77,6 @@
   }
   .cta-section {
     font-size: .78em;
-  }
-
-  summary {
-    margin: 5px -5px 0;
   }
 
   .check-availability {
