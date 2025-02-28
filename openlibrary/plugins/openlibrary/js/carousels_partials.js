@@ -12,7 +12,7 @@ export function initCarouselsPartials() {
             type: 'GET',
             data: {
                 workid: carouselElement.dataset.workid,
-                _component: 'RelatedWorkCarousel'
+                _component: 'RelatedWorkCarousel',
             },
             datatype: 'json',
             success: function (response) {
