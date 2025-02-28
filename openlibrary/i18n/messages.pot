@@ -7991,6 +7991,10 @@ msgid "French"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
+msgid "Hindi"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Croatian"
 msgstr ""
 
@@ -8003,7 +8007,7 @@ msgid "Portuguese"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
-msgid "Hindi"
+msgid "Romanian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
