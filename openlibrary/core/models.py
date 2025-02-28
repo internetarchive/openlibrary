@@ -30,6 +30,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
@@ -801,6 +802,32 @@ class Author(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+
+    def merge_remote_ids(
+        self, incoming_ids: dict[str, str]
+    ) -> tuple[dict[str, str], int]:
+        """Returns the author's remote IDs merged with a given remote IDs object, as well as a count for how many IDs had conflicts.
+        If incoming_ids is empty, or if there are more conflicts than matches, no merge will be attempted, and the output will be (author.remote_ids, -1).
+        """
+        output = {**self.remote_ids}
+        if len(incoming_ids.items()) == 0:
+            return output, -1
+        # Count
+        matches = 0
+        conflicts = 0
+        config = get_identifier_config("author")
+        for id in config["identifiers"]:
+            identifier: str = id.name
+            if identifier in output and identifier in incoming_ids:
+                if output[identifier] != incoming_ids[identifier]:
+                    conflicts = conflicts + 1
+                else:
+                    output[identifier] = incoming_ids[identifier]
+                    matches = matches + 1
+        if conflicts > matches:
+            # TODO: Raise this to librarians, somehow.
+            return self.remote_ids, -1
+        return output, matches
 
 
 class User(Thing):
