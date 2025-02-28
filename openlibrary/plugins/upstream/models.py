@@ -3,6 +3,7 @@ import re
 import sys
 from collections import defaultdict
 from functools import cached_property
+from typing import cast
 
 import web
 from isbnlib import NotValidISBNError, canonical, mask
@@ -73,7 +74,7 @@ class Edition(models.Edition):
 
     def get_cover(self):
         covers = self.get_covers()
-        return (covers and covers[0]) or None
+        return covers[0] if covers else None
 
     def get_cover_url(self, size):
         if cover := self.get_cover():
@@ -493,7 +494,7 @@ class Author(models.Author):
 
     def get_photo(self):
         photos = self.get_photos()
-        return (photos and photos[0]) or None
+        return photos[0] if photos else None
 
     def get_photo_url(self, size):
         photo = self.get_photo()
@@ -547,7 +548,7 @@ class Work(models.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_covers(self, use_solr=True):
+    def get_covers(self, use_solr=True) -> list[Image]:
         if self.covers:
             return [Image(self._site, "w", id) for id in self.covers if id > 0]
         elif use_solr:
@@ -555,7 +556,7 @@ class Work(models.Work):
         else:
             return []
 
-    def get_covers_from_solr(self):
+    def get_covers_from_solr(self) -> list[Image]:
         try:
             w = self._solr_data
         except Exception as e:
@@ -567,7 +568,9 @@ class Work(models.Work):
             if 'cover_id' in w:
                 return [Image(self._site, "w", int(w['cover_id']))]
             elif 'cover_edition_key' in w:
-                cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
+                cover_edition = cast(
+                    Edition, web.ctx.site.get("/books/" + w['cover_edition_key'])
+                )
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -599,7 +602,7 @@ class Work(models.Work):
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
-        return (covers and covers[0]) or None
+        return covers[0] if covers else None
 
     def get_cover_url(self, size, use_solr=True):
         cover = self.get_cover(use_solr=use_solr)
