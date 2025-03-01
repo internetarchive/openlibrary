@@ -30,7 +30,7 @@ if not hasattr(infogami.config, 'features'):
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
-from infogami.utils import delegate, features
+from infogami.utils import delegate
 from infogami.utils.app import metapage
 from infogami.utils.view import (
     add_flash_message,
