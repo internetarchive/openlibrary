@@ -32,7 +32,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["lending___last_browse desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Thrillers'), key="thrillers", query="preset:thrillers", sorts=["downloads desc"], limit=18, test=test)
+  $:macros.QueryCarousel(query="subject:thrillers ratings_count:[10 TO *] ebook_access:[borrowable TO *]", title=_('Thrillers'), key="thrillers", url="/subjects/thrillers", sort='random.hourly', use_cache=False)
 
   $:render_template("home/custom_ia_carousel", title=_('Textbooks'), key="textbooks", subject="textbooks", sorts=["lending___last_browse desc"], limit=18, test=test)
 
