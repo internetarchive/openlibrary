@@ -1141,10 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    # Protect against ThreadedDict memcache issues
-    if not hasattr(web, 'ctx'):
-        delegate.fakeload()
-    if features.is_enabled('debug'):
+    if 'debug' in infogami.config.features:
         raise web.debugerror()
     else:
         msg = render.site(
