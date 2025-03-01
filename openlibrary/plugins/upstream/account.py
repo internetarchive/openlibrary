@@ -311,6 +311,7 @@ class account_create(delegate.page):
         # Set a 'cta' cookie to persist the redirect value
         if redirect_url:
             web.setcookie("cta", redirect_url, expires=3600, path="/")
+            
 
         if f.validates(web.input()):
             try:

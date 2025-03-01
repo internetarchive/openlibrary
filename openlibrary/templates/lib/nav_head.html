@@ -121,7 +121,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       <li class="hide-me">
         <a class="btn"
            href="/account/login">$_("Log In")</a></li>
-           $ redir = query_param('redirect', '') and "?redirect=" + query_param('redirect')
+      $ redir = query_param('redirect', '') and "?redirect=" + query_param('redirect')
       <li><a class="btn primary" href="/account/create$redir">$_("Sign Up")</a></li>
     </ul>
 
