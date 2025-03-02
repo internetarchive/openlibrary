@@ -1141,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if web.ctx and features.is_enabled('debug'):
+    if getattr(web, 'ctx') and features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(
