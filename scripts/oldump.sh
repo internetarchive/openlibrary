@@ -134,6 +134,15 @@ then
       log "Skipping: $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz")"
   fi
 
+  # New step for Wikidata dump
+  log "=== Step 3.5 ===" # Using 3.5 to insert between existing steps
+  if [[ ! -f $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz") ]]
+  then
+      log "generating wikidata table: ol_dump_wikidata_$yyyymmdd.txt.gz"
+      time psql $PSQL_PARAMS -f $SCRIPTS/dump-wikidata.sql | gzip -c > ol_dump_wikidata_$yyyymmdd.txt.gz
+  else
+      log "Skipping: $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz")"
+  fi
 
   log "=== Step 4 ==="
   if [[ ! -f "data.txt.gz" ]]
