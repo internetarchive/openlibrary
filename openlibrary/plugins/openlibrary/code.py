@@ -30,7 +30,7 @@ if not hasattr(infogami.config, 'features'):
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
-from infogami.utils import delegate
+from infogami.utils import delegate, features
 from infogami.utils.app import metapage
 from infogami.utils.view import (
     add_flash_message,
@@ -1141,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if 'debug' in infogami.config.features:
+    if getattr(web, 'ctx') and features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(
