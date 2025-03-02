@@ -134,10 +134,18 @@ then
       log "Skipping: $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz")"
   fi
 
+  # New step for Wikidata dump
+  log "=== Step 3.5 ===" # Using 3.5 to insert between existing steps
+  if [[ ! -f $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz") ]]
+  then
+      log "generating wikidata table: ol_dump_wikidata_$yyyymmdd.txt.gz"
+      time psql $PSQL_PARAMS -f $SCRIPTS/dump-wikidata.sql | gzip -c > ol_dump_wikidata_$yyyymmdd.txt.gz
+  else
+      log "Skipping: $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz")"
+  fi
 
   log "=== Step 4 ==="
   if [[ ! -f "data.txt.gz" ]]
-  then
       log "generating the data table: data.txt.gz -- takes approx. 110 minutes..."
       # In production, we copy the contents of our database into the `data.txt.gz` file.
       # else if we are testing, save a lot of time by using a preexisting `data.txt.gz`.
