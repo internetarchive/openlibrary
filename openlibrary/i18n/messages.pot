@@ -626,15 +626,17 @@ msgid "Permission denied."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to add records on Open Library. Please <a "
-"href=\"/account/login?redirect=$path\">log in</a> to add a book."
+"href=\"%s\">log in</a> to add a book."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to modify records on Open Library. Please "
-"<a href=\"/account/login?redirect=$path\">log in</a> to edit this page."
+"<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
 
 #: permission_denied.html
