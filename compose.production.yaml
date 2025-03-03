@@ -302,6 +302,10 @@ services:
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
+      args:
+        - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
+        - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped
