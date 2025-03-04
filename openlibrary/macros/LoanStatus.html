@@ -143,8 +143,8 @@ $else:
   $ edition_key = doc.key.split('/')[2]
   $if secondary_action:
       $:macros.LocateButton(edition_key)
-  $# Wrapper if locate button is not in read panel
   $elif is_edition:
+      $# Wrapper if locate button is not in read panel
       <div class="cta-button-group">
         $:macros.LocateButton(edition_key)
       </div>

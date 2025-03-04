@@ -26,24 +26,27 @@ $else:
           data-userid="$(loan['userid'])"
         >$label</a>
   </div>
-  <details>
-    <summary>
-    </summary>
-    <ul class="dropper-menu">
-      $if listen:
-        <li>
-          <a href="$(stream_url)&_autoReadAloud=show"
-            title="$title using Read Aloud"
-             $:analytics_attr(action.capitalize() + 'Listen')
-             class="cta-btn cta-btn--available cta-btn--w-icon">
-            <span class="btn-icon listen"></span>
-            <span class="btn-label">$_("Listen")</span>
-          </a>
-        </li>
-      $if edition_key:
-        <li>
-          $:macros.LocateButton(edition_key, icon=True)
-        </li>
-    </ul>
-  </details>
+  $ menu_items = [listen, edition_key]
+  $ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
+  $if any(menu_items) and not is_carousel:
+    <details>
+      <summary>
+      </summary>
+      <ul class="dropper-menu">
+        $if listen:
+          <li>
+            <a href="$(stream_url)&_autoReadAloud=show"
+              title="$title using Read Aloud"
+              $:analytics_attr(action.capitalize() + 'Listen')
+              class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon listen"></span>
+              <span class="btn-label">$_("Listen")</span>
+            </a>
+          </li>
+        $if edition_key:
+          <li>
+            $:macros.LocateButton(edition_key, icon=True)
+          </li>
+      </ul>
+    </details>
 </div>
