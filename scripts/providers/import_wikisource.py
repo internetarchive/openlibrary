@@ -303,24 +303,16 @@ class BookRecord:
             output["authors"] = [
                 {
                     "name": author.friendly_name,
-                    **(
-                        {"birth_date": author.birth_date}
-                        if author.birth_date is not None
-                        else {}
-                    ),
-                    **(
-                        {"death_date": author.death_date}
-                        if author.death_date is not None
-                        else {}
-                    ),
+                    **({"birth_date": author.birth_date} if author.birth_date else {}),
+                    **({"death_date": author.death_date} if author.death_date else {}),
                     **(
                         {
                             "identifiers": author.identifiers,
                         }
-                        if len(author.identifiers.keys()) > 0
+                        if author.identifiers
                         else {}
                     ),
-                    **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
+                    **({"ol_id": author.ol_id} if author.ol_id else {}),
                 }
                 for author in self.authors
             ]
@@ -858,7 +850,7 @@ WHERE {
                     val = obj[id]["value"]
                     if id == "youtube" and val[0] != "@":
                         val = f'@{val}'
-                    contributor.identifiers[id] = obj[id]["value"]
+                    contributor.identifiers[id] = val
 
             if contributor_id in map:
                 book_ids = map[contributor_id]
