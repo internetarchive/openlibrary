@@ -238,7 +238,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     if not match:
         return []
     if len(match) == 1:
-        return [match[0]]
+        return match
     return [pick_from_matches(author, match)]
 
 
