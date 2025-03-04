@@ -814,7 +814,7 @@ class Author(Thing):
         If incoming_ids is empty, or if there are more conflicts than matches, no merge will be attempted, and the output will be (author.remote_ids, -1).
         """
         output = deepcopy(self.remote_ids)
-        if len(incoming_ids.items()) == 0:
+        if not incoming_ids:
             return output, -1
         # Count
         matches = 0
