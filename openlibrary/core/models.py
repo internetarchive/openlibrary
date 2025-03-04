@@ -826,7 +826,6 @@ class Author(Thing):
                 if output[identifier] != incoming_ids[identifier]:
                     conflicts = conflicts + 1
                 else:
-                    output[identifier] = incoming_ids[identifier]
                     matches = matches + 1
         if conflicts > matches:
             # TODO: Raise this to librarians, somehow.
