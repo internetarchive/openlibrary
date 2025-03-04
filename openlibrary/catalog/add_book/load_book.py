@@ -174,7 +174,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         matched_authors = []
         # Get all the authors that match any incoming identifier.
         for identifier, val in identifiers.items():
-            queries.append({"type": "/type/author", f"remote_ids.{identifier}~": val})
+            queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
         for query in queries:
             if reply := list(web.ctx.site.things(query)):
                 matched_authors.extend(
