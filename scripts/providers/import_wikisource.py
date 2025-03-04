@@ -317,7 +317,7 @@ class BookRecord:
                         {
                             "identifiers": author.identifiers,
                         }
-                        if len(author.identifiers.keys()) > 0
+                        if author.identifiers
                         else {}
                     ),
                     **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
