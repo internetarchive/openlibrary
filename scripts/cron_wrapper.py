@@ -36,6 +36,7 @@ class MonitoredJob:
             self.job_failed = True
         finally:
             self._after_run()
+            sentry_sdk.flush()
 
     def _before_run(self):
         if self.statsd_client:
