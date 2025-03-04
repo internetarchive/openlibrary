@@ -320,7 +320,7 @@ class BookRecord:
                         if author.identifiers
                         else {}
                     ),
-                    **({"ol_id": author.ol_id} if author.ol_id is not None else {}),
+                    **({"ol_id": author.ol_id} if author.ol_id else {}),
                 }
                 for author in self.authors
             ]
