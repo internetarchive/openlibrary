@@ -43,6 +43,7 @@ class OlBlockingScheduler(BlockingScheduler):
             trigger,
             args,
             kwargs,
+            # Override to avoid duplicating the function name everywhere
             id or func.__name__,
             name,
             misfire_grace_time,
@@ -70,10 +71,12 @@ def bash_run(cmd: str, sources: list[str] | None = None):
         sources = []
 
     source_paths = [f"./scripts/monitoring/{source}" for source in sources]
-    bash_command = f"""
-        {" ".join(f"source {path}" for path in source_paths)}
-        {cmd}
-    """
+    bash_command = "\n".join(
+        (
+            *(f"source {path}" for path in source_paths),
+            cmd,
+        )
+    )
 
     subprocess.run(
         [
@@ -95,7 +98,9 @@ def limit_server(allowed_servers: list[str], scheduler: BlockingScheduler):
     def decorator(func):
         hostname = os.environ.get("HOSTNAME")
         assert hostname
-        server = hostname.split(".")[0]
+        server = hostname
+        if hostname.endswith(".us.archive.org"):
+            server = hostname.split(".")[0]
 
         if not any(fnmatch.fnmatch(server, pattern) for pattern in allowed_servers):
             scheduler.remove_job(func.__name__)
