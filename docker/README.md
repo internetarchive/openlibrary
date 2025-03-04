@@ -71,7 +71,7 @@ For most architectures, you can `cd` and change into the project root directory,
 docker compose build
 ```
 
-The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command. 
+The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command.
 
 You may also hit an **error** of:
 ```
