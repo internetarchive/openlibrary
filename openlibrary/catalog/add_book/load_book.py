@@ -178,7 +178,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         for query in queries:
             if reply := list(web.ctx.site.things(query)):
                 matched_authors.extend(
-                    get_redirected_authors([web.ctx.site.get(k) for k in reply])
+                    get_redirected_authors(list(web.ctx.site.get_many(reply))
                 )
         matched_authors = uniq(matched_authors)
         # The match is whichever one has the most identifiers in common AND does not have more conflicts than matched identifiers.
