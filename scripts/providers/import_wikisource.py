@@ -303,16 +303,8 @@ class BookRecord:
             output["authors"] = [
                 {
                     "name": author.friendly_name,
-                    **(
-                        {"birth_date": author.birth_date}
-                        if author.birth_date
-                        else {}
-                    ),
-                    **(
-                        {"death_date": author.death_date}
-                        if author.death_date
-                        else {}
-                    ),
+                    **({"birth_date": author.birth_date} if author.birth_date else {}),
+                    **({"death_date": author.death_date} if author.death_date else {}),
                     **(
                         {
                             "identifiers": author.identifiers,
