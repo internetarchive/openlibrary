@@ -303,6 +303,7 @@ services:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
       args:
+        - APT_MIRROR=${APT_MIRROR:-}
         - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
         - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
         - PIP_INDEX_URL=${PIP_INDEX_URL:-}
@@ -312,6 +313,8 @@ services:
     cap_add:
       # Needed for py-spy
       - SYS_PTRACE
+    # Needed for ps aux access across containers (py-spy)
+    pid: host
     volumes:
       # Needed to inspect other docker containers
       - /var/run/docker.sock:/var/run/docker.sock
