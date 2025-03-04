@@ -127,7 +127,6 @@ class TestHomeTemplates:
             "Books We Love",
             "Recently Returned",
             "Kids",
-            "Thrillers",
             "Romance",
             "Textbooks",
         ]
