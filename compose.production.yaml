@@ -318,6 +318,10 @@ services:
     volumes:
       # Needed to inspect other docker containers
       - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 
 volumes:
     archive-webserver-logs-data:
