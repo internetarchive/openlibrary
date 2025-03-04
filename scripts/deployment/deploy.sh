@@ -289,6 +289,7 @@ deploy_openlibrary() {
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
     cp -r openlibrary/docker openlibrary_new
+    cp -r openlibrary/scripts openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
     if ! copy_to_servers "$TMP_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
         cleanup "$TMP_DIR"
@@ -335,6 +336,8 @@ deploy_openlibrary() {
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
+            source /opt/olsystem/bin/build_env.sh;
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER build
         " &> /dev/null &
     done
 
