@@ -19,7 +19,7 @@ def test_bash_run():
         assert mock_subprocess_run.call_args[0][0] == [
             "bash",
             "-c",
-            "set -e\nsource ./scripts/monitoring/source1.sh\nsource ./scripts/monitoring/source2.sh\necho 'Hello, World!'",
+            'set -e\nsource "scripts/monitoring/source1.sh"\nsource "scripts/monitoring/source2.sh"\necho \'Hello, World!\'',
         ]
 
 
