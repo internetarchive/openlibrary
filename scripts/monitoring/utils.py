@@ -66,25 +66,36 @@ def job_listener(event: JobEvent):
         print(f"Job {event.job_id} failed.", flush=True)
 
 
-def bash_run(cmd: str, sources: list[str] | None = None):
+def bash_run(cmd: str, sources: list[str] | None = None, capture_output=False):
     if not sources:
         sources = []
 
-    source_paths = [f"./scripts/monitoring/{source}" for source in sources]
+    source_paths = [
+        (
+            os.path.join("scripts", "monitoring", source)
+            if not os.path.isabs(source)
+            else source
+        )
+        for source in sources
+    ]
     bash_command = "\n".join(
         (
-            *(f"source {path}" for path in source_paths),
+            'set -e',
+            *(f'source "{path}"' for path in source_paths),
             cmd,
         )
     )
 
-    subprocess.run(
+    return subprocess.run(
         [
             "bash",
             "-c",
             bash_command,
         ],
         check=True,
+        # Mainly for testing:
+        capture_output=capture_output,
+        text=capture_output if capture_output else None,
     )
 
 

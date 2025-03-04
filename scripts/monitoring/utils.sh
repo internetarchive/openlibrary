@@ -1,3 +1,5 @@
+# Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
+
 log_workers_cur_fn() {
     BUCKET="$1"
     for pid in $(ps aux | grep 'gunicorn' | grep -v 'grep' | awk '{print $2}'); do
