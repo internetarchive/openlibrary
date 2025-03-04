@@ -858,7 +858,7 @@ WHERE {
                     val = obj[id]["value"]
                     if id == "youtube" and val[0] != "@":
                         val = f'@{val}'
-                    contributor.identifiers[id] = obj[id]["value"]
+                    contributor.identifiers[id] = val
 
             if contributor_id in map:
                 book_ids = map[contributor_id]
