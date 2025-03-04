@@ -46,4 +46,5 @@ jobs:
           context: "."
           file: "./docker/Dockerfile.olbase"
           tags: openlibrary/olbase:${{ github.ref_name }}
+          platforms: linux/amd64,linux/arm64
           push: true
