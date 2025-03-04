@@ -65,18 +65,28 @@ See 'docker run --help'.
 
 ## Build the project
 
-Change (`cd`) into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
+For most architectures, you can `cd` and change into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
 
 ```
 docker compose build
 ```
 
-This may take from a few minutes to more than 15 on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
+The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command. 
 
-> [!IMPORTANT]
-> If you are running arm64 (see: [#10276](https://github.com/internetarchive/openlibrary/issues/10276)) and this command fails, [for now](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779) you may have to run [this workaround](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718).
+You may also hit an **error** of:
+```
+failed to solve openlibrary/olbase:latest` no match for platform in manifest: not found
+```
 
-If you **hit errors** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
+If you are encounter this error and are e.g. using a mac **M2** chip, try re-running with:
+
+```
+docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
+```
+
+If you are using mac **arm64** (see: [#10276](https://github.com/internetarchive/openlibrary/issues/10276)) you may have to run [this workaround to build and use your own image](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [until we standardize our images](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779).
+
+If you hit another **error** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
 
 ## Run the app
 ```sh
