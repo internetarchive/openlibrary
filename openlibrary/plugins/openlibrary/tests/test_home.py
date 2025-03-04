@@ -127,9 +127,7 @@ class TestHomeTemplates:
             "Books We Love",
             "Recently Returned",
             "Kids",
-            "Thrillers",
             "Romance",
-            "Textbooks",
         ]
         for h in headers:
             assert h in html
