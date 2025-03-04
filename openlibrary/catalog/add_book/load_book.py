@@ -218,7 +218,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     things = []
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
-            things = get_redirected_authors([web.ctx.site.get(k) for k in reply])
+            things = get_redirected_authors(list(web.ctx.site.get_many(reply))
             break
     match = []
     seen = set()
