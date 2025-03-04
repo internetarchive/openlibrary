@@ -73,18 +73,16 @@ docker compose build
 
 The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command.
 
-You may also hit an **error** of:
+If you are using a mac [`arm64` #10276](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [`M2` #10078](https://github.com/internetarchive/openlibrary/issues/10078#issuecomment-2495487385), or some other architecture, it's possible the `build` command may **fail** with an error of:
 ```
 failed to solve openlibrary/olbase:latest` no match for platform in manifest: not found
 ```
 
-If you are encounter this error and are e.g. using a mac **M2** chip, try re-running with:
+In these cases, [until we standardize our images across architectures](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779), try running the following and proceed with the installation steps normally:
 
 ```
 docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
 ```
-
-If you are using mac **arm64** (see: [#10276](https://github.com/internetarchive/openlibrary/issues/10276)) you may have to run [this workaround to build and use your own image](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [until we standardize our images](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779).
 
 If you hit another **error** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
 
