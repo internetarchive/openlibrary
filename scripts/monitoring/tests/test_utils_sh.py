@@ -1,5 +1,6 @@
-from scripts.monitoring.utils import bash_run
 import tempfile
+
+from scripts.monitoring.utils import bash_run
 
 
 def test_bash_run():
@@ -18,7 +19,7 @@ def test_bash_run():
         source2.close()
 
         output = bash_run(
-            f"echo $VAR1 $VAR2",
+            "echo $VAR1 $VAR2",
             sources=[source1.name, source2.name],
             capture_output=True,
         )
@@ -53,7 +54,7 @@ def test_log_recent_bot_traffic():
         nc_fp.close()
 
         bash_run(
-            f"log_recent_bot_traffic stats.ol-covers0.bot_traffic openlibrary-covers_nginx-1",
+            "log_recent_bot_traffic stats.ol-covers0.bot_traffic openlibrary-covers_nginx-1",
             sources=[aliases_fp.name, "utils.sh"],
         )
 
@@ -94,7 +95,7 @@ def test_log_recent_http_statuses():
         nc_fp.close()
 
         bash_run(
-            f"log_recent_http_statuses stats.ol-covers.http_status openlibrary-covers_nginx-1",
+            "log_recent_http_statuses stats.ol-covers.http_status openlibrary-covers_nginx-1",
             sources=[aliases_fp.name, "utils.sh"],
         )
 
