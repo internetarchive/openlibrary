@@ -305,7 +305,7 @@ class BookRecord:
                     "name": author.friendly_name,
                     **(
                         {"birth_date": author.birth_date}
-                        if author.birth_date is not None
+                        if author.birth_date
                         else {}
                     ),
                     **(
