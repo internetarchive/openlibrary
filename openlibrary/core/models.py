@@ -813,7 +813,7 @@ class Author(Thing):
         """Returns the author's remote IDs merged with a given remote IDs object, as well as a count for how many IDs had conflicts.
         If incoming_ids is empty, or if there are more conflicts than matches, no merge will be attempted, and the output will be (author.remote_ids, -1).
         """
-        output = {**self.remote_ids}
+        output = deepcopy(self.remote_ids)
         if len(incoming_ids.items()) == 0:
             return output, -1
         # Count
