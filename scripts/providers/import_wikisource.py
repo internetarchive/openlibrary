@@ -310,7 +310,7 @@ class BookRecord:
                     ),
                     **(
                         {"death_date": author.death_date}
-                        if author.death_date is not None
+                        if author.death_date
                         else {}
                     ),
                     **(
