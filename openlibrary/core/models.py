@@ -2,9 +2,6 @@
 """
 
 import logging
-import requests
-import web
-
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -12,6 +9,8 @@ from datetime import datetime, timedelta
 from typing import Any, TypedDict
 from urllib.parse import urlencode
 
+import requests
+import web
 
 from infogami.infobase import client
 
