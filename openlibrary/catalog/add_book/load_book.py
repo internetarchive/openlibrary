@@ -180,7 +180,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
                 matched_authors.extend(
                     get_redirected_authors(list(web.ctx.site.get_many(reply))
                 )
-        matched_authors = uniq(matched_authors)
+        matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
         # The match is whichever one has the most identifiers in common AND does not have more conflicts than matched identifiers.
         highest_matches = 0
         selected_match = None
