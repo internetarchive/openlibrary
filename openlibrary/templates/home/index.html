@@ -34,7 +34,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $if not test:
     $:macros.QueryCarousel(query="subject:thrillers ratings_count:[10 TO *] ebook_access:[borrowable TO *]", title=_('Thrillers'), key="thrillers", url="/subjects/thrillers", sort='random.hourly', use_cache=False)
-    $:macros.QueryCarousel(query="subject:textbooks ratings_count:[10 TO *] ebook_access:[borrowable TO *]", title=_('Textbooks'), key="textbooks", url="/subjects/textbooks", sort='random.hourly', use_cache=False)
+    $:macros.QueryCarousel(query="subject_key:textbooks publish_year:[1990 TO *] readinglog_count :[5 TO *] ebook_access:[borrowable TO *]", title=_('Textbooks'), key="textbooks", url="/subjects/textbooks", sort='random.hourly', use_cache=False)
 
   $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", limit=18, test=test)
 
