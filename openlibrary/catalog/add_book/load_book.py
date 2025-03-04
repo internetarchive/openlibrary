@@ -167,7 +167,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         )
     ):
         # Always match on OL ID, even if remote identifiers don't match.
-        return get_redirected_authors([web.ctx.site.get(k) for k in reply])
+        return get_redirected_authors(list(web.ctx.site.get_many(reply))
     # Try other identifiers next.
     if identifiers := author.get("identifiers"):
         queries = []
