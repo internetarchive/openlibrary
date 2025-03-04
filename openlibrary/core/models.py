@@ -829,7 +829,9 @@ class Author(Thing):
                     conflicts = conflicts + 1
                 else:
                     matches = matches + 1
-        if conflicts > matches:
+        # Decide at a later date if we want to change the logic to bail only when conflicts > matches, instead of conflicts > 0.
+        # if conflicts > matches:
+        if conflicts > 0:
             # TODO: Raise this to librarians, somehow.
             return self.remote_ids, -1
         return output, matches
