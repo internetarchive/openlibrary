@@ -32,8 +32,11 @@ class MonitoredJob:
         try:
             self._run_script()
         except subprocess.CalledProcessError as e:
-            sentry_sdk.capture_exception(e)
+            se = RuntimeError(f"Subprocess failed: {e}\n{e.stderr}")
+            sentry_sdk.capture_exception(se)
             self.job_failed = True
+            sys.stderr.write(e.stderr)
+            sys.stderr.flush()            
         finally:
             self._after_run()
             sentry_sdk.flush()
