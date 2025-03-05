@@ -52,7 +52,7 @@ class MonitoredJob:
 
     def _run_script(self):
         return subprocess.run(
-            self.command, text=True, stdout=sys.stdout, stderr=sys.stderr, check=True
+            self.command, text=True, stdout=sys.stdout, stderr=subprocess.PIPE, check=True
         )
 
     def _setup_sentry(self, dsn):
