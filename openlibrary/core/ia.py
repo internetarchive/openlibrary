@@ -18,6 +18,8 @@ logger = logging.getLogger('openlibrary.ia')
 IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
+EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
+
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
     """
@@ -316,9 +318,8 @@ def get_candidates_url(
             '!noindex:true',
         ]
     )
-    exempt_collections = ' OR '.join(  # noqa: FLY002
-        ["collection:thoth-archiving-network"]
-    )
+    exempt_collections = ' OR '.join(EXEMPT_COLLECTIONS)
+
     params = {
         'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',
