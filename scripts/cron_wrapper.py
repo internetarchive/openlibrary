@@ -66,6 +66,7 @@ class MonitoredJob:
         return StatsClient(host, port)
 
     def _get_job_name(self):
+        # TODO: Change to specify a --script as argparse arg (instead of scripts path)
         script_path = next(
             s for s in self.command if s.startswith("/openlibrary/scripts/")
         )
