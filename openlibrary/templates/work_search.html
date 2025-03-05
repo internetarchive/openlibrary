@@ -109,7 +109,7 @@ $if not search_response.error and param and len(search_response.docs):
     $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
-    $if search_response and ctx.user and ctx.user.is_admin():
+    $if search_response.time and ctx.user and ctx.user.is_admin():
       <div id="adminTiming" class="small sansserif clearfix">
         <a
           class="adminOnly"
