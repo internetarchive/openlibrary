@@ -10,7 +10,7 @@ fi
 
 PR_NUMBER=$1
 PATCH_URL="https://patch-diff.githubusercontent.com/raw/internetarchive/openlibrary/pull/${PR_NUMBER}.diff"
-
+echo "Note: Patch Deploys cannot rebuild js/css"
 # Iterate over webnode_id [0, 1, 2]
 for webnode_id in {0..2}; do
     echo "Applying patch on ol-web${webnode_id}.us.archive.org..."
