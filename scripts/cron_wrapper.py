@@ -36,7 +36,7 @@ class MonitoredJob:
             sentry_sdk.capture_exception(se)
             self.job_failed = True
             sys.stderr.write(e.stderr)
-            sys.stderr.flush()            
+            sys.stderr.flush()
         finally:
             self._after_run()
             sentry_sdk.flush()
