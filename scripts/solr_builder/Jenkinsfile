@@ -81,6 +81,15 @@ pipeline {
             }
             stage('Setup dump file') {
               stages {
+                stage('Cleanup ol dump files') {
+                  steps {
+                    dir(env.DUMP_DIR) {
+                      sh "rm \$(ls ol_dump_2* | grep -v ${env.OL_DUMP_FILE}) || true"
+                      sh "rm \$(ls ol_dump_ratings_2* | grep -v ${env.OL_RATINGS_FILE}) || true"
+                      sh "rm \$(ls ol_dump_reading-log_2* | grep -v ${env.OL_READING_LOG_FILE}) || true"
+                    }
+                  }
+                }
                 stage('Download dump file') {
                   steps {
                     dir(env.DUMP_DIR) {
@@ -163,7 +172,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop solr if running',
-                script: 'docker rm -f -v solr_builder-solr-1 || true')
+                script: 'docker rm -f -v solr_builder-solr-1 solr_builder-solr_prod-1 || true')
 
               sh(label: 'Remove solr volume',
                 script: 'docker volume rm solr_builder_solr-data || true')
