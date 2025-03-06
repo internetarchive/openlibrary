@@ -361,9 +361,7 @@ deploy_openlibrary() {
 # - deploy.sh olsystem
 # - deploy.sh openlibrary
 
-if [ "$1" == "crons" ]; then
-    check_crons
-elif [ "$1" == "olsystem" ]; then
+if [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
