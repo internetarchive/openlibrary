@@ -186,8 +186,13 @@ pipeline {
               sh(label: 'Launch solr',
                 script: 'docker compose up --no-deps -d solr')
 
+              // Needed because nexus is unable to pull this from the Dockerfile for
+              // some reason
+              sh(label: 'Manually pull openlibrary/olbase:latest image',
+                script: 'docker pull openlibrary/olbase:latest')
+
               sh(label: 'Build "lite" ol environment',
-                script: 'docker compose build --pull ol')
+                script: 'docker compose build ol')
 
               sh(label: 'Build the cython files',
                 script: 'docker compose run --rm ol ./build-cython.sh')
