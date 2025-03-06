@@ -71,6 +71,9 @@ check_crons() {
         echo "✗"
         echo "Critical cron jobs are currently running. Halting deployment:"
         echo "$RUNNING_CRONS"
+        echo ""
+        echo "Set KILL_CRON=1 and run script again to override."
+        echo ""
         exit 1
     else
         echo "✓"
