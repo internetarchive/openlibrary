@@ -1,4 +1,5 @@
 FROM openlibrary/olbase:latest
+ARG PIP_INDEX_URL
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 

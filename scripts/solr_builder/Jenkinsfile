@@ -22,6 +22,7 @@ pipeline {
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
     string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
+    string(name: 'PIP_INDEX_URL', defaultValue: '', description: 'Path to custom PIP index (optional)')
   }
   environment {
     // The *host* location of Jenkins directory
