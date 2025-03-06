@@ -64,7 +64,7 @@ check_crons() {
 
     echo ""
     echo -n "Checking for running critical cron jobs... "
-    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS")
+    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS" || true)
 
     # If KILL_CRON is an empty string and there are running jobs, exit early
     if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
@@ -361,7 +361,9 @@ deploy_openlibrary() {
 # - deploy.sh olsystem
 # - deploy.sh openlibrary
 
-if [ "$1" == "olsystem" ]; then
+if [ "$1" == "crons" ]; then
+    check_crons
+elif [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
