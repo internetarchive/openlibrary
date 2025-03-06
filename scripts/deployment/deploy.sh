@@ -64,7 +64,7 @@ check_crons() {
 
     echo ""
     echo -n "Checking for running critical cron jobs... "
-    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS")
+    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS" || true)
 
     # If KILL_CRON is an empty string and there are running jobs, exit early
     if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
