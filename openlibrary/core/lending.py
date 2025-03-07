@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Literal, TypedDict, cast
 import eventer
 import requests
 import web
-from infogami.utils import delegate
-from infogami.utils.view import public
 from simplejson.errors import JSONDecodeError
 
+from infogami.utils import delegate
+from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import urlencode
@@ -50,6 +50,10 @@ class PatronAccessException(Exception):
     def __init__(self, message="Access to this item is temporarily locked."):
         self.message = message
         super().__init__(self.message)
+
+
+class AvailabilityServiceError(Exception):
+    pass
 
 
 config_ia_loan_api_url = None
@@ -322,6 +326,7 @@ class AvailabilityStatus(TypedDict):
 
 class AvailabilityServiceResponse(TypedDict):
     success: bool
+    error: str | None
     responses: dict[str, AvailabilityStatus]
 
 
@@ -381,24 +386,32 @@ def get_availability(
             "x-preferred-client-id": web.ctx.env.get(
                 'HTTP_X_FORWARDED_FOR', 'ol-internal'
             ),
+            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
+            "user-agent": "Open Library Site",
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        response = cast(
-            AvailabilityServiceResponse,
-            requests.get(
-                config_ia_availability_api_v2_url,
-                params={
-                    id_type: ','.join(ids_to_fetch),
-                    "scope": "printdisabled",
-                },
-                headers=headers,
-                timeout=10,
-            ).json(),
+        resp = requests.get(
+            config_ia_availability_api_v2_url,
+            params={
+                id_type: ','.join(ids_to_fetch),
+                "scope": "printdisabled",
+            },
+            headers=headers,
+            timeout=10,
         )
+
+        # This API should always return 200
+        resp.raise_for_status()
+
+        response = cast(AvailabilityServiceResponse, resp.json())
+
+        if not response['success']:
+            raise AvailabilityServiceError(response['error'])
+
         uncached_values = {
             _id: update_availability_schema_to_v2(
                 availability,
@@ -473,7 +486,7 @@ def get_ocaid(item: dict) -> str | None:
 def get_availabilities(items: list) -> dict:
     result = {}
     ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-    availabilities = get_availability_of_ocaids(ocaids)
+    availabilities = get_availability('identifier', ocaids)
     for item in items:
         ocaid = get_ocaid(item)
         if ocaid:
@@ -492,7 +505,7 @@ def add_availability(
     """
     if mode == "identifier":
         ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-        availabilities = get_availability_of_ocaids(ocaids)
+        availabilities = get_availability('identifier', ocaids)
         for item in items:
             ocaid = get_ocaid(item)
             if ocaid:
@@ -507,25 +520,13 @@ def add_availability(
     return items
 
 
-def get_availability_of_ocaid(ocaid):
-    """Retrieves availability based on ocaid/archive.org identifier"""
-    return get_availability('identifier', [ocaid])
-
-
-def get_availability_of_ocaids(ocaids: list[str]) -> dict[str, AvailabilityStatusV2]:
-    """
-    Retrieves availability based on ocaids/archive.org identifiers
-    """
-    return get_availability('identifier', ocaids)
-
-
 def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
     """
     Get Editions from OCAIDs and attach their availabiliity.
 
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
-    ocaid_availability = get_availability_of_ocaids(ocaids=ocaids)
+    ocaid_availability = get_availability('identifier', ocaids)
     editions = web.ctx.site.get_many(
         [
             f"/books/{item.get('openlibrary_edition')}"
@@ -725,7 +726,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         'book': loan['book'],
     }
 
-    responses = get_availability_of_ocaid(identifier)
+    responses = get_availability('identifier', [identifier])
     response = responses[identifier] if responses else {}
     if response:
         num_waiting = int(response.get('num_waitlist', 0) or 0)

@@ -28,9 +28,12 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
+from web.template import TemplateResult
+from web.utils import Storage
+
 from infogami import config
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
-from infogami.utils import delegate, stats, view
+from infogami.utils import delegate, features, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
 from infogami.utils.view import (
@@ -38,9 +41,6 @@ from infogami.utils.view import (
     public,
     render,
 )
-from web.template import TemplateResult
-from web.utils import Storage
-
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -311,8 +311,13 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d) -> str:
-    return json.dumps(d)
+def json_encode(d, indent=0) -> str:
+    return json.dumps(d, indent=indent)
+
+
+@public
+def is_feature_enabled(feature_name: str) -> bool:
+    return features.is_enabled(feature_name)
 
 
 def unflatten(d: dict, separator: str = "--") -> dict:

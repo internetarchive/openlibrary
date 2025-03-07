@@ -4,11 +4,11 @@ import logging
 import random
 
 import web
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
-
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
@@ -18,12 +18,6 @@ from openlibrary.utils import dateutil
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
-    'preset:thrillers': (
-        '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" '
-        'OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, '
-        'Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : '
-        'Reader\'s Digest Association" AND languageSorter:"English"'
-    ),
     'preset:comics': (
         '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") '
         'OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR '

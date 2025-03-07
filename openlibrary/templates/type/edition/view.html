@@ -441,12 +441,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <h3>$_("Edition Identifiers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
-                $ no_index = edition.get_ia_meta_fields().get('noindex', False)
+                $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
-                    $if not (edition.is_in_private_collection() and identifier_label == 'Internet Archive'):
-                        $if is_privileged_user or not (no_index and identifier_label == 'Internet Archive'):
-                            $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                    $if identifier_label != "Internet Archive" or is_viewable_book:
+                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)

@@ -12,10 +12,10 @@ import socket
 from time import time
 from urllib.parse import parse_qs, urlencode
 
-import infogami
 import requests
 import web
 
+import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -27,6 +27,7 @@ from openlibrary.plugins.upstream.utils import setup_requests
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -38,8 +39,6 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-
-import openlibrary.core.stats
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
@@ -1142,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if features.is_enabled('debug'):
+    if hasattr(web, 'ctx') and features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(
@@ -1345,10 +1344,11 @@ def setup_template_globals():
             "en": {"code": "en", "localized": _('English'), "native": "English"},
             "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
             "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
             "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
-            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "ro": {"code": "ro", "localized": _('Romanian'), "native": "Română"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},

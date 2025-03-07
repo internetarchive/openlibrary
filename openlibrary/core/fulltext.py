@@ -4,9 +4,9 @@ from urllib.parse import urlencode
 
 import requests
 import web
-from infogami import config
 
-from openlibrary.core.lending import get_availability_of_ocaids
+from infogami import config
+from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
 
 logger = logging.getLogger("openlibrary.inside")
@@ -57,9 +57,9 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
-        availability = get_availability_of_ocaids(ocaids)
+        availability = get_availability('identifier', ocaids)
         if 'error' in availability:
-            return []
+            return {"hits": {"hits": []}}
         editions = web.ctx.site.get_many(
             [
                 '/books/%s' % availability[ocaid].get('openlibrary_edition')

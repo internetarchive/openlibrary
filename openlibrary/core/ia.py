@@ -6,9 +6,9 @@ from urllib.parse import urlencode
 
 import requests
 import web
+
 from infogami import config
 from infogami.utils import stats
-
 from openlibrary.core import cache
 
 logger = logging.getLogger('openlibrary.ia')
@@ -17,6 +17,8 @@ logger = logging.getLogger('openlibrary.ia')
 # See lending.py for an example of how to do it correctly.
 IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
+
+EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
@@ -114,6 +116,15 @@ def edition_from_item_metadata(itemid, metadata):
 
 
 def get_cover_url(item_id):
+    """Gets the URL of the archive.org item's cover page."""
+    base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
+    cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
+    if cover_response.status_code == 404:
+        return get_fallback_cover_url(item_id)
+    return base_url + 'default.jpg'
+
+
+def get_fallback_cover_url(item_id):
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
@@ -307,9 +318,8 @@ def get_candidates_url(
             '!noindex:true',
         ]
     )
-    exempt_collections = ' OR '.join(  # noqa: FLY002
-        ["collection:thoth-archiving-network"]
-    )
+    exempt_collections = ' OR '.join(EXEMPT_COLLECTIONS)
+
     params = {
         'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',

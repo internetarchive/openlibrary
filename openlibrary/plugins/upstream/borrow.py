@@ -14,6 +14,8 @@ from typing import Literal
 import lxml.etree
 import requests
 import web
+from lxml import etree
+
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -21,8 +23,6 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
-from lxml import etree
-
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import (
@@ -155,7 +155,7 @@ class borrow(delegate.page):
 
         # Make a call to availability v2 update the subjects according
         # to result if `open`, redirect to bookreader
-        response = lending.get_availability_of_ocaid(edition.ocaid)
+        response = lending.get_availability('identifier', [edition.ocaid])
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
             from openlibrary.plugins.openlibrary.code import is_bot

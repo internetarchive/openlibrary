@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING
 
 import requests
 import web
+from validate_email import validate_email
+
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
-from validate_email import validate_email
-
 from openlibrary.core import helpers, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -733,6 +733,8 @@ class InternetArchiveAccount(web.storage):
             params['developer'] = test
 
         response = requests.post(url, params=params, json=data)
+        if response.status_code == 403:
+            raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
             response.raise_for_status()
 

@@ -32,10 +32,14 @@ class MonitoredJob:
         try:
             self._run_script()
         except subprocess.CalledProcessError as e:
-            sentry_sdk.capture_exception(e)
+            se = RuntimeError(f"Subprocess failed: {e}\n{e.stderr}")
+            sentry_sdk.capture_exception(se)
             self.job_failed = True
+            sys.stderr.write(e.stderr)
+            sys.stderr.flush()
         finally:
             self._after_run()
+            sentry_sdk.flush()
 
     def _before_run(self):
         if self.statsd_client:
@@ -51,7 +55,11 @@ class MonitoredJob:
 
     def _run_script(self):
         return subprocess.run(
-            self.command, text=True, stdout=sys.stdout, stderr=sys.stderr, check=True
+            self.command,
+            text=True,
+            stdout=sys.stdout,
+            stderr=subprocess.PIPE,
+            check=True,
         )
 
     def _setup_sentry(self, dsn):
@@ -61,6 +69,7 @@ class MonitoredJob:
         return StatsClient(host, port)
 
     def _get_job_name(self):
+        # TODO: Change to specify a --script as argparse arg (instead of scripts path)
         script_path = next(
             s for s in self.command if s.startswith("/openlibrary/scripts/")
         )
