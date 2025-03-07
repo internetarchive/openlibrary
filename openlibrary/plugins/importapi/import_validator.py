@@ -3,7 +3,11 @@ from typing import Annotated, Any, Final, TypeVar
 from annotated_types import MinLen
 from pydantic import BaseModel, ValidationError, model_validator, root_validator
 
-from openlibrary.catalog.add_book import SUSPECT_AUTHOR_NAMES, SUSPECT_PUBLICATION_DATES
+from openlibrary.catalog.add_book import (
+    SUSPECT_AUTHOR_NAMES,
+    SUSPECT_DATE_EXEMPT_SOURCES,
+    SUSPECT_PUBLICATION_DATES,
+)
 
 T = TypeVar("T")
 
@@ -34,6 +38,13 @@ class CompleteBook(BaseModel):
     @root_validator(pre=True)
     def remove_invalid_dates(cls, values):
         """Remove known bad dates prior to validation."""
+        is_exempt = any(
+            source_record.split(":")[0] in SUSPECT_DATE_EXEMPT_SOURCES
+            for source_record in values.get("source_records", [])
+        )
+        if is_exempt:
+            return values
+
         if values.get("publish_date") in SUSPECT_PUBLICATION_DATES:
             values.pop("publish_date")
 
