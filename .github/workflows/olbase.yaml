@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   docker:
+    if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
