@@ -65,18 +65,26 @@ See 'docker run --help'.
 
 ## Build the project
 
-Change (`cd`) into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
+For most architectures, you can `cd` and change into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
 
 ```
 docker compose build
 ```
 
-This may take from a few minutes to more than 15 on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
+The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command.
 
-> [!IMPORTANT]
-> If you are running arm64 (see: [#10276](https://github.com/internetarchive/openlibrary/issues/10276)) and this command fails, [for now](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779) you may have to run [this workaround](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718).
+If you are using a mac [`arm64` #10276](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [`M2` #10078](https://github.com/internetarchive/openlibrary/issues/10078#issuecomment-2495487385), or some other architecture, it's possible the `build` command may **fail** with an error of:
+```
+failed to solve openlibrary/olbase:latest` no match for platform in manifest: not found
+```
 
-If you **hit errors** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
+In these cases, [until we standardize our images across architectures](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779), try running the following and proceed with the installation steps normally:
+
+```
+docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
+```
+
+If you hit another **error** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
 
 ## Run the app
 ```sh

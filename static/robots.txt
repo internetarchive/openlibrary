@@ -4,6 +4,8 @@ Disallow: /api
 Disallow: /edit
 Disallow: /account
 Disallow: /search
+Disallow: /search/publishers
+Disallow: /publishers
 Disallow: /search/inside
 Disallow: */borrow*
 Disallow: /*.rdf$

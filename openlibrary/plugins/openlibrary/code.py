@@ -1141,7 +1141,7 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if features.is_enabled('debug'):
+    if hasattr(web, 'ctx') and features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(
@@ -1344,10 +1344,11 @@ def setup_template_globals():
             "en": {"code": "en", "localized": _('English'), "native": "English"},
             "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
             "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
             "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
-            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "ro": {"code": "ro", "localized": _('Romanian'), "native": "Română"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},

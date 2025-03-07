@@ -295,6 +295,34 @@ services:
       - webnet
       - dbnet
 
+  # This job runs various monitoring/grafana checks across the entire cluster.
+  # It has access to the other nodes via the docker socket.
+  monitoring:
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0"]
+    build:
+      context: .
+      dockerfile: scripts/monitoring/Dockerfile
+      args:
+        - APT_MIRROR=${APT_MIRROR:-}
+        - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
+        - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+    hostname: "$HOSTNAME"
+    command: docker/ol-monitoring-start.sh
+    restart: unless-stopped
+    cap_add:
+      # Needed for py-spy
+      - SYS_PTRACE
+    # Needed for ps aux access across containers (py-spy)
+    pid: host
+    volumes:
+      # Needed to inspect other docker containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
 volumes:
     archive-webserver-logs-data:
     letsencrypt-data:

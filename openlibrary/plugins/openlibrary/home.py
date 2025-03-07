@@ -18,12 +18,6 @@ from openlibrary.utils import dateutil
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
-    'preset:thrillers': (
-        '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" '
-        'OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, '
-        'Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : '
-        'Reader\'s Digest Association" AND languageSorter:"English"'
-    ),
     'preset:comics': (
         '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") '
         'OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR '
