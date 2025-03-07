@@ -1,4 +1,7 @@
 FROM openlibrary/olbase:latest
+ARG PIP_INDEX_URL
+ARG HTTPS_PROXY
+ARG NO_PROXY
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
