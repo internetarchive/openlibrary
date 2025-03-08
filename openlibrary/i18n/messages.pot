@@ -2857,7 +2857,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: authors/index.html lib/nav_head.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
 #: search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
@@ -5308,10 +5308,6 @@ msgstr ""
 msgid ""
 "For the top 2000+ most requested eBooks in California for the print "
 "disabled <a href=\"%(url)s\">click here</a>."
-msgstr ""
-
-#: lists/home.html
-msgid "Find a list by name"
 msgstr ""
 
 #: lists/home.html
