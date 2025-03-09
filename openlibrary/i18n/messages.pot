@@ -7440,6 +7440,11 @@ msgstr ""
 msgid "My private notes about this edition:"
 msgstr ""
 
+#: OLID.html
+#, python-format
+msgid "by  %(authors)s"
+msgstr ""
+
 #: ObservationsModal.html
 msgid "My Book Review"
 msgstr ""
