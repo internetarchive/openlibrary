@@ -8,5 +8,5 @@ $ authors = edition.get_authors()
   <img src="https://covers.openlibrary.org/b/olid/$(olid)-S.jpg" alt="$edition.title"/>
   <a href="$edition.key">$edition.title</a>
   $if authors:
-    <span>by $', '.join(authors.name)</span>
+    <span>$_("by  %(authors)s", authors=', '.join(authors.name))</span>
 </div>
