@@ -64,7 +64,7 @@ También puedes encontrar más información sobre la Documentación para Desarro
 
 ### El Backend
 
-OpenLibrary es desarrollado sobre el sistema wiki Infogami, que a su vez está construido sobre el framework web.py de Python y el framework de base de datos Infobase.
+Open Library es desarrollado sobre el sistema wiki Infogami, que a su vez está construido sobre el framework web.py de Python y el framework de base de datos Infobase.
 
 - [Descripción General de las Tecnologías Web Backend](https://openlibrary.org/about/tech)
 
