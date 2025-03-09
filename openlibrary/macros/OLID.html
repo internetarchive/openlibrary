@@ -1,15 +1,12 @@
-$def with (q="")
+$def with (olid)
 
-$ edition = query_param('edition', q)
-$ result = edition.olid_link(q)
-$ olid = edition.key.split("/")[-1]
-$ title = edition.title
+$ key = '/books/' + olid
+$ edition = get_document(key)
+$ authors = edition.get_authors()
 
-$if(olid == q):
-    <a href="$edition.key">$title</a>
-    <h6>$edition.get_authors()</h6>
-    <img src="/books/add?work=$edition.key" alt="$title"/>
-$else:
-    <a href="$result">$olid</a>
-    <h6>$edition.get_authors()</h6>
-    <img src="/books/add?work=$olid" alt="$olid" />
+<div class="olid-macro">
+  <img src="https://covers.openlibrary.org/b/olid/$(olid[1:-1])-S.jpg" alt="$edition.title"/>
+  <a href="$edition.key">$edition.title</a>
+  $if authors:
+    <span>by $', '.join(authors.name)</span>
+</div>
