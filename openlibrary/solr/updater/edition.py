@@ -145,6 +145,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         )
 
     @property
+    def lexile(self) -> str:
+        return self._edition.get('lexile')
+
+    @property
     def language(self) -> list[str]:
         """Gets the 3 letter language codes (eg ['ger', 'fre'])"""
         result: list[str] = []
@@ -313,6 +317,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 ),
                 # Misc useful data
                 'publisher': self.publisher,
+                'lexile': self.lexile,
                 'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,

@@ -161,6 +161,9 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
 
+    <!-- Reading Levels -->
+    <field name="lexile" type="string" stored="false" multiValued="false"/>
+
     <!-- Classifications -->
     <field name="lcc" type="string" multiValued="true" />
     <field name="lcc_sort" type="string" stored="false" /> <!-- Need non-multiValued for sorting -->
