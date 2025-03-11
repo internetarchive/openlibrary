@@ -162,7 +162,7 @@
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
 
     <!-- Reading Levels -->
-    <field name="lexile" type="string" stored="false" multiValued="false"/>
+    <field name="lexile" type="string" stored="false" multiValued="true"/>
 
     <!-- Classifications -->
     <field name="lcc" type="string" multiValued="true" />
