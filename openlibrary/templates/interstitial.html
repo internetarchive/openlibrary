@@ -1,0 +1,28 @@
+$def with(url, provider="", wait=5)
+
+<h1></h1>
+
+<p id="countdown">This book is provided by <strong>$provider</strong>, a third-party Open Library Trusted Book Provider</p>
+
+<p>You will be automatically redirected to $url in <span id="timer">5</span> seconds...</p>
+
+<p></p>You may <a href="#" onclick="window.close(); return false;">Cancel</a> or
+<a href="">Continue without waiting</a>
+
+<script>
+  let count = $wait;
+  const timerElement = document.getElementById("timer");
+
+  const countdown = setInterval(() => {
+    count--;
+    timerElement.textContent = count;
+    
+    if (count === 0) {
+      clearInterval(countdown);
+      // Open in a new tab and then return to Open Library
+      window.open("$url", "_blank"); // Open in new tab
+      history.back(); // Return to previous page on Open Library
+    }
+  }, 1000);
+</script>
+
