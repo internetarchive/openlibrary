@@ -22,10 +22,7 @@ from infogami.utils import delegate
 from infogami.utils.view import (
     add_flash_message,
     public,
-    render,
-    render_template,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import (
@@ -149,7 +146,7 @@ class borrow(delegate.page):
             # Change this to a template call, e.g.
             # not sure if provider.name is a thing...
             # XXX The problem with this approach is it will not open in a new window (maybe that's okay)
-            #render_template("interstitial", url=acquisitions[0].url, provider=provider.name, wait=5)
+            # render_template("interstitial", url=acquisitions[0].url, provider=provider.name, wait=5)
             raise web.seeother(acquisitions[0].url)
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
