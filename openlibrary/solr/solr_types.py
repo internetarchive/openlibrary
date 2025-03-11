@@ -38,7 +38,7 @@ class SolrDocument(TypedDict):
     lcc_sort: Optional[str]
     ddc: Optional[list[str]]
     ddc_sort: Optional[str]
-    lexile: Optional[str]
+    lexile: Optional[int]
     contributor: Optional[list[str]]
     publish_place: Optional[list[str]]
     publisher: Optional[list[str]]

@@ -145,8 +145,9 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         )
 
     @property
-    def lexile(self) -> str:
-        return self._edition.get('lexile')
+    def lexile(self) -> int | None:
+        result = int: self._edition.get('lexile')
+        return result or int(result)
 
     @property
     def language(self) -> list[str]:
