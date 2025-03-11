@@ -5105,10 +5105,6 @@ msgid "Release Notes"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Twitter"
-msgstr ""
-
-#: lib/nav_foot.html
 msgid "GitHub"
 msgstr ""
 
