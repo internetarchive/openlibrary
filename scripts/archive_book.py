@@ -11,7 +11,7 @@ api_url = "https://web.archive.org/save"
 headers = {"Accept": "application/json", "Authorization": f"LOW {access_key}:{secret}"}
 
 
-def archive_book(url, capture_all=True):
+def archive_book(url, capture_all=True, capture_outlinks=True, capture_screenshot=True):
     data = {
         "url": url,  # <-- our url here
         "if_not_archived_within": "1m",
