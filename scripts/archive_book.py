@@ -20,10 +20,10 @@ def archive_book(url, capture_all=True, capture_outlinks=True, capture_screensho
     if capture_all and not url.lower().endswith(".pdf"):
         # we don't want to waste a capture_all request if it's just 1 doc
         data["capture_all"] = "1"
-    
+
     if capture_outlinks:
         data["capture_outlinks"] = "1"
-    
+
     if capture_screenshot:
         data["capture_screenshot"] = "1"
 
