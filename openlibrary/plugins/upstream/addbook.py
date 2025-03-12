@@ -529,6 +529,8 @@ def trim_doc(doc):
     """Replace empty values in the document with Nones."""
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
 
+class TocParseError(BaseException):
+    pass
 
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -644,7 +646,10 @@ class SaveBookHelper:
                 edition_data.pop('physical_dimensions', None)
             )
             self.edition.set_weight(edition_data.pop('weight', None))
-            self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+            try:
+                self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+            except TocParseError as e:
+                raise ClientException("400 Bad Request", f"Table of contents parse error: {e}")
 
             if edition_data.pop('translation', None) != 'yes':
                 edition_data.translation_of = None

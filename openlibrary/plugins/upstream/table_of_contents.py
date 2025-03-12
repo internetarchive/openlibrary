@@ -130,13 +130,18 @@ class TocEntry:
             title = text
             label = page = ""
             extra_fields = ''
+        extra_fields = json.loads(extra_fields or '{}')
+
+        from .addbook import TocParseError
+        if isinstance(extra_fields, int):
+            raise TocParseError("Invalid formatting!")
 
         return TocEntry(
             level=len(level),
             label=label.strip() or None,
             title=title.strip() or None,
             pagenum=page.strip() or None,
-            **json.loads(extra_fields or '{}'),
+            **extra_fields,
         )
 
     def to_markdown(self) -> str:
