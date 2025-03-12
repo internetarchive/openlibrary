@@ -409,8 +409,9 @@ class StandardEbooksProvider(AbstractBookProvider):
         return render_template(
             self.get_template_path('read_button'),
             acquisitions[0],  # Use the web version
-            self.domain
+            self.domain,
         )
+
 
 class OpenStaxProvider(AbstractBookProvider):
     short_name = 'openstax'

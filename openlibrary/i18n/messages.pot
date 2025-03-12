@@ -357,7 +357,8 @@ msgid "YAML Representation:"
 msgstr ""
 
 #: BookPreview.html book_providers/direct_read_button.html
-#: books/edit/edition.html editpage.html
+#: book_providers/standard_ebooks_read_button.html books/edit/edition.html
+#: editpage.html
 msgid "Preview"
 msgstr ""
 
