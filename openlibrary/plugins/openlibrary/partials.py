@@ -8,8 +8,11 @@ from infogami.utils.view import render_template
 
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
-from openlibrary.plugins.worksearch.code import do_search
+from openlibrary.core.lending import get_available
+from openlibrary.plugins.worksearch.code import do_search, work_search
+from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.utils import dateutil
+from openlibrary.views.loanstats import get_trending_books
 
 
 def _get_relatedcarousels_component(workid):
@@ -31,6 +34,82 @@ def get_cached_relatedcarousels_component(*args, **kwargs):
         or memoized_get_component_metadata.update(*args, **kwargs)[0]
     )
 
+
+class CarouselCardPartial:
+    def __init__(self):
+        self.i = web.input(params=None)
+
+    def generate(self) -> dict:
+        # Determine query type
+        params = self.i or {}
+        query_type = params.get("queryType", "")
+
+        # Do search
+        search_results = self._make_book_query(query_type, params)
+
+        # Render cards
+        cards = []
+        layout = params.get("layout")
+        key = params.get("key") or ""
+        for index, book in enumerate(search_results):
+            lazy = index > 5
+            cards.append(render_template("books/custom_carousel_card", web.storage(book), lazy, layout, key=key))
+
+        # Return partials dict:
+        return {"partials": [str(template) for template in cards]}
+
+    def _make_book_query(self, query_type: str, params: dict) -> list:
+        if query_type == "SEARCH":
+            return self._do_search_query(params)
+        if query_type == "BROWSE":
+            return self._do_browse_query(params)
+        if query_type == "TRENDING":
+            return self._do_trends_query(params)
+        if query_type == "SUBJECTS":
+            return self._do_subjects_query(params)
+
+        raise ValueError("Unknown query type")
+
+    def _do_search_query(self, params: dict) -> list:
+        fields = 'key,title,subtitle,author_name,cover_i,ia,availability,id_project_gutenberg,id_project_runeberg,id_librivox,id_standard_ebooks,id_openstax'
+        query = params.get("q", "")
+        sort = params.get("sorts", "new")  # XXX : check "new" assumption
+        limit = int(params.get("limit", 20))
+        page = int(params.get("page", 1))
+        query_params = {
+            "q": query,
+            "fields": fields,
+        }
+        if fulltext := params.get("hasFulltextOnly"):
+            query_params['has_fulltext'] = 'true'
+
+        results = work_search(query_params, sort=sort, limit=limit, facet=False, offset=page)
+        return results.get("docs", [])
+
+    def _do_browse_query(self, params: dict) -> list:
+        query = params.get("q", "")
+        limit = int(params.get("limit", 18))
+        page = int(params.get("page", 1))
+        subject = params.get("subject", "")
+        sorts = params.get("sorts", "").split(",")
+
+        results = get_available(query=query, page=page, subject=subject, limit=limit, sorts=sorts)
+        return results if "error" not in results else []
+
+    def _do_trends_query(self, params: dict) -> list:
+        page = int(params.get("page", 1))
+        limit = int(params.get("limit", 18))
+        return get_trending_books(minimum=3, limit=limit, page=page, books_only=True, sort_by_count=False)
+
+    def _do_subjects_query(self, params: dict) -> list:
+        pseudoKey = params.get("q", "")
+        offset = int(params.get("page", 1))
+        limit = int(params.get("limit", 20))
+
+        subject = get_subject(pseudoKey, offset=offset, limit=limit)
+        return subject.get("works", [])
+
+
 class Partials(delegate.page):
     path = '/partials'
     encoding = 'json'
@@ -44,6 +123,8 @@ class Partials(delegate.page):
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
+        elif component == "CarouselLoadMore":
+            partial = CarouselCardPartial().generate()
         elif component == "AffiliateLinks":
             data = json.loads(i.data)
             args = data.get('args', [])

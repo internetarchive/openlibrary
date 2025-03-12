@@ -9,10 +9,6 @@ $if layout == 'carousel':
 
 $def carousel_i18n_input():
   $ show_carousel_i18n_strings=  {
-  $ "open": _("Read"),
-  $ "borrow_available": _("Borrow"),
-  $ "borrow_unavailable": _("Join Waitlist"),
-  $ "error": _("Not in Library"),
   $ "loading": _("Loading...")
   $ }
 
@@ -37,9 +33,16 @@ $if test or (books and len(books) >= min_books):
             'analyticsCategory': 'BookCarousel',
             'carouselKey': key,
             'loadMore': {
-              "url": load_more["url"].replace("&amp;", "&"),
+              "queryType": load_more.get("queryType", ""),
+              "q": load_more.get("q", ""),
               "pageMode": load_more.get("mode", "offset"),
-              "limit": load_more.get("limit", 18)
+              "limit": load_more.get("limit", 18),
+              "layout": layout,
+              "key": key,
+              "secondaryAction": secondary_action,
+              "sorts": load_more.get("sorts", ""),
+              "hasFulltextOnly": load_more.get("hasFulltextOnly", True),
+              "subject": load_more.get("subject", "")
             } if load_more else None
           }
         $ compact = "carousel--compact" if compact_mode else ""
