@@ -1,10 +1,7 @@
-from getpass import getpass
-
 import requests
-
-# Prompt user for secrets securely
-access_key = getpass("Enter your access key: ")
-secret = getpass("Enter your secret key: ")
+import os
+from openlibrary.config import load_config
+from contextlib import redirect_stdout
 
 # Define the API URL and headers
 api_url = "https://web.archive.org/save"
@@ -29,6 +26,15 @@ def archive_book(url, capture_all=True, capture_outlinks=True, capture_screensho
 
     return requests.post(api_url, headers=headers, data=data)
 
+if __name__ == "__main__":
+    ol_config = os.getenv("OL_CONFIG")
+    
+    if ol_config:
+        logger.info(f"loading config from {ol_config}")
+        # Squelch output from infobase (needed for sentry setup)
+        # So it doesn't end up in our data dumps body
+        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
+            load_config(ol_config)
 
-# response = archive_book("")
-# print(response.json())
+    # response = archive_book("")
+    # print(response.json())
