@@ -380,6 +380,10 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             return None
 
     @property
+    def lexile(self) -> set[int]:
+        return {lex for e in self._solr_editions if (lex := e.lexile) is not None}
+
+    @property
     def editions(self) -> list[SolrDocument]:
         return [ed.build() for ed in self._solr_editions]
 
