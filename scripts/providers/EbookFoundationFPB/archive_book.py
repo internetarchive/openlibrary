@@ -1,7 +1,9 @@
-import requests
 import os
-from openlibrary.config import load_config
 from contextlib import redirect_stdout
+
+import requests
+
+from openlibrary.config import load_config
 
 # Define the API URL and headers
 api_url = "https://web.archive.org/save"
@@ -26,9 +28,10 @@ def archive_book(url, capture_all=True, capture_outlinks=True, capture_screensho
 
     return requests.post(api_url, headers=headers, data=data)
 
+
 if __name__ == "__main__":
     ol_config = os.getenv("OL_CONFIG")
-    
+
     if ol_config:
         logger.info(f"loading config from {ol_config}")
         # Squelch output from infobase (needed for sentry setup)
