@@ -381,9 +381,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def lexile(self) -> set[int]:
-        return {
-            lex for e in self._solr_editions if (lex := e.lexile) is not None
-        }
+        return {lex for e in self._solr_editions if (lex := e.lexile) is not None}
 
     @property
     def editions(self) -> list[SolrDocument]:
