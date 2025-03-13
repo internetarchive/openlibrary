@@ -146,8 +146,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def lexile(self) -> int | None:
-        result = int: self._edition.get('lexile')
-        return result or int(result)
+        try:
+            return int(self._edition.get('lexile', None)) or None
+        except (TypeError, ValueError):
+            return None
 
     @property
     def language(self) -> list[str]:
@@ -318,7 +320,6 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 ),
                 # Misc useful data
                 'publisher': self.publisher,
-                'lexile': self.lexile,
                 'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,
