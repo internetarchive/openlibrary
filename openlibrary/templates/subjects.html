@@ -55,7 +55,13 @@ $ q = query_param('q')
 <div class="contentBody">
     $if has_tag:
       $:format(sanitize(page.tag.body))
-    $:render_template("books/custom_carousel", books=page.works, load_more={"url": page.key + ".json", "limit": len(page.works)})
+    $code:
+      load_more = {
+        "q": page.key,
+        "queryType": "SUBJECTS",
+        "limit": len(page.works)
+      }
+    $:render_template("books/custom_carousel", books=page.works, load_more=load_more)
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
