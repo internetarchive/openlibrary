@@ -392,6 +392,7 @@ class ProjectRunebergProvider(AbstractBookProvider):
 class StandardEbooksProvider(AbstractBookProvider):
     short_name = 'standard_ebooks'
     identifier_key = 'standard_ebooks'
+    domain = 'standardebooks.org'  # Add this line
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         # Standard ebooks isn't archived on IA
@@ -420,6 +421,19 @@ class StandardEbooksProvider(AbstractBookProvider):
                 provider_name=self.short_name,
             ),
         ]
+
+    def render_read_button(
+        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+    ) -> TemplateResult | str:
+        # Add this method to handle domain
+        acquisitions = self.get_acquisitions(ed_or_solr)
+        if not acquisitions:
+            return ''
+        return render_template(
+            self.get_template_path('read_button'),
+            acquisitions[0],  # Use the web version
+            self.domain,
+        )
 
 
 class OpenStaxProvider(AbstractBookProvider):
