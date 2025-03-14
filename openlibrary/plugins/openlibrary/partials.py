@@ -5,7 +5,6 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_available
@@ -53,7 +52,15 @@ class CarouselCardPartial:
         key = params.get("key") or ""
         for index, book in enumerate(search_results):
             lazy = index > 5
-            cards.append(render_template("books/custom_carousel_card", web.storage(book), lazy, layout, key=key))
+            cards.append(
+                render_template(
+                    "books/custom_carousel_card",
+                    web.storage(book),
+                    lazy,
+                    layout,
+                    key=key,
+                )
+            )
 
         # Return partials dict:
         return {"partials": [str(template) for template in cards]}
@@ -83,7 +90,9 @@ class CarouselCardPartial:
         if fulltext := params.get("hasFulltextOnly"):
             query_params['has_fulltext'] = 'true'
 
-        results = work_search(query_params, sort=sort, limit=limit, facet=False, offset=page)
+        results = work_search(
+            query_params, sort=sort, limit=limit, facet=False, offset=page
+        )
         return results.get("docs", [])
 
     def _do_browse_query(self, params: dict) -> list:
@@ -93,13 +102,17 @@ class CarouselCardPartial:
         subject = params.get("subject", "")
         sorts = params.get("sorts", "").split(",")
 
-        results = get_available(query=query, page=page, subject=subject, limit=limit, sorts=sorts)
+        results = get_available(
+            query=query, page=page, subject=subject, limit=limit, sorts=sorts
+        )
         return results if "error" not in results else []
 
     def _do_trends_query(self, params: dict) -> list:
         page = int(params.get("page", 1))
         limit = int(params.get("limit", 18))
-        return get_trending_books(minimum=3, limit=limit, page=page, books_only=True, sort_by_count=False)
+        return get_trending_books(
+            minimum=3, limit=limit, page=page, books_only=True, sort_by_count=False
+        )
 
     def _do_subjects_query(self, params: dict) -> list:
         pseudoKey = params.get("q", "")
@@ -187,6 +200,7 @@ class Partials(delegate.page):
             partial = {"partials": str(macro)}
 
         return delegate.RawText(json.dumps(partial))
+
 
 def setup():
     pass
