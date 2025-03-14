@@ -1,4 +1,8 @@
 ## This image is where we should execute the Jenkins commands
+# WARNING: This image is pushed up to openlibrary/solrbuilder _manually_ . Changes
+# made to this file WILL NOT be automatically used, you have to manually rebuild/push:
+# docker build -t openlibrary/solr-builder:latest .
+# docker push openlibrary/solr-builder:latest
 
 FROM ubuntu:jammy
 ARG DOCKER_VERSION=5:20.10.23~3-0~ubuntu-jammy
