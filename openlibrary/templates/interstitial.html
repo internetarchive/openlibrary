@@ -1,13 +1,15 @@
 $def with(url, provider="", wait=5)
 
-<h1></h1>
+<h1>$_("You are being redirected to your book")</h1>
 
-<p id="countdown">This book is provided by <strong>$provider</strong>, a third-party Open Library Trusted Book Provider</p>
+<p id="countdown">$_("This book is provided by %s, a third-party Open Library Trusted Book Provider", "<strong>" + provider= "</strong>")</p>
 
-<p>You will be automatically redirected to $url in <span id="timer">5</span> seconds...</p>
+<p>$_("You will be automatically redirected to %s in %s seconds...", url, '<span id="timer">5</span>')</p>
 
-<p></p>You may <a href="#" onclick="window.close(); return false;">Cancel</a> or
-<a href="">Continue without waiting</a>
+<p>
+  <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
+  <a href="">$_("Continue without waiting")</a>
+</p>
 
 <script>
   let count = $wait;
