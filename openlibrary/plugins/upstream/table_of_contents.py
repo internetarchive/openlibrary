@@ -133,6 +133,7 @@ class TocEntry:
         extra_fields = json.loads(extra_fields or '{}')
 
         from .addbook import TocParseError
+
         if isinstance(extra_fields, int):
             raise TocParseError("Invalid formatting!")
 
