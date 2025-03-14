@@ -26,12 +26,12 @@ $if last_read_date:
   $ day_read = int(split_date[2]) if len(split_date) > 2 else ''
 
 <div class="check-in" data-work-olid="$(work_olid)" data-event-type="3">
-  <form method="dialog" class="check-in__form" action="$(work_key)/check-ins" method="post">
+  <form class="check-in__form" action="$(work_key)/check-ins" method="post">
     <input type="hidden" name="event_id" value="$(event_id)">
     $if edition_key:
       <input type="hidden" name="edition_key" value="$(edition_key)">
     <div>
-      $_('Add an optional check-in date.  Check-in dates are used to track yearly reading goals.')
+      $_('Add an optional check-in date. Check-in dates are used to track yearly reading goals.')
     </div>
     <div class="check-in__inputs">
       <label class="check-in__label">$_('End Date:')</label>
