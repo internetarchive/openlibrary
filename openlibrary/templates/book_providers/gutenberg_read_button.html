@@ -1,8 +1,7 @@
-$def with(gutenberg_id, analytics_attr)
+$def with(edition_key, gutenberg_id, analytics_attr)
 
 <div class="cta-button-group">
-  <a
-      href="https://www.gutenberg.org/ebooks/$gutenberg_id"
+  <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
       title="$_('Read eBook from Project Gutenberg')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--gutenberg"
       target="_blank"

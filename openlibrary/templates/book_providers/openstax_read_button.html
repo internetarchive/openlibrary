@@ -1,8 +1,7 @@
-$def with(openstax_id, analytics_attr)
+$def with(edition_key, openstax_id, analytics_attr)
 
 <div class="cta-button-group">
-  <a
-      href="https://openstax.org/details/books/$openstax_id"
+  <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
       title="$_('Read eBook from OpenStax')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--openstax"
       target="_blank"

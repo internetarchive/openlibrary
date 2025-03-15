@@ -1,12 +1,12 @@
-$def with(acquisition, domain)
+$def with(edition_key, acquisition, domain)
+$# :param edition_key str:
 $# :param Acquisition acquisition:
 $# :param domain str:
 $ clean_domain = domain.replace(".", "")
 
 $if acquisition.access == 'open-access':
   <div class="cta-button-group">
-    <a
-        href="$(acquisition.url)"
+    <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
         title="$_('Read free online')"
         class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
         target="_blank"

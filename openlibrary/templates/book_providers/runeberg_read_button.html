@@ -1,8 +1,7 @@
-$def with(runeberg_id, analytics_attr)
+$def with(edition_key, runeberg_id, analytics_attr)
 
 <div class="cta-button-group">
-  <a
-      href="https://runeberg.org/$runeberg_id/"
+  <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
       title="$_('Read eBook from Project Runeberg')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--runeberg"
       target="_blank"

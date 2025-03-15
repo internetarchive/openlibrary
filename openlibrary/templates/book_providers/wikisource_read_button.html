@@ -1,7 +1,12 @@
-$def with(wikisource_id, analytics_attr)
+$def with(edition_key, wikisource_id, analytics_attr)
 
 <div class="cta-button-group">
-    <a href="https://wikisource.org/wiki/$wikisource_id" title="$_('Read eBook on Wikisource')" class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--wikisource" target="_blank" aria-haspopup="true" aria-controls="wikisource-toast">$_('Read')</a>
+    <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
+      title="$_('Read eBook on Wikisource')"
+      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--wikisource"
+      target="_blank"
+      aria-haspopup="true"
+      aria-controls="wikisource-toast">$_('Read')</a>
 </div>
 
 $if render_once('wikisource-toast'):

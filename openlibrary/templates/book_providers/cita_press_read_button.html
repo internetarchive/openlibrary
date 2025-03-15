@@ -1,13 +1,12 @@
-$def with(cita_press_id)
+$def with(edition_key, cita_press_id)
 
 <div class="cta-button-group">
-  <a
-      href="https://citapress.org/$cita_press_id"
+  <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
       title="$_('Read eBook from Cita Press')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--cita-press"
       target="_blank"
-       aria-haspopup="true"
-       aria-controls="cita-press-toast"
+      aria-haspopup="true"
+      aria-controls="cita-press-toast"
   >$_('Read')</a>
 </div>
 
