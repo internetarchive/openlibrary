@@ -594,8 +594,7 @@ msgid "Thank you very much for improving that record!"
 msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html
-#: book_providers/librivox_read_button.html covers/author_photo.html
+#: ObservationsModal.html ShareModal.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
 #: my_books/dropdown_content.html native_dialog.html
@@ -3025,18 +3024,6 @@ msgstr ""
 
 #: book_providers/librivox_read_button.html
 msgid "Audiobook"
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://librivox.org/\">LibriVox</a>. LibriVox is a trusted book "
-"provider of public domain audiobooks, narrated by volunteers, distributed"
-" for free on the internet."
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid "Learn more"
 msgstr ""
 
 #: book_providers/openstax_download_options.html
@@ -7782,12 +7769,6 @@ msgstr ""
 msgid "Choose a password"
 msgstr ""
 
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -7922,9 +7903,22 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
@@ -8031,16 +8025,9 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py
-msgid "eBook?"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
 
 #: openlibrary/core/edits.py
