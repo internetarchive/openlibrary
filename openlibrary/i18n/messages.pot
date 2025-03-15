@@ -7800,16 +7800,6 @@ msgstr ""
 msgid "View Volume %(num)d"
 msgstr ""
 
-#: openlibrary/core/edits.py
-msgid "Unknown"
-msgstr ""
-
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
 msgstr ""
@@ -7864,6 +7854,12 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -8005,54 +8001,6 @@ msgstr ""
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Art"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science Fiction"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Fantasy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Biographies"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Recipes"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Children"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Medicine"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Religion"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Mystery and Detective Stories"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Plays"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Music"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr ""
-
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
 msgstr ""
@@ -8109,6 +8057,54 @@ msgstr ""
 msgid "Chinese"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Medicine"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Religion"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr ""
+
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
 msgstr ""
@@ -8119,5 +8115,9 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/core/edits.py
+msgid "Unknown"
 msgstr ""
 
