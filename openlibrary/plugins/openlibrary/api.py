@@ -75,10 +75,13 @@ class trending_books_api(delegate.page):
 
     def GET(self, period="/daily"):
         from openlibrary.views.loanstats import SINCE_DAYS
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         period = period[1:]  # remove slash
         i = web.input(
-            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0
+            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0,
+              fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'})
         )
         days = SINCE_DAYS.get(period, int(i.days))
         works = get_trending_books(
@@ -89,6 +92,7 @@ class trending_books_api(delegate.page):
             books_only=True,
             sort_by_count=i.sort_by_count != "false",
             minimum=i.minimum,
+            fields = i.fields.split(','),
         )
         result = {
             'query': f"/trending/{period}",
