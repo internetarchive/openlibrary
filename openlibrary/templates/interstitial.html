@@ -1,14 +1,17 @@
-$def with(url, provider="", wait=5)
+$def with(url, provider_name="", wait=5)
+
+$if provider_name == None:
+  $ provider_name = ""
 
 <h1>$_("You are being redirected to your book")</h1>
 
-<p id="countdown">$_("This book is provided by %s, a third-party Open Library Trusted Book Provider", "<strong>" + provider= "</strong>")</p>
+<p id="countdown">$:_('This book is provided by <strong>%(book_provider)s</strong>, a third-party Open Library Trusted Book Provider', book_provider=websafe(provider_name))</p>
 
-<p>$_("You will be automatically redirected to %s in %s seconds...", url, '<span id="timer">5</span>')</p>
+<p>$:_('You will be automatically redirected to <strong>%(book_provider_url)s</strong> in <span id="timer">5</span> seconds...', book_provider_url=url)</p>
 
 <p>
   <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
-  <a href="">$_("Continue without waiting")</a>
+  <a href="${url}">$_("Continue without waiting")</a>
 </p>
 
 <script>
@@ -21,9 +24,7 @@ $def with(url, provider="", wait=5)
 
     if (count === 0) {
       clearInterval(countdown);
-      // Open in a new tab and then return to Open Library
-      window.open("$url", "_blank"); // Open in new tab
-      history.back(); // Return to previous page on Open Library
+      window.location.href = '$url';
     }
   }, 1000);
 </script>
