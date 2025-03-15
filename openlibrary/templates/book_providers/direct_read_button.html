@@ -17,9 +17,9 @@ $if acquisition.access == 'open-access':
 
 $elif acquisition.access == 'sample':
   <div class="cta-button-group">
-    <a class="cta-btn cta-btn--shell cta-btn--external"
+    <a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
+      class="cta-btn cta-btn--shell cta-btn--external"
       data-ol-link-track="CTAClick|Preview"
       target="_blank"
-      href="$(acquisition.url)"
     >$_('Preview')</a>
   </div>

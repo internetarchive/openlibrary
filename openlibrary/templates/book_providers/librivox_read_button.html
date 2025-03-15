@@ -1,7 +1,7 @@
-$def with(librivox_id, analytics_attr)
+$def with(edition_key, librivox_id, analytics_attr)
 
 <div class="cta-button-group">
-<a href="https://librivox.org/$librivox_id"
+<a href="http://openlibrary.org/books/${edition_key}/-/borrow?action=read"
    title="$_('Listen to a reading from LibriVox')"
    $:analytics_attr('Listen')
    class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external cta-btn--librivox"
@@ -13,12 +13,3 @@ $def with(librivox_id, analytics_attr)
   <span class="btn-label">$_("Audiobook")</span>
 </a>
 </div>
-
-$if render_once('librivox-toast'):
-  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--librivox" id="librivox-toast" style="display:none">
-    <div class="toast__body">
-      $:_('This book is available from <a href="https://librivox.org/">LibriVox</a>. LibriVox is a trusted book provider of public domain audiobooks, narrated by volunteers, distributed for free on the internet.')
-      <a href="https://librivox.org/pages/about-librivox/">$_("Learn more")</a>
-    </div>
-    <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
-  </div>
