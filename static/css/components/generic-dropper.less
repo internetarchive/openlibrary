@@ -116,6 +116,14 @@
     &:hover { background-color: darken(@primary-blue, 20%); }
     border-radius: 2px 5px 5px 2px;
   }
+  // hide extra arrow on iOS
+  summary::marker {
+    content: "";
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
   summary::after {
     margin: 0 8px;
     width: 24px;
