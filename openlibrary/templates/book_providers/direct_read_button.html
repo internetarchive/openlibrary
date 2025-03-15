@@ -23,17 +23,3 @@ $elif acquisition.access == 'sample':
       href="$(acquisition.url)"
     >$_('Preview')</a>
   </div>
-
-$if render_once('direct-provider-toast-' + clean_domain):
-  <div
-    class="toast toast--book-provider"
-    data-toast-trigger="[aria-controls=direct-provider-toast-$(clean_domain)]"
-    id="direct-provider-toast-$(clean_domain)"
-    style="display:none"
-  >
-    <div class="toast__body">
-      $:_('This book is freely available from <a href="%s">%s</a>, an external third-party book provider.', acquisition.url, domain)
-      <a href="/trusted-book-providers#web-books">$_('Learn more')<a>
-    </div>
-    <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
-  </div>

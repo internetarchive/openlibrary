@@ -10,12 +10,3 @@ $def with(edition_key, runeberg_id, analytics_attr)
       aria-controls="runeberg-toast"
   >$_('Read')</a>
 </div>
-
-$if render_once('runeberg-toast'):
-  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--runeberg" id="runeberg-toast" style="display:none">
-    <div class="toast__body">
-      $:_('This book is available from <a href="https://runeberg.org/">Project Runeberg</a>. Project Runeberg is a trusted book provider of classic Nordic (Scandinavian) literature in electronic form.')
-      <a href="https://runeberg.org/admin/">$_("Learn more")</a>
-    </div>
-    <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
-  </div>

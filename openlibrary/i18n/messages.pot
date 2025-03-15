@@ -595,14 +595,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html covers/author_photo.html
+#: book_providers/librivox_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
 #: my_books/dropdown_content.html native_dialog.html
@@ -2935,34 +2928,8 @@ msgstr ""
 msgid "Read eBook from Cita Press"
 msgstr ""
 
-#: book_providers/cita_press_read_button.html
-msgid ""
-"This book is available from <a href=\"https://citapress.org/\">Cita "
-"Press</a>. Cita Press is a trusted book provider of works written by "
-"women, pairing contemporary authors and designers with open access texts "
-"to make carefully designed books available for free and open source."
-msgstr ""
-
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html
-msgid "Learn more"
-msgstr ""
-
 #: book_providers/direct_read_button.html
 msgid "Read free online"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-#, python-format
-msgid ""
-"This book is freely available from <a href=\"%s\">%s</a>, an external "
-"third-party book provider."
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -3002,15 +2969,6 @@ msgstr ""
 
 #: book_providers/gutenberg_read_button.html
 msgid "Read eBook from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. Project "
-"Gutenberg is a trusted book provider of classic ebooks, supporting "
-"thousands of volunteers in the creation and distribution of over 60,000 "
-"free eBooks."
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -3077,6 +3035,10 @@ msgid ""
 " for free on the internet."
 msgstr ""
 
+#: book_providers/librivox_read_button.html
+msgid "Learn more"
+msgstr ""
+
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
 msgstr ""
@@ -3087,15 +3049,6 @@ msgstr ""
 
 #: book_providers/openstax_read_button.html
 msgid "Read eBook from OpenStax"
-msgstr ""
-
-#: book_providers/openstax_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax is a trusted "
-"book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
-"to providing free high-quality, peer-reviewed, openly licensed textbooks "
-"online."
 msgstr ""
 
 #: book_providers/runeberg_download_options.html
@@ -3142,13 +3095,6 @@ msgstr ""
 msgid "Read eBook from Project Runeberg"
 msgstr ""
 
-#: book_providers/runeberg_read_button.html
-msgid ""
-"This book is available from <a href=\"https://runeberg.org/\">Project "
-"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
-"Nordic (Scandinavian) literature in electronic form."
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
 msgstr ""
@@ -3189,15 +3135,6 @@ msgstr ""
 msgid "Read eBook from Standard eBooks"
 msgstr ""
 
-#: book_providers/standard_ebooks_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
-" is a trusted book provider and a volunteer-driven project that produces "
-"new editions of public domain ebooks that are lovingly formatted, open "
-"source, free of copyright restrictions, and free of cost."
-msgstr ""
-
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
 msgstr ""
@@ -3224,17 +3161,6 @@ msgstr ""
 
 #: book_providers/wikisource_read_button.html
 msgid "Read eBook on Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, a <a "
-"href=\"https://www.wikimedia.org/\">Wikimedia Foundation</a> project, is "
-"a trusted book provider of works available under the <a "
-"href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC-BY-SA</a> "
-"open content license, such as essays, historical documents, letters, "
-"speeches, and public domain books."
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -7800,6 +7726,16 @@ msgstr ""
 msgid "View Volume %(num)d"
 msgstr ""
 
+#: openlibrary/core/edits.py
+msgid "Unknown"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
 msgstr ""
@@ -7854,12 +7790,6 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
-msgstr ""
-
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -8001,6 +7931,54 @@ msgstr ""
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Medicine"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Religion"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
 msgstr ""
@@ -8057,54 +8035,6 @@ msgstr ""
 msgid "Chinese"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Art"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science Fiction"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Fantasy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Biographies"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Recipes"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Children"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Medicine"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Religion"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Mystery and Detective Stories"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Plays"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Music"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr ""
-
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
 msgstr ""
@@ -8115,9 +8045,5 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
-
-#: openlibrary/core/edits.py
-msgid "Unknown"
 msgstr ""
 
