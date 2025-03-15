@@ -17,7 +17,7 @@ from ..core.yearly_reading_goals import YearlyReadingGoals
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
 from ..utils import dateutil
-
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 LENDING_TYPES = '(libraries|regions|countries|collections|subjects|format)'
 
 
@@ -59,9 +59,12 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
+    fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'})
 ):
     logged_books = (
-        Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
+        Bookshelves.fetch(get_activity_stream(limit=limit, page=page,  fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}))  # i.e. "now"
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
@@ -70,10 +73,12 @@ def get_trending_books(
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
+            fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}
         )
     )
     return (
-        [book['work'] for book in logged_books if book.get('work')]
+        [book['work'] for book in logged_books if book.get('work,')]
         if books_only
         else logged_books
     )
@@ -156,7 +161,8 @@ class lending_stats(app.view):
         raise web.seeother("/")
 
 
-def get_activity_stream(limit=None, page=1):
+def get_activity_stream(limit=None, page=1,  fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
