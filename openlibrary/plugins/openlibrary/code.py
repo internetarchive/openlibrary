@@ -1141,7 +1141,11 @@ def internalerror():
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
-    if hasattr(web, 'ctx') and hasattr(web.ctx, 'features') and features.is_enabled('debug'):
+    if (
+        hasattr(web, 'ctx')
+        and hasattr(web.ctx, 'features')
+        and features.is_enabled('debug')
+    ):
         raise web.debugerror()
     else:
         msg = render.site(
