@@ -55,7 +55,7 @@ class Test_memcache_memoize:
     def test_update_async(self):
         m = self.square_memoize()
 
-        m.update_async(20)
+        m.update_non_blocking([20], {})
         m.join_threads()
 
         assert m.memcache_get([20], {})[0] == 400
