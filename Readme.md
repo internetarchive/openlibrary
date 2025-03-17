@@ -1,4 +1,6 @@
 # Open Library
+🌍 Read this in other languages: [简体中文](README.zh.md) | [Español](README_es.md)
+
 
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
