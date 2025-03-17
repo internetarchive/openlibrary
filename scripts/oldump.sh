@@ -146,6 +146,7 @@ then
 
   log "=== Step 4 ==="
   if [[ ! -f "data.txt.gz" ]]
+  then
       log "generating the data table: data.txt.gz -- takes approx. 110 minutes..."
       # In production, we copy the contents of our database into the `data.txt.gz` file.
       # else if we are testing, save a lot of time by using a preexisting `data.txt.gz`.
