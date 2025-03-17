@@ -7778,12 +7778,6 @@ msgstr ""
 msgid "Choose a password"
 msgstr ""
 
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -7918,9 +7912,22 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
@@ -8027,16 +8034,9 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py
-msgid "eBook?"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
 
 #: openlibrary/core/edits.py
