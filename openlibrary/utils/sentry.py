@@ -129,8 +129,7 @@ class WebPySentryProcessor:
 
             environ = dict(web.ctx.env)
             # Don't forward cookies to Sentry
-            if 'HTTP_COOKIE' in environ:
-                del environ['HTTP_COOKIE']
+            environ.pop('HTTP_COOKIE', None)
 
             transaction = Transaction.continue_from_environ(
                 environ,
