@@ -199,7 +199,7 @@ def get_software_version() -> str:
     """
     assert get_software_version()  # Should never return a falsy value
     """
-    cmd = "git rev-parse --short HEAD --".split()
+    cmd = ["git", "rev-parse", "--short", "HEAD", "--"]
     try:
         return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
     except CalledProcessError:
