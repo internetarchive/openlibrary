@@ -5,10 +5,10 @@ PYTHONPATH=. python ./scripts/update_dark_ocaid_references.py /olsystem/etc/open
 # e.g. https://openlibrary.org/recentchanges/2025/03/16/bulk_update/146351306
 """
 
+
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
-from typing import Optional
 
 import infogami
 from infogami import config
@@ -76,7 +76,12 @@ def disassociate_dark_ocaids(s3_keys, since=None, until=None, test=True):
     return editions_fetched, editions_dirty, editions_updated
 
 
-def main(ol_config: str, since: Optional[str] = None, until: Optional[str] = None, test: bool = True):
+def main(
+    ol_config: str,
+    since: str | None = None,
+    until: str | None = None,
+    test: bool = True,
+):
     load_config(ol_config)
     infogami._setup()
     s3_keys = config.get('ia_ol_metadata_write_s3')  # XXX needs dark scope
