@@ -8,11 +8,13 @@ PYTHONPATH=. python ./scripts/update_dark_ocaid_references.py /olsystem/etc/open
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
+
 import infogami
-from infogami import config  # noqa: F401 side effects may be needed
-from openlibrary.config import load_config
+from infogami import config
 from openlibrary.accounts import RunAs
+from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+
 
 def get_dark_ol_editions(s3_keys, cursor=None, rows=1000, since=None, until=None):
     if not s3_keys or not all(k in s3_keys for k in ("s3_key", "s3_secret")):
@@ -40,7 +42,8 @@ def get_dark_ol_editions(s3_keys, cursor=None, rows=1000, since=None, until=None
     cursor = data.get("cursor")
     editions = {
         # Edition key `/books/OL123M` mapped to its ES dark item metadata
-        f'/books/{doc["openlibrary_edition"]}': doc for doc in data.get("items", [])
+        f'/books/{doc["openlibrary_edition"]}': doc
+        for doc in data.get("items", [])
     }
     return editions, cursor
 
@@ -72,16 +75,18 @@ def disassociate_dark_ocaids(s3_keys, since=None, until=None, test=True):
     return editions_fetched, editions_dirty, editions_updated
 
 
-def main(ol_config: str, since: str=None, until: str=None, test: bool=True):
+def main(ol_config: str, since: str = None, until: str = None, test: bool = True):
     load_config(ol_config)
     infogami._setup()
-    s3_keys = config.get('ia_ol_metadata_write_s3') # XXX needs dark scope
+    s3_keys = config.get('ia_ol_metadata_write_s3')  # XXX needs dark scope
     editions_fetched, editions_dirty, editions_updated = disassociate_dark_ocaids(
         s3_keys, since=since, until=until, test=test
     )
-    print(f"{editions_fetched} editions fetched, "
-          f"{editions_dirty} editions dirty, "
-          f"{editions_updated} editions updated")
+    print(
+        f"{editions_fetched} editions fetched, "
+        f"{editions_dirty} editions dirty, "
+        f"{editions_updated} editions updated"
+    )
 
 
 if __name__ == '__main__':
