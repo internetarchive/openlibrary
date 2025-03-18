@@ -1,6 +1,7 @@
 import time
 
 import requests
+from openlibrary.plugins.upstream.utils import get_marc21_language
 
 
 def fetch_data_from_ebookfoundation(url, max_retries=10, delay=5):
@@ -90,12 +91,18 @@ def flatten_books(data):
             for language_section in child.get("children", []):
                 if "sections" not in language_section:
                     continue
-
-                language_code = (
-                    language_section["language"].get("code", "????")
-                    if ("language" in language_section)
+                
+                language = (
+                    language_section["language"].get("name", "????")
+                    if "language" in language_section
                     else "????"
-                )
+                ).lower()
+                
+                if language != "????":
+                    language_code = get_marc21_language(language)
+                else:
+                    language_code = "????"
+
                 traverse(language_section["sections"], [], language_code)
 
     return flat_list
