@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 import asyncio
-from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+import csv
 import itertools
 import math
 import pickle
 import re
 import socket
 import struct
-from typing import Literal
-import requests
-import csv
 import time
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from typing import Literal
+
+import requests
 
 # Sample graphite events:
 # stats.ol.haproxy.ol-web-app-in.FRONTEND.scur
