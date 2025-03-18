@@ -1,6 +1,7 @@
 import time
 
 import requests
+
 from openlibrary.plugins.upstream.utils import get_marc21_language
 
 
@@ -91,13 +92,13 @@ def flatten_books(data):
             for language_section in child.get("children", []):
                 if "sections" not in language_section:
                     continue
-                
+
                 language = (
                     language_section["language"].get("name", "????")
                     if "language" in language_section
                     else "????"
                 ).lower()
-                
+
                 if language != "????":
                     language_code = get_marc21_language(language)
                 else:
