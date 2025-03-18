@@ -24,8 +24,65 @@ def fetch_data_from_ebookfoundation(url, max_retries=10, delay=5):
                 print("Max retries reached. Exiting...")
                 return None  # Return None if max retries are exceeded
 
+def flatten_books(data):
+    flat_list = []
+    
+    def traverse(sections, topics, language_code):
+        for section in sections:
+            new_topics = topics + [section["section"]]
+            
+            # Process entries at the current section level
+            for book in section.get("entries", []):
+                if ("url" not in book):
+                    continue
+
+                authors = []
+                raw_authors = book["author"].split(",") if ("author" in book) else ["????"]
+
+                for author in raw_authors:
+                    if (not author):
+                        continue
+                        
+                    authors.append({"name": author.strip()})
+
+                flat_list.append({
+                    "title": book.get("title", "????"),
+                    "authors": authors,
+                    "source_records": ["????"],
+                    "publishers": ["????"],
+                    "publish_date": "????",
+                    "languages": [language_code],
+                    "subjects": new_topics,
+                    "providers": [
+                        {
+                            "url": book["url"],
+                            "access": "read",
+                            "format": "web",
+                            "provider_name": "EbookFoundation"
+                        }
+                    ]
+                })
+            
+            if ("subsections" not in section or not section["subsections"]):
+                continue
+
+            # Process subsections recursively
+            traverse(section["subsections"], new_topics, language_code)
+    
+    # Start traversing from the root
+    for child in data.get("children", []):
+        if (child["type"] == "books"):
+            for language_section in child.get("children", []):
+                if ("sections" not in language_section):
+                    continue
+                
+                language_code = language_section["language"].get("code", "????") if ("language" in language_section) else "????"
+                traverse(language_section["sections"], [], language_code)
+
+    return flat_list
 
 if __name__ == "__main__":
     # GitHub raw content URL for the JSON file on EbookFoundation
     url = "https://raw.githubusercontent.com/EbookFoundation/free-programming-books-search/main/fpb.json"
     raw_data = fetch_data_from_ebookfoundation(url)
+     
