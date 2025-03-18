@@ -62,11 +62,10 @@ def disassociate_dark_ocaids(s3_keys, since=None, until=None, test=True):
         for ed in ol_editions:
             es_id = es_editions[ed.key]['identifier']
             ed_dict = ed.dict()
-            if ed_dict.get('ocaid') and es_id == ed_dict['ocaid']:
+            if ed_dict.get('ocaid') == es_id:
                 editions_dirty += 1
                 del ed_dict['ocaid']
                 updated_eds.append(ed_dict)
-                print(f"Dirty: {ed.key}")
 
         if updated_eds and not test:
             editions_updated += len(updated_eds)
