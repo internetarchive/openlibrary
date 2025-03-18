@@ -120,23 +120,31 @@ class TocEntry:
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', None)
         """
+        from .addbook import TocParseError
+
         RE_LEVEL = web.re_compile(r"(\**)(.*)")
         level, text = RE_LEVEL.match(line.strip()).groups()
 
         if "|" in text:
             tokens = text.split("|", 3)
             label, title, page, extra_fields = pad(tokens, 4, '')
+            if "|" in tokens[-1]:
+                raise TocParseError("Too many pipes!")
         else:
             title = text
             label = page = ""
             extra_fields = ''
+        extra_fields = json.loads(extra_fields or '{}')
+
+        if isinstance(extra_fields, int):
+            raise TocParseError("Invalid formatting!")
 
         return TocEntry(
             level=len(level),
             label=label.strip() or None,
             title=title.strip() or None,
             pagenum=page.strip() or None,
-            **json.loads(extra_fields or '{}'),
+            **extra_fields,
         )
 
     def to_markdown(self) -> str:
