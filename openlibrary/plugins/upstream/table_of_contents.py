@@ -120,19 +120,21 @@ class TocEntry:
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', None)
         """
+        from .addbook import TocParseError
         RE_LEVEL = web.re_compile(r"(\**)(.*)")
         level, text = RE_LEVEL.match(line.strip()).groups()
 
         if "|" in text:
             tokens = text.split("|", 3)
             label, title, page, extra_fields = pad(tokens, 4, '')
+            if "|" in tokens[-1]:
+                raise TocParseError("Too many pipes!")
         else:
             title = text
             label = page = ""
             extra_fields = ''
         extra_fields = json.loads(extra_fields or '{}')
 
-        from .addbook import TocParseError
         if isinstance(extra_fields, int):
             raise TocParseError("Invalid formatting!")
 
