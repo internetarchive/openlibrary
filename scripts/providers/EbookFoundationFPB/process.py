@@ -1,5 +1,4 @@
 import time
-
 import requests
 
 
@@ -47,6 +46,16 @@ def flatten_books(data):
                         continue
 
                     authors.append({"name": author.strip()})
+                
+                notes = "".join(book.get("notes", []))
+                format = ""
+
+                if ("pdf" in notes.lower()):
+                    format = "pdf"
+                elif ("epub" in notes.lower()):
+                    format = "epub"
+                else:
+                    format = "web" 
 
                 flat_list.append(
                     {
@@ -61,7 +70,7 @@ def flatten_books(data):
                             {
                                 "url": book["url"],
                                 "access": "read",
-                                "format": "web",
+                                "format": format, # need to work on this
                                 "provider_name": "EbookFoundation",
                             }
                         ],
@@ -95,3 +104,4 @@ if __name__ == "__main__":
     # GitHub raw content URL for the JSON file on EbookFoundation
     url = "https://raw.githubusercontent.com/EbookFoundation/free-programming-books-search/main/fpb.json"
     raw_data = fetch_data_from_ebookfoundation(url)
+    flat_list = flatten_books(raw_data)
