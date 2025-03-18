@@ -1,4 +1,5 @@
 import time
+
 import requests
 
 
@@ -46,16 +47,16 @@ def flatten_books(data):
                         continue
 
                     authors.append({"name": author.strip()})
-                
+
                 notes = "".join(book.get("notes", []))
                 format = ""
 
-                if ("pdf" in notes.lower()):
+                if "pdf" in notes.lower():
                     format = "pdf"
-                elif ("epub" in notes.lower()):
+                elif "epub" in notes.lower():
                     format = "epub"
                 else:
-                    format = "web" 
+                    format = "web"
 
                 flat_list.append(
                     {
@@ -70,7 +71,7 @@ def flatten_books(data):
                             {
                                 "url": book["url"],
                                 "access": "read",
-                                "format": format, # need to work on this
+                                "format": format,  # need to work on this
                                 "provider_name": "EbookFoundation",
                             }
                         ],
