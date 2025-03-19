@@ -6,7 +6,12 @@ import requests
 from openlibrary.config import load_config
 
 
-def format_archive_book_request(url, capture_all: bool = True, capture_outlinks: bool = True, capture_screenshot: bool = True) -> dict[str, str]:
+def format_archive_book_request(
+    url,
+    capture_all: bool = True,
+    capture_outlinks: bool = True,
+    capture_screenshot: bool = True,
+) -> dict[str, str]:
     data = {
         "url": url,  # <-- our url here
         "if_not_archived_within": "1m",
@@ -24,6 +29,7 @@ def format_archive_book_request(url, capture_all: bool = True, capture_outlinks:
 
     return data
 
+
 def post_data(headers: dict[str, str], data: dict) -> dict:
     api_url = "https://web.archive.org/save"
     return requests.post(api_url, headers=headers, data=data)
@@ -39,4 +45,3 @@ if __name__ == "__main__":
         # header = {}
         # data = format_archive_book_request("")
         # response = post_data(header, data)
-        
