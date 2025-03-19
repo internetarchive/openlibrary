@@ -36,6 +36,8 @@ def get_cached_relatedcarousels_component(*args, **kwargs):
 
 
 class CarouselCardPartial:
+    MAX_VISIBLE_CARDS = 5
+
     def __init__(self):
         self.i = web.input(params=None)
 
@@ -54,6 +56,7 @@ class CarouselCardPartial:
         for index, book in enumerate(search_results):
             lazy = index > 5
             cards.append(render_template("books/custom_carousel_card", web.storage(book), lazy, layout, key=key))
+            lazy = index > self.MAX_VISIBLE_CARDS
 
         # Return partials dict:
         return {"partials": [str(template) for template in cards]}
