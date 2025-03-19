@@ -5,12 +5,8 @@ import requests
 
 from openlibrary.config import load_config
 
-# Define the API URL and headers
-api_url = "https://web.archive.org/save"
-headers = {"Accept": "application/json", "Authorization": f"LOW {access_key}:{secret}"}
 
-
-def archive_book(url, capture_all=True, capture_outlinks=True, capture_screenshot=True):
+def format_archive_book_request(url, capture_all: bool = True, capture_outlinks: bool = True, capture_screenshot: bool = True) -> dict[str, str]:
     data = {
         "url": url,  # <-- our url here
         "if_not_archived_within": "1m",
@@ -26,6 +22,10 @@ def archive_book(url, capture_all=True, capture_outlinks=True, capture_screensho
     if capture_screenshot:
         data["capture_screenshot"] = "1"
 
+    return data
+
+def post_data(headers: dict[str, str], data: dict) -> dict:
+    api_url = "https://web.archive.org/save"
     return requests.post(api_url, headers=headers, data=data)
 
 
@@ -33,11 +33,10 @@ if __name__ == "__main__":
     ol_config = os.getenv("OL_CONFIG")
 
     if ol_config:
-        logger.info(f"loading config from {ol_config}")
-        # Squelch output from infobase (needed for sentry setup)
-        # So it doesn't end up in our data dumps body
         with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
             load_config(ol_config)
 
-    # response = archive_book("")
-    # print(response.json())
+        # header = {}
+        # data = format_archive_book_request("")
+        # response = post_data(header, data)
+        
