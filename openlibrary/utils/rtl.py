@@ -1,5 +1,6 @@
 import unicodedata
 
+
 def is_rtl(text):
     """
     Check if the given text is right-to-left (RTL) using Unicode bidirectional properties.

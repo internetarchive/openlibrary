@@ -276,7 +276,7 @@ class merge_authors(delegate.page):
         # sort keys by lowest OL number
         keys = sorted(keys, key=lambda key: int(key[2:-1]))
 
-        #Check if any of the author names are RTL
+        # Check if any of the author names are RTL
         is_rtl_lang = any(is_rtl(key) for key in keys)
 
         user = get_current_user()
