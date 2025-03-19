@@ -1,4 +1,4 @@
-$def with (keys, top_books_from_author, formdata=None, mrid=None, can_merge=False)
+$def with (keys, top_books_from_author, formdata=None, mrid=None, can_merge=False, is_rtl_lang=False)
 
 $var title: $_("Merge Authors")
 
@@ -92,10 +92,16 @@ $if can_merge:
                         <p>No description.</p>
                     <ul>
                     $for doc in top.docs:
-                        <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
-                        $if doc.get('first_publish_year'):
-                            <span title="$_('First published in')">$doc['first_publish_year']</span>
-                        </span></li>
+                        $if is_rtl_lang:
+                            <li><a href="$doc['key']" target="new" title="$_('Open in a new window')" style="direction: rtl; text-align: right; display: inline-block;">$doc['title']</a> <span class="smaller" style="direction: rtl; text-align: right; display: inline-block;">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
+                                $if doc.get('first_publish_year'):
+                                    <span title="$_('First published in')" style="direction: rtl; text-align: right; display: inline-block;">$doc['first_publish_year']</span>
+                                </span></li>
+                        $else:
+                            <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
+                            $if doc.get('first_publish_year'):
+                                <span title="$_('First published in')">$doc['first_publish_year']</span>
+                            </span></li>
                     </ul>
                 </div>
                 <div class="data count">

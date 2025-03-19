@@ -14,6 +14,7 @@ from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
+from openlibrary.utils.rtl import is_rtl
 
 
 class BasicRedirectEngine:
@@ -275,6 +276,9 @@ class merge_authors(delegate.page):
         # sort keys by lowest OL number
         keys = sorted(keys, key=lambda key: int(key[2:-1]))
 
+        #Check if any of the author names are RTL
+        is_rtl_lang = any(is_rtl(key) for key in keys)
+
         user = get_current_user()
         can_merge = user and (user.is_admin() or user.is_super_librarian())
         return render_template(
@@ -283,6 +287,7 @@ class merge_authors(delegate.page):
             top_books_from_author=top_books_from_author,
             mrid=i.mrid,
             can_merge=can_merge,
+            is_rtl_lang=is_rtl_lang,
         )
 
     def POST(self):
