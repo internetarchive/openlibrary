@@ -50,6 +50,7 @@ def flatten_books(data):
 
                     authors.append({"name": author.strip()})
 
+                # May need to change after get full data
                 notes = "".join(book.get("notes", []))
                 format = ""
 
@@ -64,7 +65,7 @@ def flatten_books(data):
                     {
                         "title": book.get("title", "????"),
                         "authors": authors,
-                        "source_records": ["????"],
+                        "source_records": ["EbookFoundation"],
                         "publishers": ["????"],
                         "publish_date": "????",
                         "languages": [language_code],
@@ -73,7 +74,7 @@ def flatten_books(data):
                             {
                                 "url": book["url"],
                                 "access": "read",
-                                "format": format,  # need to work on this
+                                "format": format,
                                 "provider_name": "EbookFoundation",
                             }
                         ],
