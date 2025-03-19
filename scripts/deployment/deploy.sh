@@ -279,6 +279,8 @@ deploy_openlibrary() {
     DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
     git -C openlibrary tag $DEPLOY_TAG
     git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+    git -C openlibrary tag -f production
+    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
 
     check_server_access
     check_crons
