@@ -205,6 +205,7 @@ a.cta-btn {
   }
 
   &.cta-dropper-button { // only read dropper buttons
+    // Rule broken by .cta-btn:not(:first-child):hover
     // stylelint-disable-next-line no-descending-specificity
     .cta-btn { margin: 0; }
   }
