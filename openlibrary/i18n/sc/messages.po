@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2024-12-20 18:56+0100\n"
+"PO-Revision-Date: 2025-02-07 13:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sc\n"
@@ -96,6 +96,10 @@ msgstr "Iscansidore de còdighes a istangas (Beta)"
 #: batch_import.html
 msgid "Batch Imports"
 msgstr "Importatziones in lotos"
+
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
+msgstr "Importatzione in lotos noa"
 
 #: batch_import.html
 msgid ""
@@ -492,21 +496,12 @@ msgid ""
 "nonprofit Internet Archive"
 msgstr ""
 "Intra pro impreare sa carta de badas tua de s'Open Library pro pigare in "
-"prèstidu libros digitales dae s'assàtziu chene punnas de lucru Internet "
+"prèstidu libros digitales dae s'assòtziu chene punnas de lucru Internet "
 "Archive"
 
 #: account/create.html login.html
 msgid "OR"
 msgstr "O"
-
-#: login.html
-msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> email "
-"and password to access your Open Library account."
-msgstr ""
-"Pro praghere inserta s'indiritzu de posta eletrònica tuo e sa crae de "
-"intrada tua de s'<a href=\"https://archive.org\">Internet Archive</a> pro "
-"intrare in su contu tuo de s'Open Library."
 
 #: account/create.html login.html
 #, python-format
@@ -523,6 +518,15 @@ msgstr ""
 "href=\"javascript:;\" onclick=\"document.forms['hamburger-logout']."
 "submit()\">essire</a> e torrare a incumintzare su protzessu de "
 "registratzione dae nou."
+
+#: login.html
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> email "
+"and password to access your Open Library account."
+msgstr ""
+"Pro praghere inserta s'indiritzu de posta eletrònica tuo e sa crae de "
+"intrada tua de s'<a href=\"https://archive.org\">Internet Archive</a> pro "
+"intrare in su contu tuo de s'Open Library."
 
 #: forms.py login.html
 msgid "Email"
@@ -744,8 +748,12 @@ msgid "Name"
 msgstr "Nùmene"
 
 #: subjects.html
-msgid "Edit Subject Tag"
-msgstr "Modìfica s'eticheta de s'argumentu"
+msgid "Edit tag for this subject"
+msgstr "Modìfica s'eticheta pro custu argumentu"
+
+#: subjects.html
+msgid "Create tag for this subject"
+msgstr "Crea un'eticheta pro custu argumentu"
 
 #: subjects.html
 msgid "See all works"
@@ -762,6 +770,10 @@ msgstr[1] "%(count)d òperas"
 #, python-format
 msgid "Search for books with subject %(name)s."
 msgstr "Chirca libros cun argumentu %(name)s."
+
+#: subjects.html
+msgid "Disambiguations"
+msgstr "Disambiguatziones"
 
 #: support.html
 msgid "How can we help?"
@@ -837,7 +849,7 @@ msgstr "Imbia"
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
+#: my_books/dropdown_content.html support.html type/tag/form.html
 msgid "Cancel"
 msgstr "Annulla"
 
@@ -1590,11 +1602,11 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, or "
-"have already read. Public accounts can be seen and followed by others."
+"have already read. Patrons with reading logs set to public may be followed."
 msgstr ""
 "Custu at a permìtere a àteros de bìdere sos libros chi boles lèghere, ses "
-"leghende, o as giai lèghidu. Sos contos pùblicos podent èssere bidos e "
-"sighidos dae àteros."
+"leghende, o as giai lèghidu. Sos metzenates cun registros de leghidura "
+"cunfigurados comente pùblicos podent èssere sighidos dae àteros."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -2132,7 +2144,7 @@ msgid "Imports"
 msgstr "Importatziones"
 
 #: admin/imports-add.html books/add.html books/edit/edition.html
-#: books/edit/excerpts.html covers/change.html tag/add.html
+#: books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr "Annanghe"
 
@@ -2848,10 +2860,6 @@ msgid "block this account"
 msgstr "bloca custu contu"
 
 #: admin/people/view.html
-msgid "send password reset email"
-msgstr "imbia una e-lìtera de resetada de sa crae"
-
-#: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
 msgstr "Registradu su <span class=\"time\">%(date)s</span>."
@@ -3428,7 +3436,7 @@ msgstr "Ses seguru chi custa est sa data de publicatzione?"
 msgid "Add a book to Open Library"
 msgstr "Annanghe unu libru a s'Open Library"
 
-#: books/add.html tag/add.html
+#: books/add.html
 msgid ""
 "We require a minimum set of fields to create a new record. These are those "
 "fields."
@@ -3533,7 +3541,7 @@ msgstr "URL de su libru"
 msgid "Only fill this out if this is a web book"
 msgstr "Compila custu petzi si est unu libru web"
 
-#: EditButtons.html books/add.html tag/add.html
+#: EditButtons.html books/add.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is given "
 "freely to the world under <a href=\"https://creativecommons.org/publicdomain/"
@@ -3855,6 +3863,25 @@ msgstr "Annanghe estratos"
 #: books/edit.html type/about/edit.html type/author/edit.html
 msgid "Links"
 msgstr "Ligàmenes"
+
+#: books/edit.html type/edition/view.html type/work/view.html
+msgid "Work Identifiers"
+msgstr "Identificadores de òpera"
+
+#: books/edit.html
+msgid "Do you know any identifiers for this work?"
+msgstr "Connosches carchi identificadore pro cust'òpera?"
+
+#: books/edit.html
+msgid ""
+"These identifiers apply to all editions of this work, for example Wikidata "
+"work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to "
+"the edition tab."
+msgstr ""
+"Custos identificadores s'àplicant a totu sas editziones de custa òpera, che "
+"a esèmpiu sos identificadores de òpera de Wikidata. Pro sos identificadores "
+"ispetzìficos pro editzione, che a sos ISBN o sos LCCN, bae a s'ischeda de "
+"s'editzione."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
@@ -4242,8 +4269,7 @@ msgstr ""
 msgid "Invalid ID format"
 msgstr "Formadu de ID non vàlidu"
 
-#: books/edit/edition.html type/author/view.html type/edition/view.html
-#: type/work/view.html
+#: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr "Nùmeros ID"
 
@@ -5405,12 +5431,12 @@ msgid "Help Center"
 msgstr "Tzentru de agiudu"
 
 #: lib/nav_foot.html
-msgid "Problems"
-msgstr "Problemas"
+msgid "Contact"
+msgstr "Cuntatos"
 
 #: lib/nav_foot.html
-msgid "Report A Problem"
-msgstr "Sinnala unu problema"
+msgid "Contact Us"
+msgstr "Cuntata·nos"
 
 #: lib/nav_foot.html
 msgid "Suggest Edits"
@@ -6074,10 +6100,6 @@ msgid "Community Reviews"
 msgstr "Retzensiones de sa Comunidade"
 
 #: observations/review_component.html
-msgid "Feedback?"
-msgstr "Opiniones?"
-
-#: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
 msgstr "Non b'at peruna retzensione de sa comunidade imbiada pro custa òpera."
 
@@ -6703,18 +6725,6 @@ msgstr "Non semus resèssidos a atzapare perunu libru subra de"
 msgid "OpenAPI"
 msgstr "OpenAPI"
 
-#: tag/add.html
-msgid "Add a tag"
-msgstr "Annanghe un'eticheta"
-
-#: tag/add.html
-msgid "Add a tag to Open Library"
-msgstr "Annanghe un'eticheta a s'Open Library"
-
-#: tag/add.html
-msgid "Add this tag now"
-msgstr "Annanghe custa eticheta como"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
@@ -6914,10 +6924,6 @@ msgstr ""
 "Ligàmene <span class=\"gray small sansserif\">a foras de s'Open Library</"
 "span>"
 
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
-msgstr "Wikipedia"
-
 #: type/author/view.html
 msgid "No links yet."
 msgstr "Galu perunu ligàmene."
@@ -6982,6 +6988,15 @@ msgstr "Un'editzione de"
 #, python-format
 msgid "First published in %s"
 msgstr "Publicadu pro sa prima borta in su %s"
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid ""
+"This work doesn't have a description yet. Can you <b><a href='%(url)s'>add "
+"one</a></b>?"
+msgstr ""
+"Custa òpera non tenet galu una descritzione. A nde podes <b><a "
+"href='%(url)s'>agiùnghere una</a></b> tue?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
@@ -7087,6 +7102,10 @@ msgid "Weight"
 msgstr "Pesu"
 
 #: type/edition/view.html type/work/view.html
+msgid "Edition Identifiers"
+msgstr "Identificadores de editzione"
+
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr "Registros de orìgine"
 
@@ -7115,6 +7134,10 @@ msgstr "annantu dae %(authorlink)s."
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
 msgstr "annantu in anònimu."
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 msgid "This work does not appear on any lists."
@@ -7383,9 +7406,27 @@ msgstr "Letores"
 msgid "Writers"
 msgstr "Iscritores"
 
-#: type/tag/edit.html
-msgid "Edit Tag"
+#: type/tag/form.html
+msgid "Edit tag"
 msgstr "Modìfica eticheta"
+
+#: type/tag/form.html
+msgid "Add a tag"
+msgstr "Annanghe un'eticheta"
+
+#: type/tag/form.html
+msgid "Add a tag to Open Library"
+msgstr "Annanghe un'eticheta a s'Open Library"
+
+#: type/tag/form.html
+msgid "We require a minimum set of fields to create a new collection tag."
+msgstr ""
+"Tenimus bisòngiu de un'annantu mìnimu de campos pro creare un'eticheta de "
+"regorta noa."
+
+#: type/tag/form.html
+msgid "Add this tag now"
+msgstr "Annanghe custa eticheta como"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
@@ -7396,8 +7437,25 @@ msgid "Tag Description"
 msgstr "Descritzione de eticheta"
 
 #: type/tag/tag_form_inputs.html
+msgid "Page Body"
+msgstr "Corpus de sa pàgina"
+
+#: type/tag/tag_form_inputs.html
 msgid "Tag type"
 msgstr "Casta de eticheta"
+
+#: type/tag/view.html
+#, python-format
+msgid "<strong>Type:</strong> %(tag_type)s"
+msgstr "<strong>Casta:</strong> %(tag_type)s"
+
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr "Descritzione"
+
+#: type/tag/view.html
+msgid "Tag Body"
+msgstr "Corpus de s'eticheta"
 
 #: type/tag/view.html
 #, python-format
@@ -7448,10 +7506,6 @@ msgstr "Modifichende como:"
 #: type/user/edit.html
 msgid "Display Name"
 msgstr "Nùmene visualizadu"
-
-#: type/user/edit.html
-msgid "Description"
-msgstr "Descritzione"
 
 #: type/user/view.html
 msgid "admin page"
@@ -7586,6 +7640,10 @@ msgstr ""
 "Cando còmporas libros impreende custos ligàmenes s'Internet Archive diat "
 "pòdere balangiare una <a class=\"nostyle\" href=\"/help/faq/"
 "about#selling\">cummissione minore</a>."
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
+msgstr "Importatziones in isetu"
 
 #: BookByline.html
 #, python-format
@@ -8260,8 +8318,21 @@ msgstr ""
 "openlibrary@archive.org pro pedire agiudu."
 
 #: account.py
+msgid "Email provider not recognized."
+msgstr "Su frunidore de posta eletrònica no est reconnòschidu."
+
+#: account.py
+msgid "Password requirements not met."
+msgstr "Rechisidos de sa crae non rispetados."
+
+#: account.py
 msgid "A problem occurred and we were unable to log you in"
 msgstr "B'at àpidu unu problema e non t'amus pòdidu fàghere intrare"
+
+#: account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
+msgstr "Dimanda fallida cun còdighe de errore: %(error_code)s"
 
 #: account.py
 #, python-format
@@ -8391,6 +8462,21 @@ msgstr "S'indiritzu de posta eletrònica tuo"
 #: forms.py
 msgid "Choose a password"
 msgstr "Issèbera una crae de intrada"
+
+#~ msgid "Edit Subject Tag"
+#~ msgstr "Modìfica s'eticheta de s'argumentu"
+
+#~ msgid "send password reset email"
+#~ msgstr "imbia una e-lìtera de resetada de sa crae"
+
+#~ msgid "Problems"
+#~ msgstr "Problemas"
+
+#~ msgid "Report A Problem"
+#~ msgstr "Sinnala unu problema"
+
+#~ msgid "Feedback?"
+#~ msgstr "Opiniones?"
 
 #~ msgid "Read Text ISBN"
 #~ msgstr "Leghe un'ISBN testuale"

@@ -96,6 +96,9 @@ def get_login_error(error_key):
         "bad_email": _("Email provider not recognized."),
         "bad_password": _("Password requirements not met."),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
+        "security_error": _(
+            "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
+        ),
     }
     return (
         LOGIN_ERRORS[error_key]
@@ -303,7 +306,7 @@ class account_create(delegate.page):
     def POST(self):
         f: forms.RegisterForm = self.get_form()
 
-        if f.validates(web.input()):
+        if f.validates(web.input(email="")):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
@@ -461,6 +464,7 @@ class account_login(delegate.page):
             test=False,
             access=None,
             secret=None,
+            action="",
         )
         email = i.username  # XXX username is now email
         audit = audit_accounts(

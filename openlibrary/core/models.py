@@ -1,5 +1,4 @@
-"""Models of various OL objects.
-"""
+"""Models of various OL objects."""
 
 import logging
 from collections import defaultdict
@@ -295,7 +294,7 @@ class Edition(Thing):
                 d['borrowed'] = doc.get("borrowed") == "true"
                 d['daisy_only'] = False
             elif 'printdisabled' not in collections:
-                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+                d['read_url'] = f"https://archive.org/stream/{self.ocaid}"
                 d['daisy_only'] = False
         return d
 
@@ -306,7 +305,6 @@ class Edition(Thing):
         collections = self.get_ia_collections()
         return bool(collections) and (
             'printdisabled' in collections
-            or 'lendinglibrary' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
         )
 
@@ -318,9 +316,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or 'inlibrary' in collections
-        ) and not self.is_in_private_collection()
+        return ('inlibrary' in collections) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
@@ -415,7 +411,7 @@ class Edition(Thing):
             if book_id == asin:
                 query = {"type": "/type/edition", 'identifiers': {'amazon': asin}}
             else:
-                query = {"type": "/type/edition", 'isbn_%s' % len(book_id): book_id}
+                query = {"type": "/type/edition", f'isbn_{len(book_id)}': book_id}
 
             if matches := web.ctx.site.things(query):
                 return web.ctx.site.get(matches[0])
@@ -868,14 +864,14 @@ class User(Thing):
         return self.key.split("/")[-1]
 
     def preferences(self):
-        key = "%s/preferences" % self.key
+        key = f"{self.key}/preferences"
         prefs = web.ctx.site.get(key)
         return (
             prefs and prefs.dict().get('notifications')
         ) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs, msg='updating user preferences'):
-        key = '%s/preferences' % self.key
+        key = f'{self.key}/preferences'
         old_prefs = web.ctx.site.get(key)
         prefs = (old_prefs and old_prefs.dict()) or {
             'key': key,
@@ -888,7 +884,7 @@ class User(Thing):
 
     def is_usergroup_member(self, usergroup):
         if not usergroup.startswith('/usergroup/'):
-            usergroup = '/usergroup/%s' % usergroup
+            usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
 
     def is_subscribed_user(self, username):
@@ -943,7 +939,7 @@ class User(Thing):
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username):
         username = username.split('/people/')[-1]
-        user = web.ctx.site.get('/people/%s' % username)
+        user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
 
         return f'https://archive.org/services/img/{itemname}'
@@ -1070,7 +1066,7 @@ class User(Thing):
         """
         extra_attrs = ''
         if cls:
-            extra_attrs += 'class="%s" ' % cls
+            extra_attrs += f'class="{cls}" '
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
@@ -1087,7 +1083,7 @@ class UserGroup(Thing):
         :rtype: UserGroup | None
         """
         if not key.startswith('/usergroup/'):
-            key = "/usergroup/%s" % key
+            key = f"/usergroup/{key}"
         return web.ctx.site.get(key)
 
     def add_user(self, userkey: str) -> None:

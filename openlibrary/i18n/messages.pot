@@ -434,18 +434,24 @@ msgid "Internal Error"
 msgstr ""
 
 #: internalerror.html
-msgid "Hmm..."
+msgid "A Problem Occurred"
 msgstr ""
 
 #: internalerror.html
-msgid "Sorry. There seems to be a problem with what you were just looking at."
+msgid "We're sorry, a problem occurred while responding to your request:"
 msgstr ""
 
 #: internalerror.html
 #, python-format
 msgid ""
-"We've noted the error %s and will look into it as soon as possible. Head "
-"for <a href=\"/\">home</a>?"
+"The reference code %s has been created to track this error and we will "
+"investigate as we're able."
+msgstr ""
+
+#: internalerror.html
+msgid ""
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
 msgstr ""
 
 #: lib/nav_head.html library_explorer.html
@@ -503,7 +509,7 @@ msgid ""
 "email and password to access your Open Library account."
 msgstr ""
 
-#: forms.py login.html
+#: login.html openlibrary/plugins/upstream/forms.py
 msgid "Email"
 msgstr ""
 
@@ -511,7 +517,8 @@ msgstr ""
 msgid "Forgot your Internet Archive email?"
 msgstr ""
 
-#: account/email/forgot-ia.html forms.py login.html
+#: account/email/forgot-ia.html login.html
+#: openlibrary/plugins/upstream/forms.py
 msgid "Password"
 msgstr ""
 
@@ -619,15 +626,17 @@ msgid "Permission denied."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to add records on Open Library. Please <a "
-"href=\"/account/login?redirect=$path\">log in</a> to add a book."
+"href=\"%s\">log in</a> to add a book."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to modify records on Open Library. Please "
-"<a href=\"/account/login?redirect=$path\">log in</a> to edit this page."
+"<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
 
 #: permission_denied.html
@@ -740,71 +749,6 @@ msgstr ""
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
-
-#: support.html
-msgid "How can we help?"
-msgstr ""
-
-#: support.html
-msgid ""
-"Your question has been sent to our support team. We'll get back to you "
-"shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact"
-" us on Twitter</a>."
-msgstr ""
-
-#: support.html
-msgid ""
-"Please check our <a href=\"/help/\">Help Pages</a> and <a "
-"href=\"/help/faq\">Frequently Asked Questions</a> (FAQ) to see if your "
-"question is answered there. Thank you."
-msgstr ""
-
-#: support.html
-msgid "Your Name"
-msgstr ""
-
-#: support.html
-msgid "Your Email Address"
-msgstr ""
-
-#: support.html
-msgid "We'll need this if you want a reply"
-msgstr ""
-
-#: support.html
-msgid ""
-"If you wish to be contacted by other means, please add your contact "
-"preference and details to your question."
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html support.html
-msgid "Subject"
-msgstr ""
-
-#: support.html
-msgid "Your Question"
-msgstr ""
-
-#: support.html
-msgid "Note: our staff will likely only be able respond in English."
-msgstr ""
-
-#: support.html
-msgid ""
-"If you encounter an error message, please include it. For questions about"
-" our books, please provide the title/author or Open Library ID."
-msgstr ""
-
-#: support.html
-msgid "Send"
-msgstr ""
-
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html type/tag/form.html
-msgid "Cancel"
 msgstr ""
 
 #: trending.html
@@ -942,15 +886,23 @@ msgid "Ebooks"
 msgstr ""
 
 #: work_search.html
-msgid "Print Disabled"
-msgstr ""
-
-#: work_search.html
 msgid "This is only visible to super librarians."
 msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
+msgstr ""
+
+#: work_search.html
+msgid "The search engine returned an error."
+msgstr ""
+
+#: work_search.html
+msgid "Solr Debugging:"
+msgstr ""
+
+#: work_search.html
+msgid "Full URL:"
 msgstr ""
 
 #: work_search.html
@@ -973,10 +925,6 @@ msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
 msgstr[1] ""
-
-#: work_search.html
-msgid "BARF! Search engine ERROR!"
-msgstr ""
 
 #: work_search.html
 #, python-format
@@ -1045,11 +993,11 @@ msgid ""
 "information form</a>."
 msgstr ""
 
-#: account/create.html forms.py
+#: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
 msgstr ""
 
-#: account/create.html forms.py
+#: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
@@ -1342,13 +1290,18 @@ msgid "My Loans"
 msgstr ""
 
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
-#: my_books/dropdown_content.html my_books/primary_action.html mybooks.py
-#: search/sort_options.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
+msgstr ""
+
+#: account/mybooks.html
+#, python-format
+msgid "%(year_span)s reading goal"
 msgstr ""
 
 #: account/mybooks.html account/sidebar.html
@@ -1367,8 +1320,8 @@ msgstr ""
 msgid "My Reading Stats"
 msgstr ""
 
-#: account.py account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html
+#: account/mybooks.html account/sidebar.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Loan History"
 msgstr ""
 
@@ -1483,8 +1436,15 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
+#: my_books/dropdown_content.html type/tag/form.html
+msgid "Cancel"
+msgstr ""
+
 #: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "Reviews"
 msgstr ""
 
@@ -1720,7 +1680,8 @@ msgstr ""
 msgid "Click on a bar to see matching works"
 msgstr ""
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html mybooks.py
+#: account/sidebar.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
 
@@ -1732,10 +1693,6 @@ msgstr ""
 #: account/sidebar.html
 #, python-format
 msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
@@ -1775,8 +1732,9 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account.py account/password/reset_success.html account/verify.html
+#: account/password/reset_success.html account/verify.html
 #: account/verify/activated.html account/verify/success.html
+#: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Hi, %(user)s"
 msgstr ""
@@ -1791,6 +1749,10 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
+msgstr ""
+
+#: account/view.html
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/view.html books/mybooks_breadcrumb_select.html
@@ -2105,7 +2067,7 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: admin/imports_by_date.html
+#: admin/imports_by_date.html openlibrary/core/edits.py
 msgid "Pending"
 msgstr ""
 
@@ -2303,7 +2265,8 @@ msgid "Admin Center"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html
-#: admin/people/index.html admin/people/view.html type/author/view.html
+#: admin/people/index.html admin/people/view.html
+#: openlibrary/plugins/worksearch/code.py type/author/view.html
 #: type/list/view_body.html
 msgid "People"
 msgstr ""
@@ -2795,8 +2758,8 @@ msgstr ""
 msgid "Anonymize Account"
 msgstr ""
 
-#: account.py admin/people/view.html books/mybooks_breadcrumb_select.html
-#: type/user/view.html
+#: admin/people/view.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
 msgstr ""
 
@@ -3260,7 +3223,8 @@ msgid "Required field"
 msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html search/work_search_selected_facets.html
+#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
+#: search/work_search_selected_facets.html
 msgid "Author"
 msgstr ""
 
@@ -3644,36 +3608,37 @@ msgid "in %(languagelist)s"
 msgstr ""
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: mybooks.py
+#: openlibrary/plugins/upstream/mybooks.py
 msgid "Books"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
 msgstr ""
 
 #: books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html mybooks.py
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #: type/edition/modal_links.html
 msgid "Notes"
 msgstr ""
 
-#: account.py books/mybooks_breadcrumb_select.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
 msgstr ""
 
@@ -4398,11 +4363,31 @@ msgid "Upload"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Or, paste an image from your clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "Paste image from clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "No Image Pasted"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload image"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload Image"
 msgstr ""
 
 #: covers/add.html
 msgid "Uploading..."
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/author_photo.html
@@ -4587,7 +4572,7 @@ msgstr ""
 msgid "Recently Returned"
 msgstr ""
 
-#: home/index.html
+#: home/index.html openlibrary/plugins/openlibrary/home.py
 msgid "Romance"
 msgstr ""
 
@@ -4599,7 +4584,7 @@ msgstr ""
 msgid "Thrillers"
 msgstr ""
 
-#: home/index.html
+#: home/index.html openlibrary/plugins/openlibrary/home.py
 msgid "Textbooks"
 msgstr ""
 
@@ -4765,58 +4750,6 @@ msgid_plural "%s books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: languages/language_list.html
-msgid "Czech"
-msgstr ""
-
-#: languages/language_list.html
-msgid "German"
-msgstr ""
-
-#: languages/language_list.html
-msgid "English"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Spanish"
-msgstr ""
-
-#: languages/language_list.html
-msgid "French"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Croatian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Italian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Portuguese"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Hindi"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Sardinian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Telugu"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Ukrainian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Chinese"
-msgstr ""
-
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
@@ -4853,7 +4786,7 @@ msgid "New!"
 msgstr ""
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
 
@@ -5023,8 +4956,8 @@ msgid "Explore subjects"
 msgstr ""
 
 #: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html subjects/notfound.html
-#: type/author/view.html type/list/view_body.html
+#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
+#: subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -5213,6 +5146,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html search/advancedsearch.html
+msgid "Subject"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5596,11 +5533,11 @@ msgstr ""
 msgid "Request Status"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Merged"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
 msgstr ""
 
@@ -5687,8 +5624,8 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
-msgid "Review"
+#: merge_request_table/table_row.html
+msgid "Review <!-- (merge request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -5770,8 +5707,8 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: publishers/view.html search/advancedsearch.html type/edition/view.html
-#: type/work/view.html
+#: openlibrary/plugins/worksearch/code.py publishers/view.html
+#: search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -6490,8 +6427,8 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html type/author/view.html
-#: type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/author/view.html type/list/view_body.html
 msgid "Places"
 msgstr ""
 
@@ -6567,6 +6504,10 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "Review"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -6604,7 +6545,8 @@ msgstr ""
 msgid "Search for other books from %(publisher)s"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: openlibrary/plugins/worksearch/code.py type/edition/view.html
+#: type/work/view.html
 msgid "Language"
 msgstr ""
 
@@ -6920,7 +6862,8 @@ msgstr ""
 msgid "Derived from seed metadata"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/list/view_body.html
 msgid "Times"
 msgstr ""
 
@@ -7291,6 +7234,10 @@ msgid ""
 msgstr ""
 
 #: EditionNavBar.html
+msgid "Go to previous section"
+msgstr ""
+
+#: EditionNavBar.html
 msgid "Overview"
 msgstr ""
 
@@ -7437,6 +7384,11 @@ msgstr ""
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
+msgstr ""
+
+#: OLID.html
+#, python-format
+msgid "by  %(authors)s"
 msgstr ""
 
 #: ObservationsModal.html
@@ -7770,192 +7722,324 @@ msgstr ""
 msgid "View Volume %(num)d"
 msgstr ""
 
-#: account.py
-msgid "The email address you entered is invalid"
-msgstr ""
-
-#: account.py
-msgid "This account has been blocked"
-msgstr ""
-
-#: account.py
-msgid "This account has been locked"
-msgstr ""
-
-#: account.py
-msgid "No account was found with this email. Please try again"
-msgstr ""
-
-#: account.py
-msgid "The password you entered is incorrect. Please try again"
-msgstr ""
-
-#: account.py
-msgid "Wrong password. Please try again"
-msgstr ""
-
-#: account.py
-msgid "Please verify your Open Library account before logging in"
-msgstr ""
-
-#: account.py
-msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
-
-#: account.py
-msgid "Please fill out all fields and try again"
-msgstr ""
-
-#: account.py
-msgid "This email is already registered"
-msgstr ""
-
-#: account.py
-msgid "This username is already registered"
-msgstr ""
-
-#: account.py
-msgid "A problem occurred and we were unable to log you in."
-msgstr ""
-
-#: account.py
-msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
-
-#: account.py
-msgid ""
-"Servers are experiencing unusually high traffic, please try again later "
-"or email openlibrary@archive.org for help."
-msgstr ""
-
-#: account.py
-msgid "Email provider not recognized."
-msgstr ""
-
-#: account.py
-msgid "Password requirements not met."
-msgstr ""
-
-#: account.py
-msgid "A problem occurred and we were unable to log you in"
-msgstr ""
-
-#: account.py
-#, python-format
-msgid "Request failed with error code: %(error_code)s"
-msgstr ""
-
-#: account.py
-#, python-format
-msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
-msgstr ""
-
-#: account.py
-msgid "Username unavailable"
-msgstr ""
-
-#: account.py forms.py
-msgid "Email already registered"
-msgstr ""
-
-#: account.py
-msgid "An Internet Archive account already exists with this email"
-msgstr ""
-
-#: account.py
-msgid "Email address is already used."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
-msgstr ""
-
-#: account.py
-msgid "Email verification successful."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
-msgstr ""
-
-#: account.py
-msgid "Email address couldn't be verified."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
-msgstr ""
-
-#: account.py
-msgid "Password reset failed."
-msgstr ""
-
-#: account.py
-msgid "Notification preferences have been updated successfully."
-msgstr ""
-
-#: borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Username"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/account.py
+#: openlibrary/plugins/upstream/forms.py
+msgid "Email already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Screen Name"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid ""
 "I want to receive news, announcements, and resources from the <a "
 "href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
 "runs Open Library."
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
 msgstr ""
 
-#: forms.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The email address you entered is invalid"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been blocked"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been locked"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "No account was found with this email. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The password you entered is incorrect. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Wrong password. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Open Library account before logging in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Internet Archive account before logging in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please fill out all fields and try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This email is already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This username is already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Login attempted with invalid Internet Archive s3 credentials."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email provider not recognized."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Password requirements not met."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+#, python-format
+msgid ""
+"We've sent the verification email to %(email)s. You'll need to read that "
+"and click on the verification link to verify your email."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Username unavailable"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "An Internet Archive account already exists with this email"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email address is already used."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address couldn't be updated. The specified email address is "
+"already used."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email verification successful."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address has been successfully verified and updated in your "
+"account."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email address couldn't be verified."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address couldn't be verified. The verification link seems "
+"invalid."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Password reset failed."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Czech"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "German"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "English"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Spanish"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "French"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Hindi"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Croatian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Portuguese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Romanian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Sardinian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Telugu"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Ukrainian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Chinese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Medicine"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Religion"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+
+#: openlibrary/core/edits.py
+msgid "Unknown"
 msgstr ""
 

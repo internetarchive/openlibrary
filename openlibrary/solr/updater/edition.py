@@ -145,6 +145,13 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         )
 
     @property
+    def lexile(self) -> int | None:
+        try:
+            return int(self._edition.get('lexile', None)) or None
+        except (TypeError, ValueError):
+            return None
+
+    @property
     def language(self) -> list[str]:
         """Gets the 3 letter language codes (eg ['ger', 'fre'])"""
         result: list[str] = []

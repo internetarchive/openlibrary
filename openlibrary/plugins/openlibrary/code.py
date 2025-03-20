@@ -54,7 +54,8 @@ delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
-delegate.app.add_processor(processors.RequireLogoutProcessor())
+# Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
+# delegate.app.add_processor(processors.RequireLogoutProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -1125,6 +1126,10 @@ def save_error():
 def internalerror():
     name = save_error()
 
+    import sys
+
+    exception_type, exception_value, _ = sys.exc_info()
+
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
     # Can't have sub-metrics, so can't add more info
     openlibrary.core.stats.increment('ol.internal-errors')
@@ -1139,7 +1144,9 @@ def internalerror():
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
-        msg = render.site(render.internalerror(name))
+        msg = render.site(
+            render.internalerror(name, etype=exception_type, evalue=exception_value)
+        )
         raise web.internalerror(web.safestr(msg))
 
 
@@ -1337,10 +1344,11 @@ def setup_template_globals():
             "en": {"code": "en", "localized": _('English'), "native": "English"},
             "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
             "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
             "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
-            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "ro": {"code": "ro", "localized": _('Romanian'), "native": "Română"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},

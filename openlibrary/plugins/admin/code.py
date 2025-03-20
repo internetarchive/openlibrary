@@ -1,5 +1,4 @@
-"""Plugin to provide admin interface.
-"""
+"""Plugin to provide admin interface."""
 
 import datetime
 import json

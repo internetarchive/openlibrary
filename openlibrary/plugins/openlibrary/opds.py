@@ -150,7 +150,7 @@ class OPDSEntry(OPDS):
         if not book.ocaid:
             return
 
-        if 'inlibrary' in collection or 'lendinglibrary' in collection:
+        if 'inlibrary' in collection:
             available_loans = book.get_available_loans()
             loan_types = [loan['resource_type'] for loan in available_loans]
             got_epub = 'epub' in loan_types

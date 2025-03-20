@@ -23,7 +23,7 @@ class MonitoredJob:
             if statsd_cfg
             else None
         )
-        self._setup_sentry(sentry_cfg.get("dns", ""))
+        self._setup_sentry(sentry_cfg.get("dsn", ""))
         self.job_name = self._get_job_name()
         self.job_failed = False
 
@@ -32,10 +32,14 @@ class MonitoredJob:
         try:
             self._run_script()
         except subprocess.CalledProcessError as e:
-            sentry_sdk.capture_exception(e)
+            se = RuntimeError(f"Subprocess failed: {e}\n{e.stderr}")
+            sentry_sdk.capture_exception(se)
             self.job_failed = True
+            sys.stderr.write(e.stderr)
+            sys.stderr.flush()
         finally:
             self._after_run()
+            sentry_sdk.flush()
 
     def _before_run(self):
         if self.statsd_client:
@@ -51,16 +55,21 @@ class MonitoredJob:
 
     def _run_script(self):
         return subprocess.run(
-            self.command, text=True, stdout=sys.stdout, stderr=sys.stderr, check=True
+            self.command,
+            text=True,
+            stdout=sys.stdout,
+            stderr=subprocess.PIPE,
+            check=True,
         )
 
-    def _setup_sentry(self, dns):
-        sentry_sdk.init(dns=dns, trace_sample_rate=1.0)  # Configure?
+    def _setup_sentry(self, dsn):
+        sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0)  # Configure?
 
     def _setup_statsd(self, host, port):
         return StatsClient(host, port)
 
     def _get_job_name(self):
+        # TODO: Change to specify a --script as argparse arg (instead of scripts path)
         script_path = next(
             s for s in self.command if s.startswith("/openlibrary/scripts/")
         )

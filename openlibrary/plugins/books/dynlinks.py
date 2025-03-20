@@ -398,7 +398,7 @@ def process_result_for_viewapi(result):
 def get_ia_availability(itemid):
     collections = ia.get_metadata(itemid).get('collection', [])
 
-    if 'lendinglibrary' in collections or 'inlibrary' in collections:
+    if 'inlibrary' in collections:
         return 'borrow'
     elif 'printdisabled' in collections:
         return 'restricted'

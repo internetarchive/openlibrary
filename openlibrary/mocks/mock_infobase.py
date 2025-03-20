@@ -1,5 +1,4 @@
-"""Simple implementation of mock infogami site to use in testing.
-"""
+"""Simple implementation of mock infogami site to use in testing."""
 
 import glob
 import itertools

@@ -842,7 +842,6 @@ def test_missing_source_records(mock_site, add_languages):
             "type": {"key": "/type/edition"},
             "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
             "publishers": ["Bedford Books"],
-            "ia_box_id": ["IA127618"],
             "key": "/books/OL1023483M",
             "authors": [{"key": "/authors/OL592898A"}],
             "publish_places": ["Boston"],
@@ -1142,6 +1141,52 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     assert reply['edition']['key'] == '/books/OL17M'
     e = mock_site.get(reply['edition']['key'])
     assert e['key'] == '/books/OL17M'
+
+
+def test_preisbn_import_does_not_match_existing_undated_isbn_record(mock_site) -> None:
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'Jane Austen',
+        'key': '/authors/OL21594A',
+    }
+    existing_work = {
+        'authors': [
+            {
+                'author': {'key': '/authors/OL21594A'},
+                'type': {'key': '/type/author_role'},
+            }
+        ],
+        'key': '/works/OL16W',
+        'title': 'Sense and Sensibility',
+        'type': {'key': '/type/work'},
+    }
+    existing_edition = {
+        'key': '/books/OL18M',
+        #'publish_date': '2025', NO DATE
+        'publishers': ['Penguin'],
+        'title': 'Sense and Sensibility',
+        'isbn_13': ['9780241734872'],
+        'source_records': ['non-marc:ja_light_record'],
+        'works': [{'key': '/works/OL16W'}],
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+    rec = {
+        'authors': [{'name': 'Jane Austen'}],
+        'publish_date': '1913',
+        'publishers': ['Penguin'],
+        'title': 'Sense and Sensibility',
+        'source_records': ['marc:somelibrary/some_marc.mrc'],
+    }
+    reply = load(rec)
+    assert reply['authors'][0]['status'] == 'matched'
+    assert reply['authors'][0]['key'] == '/authors/OL21594A'
+    assert reply['work']['status'] == 'matched'
+    assert reply['work']['key'] == '/works/OL16W'
+    assert (
+        reply['edition']['status'] == 'created'
+    )  # New edition is created, not matched
 
 
 def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
@@ -1872,7 +1917,8 @@ class TestNormalizeImportRecord:
 
 
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
-    # An existing light title + ISBN only record
+    # An existing light title + ISBN only record should not match an
+    # incoming pre-ISBN record.
     existing_edition = {
         'key': '/books/OL113M',
         # NO author
