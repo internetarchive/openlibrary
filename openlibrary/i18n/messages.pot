@@ -4241,7 +4241,7 @@ msgstr ""
 
 #: check_ins/check_in_form.html
 msgid ""
-"Add an optional check-in date.  Check-in dates are used to track yearly "
+"Add an optional check-in date. Check-in dates are used to track yearly "
 "reading goals."
 msgstr ""
 
