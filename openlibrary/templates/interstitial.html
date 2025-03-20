@@ -1,30 +1,17 @@
-$def with(url, provider="", wait=5)
+$def with(url, provider_name="", wait=5)
 
-<h1>$_("You are being redirected to your book")</h1>
+$if provider_name is None:
+  $ provider_name = ""
 
-<p id="countdown">$_("This book is provided by %s, a third-party Open Library Trusted Book Provider", "<strong>" + provider= "</strong>")</p>
+<div id="contentBody" class="interstitial" data-url="${url}" data-wait="${wait}">
+  <h1>$_("You are being redirected to your book")</h1>
 
-<p>$_("You will be automatically redirected to %s in %s seconds...", url, '<span id="timer">5</span>')</p>
+  <p id="countdown">$:_('This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider', book_provider='<strong>' + websafe(provider_name).replace('_', ' ').title() + '</strong>')</p>
 
-<p>
-  <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
-  <a href="">$_("Continue without waiting")</a>
-</p>
+  <p>$:_('In %(time)s seconds, you will be automatically redirected to: %(url)s', time='<span id="timer">{}</span>'.format(wait), url='<a href="{0}">{0}</a>'.format(url))</p>
 
-<script>
-  let count = $wait;
-  const timerElement = document.getElementById("timer");
-
-  const countdown = setInterval(() => {
-    count--;
-    timerElement.textContent = count;
-
-    if (count === 0) {
-      clearInterval(countdown);
-      // Open in a new tab and then return to Open Library
-      window.open("$url", "_blank"); // Open in new tab
-      history.back(); // Return to previous page on Open Library
-    }
-  }, 1000);
-</script>
-
+  <p>
+    <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
+    <a href="${url}">$_("Continue without waiting")</a>
+  </p>
+</div>

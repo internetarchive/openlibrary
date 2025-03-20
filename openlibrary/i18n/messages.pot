@@ -461,19 +461,20 @@ msgstr ""
 #: interstitial.html
 #, python-format
 msgid ""
-"This book is provided by %s, a third-party Open Library Trusted Book "
-"Provider"
+"This book is provided by %(book_provider)s, a third-party Open Library "
+"Trusted Book Provider"
 msgstr ""
 
 #: interstitial.html
 #, python-format
-msgid "You will be automatically redirected to %s in %s seconds..."
+msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/tag/form.html
+#: merge/authors.html my_books/dropdown_content.html support.html
+#: type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -590,15 +591,7 @@ msgid "Thank you very much for improving that record!"
 msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html covers/author_photo.html
+#: ObservationsModal.html ShareModal.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
 #: my_books/dropdown_content.html native_dialog.html
@@ -834,13 +827,6 @@ msgstr ""
 
 #: support.html
 msgid "Send"
-msgstr ""
-
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html type/tag/form.html
-msgid "Cancel"
 msgstr ""
 
 #: trending.html
@@ -2938,34 +2924,8 @@ msgstr ""
 msgid "Read eBook from Cita Press"
 msgstr ""
 
-#: book_providers/cita_press_read_button.html
-msgid ""
-"This book is available from <a href=\"https://citapress.org/\">Cita "
-"Press</a>. Cita Press is a trusted book provider of works written by "
-"women, pairing contemporary authors and designers with open access texts "
-"to make carefully designed books available for free and open source."
-msgstr ""
-
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html
-msgid "Learn more"
-msgstr ""
-
 #: book_providers/direct_read_button.html
 msgid "Read free online"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-#, python-format
-msgid ""
-"This book is freely available from <a href=\"%s\">%s</a>, an external "
-"third-party book provider."
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -3005,15 +2965,6 @@ msgstr ""
 
 #: book_providers/gutenberg_read_button.html
 msgid "Read eBook from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. Project "
-"Gutenberg is a trusted book provider of classic ebooks, supporting "
-"thousands of volunteers in the creation and distribution of over 60,000 "
-"free eBooks."
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -3072,14 +3023,6 @@ msgstr ""
 msgid "Audiobook"
 msgstr ""
 
-#: book_providers/librivox_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://librivox.org/\">LibriVox</a>. LibriVox is a trusted book "
-"provider of public domain audiobooks, narrated by volunteers, distributed"
-" for free on the internet."
-msgstr ""
-
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
 msgstr ""
@@ -3090,15 +3033,6 @@ msgstr ""
 
 #: book_providers/openstax_read_button.html
 msgid "Read eBook from OpenStax"
-msgstr ""
-
-#: book_providers/openstax_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax is a trusted "
-"book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
-"to providing free high-quality, peer-reviewed, openly licensed textbooks "
-"online."
 msgstr ""
 
 #: book_providers/runeberg_download_options.html
@@ -3145,13 +3079,6 @@ msgstr ""
 msgid "Read eBook from Project Runeberg"
 msgstr ""
 
-#: book_providers/runeberg_read_button.html
-msgid ""
-"This book is available from <a href=\"https://runeberg.org/\">Project "
-"Runeberg</a>. Project Runeberg is a trusted book provider of classic "
-"Nordic (Scandinavian) literature in electronic form."
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
 msgstr ""
@@ -3192,15 +3119,6 @@ msgstr ""
 msgid "Read eBook from Standard eBooks"
 msgstr ""
 
-#: book_providers/standard_ebooks_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
-" is a trusted book provider and a volunteer-driven project that produces "
-"new editions of public domain ebooks that are lovingly formatted, open "
-"source, free of copyright restrictions, and free of cost."
-msgstr ""
-
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
 msgstr ""
@@ -3227,17 +3145,6 @@ msgstr ""
 
 #: book_providers/wikisource_read_button.html
 msgid "Read eBook on Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, a <a "
-"href=\"https://www.wikimedia.org/\">Wikimedia Foundation</a> project, is "
-"a trusted book provider of works available under the <a "
-"href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC-BY-SA</a> "
-"open content license, such as essays, historical documents, letters, "
-"speeches, and public domain books."
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -7859,12 +7766,6 @@ msgstr ""
 msgid "Choose a password"
 msgstr ""
 
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -7999,9 +7900,22 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
@@ -8108,16 +8022,9 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py
-msgid "eBook?"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
 
 #: openlibrary/core/edits.py
