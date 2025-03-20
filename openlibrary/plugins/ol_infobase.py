@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Open Library plugin for infobase.
-"""
+"""Open Library plugin for infobase."""
 
 import datetime
 import json
@@ -291,9 +290,8 @@ def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(data)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(data)
 
 
 def save_error(dir, prefix):

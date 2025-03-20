@@ -9,7 +9,7 @@
   "lccn": [
     "16010652"
   ],
-  "notes": "\"When first published [1824] the Memoirs were accepted as Fouch\u00e9's own work, but owing to a suit instituted by his family they were later admitted to be that of Alphonse de Beauchamp ... But ... the work is undoubtedly based on Fouché's own notes and papers.\" -- Introduction to Memoirs relating to Fouché' ... Tr. from the French by E. Jules Méras. New York, 1912.",
+  "notes": "\"When first published [1824] the Memoirs were accepted as Fouché's own work, but owing to a suit instituted by his family they were later admitted to be that of Alphonse de Beauchamp ... But ... the work is undoubtedly based on Fouché's own notes and papers.\" -- Introduction to Memoirs relating to Fouché' ... Tr. from the French by E. Jules Méras. New York, 1912.",
   "number_of_pages": 474,
   "languages": [
     "eng"
@@ -31,6 +31,13 @@
       "personal_name": "Fouché, Joseph",
       "birth_date": "1759",
       "entity_type": "person"
+    },
+    {
+      "birth_date": "1767",
+      "death_date": "1832",
+      "name": "Beauchamp, Alph. de",
+      "role": "ed.",
+      "entity_type": "person"
     }
   ],
   "publish_places": [
@@ -46,9 +53,6 @@
   "subjects": [
     "History",
     "Court and courtiers"
-  ],
-  "contributions": [
-    "Beauchamp, Alph. de, 1767-1832, ed"
   ],
   "subject_times": [
     "1789-1815"

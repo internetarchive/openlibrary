@@ -1,5 +1,4 @@
-"""Subject pages.
-"""
+"""Subject pages."""
 
 import datetime
 import json
@@ -412,7 +411,6 @@ class SubjectEngine:
             cover_edition_key=w.get('cover_edition_key'),
             subject=w.get('subject', []),
             ia_collection=ia_collection,
-            lendinglibrary='lendinglibrary' in ia_collection,
             printdisabled='printdisabled' in ia_collection,
             lending_edition=w.get('lending_edition_s', ''),
             lending_identifier=w.get('lending_identifier_s', ''),

@@ -155,9 +155,13 @@ class borrow(delegate.page):
 
         # Make a call to availability v2 update the subjects according
         # to result if `open`, redirect to bookreader
-        response = lending.get_availability_of_ocaid(edition.ocaid)
+        response = lending.get_availability('identifier', [edition.ocaid])
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
+            from openlibrary.plugins.openlibrary.code import is_bot
+
+            if not is_bot():
+                stats.increment('ol.loans.openaccess')
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
@@ -253,7 +257,6 @@ class borrow_status(delegate.page):
     path = "(/books/.*)/_borrow_status"
 
     def GET(self, key):
-        global lending_subjects
 
         i = web.input(callback=None)
 
@@ -521,7 +524,6 @@ def get_loan_status(resource_id: str):
         }
     ]
     """
-    global loanstatus_url
 
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
@@ -551,7 +553,6 @@ def get_loan_status(resource_id: str):
 
 def get_all_loaned_out():
     """Returns array of BSS status for all resources currently loaned out (according to BSS)"""
-    global loanstatus_url
 
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
@@ -614,7 +615,6 @@ def _update_loan_status(loan_key, loan, bss_status=None) -> None:
 
 def update_loan_from_bss_status(loan_key, loan, status) -> None:
     """Update the loan status in the private data store from BSS status"""
-    global loan_fulfillment_timeout_seconds
 
     if not resource_uses_bss(loan['resource_id']):
         raise Exception(
@@ -669,7 +669,6 @@ def update_all_loan_status() -> None:
 
 def resource_uses_bss(resource_id: str) -> bool:
     """Returns true if the resource should use the BSS for status"""
-    global acs_resource_id_prefixes
 
     if resource_id:
         for prefix in acs_resource_id_prefixes:

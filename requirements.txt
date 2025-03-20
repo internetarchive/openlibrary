@@ -1,5 +1,6 @@
 aiofiles==23.1.0
 amightygirl.paapi5-python-sdk==1.0.0
+APScheduler==3.11.0
 Babel==2.12.1
 beautifulsoup4==4.12.2
 DBUtils==1.4

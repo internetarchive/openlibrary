@@ -22,7 +22,7 @@ import requests
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
-from openlibrary.plugins.openlibrary.code import setup_requests
+from openlibrary.plugins.upstream.utils import setup_requests
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
@@ -87,7 +87,7 @@ required_fields: list[str] = []
 
 
 class Biblio:
-    ACTIVE_FIELDS = [
+    ACTIVE_FIELDS = (
         'title',
         'isbn_13',
         'publish_date',
@@ -103,22 +103,133 @@ class Biblio:
         'lccn',
         'identifiers',
         'dewey_decimal_class',
-    ]
-    INACTIVE_FIELDS = [
+    )
+    INACTIVE_FIELDS = (
         "copyright",
         "length",
         "width",
         "height",
+    )
+
+    NONBOOK = [
+        "A2",
+        "AA",
+        "AB",
+        "AJ",
+        "AVI",
+        "AZ",
+        "BK",
+        "BM",
+        "C3",
+        "CD",
+        "CE",
+        "CF",
+        "CR",
+        "CRM",
+        "CRW",
+        "CX",
+        "D3",
+        "DA",
+        "DD",
+        "DF",
+        "DI",
+        "DL",
+        "DO",
+        "DR",
+        "DRM",
+        "DRW",
+        "DS",
+        "DV",
+        "EC",
+        "FC",
+        "FI",
+        "FM",
+        "FR",
+        "FZ",
+        "GB",
+        "GC",
+        "GM",
+        "GR",
+        "H3",
+        "H5",
+        "L3",
+        "L5",
+        "LP",
+        "MAC",
+        "MC",
+        "MF",
+        "MG",
+        "MH",
+        "ML",
+        "MS",
+        "MSX",
+        "MZ",
+        "N64",
+        "NGA",
+        "NGB",
+        "NGC",
+        "NGE",
+        "NT",
+        "OR",
+        "OS",
+        "PC",
+        "PP",
+        "PRP",
+        "PS",
+        "PSC",
+        "PY",
+        "QU",
+        "RE",
+        "RV",
+        "SA",
+        "SD",
+        "SG",
+        "SH",
+        "SK",
+        "SL",
+        "SMD",
+        "SN",
+        "SO",
+        "SO1",
+        "SO2",
+        "SR",
+        "SU",
+        "TA",
+        "TB",
+        "TR",
+        "TS",
+        "TY",
+        "UX",
+        "V35",
+        "V8",
+        "VC",
+        "VD",
+        "VE",
+        "VF",
+        "VK",
+        "VM",
+        "VN",
+        "VO",
+        "VP",
+        "VS",
+        "VU",
+        "VY",
+        "VZ",
+        "WA",
+        "WC",
+        "WI",
+        "WL",
+        "WM",
+        "WP",
+        "WT",
+        "WX",
+        "XL",
+        "XZ",
+        "ZF",
+        "ZZ",
     ]
 
-    NONBOOK = """A2 AA AB AJ AVI AZ BK BM C3 CD CE CF CR CRM CRW CX D3 DA DD DF DI DL
-    DO DR DRM DRW DS DV EC FC FI FM FR FZ GB GC GM GR H3 H5 L3 L5 LP MAC MC MF MG MH ML
-    MS MSX MZ N64 NGA NGB NGC NGE NT OR OS PC PP PRP PS PSC PY QU RE RV SA SD SG SH SK
-    SL SMD SN SO SO1 SO2 SR SU TA TB TR TS TY UX V35 V8 VC VD VE VF VK VM VN VO VP VS
-    VU VY VZ WA WC WI WL WM WP WT WX XL XZ ZF ZZ""".split()
-
     def __init__(self, data):
-        global required_fields
         self.REQUIRED_FIELDS = required_fields
 
         self.primary_format = data[6]

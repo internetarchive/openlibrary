@@ -537,8 +537,8 @@
       <arr name="queries">
         <!-- Work search -->
         <lst>
-          <str name="workQuery">harry potter</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="userWorkQuery">harry potter</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="rows">20</str>
           <str name="facet">true</str>
@@ -554,8 +554,8 @@
         </lst>
         <!-- Author works search -->
         <lst>
-          <str name="workQuery">*:*</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="userWorkQuery">*:*</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="fq">author_key:OL2162284A</str>
           <str name="sort">edition_count desc</str>
@@ -569,8 +569,8 @@
         </lst>
         <!-- Ebook only search for carousel -->
         <lst>
-          <str name="workQuery">subject:"Reading Level-Grade 6"</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="fq">ebook_access:[printdisabled TO *]</str>
           <str name="rows">20</str>

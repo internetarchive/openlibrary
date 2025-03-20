@@ -1,19 +1,20 @@
 #!/bin/bash
 
-handle_error() {
-    echo -e "\n\nERR" >&2
+clean_exit() {
     if [ -n "$TMP_DIR" ]; then
         cleanup "$TMP_DIR"
     fi
     exit 1
 }
 
+handle_error() {
+    echo -e "\n\nERR" >&2
+    clean_exit
+}
+
 handle_exit() {
     echo -e "\n\nSIGINT" >&2
-    if [ -n "$TMP_DIR" ]; then
-        cleanup "$TMP_DIR"
-    fi
-    exit 1
+    clean_exit
 }
 
 trap 'handle_error' ERR
@@ -24,7 +25,9 @@ set -e
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-IGNORE_CHANGES=${IGNORE_CHANGES:-0}
+KILL_CRON=${KILL_CRON:-""}
+LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -43,6 +46,42 @@ cleanup() {
     rm -rf $TMP_DIR
 }
 
+# Show a looping y/n prompt
+wait_yn() {
+    local prompt=$1
+
+    while true; do
+        read -p "$prompt (y/n) " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) clean_exit;;
+            * ) ;;
+        esac
+    done
+}
+
+check_crons() {
+    # Check if any critical cron jobs are running:
+    CRITICAL_JOBS="oldump.sh|process_partner_data.sh|update_stale_work_references.py|promise_batch_imports.py"
+
+    echo ""
+    echo -n "Checking for running critical cron jobs... "
+    RUNNING_CRONS=$(ssh ol-home0.us.archive.org ps -ef | grep -v grep | grep -E "$CRITICAL_JOBS" || true)
+
+    # If KILL_CRON is an empty string and there are running jobs, exit early
+    if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
+        echo "✗"
+        echo "Critical cron jobs are currently running. Halting deployment:"
+        echo "$RUNNING_CRONS"
+        echo ""
+        echo "Set KILL_CRON=1 and run script again to override."
+        echo ""
+        exit 1
+    else
+        echo "✓"
+    fi
+}
+
 check_for_local_changes() {
     SERVER=$1
     REPO_DIR=$2
@@ -53,15 +92,17 @@ check_for_local_changes() {
 
     if [ -z "$OUTPUT" ]; then
         echo "✓"
-    elif [ $IGNORE_CHANGES -eq 1 ]; then
-        echo "✗ (ignored)"
     else
         echo "✗"
-        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them before deploying."
-        echo "Or, set IGNORE_CHANGES=1 to ignore this check."
-        ssh -t $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all"
-        cleanup "$TMP_DIR"
-        exit 1
+        echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
+        ssh -t $SERVER "
+            cd $REPO_DIR
+            sudo git status --porcelain --untracked-files=all
+            echo ''
+            sudo git diff
+        "
+
+        wait_yn "Ignore changes and continue?"
     fi
 }
 
@@ -131,6 +172,7 @@ deploy_olsystem() {
     echo "Deploying to: $SERVERS"
 
     check_server_access
+    check_crons
 
     TMP_DIR=${TMP_DIR:-$(mktemp -d)}
     cd $TMP_DIR
@@ -236,7 +278,14 @@ deploy_openlibrary() {
         echo "✓ Docker image is up-to-date"
     fi
 
+    DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
+    git -C openlibrary tag $DEPLOY_TAG
+    git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+    git -C openlibrary tag -f production
+    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
+
     check_server_access
+    check_crons
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do
@@ -247,6 +296,7 @@ deploy_openlibrary() {
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
     cp -r openlibrary/docker openlibrary_new
+    cp -r openlibrary/scripts openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
     if ! copy_to_servers "$TMP_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
         cleanup "$TMP_DIR"
@@ -270,8 +320,8 @@ deploy_openlibrary() {
     echo "Prune docker images/cache..."
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
-        # ssh $SERVER "docker image prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f && docker builder prune -f" 2>&1); then
+        # ssh $SERVER "docker image prune -f && docker builder prune -f"
+        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
             echo "✓"
         else
             echo "⚠"
@@ -293,9 +343,13 @@ deploy_openlibrary() {
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
-        "
-        echo "   ... $SERVER ✓"
+            source /opt/olsystem/bin/build_env.sh;
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER build
+        " &> /dev/null &
     done
+
+    wait
+    echo "   ... Done ✓"
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -303,23 +357,43 @@ deploy_openlibrary() {
     cleanup $TMP_DIR
 }
 
+# Example: send_slack_message "@openlibrary-g" "Hello world"
+# This is a slackbot currently owned by @cdrini
+send_slack_message() {
+    # Note channel must include e.g. "#" at start
+    local channel=$1
+    local message=$2
+
+    echo "Slack message to $channel: $message"
+    curl -X POST \
+        -H "Content-type: application/json; charset=utf-8" \
+        -H "Authorization: Bearer $SLACK_TOKEN" \
+        --data "{\"channel\": \"$channel\", \"link_names\": true, \"text\": \"$message\"}" \
+        "https://slack.com/api/chat.postMessage"
+}
+
+
 # Clone booklending utils
 # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
-
-# And tag the deploy!
-# DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
-# sudo git tag $DEPLOY_TAG
-# sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
 
 # Supports:
 # - deploy.sh olsystem
 # - deploy.sh openlibrary
 
-if [ "$1" == "olsystem" ]; then
+if [ "$1" == "announce" ]; then
+    echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+elif [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
+elif [ "$1" == "review" ]; then
+    # Ensure all the git repos, docker images are in sync across all servers (~50s as of 2024-12-09)
+    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/are_servers_in_sync.sh
+elif [ "$1" == "finalize" ]; then
+    # Restart things -- keep an eye on sentry/grafana (~3m as of 2024-12-09)
+    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/restart_servers.sh
+    echo "The Open Library weekly deploy is now complete. Please let us know @here if anything seems broken or delightful!"
 else
     echo "Usage: $0 [olsystem|openlibrary]"
     exit 1

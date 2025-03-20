@@ -1,5 +1,4 @@
-"""Handling various events triggered by Open Library.
-"""
+"""Handling various events triggered by Open Library."""
 
 import logging
 

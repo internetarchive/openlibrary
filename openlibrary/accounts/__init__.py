@@ -16,7 +16,7 @@ def get_group(name):
     """
     Returns the group named 'name'.
     """
-    return web.ctx.site.get("/usergroup/%s" % name)
+    return web.ctx.site.get(f"/usergroup/{name}")
 
 
 class RunAs:

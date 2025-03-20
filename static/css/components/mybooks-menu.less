@@ -19,15 +19,24 @@
   height: 100vh;
   top: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  &:hover {
+    scrollbar-color: auto;
+  }
 
   .external-link {
     text-decoration: underline;
   }
 
   a {
-    text-decoration: none;
+    display: block;
     color: @link-blue;
   }
+  a:link, a:hover, a:visited {
+    text-decoration: none;
+  }
+
   /*all uls */
   .sidebar-section {
     padding: 0 0 10px;
@@ -53,12 +62,8 @@
       font-weight: bold;
     }
   }
-  ul li a {
-    display: block;
-  }
 
   ul li:not(.section-header) a {
-    display: block;
     padding: 4px 15px;
 
     @media (pointer: coarse) {

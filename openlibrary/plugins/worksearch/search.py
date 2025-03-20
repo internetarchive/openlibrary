@@ -1,5 +1,4 @@
-"""Search utilities.
-"""
+"""Search utilities."""
 
 from infogami import config
 from openlibrary.utils.solr import Solr

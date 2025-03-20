@@ -61,7 +61,7 @@ class index(delegate.page):
         return render_template("recentchanges/index", query)
 
     def handle_encoding(self, query, encoding):
-        i = web.input(bot="", limit=100, offset=0, text="false")
+        i = web.input(bot="", limit=100, offset=0, text="false", author="")
 
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
@@ -69,6 +69,10 @@ class index(delegate.page):
             query['bot'] = True
         elif i.bot.lower() == "false":
             query['bot'] = False
+
+        # Handle author query parameter
+        if i.author:
+            query['author'] = i.author
 
         # and limit and offset business too
         limit = safeint(i.limit, 100)

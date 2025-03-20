@@ -221,4 +221,12 @@ export default {
   background: black;
   color: white;
 }
+
+button {
+  border: 0;
+  background: 0;
+  padding: 6px 8px;
+  font: inherit;
+  color: inherit;
+}
 </style>

@@ -37,19 +37,19 @@ SAMPLE_1 = {
         'base': '',
         'value': 'Public domain in the United States. Users located outside of the United States must check their local laws before using this ebook. Original content released to the public domain via the Creative Commons CC0 1.0 Universal Public Domain Dedication.',  # noqa: E501
     },
-    'summary': 'T. E. Lawrence’s memoir of leading the Arab revolt against the Ottoman empire during World War I.',
+    'summary': 'T. E. Lawrence’s memoir of leading the Arab revolt against the Ottoman empire during World War I.',  # noqa: RUF001
     'summary_detail': {
         'type': 'text/plain',
         'language': None,
         'base': '',
-        'value': 'T. E. Lawrence’s memoir of leading the Arab revolt against the Ottoman empire during World War I.',
+        'value': 'T. E. Lawrence’s memoir of leading the Arab revolt against the Ottoman empire during World War I.',  # noqa: RUF001
     },
     'content': [
         {
             'type': 'text/html',
             'language': None,
             'base': '',
-            'value': '<p><i>Seven Pillars of Wisdom</i> is <a href="https://standardebooks.org/ebooks/t-e-lawrence"><abbr>T. E.</abbr> Lawrence’s</a> memoir of his involvement in leading a portion of the Arab revolt against the Ottoman empire during World War I. The empire had joined the side of Germany and the Central Powers in the war, and Britain hoped that a successful revolt would take the empire out of the war effort. Britain had also promised the Arabs that, if they were successful, England would recognize a single Arab state.</p> <p>Lawrence convinced the Arab leaders, who had historically not shown a willingness to work together, to join forces in supporting Britain’s strategy in the area. His memoir is part travelogue, part philosophy treatise, and part action novel. It details his movements and actions during his two year involvement, his relationships with the various Arab leaders and men who fought with him, and his thoughts—and doubts—during that time. It’s a gripping tale made famous by the movie <i>Lawrence of Arabia</i>, and one that Winston Churchill called “unsurpassable” as a “narrative of war and adventure.”</p> <p>The manuscript of <i>Seven Pillars of Wisdom</i> has a rich history. Lawrence finished his first draft in 1919 from his notes during the war, but lost most of it when changing trains in England (it was never found). The next year, he started working on a new version from memory that ended up being sixty percent longer than the original. He then edited that version (although it was still a third longer than the original draft), finishing it in early 1922, and had eight copies of it printed to give to friends so they could review it and offer editing suggestions (and to prevent a repeat of losing his only copy). About this time he re-enlisted in the service, but friends convinced him to work on a version he could publish. In 1926, he had a first edition of approximately 200 copies published that included 125 black-and-white and color illustrations from sixteen different artists. The first edition lost money, and it was the only edition published during his lifetime. This edition uses the first edition text and includes all 125 of the original illustrations, including both endpapers.</p>',  # noqa: E501
+            'value': '<p><i>Seven Pillars of Wisdom</i> is <a href="https://standardebooks.org/ebooks/t-e-lawrence"><abbr>T. E.</abbr> Lawrence’s</a> memoir of his involvement in leading a portion of the Arab revolt against the Ottoman empire during World War I. The empire had joined the side of Germany and the Central Powers in the war, and Britain hoped that a successful revolt would take the empire out of the war effort. Britain had also promised the Arabs that, if they were successful, England would recognize a single Arab state.</p> <p>Lawrence convinced the Arab leaders, who had historically not shown a willingness to work together, to join forces in supporting Britain’s strategy in the area. His memoir is part travelogue, part philosophy treatise, and part action novel. It details his movements and actions during his two year involvement, his relationships with the various Arab leaders and men who fought with him, and his thoughts—and doubts—during that time. It’s a gripping tale made famous by the movie <i>Lawrence of Arabia</i>, and one that Winston Churchill called “unsurpassable” as a “narrative of war and adventure.”</p> <p>The manuscript of <i>Seven Pillars of Wisdom</i> has a rich history. Lawrence finished his first draft in 1919 from his notes during the war, but lost most of it when changing trains in England (it was never found). The next year, he started working on a new version from memory that ended up being sixty percent longer than the original. He then edited that version (although it was still a third longer than the original draft), finishing it in early 1922, and had eight copies of it printed to give to friends so they could review it and offer editing suggestions (and to prevent a repeat of losing his only copy). About this time he re-enlisted in the service, but friends convinced him to work on a version he could publish. In 1926, he had a first edition of approximately 200 copies published that included 125 black-and-white and color illustrations from sixteen different artists. The first edition lost money, and it was the only edition published during his lifetime. This edition uses the first edition text and includes all 125 of the original illustrations, including both endpapers.</p>',  # noqa: E501, RUF001
         }
     ],
     'tags': [
@@ -93,7 +93,7 @@ SAMPLE_1 = {
         {
             'href': 'https://standardebooks.org/ebooks/t-e-lawrence/seven-pillars-of-wisdom',
             'rel': 'alternate',
-            'title': 'This ebook’s page at Standard Ebooks',
+            'title': 'This ebook’s page at Standard Ebooks',  # noqa: RUF001
             'type': 'application/xhtml+xml',
         },
         {

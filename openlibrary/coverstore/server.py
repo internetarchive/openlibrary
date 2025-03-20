@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""coverstore server.
-"""
+"""coverstore server."""
 
 import sys
 

@@ -1,3 +1,5 @@
+from types import MappingProxyType
+
 import pytest
 
 from openlibrary.solr.updater.work import (
@@ -357,32 +359,34 @@ class TestWorkSolrBuilder:
         assert d.author_alternative_name == {"Author 1"}
 
     # {'Test name': (doc_lccs, solr_lccs, sort_lcc_index)}
-    LCC_TESTS = {
-        'Remove dupes': (['A', 'A'], ['A--0000.00000000'], 0),
-        'Ignores garbage': (['$9.99'], None, None),
-        'Handles none': ([], None, None),
-        'Handles empty string': ([''], None, None),
-        'Stores multiple': (
-            ['A123', 'B42'],
-            ['A--0123.00000000', 'B--0042.00000000'],
-            None,
-        ),
-        'Handles full LCC': (
-            ['PT2603.0.E46 Z589 1991'],
-            ['PT-2603.00000000.E46 Z589 1991'],
-            0,
-        ),
-        'Stores longest for sorting': (
-            ['A123.C14', 'B42'],
-            ['A--0123.00000000.C14', 'B--0042.00000000'],
-            0,
-        ),
-        'Ignores ISBNs/DDCs': (
-            ['9781234123411', 'ML410', '123.4'],
-            ['ML-0410.00000000'],
-            0,
-        ),
-    }
+    LCC_TESTS = MappingProxyType(
+        {
+            'Remove dupes': (['A', 'A'], ['A--0000.00000000'], 0),
+            'Ignores garbage': (['$9.99'], None, None),
+            'Handles none': ([], None, None),
+            'Handles empty string': ([''], None, None),
+            'Stores multiple': (
+                ['A123', 'B42'],
+                ['A--0123.00000000', 'B--0042.00000000'],
+                None,
+            ),
+            'Handles full LCC': (
+                ['PT2603.0.E46 Z589 1991'],
+                ['PT-2603.00000000.E46 Z589 1991'],
+                0,
+            ),
+            'Stores longest for sorting': (
+                ['A123.C14', 'B42'],
+                ['A--0123.00000000.C14', 'B--0042.00000000'],
+                0,
+            ),
+            'Ignores ISBNs/DDCs': (
+                ['9781234123411', 'ML410', '123.4'],
+                ['ML-0410.00000000'],
+                0,
+            ),
+        }
+    )
 
     @pytest.mark.parametrize(
         ('doc_lccs', 'solr_lccs', 'sort_lcc_index'),
@@ -406,26 +410,32 @@ class TestWorkSolrBuilder:
             assert d.lcc == set()
             assert d.lcc_sort is None
 
-    DDC_TESTS = {
-        'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
-        'Handles none': ([], None, None),
-        'Handles empty string': ([''], None, None),
-        'Stores multiple': (['05', '123.5'], ['005', '123.5'], 1),
-        'Handles full DDC': (['j132.452939 [B]'], ['132.452939 B', 'j132.452939 B'], 0),
-        'Handles alternate DDCs': (['132.52 153.6'], ['132.52', '153.6'], 0),
-        'Stores longest for sorting': (
-            ['123.4', '123.41422'],
-            ['123.4', '123.41422'],
-            1,
-        ),
-        'Ignores ISBNs/LCCs': (['9781234123411', 'ML410', '132.3'], ['132.3'], 0),
-        'Ignores superfluous 920s': (['123.5', '920'], ['123.5'], 0),
-        'Ignores superfluous 92s': (['123.5', '92'], ['123.5'], 0),
-        'Ignores superfluous 92s (2)': (['123.5', 'B', '92'], ['123.5'], 0),
-        'Skips 920s': (['920', '123.5'], ['123.5'], 0),
-        'Skips 92s': (['92', '123.5'], ['123.5'], 0),
-        'Skips 092s': (['092', '123.5'], ['123.5'], 0),
-    }
+    DDC_TESTS = MappingProxyType(
+        {
+            'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
+            'Handles none': ([], None, None),
+            'Handles empty string': ([''], None, None),
+            'Stores multiple': (['05', '123.5'], ['005', '123.5'], 1),
+            'Handles full DDC': (
+                ['j132.452939 [B]'],
+                ['132.452939 B', 'j132.452939 B'],
+                0,
+            ),
+            'Handles alternate DDCs': (['132.52 153.6'], ['132.52', '153.6'], 0),
+            'Stores longest for sorting': (
+                ['123.4', '123.41422'],
+                ['123.4', '123.41422'],
+                1,
+            ),
+            'Ignores ISBNs/LCCs': (['9781234123411', 'ML410', '132.3'], ['132.3'], 0),
+            'Ignores superfluous 920s': (['123.5', '920'], ['123.5'], 0),
+            'Ignores superfluous 92s': (['123.5', '92'], ['123.5'], 0),
+            'Ignores superfluous 92s (2)': (['123.5', 'B', '92'], ['123.5'], 0),
+            'Skips 920s': (['920', '123.5'], ['123.5'], 0),
+            'Skips 92s': (['92', '123.5'], ['123.5'], 0),
+            'Skips 092s': (['092', '123.5'], ['123.5'], 0),
+        }
+    )
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

@@ -24,6 +24,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
+    safeget,
     urlencode,
 )
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -115,7 +116,7 @@ def process_facet(
 
 
 def process_facet_counts(
-    facet_counts: dict[str, list]
+    facet_counts: dict[str, list],
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':
@@ -134,7 +135,6 @@ def execute_solr_query(
     stats.begin("solr", url=url)
     try:
         response = get_solr().raw_request(solr_path, urlencode(params))
-        response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -252,11 +252,11 @@ def run_solr_query(  # noqa: PLR0912
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
     response = execute_solr_query(solr_select_url, params)
-    solr_result = response.json() if response else None
+    solr_result = response.json() if response is not None else None
     end_time = time.time()
     duration = end_time - start_time
 
-    if solr_result is not None:
+    if safeget(lambda: solr_result['response']['docs']):
         non_solr_fields = set(fields) & scheme.non_solr_fields
         if non_solr_fields:
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
@@ -857,7 +857,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '*').split(',')
+        fields = WorkSearchScheme.default_fetched_fields
+        if _fields := query.pop('fields', ''):
+            fields = _fields.split(',')
+
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -878,9 +881,13 @@ class search_json(delegate.page):
             facet=False,
             spellcheck_count=spellcheck_count,
         )
+        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+        # force all other params to appear before `docs` in json
+        docs = response['docs']
+        del response['docs']
+        response['docs'] = docs
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 

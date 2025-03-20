@@ -1,5 +1,4 @@
-"""Generic date utilities.
-"""
+"""Generic date utilities."""
 
 import calendar
 import datetime

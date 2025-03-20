@@ -4,20 +4,15 @@
       <th>
         <select class="form-control" v-model="selectedIdentifier" name="name">
           <option disabled value="">Select one</option>
-          <template v-if="isEdition">
-            <option v-for="entry in popularEditionConfigs" :key="entry.name" :value="entry.name">
+          <template v-if="hasPopularIds">
+            <option v-for="entry in popularIds" :key="entry.name" :value="entry.name">
               {{ entry.label }}
             </option>
             <option disabled value="">---</option>
-            <option v-for="entry in secondaryEditionConfigs" :key="entry.name" :value="entry.name">
-              {{ entry.label }}
-            </option>
           </template>
-          <template v-else>
-            <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
-              {{idConfig.label}}
-            </option>
-          </template>
+          <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
+            {{idConfig.label}}
+          </option>
         </select>
       </th>
       <th>
@@ -29,7 +24,7 @@
     </tr>
       <template v-for="(value, name) in assignedIdentifiers">
         <tr :key="name" v-if="value && !saveIdentifiersAsList">
-          <td>{{ identifierConfigsByKey[name].label }}</td>
+          <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
           <td>{{ value }}</td>
           <td>
             <button class="form-control" @click="removeIdentifier(name)">Remove</button>
@@ -37,7 +32,7 @@
         </tr>
         <template v-else-if="value && saveIdentifiersAsList">
           <tr v-for="(item, idx) in value" :key="name + idx">
-            <td>{{ identifierConfigsByKey[name].label }}</td>
+            <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
             <td>{{ item }}</td>
             <td v-if="!isAdmin">
               <button v-if="name !== 'ocaid'" class="form-control" @click="removeIdentifier(name, idx)">Remove</button>
@@ -60,6 +55,7 @@ const identifierPatterns  = {
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
 }
+
 export default {
     // Props are for external options; if a subelement of this is modified,
     // the view automatically re-renders
@@ -74,24 +70,27 @@ export default {
          * {"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, ... ]}
          */
         id_config_string: {
-            type: String
+            type: String,
+            required: true
         },
         /** see createHiddenInputs function for usage
          * #hiddenEditionIdentifiers, #hiddenWorkIdentifiers
          */
         output_selector: {
-            type: String
+            type: String,
+            required: true
         },
+        /*
+        Where to save; eg author--remote_ids-- for authors or
+        edition--identifiers-- for editions
+        */
         input_prefix: {
-            /*
-            Where to save; eg author--remote_ids-- for authors or
-            edition--identifiers-- for editions
-            */
             type: String
         },
-        /* Props specifically for Editions */
+        /** Editions and works can have multiple identifiers in the form of a list
+         * Not applicable to author identifiers
+         */
         multiple: {
-            /* Editions can have multiple identifiers in the form of a list */
             type: String,
             default: 'false',
         },
@@ -99,9 +98,14 @@ export default {
             type: String,
             default: 'false',
         },
-        /* Maintains identifier order in the dropdown list */
-        edition_popular: {},
-        secondary_identifiers: {}
+        /** Maintains identifier order in the dropdown list
+         * Expects a list containing the name field from the
+         * respective identifiers.yaml file
+        */
+        popular_ids: {
+            type: String,
+            default: '',
+        },
     },
 
     // Data is for internal stuff. This needs to be a function so that we get
@@ -115,39 +119,30 @@ export default {
     },
 
     computed: {
-        popularEditionConfigs: function() {
-            if (this.edition_popular) {
-                const popularConfigs = JSON.parse(decodeURIComponent(this.edition_popular));
-                return Object.fromEntries(popularConfigs.map(e => [e.name, e]));
-            }
-            return {};
+        idConfigs: function() {
+            return JSON.parse(decodeURIComponent(this.id_config_string))
         },
-        secondaryEditionConfigs: function() {
-            if (this.secondary_identifiers) {
-                const secondConfigs = JSON.parse(decodeURIComponent(this.secondary_identifiers));
-                return Object.fromEntries(secondConfigs.map(e => [e.name, e]));
+        popularIds: function() {
+            if (this.popular_ids) {
+                const popularIdNames = JSON.parse(decodeURIComponent(this.popular_ids));
+                return this.idConfigs.filter((config) => popularIdNames.includes(config.name));
             }
-            return {};
+            return [];
         },
-        identifierConfigsByKey: function(){
-            const parsedConfigs = JSON.parse(decodeURIComponent(this.id_config_string));
-            if (this.isEdition) {
-                const betterConfigs = JSON.parse(decodeURIComponent(this.id_config_string));
-                return Object.fromEntries(betterConfigs.map(e => [e.name, e]));
-            }
-            return Object.fromEntries(parsedConfigs['identifiers'].map(e => [e.name, e]));
+        identifierConfigsByKey: function() {
+            return Object.fromEntries(this.idConfigs.map(e => [e.name, e]));
         },
-        isAdmin() {
+        isAdmin: function() {
             return this.admin.toLowerCase() === 'true';
         },
-        isEdition() {
-            return this.multiple.toLowerCase() === 'true' && this.edition_popular;
-        },
-        saveIdentifiersAsList() {
+        saveIdentifiersAsList: function() {
             return this.multiple.toLowerCase() === 'true';
         },
         setButtonEnabled: function(){
             return this.selectedIdentifier !== '' && this.inputValue !== '';
+        },
+        hasPopularIds: function() {
+            return Object.keys(this.popularIds).length !== 0;
         }
     },
 
@@ -178,9 +173,8 @@ export default {
                 errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector)
                 return;
             } else { errorDisplay('', this.output_selector) }
-            // We use $set otherwise we wouldn't get the reactivity desired
-            // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
+
+            this.assignedIdentifiers[this.selectedIdentifier] = this.inputValue;
             this.inputValue = '';
             this.selectedIdentifier = '';
         },
@@ -189,7 +183,7 @@ export default {
             if (this.saveIdentifiersAsList) {
                 this.assignedIdentifiers[identifierName].splice(idx, 1);
             } else {
-                this.$set(this.assignedIdentifiers, identifierName, '');
+                this.assignedIdentifiers[identifierName] = '';
             }
         },
         createHiddenInputs: function(){
@@ -218,7 +212,7 @@ export default {
         },
         selectIdentifierByInputValue: function() {
             // Ignore for edition identifiers
-            if (this.isEdition) {
+            if (this.saveIdentifiersAsList) {
                 return;
             }
             // Selects the dropdown identifier based on the input value when possible

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Script to pull templates and macros from an openlibrary instance to repository.
-"""
+"""Script to pull templates and macros from an openlibrary instance to repository."""
 import os
 from optparse import OptionParser
 
@@ -47,9 +46,8 @@ def write(path, text):
 
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    f = open(path, "w")
-    f.write(text.encode("utf-8"))
-    f.close()
+    with open(path, "w") as f:
+        f.write(text.encode("utf-8"))
 
 
 def delete(path):

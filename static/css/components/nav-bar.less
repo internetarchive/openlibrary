@@ -55,7 +55,7 @@
     margin-right: -20px;
   }
 
-  .nav-arrow {
+  .nav-arrow-right {
     border: none;
     position: absolute;
     padding: 0;
@@ -72,6 +72,23 @@
     &--left img {
       transform: rotate(180deg)
     }
+  }
+
+  .nav-arrow-left{
+    border: none;
+    position: absolute;
+    padding: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: @z-index-level-14;
+    width: 44px;
+    background: linear-gradient(to left, transparent, @white 10px);
+
+    img{
+      transform: rotate(180deg);
+    }
+
   }
 
   .nav-bar.work-menu {
@@ -91,6 +108,9 @@
     li a {
       padding: 4px 15px;
       vertical-align: text-top;
+    }
+    li:first-child{
+      margin-left: 22px;
     }
     li:last-child {
       margin-right: 44px;

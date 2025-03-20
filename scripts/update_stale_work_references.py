@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 PYTHONPATH=. python ./scripts/update_stale_work_references.py /olsystem/etc/openlibrary.yml
 """

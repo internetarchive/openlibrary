@@ -92,9 +92,18 @@ def get_login_error(error_key):
         "request_timeout": _(
             "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
         ),
+        "bad_email": _("Email provider not recognized."),
+        "bad_password": _("Password requirements not met."),
         "undefined_error": _('A problem occurred and we were unable to log you in'),
+        "security_error": _(
+            "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
+        ),
     }
-    return LOGIN_ERRORS[error_key]
+    return (
+        LOGIN_ERRORS[error_key]
+        if error_key in LOGIN_ERRORS
+        else _("Request failed with error code: %(error_code)s", error_code=error_key)
+    )
 
 
 class availability(delegate.page):
@@ -296,7 +305,7 @@ class account_create(delegate.page):
     def POST(self):
         f: forms.RegisterForm = self.get_form()
 
-        if f.validates(web.input()):
+        if f.validates(web.input(email="")):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
@@ -327,7 +336,8 @@ class account_create(delegate.page):
                 from openlibrary.plugins.openlibrary.sentry import sentry
 
                 if sentry.enabled:
-                    sentry.capture_exception(e)
+                    extra = {'response': e.response} if hasattr(e, 'response') else None
+                    sentry.capture_exception(e, extras=extra)
 
         return render['account/create'](f)
 
@@ -413,6 +423,20 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
+    def perform_post_login_action(self, i, ol_account):
+        if i.action:
+            op, args = i.action.split(":")
+            if op == "follow" and args:
+                publisher = args
+                if publisher_account := OpenLibraryAccount.get_by_username(publisher):
+                    PubSub.subscribe(
+                        subscriber=ol_account.username, publisher=publisher
+                    )
+
+                    publisher_name = publisher_account["data"]["displayname"]
+                    flash_message = f"You are now following {publisher_name}!"
+                    return flash_message
+
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
@@ -423,9 +447,10 @@ class account_login(delegate.page):
             this_host = this_host.split(':', 1)[0]
         if parsed_referer.hostname != this_host:
             referer = None
-        i = web.input(redirect=referer)
+        i = web.input(redirect=referer, action="")
         f = forms.Login()
         f['redirect'].value = i.redirect
+        f['action'].value = i.action
         return render.login(f)
 
     def POST(self):
@@ -438,6 +463,7 @@ class account_login(delegate.page):
             test=False,
             access=None,
             secret=None,
+            action="",
         )
         email = i.username  # XXX username is now email
         audit = audit_accounts(
@@ -469,6 +495,11 @@ class account_login(delegate.page):
             "/account/login",
             "/account/create",
         ]
+
+        # Processing post login action
+        if flash_message := self.perform_post_login_action(i, ol_account):
+            add_flash_message('note', _(flash_message))
+
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         stats.increment('ol.account.xauth.login')
@@ -1160,7 +1191,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     # Create 'placeholders' dicts for items in the Internet Archive loan history,
     # but absent from Open Library, and then add loan history.
     # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
-    # loan. No apparenty way to distinguish between current and past loans with
+    # loan. No apparently way to distinguish between current and past loans with
     # this API call.
     ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
     for ia_only_loan in ia_only_loans:

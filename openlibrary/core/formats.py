@@ -1,5 +1,4 @@
-"""Library for loading and dumping data to json and yaml.
-"""
+"""Library for loading and dumping data to json and yaml."""
 
 import json
 
