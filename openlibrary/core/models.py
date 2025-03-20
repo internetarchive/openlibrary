@@ -3,7 +3,6 @@
 
 import logging
 from collections import defaultdict
-from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, TypedDict
