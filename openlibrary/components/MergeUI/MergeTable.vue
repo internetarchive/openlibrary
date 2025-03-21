@@ -18,7 +18,7 @@
         :ratings="ratings"
         :class="{ selected: selected[record.key]}"
         :cellSelected="isCellUsed"
-        :merged="merge ? merge.record : null"
+        :merged="enhancedMergedRecordOnly"
         :show_diffs="show_diffs"
       >
         <template #pre>
@@ -31,7 +31,7 @@
       </MergeRow>
     </tbody>
     <tfoot>
-      <MergeRow v-if="merge" :record="merge.record" :selected="selected" :fields="fields" :merged="merge">
+      <MergeRow v-if="enhancedMergedRecordOnly" :record="enhancedMergedRecordOnly" :selected="selected" :fields="fields" :merged="merge">
         <template #pre>
           <td />
         </template>
@@ -217,6 +217,24 @@ export default {
                 .map(r => r.key);
 
             return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
+        },
+        async enhancedMergedRecordOnly() {
+            if (!this.merge?.record) return null;
+
+            let author_names;
+
+            try {
+                author_names = await get_author_names([this.merge.record]);
+            } catch (error) {
+                console.error('Error creating enhancedMergedRecordOnly:', error);
+            }
+
+            const enhanced_merge = _.cloneDeep(this.merge.record);
+
+            for (const entry of (enhanced_merge.authors || [])) {
+                entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+            }
+            return enhanced_merge;
         }
     },
     methods: {
