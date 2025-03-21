@@ -1,22 +1,39 @@
-$def with(standard_ebooks_id, analytics_attr)
+$def with(acquisition, domain)
+$# :param Acquisition acquisition:
+$# :param domain str:
+$ clean_domain = domain.replace(".", "")
 
-<div class="cta-button-group">
-  <a
-      href="https://standardebooks.org/ebooks/$standard_ebooks_id/text/single-page"
-      title="$_('Read eBook from Standard eBooks')"
-      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--standard-ebooks"
+$if acquisition.access == 'open-access':
+  <div class="cta-button-group">
+    <a
+        href="$(acquisition.url)"
+        title="$_('Read eBook from Standard eBooks')"
+        class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--standard-ebooks"
+        target="_blank"
+        aria-haspopup="true"
+        aria-controls="direct-provider-toast-$(clean_domain)"
+    >$_('Read')</a>
+  </div>
+
+$elif acquisition.access == 'sample':
+  <div class="cta-button-group">
+    <a class="cta-btn cta-btn--shell cta-btn--external"
+      data-ol-link-track="CTAClick|Preview"
       target="_blank"
-      $:analytics_attr('Read')
-      aria-haspopup="true"
-      aria-controls="standard-ebooks-toast"
-  >$_('Read')</a>
-</div>
+      href="$(acquisition.url)"
+    >$_('Preview')</a>
+  </div>
 
-$if render_once('standard-ebooks-toast'):
-  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--standard-ebooks" id="standard-ebooks-toast" style="display:none">
+$if render_once('direct-provider-toast-' + clean_domain):
+  <div
+    class="toast toast--book-provider"
+    data-toast-trigger="[aria-controls=direct-provider-toast-$(clean_domain)]"
+    id="direct-provider-toast-$(clean_domain)"
+    style="display:none"
+  >
     <div class="toast__body">
       $:_('This book is available from <a href="https://standardebooks.org/">Standard Ebooks</a>. Standard Ebooks is a trusted book provider and a volunteer-driven project that produces new editions of public domain ebooks that are lovingly formatted, open source, free of copyright restrictions, and free of cost.')
-      <a href="https://standardebooks.org/about">$_("Learn more")</a>
+      <a href="https://standardebooks.org/about">$_('Learn more')</a>
     </div>
     <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
   </div>
