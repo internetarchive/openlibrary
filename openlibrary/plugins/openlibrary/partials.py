@@ -53,10 +53,10 @@ class CarouselCardPartial:
         cards = []
         layout = params.get("layout")
         key = params.get("key") or ""
+
         for index, book in enumerate(search_results):
-            lazy = index > 5
-            cards.append(render_template("books/custom_carousel_card", web.storage(book), lazy, layout, key=key))
             lazy = index > self.MAX_VISIBLE_CARDS
+            cards.append(render_template("books/custom_carousel_card", web.storage(book), lazy, layout, key=key))
 
         # Return partials dict:
         return {"partials": [str(template) for template in cards]}
@@ -90,13 +90,9 @@ class CarouselCardPartial:
         return results.get("docs", [])
 
     def _do_browse_query(self, params: dict) -> list:
-        query = params.get("q", "")
-        limit = int(params.get("limit", 18))
-        page = int(params.get("page", 1))
-        subject = params.get("subject", "")
-        sorts = params.get("sorts", "").split(",")
+        url = params.get("q", "")
 
-        results = get_available(query=query, page=page, subject=subject, limit=limit, sorts=sorts)
+        results = get_available(url=url)
         return results if "error" not in results else []
 
     def _do_trends_query(self, params: dict) -> list:

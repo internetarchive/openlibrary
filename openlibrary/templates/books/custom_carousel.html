@@ -42,7 +42,6 @@ $if test or (books and len(books) >= min_books):
               "secondaryAction": secondary_action,
               "sorts": load_more.get("sorts", ""),
               "hasFulltextOnly": load_more.get("hasFulltextOnly", True),
-              "subject": load_more.get("subject", "")
             } if load_more else None
           }
         $ compact = "carousel--compact" if compact_mode else ""

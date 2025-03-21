@@ -150,7 +150,6 @@ export class Carousel {
             q: loadMore.q,
             limit: loadMore.limit,
             page: loadMore.page,
-            subject: loadMore.subject,
             sorts: loadMore.sorts,
             pageMode: loadMore.pageMode,
             hasFulltextOnly: loadMore.hasFulltextOnly,
