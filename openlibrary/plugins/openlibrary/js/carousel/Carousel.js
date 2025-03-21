@@ -54,14 +54,6 @@ export class Carousel {
         const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
-
-            this.availabilityStatuses = {
-                open: {cls: 'cta-btn--available', cta: this.i18n['open']},
-                borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
-                borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
-                error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
-                // private: {cls: 'cta-btn--available', cta: 'Preview'}
-            };
         }
     }
 
@@ -111,7 +103,7 @@ export class Carousel {
 
         // if a loadMore config is provided and it has a (required) url
         const loadMore = this.loadMore;
-        if (loadMore && loadMore.url) {
+        if (loadMore && loadMore.queryType) {
             // Bind an action listener to this carousel on resize or advance
             this.$container.on('afterChange', (_ev, _slick, curSlide) => {
                 const totalSlides = this.slick.$slides.length;
@@ -128,7 +120,7 @@ export class Carousel {
                         loadMore.page = totalSlides;
                     }
 
-                    this.fetchMore();
+                    this.fetchPartials();
                 }
             });
 
@@ -144,102 +136,41 @@ export class Carousel {
                 loadMore.allDone = false;
 
                 this.clearCarousel();
-                this.fetchMore();
+                this.fetchPartials();
             });
         }
     }
 
-    renderWork(work) {
-        const availability = work.availability || {};
-        const ocaid = availability.identifier ||
-            work.lending_identifier_s ||
-            (work.ia ? work.ia[0] : undefined);
-        // Use solr data to augment availability API
-        if (!availability.status || availability.status === 'error') {
-            if (work.lending_identifier_s) {
-                availability.status = 'borrow_available';
-            } else if (ocaid) {
-                availability.status = 'private';
-            }
+    fetchPartials() {
+        const url = new URL(`${location.origin}/partials.json`)
+        const loadMore = this.loadMore
+        const params = {
+            _component: 'CarouselLoadMore',
+            queryType: loadMore.queryType,
+            q: loadMore.q,
+            limit: loadMore.limit,
+            page: loadMore.page,
+            sorts: loadMore.sorts,
+            pageMode: loadMore.pageMode,
+            hasFulltextOnly: loadMore.hasFulltextOnly,
+            secondaryAction: loadMore.secondaryAction,
+            key: loadMore.key
         }
-        const cover = {
-            type: 'id',
-            id: work.covers ? work.covers[0] : (work.cover_id || work.cover_i)
-        };
-        const availabilityStatus = this.availabilityStatuses[availability.status] || this.availabilityStatuses.error;
-        const cls = availabilityStatus.cls;
-        const cta = availabilityStatus.cta;
-        const url = cls === 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
-
-        if (!cover.id && ocaid) {
-            cover.type = 'ia';
-            cover.id = ocaid;
-        }
-
-        let bookCover;
-        if (cover.id) {
-            bookCover = `
-                <img
-                    class="bookcover"
-                    src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book.png"
-                >`
-        } else {
-            bookCover = `
-                <div class="carousel__item__blankcover bookcover">
-                    <div class="carousel__item__blankcover--title">${work.title}</div>
-                    ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
-                </div>`
-        }
-
-        const $el = $(`
-            <div class="book carousel__item">
-                <div class="book-cover">
-                    <a href="${work.key}">
-                        ${bookCover}
-                    </a>
-                </div>
-                <div class="book-cta">
-                    <a class="btn cta-btn ${cls}">${cta}</a>
-                </div>
-            </div>`);
-        $el.find('.bookcover').attr('title', work.title);
-        $el.find('.cta-btn')
-            .attr('title', `${cta}: ${work.title}`)
-            .attr('data-ocaid', ocaid)
-            .attr('href', url);
-
-        $el.find('.book-cover a')
-            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CoverClick|${this.config.carouselKey}`);
-        $el.find('.cta-btn')
-            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CTAClick|${this.config.carouselKey}`);
-        return $el;
-    }
-
-    fetchMore() {
-        const loadMore = this.loadMore;
-        // update the current page or offset within the URL
-        const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
-        url.searchParams.set('limit', loadMore.limit);
-        url.searchParams.set(loadMore.pageMode, loadMore.page);
-        //set extraParams
-        for (const key in loadMore.extraParams) {
-            url.searchParams.set(key, loadMore.extraParams[key]);
-        }
-
-
+        url.search = new URLSearchParams(params).toString()
         this.appendLoadingSlide();
-        $.ajax({ url: url, type: 'GET' })
+        $.ajax({url: url, type: 'GET'})
             .then((results) => {
                 this.removeLoadingSlide();
-                const works = results.works || results.docs;
-                works.forEach(work => this.slick.addSlide(this.renderWork(work)));
-                if (!works.length) {
+                const data = JSON.parse(results)
+                const cards = data.partials || []
+                cards.forEach(card => this.slick.addSlide(card))
+
+                if (!cards.length || cards.length < loadMore.limit) {
                     loadMore.allDone = true;
                 }
                 loadMore.locked = false;
-            });
+            })
     }
-
 
     clearCarousel() {
         this.slick.removeSlide(this.slick.$slides.length, true, true);
