@@ -1,13 +1,14 @@
 $def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False)
 
 $code:
-  url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
+  title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
+  load_more_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=True)
   books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit) if not test else []
   sorts = ','.join(sorts) if sorts else ''
   load_more_config = {
     "queryType": "BROWSE",
-    "q": url,
+    "q": load_more_url,
     "mode": "page",
     "limit": limit
   }
-$:render_template("books/custom_carousel", books, title=title, url=url, key=key, min_books=min_books, load_more=load_more_config, test=test, compact_mode=compact_mode)
+$:render_template("books/custom_carousel", books, title=title, url=title_url, key=key, min_books=min_books, load_more=load_more_config, test=test, compact_mode=compact_mode)
