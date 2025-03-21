@@ -807,9 +807,9 @@ msgstr ""
 #: book_providers/openstax_read_button.html
 #: book_providers/runeberg_read_button.html
 #: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html books/custom_carousel.html
-#: books/edit/edition.html books/show.html books/works-show.html trending.html
-#: type/list/embed.html widget.html
+#: book_providers/wikisource_read_button.html books/edit/edition.html
+#: books/show.html books/works-show.html trending.html type/list/embed.html
+#: widget.html
 msgid "Read"
 msgstr ""
 
@@ -841,8 +841,7 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html books/custom_carousel.html books/edit/edition.html
-#: type/list/embed.html widget.html
+#: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -851,7 +850,7 @@ msgstr ""
 msgid "Join waitlist for \"%(title)s\""
 msgstr ""
 
-#: LoanStatus.html books/custom_carousel.html widget.html
+#: LoanStatus.html widget.html
 msgid "Join Waitlist"
 msgstr ""
 
@@ -3371,15 +3370,11 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: NotInLibrary.html books/custom_carousel.html
-msgid "Not in Library"
-msgstr ""
-
-#: books/custom_carousel.html type/author/view.html
+#: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
 msgstr ""
 
-#: books/custom_carousel.html books/mobile_carousel.html
+#: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
 msgstr ""
@@ -7377,6 +7372,10 @@ msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
 msgstr[0] ""
 msgstr[1] ""
+
+#: NotInLibrary.html
+msgid "Not in Library"
+msgstr ""
 
 #: NotesModal.html
 msgid "My Book Notes"
