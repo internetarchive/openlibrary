@@ -144,7 +144,6 @@ class borrow(delegate.page):
             and acquisitions[0].access == "open-access"
         ):
             stats.increment('ol.loans.webbook')
-            # def with(url, provider_name="", wait=5)
             return render_template(
                 "interstitial",
                 url=acquisitions[0].url,
