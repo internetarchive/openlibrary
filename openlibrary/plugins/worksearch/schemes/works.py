@@ -55,6 +55,7 @@ class WorkSearchScheme(SearchScheme):
         "by_statement",
         "publish_date",
         "lccn",
+        "lexile",
         "ia",
         "oclc",
         "isbn",

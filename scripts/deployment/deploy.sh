@@ -26,6 +26,8 @@ SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 KILL_CRON=${KILL_CRON:-""}
+LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -279,6 +281,8 @@ deploy_openlibrary() {
     DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
     git -C openlibrary tag $DEPLOY_TAG
     git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+    git -C openlibrary tag -f production
+    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
 
     check_server_access
     check_crons
@@ -353,6 +357,22 @@ deploy_openlibrary() {
     cleanup $TMP_DIR
 }
 
+# Example: send_slack_message "@openlibrary-g" "Hello world"
+# This is a slackbot currently owned by @cdrini
+send_slack_message() {
+    # Note channel must include e.g. "#" at start
+    local channel=$1
+    local message=$2
+
+    echo "Slack message to $channel: $message"
+    curl -X POST \
+        -H "Content-type: application/json; charset=utf-8" \
+        -H "Authorization: Bearer $SLACK_TOKEN" \
+        --data "{\"channel\": \"$channel\", \"link_names\": true, \"text\": \"$message\"}" \
+        "https://slack.com/api/chat.postMessage"
+}
+
+
 # Clone booklending utils
 # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 
@@ -361,10 +381,19 @@ deploy_openlibrary() {
 # - deploy.sh olsystem
 # - deploy.sh openlibrary
 
-if [ "$1" == "olsystem" ]; then
+if [ "$1" == "announce" ]; then
+    echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+elif [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
+elif [ "$1" == "review" ]; then
+    # Ensure all the git repos, docker images are in sync across all servers (~50s as of 2024-12-09)
+    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/are_servers_in_sync.sh
+elif [ "$1" == "finalize" ]; then
+    # Restart things -- keep an eye on sentry/grafana (~3m as of 2024-12-09)
+    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/restart_servers.sh
+    echo "The Open Library weekly deploy is now complete. Please let us know @here if anything seems broken or delightful!"
 else
     echo "Usage: $0 [olsystem|openlibrary]"
     exit 1

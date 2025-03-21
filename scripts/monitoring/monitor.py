@@ -63,6 +63,26 @@ def log_recent_http_statuses():
     )
 
 
+@limit_server(["ol-www0", "ol-covers0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def log_top_ip_counts():
+    """Logs the recent HTTP statuses."""
+    match SERVER:
+        case "ol-www0":
+            bucket = "ol"
+            container = "openlibrary-web_nginx-1"
+        case "ol-covers0":
+            bucket = "ol-covers"
+            container = "openlibrary-covers_nginx-1"
+        case _:
+            raise ValueError(f"Unknown server: {SERVER}")
+
+    bash_run(
+        f"log_top_ip_counts stats.{bucket}.top_ips {container}",
+        sources=["utils.sh"],
+    )
+
+
 # Print out all jobs
 jobs = scheduler.get_jobs()
 print(f"{len(jobs)} job(s) registered:", flush=True)

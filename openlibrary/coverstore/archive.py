@@ -182,7 +182,7 @@ class Batch:
                         "actual": num_files,
                     }
                 )
-        success = not len(errors)
+        success = not errors
         return (success, errors) if verbose else success
 
     @classmethod

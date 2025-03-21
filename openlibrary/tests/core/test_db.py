@@ -105,7 +105,7 @@ class TestUpdateWorkID:
             "edition_id": "1",
             "bookshelf_id": "1",
         }
-        assert not len(list(self.db.select("bookshelves_books")))
+        assert not list(self.db.select("bookshelves_books"))
         self.db.insert("bookshelves_books", **self.source_book)
 
     def teardown_method(self):
@@ -123,20 +123,16 @@ class TestUpdateWorkID:
         Bookshelves.update_work_id(
             self.source_book['work_id'], existing_book['work_id']
         )
-        assert len(
-            list(
-                self.db.select(
-                    "bookshelves_books",
-                    where={"username": "@cdrini", "work_id": "2", "edition_id": "2"},
-                )
+        assert list(
+            self.db.select(
+                "bookshelves_books",
+                where={"username": "@cdrini", "work_id": "2", "edition_id": "2"},
             )
         ), "failed to update 1 to 2"
-        assert not len(
-            list(
-                self.db.select(
-                    "bookshelves_books",
-                    where={"username": "@cdrini", "work_id": "1", "edition_id": "1"},
-                )
+        assert not list(
+            self.db.select(
+                "bookshelves_books",
+                where={"username": "@cdrini", "work_id": "1", "edition_id": "1"},
             )
         ), "old work_id 1 present"
 

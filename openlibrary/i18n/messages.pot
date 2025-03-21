@@ -1514,6 +1514,13 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
+#: my_books/dropdown_content.html type/tag/form.html
+msgid "Cancel"
+msgstr ""
+
 #: EditionNavBar.html account/observations.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "Reviews"
@@ -4233,7 +4240,7 @@ msgstr ""
 
 #: check_ins/check_in_form.html
 msgid ""
-"Add an optional check-in date.  Check-in dates are used to track yearly "
+"Add an optional check-in date. Check-in dates are used to track yearly "
 "reading goals."
 msgstr ""
 
@@ -5138,6 +5145,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html search/advancedsearch.html
+msgid "Subject"
 msgstr ""
 
 #: lib/nav_head.html

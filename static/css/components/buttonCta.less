@@ -183,7 +183,6 @@ a.cta-btn {
   }
 
   .cta-btn {
-    margin: 0;
     padding: 8px 0;
 
     &:first-child {
@@ -203,5 +202,11 @@ a.cta-btn {
     &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
     // stylelint-disable-next-line selector-max-specificity
     &:not(:first-child):hover { width: 100%; }
+  }
+
+  &.cta-dropper-button { // only read dropper buttons
+    // Rule broken by .cta-btn:not(:first-child):hover
+    // stylelint-disable-next-line no-descending-specificity
+    .cta-btn { margin: 0; }
   }
 }
