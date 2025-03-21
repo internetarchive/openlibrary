@@ -189,10 +189,14 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         return f"book_providers/{self.short_name}_{typ}.html"
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult:
         return render_template(
             self.get_template_path('read_button'),
+            edition_key,
             self.get_best_identifier(ed_or_solr),
             analytics_attr,
         )
@@ -495,7 +499,10 @@ class DirectProvider(AbstractBookProvider):
             return []
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (
@@ -519,7 +526,7 @@ class DirectProvider(AbstractBookProvider):
         parsed_url = parse.urlparse(url)
         domain = parsed_url.netloc
         return render_template(
-            self.get_template_path('read_button'), acquisition, domain
+            self.get_template_path('read_button'), edition_key, acquisition, domain
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):

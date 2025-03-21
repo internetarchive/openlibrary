@@ -56,7 +56,7 @@ $if user_loan:
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons
-  $:book_provider.render_read_button(doc, analytics_attr)
+  $:book_provider.render_read_button(edition_key, doc, analytics_attr)
 
 $elif availability.get('is_readable') or availability.get('status') == 'open':
   $# Open / Publicly Readable (Unrestricted)

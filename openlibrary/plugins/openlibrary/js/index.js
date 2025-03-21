@@ -518,6 +518,12 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const interstitial = document.querySelector('.interstitial');
+    if (interstitial) {
+        import (/* webpackChunkName: "interstitial" */ './interstitial')
+            .then(module => module.initInterstitial(interstitial));
+    }
+
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
         import(/* webpackChunkName: "waitlist" */ './waitlist')
