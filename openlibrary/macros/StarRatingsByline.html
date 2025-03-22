@@ -4,10 +4,14 @@ $ formatted_want_to_read_count = "{:,}".format(want_to_read_count) if want_to_re
 $ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
 
 <span class="ratingsByline" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+  $if ratings_average:
+    <meta itemprop="ratingValue" content="$ratings_average"/>
+  $if ratings_count:
+    <meta itemprop="ratingCount" content="$ratings_count"/>
   $if ratings_count:
     $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page')
 </span>
 $if want_to_read_count and ratings_count:
   <span class="dot">·</span>
 $if want_to_read_count:
-  <span class="ratingsByline" itemprop="reviewCount">$_('%(want_to_read_count)s Want to read', want_to_read_count=formatted_want_to_read_count)</span>
+  <span class="ratingsByline">$_('%(want_to_read_count)s Want to read', want_to_read_count=formatted_want_to_read_count)</span>
