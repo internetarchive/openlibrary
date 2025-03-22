@@ -12,7 +12,10 @@ const OL_SEARCH_BASE = 'openlibrary.org'
 export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     let title = extractedBook.title?.split(/[:(?]/)[0].replace(/’/g, '\'');
     const author = extractedBook.author
-    title = title.replace(/^the\b/i, '').trim();
+    // Remove leading articles from title; these can sometimes be missing from OL records,
+    // and will hence cause a failed match.
+    // Taken from https://github.com/internetarchive/openlibrary/blob/4d880c1bf3e2391dd001c7818052fd639d38ff58/conf/solr/conf/managed-schema.xml#L526
+    title = title.replace(/^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )/i, '').trim();
     let query = `title:"${title}"`;
     if (matchOptions.includeAuthor && author  && author.toLowerCase() !== 'null' && author.toLowerCase() !== 'unknown') {
         const authorParts = author.replace(/^\S+\./, '').trim().split(/\s/);
