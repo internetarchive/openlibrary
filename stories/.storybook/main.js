@@ -1,4 +1,4 @@
-const webpackConfig = require( '../webpack.config' );
+const webpackConfig = require( '../../webpack.config' );
 
 module.exports = {
   webpackFinal: async (config) => {
@@ -11,8 +11,8 @@ module.exports = {
     "name": '@storybook/html-webpack5'
   },
   "stories": [
-    "../stories/**/*.mdx",
-    "../stories/**/*.stories.@(js|jsx|ts|tsx)"
+    "../**/*.mdx",
+    "../**/*.stories.@(js|jsx|ts|tsx)"
   ],
   "core": {
     // Opt out of telemetry: https://storybook.js.org/docs/html/configure/telemetry
