@@ -26,7 +26,7 @@ Bạn đang muốn bắt đầu? [Đây là hướng dẫn](https://github.com/i
 
 ## Giới thiệu
 
-Open Library là một nỗ lực bắt đầu từ năm 2006 nhằm tạo ra "một trang web cho mỗi cuốn sách từng được xuất bản". Nền tảng này cung cấp quyền truy cập vào nhiều sách thuộc phạm vi công cộng và sách không còn in nữa và có thể được đọc trực tuyến. 
+Open Library là một nỗ lực bắt đầu từ năm 2006 nhằm tạo ra "một trang web cho mỗi cuốn sách từng được xuất bản". Nền tảng này cung cấp quyền truy cập vào nhiều sách thuộc phạm vi công cộng và sách không còn in nữa và có thể được đọc trực tuyến.
 Dưới đây là một chuyến tham quan nhanh về Open Library để giúp bạn làm quen với dịch vụ và những gì nó cung cấp (10 phút).
 
 [![archive org_embed_openlibrary-tour-2020 (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
@@ -66,7 +66,7 @@ Open Library được phát triển dựa trên hệ thống wiki Infogami, hệ
 
 - [Tổng quan về các công nghệ web Backend](https://openlibrary.org/about/tech)
 
-Sau khi bạn đã đọc tổng quan về các công nghệ Backend của Open Library, rất khuyến khích bạn đọc tài liệu hướng dẫn dành cho nhà phát triển, giải thích cách sử dụng Infogami (và cơ sở dữ liệu của nó, Infobase). 
+Sau khi bạn đã đọc tổng quan về các công nghệ Backend của Open Library, rất khuyến khích bạn đọc tài liệu hướng dẫn dành cho nhà phát triển, giải thích cách sử dụng Infogami (và cơ sở dữ liệu của nó, Infobase).
 
 - [Tutorial dành cho nhà phát triển Infogami](https://openlibrary.org/dev/docs/infogami)
 
