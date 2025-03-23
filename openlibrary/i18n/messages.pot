@@ -842,14 +842,6 @@ msgstr ""
 msgid "Logged %(count)i times %(time_unit)s"
 msgstr ""
 
-#: viewpage.html
-msgid "Revert to this revision?"
-msgstr ""
-
-#: viewpage.html
-msgid "Revert to this revision"
-msgstr ""
-
 #: widget.html
 #, python-format
 msgid "Read \"%(title)s\""
@@ -6417,19 +6409,23 @@ msgstr ""
 msgid "See the page's history"
 msgstr ""
 
-#: type/edition/admin_bar.html
+#: type/edition/advanced_options.html
 msgid "Add to Staff Picks"
 msgstr ""
 
-#: type/edition/admin_bar.html
+#: type/edition/advanced_options.html
 msgid "Sync Archive.org ID"
 msgstr ""
 
-#: type/edition/admin_bar.html
+#: type/edition/advanced_options.html
 msgid "View Book on Archive.org"
 msgstr ""
 
-#: SearchResultsWork.html type/edition/admin_bar.html
+#: type/edition/advanced_options.html
+msgid "Revert to this revision?"
+msgstr ""
+
+#: SearchResultsWork.html type/edition/advanced_options.html
 msgid "Orphaned Edition"
 msgstr ""
 
