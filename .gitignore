@@ -1,3 +1,4 @@
+storybook-static/
 openlibrary/components/dev/_dev.js
 *venv
 *.pyc
