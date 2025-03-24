@@ -250,6 +250,14 @@ export function initClassificationValidation() {
             return true;
         }
     });
+
+    // intercepting enter keypress to stop form submission and trigger classification addition only
+    $('#classifications').on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); //this is to stop full form save
+            $('#classifications').repeat('add'); //trigger classification addition
+        }
+    })
 }
 
 export function initLanguageMultiInputAutocomplete() {
