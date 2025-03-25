@@ -123,7 +123,6 @@ class TocEntry:
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', None)
         """
-        from .addbook import TocParseError
 
         RE_LEVEL = web.re_compile(r"(\**)(.*)")
         level, text = RE_LEVEL.match(line.strip()).groups()
