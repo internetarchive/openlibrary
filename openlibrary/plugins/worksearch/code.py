@@ -774,7 +774,8 @@ def rewrite_list_query(q, page, offset, limit):
             cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
         )(q, offset, limit)
 
-        q = f"key:({' OR '.join(book_keys)})"
+        # Compose a query for book_keys or fallback special query w/ no results
+        q = f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*"
 
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
