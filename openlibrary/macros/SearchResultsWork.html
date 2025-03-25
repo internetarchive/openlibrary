@@ -19,7 +19,7 @@ $code:
   if doc_type.startswith('infogami_'):
     book_url = doc.url()
   else:
-    book_url = doc.key + '/' + urlsafe(doc.title)
+    book_url = doc.key + '/' + urlsafe(doc.get('title', '-'))
 
   if doc_type == 'solr_edition':
     work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
