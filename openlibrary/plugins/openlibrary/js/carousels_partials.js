@@ -12,13 +12,12 @@ export function initCarouselsPartials() {
             type: 'GET',
             data: {
                 workid: carouselElement.dataset.workid,
-                _component: 'RelatedWorkCarousel'
+                _component: 'RelatedWorkCarousel',
             },
             datatype: 'json',
             success: function (response) {
                 loadingIndicator.classList.add('hidden');
                 if (response) {
-                    response = JSON.parse(response);
                     carouselElement.insertAdjacentHTML('beforeend', response[0]);
                     carouselElement.querySelectorAll('.carousel--progressively-enhanced')
                         .forEach(el => new Carousel($(el)).init());

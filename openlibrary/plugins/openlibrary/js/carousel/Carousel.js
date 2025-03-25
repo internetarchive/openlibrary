@@ -109,9 +109,9 @@ export class Carousel {
                 const totalSlides = this.slick.$slides.length;
                 const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
-                const isOn2ndLastPage = curSlide >= Math.max(0, totalSlides - numActiveSlides * 2);
+                const needsMoreCards = totalSlides - curSlide <= (numActiveSlides * 2);
 
-                if (!loadMore.locked && !loadMore.allDone && isOn2ndLastPage) {
+                if (!loadMore.locked && !loadMore.allDone && needsMoreCards) {
                     loadMore.locked = true; // lock for critical section
 
                     if (loadMore.pageMode === 'page') {
@@ -151,6 +151,7 @@ export class Carousel {
             limit: loadMore.limit,
             page: loadMore.page,
             sorts: loadMore.sorts,
+            subject: loadMore.subject,
             pageMode: loadMore.pageMode,
             hasFulltextOnly: loadMore.hasFulltextOnly,
             secondaryAction: loadMore.secondaryAction,
@@ -161,11 +162,10 @@ export class Carousel {
         $.ajax({url: url, type: 'GET'})
             .then((results) => {
                 this.removeLoadingSlide();
-                const data = JSON.parse(results)
-                const cards = data.partials || []
+                const cards = results.partials || []
                 cards.forEach(card => this.slick.addSlide(card))
 
-                if (!cards.length || cards.length < loadMore.limit) {
+                if (!cards.length) {
                     loadMore.allDone = true;
                 }
                 loadMore.locked = false;
