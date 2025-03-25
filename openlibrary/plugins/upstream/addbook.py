@@ -23,6 +23,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream.models import Author, Edition, Work
+from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 
@@ -528,11 +529,6 @@ def trim_value(value):
 def trim_doc(doc):
     """Replace empty values in the document with Nones."""
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
-
-
-class TocParseError(BaseException):
-    pass
-
 
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.

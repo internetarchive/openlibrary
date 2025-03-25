@@ -63,6 +63,9 @@ class AuthorRecord(TypedDict, total=False):
     name: Required[str]
     author: ThingReferenceDict | None
 
+class TocParseError(BaseException):
+    pass
+
 
 @dataclass
 class TocEntry:
