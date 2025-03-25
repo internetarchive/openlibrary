@@ -530,6 +530,7 @@ def trim_doc(doc):
     """Replace empty values in the document with Nones."""
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
 
+
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
 
