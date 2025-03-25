@@ -136,7 +136,7 @@ class TocEntry:
             extra_fields = ''
         extra_fields = json.loads(extra_fields or '{}')
 
-        if isinstance(extra_fields, int):
+        if not isinstance(extra_fields, dict):
             raise TocParseError("Invalid formatting!")
 
         return TocEntry(
