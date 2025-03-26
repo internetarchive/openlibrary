@@ -131,13 +131,14 @@ class TocEntry:
         if "|" in text:
             tokens = text.split("|", 3)
             label, title, page, extra_fields = pad(tokens, 4, '')
-            if "|" in tokens[-1]:
-                raise TocParseError("Too many pipes!")
         else:
             title = text
             label = page = ""
             extra_fields = ''
-        extra_fields = json.loads(extra_fields or '{}')
+        try:
+            extra_fields = json.loads(extra_fields or '{}')
+        except json.JSONDecodeError as e:
+            raise TocParseError(f"Invalid JSON: {e}")
 
         if not isinstance(extra_fields, dict):
             raise TocParseError("Invalid formatting!")
