@@ -6631,12 +6631,6 @@ msgid "Edit List"
 msgstr ""
 
 #: type/list/edit.html
-msgid ""
-"⚠️ Saving global lists is admin-only while the feature is under "
-"development."
-msgstr ""
-
-#: type/list/edit.html
 msgid "Search for a book"
 msgstr ""
 
