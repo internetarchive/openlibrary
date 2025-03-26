@@ -336,15 +336,17 @@ deploy_openlibrary() {
     # We need to fetch by the exact image sha, since the registry mirror on the prod servers
     # has a cache which means fetching the `latest` image could be stale.
     OLBASE_DIGEST=$(echo $IMAGE_META | jq -r '.images[0].digest')
-    for SERVER in $SERVERS; do
-        echo "   $SERVER ... "
+    for SERVER_NAME in $SERVER_NAMES; do
+        SERVER="$SERVER_NAME$SERVER_SUFFIX"
+
+        echo "   $SERVER_NAME ... "
         ssh -t $SERVER "
             set -e;
             docker pull openlibrary/olbase@$OLBASE_DIGEST
             echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER pull
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME pull
             source /opt/olsystem/bin/build_env.sh;
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER build
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME build
         " &> /dev/null &
     done
 
