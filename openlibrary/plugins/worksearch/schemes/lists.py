@@ -13,18 +13,25 @@ class ListSearchScheme(SearchScheme):
     all_fields = {
         'key',  # unique identifier for the list
         'name',  # name/title of the list
-        'description',  # short description of the list
-        'created',  # timestamp when the list was created
+        'seed',
+        'subject',
+        'subject_key',
+        'person',
+        'person_key',
+        'place',
+        'place_key',
+        'time',
+        'time_key',
     }
 
     # kept the same form SubjectSearchScheme
-    non_solr_fields: set[str] = set()
+    non_solr_fields: set[str] = {
+        'description',  # short description of the list
+    }
     facet_fields: set[str] = set()
     field_name_map: dict[str, str] = {}
 
     sorts = {
-        'created desc': 'created desc',  # sort by newest lists first (default)
-        'created asc': 'created asc',  # sort by oldest lists first
         'name asc': 'name asc',  # sort alphabetically
         # Random (kept from SubjectSearchScheme)
         'random': 'random_1 asc',
@@ -36,8 +43,6 @@ class ListSearchScheme(SearchScheme):
     default_fetched_fields = {
         'key',
         'name',
-        'description',
-        'created',
     }
 
     # kept from SubjectSearchScheme for rewriting facet values (not used in this case)
