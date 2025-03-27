@@ -332,7 +332,7 @@ msgstr ""
 
 #: books/check.html books/show.html covers/book_cover.html
 #: covers/book_cover_single_edition.html covers/book_cover_work.html diff.html
-#: jsdef/LazyWorkPreview.html lists/preview.html
+#: jsdef/LazyWorkPreview.html
 msgid "by"
 msgstr ""
 
@@ -936,8 +936,8 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/subjects.html
-#: work_search.html
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -5293,7 +5293,8 @@ msgid "Learn how to create your first list."
 msgstr ""
 
 #: lists/preview.html
-msgid "by <a href=\"$owner.key\">You</a>"
+#, python-format
+msgid "by <a href=\"%s\">You</a>"
 msgstr ""
 
 #: lists/showcase.html

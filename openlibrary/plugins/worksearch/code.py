@@ -7,7 +7,7 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Literal, cast
 from unicodedata import normalize
 
 import requests
@@ -30,6 +30,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -615,48 +616,106 @@ class advancedsearch(delegate.page):
         return render_template("search/advancedsearch.html")
 
 
+@dataclass
+class ListSearchRequest:
+    q: str
+    offset: int
+    limit: int
+    page: int
+    fields: str
+    sort: str
+    api: Literal['', 'next']
+
+    @staticmethod
+    def from_web_input(i: web.storage) -> 'ListSearchRequest':
+        offset = safeint(i.get('offset', 0), 0)
+        limit = safeint(i.get('limit', 20), 20)
+        fields = i.get('fields', '')
+        if i.get('api') != 'next':
+            limit = min(1000, limit)
+            fields = 'key'  # Just need the key since the old API fetches from DB
+            if i.get('sort'):
+                raise ValueError('sort not supported in the old API')
+
+        if i.get('page'):
+            page = safeint(i.page, 1)
+            offset = limit * (page - 1)
+        else:
+            page = offset // limit + 1
+
+        return ListSearchRequest(
+            q=i.get('q', ''),
+            offset=offset,
+            limit=limit,
+            page=page,
+            fields=fields,
+            sort=i.get('sort', ''),
+            api=i.get('api', ''),
+        )
+
+
+# searches for lists and returns results in html format
 class list_search(delegate.page):
     path = '/search/lists'
 
-    def GET(self):
-        i = web.input(q='', offset='0', limit='10')
+    def GET(self):  # referenced subject_search
+        req = ListSearchRequest.from_web_input(web.input(api='new'))
+        # Can't set fields when rendering html
+        req.fields = 'key'
+        resp = self.get_results(req)
+        lists = list(web.ctx.site.get_many([doc['key'] for doc in resp.docs]))
+        return render_template('search/lists.html', req, resp, lists)
 
-        lists = self.get_results(i.q, i.offset, i.limit)
-
-        return render_template('search/lists.tmpl', q=i.q, lists=lists)
-
-    def get_results(self, q, offset=0, limit=100):
-        if 'env' not in web.ctx:
-            delegate.fakeload()
-
-        keys = web.ctx.site.things(
-            {
-                "type": "/type/list",
-                "name~": q,
-                "limit": int(limit),
-                "offset": int(offset),
-            }
+    def get_results(self, req: ListSearchRequest):
+        return run_solr_query(
+            ListSearchScheme(),
+            {'q': req.q},
+            offset=req.offset,
+            rows=req.limit,
+            fields=req.fields,
+            sort=req.sort,
         )
 
-        return web.ctx.site.get_many(keys)
 
-
+# inherits from list_search but modifies the GET response to return results in JSON format
 class list_search_json(list_search):
+    # used subject_search_json as a reference
     path = '/search/lists'
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=10)
-        offset = safeint(i.offset, 0)
-        limit = safeint(i.limit, 10)
-        limit = min(100, limit)
-
-        docs = self.get_results(i.q, offset=offset, limit=limit)
-
-        response = {'start': offset, 'docs': [doc.preview() for doc in docs]}
+        req = ListSearchRequest.from_web_input(web.input())
+        resp = self.get_results(req)
 
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        if req.api == 'next':
+            # Match search.json
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'numFound': resp.num_found,
+                        'num_found': resp.num_found,
+                        'start': req.offset,
+                        'q': req.q,
+                        'docs': resp.docs,
+                    }
+                )
+            )
+        else:
+            # Default to the old API shape for a while, then we'll flip
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'start': req.offset,
+                        'docs': [
+                            lst.preview()
+                            for lst in web.ctx.site.get_many(
+                                [doc['key'] for doc in resp.docs]
+                            )
+                        ],
+                    }
+                )
+            )
 
 
 class subject_search(delegate.page):
