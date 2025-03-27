@@ -168,7 +168,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     # Try other identifiers next.
     if remote_ids := author.get("remote_ids"):
         queries = []
-        matched_authors = []
+        matched_authors: list[Author] = []
         # Get all the authors that match any incoming identifier.
         for identifier, val in remote_ids.items():
             queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
@@ -178,28 +178,19 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
                     get_redirected_authors(list(web.ctx.site.get_many(reply)))
                 )
         matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
-        # The match is whichever one has the most identifiers in common AND does not have more conflicts than matched identifiers.
-        highest_matches = 0
-        selected_match = None
-        for a in matched_authors:
-            _, matches = a.merge_remote_ids(remote_ids)
-            if matches > highest_matches:
-                selected_match = a
-                highest_matches = matches
-            elif (
-                matches == highest_matches
-                and matches > 0
-                and selected_match is not None
-            ):
-                # Prioritize the lower OL ID when matched identifiers are equal
-                selected_match = (
-                    a
-                    if extract_numeric_id_from_olid(a.key)
-                    < extract_numeric_id_from_olid(selected_match.key)
-                    else selected_match
-                )
-        if highest_matches > 0 and selected_match is not None:
+        # The match is whichever one has the most identifiers in common
+        if matched_authors:
+            selected_match = sorted(
+                matched_authors,
+                key=lambda a: (
+                    # First sort by number of matches desc
+                    -1 * a.merge_remote_ids(remote_ids)[1],
+                    # If there's a tie, prioritize lower OL ID
+                    extract_numeric_id_from_olid(a.key),
+                ),
+            )[0]
             return [selected_match]
+
     # Fall back to name/date matching, which we did before introducing identifiers.
     name = author["name"].replace("*", r"\*")
     queries = [

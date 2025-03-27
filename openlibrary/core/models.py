@@ -761,6 +761,10 @@ class Work(Thing):
         logger.info(f"[update-redirects] Done, processed {total}, fixed {fixed}")
 
 
+class AuthorRemoteIdConflictError(ValueError):
+    pass
+
+
 class Author(Thing):
     """Class to represent /type/author objects in OL."""
 
@@ -814,20 +818,17 @@ class Author(Thing):
             return output, -1
         # Count
         matches = 0
-        conflicts = 0
         config = get_identifier_config("author")
         for id in config["identifiers"]:
             identifier: str = id.name
             if identifier in output and identifier in incoming_ids:
                 if output[identifier] != incoming_ids[identifier]:
-                    conflicts = conflicts + 1
+                    # For now, cause an error so we can see when/how often this happens
+                    raise AuthorRemoteIdConflictError(
+                        f"Conflicting remote IDs for author {self.key}: {output[identifier]} vs {incoming_ids[identifier]}"
+                    )
                 else:
                     matches = matches + 1
-        # Decide at a later date if we want to change the logic to bail only when conflicts > matches, instead of conflicts > 0.
-        # if conflicts > matches:
-        if conflicts > 0:
-            # TODO: Raise this to librarians, somehow.
-            return self.remote_ids, -1
         return output, matches
 
 

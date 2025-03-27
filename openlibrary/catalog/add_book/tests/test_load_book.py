@@ -8,7 +8,7 @@ from openlibrary.catalog.add_book.load_book import (
     remove_author_honorifics,
 )
 from openlibrary.catalog.utils import InvalidLanguage
-from openlibrary.core.models import Author
+from openlibrary.core.models import Author, AuthorRemoteIdConflictError
 
 
 @pytest.fixture
@@ -162,14 +162,41 @@ class TestImportAuthor:
         mock_site.save(author_different_key)
 
         # Look for exact match on OL ID, regardless of other fields.
-        # We ideally shouldn't ever have a case where different authors have the same VIAF, but this demonstrates priority.
+        searched_author = {
+            "name": "William H. Brewer",
+            "key": "/authors/OL4A",
+        }
+        found = import_author(searched_author)
+        assert found.key == author_different_key["key"]
+
+    def test_conflicting_ids_cause_error(self, mock_site):
+        # Author with VIAF
+        author = {
+            "name": "William H. Brewer",
+            "key": "/authors/OL3A",
+            "type": {"key": "/type/author"},
+            "remote_ids": {"viaf": "12345678"},
+        }
+
+        # Another author with VIAF
+        author_different_key = {
+            "name": "William Brewer",
+            "key": "/authors/OL4A",
+            "type": {"key": "/type/author"},
+            "remote_ids": {"viaf": "87654321"},
+        }
+
+        mock_site.save(author)
+        mock_site.save(author_different_key)
+
+        # Author with differing ID
         searched_author = {
             "name": "William H. Brewer",
             "key": "/authors/OL4A",
             "remote_ids": {"viaf": "12345678"},
         }
-        found = import_author(searched_author)
-        assert found.key == author_different_key["key"]
+        with pytest.raises(AuthorRemoteIdConflictError):
+            import_author(searched_author)
 
     def test_second_match_remote_identifier(self, mock_site):
         """
