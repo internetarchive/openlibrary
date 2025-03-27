@@ -181,7 +181,8 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     if skip_untracked:
         skipped_files = get_untracked_files(sources, ('.py', '.html'))
 
-    for source in map(Path, sources):
+    # Note the must be sorted to avoid the messages.pot file constantly jumping around
+    for source in map(Path, sorted(sources)):
         counts: dict[Path, int] = {}
 
         if source.is_file():
