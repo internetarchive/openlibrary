@@ -278,10 +278,7 @@ class BookRecord:
 
     @property
     def source_records(self) -> list[str]:
-        records = [f"wikisource:{self.wikisource_id}"]
-        if self.ia_id is not None:
-            records.insert(0, f"ia:{self.ia_id}")
-        return records
+        return [f"wikisource:{self.wikisource_id}"]
 
     def to_dict(self):
         publishers = ["Wikisource"]
@@ -291,8 +288,9 @@ class BookRecord:
             "source_records": self.source_records,
             "identifiers": {"wikisource": [self.wikisource_id]},
             "languages": [self.langconfig.ol_langcode],
-            "ia_id": self.source_records[0],
         }
+        if self.ia_id is not None:
+            output["ocaid"] = self.ia_id
         if self.publish_date is not None:
             output["publish_date"] = self.publish_date
         if self.edition is not None:
