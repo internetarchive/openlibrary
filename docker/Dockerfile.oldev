@@ -3,8 +3,8 @@ FROM openlibrary/olbase:latest
 # Allow for nexus overrides (used in testing/staging builds)
 ARG NPM_CONFIG_REGISTRY
 ARG PIP_INDEX_URL
-ARG PIP_TRUSTED_HOST
 ARG HTTPS_PROXY
+ARG NO_PROXY
 
 WORKDIR /openlibrary
 
@@ -22,4 +22,4 @@ RUN pip install $(grep -E 'webpy\.git|web\.py==|multipart==|Babel==' requirement
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./
-RUN npm install --no-audit
+RUN npm install --no-audit --ignore-scripts
