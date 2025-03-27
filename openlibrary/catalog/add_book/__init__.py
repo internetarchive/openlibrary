@@ -74,6 +74,7 @@ SUSPECT_PUBLICATION_DATES: Final = [
     "????",
     "01-01-1900",
 ]
+SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 ALLOWED_COVER_HOSTS: Final = ("m.media-amazon.com", "books.google.com")
