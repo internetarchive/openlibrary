@@ -161,20 +161,16 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("ol_id")) and (
-        reply := list(
-            web.ctx.site.things({"type": "/type/author", "key~": f'/authors/{key}'})
-        )
-    ):
+    if (key := author.get("key")) and (record := web.ctx.site.get(key)):
         # Always match on OL ID, even if remote identifiers don't match.
-        return get_redirected_authors(list(web.ctx.site.get_many(reply)))
+        return get_redirected_authors([record])
 
     # Try other identifiers next.
-    if identifiers := author.get("identifiers"):
+    if remote_ids := author.get("remote_ids"):
         queries = []
         matched_authors = []
         # Get all the authors that match any incoming identifier.
-        for identifier, val in identifiers.items():
+        for identifier, val in remote_ids.items():
             queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
         for query in queries:
             if reply := list(web.ctx.site.things(query)):
@@ -186,7 +182,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         highest_matches = 0
         selected_match = None
         for a in matched_authors:
-            _, matches = a.merge_remote_ids(identifiers)
+            _, matches = a.merge_remote_ids(remote_ids)
             if matches > highest_matches:
                 selected_match = a
                 highest_matches = matches
@@ -253,9 +249,9 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if "identifiers" in author:
+    if "remote_ids" in author:
         for index, t in enumerate(things):
-            t.remote_ids, _ = t.merge_remote_ids(author["identifiers"])
+            t.remote_ids, _ = t.merge_remote_ids(author["remote_ids"])
             things[index] = t
     return things[0] if things else None
 
@@ -316,9 +312,6 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     ):
         if f in author:
             a[f] = author[f]
-    # Import record hitting endpoint should list external IDs under "identifiers", but needs to be "remote_ids" when going into the DB.
-    if "identifiers" in author:
-        a["remote_ids"] = author["identifiers"]
     return a
 
 

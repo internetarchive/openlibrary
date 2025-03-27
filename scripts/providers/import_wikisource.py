@@ -221,8 +221,8 @@ def format_contributor(raw_name: str) -> str:
 @dataclass
 class Author:
     friendly_name: str | None = None
-    ol_id: str | None = None
-    identifiers: dict[str, str] = field(default_factory=dict[str, str])
+    key: str | None = None
+    remote_ids: dict[str, str] = field(default_factory=dict[str, str])
     birth_date: str | None = None
     death_date: str | None = None
 
@@ -307,14 +307,8 @@ class BookRecord:
                     "name": author.friendly_name,
                     **({"birth_date": author.birth_date} if author.birth_date else {}),
                     **({"death_date": author.death_date} if author.death_date else {}),
-                    **(
-                        {
-                            "identifiers": author.identifiers,
-                        }
-                        if author.identifiers
-                        else {}
-                    ),
-                    **({"ol_id": author.ol_id} if author.ol_id else {}),
+                    **({"remote_ids": author.remote_ids} if author.remote_ids else {}),
+                    **({"key": author.key} if author.key else {}),
                 }
                 for author in self.authors
             ]
@@ -829,7 +823,7 @@ WHERE {
                 contributor.death_date = extract_year(obj["deathDate"]["value"])
 
             if "olId" in obj and "value" in obj["olId"]:
-                contributor.ol_id = obj["olId"]["value"]
+                contributor.key = f"/authors/{obj["olId"]["value"]}"
 
             # Couldn't find inventaire
             for id in [
@@ -852,7 +846,7 @@ WHERE {
                     val = obj[id]["value"]
                     if id == "youtube" and val[0] != "@":
                         val = f'@{val}'
-                    contributor.identifiers[id] = val
+                    contributor.remote_ids[id] = val
 
             if contributor_id in map:
                 book_ids = map[contributor_id]

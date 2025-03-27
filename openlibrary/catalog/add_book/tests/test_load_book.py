@@ -165,8 +165,8 @@ class TestImportAuthor:
         # We ideally shouldn't ever have a case where different authors have the same VIAF, but this demonstrates priority.
         searched_author = {
             "name": "William H. Brewer",
-            "ol_id": "OL4A",
-            "identifiers": {"viaf": "12345678"},
+            "key": "/authors/OL4A",
+            "remote_ids": {"viaf": "12345678"},
         }
         found = import_author(searched_author)
         assert found.key == author_different_key["key"]
@@ -198,7 +198,7 @@ class TestImportAuthor:
         # Look for exact match on VIAF, regardless of name field.
         searched_author = {
             "name": "William Brewer",
-            "identifiers": {"viaf": "12345678"},
+            "remote_ids": {"viaf": "12345678"},
         }
         found = import_author(searched_author)
         assert found.key == author["key"]
