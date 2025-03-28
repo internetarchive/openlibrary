@@ -23,6 +23,8 @@ export default {
             type: String,
             default: null,
         },
+        userKey: {},
+        saveWantToReadList: {},
     },
     data() {
         return {
@@ -38,10 +40,11 @@ export default {
     methods: {
         async fromISBN(isbn) {
             fetch(`https://${CONFIGS.OL_BASE_PUBLIC}/isbn/${isbn}.json`).then(r => r.json())
-                .then(editionRecord => {
+                .then(async(editionRecord) => {
                     this.title = editionRecord.title;
                     this.identifier = isbn;
                     this.link = editionRecord.key;
+                    const workPath = editionRecord.works[0].key
 
                     if (editionRecord.covers) {
                         const coverId = editionRecord.covers.find(x => x !== -1);
@@ -49,7 +52,35 @@ export default {
                             this.coverSrc = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
                         }
                     }
-                    return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${editionRecord.works[0].key}.json`).then(r => r.json())
+
+                    if (this.userKey && this.saveWantToReadList) {
+                        const listURL = `https://${CONFIGS.OL_BASE_PUBLIC}${workPath}/bookshelves.json`
+                        const formData = new FormData();
+                        const preFormBody = {
+                            // user info is checked in api.py work_bookshelves
+                            bookshelf_id: 1,
+                            work_id: workPath,
+                            edition_id: editionRecord.key,
+                            action: 'add',
+                            dont_remove: true,
+                        }
+                        for (const [key, value] of Object.entries(preFormBody)) {
+                            formData.set(key, value)
+                        }
+                        fetch (listURL, {
+                            method: 'POST',
+                            body: formData
+                        }).then((response) => {
+                            if (!response.ok) {
+                                throw new Error('Server response was not ok')
+                            }
+                        }).catch((err) => {
+                            this.loading = false;
+                            this.errored = true;
+                            throw new Error(`An error occurred while trying to save to Want to Read: ${err}`)
+                        })
+                    }
+                    return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${workPath}.json`).then(r => r.json())
                 }).then(workRecord => {
                     return Promise.all(
                         workRecord.authors
