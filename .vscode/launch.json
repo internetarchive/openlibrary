@@ -1,23 +1,13 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Attach",
-      "type": "debugpy",
-      "request": "attach",
-      "connect": {
-        "host": "localhost",
-        "port": 3000
-      },
-      "pathMappings": [
-        {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/openlibrary/"
-        }
-      ]
+      "type": "node",
+      "request": "launch",
+      "name": "Debug automate_deploy_notes.mjs",
+      "program": "${workspaceFolder}/scripts/gh_scripts/automate_deploy_notes.mjs",
+      "args": ["internetarchive/openlibrary", "deploy-2025-03-20"],
+      "runtimeArgs": ["--experimental-modules"]
     }
   ]
 }
