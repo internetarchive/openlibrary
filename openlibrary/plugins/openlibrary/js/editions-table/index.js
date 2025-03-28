@@ -6,7 +6,11 @@ const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
     var rowCount;
-
+    let currentLength;
+    // Prevent reinitialization of the editions datatable
+    if ($.fn.DataTable.isDataTable($('#editions'))) {
+        return;
+    }
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -42,7 +46,6 @@ export function initEditionsTable() {
     });
 
     $('#editions').on('length.dt', function(e, settings, length) {
-        togglePaginationVisibility(length);
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
@@ -53,31 +56,55 @@ export function initEditionsTable() {
     })
 
     rowCount = $('#editions tbody tr').length;
-    const currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY)) || DEFAULT_LENGTH;
-
-    $('#editions').DataTable({
-        aoColumns: [{ sType: 'html' }, null],
-        order: [[1, 'asc']],
-        lengthMenu: [[3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All']],
-        bPaginate: true, // Always allow pagination initially
-        bInfo: true,
-        sPaginationType: 'full_numbers',
-        bFilter: true,
-        bStateSave: false,
-        bAutoWidth: false,
-        pageLength: currentLength,
-    });
-
-    // Toggle pagination visibility based on row count and selected length
-    function togglePaginationVisibility(selectedLength) {
-        const paginationElement = $('.dataTables_paginate.paging_full_numbers');
-        if (rowCount <= selectedLength || selectedLength === -1) {
-            paginationElement.hide();
-        } else {
-            paginationElement.show();
-        }
+    if (rowCount < 4) {
+        $('#editions').DataTable({
+            aoColumns: [{sType: 'html'},null],
+            order: [ [1,'asc'] ],
+            bPaginate: false,
+            bInfo: false,
+            bFilter: false,
+            bStateSave: false,
+            bAutoWidth: false
+        });
+    } else {
+        currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
+        $('#editions').DataTable({
+            aoColumns: [{sType: 'html'},null],
+            order: [ [1,'asc'] ],
+            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
+            bPaginate: true,
+            bInfo: true,
+            sPaginationType: 'full_numbers',
+            bFilter: true,
+            bStateSave: false,
+            bAutoWidth: false,
+            pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
+            drawCallback: function() {
+                if ($('#ile-toolbar')) {
+                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition']
+                    const matchEdition = (string) => {
+                        return string.match(/OL[0-9]+[a-zA-Z]/)
+                    }
+                    for (const el of $('.ile-selected')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'))
+                            if (!editionStorage.includes(edIdentifier[0])) {
+                                el.classList.remove('ile-selected');
+                            }
+                        }
+                    }
+                    for (const el of $('.ile-selectable')) {
+                        const anchor = el.getElementsByTagName('a');
+                        if (anchor.length) {
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'));
+                            if (editionStorage.includes(edIdentifier[0])) {
+                                el.classList.add('ile-selected');
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
-
-    // Initial pagination visibility toggle
-    togglePaginationVisibility(currentLength);
 }
