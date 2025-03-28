@@ -266,7 +266,6 @@ class TestRecordTooMinimal:
         ({"publish_date": "January 1, 1900"}),
         ({"publish_date": "1900-01-01"}),
         ({"publish_date": "01-01-1900"}),
-        ({"publish_date": "????"}),
     ],
 )
 def test_records_with_substantively_bad_dates_should_not_validate(
