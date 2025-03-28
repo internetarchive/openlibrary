@@ -240,7 +240,7 @@ def build_author_reply(authors_in, edits, source):
     return (authors, author_reply)
 
 
-def new_work(edition, rec, cover_id=None):
+def new_work(edition: dict, rec: dict, cover_id=None) -> dict:
     """
     :param dict edition: New OL Edition
     :param dict rec: Edition import data
@@ -257,10 +257,13 @@ def new_work(edition, rec, cover_id=None):
             w[s] = rec[s]
 
     if 'authors' in edition:
-        w['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': akey}
-            for akey in edition['authors']
-        ]
+        w['authors'] = []
+        assert len(edition['authors']) == len(rec['authors']), "Author import failed!"
+        for i, akey in enumerate(edition['authors']):
+            author = {'type': {'key': '/type/author_role'}, 'author': akey}
+            if role := rec['authors'][i].get('role'):
+                author['role'] = role
+            w['authors'].append(author)
 
     if 'description' in rec:
         w['description'] = {'type': '/type/text', 'value': rec['description']}
