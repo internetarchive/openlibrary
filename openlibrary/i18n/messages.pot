@@ -4293,6 +4293,10 @@ msgid "Invalid LC Control Number format"
 msgstr ""
 
 #: books/add.html
+msgid "Invalid OCLC/WorldCat Control Number format"
+msgstr ""
+
+#: books/add.html
 msgid "Please enter a value for the selected identifier"
 msgstr ""
 
@@ -4383,6 +4387,10 @@ msgstr ""
 
 #: books/add.html
 msgid "LibriVox"
+msgstr ""
+
+#: books/add.html
+msgid "OCLC/WorldCat"
 msgstr ""
 
 #: books/add.html
