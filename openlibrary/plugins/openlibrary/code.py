@@ -1398,6 +1398,7 @@ def setup():
         design,
         events,
         home,
+        librarian_dashboard,
         sentry,
         stats,
         status,
@@ -1410,6 +1411,7 @@ def setup():
     borrow_home.setup()
     stats.setup()
     events.setup()
+    librarian_dashboard.setup()
     status.setup()
     authors.setup()
     swagger.setup()
