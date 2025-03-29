@@ -63,15 +63,15 @@ async function main() {
   console.log("Release ID: ", releaseId)
   console.log("Tag Raw data: ", tag.data)
 
-  // const release = await octokit.request("PATCH /repos/{owner}/{repo}/releases/{releaseId}", {
-  //   owner: repoOwner,
-  //   repo: repoName,
-  //   releaseId: releaseId,
-  //   body: notes,
-  //   headers: {
-  //     "X-GitHub-Api-Version": "2022-11-28"
-  //   }
-  // }) 
+  const release = await octokit.request("PATCH /repos/{owner}/{repo}/releases/{releaseId}", {
+    owner: repoOwner,
+    repo: repoName,
+    releaseId: releaseId,
+    body: notes,
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  }) 
 
   await writeFile('./deploy_notes.md', notes, 'utf-8') // local testing only
   console.log("Deploy notes created successfully") 
