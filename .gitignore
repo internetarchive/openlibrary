@@ -3,7 +3,7 @@ openlibrary/components/dev/_dev.js
 *venv
 *.pyc
 *~
-# .vscode/
+.vscode/
 *.swp
 *.mo
 var/
