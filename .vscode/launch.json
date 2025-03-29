@@ -1,0 +1,15 @@
+{
+  "name": "Python: Attach",
+  "type": "debugpy",
+  "request": "attach",
+  "connect": {
+    "host": "localhost",
+    "port": 3000
+  },
+  "pathMappings": [
+    {
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/openlibrary/"
+    }
+  ]
+}
