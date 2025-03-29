@@ -24,14 +24,14 @@ jobs:
       - name: Update Deploy Notes For New Release
         run:
           echo "Updating deploy notes for ${{ github.event.release.tag_name }}"
-          echo "Repository... ${{ github.repository }}" 
+          echo "Repository... ${{ github.repository }}"
           node scripts/gh_scripts/automate_deploy_notes.mjs ${{ github.repository }} ${{ github.event.release.tag_name }}
         id: automate_deploy_notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
       - name: Post message to Slack
-        run: 
+        run:
           echo "Deploy notes updated for ${{ steps.automate_deploy_notes.succeeded }}"
           messsage="Deploy notes updated for ${{ github.event.release.tag_name }}"
           node scripts/gh_scripts/post_message_to_slack.mjs 'team-channel-name' "$message"
