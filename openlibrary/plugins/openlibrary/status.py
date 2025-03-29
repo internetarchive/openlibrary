@@ -10,6 +10,7 @@ from typing import Any
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
+
 from openlibrary.core import stats
 from openlibrary.utils import get_software_version
 
