@@ -12,11 +12,11 @@ from unicodedata import normalize
 
 import requests
 import web
+from requests import Response
+
 from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
-from requests import Response
-
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition

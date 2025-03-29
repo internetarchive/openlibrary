@@ -7649,131 +7649,6 @@ msgstr ""
 msgid "View Volume %(num)d"
 msgstr ""
 
-#: openlibrary/core/edits.py
-msgid "Unknown"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Art"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science Fiction"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Fantasy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Biographies"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Recipes"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Children"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Medicine"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Religion"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Mystery and Detective Stories"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Plays"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Music"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Czech"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "German"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "English"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Spanish"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "French"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Hindi"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Croatian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Italian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Portuguese"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Romanian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Sardinian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Telugu"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Ukrainian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Chinese"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "eBook?"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
-msgstr ""
-
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
 msgstr ""
@@ -7828,12 +7703,6 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
-msgstr ""
-
-#: openlibrary/plugins/upstream/borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -7968,5 +7837,136 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Czech"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "German"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "English"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Spanish"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "French"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Hindi"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Croatian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Portuguese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Romanian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Sardinian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Telugu"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Ukrainian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Chinese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Medicine"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Religion"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+
+#: openlibrary/core/edits.py
+msgid "Unknown"
 msgstr ""
 

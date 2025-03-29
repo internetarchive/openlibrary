@@ -2,9 +2,9 @@ import json
 from urllib.parse import parse_qs
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available

@@ -7,11 +7,11 @@ PYTHONPATH=. python ./scripts/update_dark_ocaid_references.py /olsystem/etc/open
 
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-import infogami
 import requests
 import web
-from infogami import config
 
+import infogami
+from infogami import config
 from openlibrary.accounts import RunAs
 from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
