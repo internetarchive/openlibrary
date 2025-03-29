@@ -112,7 +112,6 @@
     "collectCoverage": true
   },
   "dependencies": {
-    "@octokit/rest": "^21.1.1",
     "postcss-less": "^6.0.0"
   }
 }
