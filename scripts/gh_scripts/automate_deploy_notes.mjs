@@ -1,4 +1,4 @@
-/* 
+/*
 * This script is executed when a new tag is pushed to remote
 * The script requires two arguments:
 * 1. Full repository name (e.g. internetarchive/openlibrary)
@@ -21,7 +21,7 @@ await main()
 console.log("Script terminated....")
 
 
-/* 
+/*
 * This function...
 * 1. Compares the second latest tag with the current master branch
 * 2. Creates a markdown string with the data returned from 1.
@@ -41,7 +41,7 @@ async function main() {
       "X-GitHub-Api-Version": "2022-11-28"
     }
   })
-  console.log("Compare Raw data: ", compare.data.commits) 
+  console.log("Compare Raw data: ", compare.data.commits)
 
   const notes = await createDeployNotes({
     commits: compare.data.commits,
@@ -71,10 +71,10 @@ async function main() {
     headers: {
       "X-GitHub-Api-Version": "2022-11-28"
     }
-  }) 
+  })
 
   await writeFile('./deploy_notes.md', notes, 'utf-8') // local testing only
-  console.log("Deploy notes created successfully") 
+  console.log("Deploy notes created successfully")
 }
 
 function parseArgs() {
@@ -151,7 +151,7 @@ function convertToMarkdown(deployNotes) {
   return individualCommits + "\r\n" + merged
 }
 
-/* 
+/*
 I have encountered rate liiting issues with the GitHub API while testing this script
 To avoid this, I have created a dummy function that returns a list of commits
 This function will be removed once the script is mature
