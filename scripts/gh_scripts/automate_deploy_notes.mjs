@@ -4,18 +4,19 @@
 * 1. Full repository name (e.g. internetarchive/openlibrary)
 * 2. Latest tag (e.g. deploy-2025-03-20)
 * To simulate the script locally, you can use the following command:
+* npm install @octokit/rest
 * node scripts/gh_scripts/automate_deploy_notes.mjs internetarchive/openlibrary deploy-2025-03-20
 * Note: there's a lot of logging in this file and the automate_deploy_notes.yml
 * that will be removed when the script is mature
 */
 
-import { Octokit } from "@octokit/rest"; // for locally testing only
-// import { Octokit } from "@octokit/action"; // for running in GitHub Actions
+// import { Octokit } from "@octokit/rest"; // for locally testing only
+import { Octokit } from "@octokit/action"; // for running in GitHub Actions
 import { writeFile } from "fs/promises"
 
 console.log("Script starting to update new tag body....")
-const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN })
-// const octokit = new Octokit()
+// const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN }) // for locally testing only
+const octokit = new Octokit() // for running in GitHub Actions
 await main()
 console.log("Script terminated....")
 
@@ -47,17 +48,26 @@ async function main() {
     repoOwner: repoOwner,
     repoName: repoName
   })
-  console.log("Markdown string: ", notes)
+  // const notes = dummyDeployNotes() // local testing only
+  console.log("Markdown string:` ", notes)
 
-  // const release = await octokit.request("PUT /repos/{owner}/{repo}/releases/tags/{tag}", {
+  const tag = await octokit.request("GET /repos/{owner}/{repo}/releases/tags/{tag}", {
+    owner: repoOwner,
+    repo: repoName,
+    tag: latest_tag,
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  })
+  const releaseId = tag.data.id
+  console.log("Release ID: ", releaseId)
+  console.log("Tag Raw data: ", tag.data)
+
+  // const release = await octokit.request("PATCH /repos/{owner}/{repo}/releases/{releaseId}", {
   //   owner: repoOwner,
   //   repo: repoName,
-  //   tag: latest_tag,
-  //   body: const notes = createDeployNotes({
-    //   commits: compare.data.commits,
-    //   repoOwner: repoOwner,
-    //   repoName: repoName
-    // }),
+  //   releaseId: releaseId,
+  //   body: notes,
   //   headers: {
   //     "X-GitHub-Api-Version": "2022-11-28"
   //   }
@@ -146,6 +156,7 @@ I have encountered rate liiting issues with the GitHub API while testing this sc
 To avoid this, I have created a dummy function that returns a list of commits
 This function will be removed once the script is mature
 Using authentication will also help avoid rate limiting issues
+TODO: Remove this function once the script is mature
 */
 function dummyDeployNotes() {
   return [
