@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import datetime
 import hashlib
@@ -102,7 +100,7 @@ def generate_uuid():
 
 def send_verification_email(username, email):
     """Sends account verification email."""
-    key = "account/%s/verify" % username
+    key = f"account/{username}/verify"
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
@@ -161,7 +159,7 @@ class Account(web.storage):
 
     def get_edit_count(self):
         user = self.get_user()
-        return user and user.get_edit_count() or 0
+        return (user and user.get_edit_count()) or 0
 
     @property
     def registered_on(self):
@@ -288,14 +286,14 @@ class Account(web.storage):
         return doc.get_creation_info()
 
     def get_activation_link(self):
-        key = "account/%s/verify" % self.username
+        key = f"account/{self.username}/verify"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self):
-        key = "account/%s/password" % self.username
+        key = f"account/{self.username}/password"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
@@ -466,7 +464,7 @@ class OpenLibraryAccount(Account):
             raise ValueError('something_went_wrong')
 
         if verified:
-            key = "account/%s/verify" % username
+            key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
             web.ctx.site.store[key] = doc
             web.ctx.site.activate_account(username=username)
@@ -583,7 +581,7 @@ class OpenLibraryAccount(Account):
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        itemname = itemname if itemname.startswith('@') else '@%s' % itemname
+        itemname = itemname if itemname.startswith('@') else f'@{itemname}'
 
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname
@@ -622,8 +620,8 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def create(
@@ -665,16 +663,22 @@ class InternetArchiveAccount(web.storage):
         _screenname = screenname
         attempt = 0
         while True:
-            response = cls.xauth(
-                'create',
-                email=email,
-                password=password,
-                screenname=_screenname,
-                notifications=notifications,
-                test=test,
-                verified=verified,
-                service='openlibrary',
-            )
+            try:
+                response = cls.xauth(
+                    'create',
+                    email=email,
+                    password=password,
+                    screenname=_screenname,
+                    notifications=notifications,
+                    test=test,
+                    verified=verified,
+                    service='openlibrary',
+                )
+            except requests.HTTPError as err:
+                status_code = err.response.status_code
+                if status_code == 504:
+                    raise OLAuthenticationError("request_timeout")
+                raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -682,16 +686,22 @@ class InternetArchiveAccount(web.storage):
                     ia_account.test = True
                 return ia_account
 
-            elif 'screenname' not in response.get('values', {}):
-                raise OLAuthenticationError('undefined_error')
-
-            elif attempt >= retries:
+            # Response has returned "failure" with reasons in "values"
+            failures = response.get('values', {})
+            if 'screenname' not in failures:
+                for field in failures:
+                    # raise the first error if multiple
+                    # e.g. bad_email, bad_password
+                    error = OLAuthenticationError(f'bad_{field}')
+                    error.response = response
+                    raise error
+            elif attempt < retries:
+                _screenname = append_random_suffix(screenname)
+                attempt += 1
+            else:
                 e = OLAuthenticationError('username_registered')
                 e.value = _screenname
                 raise e
-
-            _screenname = append_random_suffix(screenname)
-            attempt += 1
 
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
@@ -723,6 +733,11 @@ class InternetArchiveAccount(web.storage):
             params['developer'] = test
 
         response = requests.post(url, params=params, json=data)
+        if response.status_code == 403:
+            raise OLAuthenticationError("security_error")
+        if response.status_code == 504 and op == "create":
+            response.raise_for_status()
+
         try:
             # This API should always return json, even on error (Unless
             # the server is down or something :P)

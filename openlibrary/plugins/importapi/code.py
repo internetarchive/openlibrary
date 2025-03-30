@@ -1,5 +1,4 @@
-"""Open Library Import API
-"""
+"""Open Library Import API"""
 
 import base64
 import json
@@ -659,18 +658,17 @@ class ils_search:
                 d[i] = identifiers[i]
             d.update(doc)
 
+        elif authenticated:
+            d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
+            for i in keys:
+                if i.startswith('/books'):
+                    d['editions'].append(i)
+                if i.startswith('/works'):
+                    d['works'].append(i)
+                if i.startswith('/authors'):
+                    d['authors'].append(i)
         else:
-            if authenticated:
-                d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
-                for i in keys:
-                    if i.startswith('/books'):
-                        d['editions'].append(i)
-                    if i.startswith('/works'):
-                        d['works'].append(i)
-                    if i.startswith('/authors'):
-                        d['authors'].append(i)
-            else:
-                d = {'status': 'notfound'}
+            d = {'status': 'notfound'}
         return d
 
 

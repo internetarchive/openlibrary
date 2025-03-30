@@ -1,5 +1,4 @@
-"""Module for providing core functionality of lending on Open Library.
-"""
+"""Module for providing core functionality of lending on Open Library."""
 
 import datetime
 import logging
@@ -53,6 +52,10 @@ class PatronAccessException(Exception):
         super().__init__(self.message)
 
 
+class AvailabilityServiceError(Exception):
+    pass
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_v2_url = cast(str, None)
@@ -68,6 +71,7 @@ config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
+config_fts_context = None
 
 
 def setup(config):
@@ -78,7 +82,7 @@ def setup(config):
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
-    global config_ia_domain
+    global config_ia_domain, config_fts_context
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -98,6 +102,7 @@ def setup(config):
     config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
+    config_fts_context = config.get('fts_context')
 
 
 @public
@@ -174,7 +179,7 @@ def compose_ia_url(
         sorts = ['']
     for sort in sorts:
         params.append(('sort[]', sort))
-    base_url = "http://%s/advancedsearch.php" % config_bookreader_host
+    base_url = f"http://{config_bookreader_host}/advancedsearch.php"
     return base_url + '?' + urlencode(params)
 
 
@@ -225,7 +230,7 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
     if response.status_code in [400, 409]:
-        raise PatronAccessException()
+        raise PatronAccessException
     response.raise_for_status()
     return response
 
@@ -284,11 +289,11 @@ def get_available(
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many(['/books/%s' % olid for olid in results.values()])
+        books = web.ctx.site.get_many([f'/books/{olid}' for olid in results.values()])
         books = add_availability(books)
         return books
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_available(%s)" % url)
+        logger.exception(f"get_available({url})")
         return {'error': 'request_timeout'}
 
 
@@ -321,6 +326,7 @@ class AvailabilityStatus(TypedDict):
 
 class AvailabilityServiceResponse(TypedDict):
     success: bool
+    error: str | None
     responses: dict[str, AvailabilityStatus]
 
 
@@ -380,24 +386,32 @@ def get_availability(
             "x-preferred-client-id": web.ctx.env.get(
                 'HTTP_X_FORWARDED_FOR', 'ol-internal'
             ),
+            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
+            "user-agent": "Open Library Site",
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        response = cast(
-            AvailabilityServiceResponse,
-            requests.get(
-                config_ia_availability_api_v2_url,
-                params={
-                    id_type: ','.join(ids_to_fetch),
-                    "scope": "printdisabled",
-                },
-                headers=headers,
-                timeout=10,
-            ).json(),
+        resp = requests.get(
+            config_ia_availability_api_v2_url,
+            params={
+                id_type: ','.join(ids_to_fetch),
+                "scope": "printdisabled",
+            },
+            headers=headers,
+            timeout=10,
         )
+
+        # This API should always return 200
+        resp.raise_for_status()
+
+        response = cast(AvailabilityServiceResponse, resp.json())
+
+        if not response['success']:
+            raise AvailabilityServiceError(response['error'])
+
         uncached_values = {
             _id: update_availability_schema_to_v2(
                 availability,
@@ -472,7 +486,7 @@ def get_ocaid(item: dict) -> str | None:
 def get_availabilities(items: list) -> dict:
     result = {}
     ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-    availabilities = get_availability_of_ocaids(ocaids)
+    availabilities = get_availability('identifier', ocaids)
     for item in items:
         ocaid = get_ocaid(item)
         if ocaid:
@@ -491,7 +505,7 @@ def add_availability(
     """
     if mode == "identifier":
         ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-        availabilities = get_availability_of_ocaids(ocaids)
+        availabilities = get_availability('identifier', ocaids)
         for item in items:
             ocaid = get_ocaid(item)
             if ocaid:
@@ -506,25 +520,13 @@ def add_availability(
     return items
 
 
-def get_availability_of_ocaid(ocaid):
-    """Retrieves availability based on ocaid/archive.org identifier"""
-    return get_availability('identifier', [ocaid])
-
-
-def get_availability_of_ocaids(ocaids: list[str]) -> dict[str, AvailabilityStatusV2]:
-    """
-    Retrieves availability based on ocaids/archive.org identifiers
-    """
-    return get_availability('identifier', ocaids)
-
-
 def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
     """
     Get Editions from OCAIDs and attach their availabiliity.
 
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
-    ocaid_availability = get_availability_of_ocaids(ocaids=ocaids)
+    ocaid_availability = get_availability('identifier', ocaids)
     editions = web.ctx.site.get_many(
         [
             f"/books/{item.get('openlibrary_edition')}"
@@ -564,12 +566,12 @@ def is_loaned_out_on_acs4(identifier: str) -> bool:
 
 def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
-    url = "https://archive.org/services/borrow/%s?action=status" % identifier
+    url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
         response = requests.get(url).json()
         return response and response.get('checkedout')
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("is_loaned_out_on_ia(%s)" % identifier)
+        logger.exception(f"is_loaned_out_on_ia({identifier})")
         return None
 
 
@@ -605,12 +607,12 @@ def get_loan(identifier, user_key=None):
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_loan(%s) 1 of 2" % identifier)
+        logger.exception(f"get_loan({identifier}) 1 of 2")
 
     try:
         _loan = _get_ia_loan(identifier, account and account.itemname)
     except Exception:  # TODO: Narrow exception scope
-        logger.exception("get_loan(%s) 2 of 2" % identifier)
+        logger.exception(f"get_loan({identifier}) 2 of 2")
 
     return _loan
 
@@ -652,6 +654,9 @@ def get_user_waiting_loans(user_key):
     Returns [] if user has no waitingloans.
     """
     from .waitinglist import WaitingLoan
+
+    if "site" not in web.ctx:
+        delegate.fakeload()
 
     try:
         account = OpenLibraryAccount.get(key=user_key)
@@ -721,7 +726,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         'book': loan['book'],
     }
 
-    responses = get_availability_of_ocaid(identifier)
+    responses = get_availability('identifier', [identifier])
     response = responses[identifier] if responses else {}
     if response:
         num_waiting = int(response.get('num_waitlist', 0) or 0)

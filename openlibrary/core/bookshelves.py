@@ -2,6 +2,7 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
+from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 
 import web
@@ -25,15 +26,23 @@ class WorkReadingLogSummary(TypedDict):
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
-    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
-    PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
+    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'Want to Read': 1,
+            'Currently Reading': 2,
+            'Already Read': 3,
+        }
+    )
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON = {
-        'want_to_read': 1,
-        'currently_reading': 2,
-        'already_read': 3,
-    }
+    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
+        {
+            'want_to_read': 1,
+            'currently_reading': 2,
+            'already_read': 3,
+        }
+    )
 
     @classmethod
     def summary(cls):
@@ -239,7 +248,8 @@ class Bookshelves(db.CommonExtras):
     # Iterates through a list of solr docs, and for all items with a 'logged edition'
     # it will remove an item with the matching edition key from the list, and add it to
     # doc["editions"]["docs"]
-    def link_editions_to_works(solr_docs):
+    @classmethod
+    def link_editions_to_works(cls, solr_docs: list[web.storage]):
         """
         :param solr_docs: Solr work/edition docs, augmented with reading log data
         """
@@ -363,8 +373,6 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.code import run_solr_query
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
-        # Sets the function to fetch editions as well, if not accessing the Want to Read shelf.
-        show_editions: bool = bookshelf_id != 1
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
@@ -464,22 +472,18 @@ class Bookshelves(db.CommonExtras):
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
-            if show_editions:
-                edition_data = get_solr().get_many(
-                    [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
-                    fields=WorkSearchScheme.default_fetched_fields
-                    | {'subject', 'person', 'place', 'time', 'edition_key'},
-                )
+            edition_data = get_solr().get_many(
+                [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
+                fields=WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'},
+            )
 
-                solr_docs.extend(edition_data)
+            solr_docs.extend(edition_data)
 
             # Downstream many things expect a list of web.storage docs.
             solr_docs = [web.storage(doc) for doc in solr_resp.docs]
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
-
-            # This function is only necessary if edition data was fetched.
-            if show_editions:
-                solr_docs = cls.link_editions_to_works(solr_docs)
+            solr_docs = cls.link_editions_to_works(solr_docs)
 
             return LoggedBooksData(
                 username=username,
@@ -534,7 +538,7 @@ class Bookshelves(db.CommonExtras):
             reading_log_keys = [
                 (
                     ['/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']]
-                    if show_editions and i['edition_id']
+                    if i['edition_id']
                     else ['/works/OL%sW' % i['work_id'], ""]
                 )
                 for i in reading_log_books
@@ -549,10 +553,7 @@ class Bookshelves(db.CommonExtras):
             solr_docs = cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
-
-            # Attaches returned editions to works.
-            if show_editions:
-                solr_docs = cls.link_editions_to_works(solr_docs)
+            solr_docs = cls.link_editions_to_works(solr_docs)
 
             assert len(solr_docs) == len(reading_log_keys), (
                 "solr_docs is missing an item/items from reading_log_keys; "

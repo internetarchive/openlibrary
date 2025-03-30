@@ -189,10 +189,14 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         return f"book_providers/{self.short_name}_{typ}.html"
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult:
         return render_template(
             self.get_template_path('read_button'),
+            edition_key,
             self.get_best_identifier(ed_or_solr),
             analytics_attr,
         )
@@ -366,6 +370,29 @@ class ProjectGutenbergProvider(AbstractBookProvider):
         ]
 
 
+class ProjectRunebergProvider(AbstractBookProvider):
+    short_name = 'runeberg'
+    identifier_key = 'project_runeberg'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        """Whether the ocaid (IA item ID) is an archive of content from Project Runeberg."""
+        return 'runeberg' in ocaid
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/{self.get_best_identifier(edition)}/',
+                provider_name=self.short_name,
+            )
+        ]
+
+
 class StandardEbooksProvider(AbstractBookProvider):
     short_name = 'standard_ebooks'
     identifier_key = 'standard_ebooks'
@@ -486,7 +513,10 @@ class DirectProvider(AbstractBookProvider):
             return []
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (
@@ -510,7 +540,7 @@ class DirectProvider(AbstractBookProvider):
         parsed_url = parse.urlparse(url)
         domain = parsed_url.netloc
         return render_template(
-            self.get_template_path('read_button'), acquisition, domain
+            self.get_template_path('read_button'), edition_key, acquisition, domain
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
@@ -542,6 +572,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     DirectProvider(),
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
+    ProjectRunebergProvider(),
     StandardEbooksProvider(),
     OpenStaxProvider(),
     CitaPressProvider(),

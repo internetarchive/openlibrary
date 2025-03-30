@@ -1,5 +1,4 @@
-"""Hooks for collecting performance stats.
-"""
+"""Hooks for collecting performance stats."""
 
 import logging
 import os
@@ -27,7 +26,7 @@ filters: dict[str, Any] = {}
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
-    global filters
+
     if not summary:
         return
     try:
@@ -46,7 +45,7 @@ def evaluate_and_store_stat(name, stat, summary):
             else:
                 logger.warning("No storage item specified for stat %s", name)
     except Exception as k:
-        logger.warning("Error while storing stats (%s). Complete traceback follows" % k)
+        logger.warning(f"Error while storing stats ({k}). Complete traceback follows")
         logger.warning(traceback.format_exc())
 
 
@@ -100,7 +99,7 @@ def stats_hook():
 
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
-    return '"%s"' % s
+    return f'"{s}"'
 
 
 labels = {
@@ -133,7 +132,7 @@ def process_stats(stats):
 
 
 def register_filter(name, function):
-    global filters
+
     filters[name] = function
 
 

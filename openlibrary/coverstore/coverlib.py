@@ -13,7 +13,7 @@ from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["save_image", "read_image", "read_file"]
+__all__ = ["read_file", "read_image", "save_image"]
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
@@ -125,9 +125,7 @@ def read_file(path):
 
 def read_image(d, size):
     if size:
-        filename = (
-            d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
-        )
+        filename = d['filename_' + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:
         filename = d.filename
     path = find_image_path(filename)

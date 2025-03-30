@@ -1,5 +1,4 @@
-"""Interface to access the database of openlibrary.
-"""
+"""Interface to access the database of openlibrary."""
 
 import sqlite3
 from datetime import datetime

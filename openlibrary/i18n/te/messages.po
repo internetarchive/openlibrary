@@ -2352,24 +2352,6 @@ msgstr ""
 #~ "ప్రతి ఫీల్డ్ అవసరమే, మరియు మీరు మీ "
 #~ "ఈమెయిలు చిరునామాను దృవీకరించవలసి ఉంటంది."
 
-#~ msgid "How would you like to receive List updates?"
-#~ msgstr "లిష్టు మార్పులు మీరు ఎలా పొందాలనుకుంటున్నారు?"
-
-#~ msgid "A weekly email, but only if something's changed"
-#~ msgstr "వారానికొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
-
-#~ msgid "A daily email, but only if something's changed"
-#~ msgstr "రోజుకొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
-
-#~ msgid "An email, pretty soon after any update"
-#~ msgstr "ఏదైనా మారిన వెంటనే ఒక ఈమెయిలు"
-
-#~ msgid "Send me a Twitter"
-#~ msgstr "నాకు ట్విట్టర్ పంపు"
-
-#~ msgid "Just pop a note on my Open Library home page"
-#~ msgstr "నా సార్వత్రిక గ్రంధాలయ హోంపేజిలో ఒక నోటు చూపించు"
-
 #~ msgid "Edit History"
 #~ msgstr "మార్పుల చరిత్ర"
 
@@ -2420,6 +2402,3 @@ msgstr ""
 
 #~ msgid "Page"
 #~ msgstr "పేజి"
-
-#~ msgid "We have %(email)s for you at the moment."
-#~ msgstr "మా దగ్గర ఇప్పుడు %(email)s ఉంది."

@@ -22,18 +22,25 @@
   "authors": [
     {
       "birth_date": "1748",
-      "personal_name": "Day, Thomas",
       "death_date": "1789",
       "name": "Day, Thomas",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1759",
+      "death_date": "1797",
+      "name": "Wollstonecraft, Mary",
+      "entity_type": "person"
+    },
+    {
+      "birth_date": "1757",
+      "death_date": "1827",
+      "name": "Blake, William",
       "entity_type": "person"
     }
   ],
   "publish_places": [
     "New York",
     "London"
-  ],
-  "contributions": [
-    "Wollstonecraft, Mary, 1759-1797",
-    "Blake, William, 1757-1827"
   ]
 }

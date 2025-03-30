@@ -241,7 +241,7 @@ TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestSubjects:
-    @pytest.mark.parametrize('item,expected', xml_samples)
+    @pytest.mark.parametrize(('item', 'expected'), xml_samples)
     def test_subjects_xml(self, item, expected):
         filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
         element = etree.parse(
@@ -252,7 +252,7 @@ class TestSubjects:
         rec = MarcXml(element)
         assert read_subjects(rec) == expected
 
-    @pytest.mark.parametrize('item,expected', bin_samples)
+    @pytest.mark.parametrize(('item', 'expected'), bin_samples)
     def test_subjects_bin(self, item, expected):
         filepath = TEST_DATA / 'bin_input' / item
         rec = MarcBinary(filepath.read_bytes())

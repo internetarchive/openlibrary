@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import CSSBox from './CSSBox';
-import FlatBookCover from './FlatBookCover';
+import CSSBox from './CSSBox.vue';
+import FlatBookCover from './FlatBookCover.vue';
 import { hashCode } from '../utils.js';
 
 export default {

@@ -68,6 +68,7 @@ class Sentry:
             dsn=self.config['dsn'],
             environment=self.config['environment'],
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
+            profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),
         )
 
@@ -82,12 +83,15 @@ class Sentry:
         app.add_processor(WebPySentryProcessor(app))
 
     def capture_exception_webpy(self):
-        with sentry_sdk.push_scope() as scope:
+        with sentry_sdk.new_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
-    def capture_exception(self, ex):
-        with sentry_sdk.push_scope() as scope:
+    def capture_exception(self, ex, extras: dict | None = None):
+        with sentry_sdk.new_scope() as scope:
+            if extras:
+                for key, value in extras.items():
+                    scope.set_extra(key, value)
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception(ex)
 
@@ -125,8 +129,7 @@ class WebPySentryProcessor:
 
             environ = dict(web.ctx.env)
             # Don't forward cookies to Sentry
-            if 'HTTP_COOKIE' in environ:
-                del environ['HTTP_COOKIE']
+            environ.pop('HTTP_COOKIE', None)
 
             transaction = Transaction.continue_from_environ(
                 environ,

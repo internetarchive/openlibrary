@@ -67,6 +67,27 @@ class BookshelvesEvents(db.CommonExtras):
         return results[0] if results else None
 
     @classmethod
+    def get_user_yearly_read_counts(cls, username: str) -> list[tuple[int, int]]:
+        """Returns books read by year for a given user."""
+        results = db.get_db().query(
+            """
+                SELECT
+                    substring(event_date from 1 for 4) as year,
+                    count(*) as count
+                FROM bookshelves_events
+                WHERE username=$username AND event_type=$event_type
+                GROUP BY year
+                ORDER BY year DESC
+            """,
+            vars={
+                'username': username,
+                'event_type': BookshelfEvent.FINISH,
+            },
+        )
+
+        return [(int(row.year), row.count) for row in results]
+
+    @classmethod
     def select_by_book_user_and_type(cls, username, work_id, edition_id, event_type):
         oldb = db.get_db()
 

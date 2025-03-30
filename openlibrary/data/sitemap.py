@@ -80,9 +80,8 @@ $for path, title in docs:
 
 
 def gzwrite(path, data):
-    f = gzopen(path, 'w')
-    f.write(data)
-    f.close()
+    with gzopen(path, 'w') as file:
+        file.write(data)
 
 
 def write_sitemaps(data, outdir, prefix):
@@ -114,8 +113,9 @@ def write_siteindex(data, outdir, prefix):
 
 
 def parse_index_file(index_file):
-    data = (line.strip().split("\t") for line in open(index_file))
-    data = ([t[0], " ".join(t[1:-2]), t[-2], t[-1]] for t in data)
+    with open(index_file) as file:
+        data = (line.strip().split("\t") for line in file)
+        data = ([t[0], " ".join(t[1:-2]), t[-2], t[-1]] for t in data)
     return data
 
 
@@ -133,9 +133,8 @@ def write(path, data):
     print("writing", path)
     mkdir_p(os.path.dirname(path))
 
-    f = open(path, "w")
-    f.write(data)
-    f.close()
+    with open(path, "w") as file:
+        file.write(data)
 
 
 def dirindex(dir, back=".."):

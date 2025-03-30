@@ -86,7 +86,7 @@ export default class SelectionManager {
     processClick(clickEvent) {
         // If there is text selection or the click is on a link that isn't a select handle, don't do anything
         if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button').length > 0 &&
+            ($(clickEvent.target).closest('a, button, details').length > 0 &&
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
@@ -128,8 +128,8 @@ export default class SelectionManager {
     getSelectableRange(clicked) {
         let commonParent = undefined;
         const curEls = { clicked, lastClicked: this.lastClicked };
-        // Only check up to 2 levels up in the tree
-        for (let i = 0; i < 2; i++) {
+        // Only check up to 3 levels up in the tree
+        for (let i = 0; i < 3; i++) {
             if (!curEls.clicked || !curEls.lastClicked) {
                 break;
             } else if (curEls.clicked === curEls.lastClicked) {
@@ -493,6 +493,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        href: olids => `/authors/merge?records=${olids.join(',')}`,
     },
 ];

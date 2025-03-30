@@ -13,7 +13,14 @@ $code:
   if doc_type == 'solr_edition':
     selected_ed = doc.get('editions')[0]
 
-  book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
+  selected_ed['availability'] = selected_ed.get('availability', {}) or doc.get('availability', {}) or availability or {}
+  ocaid = (selected_ed.get('ia') and selected_ed['ia'][0]) or selected_ed.get('ocaid')
+
+  if doc_type.startswith('infogami_'):
+    book_url = doc.url()
+  else:
+    book_url = doc.key + '/' + urlsafe(doc.get('title', '-'))
+
   if doc_type == 'solr_edition':
     work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
   else:
@@ -52,12 +59,15 @@ $code:
   <div class="sri__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-      <a href="$work_edition_url"><img
-              itemprop="image"
-              src="$cover"
-              alt="$_('Cover of: %(title)s', title=full_title)"
-              title="$_('Cover of: %(title)s', title=full_title)"
-      /></a>
+      <a href="$work_edition_url">
+	<img
+          itemprop="image"
+          src="$cover"
+          alt="$_('Cover of: %(title)s', title=full_title)"
+          title="$_('Cover of: %(title)s', title=full_title)"
+	  /></a>
+      $if ocaid:
+        $:macros.BookPreview(ocaid, show_only=False)
     </span>
 
     <div class="details">
@@ -141,7 +151,6 @@ $code:
 
         <div class="searchResultItemCTA-lending">
           $if cta:
-            $ selected_ed['availability'] = selected_ed.get('availability', {}) or doc.get('availability', {}) or availability or {}
             $:macros.LoanStatus(selected_ed, work_key=doc.key)
         </div>
 

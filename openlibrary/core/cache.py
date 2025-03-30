@@ -1,5 +1,4 @@
-"""Caching utilities.
-"""
+"""Caching utilities."""
 
 import functools
 import hashlib
@@ -22,14 +21,14 @@ from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
-    "cached_property",
     "Cache",
-    "MemoryCache",
     "MemcacheCache",
+    "MemoryCache",
     "RequestCache",
-    "memoize",
-    "memcache_memoize",
+    "cached_property",
     "get_memcache",
+    "memcache_memoize",
+    "memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -72,7 +71,8 @@ class memcache_memoize:
         self.prethread = prethread
         self.hash_args = hash_args
 
-    def _get_memcache(self):
+    @property
+    def memcache(self):
         if self._memcache is None:
             servers = config.get("memcache_servers")
             if servers:
@@ -81,18 +81,11 @@ class memcache_memoize:
                 web.debug(
                     "Could not find memcache_servers in the configuration. Used dummy memcache."
                 )
-                try:
-                    import mockcache  # Only supports legacy Python
+                from pymemcache.test.utils import MockMemcacheClient
 
-                    self._memcache = mockcache.Client()
-                except ImportError:  # Python 3
-                    from pymemcache.test.utils import MockMemcacheClient
-
-                    self._memcache = MockMemcacheClient()
+                self._memcache = MockMemcacheClient()
 
         return self._memcache
-
-    memcache = property(_get_memcache)
 
     def _generate_key_prefix(self):
         try:
@@ -230,10 +223,13 @@ class memcache_memoize:
         """
         key = self.compute_key(args, kw)
         stats.begin("memcache.get", key=key)
-        json_str = self.memcache.get(key)
+        json_str = cast(str, self.memcache.get(key))
         stats.end(hit=bool(json_str))
 
-        return json_str and json.loads(json_str)
+        if json_str:
+            return cast(tuple[Any, float], json.loads(json_str))
+        else:
+            return None
 
 
 ####
@@ -266,28 +262,28 @@ class Cache:
 
     def get(self, key):
         """Returns the value for given key. Returns None if that key is not present in the cache."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def set(self, key, value, expires=0):
         """Sets a value in the cache.
         If expires is non-zero, the cache may delete that entry from the cache after expiry.
         The implementation can choose to ignore the expires argument.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def add(self, key, value, expires=0):
         """Adds a new entry in the cache. Nothing is done if there is already an entry with the same key.
 
         Returns True if a new entry is added to the cache.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def delete(self, key):
         """Deletes an entry from the cache. No error is raised if there is no entry in present in the cache with that key.
 
         Returns True if the key is deleted.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class MemoryCache(Cache):
@@ -328,14 +324,9 @@ class MemcacheCache(Cache):
             web.debug(
                 "Could not find memcache_servers in the configuration. Used dummy memcache."
             )
-            try:
-                import mockcache
+            from pymemcache.test.utils import MockMemcacheClient
 
-                return mockcache.Client()
-            except ImportError:
-                from pymemcache.test.utils import MockMemcacheClient
-
-                return MockMemcacheClient()
+            return MockMemcacheClient()
 
     def _encode_key(self, key: str) -> str:
         return cast(str, web.safestr(key))

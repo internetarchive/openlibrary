@@ -1,0 +1,17 @@
+$def with(url, provider_name="", wait=5)
+
+$if provider_name is None:
+  $ provider_name = ""
+
+<div id="contentBody" class="interstitial" data-url="${url}" data-wait="${wait}">
+  <h1>$_("You are being redirected to your book")</h1>
+
+  <p id="countdown">$:_('This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider', book_provider='<strong>' + websafe(provider_name).replace('_', ' ').title() + '</strong>')</p>
+
+  <p>$:_('In %(time)s seconds, you will be automatically redirected to: %(url)s', time='<span id="timer">{}</span>'.format(wait), url='<a href="{0}">{0}</a>'.format(url))</p>
+
+  <p>
+    <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
+    <a href="${url}">$_("Continue without waiting")</a>
+  </p>
+</div>

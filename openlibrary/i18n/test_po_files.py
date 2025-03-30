@@ -48,7 +48,8 @@ def gen_po_file_keys():
     for locale in get_locales():
         po_path = os.path.join(root, locale, 'messages.po')
 
-        catalog = read_po(open(po_path, 'rb'))
+        with open(po_path, 'rb') as fil:
+            catalog = read_po(fil)
         for key in catalog:
             yield locale, key
 
@@ -73,7 +74,7 @@ def gen_html_entries():
         yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
-@pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
+@pytest.mark.parametrize(('locale', 'msgid', 'msgstr'), gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
     # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?

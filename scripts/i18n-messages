@@ -2,6 +2,7 @@
 """Utility script to extract all translatable messages from templates and
 macros and write to openlibrary/i18n/messages.pot file.
 """
+import subprocess
 import sys
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
@@ -27,12 +28,22 @@ def help():
 
 def main(cmd, args):
     if cmd == 'extract':
+        # Using shell=True, because otherwise the *.py seems to cause trouble
+        # on some systems, resulting in no python files being extracted.
+        py_sources = subprocess.run(
+            "grep -rlF ' _(' openlibrary/ --include '*.py'",
+            shell=True,
+            capture_output=True,
+            check=False,
+            text=True,
+        ).stdout.splitlines()
+
         message_sources = [
             'openlibrary/templates/',
             'openlibrary/macros/',
-            # TODO: We should check all python files somehow, but too slow
-            'openlibrary/plugins/upstream',
+            *py_sources,
         ]
+
         i18n.extract_messages(
             message_sources,
             verbose='--verbose' in args,

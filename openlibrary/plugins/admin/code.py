@@ -1,5 +1,4 @@
-"""Plugin to provide admin interface.
-"""
+"""Plugin to provide admin interface."""
 
 import datetime
 import json
@@ -35,7 +34,6 @@ from openlibrary.core import (
 )
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
-from openlibrary.plugins.upstream.account import send_forgot_password_email
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -350,8 +348,6 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
-        elif i.action == "send_password_reset_email":
-            return self.POST_send_password_reset_email(user)
         elif i.action == "block_account":
             return self.POST_block_account(user)
         elif i.action == "block_account_and_revert":
@@ -374,10 +370,6 @@ class people_view:
 
     def POST_activate_account(self, user):
         user.activate()
-        raise web.seeother(web.ctx.path)
-
-    def POST_send_password_reset_email(self, user):
-        send_forgot_password_email(user.username, user.email)
         raise web.seeother(web.ctx.path)
 
     def POST_block_account(self, account):
@@ -726,14 +718,14 @@ class permissions:
     def get_permission(self, key):
         doc = web.ctx.site.get(key)
         perm = doc and doc.child_permission
-        return perm and perm.key or "/permission/open"
+        return (perm and perm.key) or "/permission/open"
 
     def set_permission(self, key, permission):
         """Returns the doc with permission set.
         The caller must save the doc.
         """
         doc = web.ctx.site.get(key)
-        doc = doc and doc.dict() or {"key": key, "type": {"key": "/type/page"}}
+        doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
         doc["permission"] = {"key": "/permission/restricted"}

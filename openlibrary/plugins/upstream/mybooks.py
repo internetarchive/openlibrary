@@ -1,4 +1,5 @@
 import json
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Final, Literal, cast
 
 import web
@@ -13,6 +14,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -20,7 +22,6 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -61,7 +62,7 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(loans)})
+            loans = web.Storage({"docs": [], "total_results": len(myloans)})
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
                 # Book will be None if no OL edition exists for the book
@@ -260,12 +261,7 @@ class mybooks_readinglog(delegate.page):
 
         # Add yearly reading goals to the MyBooksTemplate
         if mb.key == 'already-read' and mb.is_my_page:
-            mb.reading_goals = [
-                str(result.year)
-                for result in YearlyReadingGoals.select_by_username(
-                    mb.username, order='year DESC'
-                )
-            ]
+            mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -305,10 +301,8 @@ class public_my_books_json(delegate.page):
             )
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if (
-            is_public
-            or logged_in_user
-            and logged_in_user.key.split('/')[-1] == username
+        if is_public or (
+            logged_in_user and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit, q=i.q).docs
@@ -371,7 +365,13 @@ def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
 @public
 class MyBooksTemplate:
     # Reading log shelves
-    READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
+    READING_LOG_KEYS = frozenset(
+        {
+            "currently-reading",
+            "want-to-read",
+            "already-read",
+        }
+    )
 
     # Keys that can be accessed when not logged in
     PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"} | {"mybooks"}
@@ -415,10 +415,10 @@ class MyBooksTemplate:
             else {}
         )
 
-        self.reading_goals: list = []
+        self.yearly_reads: list[tuple[int, int]] = []
         self.selected_year = None
 
-        if self.me and self.is_my_page or self.is_public:
+        if (self.me and self.is_my_page) or self.is_public:
             self.counts['followers'] = PubSub.count_followers(self.username)
             self.counts['following'] = PubSub.count_following(self.username)
 
@@ -456,18 +456,22 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
-    READING_LOG_KEY_TO_SHELF: dict[READING_LOG_KEYS, PRESET_SHELVES] = {
-        "want-to-read": "Want to Read",
-        "already-read": "Already Read",
-        "currently-reading": "Currently Reading",
-    }
+    READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = (
+        MappingProxyType(
+            {
+                "want-to-read": "Want to Read",
+                "already-read": "Already Read",
+                "currently-reading": "Currently Reading",
+            }
+        )
+    )
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
 
     @property
     def lists(self) -> list:
-        return self.user.get_lists()
+        return self.user.get_lists(limit=1000)
 
     @property
     def booknotes_counts(self):

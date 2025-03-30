@@ -1,5 +1,4 @@
-"""Infobase extension for Open Library.
-"""
+"""Infobase extension for Open Library."""
 
 from ..plugins import ol_infobase
 from . import events

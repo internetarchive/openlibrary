@@ -7,13 +7,13 @@ $ header_title = header_title or mb.key
 $var title: $header_title
 
 <div class="mybooks">
-
+  $if mb.is_my_page:
+    $ reading_goal_form = render_template('check_ins/reading_goal_form', year=current_year())
+    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
   $:mb.render_sidebar()
 
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
   <div class="mybooks-details $css">
-    $if mb.key == 'mybooks' and mb.is_my_page:
-      $:render_template("account/yrg_banner", mb.component_times)
 
     $ mb.component_times['Details header'] = time()
     <header>
@@ -28,10 +28,10 @@ $var title: $header_title
         $else:
           <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
             $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
-            $if header_title=="Already Read" and mb.reading_goals:
 
+            $if mb.key == 'already-read' and mb.yearly_reads:
               $ selected_year = mb.selected_year if mb.selected_year else _("All Time")
-              $:render_template("books/year_breadcrumb_select", mb, selected= selected_year)
+              $:render_template("books/year_breadcrumb_select", mb, selected=selected_year)
 
           </div>
       </div>

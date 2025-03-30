@@ -1,5 +1,4 @@
-"""Subject pages.
-"""
+"""Subject pages."""
 
 import datetime
 import json
@@ -12,11 +11,11 @@ from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
-from openlibrary.core.models import Subject
+from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 
-__all__ = ["SubjectEngine", "get_subject", "SubjectMeta"]
+__all__ = ["SubjectEngine", "SubjectMeta", "get_subject"]
 
 
 DEFAULT_RESULTS = 12
@@ -44,6 +43,7 @@ class subjects(delegate.page):
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
+            self.decorate_with_tags(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -57,6 +57,25 @@ class subjects(delegate.page):
             key = key.replace("/places/", "/place:")
             key = key.replace("/times/", "/time:")
         return key
+
+    def decorate_with_tags(self, subject) -> None:
+        if tag_keys := Tag.find(subject.name):
+            tags = web.ctx.site.get_many(tag_keys)
+            subject.disambiguations = tags
+
+            if filtered_tags := [
+                tag for tag in tags if tag.tag_type == subject.subject_type
+            ]:
+                subject.tag = filtered_tags[0]
+                # Remove matching subject tag from disambiguated tags:
+                subject.disambiguations = list(set(tags) - {subject.tag})
+
+            for tag in subject.disambiguations:
+                tag.subject_key = (
+                    f"/subjects/{tag.name}"
+                    if tag.tag_type == "subject"
+                    else f"/subjects/{tag.tag_type}:{tag.name}"
+                )
 
 
 class subjects_json(delegate.page):
@@ -336,18 +355,6 @@ class SubjectEngine:
                     subject[meta.key].pop(i)
                     break
 
-            q = {"type": "/type/tag", "name": subject.name, "tag_type": "subject"}
-            match = web.ctx.site.things(q)
-            if match:
-                tag = web.ctx.site.get(match[0])
-                match = {
-                    'name': tag.name,
-                    'id': tag.key,
-                    'description': tag.tag_description,
-                    'plugins': tag.tag_plugins,
-                }
-                subject.tag = match
-
         return subject
 
     def get_meta(self, key) -> 'SubjectMeta':
@@ -404,7 +411,6 @@ class SubjectEngine:
             cover_edition_key=w.get('cover_edition_key'),
             subject=w.get('subject', []),
             ia_collection=ia_collection,
-            lendinglibrary='lendinglibrary' in ia_collection,
             printdisabled='printdisabled' in ia_collection,
             lending_edition=w.get('lending_edition_s', ''),
             lending_identifier=w.get('lending_identifier_s', ''),

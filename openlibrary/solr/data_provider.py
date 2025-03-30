@@ -217,7 +217,7 @@ class DataProvider:
         :param str key: type-prefixed key (ex: /books/OL1M)
         :rtype: dict
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_metadata(self, identifier: str):
         if identifier in self.ia_cache:
@@ -278,7 +278,7 @@ class DataProvider:
         :param str key: type-prefixed key
         :rtype: list of str
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_editions_of_work(self, work):
         """
@@ -286,13 +286,13 @@ class DataProvider:
         :param dict work: work object
         :rtype: list of dict
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def clear_cache(self):
         self.ia_cache.clear()

@@ -412,19 +412,22 @@ function deleteEvent(rootElem, workOlid, eventId) {
 /**
  * Adds listener to open reading goal modal.
  *
- * Updates yearly goal form's current year to the patron's
- * local year.
- *
  * @param {HTMLCollection<HTMLElement>} links Prompts for adding a reading goal
  */
 export function initYearlyGoalPrompt(links) {
-    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
-
     for (const link of links) {
-        link.addEventListener('click', function() {
-            yearlyGoalModal.showModal()
-        })
+        if (!link.classList.contains('goal-set')) {
+            link.addEventListener('click', onYearlyGoalClick)
+        }
     }
+}
+
+/**
+ * Finds and shows the yearly goal modal.
+ */
+function onYearlyGoalClick() {
+    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
+    yearlyGoalModal.showModal()
 }
 
 /**
@@ -522,23 +525,29 @@ function addGoalSubmissionListener(submitButton) {
                     modal.close()
                 }
 
-                const yearlyGoalSection = modal.closest('.yearly-goal-section')
+                const yearlyGoalSections = document.querySelectorAll('.yearly-goal-section')
                 if (formData.get('is_update')) {  // Progress component exists on page
-                    const goalInput = form.querySelector('input[name=goal]')
-                    const isDeleted = Number(goalInput.value) === 0
+                    yearlyGoalSections.forEach((yearlyGoalSection) => {
+                        const goalInput = form.querySelector('input[name=goal]')
+                        const isDeleted = Number(goalInput.value) === 0
 
-                    if (isDeleted) {
-                        const chipGroup = yearlyGoalSection.querySelector('.chip-group')
-                        const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
-                        goalContainer.remove()
-                        chipGroup.classList.remove('hidden')
-                    } else {
-                        const progressComponent = modal.closest('.reading-goal-progress')
-                        updateProgressComponent(progressComponent, Number(formData.get('goal')))
-                    }
+                        if (isDeleted) {
+                            const chipGroup = yearlyGoalSection.querySelector('.chip-group')
+                            const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
+                            if (chipGroup) {
+                                chipGroup.classList.remove('hidden')
+                            }
+                            if (goalContainer) {
+                                goalContainer.remove()
+                            }
+                        } else {
+                            const progressComponent = modal.closest('.reading-goal-progress')
+                            updateProgressComponent(progressComponent, Number(formData.get('goal')))
+                        }
+                    })
                 } else {
                     const goalYear = formData.get('year')
-                    fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
+                    fetchProgressAndUpdateViews(yearlyGoalSections, goalYear)
                     const banner = document.querySelector('.page-banner-mybooks')
                     if (banner) {
                         banner.remove()
@@ -563,10 +572,8 @@ function updateProgressComponent(elem, goal) {
 
     // Update view:
     const goalSpan = elem.querySelector('.reading-goal-progress__goal')
-    const percentageSpan = elem.querySelector('.reading-goal-progress__percentage')
     const completedBar = elem.querySelector('.reading-goal-progress__completed')
     goalSpan.textContent = goal
-    percentageSpan.textContent = `(${percentComplete}%)`
     completedBar.style.width = `${Math.min(100, percentComplete)}%`
 }
 
@@ -576,10 +583,10 @@ function updateProgressComponent(elem, goal) {
  * Adds listeners to the progress component, and hides
  * link for setting reading goal.
  *
- * @param {HTMLElement} yearlyGoalElem Container for progress component and reading goal link.
+ * @param {NodeList} yearlyGoalElems Containers for progress components and reading goal links.
  * @param {string} goalYear Year that the goal is set for.
  */
-function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
+function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
     fetch(`/reading-goal/partials.json?year=${goalYear}`)
         .then((response) => {
             if (!response.ok) {
@@ -589,19 +596,29 @@ function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
         })
         .then(function(data) {
             const html = data['partials']
-            const progress = document.createElement('SPAN')
-            progress.id = 'reading-goal-container'
-            progress.innerHTML = html
-            yearlyGoalElem.appendChild(progress)
+            yearlyGoalElems.forEach((yearlyGoalElem) => {
+                const progress = document.createElement('SPAN')
+                progress.id = 'reading-goal-container'
+                progress.innerHTML = html
+                yearlyGoalElem.appendChild(progress)
 
-            // Hide the "Set 20XX reading goal" link:
-            yearlyGoalElem.children[0].classList.add('hidden')
+                const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
+                if (link) {
+                    if (link.classList.contains('li-title-desktop')) {
+                        // Remove click listener in mobile views
+                        link.removeEventListener('click', onYearlyGoalClick)
+                    } else {
+                        // Hide desktop "set 20XX reading goal" link
+                        link.classList.add('hidden');
+                    }
+                }
 
-            const progressEditLink = progress.querySelector('.edit-reading-goal-link')
-            const updateModal = progress.querySelector('dialog')
-            initDialogs([updateModal])
-            addGoalEditClickListener(progressEditLink, updateModal)
-            const submitButton = updateModal.querySelector('.reading-goal-submit-button')
-            addGoalSubmissionListener(submitButton)
+                const progressEditLink = progress.querySelector('.edit-reading-goal-link')
+                const updateModal = progress.querySelector('dialog')
+                initDialogs([updateModal])
+                addGoalEditClickListener(progressEditLink, updateModal)
+                const submitButton = updateModal.querySelector('.reading-goal-submit-button')
+                addGoalSubmissionListener(submitButton)
+            })
         })
 }

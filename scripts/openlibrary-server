@@ -75,7 +75,8 @@ def setup_infobase_config(config_file):
     if config.get("infobase_config_file"):
         dir = os.path.dirname(config_file)
         path = os.path.join(dir, config.infobase_config_file)
-        config.infobase = yaml.safe_load(open(path).read())
+        with open(path) as f:
+            config.infobase = yaml.safe_load(f)
 
 
 class BaseWSGIServer(Application):
@@ -100,7 +101,7 @@ class BaseWSGIServer(Application):
         return wsgi_app
 
     def get_wsgi_app(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class OLWSGIServer(BaseWSGIServer):

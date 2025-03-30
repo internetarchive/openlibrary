@@ -1,5 +1,4 @@
-"""Generic helper functions to use in the templates and the webapp.
-"""
+"""Generic helper functions to use in the templates and the webapp."""
 
 import json
 import re
@@ -36,28 +35,27 @@ from infogami.utils.view import safeint
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
 __all__ = [
-    "sanitize",
-    "json_encode",
-    "safesort",
-    "days_since",
-    "datestr",
-    "format_date",
-    "sprintf",
-    "cond",
-    "commify",
-    "truncate",
-    "datetimestr_utc",
-    "urlsafe",
-    "texsafe",
-    "percentage",
     "affiliate_id",
     "bookreader_host",
-    "private_collections",
-    "private_collection_in",
+    "commify",
+    "cond",
+    "datestr",
+    "datetimestr_utc",
+    "days_since",
     "extract_year",
-    # functions imported from elsewhere
-    "parse_datetime",
-    "safeint",
+    "format_date",
+    "json_encode",
+    "parse_datetime",  # function imported from elsewhere
+    "percentage",
+    "private_collection_in",
+    "private_collections",
+    "safeint",  # function imported from elsewhere
+    "safesort",
+    "sanitize",
+    "sprintf",
+    "texsafe",
+    "truncate",
+    "urlsafe",
 ]
 __docformat__ = "restructuredtext en"
 
@@ -336,12 +334,17 @@ def private_collection_in(collections: list[str]) -> bool:
     return any(x in private_collections() for x in collections)
 
 
-def extract_year(input: str) -> str:
+def extract_year(input: str, int_only: bool = True) -> str:
     """Extracts the year from an author's birth or death date."""
-    if result := re.search(r'\d{4}', input):
-        return result.group()
+    if int_only:
+        pattern = r'\d{4}'
     else:
-        return ''
+        pattern = r'[0-9xX?]{4}'
+
+    if result := re.search(pattern, input):
+        return result.group()
+
+    return ''
 
 
 def _get_helpers():

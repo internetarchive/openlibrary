@@ -450,7 +450,8 @@ CREATE TABLE public.import_item (
     ia_id text,
     data text,
     ol_key text,
-    comments text
+    comments text,
+    submitter text
 );
 
 
