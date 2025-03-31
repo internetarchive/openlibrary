@@ -215,7 +215,9 @@ class tag_edit(delegate.page):
         is_in_permitted_group = patron.is_admin()
         is_deputy = patron.key == tag.get("deputy", None)
 
-        if not is_in_permitted_group and (tag.tag_type in SUBJECT_SUB_TYPES and not is_deputy):
+        if not is_in_permitted_group and (
+            tag.tag_type in SUBJECT_SUB_TYPES and not is_deputy
+        ):
             return False
 
         return True
