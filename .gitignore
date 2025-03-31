@@ -38,3 +38,5 @@ venv/
 *.c
 *.so
 /stories/package-lock.json
+TODO.md
+LEARNINGS.md

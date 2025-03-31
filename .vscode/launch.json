@@ -10,8 +10,9 @@
       "request": "attach",
       "connect": {
         "host": "localhost",
-        "port": 3000
+        "port": 8080
       },
+      "preLaunchTask": "batch-bookshelf-endpoint",
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",

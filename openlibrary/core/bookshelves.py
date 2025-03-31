@@ -702,7 +702,13 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id = int(bookshelf_id)
         work_ids = [int(work_id) for work_id in work_ids]
 
-
+        # oldb.insert_many(
+        #     cls.TABLENAME,
+        #     username=username,
+        #     bookshelf_id=bookshelf_id,
+        #     work_id=comma_separated(work_ids),
+        #     edition_id=edition_id,
+        # )
 
 
     @classmethod

@@ -269,8 +269,6 @@ class booknotes(delegate.page):
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.
-
-
 class work_bookshelves(delegate.page):
     path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
@@ -348,6 +346,58 @@ class work_bookshelves(delegate.page):
             json.dumps({'bookshelves_affected': work_bookshelf}),
             content_type="application/json",
         )
+    
+class work_bookshelves_batch(delegate.page):
+    """
+    Batch API for bookshelves
+    Add a batch of works to bookshelves
+
+    :return a list of bookshelves_affected, total woks added successfully and total works unsuccessful
+    :rtype: json
+    """
+    path = "/works/batch/v1/bookshelves"
+    encoding = "json"
+    
+    @jsonapi
+    def POST(self): 
+        data = json.loads(web.data())
+        import debugpy
+        debugpy.listen(("0.0.0.0", 8080))
+        work_ids = data.get("work_ids", [])
+        edition_ids = data.get("edition_ids", []) or None
+        self.santise(work_ids)
+
+        return delegate.RawText(
+            json.dumps({"received_work_ids": work_ids}),
+            content_type="application/json"
+        )
+    
+    def santise(work_ids, edition_ids=None):
+        """
+        Sanitise request
+        """
+        if not work_ids:
+            return json.dumps({"error": "work_ids is required"})
+        print (work_ids)
+
+        # for work_id in work_ids:
+        #     print(work_id)
+        #     if not isinstance(work_id, int):
+        #         return json.dumps({"error": "work_ids must be a list of int"})
+        
+        # if edition_ids:
+        #     for edition_id in edition_ids:
+        #         print(edition_id)
+        #         if not work_id.startswith("OL") or not work_id.endswith("W"):
+        #             return json.dumps({"error": "work_ids must be in the format OL12345W"})
+        
+        if not isinstance(work_ids, list):
+            return json.dumps({"error": "work_ids must be a list"})
+        
+        # user = accounts.get_current_user()
+        # if not user:
+        #     return json.dumps({"error": "User not logged in"})
+        pass
 
 
 class work_editions(delegate.page):
