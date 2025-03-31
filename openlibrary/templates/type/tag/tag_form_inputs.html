@@ -49,3 +49,11 @@ $ tag_type = page and page.get('tag_type', '')
         </select>
     </div>
 </div>
+
+$ deputy = page and page.get('deputy', '')
+<div class="formElement">
+    <div class="label"><label for="deputy">$_("Tag Deputy")</label></div>
+    <div class="input">
+        <input type="text" name="deputy" id="deputy" value="$deputy">
+    </div>
+</div>
