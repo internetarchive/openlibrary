@@ -92,7 +92,7 @@ class trending_books_api(delegate.page):
             books_only=True,
             sort_by_count=i.sort_by_count != "false",
             minimum=i.minimum,
-            fields = i.fields.split(','),
+            fields = i.fields,
         )
         result = {
             'query': f"/trending/{period}",

@@ -9,6 +9,7 @@ import web
 
 from infogami.infobase.utils import flatten
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -126,6 +127,8 @@ class Bookshelves(db.CommonExtras):
         fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
+        fields=list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}),
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -148,6 +151,7 @@ class Bookshelves(db.CommonExtras):
             {where} {group_by} {order_by}
             limit $limit offset $offset"""
         logger.info("Query: %s", query)
+        fields = fields 
         data = {
             'shelf_id': shelf_id,
             'limit': limit,
@@ -157,10 +161,10 @@ class Bookshelves(db.CommonExtras):
         }
 
         logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return cls.fetch(logged_books, fields) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def fetch(cls, readinglog_items , fields = WorkSearchScheme.default_fetched_fields):
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
@@ -171,7 +175,8 @@ class Bookshelves(db.CommonExtras):
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
-            f"/works/OL{i['work_id']}W" for i in readinglog_items
+            (f"/works/OL{i['work_id']}W" for i in readinglog_items),
+            fields
         )
 
         # Loop over each work in the index and inject its availability
