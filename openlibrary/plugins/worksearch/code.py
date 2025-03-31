@@ -76,16 +76,12 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
-def get_solr_works(work_key: Iterable[str],
-                   fields = WorkSearchScheme.default_fetched_fields) -> dict[str, dict]:
+def get_solr_works(
+    work_key: Iterable[str], fields=WorkSearchScheme.default_fetched_fields
+) -> dict[str, dict]:
     from openlibrary.plugins.worksearch.search import get_solr
 
-    return {
-        doc['key']: doc
-        for doc in get_solr().get_many(
-            set(work_key), fields
-        )
-    }
+    return {doc['key']: doc for doc in get_solr().get_many(set(work_key), fields)}
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
