@@ -361,9 +361,6 @@ class work_bookshelves_batch(delegate.page):
     @jsonapi
     def POST(self): 
         data = json.loads(web.data())
-        import debugpy
-        debugpy.listen(("localhost", 8080))
-        debugpy.wait_for_client()
         work_ids = data.get("work_ids", [])
         edition_ids = data.get("edition_ids", []) or None
         self.santise(work_ids)
