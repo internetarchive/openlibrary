@@ -691,6 +691,19 @@ class Bookshelves(db.CommonExtras):
                 edition_id=edition_id,
                 vars=data,
             )
+        
+    @classmethod
+    def add_batch(
+        cls, username: str, bookshelf_id: str, work_ids: list[str], edition_id=None
+    ) -> None:
+        """Adds a batch of books with `work_ids` to user's bookshelf designated by
+        `bookshelf_id`"""
+        oldb = db.get_db()
+        bookshelf_id = int(bookshelf_id)
+        work_ids = [int(work_id) for work_id in work_ids]
+
+
+
 
     @classmethod
     def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):

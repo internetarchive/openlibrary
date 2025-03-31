@@ -37,3 +37,4 @@ node_modules/
 venv/
 *.c
 *.so
+/stories/package-lock.json
