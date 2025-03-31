@@ -362,7 +362,8 @@ class work_bookshelves_batch(delegate.page):
     def POST(self): 
         data = json.loads(web.data())
         import debugpy
-        debugpy.listen(("0.0.0.0", 8080))
+        debugpy.listen(("localhost", 8080))
+        debugpy.wait_for_client()
         work_ids = data.get("work_ids", [])
         edition_ids = data.get("edition_ids", []) or None
         self.santise(work_ids)
@@ -380,16 +381,16 @@ class work_bookshelves_batch(delegate.page):
             return json.dumps({"error": "work_ids is required"})
         print (work_ids)
 
-        # for work_id in work_ids:
-        #     print(work_id)
-        #     if not isinstance(work_id, int):
-        #         return json.dumps({"error": "work_ids must be a list of int"})
+        for work_id in work_ids:
+            print(work_id)
+            if not isinstance(work_id, int):
+                return json.dumps({"error": "work_ids must be a list of int"})
         
-        # if edition_ids:
-        #     for edition_id in edition_ids:
-        #         print(edition_id)
-        #         if not work_id.startswith("OL") or not work_id.endswith("W"):
-        #             return json.dumps({"error": "work_ids must be in the format OL12345W"})
+        if edition_ids:
+            for edition_id in edition_ids:
+                print(edition_id)
+                if not work_id.startswith("OL") or not work_id.endswith("W"):
+                    return json.dumps({"error": "work_ids must be in the format OL12345W"})
         
         if not isinstance(work_ids, list):
             return json.dumps({"error": "work_ids must be a list"})

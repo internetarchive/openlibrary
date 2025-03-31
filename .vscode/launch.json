@@ -12,11 +12,10 @@
         "host": "localhost",
         "port": 8080
       },
-      "preLaunchTask": "batch-bookshelf-endpoint",
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/openlibrary/"
+          "remoteRoot": "/openlibrary" // app folder within docker container
         }
       ]
     }
