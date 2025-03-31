@@ -7,7 +7,7 @@
 /* Arrows */
 .slick-prev,
 .slick-next
-{   
+{
     position: absolute;
     top: 50%;
 
@@ -52,7 +52,7 @@
     display: block;
     background: url(/static/images/icons/icon_slick-arrow-right.svg) center / contain no-repeat;
     width: 35px;
-    height: 35px; 
+    height: 35px;
     opacity: .75;
 }
 
