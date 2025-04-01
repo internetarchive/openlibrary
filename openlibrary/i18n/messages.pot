@@ -2159,8 +2159,7 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-#: account/view.html admin/index.html books/year_breadcrumb_select.html
-#: trending.html
+#: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
 msgstr ""
 
