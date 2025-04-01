@@ -76,8 +76,8 @@ services:
     # Mac users can do eg "7070:7000" to change the port used on the host
     # machine to avoid conflicts.
     # See https://github.com/internetarchive/openlibrary/issues/6315
-    ports:
-     - 7070:7000
+    # ports:
+    #  - 7070:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary
