@@ -31,7 +31,7 @@ $var title: $header_title
 
             $if mb.key == 'already-read' and mb.yearly_reads:
               $ url_prefix = "/people/%s/books/already-read" % yearly_reads.username
-              $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=selected_year)
+              $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
 
           </div>
       </div>
