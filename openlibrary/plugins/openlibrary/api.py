@@ -355,7 +355,7 @@ class work_bookshelves_batch(delegate.page):
     :return a list of bookshelves_affected, total woks added successfully and total works unsuccessful
     :rtype: json
     """
-    path = "/works/batch/v1/bookshelves"
+    path = "/works/batch/bookshelves"
     encoding = "json"
     
     @jsonapi
@@ -374,6 +374,37 @@ class work_bookshelves_batch(delegate.page):
                 reading_list=reading_list
             )
 
+        return self.report(report, reading_list)
+    
+    def sanitise(self, reading_list, user):
+        """
+        Sanitise request data 
+        The work_id should be something like 54120 
+        The key should be a bookshelf number i.e. 1, 2, 3
+        """
+        if not reading_list:
+            return json.dumps({"error": "reading_list is required"})
+
+        if not isinstance(reading_list, dict):
+            return json.dumps({"error": "reading_list must be a dict"})
+
+        for keys, work_ids in reading_list.items():
+            if len(work_ids) == 0:
+                return json.dumps({"error": "work_ids is empty"})
+            if not all(isinstance(work_id, int) for work_id in work_ids):
+                return json.dumps({"error": "work_ids must be a list of int"})
+            if not all(isinstance(int(key), int) for key in keys):
+                return json.dumps({"error": "reading_list keys must int-able"})
+        
+        user = accounts.get_current_user()
+        if not user:
+            return json.dumps({"error": "User not logged in"})
+        return True
+    
+    def report(self, report, reading_list):
+        """
+        Report the result of the database write
+        """
         if report["success"]:
             return delegate.RawText(
                 json.dumps({
@@ -394,31 +425,6 @@ class work_bookshelves_batch(delegate.page):
                 }),
                 content_type="application/json"
             )
-    
-    def sanitise(self, reading_list, user):
-        """
-        Sanitise request
-        """
-        if not reading_list:
-            return json.dumps({"error": "reading_list is required"})
-
-        if not isinstance(reading_list, dict):
-            return json.dumps({"error": "reading_list must be a dict"})
-
-        """ 
-        The work_id should be something like 54120 
-        The key should be a bookshelf number i.e. 1, 2, 3
-        """
-        for keys, work_ids in reading_list.items():
-            if not all(isinstance(work_id, int) for work_id in work_ids):
-                return json.dumps({"error": "work_ids must be a list of int"})
-            if not all(isinstance(int(key), int) for key in keys):
-                return json.dumps({"error": "reading_list keys must int-able"})
-        
-        user = accounts.get_current_user()
-        if not user:
-            return json.dumps({"error": "User not logged in"})
-        return True
 
 
 class work_editions(delegate.page):
