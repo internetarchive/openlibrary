@@ -25,6 +25,8 @@ services:
     environment:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+      # This might overwrite the above?
+      - SOLR_HEAP=8g
     restart: unless-stopped
 
   solr_haproxy:
