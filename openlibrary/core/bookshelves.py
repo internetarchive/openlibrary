@@ -694,10 +694,11 @@ class Bookshelves(db.CommonExtras):
         
     @classmethod
     def add_batch(
-        cls, username: str, reading_list: dict[int, list[int]]
+        cls, username: str, reading_list: dict[str, list[int]]
     ) -> None:
         """Adds a batch of books with `work_ids` to user's bookshelf designated by
         `bookshelf_id`"""
+
         oldb = db.get_db()
 
         # Metrics

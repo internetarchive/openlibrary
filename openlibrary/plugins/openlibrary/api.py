@@ -389,8 +389,8 @@ class work_bookshelves_batch(delegate.page):
             return json.dumps({"error": "reading_list must be a dict"})
 
         for keys, work_ids in reading_list.items():
-            if len(work_ids) == 0:
-                return json.dumps({"error": "work_ids is empty"})
+            # if len(work_ids) == 0:
+            #     return json.dumps({"error": "work_ids is empty"})
             if not all(isinstance(work_id, int) for work_id in work_ids):
                 return json.dumps({"error": "work_ids must be a list of int"})
             if not all(isinstance(int(key), int) for key in keys):

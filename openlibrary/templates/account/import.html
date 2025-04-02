@@ -117,7 +117,7 @@ $def with (books=None, books_wo_isbns=None)
               <input class="add-book" value="$(dict)" type="checkbox" checked="checked">
               </td>
               $for key in keys:
-                <td>$books[isbn].get(key)</td>
+                <td key="$key">$books[isbn].get(key)</td>
             </tr>
           $for id in books_wo_isbns:
             <tr>
