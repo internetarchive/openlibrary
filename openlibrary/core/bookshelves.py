@@ -720,16 +720,18 @@ class Bookshelves(db.CommonExtras):
         if not insert_values:
             return {
                 "success": False,
-                "message": f"Already on shelf: {', '.join(unsuccessfully_added)}",
-                "unsuccessfully_added": ', '.join(unsuccessfully_added)
+                "message": f"All books already on shelf",
+                "unsuccessfully_added": unsuccessfully_added,
+                "successfully_added": successfully_added,
             }
         else:
             query = "INSERT INTO bookshelves_books (username, bookshelf_id, work_id) VALUES " + insert_values
             oldb.query(query)
             return {
                 "success": True,
-                "message": f"Added {', '.join(successfully_added)} books to shelf",
-                "unsuccessfully_added": ', '.join(unsuccessfully_added),
+                "message": f"Added {', '.join(successfully_added)} books to shelf. Failed to add these books: {', '.join(unsuccessfully_added)}.",
+                "unsuccessfully_added": unsuccessfully_added,
+                "successfully_added": successfully_added
             }
             
     @classmethod

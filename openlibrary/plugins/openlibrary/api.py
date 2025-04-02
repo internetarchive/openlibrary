@@ -406,26 +406,21 @@ class work_bookshelves_batch(delegate.page):
         Report the result of the database write
         """
         if report["success"]:
-            return delegate.RawText(
-                json.dumps({
+            return json.dumps({
                     "success": report["success"],
                     "received_work_ids": reading_list,
                     "message": report["message"],
                     "unsuccessfully_added": report["unsuccessfully_added"],
-                }),
-                content_type="application/json"
-            )
+                    "successfully_added": report["successfully_added"],
+                })
         else:
-            return delegate.RawText(
-                json.dumps({
+            return json.dumps({
                     "success": report["success"],
                     "received_work_ids": reading_list,
                     "message": report["message"],
                     "unsuccessfully_added": report["unsuccessfully_added"],
-                }),
-                content_type="application/json"
-            )
-
+                    "successfully_added": report["successfully_added"],
+                })
 
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"
