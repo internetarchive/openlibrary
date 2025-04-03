@@ -227,8 +227,8 @@ class Partials(delegate.page):
             work_id = i.get("workId", "")
             edition_id = i.get("editionId", "")
 
-            work = work_id and web.ctx.site.get(work_id) or {}
-            edition = edition_id and web.ctx.site.get(edition_id) or {}
+            work = (work_id and web.ctx.site.get(work_id)) or {}
+            edition = (edition_id and web.ctx.site.get(edition_id)) or {}
 
             # Do checks and render
             has_lists = (work and work.get_lists(limit=1)) or (
