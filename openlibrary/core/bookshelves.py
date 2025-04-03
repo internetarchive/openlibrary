@@ -694,10 +694,10 @@ class Bookshelves(db.CommonExtras):
         
     @classmethod
     def add_batch(
-        cls, username: str, reading_list: dict[str, list[int]]
+        cls, username: str, reading_list: dict[str, list[dict[str, int]]]
     ) -> None:
         """Adds a batch of books with `work_ids` to user's bookshelf designated by
-        `bookshelf_id`"""
+        `bookshelf`"""
 
         oldb = db.get_db()
 
@@ -706,14 +706,15 @@ class Bookshelves(db.CommonExtras):
         successfully_added = []
         
         insert_values = ""
-        for bookshelf_id, work_ids in reading_list.items():
-            for work_id in work_ids:
-                if cls.get_users_read_status_of_work(username, work_id):
-                    unsuccessfully_added.append(str(work_id))
+        for bookshelf, id_sets in reading_list.items():
+            for id_set in id_sets:
+                if cls.get_users_read_status_of_work(username, id_set["workId"]):
+                    unsuccessfully_added.append(str(id_set["workId"]))
                     continue
-                work_id = int(work_id)
-                bookshelf_id = int(bookshelf_id)
-                insert_values += f"('{username}', {bookshelf_id}, {work_id}),"
+                work_id = int(id_set["workId"])
+                edition_id = id_set["editionId"]
+                bookshelf = int(bookshelf)
+                insert_values += f"('{username}', {bookshelf}, {work_id}, {edition_id}),"
                 successfully_added.append(str(work_id))
         insert_values = insert_values[:-1]  # remove last comma      
         
@@ -725,7 +726,7 @@ class Bookshelves(db.CommonExtras):
                 "successfully_added": successfully_added,
             }
         else:
-            query = "INSERT INTO bookshelves_books (username, bookshelf_id, work_id) VALUES " + insert_values
+            query = "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, edition_id) VALUES " + insert_values
             oldb.query(query)
             return {
                 "success": True,

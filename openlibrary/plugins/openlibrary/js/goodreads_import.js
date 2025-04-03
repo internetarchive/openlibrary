@@ -53,6 +53,15 @@ class GoodreadsImport {
         }
     }
 
+    /* 
+    This function parses a readingList from the Goodreads Import page.
+    It returns a dictionary with the following structure:
+    {
+        '1': [{workId: number, editionId: number}, ...], // to-read
+        '2': [{workId: number, editionId: number}, ...], // currently-reading
+        '3': [{workId: number, editionId: number}, ...]  // read
+    }
+    */
     async parseReadingList() {
         const shelves = { 'read': 3, 'currently-reading': 2, 'to-read': 1 };
         const readingList = {
@@ -74,6 +83,8 @@ class GoodreadsImport {
                 continue;
             }
     
+            this.attempted++;
+            
             const shelf = row.querySelector('[key="Exclusive Shelf"]').innerText;
             const shelf_id = shelves[shelf];
             if (shelf_id === undefined) {
@@ -88,24 +99,31 @@ class GoodreadsImport {
                 continue;
             }
     
-            const workId = await this.getWorkId(row.getAttribute('isbn'));
-            // console.log('Work ID:', workId);
+            const workId = await this.getIdSet(row.getAttribute('isbn'));
             if (workId) {
-                readingList[shelf_id].push(+workId);
+                readingList[shelf_id].push(workId);
             }
         }
         return readingList;
     }
 
-    async getWorkId(isbn) {
+    /* 
+    This function fetches the workId and editionId for a given ISBN.
+    return type: { workId: number, editionId: number }
+    */
+    async getIdSet(isbn) {
         try {
             const response = await fetch(`/isbn/${isbn}.json`);
             const data = await response.json();
-            const editionId = data['works'][0].key;
-            const workId = editionId.slice(9, -1);
+            const workId = data['works'][0].key;
+            const workIdNumber = workId.slice(9, -1);
+            const editionId = data.key.slice(9, -1);
             this.isbnToWorkId[isbn] = workId; 
-            this.workIdToIsbn[workId] = isbn;
-            return workId; 
+            this.workIdToIsbn[workIdNumber] = isbn;
+            return {
+                'workId': +workIdNumber,
+                'editionId': +editionId
+            }; 
         } catch (error) {
             this.isbnNotInCollection.push(isbn);
             return undefined; 
@@ -120,7 +138,6 @@ class GoodreadsImport {
         else {
             Reporter.updateProgressBar(this.attempted);
         }
-        this.attempted++;
     }
 }
 
@@ -142,7 +159,14 @@ class Toggler {
 
     toggleSingleBook() {
         document.querySelectorAll('input.add-book').forEach((input) => {
-            input.addEventListener('click', () => {
+            input.addEventListener('click', (event) => {
+                // const isChecked = event.target.checked;
+                // if (!isChecked) {
+                //     event.target.removeAttribute('checked');
+                // }
+                // else {
+                //     event.target.setAttribute('checked', 'checked');
+                // }
                 this.updateImportNumber();
             });
         }

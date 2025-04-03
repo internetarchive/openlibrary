@@ -388,14 +388,44 @@ class work_bookshelves_batch(delegate.page):
         if not isinstance(reading_list, dict):
             return json.dumps({"error": "reading_list must be a dict"})
 
-        for keys, work_ids in reading_list.items():
-            # if len(work_ids) == 0:
-            #     return json.dumps({"error": "work_ids is empty"})
-            if not all(isinstance(work_id, int) for work_id in work_ids):
-                return json.dumps({"error": "work_ids must be a list of int"})
-            if not all(isinstance(int(key), int) for key in keys):
-                return json.dumps({"error": "reading_list keys must int-able"})
-        
+        """
+        This is annoying but it checks that the reading_list provided matches this format:
+        {
+            "1": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                },
+                {
+                    "workId": 1123456,
+                    "editionId": 123456
+                }
+            ],
+            "2": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                }
+            ],
+            "3": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                }
+            ]
+        1, 2, 3 are the bookshelf IDs
+        }
+        """
+        for shelves in reading_list.values():
+            if not isinstance(shelves, list):
+                return json.dumps({"error": "reading_list values must be a list"})
+            for shelf in shelves:
+                for key, id in shelf.items():
+                    if not (key == "workId" or key == "editionId"):
+                        return json.dumps({"error": f"{key} must be an workId or editionId"})
+                    if not isinstance(id, int):
+                        return json.dumps({"error": f"{id} must be an int"})
+
         user = accounts.get_current_user()
         if not user:
             return json.dumps({"error": "User not logged in"})
