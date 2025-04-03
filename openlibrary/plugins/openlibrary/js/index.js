@@ -563,4 +563,11 @@ jQuery(function () {
         import (/* webpackChunkName: "go-back-links" */ './go-back-links')
             .then(module => module.initGoBackLinks(backLinks))
     }
+
+    // Lazy-load book page lists section
+    const listSection = document.querySelector('.lists-section')
+    if (listSection) {
+        import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
+            .then(module => module.initListsSection(listSection))
+    }
 });
