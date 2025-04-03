@@ -68,6 +68,11 @@ class GoodreadsImport {
                 console.log('No ISBN');
                 continue;
             }
+
+            if (!row.querySelector('input.add-book').checked) {
+                console.log('Not checked');
+                continue;
+            }
     
             const shelf = row.querySelector('[key="Exclusive Shelf"]').innerText;
             const shelf_id = shelves[shelf];
