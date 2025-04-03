@@ -565,9 +565,9 @@ jQuery(function () {
     }
 
     // Lazy-load book page lists section
-    const listSection = document.querySelector(".lists-section")
+    const listSection = document.querySelector('.lists-section')
     if (listSection) {
-        import(/* webpackChunkName: "book-page-lists" */ "./book-page-lists")
+        import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
             .then(module => module.initListsSection(listSection))
     }
 });

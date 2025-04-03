@@ -5,8 +5,8 @@
  */
 export function initListsSection(elem) {
     // Show loading indicator
-    const loadingIndicator = elem.querySelector(".loadingIndicator")
-    loadingIndicator.classList.remove("hidden")
+    const loadingIndicator = elem.querySelector('.loadingIndicator')
+    loadingIndicator.classList.remove('hidden')
 
     const ids = JSON.parse(elem.dataset.ids)
 
@@ -27,7 +27,7 @@ export function initListsSection(elem) {
                         const fragment = document.createDocumentFragment()
 
                         for (const htmlString of data.partials) {
-                            const template = document.createElement("template")
+                            const template = document.createElement('template')
                             template.innerHTML = htmlString
                             fragment.append(...template.content.childNodes)
                         }
@@ -36,9 +36,9 @@ export function initListsSection(elem) {
 
                         // Show "See All" link
                         if (data.hasLists) {
-                            const showAllLink = elem.querySelector(".lists-heading a")
+                            const showAllLink = elem.querySelector('.lists-heading a')
                             if (showAllLink) {
-                                showAllLink.classList.remove("hidden")
+                                showAllLink.classList.remove('hidden')
                             }
                         }
                     })
@@ -46,7 +46,7 @@ export function initListsSection(elem) {
         })
     }, {
         root: null,
-        rootMargin: "200px",
+        rootMargin: '200px',
         threshold: 0
     })
 
@@ -54,7 +54,7 @@ export function initListsSection(elem) {
 }
 
 async function fetchPartials(workId, editionId) {
-    const params = { _component: "BPListsSection" }
+    const params = { _component: 'BPListsSection' }
     if (workId) {
         params.workId = workId
     }

@@ -231,17 +231,26 @@ class Partials(delegate.page):
             edition = web.ctx.site.get(edition_id) or {}
 
             # Do checks and render
-            has_lists = (work and work.get_lists(limit=1)) or (edition and edition.get_lists(limit=1))
+            has_lists = (work and work.get_lists(limit=1)) or (
+                edition and edition.get_lists(limit=1)
+            )
             partial["hasLists"] = bool(has_lists)
 
             if not has_lists:
                 partial["partials"].append(_('This work does not appear on any lists.'))
             else:
                 if work and work.key:
-                    work_list_template = render_template("lists/widget", work, include_header=False, include_widget=False)
+                    work_list_template = render_template(
+                        "lists/widget", work, include_header=False, include_widget=False
+                    )
                     partial["partials"].append(str(work_list_template))
                 if edition and edition.get("type", "") != "/type/edition":
-                    edition_list_template = render_template("lists/widget", edition, include_header=False, include_widget=False)
+                    edition_list_template = render_template(
+                        "lists/widget",
+                        edition,
+                        include_header=False,
+                        include_widget=False,
+                    )
                     partial["partials"].append(str(edition_list_template))
 
         return delegate.RawText(json.dumps(partial), content_type='application/json')
