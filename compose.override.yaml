@@ -77,7 +77,7 @@ services:
     # machine to avoid conflicts.
     # See https://github.com/internetarchive/openlibrary/issues/6315
     # ports:
-    #  - 7070:7000
+    #  - 7000:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary

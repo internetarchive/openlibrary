@@ -15,7 +15,7 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/openlibrary" // app folder within docker container
+          "remoteRoot": "/openlibrary/"
         }
       ]
     }
