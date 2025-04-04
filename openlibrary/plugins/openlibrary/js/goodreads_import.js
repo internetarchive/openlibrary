@@ -1,59 +1,56 @@
-import { slice } from "lodash";
-
 class GoodreadsImport {
     constructor() {
         this.isbnToWorkId = {};
         this.workIdToIsbn = {};
         this.isbnNotInCollection = [];
-        this.shelves = { 'read': 3, 'currently-reading': 2, 'to-read': 1 };
+        this.shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
         this.readingList = {
-            '1': [],
-            '2': [],
-            '3': []
+            1: [],
+            2: [],
+            3: []
         };
         this.attempted = 1;
         this.submit();
     }
 
     async submit() {
-        document.querySelector('.import-submit').addEventListener('click', async (event) => {
+        document.querySelector('.import-submit').addEventListener('click', async () => {
             document.querySelector('input.import-submit').classList.add('hidden');
             document.getElementById('myProgress').classList.remove('hidden');
             const response = await this.batchAddToBookshelves(await this.parseReadingList());
             const reporter = new Reporter(
-                response, this.isbnNotInCollection, 
+                response, this.isbnNotInCollection,
                 this.workIdToIsbn, this.isbnToWorkId
             );
             reporter.handleReport();
         })
     }
-    
+
     async batchAddToBookshelves(readingList) {
         try {
-            const response = await fetch("/works/batch/bookshelves.json", {
+            const response = await fetch('/works/batch/bookshelves.json', {
                 method: 'POST',
                 body: JSON.stringify({
-                    "reading_list": readingList,
+                    reading_list: readingList,
                 }),
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    Accept: 'application/json'
                 }
             });
-    
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-    
-            const data = await response.json(); 
-            return data; 
+
+            const data = await response.json();
+            return data;
         } catch (error) {
-            console.error('Error in batchAddToBookshelves:', error);
-            return null; 
+            return null;
         }
     }
 
-    /* 
+    /*
     This function parses a readingList from the Goodreads Import page.
     It returns a dictionary with the following structure:
     {
@@ -63,32 +60,29 @@ class GoodreadsImport {
     }
     */
     async parseReadingList() {
-        const shelves = { 'read': 3, 'currently-reading': 2, 'to-read': 1 };
+        const shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
         const readingList = {
-            '1': [],
-            '2': [],
-            '3': []
+            1: [],
+            2: [],
+            3: []
         };
-    
+
         const rows = document.querySelectorAll('.table-row');
         for (const row of rows) {
             this.updateProgress();
             if (!row.hasAttribute('isbn')) {
-                console.log('No ISBN');
                 continue;
             }
 
             if (!row.querySelector('input.add-book').checked) {
-                console.log('Not checked');
                 continue;
             }
-    
+
             this.attempted++;
-            
+
             const shelf = row.querySelector('[key="Exclusive Shelf"]').innerText;
             const shelf_id = shelves[shelf];
             if (shelf_id === undefined) {
-                console.log('Custom shelves are not supported');
                 Reporter.createNotice({
                     workId: null,
                     status: 'error',
@@ -98,7 +92,7 @@ class GoodreadsImport {
                 });
                 continue;
             }
-    
+
             const workId = await this.getIdSet(row.getAttribute('isbn'));
             if (workId) {
                 readingList[shelf_id].push(workId);
@@ -107,7 +101,7 @@ class GoodreadsImport {
         return readingList;
     }
 
-    /* 
+    /*
     This function fetches the workId and editionId for a given ISBN.
     return type: { workId: number, editionId: number }
     */
@@ -118,15 +112,15 @@ class GoodreadsImport {
             const workId = data['works'][0].key;
             const workIdNumber = workId.slice(9, -1);
             const editionId = data.key.slice(9, -1);
-            this.isbnToWorkId[isbn] = workId; 
+            this.isbnToWorkId[isbn] = workId;
             this.workIdToIsbn[workIdNumber] = isbn;
             return {
-                'workId': +workIdNumber,
-                'editionId': +editionId
-            }; 
+                workId: +workIdNumber,
+                editionId: +editionId
+            };
         } catch (error) {
             this.isbnNotInCollection.push(isbn);
-            return undefined; 
+            return undefined;
         }
     }
 
@@ -149,9 +143,9 @@ class Toggler {
 
     toggleAllBooks() {
         document.querySelector('th.toggle-all input').addEventListener('click', (event) => {
-            const isChecked = event.target.checked; 
+            const isChecked = event.target.checked;
             document.querySelectorAll('input.add-book').forEach((input) => {
-                input.checked = isChecked; 
+                input.checked = isChecked;
             });
             this.updateImportNumber();
         });
@@ -159,23 +153,16 @@ class Toggler {
 
     toggleSingleBook() {
         document.querySelectorAll('input.add-book').forEach((input) => {
-            input.addEventListener('click', (event) => {
-                // const isChecked = event.target.checked;
-                // if (!isChecked) {
-                //     event.target.removeAttribute('checked');
-                // }
-                // else {
-                //     event.target.setAttribute('checked', 'checked');
-                // }
+            input.addEventListener('click', () => {
                 this.updateImportNumber();
             });
         }
-    )};
+        )}
 
     updateImportNumber() {
         const checked = document.querySelectorAll('input.add-book:checked').length;
-        document.querySelector('.import-submit').setAttribute('value', `Import ${checked} Books`);       
-    } 
+        document.querySelector('.import-submit').setAttribute('value', `Import ${checked} Books`);
+    }
 }
 
 class Reporter {
@@ -248,7 +235,7 @@ class Reporter {
         notice.classList.add(`${parameters.status}-imported`);
         notice.innerText = parameters.message;
         const isbn = parameters.isbn
-        const row = 
+        const row =
             parameters.row
             ?? document.querySelector(`[isbn="${isbn}"]`);
         row.appendChild(notice);
@@ -256,13 +243,10 @@ class Reporter {
     }
 }
 
-
-
-
 export async function initGoodreadsImport() {
     function init() {
-        const toggler = new Toggler();
-        const goodreadsImport = new GoodreadsImport();
+        new Toggler();
+        new GoodreadsImport();
     }
     init();
 }
