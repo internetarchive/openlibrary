@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from openlibrary.core.bookshelves import Bookshelves
@@ -37,7 +39,7 @@ class TestBookshelvesBatchAdd:
             },
         )
 
-        assert result["success"] == True
+        assert result["success"]
 
     def test_batch_add_with_missing_edition_id(self, mock_db):
         with pytest.raises(KeyError):
@@ -86,7 +88,12 @@ class TestBookshelvesBatchAdd:
         assert result["message"] == "All books already on shelf"
 
     def test_batch_add_with_invalid_data_1(self, mock_db):
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "invalid literal for int() with base 10: 'a-string-instead-of-int'"
+            ),
+        ):
             Bookshelves.add_batch(
                 "openlibrary",
                 {
@@ -124,5 +131,5 @@ class TestBookshelvesBatchAdd:
             },
         )
 
-        assert result["success"] == True
+        assert result["success"]
         assert result["successfully_added"].count("20011506") == 1
