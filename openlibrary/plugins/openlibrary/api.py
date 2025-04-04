@@ -10,7 +10,6 @@ from collections import defaultdict
 
 import qrcode
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -18,6 +17,7 @@ from infogami.utils.view import (
     add_flash_message,  # noqa: F401 side effects may be needed
     render_template,  # noqa: F401 used for its side effects
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
@@ -346,7 +346,8 @@ class work_bookshelves(delegate.page):
             json.dumps({'bookshelves_affected': work_bookshelf}),
             content_type="application/json",
         )
-    
+
+
 class work_bookshelves_batch(delegate.page):
     """
     Batch API for bookshelves
@@ -355,31 +356,29 @@ class work_bookshelves_batch(delegate.page):
     :return a list of bookshelves_affected, total woks added successfully and total works unsuccessful
     :rtype: json
     """
+
     path = "/works/batch/bookshelves"
     encoding = "json"
-    
+
     @jsonapi
-    def POST(self): 
+    def POST(self):
         from openlibrary.core.models import Bookshelves
 
         data = json.loads(web.data())
         reading_list = data.get("reading_list", [])
         username = accounts.get_current_user().key.split('/')[2]
-        
+
         isSanitised = self.sanitise(reading_list, username)
 
-        if isSanitised == True:
-            report = Bookshelves.add_batch(
-                username=username,
-                reading_list=reading_list
-            )
+        if isSanitised:
+            report = Bookshelves.add_batch(username=username, reading_list=reading_list)
 
         return self.report(report, reading_list)
-    
+
     def sanitise(self, reading_list, user):
         """
-        Sanitise request data 
-        The work_id should be something like 54120 
+        Sanitise request data
+        The work_id should be something like 54120
         The key should be a bookshelf number i.e. 1, 2, 3
         """
         if not reading_list:
@@ -421,8 +420,10 @@ class work_bookshelves_batch(delegate.page):
                 return json.dumps({"error": "reading_list values must be a list"})
             for shelf in shelves:
                 for key, id in shelf.items():
-                    if not (key == "workId" or key == "editionId"):
-                        return json.dumps({"error": f"{key} must be an workId or editionId"})
+                    if key not in {"workId", "editionId"}:
+                        return json.dumps(
+                            {"error": f"{key} must be an workId or editionId"}
+                        )
                     if not isinstance(id, int):
                         return json.dumps({"error": f"{id} must be an int"})
 
@@ -430,27 +431,32 @@ class work_bookshelves_batch(delegate.page):
         if not user:
             return json.dumps({"error": "User not logged in"})
         return True
-    
+
     def report(self, report, reading_list):
         """
         Report the result of the database write
         """
         if report["success"]:
-            return json.dumps({
+            return json.dumps(
+                {
                     "success": report["success"],
                     "received_work_ids": reading_list,
                     "message": report["message"],
                     "unsuccessfully_added": report["unsuccessfully_added"],
                     "successfully_added": report["successfully_added"],
-                })
+                }
+            )
         else:
-            return json.dumps({
+            return json.dumps(
+                {
                     "success": report["success"],
                     "received_work_ids": reading_list,
                     "message": report["message"],
                     "unsuccessfully_added": report["unsuccessfully_added"],
                     "successfully_added": report["successfully_added"],
-                })
+                }
+            )
+
 
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"

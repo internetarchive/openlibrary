@@ -6,8 +6,8 @@ from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 
 import web
-
 from infogami.infobase.utils import flatten
+
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -691,7 +691,7 @@ class Bookshelves(db.CommonExtras):
                 edition_id=edition_id,
                 vars=data,
             )
-        
+
     @classmethod
     def add_batch(
         cls, username: str, reading_list: dict[str, list[dict[str, int]]]
@@ -704,14 +704,14 @@ class Bookshelves(db.CommonExtras):
         # Metrics
         unsuccessfully_added = []
         successfully_added = []
-        
+
         insert_values = ""
         for bookshelf, id_sets in reading_list.items():
             for id_set in id_sets:
                 if cls.get_users_read_status_of_work(username, id_set["workId"]):
                     unsuccessfully_added.append(str(id_set["workId"]))
                     continue
-                
+
                 if id_set["workId"] in successfully_added:
                     continue
 
@@ -719,10 +719,12 @@ class Bookshelves(db.CommonExtras):
                 edition_id = int(id_set["editionId"])
 
                 bookshelf = int(bookshelf)
-                insert_values += f"('{username}', {bookshelf}, {work_id}, {edition_id}),"
+                insert_values += (
+                    f"('{username}', {bookshelf}, {work_id}, {edition_id}),"
+                )
                 successfully_added.append(str(work_id))
-        insert_values = insert_values[:-1]  # remove last comma      
-        
+        insert_values = insert_values[:-1]  # remove last comma
+
         if not insert_values:
             return {
                 "success": False,
@@ -731,15 +733,18 @@ class Bookshelves(db.CommonExtras):
                 "successfully_added": successfully_added,
             }
         else:
-            query = "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, edition_id) VALUES " + insert_values
+            query = (
+                "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, edition_id) VALUES "
+                + insert_values
+            )
             oldb.query(query)
             return {
                 "success": True,
                 "message": f"Added {', '.join(successfully_added)} books to shelf. Failed to add these books: {', '.join(unsuccessfully_added)}.",
                 "unsuccessfully_added": unsuccessfully_added,
-                "successfully_added": successfully_added
+                "successfully_added": successfully_added,
             }
-            
+
     @classmethod
     def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):
         oldb = db.get_db()
