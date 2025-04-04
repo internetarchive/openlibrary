@@ -695,7 +695,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def add_batch(
         cls, username: str, reading_list: dict[str, list[dict[str, int]]]
-    ) -> None:
+    ) -> dict[str, Any]:
         """Adds a batch of books with `work_ids` to user's bookshelf designated by
         `bookshelf`"""
 
@@ -708,7 +708,7 @@ class Bookshelves(db.CommonExtras):
         insert_values = ""
         for bookshelf, id_sets in reading_list.items():
             for id_set in id_sets:
-                if cls.get_users_read_status_of_work(username, id_set["workId"]):
+                if cls.get_users_read_status_of_work(username, str(id_set["workId"])):
                     unsuccessfully_added.append(str(id_set["workId"]))
                     continue
 
@@ -717,10 +717,9 @@ class Bookshelves(db.CommonExtras):
 
                 work_id = int(id_set["workId"])
                 edition_id = int(id_set["editionId"])
-
-                bookshelf = int(bookshelf)
+                bookshelf_int = int(bookshelf)
                 insert_values += (
-                    f"('{username}', {bookshelf}, {work_id}, {edition_id}),"
+                    f"('{username}', {bookshelf_int}, {work_id}, {edition_id}),"
                 )
                 successfully_added.append(str(work_id))
         insert_values = insert_values[:-1]  # remove last comma
