@@ -7638,6 +7638,10 @@ msgid "Checked out"
 msgstr ""
 
 #: type/list/embed.html
+msgid "Borrow book"
+msgstr ""
+
+#: type/list/embed.html
 msgid "Protected DAISY"
 msgstr ""
 
@@ -7693,6 +7697,10 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
+msgstr ""
+
+#: type/list/view_body.html
+msgid "Remove this item?"
 msgstr ""
 
 #: type/list/view_body.html
@@ -7815,3 +7823,154 @@ msgstr ""
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
 msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Page Body"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag type"
+msgstr ""
+
+#: type/tag/view.html
+#, python-format
+msgid "<strong>Type:</strong> %(tag_type)s"
+msgstr ""
+
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: type/tag/view.html
+msgid "Tag Body"
+msgstr ""
+
+#: type/tag/view.html
+#, python-format
+msgid "View subject page for %(name)s."
+msgstr ""
+
+#: type/template/edit.html
+msgid "Plugin"
+msgstr ""
+
+#: type/template/edit.html
+msgid "Document Body"
+msgstr ""
+
+#: type/template/edit.html
+msgid "Delete this template?"
+msgstr ""
+
+#: type/template/view.html
+msgid "plugin"
+msgstr ""
+
+#: type/type/view.html
+msgid "Kind"
+msgstr ""
+
+#: type/type/view.html
+msgid "Properties"
+msgstr ""
+
+#: type/type/view.html
+msgid "of type"
+msgstr ""
+
+#: type/type/view.html
+msgid "Backreferences"
+msgstr ""
+
+#: type/user/edit.html
+#, python-format
+msgid "Editing %(name)s"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Currently Editing:"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Display Name"
+msgstr ""
+
+#: type/user/view.html
+msgid "admin page"
+msgstr ""
+
+#: type/user/view.html
+#, python-format
+msgid ""
+"You are publicly sharing the books you are <a href=\"%(username)s/books"
+"/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
+"/already-read\">have already read</a>, and <a href=\"%(username)s/books"
+"/want-to-read\">want to read</a>."
+msgstr ""
+
+#: type/user/view.html
+msgid "You have chosen to make your"
+msgstr ""
+
+#: type/user/view.html
+msgid "private"
+msgstr ""
+
+#: type/user/view.html
+msgid "Manage your privacy settings"
+msgstr ""
+
+#: type/user/view.html
+#, python-format
+msgid ""
+"Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
+"reading\">currently reading</a>, <a href=\"%(username)s/books/already-"
+"read\">have already read</a>, and <a href=\"%(username)s/books/want-to-"
+"read\">want to read</a>!"
+msgstr ""
+
+#: type/user/view.html
+msgid "My Lists"
+msgstr ""
+
+#: type/usergroup/edit.html
+msgid "Members:"
+msgstr ""
+
+#: type/work/editions.html type/work/editions_datatable.html
+#, python-format
+msgid "Add another edition of %(work)s"
+msgstr ""
+
+#: type/work/editions.html
+msgid "Title missing"
+msgstr ""
+
+#: type/work/editions_datatable.html
+#, python-format
+msgid "Showing %(count)d featured edition."
+msgid_plural "Showing %(count)d featured editions."
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/work/editions_datatable.html
+#, python-format
+msgid "View all %(count)d editions?"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "Edition"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "Availability"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "No editions available"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "Add another edition?"
+msgstr ""
+
