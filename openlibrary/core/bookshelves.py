@@ -711,8 +711,13 @@ class Bookshelves(db.CommonExtras):
                 if cls.get_users_read_status_of_work(username, id_set["workId"]):
                     unsuccessfully_added.append(str(id_set["workId"]))
                     continue
+                
+                if id_set["workId"] in successfully_added:
+                    continue
+
                 work_id = int(id_set["workId"])
-                edition_id = id_set["editionId"]
+                edition_id = int(id_set["editionId"])
+
                 bookshelf = int(bookshelf)
                 insert_values += f"('{username}', {bookshelf}, {work_id}, {edition_id}),"
                 successfully_added.append(str(work_id))
@@ -721,7 +726,7 @@ class Bookshelves(db.CommonExtras):
         if not insert_values:
             return {
                 "success": False,
-                "message": f"All books already on shelf",
+                "message": "All books already on shelf",
                 "unsuccessfully_added": unsuccessfully_added,
                 "successfully_added": successfully_added,
             }
