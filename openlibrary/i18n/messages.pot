@@ -6122,6 +6122,10 @@ msgid "Random Book"
 msgstr ""
 
 #: lib/nav_head.html
+msgid "Bulk Search"
+msgstr ""
+
+#: lib/nav_head.html
 msgid "Recent Community Edits"
 msgstr ""
 
@@ -6159,6 +6163,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Advanced"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Bulk"
 msgstr ""
 
 #: lib/nav_head.html

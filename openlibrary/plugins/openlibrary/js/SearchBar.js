@@ -380,6 +380,10 @@ export class SearchBar {
         if (newFacet === 'advanced') {
             event.preventDefault();
             this.navigateTo('/advancedsearch');
+            9715
+        } else if (newFacet === 'bulk'){
+            event.preventDefault();
+            this.navigateTo('/search/bulk');
         } else {
             this.facet.write(newFacet);
         }
