@@ -46,7 +46,12 @@ services:
 
   solr_restarter:
     profiles: ["ol-solr0"]
-    build: scripts/solr_restarter
+    build:
+      context: scripts/solr_restarter
+      args:
+        - APT_MIRROR=${APT_MIRROR:-}
+        - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
+        - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
     restart: unless-stopped
     environment:
       - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0

@@ -56,6 +56,10 @@ wait_yn "Ready to begin deleting solr?"
 # Confirm on ol-dev1 first
 switch_web_to_solr ol-dev1 $SOLR_PROD_SERVER
 test_ol_search 'testing.openlibrary.org'
+if [ $? -ne 0 ]; then
+    echo "ERROR: ol-dev1 is not working"
+    exit 1
+fi
 
 # Now let's go full throttle!
 switch_all_web_to_solr $SOLR_PROD_SERVER
