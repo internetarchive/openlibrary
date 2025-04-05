@@ -3,9 +3,9 @@ export function initInterstitial(elem) {
     let seconds = elem.dataset.wait;
     const url = elem.dataset.url;
     const timerElement = elem.querySelector('#timer');
-    
+
     // Store countdown interval so we can clear it if needed
-    let countdown = setInterval(() => {
+    const countdown = setInterval(() => {
         seconds--;
         timerElement.textContent = seconds;
         if (seconds === 0) {
@@ -21,7 +21,7 @@ export function initInterstitial(elem) {
             e.preventDefault();
             // Clear the countdown timer
             clearInterval(countdown);
-            
+
             try {
                 window.close();
             } catch (error) {
