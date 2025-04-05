@@ -11,7 +11,7 @@ $if provider_name is None:
   <p>$:_('In %(time)s seconds, you will be automatically redirected to: %(url)s', time='<span id="timer">{}</span>'.format(wait), url='<a href="{0}">{0}</a>'.format(url))</p>
 
   <p>
-    <a href="#" onclick="window.close(); return false;">$_("Cancel")</a> |
+    <a href="#" class="js-interstitial-cancel" data-close-window>Cancel</a>
     <a href="${url}">$_("Continue without waiting")</a>
   </p>
 </div>
