@@ -8,6 +8,7 @@ from infogami.utils.view import render_template
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.utils import dateutil
@@ -219,6 +220,38 @@ class Partials(delegate.page):
                     'macros'
                 ].FulltextSearchSuggestion(query, data)
             partial = {"partials": str(macro)}
+        elif component == "BPListsSection":
+            partial = {"partials": []}
+
+            # Get work and edition
+            work_id = i.get("workId", "")
+            edition_id = i.get("editionId", "")
+
+            work = (work_id and web.ctx.site.get(work_id)) or {}
+            edition = (edition_id and web.ctx.site.get(edition_id)) or {}
+
+            # Do checks and render
+            has_lists = (work and work.get_lists(limit=1)) or (
+                edition and edition.get_lists(limit=1)
+            )
+            partial["hasLists"] = bool(has_lists)
+
+            if not has_lists:
+                partial["partials"].append(_('This work does not appear on any lists.'))
+            else:
+                if work and work.key:
+                    work_list_template = render_template(
+                        "lists/widget", work, include_header=False, include_widget=False
+                    )
+                    partial["partials"].append(str(work_list_template))
+                if edition and edition.get("type", "") != "/type/edition":
+                    edition_list_template = render_template(
+                        "lists/widget",
+                        edition,
+                        include_header=False,
+                        include_widget=False,
+                    )
+                    partial["partials"].append(str(edition_list_template))
 
         return delegate.RawText(json.dumps(partial), content_type='application/json')
 

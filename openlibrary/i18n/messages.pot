@@ -1165,6 +1165,10 @@ msgstr ""
 msgid "Lists (%(count)d)"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "This work does not appear on any lists."
+msgstr ""
+
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -2158,6 +2162,7 @@ msgstr ""
 #: trending.html
 msgid "This Year"
 msgstr ""
+
 
 #: account/readinglog_stats.html account/view.html admin/index.html
 #: books/stats_year_breadcrumb_select.html books/year_breadcrumb_select.html
@@ -7559,7 +7564,7 @@ msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "This work does not appear on any lists."
+msgid "Loading Lists"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
