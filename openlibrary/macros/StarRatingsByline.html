@@ -14,4 +14,4 @@ $ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
 $if want_to_read_count and ratings_count:
   <span class="dot">·</span>
 $if want_to_read_count:
-  <span class="ratingsByline">$_('%(want_to_read_count)s Want to read', want_to_read_count=formatted_want_to_read_count)</span>
+  <span class="ratingsByline" itemprop="reviewCount">$_('%(want_to_read_count)s Want to read', want_to_read_count=formatted_want_to_read_count)</span>
