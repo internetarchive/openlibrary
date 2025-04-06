@@ -2163,8 +2163,7 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-
-#: account/readinglog_stats.html account/view.html admin/index.html
+#: account/readinglog_stats.html admin/index.html
 #: books/stats_year_breadcrumb_select.html books/year_breadcrumb_select.html
 #: trending.html
 msgid "All Time"
