@@ -93,11 +93,9 @@ class addtag(delegate.page):
 
     def has_permission(self, user) -> bool:
         """
-        Can a tag be added?
+        Returns True if the given user can create a new Tag
         """
-        return user and (
-            user.is_librarian() or user.is_super_librarian() or user.is_admin()
-        )
+        return user and user.is_admin()
 
     def POST(self):
         i = web.input(
@@ -142,29 +140,31 @@ class tag_edit(delegate.page):
     path = r"(/tags/OL\d+T)/edit"
 
     def GET(self, key):
-        if not web.ctx.site.can_write(key):
+        tag = web.ctx.site.get(key)
+        if tag is None:
+            raise web.notfound()
+
+        if not self.has_permission(tag):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
-        i = web.input(redir=None)
-        tag = web.ctx.site.get(key)
-        if tag is None:
-            raise web.notfound()
 
+        i = web.input(redir=None)
         return render_template("type/tag/form", tag, redirect=i.redir)
 
     def POST(self, key):
-        if not web.ctx.site.can_write(key):
+        tag = web.ctx.site.get(key)
+        if tag is None:
+            raise web.notfound()
+
+        if not self.has_permission(tag):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
-        tag = web.ctx.site.get(key)
-        if tag is None:
-            raise web.notfound()
 
         i = web.input(_comment=None, redir=None)
         formdata = trim_doc(i)
@@ -199,6 +199,26 @@ class tag_edit(delegate.page):
             return validate_subject_tag(data)
         else:
             return validate_tag(data)
+
+    def has_permission(self, tag):
+        """
+        Returns `True` if the current user is permitted to edit a tag.
+
+        :param tag: A Tag object
+        :return: True if current user can edit a tag, False otherwise
+        """
+        if not web.ctx.site.can_write(tag.key):
+            return False
+        if not (patron := get_current_user()):
+            return False
+
+        is_in_permitted_group = patron.is_admin()
+        is_deputy = patron.key == tag.get("deputy", None)
+
+        if is_in_permitted_group:
+            return True
+
+        return tag.tag_type in SUBJECT_SUB_TYPES and is_deputy
 
 
 class tag_search(delegate.page):

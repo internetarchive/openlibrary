@@ -2,7 +2,7 @@ $def with (page)
 
 $var title: $page.name
 
-$ can_add_tag = ctx.user and (ctx.user.is_super_librarian())
+$ can_add_tag = ctx.user and (ctx.user.is_admin())
 $ has_tag = 'tag' in page
 $ q = query_param('q')
 
