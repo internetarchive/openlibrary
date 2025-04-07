@@ -18,17 +18,7 @@ export function initInterstitial(elem) {
     const cancelButton = elem.querySelector('.js-cancel-redirect');
     if (cancelButton) {
         cancelButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Clear the countdown timer
-            clearInterval(countdown);
-
-            try {
-                window.close();
-            } catch (error) {
-                console.error('Failed to close window:', error);
-                // Fallback behavior
-                window.location.href = '/';
-            }
+            window.close()
         });
     }
 }
