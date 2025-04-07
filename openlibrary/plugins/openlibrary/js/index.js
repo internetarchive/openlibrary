@@ -570,4 +570,11 @@ jQuery(function () {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
             .then(module => module.initListsSection(listSection))
     }
+
+    // Generalized carousel lazy-loading
+    const lazyCarousels = document.querySelectorAll(".lazy-carousel")
+    if (lazyCarousels.length) {
+        import(/* webpackChunkName: "lazy-carousels" */ "./lazy-carousel")
+            .then(module => module.initLazyCarousel(lazyCarousels))
+    }
 });
