@@ -31,9 +31,4 @@ export function initInterstitial(elem) {
             }
         });
     }
-
-    // Return cleanup function in case component unmounts
-    return () => {
-        clearInterval(countdown);
-    };
 }
