@@ -1,7 +1,7 @@
 export function initInterstitial(elem) {
-    let seconds = elem.dataset.wait;
-    const url = elem.dataset.url;
-    const timerElement = elem.querySelector('#timer');
+    let seconds = elem.dataset.wait
+    const url = elem.dataset.url
+    const timerElement = elem.querySelector('#timer')
     const countdown = setInterval(() => {
         seconds--
         timerElement.textContent = seconds
