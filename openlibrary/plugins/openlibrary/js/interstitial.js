@@ -15,7 +15,7 @@ export function initInterstitial(elem) {
     }, 1000);
 
     // Add cancel button handler
-    const cancelButton = elem.querySelector('.js-cancel-redirect');
+    const cancelButton = elem.querySelector('.close-window');
     if (cancelButton) {
         cancelButton.addEventListener('click', (e) => {
             window.close()
