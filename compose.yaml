@@ -1,6 +1,6 @@
 services:
   web:
-    image: "${OLIMAGE:-oldev:latest}"
+    build: .
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
@@ -46,7 +46,7 @@ services:
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:
-    image: "${OLIMAGE:-oldev:latest}"
+    build: .
     command: docker/ol-solr-updater-start.sh
     hostname: "$HOSTNAME"
     environment:
@@ -65,7 +65,7 @@ services:
       - webnet
 
   covers:
-    image: "${OLIMAGE:-oldev:latest}"
+    build: .
     environment:
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
@@ -81,7 +81,7 @@ services:
         max-file: "4"
 
   infobase:
-    image: "${OLIMAGE:-oldev:latest}"
+    build: .
     environment:
       - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
       - INFOBASE_OPTS=${INFOBASE_OPTS:-}
