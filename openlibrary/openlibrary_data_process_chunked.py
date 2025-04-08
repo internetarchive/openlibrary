@@ -1,4 +1,4 @@
-"""  
+"""
 Convert your txt files into smaller csv files which are easier to load into the db.
 Decide how large you would like to make each chunk.
 For editions, 3 million lines was about 3.24 gigs and about an hour to load.
@@ -40,7 +40,10 @@ def run():
         filenames = []
         csvoutputfile = None
 
-        with open(os.path.join(INPUT_PATH, ('ol_dump_' + identifier + '.txt')), encoding="utf-8")as cvsinputfile:
+        with open(
+            os.path.join(INPUT_PATH, ('ol_dump_' + identifier + '.txt')),
+            encoding="utf-8",
+        ) as cvsinputfile:
             reader = csv.reader(cvsinputfile, delimiter='\t')
 
             for line, row in enumerate(reader):
@@ -49,37 +52,46 @@ def run():
                     if csvoutputfile:
                         csvoutputfile.close()
 
-                    filename = identifier + \
-                        '_{}.csv'.format(line + LINES_PER_FILE)
+                    filename = identifier + f'_{line + LINES_PER_FILE}.csv'
 
                     filenames.append(filename)
-                    csvoutput = open(os.path.join(
-                        OUTPUT_PATH, filename), "w", newline="", encoding="utf-8")
+                    csvoutput = open(
+                        os.path.join(OUTPUT_PATH, filename),
+                        "w",
+                        newline="",
+                        encoding="utf-8",
+                    )
                     writer = csv.writer(
-                        csvoutput, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                        csvoutput,
+                        delimiter='\t',
+                        quotechar='|',
+                        quoting=csv.QUOTE_MINIMAL,
+                    )
 
                 if len(row) > 4:
-                    writer.writerow(
-                        [row[0], row[1], row[2], row[3], row[4]])
+                    writer.writerow([row[0], row[1], row[2], row[3], row[4]])
 
             if csvoutputfile:
                 csvoutputfile.close()
 
-        filenames_array.append([identifier,  str(file_id), False, filenames])
+        filenames_array.append([identifier, str(file_id), False, filenames])
 
         print('\n', identifier, 'text file has now been processed.\n')
-        print(identifier,  str(file_id), filenames)
+        print(identifier, str(file_id), filenames)
         file_id += 1
 
     # list of filenames that can be loaded into database for automatic file reading.
-    filenamesoutput = open(os.path.join(
-        OUTPUT_PATH, "filenames.txt"), "a", newline="", encoding="utf-8")
+    filenamesoutput = open(
+        os.path.join(OUTPUT_PATH, "filenames.txt"), "a", newline="", encoding="utf-8"
+    )
     filenameswriter = csv.writer(
-        filenamesoutput, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        filenamesoutput, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL
+    )
     for row in filenames_array:
 
         filenameswriter.writerow(
-            [row[0], row[1], row[2], '{' + ','.join(row[3]).strip("'") + '}'])
+            [row[0], row[1], row[2], '{' + ','.join(row[3]).strip("'") + '}']
+        )
 
     filenamesoutput.close()
 
