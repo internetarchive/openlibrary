@@ -15,7 +15,8 @@
   margin-top: 1.75em;
 }
 
-.carousel-container {
+.carousel-container,
+.lazy-carousel {
   margin: 0 -20px;
   padding: 3px 15px;
 }
@@ -208,6 +209,21 @@
   }
   &-prev::before {
     content: "←" !important;
+  }
+}
+
+/* Styles for lazy-loading carousel placeholder element */
+.lazy-carousel {
+  height: 200px;
+  background: @book-cover-carousel-background;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  > * {
+    border: 1px @grey solid;
+    width: 80%;
+    margin: 0 auto;
   }
 }
 
