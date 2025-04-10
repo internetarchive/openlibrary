@@ -1,5 +1,6 @@
 import json
 from abc import abstractmethod, ABC
+from typing import Type, cast
 from urllib.parse import parse_qs
 
 import web
@@ -262,12 +263,12 @@ class BookPageListsPartial(PartialDataHandler):
         self.i = web.input(workId="", editionId="")
 
     def generate(self) -> dict:
-        results = {"partials": []}
+        results: dict = {"partials": []}
         work_id = self.i.workId
         edition_id = self.i.editionId
 
-        work = (work_id and web.ctx.site.get(work_id)) or {}
-        edition = (edition_id and web.ctx.site.get(edition_id)) or {}
+        work = (work_id and web.ctx.site.get(work_id)) or None
+        edition = (edition_id and web.ctx.site.get(edition_id)) or None
 
         # Do checks and render
         has_lists = (work and work.get_lists(limit=1)) or (
@@ -352,7 +353,8 @@ class PartialRequestResolver:
     def get_handler(cls, component: str) -> PartialDataHandler:
         """Instantiates and returns the requested handler"""
         if klass := cls.component_mapping.get(component):
-            return klass()
+            concrete_class = cast(Type[PartialDataHandler], klass)
+            return concrete_class()
         raise PartialResolutionError(f'No handler found for key "{component}"')
 
 
