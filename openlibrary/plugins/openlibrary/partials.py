@@ -1,6 +1,6 @@
 import json
-from abc import abstractmethod, ABC
-from typing import Type, cast
+from abc import ABC, abstractmethod
+from typing import cast
 from urllib.parse import parse_qs
 
 import web
@@ -28,6 +28,7 @@ class PartialDataHandler(ABC):
     JSON-serializable dict that contains data necessary to update
     a page.
     """
+
     @abstractmethod
     def generate(self) -> dict:
         pass
@@ -35,6 +36,7 @@ class PartialDataHandler(ABC):
 
 class RelatedWorksPartial(PartialDataHandler):
     """Handler for the related works carousels."""
+
     def __init__(self):
         self.i = web.input(workid=None)
 
@@ -58,6 +60,7 @@ class RelatedWorksPartial(PartialDataHandler):
             memoized_get_component_metadata(*args, **kwargs)
             or memoized_get_component_metadata.update(*args, **kwargs)[0]
         )
+
 
 class CarouselCardPartial(PartialDataHandler):
     """Handler for carousel "load_more" requests"""
@@ -184,9 +187,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         if len(args) < 2:
             raise PartialResolutionError("Unexpected amount of arguments")
 
-        macro = web.template.Template.globals['macros'].AffiliateLinks(
-            args[0], args[1]
-        )
+        macro = web.template.Template.globals['macros'].AffiliateLinks(args[0], args[1])
         return {"partials": str(macro)}
 
 
@@ -204,9 +205,7 @@ class SearchFacetsPartial(PartialDataHandler):
         param = data.get('param', {})
 
         sort = None
-        search_response = do_search(
-            param, sort, rows=0, spellcheck_count=3, facet=True
-        )
+        search_response = do_search(param, sort, rows=0, spellcheck_count=3, facet=True)
 
         sidebar = render_template(
             'search/work_search_facets',
@@ -250,9 +249,9 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         if not hits['hits']:
             macro = '<div></div>'
         else:
-            macro = web.template.Template.globals[
-                'macros'
-            ].FulltextSearchSuggestion(query, data)
+            macro = web.template.Template.globals['macros'].FulltextSearchSuggestion(
+                query, data
+            )
         return {"partials": str(macro)}
 
 
@@ -272,7 +271,7 @@ class BookPageListsPartial(PartialDataHandler):
 
         # Do checks and render
         has_lists = (work and work.get_lists(limit=1)) or (
-                edition and edition.get_lists(limit=1)
+            edition and edition.get_lists(limit=1)
         )
         results["hasLists"] = bool(has_lists)
 
@@ -317,7 +316,7 @@ class PartialRequestResolver:
     def get_handler(cls, component: str) -> PartialDataHandler:
         """Instantiates and returns the requested handler"""
         if klass := cls.component_mapping.get(component):
-            concrete_class = cast(Type[PartialDataHandler], klass)
+            concrete_class = cast(type[PartialDataHandler], klass)
             return concrete_class()
         raise PartialResolutionError(f'No handler found for key "{component}"')
 
@@ -329,7 +328,10 @@ class Partials(delegate.page):
     def GET(self):
         i = web.input(_component=None)
         component = i.pop("_component")
-        return delegate.RawText(json.dumps(PartialRequestResolver.resolve(component)), content_type='application/json')
+        return delegate.RawText(
+            json.dumps(PartialRequestResolver.resolve(component)),
+            content_type='application/json',
+        )
 
 
 def setup():
