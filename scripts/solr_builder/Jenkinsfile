@@ -1,8 +1,8 @@
 pipeline {
   agent {
-    dockerfile {
-      filename 'Dockerfile'
-      dir 'scripts/solr_builder'
+    docker {
+      // filename 'Dockerfile'
+      image 'openlibrary/solr-builder:latest'
       // Needed to make docker-in-docker work
       args '-v /var/run/docker.sock:/var/run/docker.sock'
       args '-v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data'
@@ -22,6 +22,9 @@ pipeline {
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
     string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
+    string(name: 'PIP_INDEX_URL', defaultValue: '', description: 'Path to custom PIP index (needed on prod)')
+    string(name: 'HTTPS_PROXY', defaultValue: '', description: 'Proxy for HTTP requests (needed on prod)')
+    string(name: 'NO_PROXY', defaultValue: 'archive.org,openlibrary.org,.archive.org,.openlibrary.org', description: 'No proxy for these domains')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -81,6 +84,15 @@ pipeline {
             }
             stage('Setup dump file') {
               stages {
+                stage('Cleanup ol dump files') {
+                  steps {
+                    dir(env.DUMP_DIR) {
+                      sh "rm \$(ls ol_dump_2* | grep -v ${env.OL_DUMP_FILE}) || true"
+                      sh "rm \$(ls ol_dump_ratings_2* | grep -v ${env.OL_RATINGS_FILE}) || true"
+                      sh "rm \$(ls ol_dump_reading-log_2* | grep -v ${env.OL_READING_LOG_FILE}) || true"
+                    }
+                  }
+                }
                 stage('Download dump file') {
                   steps {
                     dir(env.DUMP_DIR) {
@@ -163,7 +175,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop solr if running',
-                script: 'docker rm -f -v solr_builder-solr-1 || true')
+                script: 'docker rm -f -v solr_builder-solr-1 solr_builder-solr_prod-1 || true')
 
               sh(label: 'Remove solr volume',
                 script: 'docker volume rm solr_builder_solr-data || true')
@@ -176,8 +188,13 @@ pipeline {
               sh(label: 'Launch solr',
                 script: 'docker compose up --no-deps -d solr')
 
+              // Needed because nexus is unable to pull this from the Dockerfile for
+              // some reason
+              sh(label: 'Manually pull openlibrary/olbase:latest image',
+                script: 'docker pull openlibrary/olbase:latest')
+
               sh(label: 'Build "lite" ol environment',
-                script: 'docker compose build --pull ol')
+                script: 'docker compose build ol')
 
               sh(label: 'Build the cython files',
                 script: 'docker compose run --rm ol ./build-cython.sh')
