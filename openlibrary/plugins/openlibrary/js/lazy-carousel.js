@@ -1,4 +1,4 @@
-import {Carousel} from "./carousel/Carousel";
+import {initialzeCarousels} from "./carousel";
 
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
@@ -63,13 +63,8 @@ function doFetchAndUpdate(target) {
             newElem.innerHTML = data.partials.trim()
             target.parentNode.insertBefore(newElem, target)
             target.remove()
-            const $carouselElements = $(newElem.querySelector('.carousel--progressively-enhanced'))
-            $carouselElements.each((_i, el) => new Carousel($(el)).init())
-            $(newElem.querySelectorAll('.slick-slide')).each(function () {
-                if ($(this).attr('aria-describedby') !== undefined) {
-                    $(this).attr('id', $(this).attr('aria-describedby'));
-                }
-            })
+            const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced')
+            initialzeCarousels(carouselElements)
         })
         .catch(() => {
             const loadingIndicator = target.querySelector(".loadingIndicator")
