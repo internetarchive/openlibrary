@@ -567,6 +567,18 @@ msgid "Year of Publication"
 msgstr ""
 
 #: RawQueryCarousel.html
+msgid "Loading carousel"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry?"
+msgstr ""
+
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 

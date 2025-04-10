@@ -1,4 +1,4 @@
-import {initialzeCarousels} from "./carousel";
+import {initialzeCarousels} from './carousel';
 
 export function initCarouselsPartials() {
     const carousels = document.querySelectorAll('.RelatedWorksCarousel');

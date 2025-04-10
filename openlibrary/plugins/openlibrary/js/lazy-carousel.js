@@ -1,4 +1,4 @@
-import {initialzeCarousels} from "./carousel";
+import {initialzeCarousels} from './carousel';
 
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
@@ -10,7 +10,7 @@ export function initLazyCarousel(elems) {
     // Create intersection observer
     const intersectionObserver = new IntersectionObserver(intersectionCallback, {
         root: null,
-        rootMargin: "200px",
+        rootMargin: '200px',
         threshold: 0
     })
 
@@ -19,8 +19,8 @@ export function initLazyCarousel(elems) {
         intersectionObserver.observe(elem)
 
         // Add retry listener
-        const retryElem = elem.querySelector(".retry-btn")
-        retryElem.addEventListener("click", (e) => {
+        const retryElem = elem.querySelector('.retry-btn')
+        retryElem.addEventListener('click', (e) => {
             e.preventDefault()
             handleRetry(elem)
         })
@@ -34,7 +34,7 @@ export function initLazyCarousel(elems) {
  * @returns {Promise<Response>}
  */
 async function fetchPartials(data) {
-    const searchParams = new URLSearchParams({...data, _component: "LazyCarousel"})
+    const searchParams = new URLSearchParams({...data, _component: 'LazyCarousel'})
     return fetch(`/partials.json?${searchParams.toString()}`)
 }
 
@@ -54,12 +54,12 @@ function doFetchAndUpdate(target) {
     fetchPartials(config)
         .then(resp => {
             if (!resp.ok) {
-                throw new Error("Failed to fetch partials from server")
+                throw new Error('Failed to fetch partials from server')
             }
             return resp.json()
         })
         .then(data => {
-            const newElem = document.createElement("div")
+            const newElem = document.createElement('div')
             newElem.innerHTML = data.partials.trim()
             target.parentNode.insertBefore(newElem, target)
             target.remove()
@@ -67,10 +67,10 @@ function doFetchAndUpdate(target) {
             initialzeCarousels(carouselElements)
         })
         .catch(() => {
-            const loadingIndicator = target.querySelector(".loadingIndicator")
-            loadingIndicator.classList.add("hidden")
-            const retryElem = target.querySelector(".lazy-carousel-retry")
-            retryElem.classList.remove("hidden")
+            const loadingIndicator = target.querySelector('.loadingIndicator')
+            loadingIndicator.classList.add('hidden')
+            const retryElem = target.querySelector('.lazy-carousel-retry')
+            retryElem.classList.remove('hidden')
         })
 }
 
@@ -81,10 +81,10 @@ function doFetchAndUpdate(target) {
  * @param target {Element}
  */
 function handleRetry(target) {
-    const loadingIndicator = target.querySelector(".loadingIndicator")
-    const retryElem = target.querySelector(".lazy-carousel-retry")
-    loadingIndicator.classList.remove("hidden")
-    retryElem.classList.add("hidden")
+    const loadingIndicator = target.querySelector('.loadingIndicator')
+    const retryElem = target.querySelector('.lazy-carousel-retry')
+    loadingIndicator.classList.remove('hidden')
+    retryElem.classList.add('hidden')
     doFetchAndUpdate(target)
 
 }

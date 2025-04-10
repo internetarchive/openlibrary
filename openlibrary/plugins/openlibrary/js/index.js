@@ -207,7 +207,7 @@ jQuery(function () {
     }
 
     // Enable any carousels in the page
-    const carouselElements = document.querySelectorAll(".carousel--progressively-enhanced")
+    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced')
     if (carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => {
@@ -567,9 +567,9 @@ jQuery(function () {
     }
 
     // Generalized carousel lazy-loading
-    const lazyCarousels = document.querySelectorAll(".lazy-carousel")
+    const lazyCarousels = document.querySelectorAll('.lazy-carousel')
     if (lazyCarousels.length) {
-        import(/* webpackChunkName: "lazy-carousels" */ "./lazy-carousel")
+        import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
             .then(module => module.initLazyCarousel(lazyCarousels))
     }
 });
