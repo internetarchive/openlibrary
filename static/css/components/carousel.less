@@ -220,10 +220,17 @@
   flex-direction: column;
   justify-content: center;
 
-  > * {
+  .loadingIndicator {
     border: 1px @grey solid;
     width: 80%;
     margin: 0 auto;
+  }
+
+  &-retry {
+    border: 1px @grey solid;
+    background: @lightest-grey;
+    margin: 0 auto;
+    padding: 20px;
   }
 }
 

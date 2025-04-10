@@ -27,6 +27,9 @@ $if lazy:
             config["url"] = url
     <div class="lazy-carousel" data-config="$json_encode(config)">
         $:macros.LoadingIndicator(_("Loading carousel"), hidden=False)
+        <div class="lazy-carousel-retry hidden">
+            $_("Failed to fetch carousel.") <a href="#" class="retry-btn">$_("Retry?")</a>
+        </div>
     </div>
 $else:
     $# Enable search within this query
