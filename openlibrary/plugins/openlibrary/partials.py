@@ -255,8 +255,8 @@ class Partials(delegate.page):
 
         elif component == "LazyCarousel":
             i = web.input(query="", title=None, sort="new", key="", limit=20, search=False, has_fulltext_only=True, url=None, layout="carousel")
-            i.search = not i.search == "false"
-            i.has_fulltext_only = not i.has_fulltext_only == "false"
+            i.search = i.search != "false"
+            i.has_fulltext_only = i.has_fulltext_only != "false"
             macro = web.template.Template.globals[
                     'macros'
                 ].CacheableMacro("RawQueryCarousel", i.query, lazy=False, title=i.title, sort=i.sort, key=i.key, limit=i.limit, search=i.search, has_fulltext_only=i.has_fulltext_only, url=i.url, layout=i.layout)
