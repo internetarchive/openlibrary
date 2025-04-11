@@ -183,5 +183,5 @@ export function exposeGlobally() {
     window.websafe = websafe;
     window._ = ugettext;
     window.ungettext = ungettext;
-    window.uggettext = ugettext;
+    window.ugettext = ugettext;
 }
