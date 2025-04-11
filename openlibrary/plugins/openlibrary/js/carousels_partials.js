@@ -1,4 +1,4 @@
-import {Carousel} from './carousel/Carousel';
+import {initialzeCarousels} from './carousel';
 
 export function initCarouselsPartials() {
     const carousels = document.querySelectorAll('.RelatedWorksCarousel');
@@ -19,8 +19,8 @@ export function initCarouselsPartials() {
                 loadingIndicator.classList.add('hidden');
                 if (response) {
                     carouselElement.insertAdjacentHTML('beforeend', response[0]);
-                    carouselElement.querySelectorAll('.carousel--progressively-enhanced')
-                        .forEach(el => new Carousel($(el)).init());
+                    const elems = carouselElement.querySelectorAll('.carousel--progressively-enhanced')
+                    initialzeCarousels(elems)
                 }
             }
         });

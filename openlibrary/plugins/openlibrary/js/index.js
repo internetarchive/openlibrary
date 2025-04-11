@@ -207,16 +207,11 @@ jQuery(function () {
     }
 
     // Enable any carousels in the page
-    const $carouselElements = $('.carousel--progressively-enhanced');
-    if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced')
+    if (carouselElements.length) {
+        import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => {
-                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
-                $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') !== undefined) {
-                        $(this).attr('id',$(this).attr('aria-describedby'));
-                    }
-                });
+                module.initialzeCarousels(carouselElements)
             })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
@@ -569,5 +564,12 @@ jQuery(function () {
     if (listSection) {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
             .then(module => module.initListsSection(listSection))
+    }
+
+    // Generalized carousel lazy-loading
+    const lazyCarousels = document.querySelectorAll('.lazy-carousel')
+    if (lazyCarousels.length) {
+        import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
+            .then(module => module.initLazyCarousel(lazyCarousels))
     }
 });
