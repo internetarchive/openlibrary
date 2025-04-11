@@ -13,10 +13,17 @@
             <br>
             <small>For books that print the ISBN without a barcode</small>
           </button>
+          <button class="barcodescanner__add-to-list glass-button"
+          @click="handleListAdd" :disabled="!isSignedIn">
+            Add to my Want to Read list
+            <br>
+            <small v-if="!isSignedIn" >You must be signed in to enable this feature</small>
+            <small v-else>Currently {{ saveWantToReadList ? 'enabled' : 'disabled'}}</small>
+          </button>
         </div>
       </details>
       <div class="barcodescanner__result-strip">
-         <LazyBookCard v-for="isbnObj in isbnList" :key="isbnObj.isbn" :isbn="isbnObj.isbn" :tentativeCover="isbnObj.cover" />
+         <LazyBookCard v-for="isbnObj in isbnList" :key="isbnObj.isbn" :isbn="isbnObj.isbn" :tentativeCover="isbnObj.cover" :userKey="isSignedIn" :saveWantToReadList="saveWantToReadList"/>
         <div class="empty">
           Point your camera at a barcode! 📷
         </div>
@@ -35,9 +42,15 @@ import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js'
 
 export default {
     components: { LazyBookCard, SettingsIcon },
+    props: {
+        user_key: {
+            default: ''
+        },
+    },
     data() {
         return {
             disableISBNTextButton: false,
+            saveWantToReadList: false,
             canvasInactive: true,
             lastISBN: null,
             isbnList: [],
@@ -194,7 +207,8 @@ export default {
             if (isbn === this.lastISBN) return;
             if (this.seenISBN.has(isbn)) return;
 
-            if (this.returnTo) {
+            if (this.returnTo && !this.saveWantToReadList) {
+                // Users can't save books to Want To Read since this redirects before LazyBookCard finish its request
                 location = this.returnTo.replace('$$$', isbn);
             }
             this.isbnList.unshift({isbn: isbn, cover: tentativeCoverUrl});
@@ -205,6 +219,17 @@ export default {
             return code.startsWith('97');
         },
 
+        handleListAdd() {
+            if (this.isSignedIn) {
+                this.saveWantToReadList = !this.saveWantToReadList
+            }
+        },
+
+    },
+    computed: {
+        isSignedIn: function() {
+            return this.user_key !== ''
+        }
     },
     async mounted() {
         await this.start();
