@@ -1,6 +1,8 @@
-$def with (caption, additional_classes='')
+$def with (caption, additional_classes='', hidden=True)
 
-<div class="hidden loadingIndicator $additional_classes">
+$ hidden = "hidden" if hidden else ""
+
+<div class="$hidden loadingIndicator $additional_classes">
   <figure>
   <img src="/images/ajax-loader-bar.gif" alt="$_('Loading indicator')" loading="lazy">
   <figcaption style="
