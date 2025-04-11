@@ -1,0 +1,12 @@
+./scripts/copydocs.py /works/OL27848372W
+./scripts/copydocs.py /works/OL34199225W
+./scripts/copydocs.py /works/OL20011506W
+./scripts/copydocs.py /works/OL20652090W
+./scripts/copydocs.py /works/OL17889978W
+./scripts/copydocs.py /works/OL1155988W
+./scripts/copydocs.py /works/OL15992072W
+./scripts/copydocs.py /works/OL116220W
+./scripts/copydocs.py /works/OL514629W
+./scripts/copydocs.py /works/OL17744561W
+./scripts/copydocs.py /works/OL50565W
+./scripts/copydocs.py /works/OL25258489W
