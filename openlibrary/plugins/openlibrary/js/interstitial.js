@@ -14,7 +14,7 @@ export function initInterstitial(elem) {
     // Add cancel button handler
     const cancelButton = elem.querySelector('.close-window');
     if (cancelButton) {
-        cancelButton.addEventListener('click', (e) => {
+        cancelButton.addEventListener('click', () => {
             window.close()
         });
     }
