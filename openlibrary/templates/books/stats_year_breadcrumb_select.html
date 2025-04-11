@@ -1,0 +1,10 @@
+$def with (mb, yearly_reads,selected=_("All Time"))
+
+$ url_prefix = "/people/%s/books/already-read/stats/" % mb.username
+
+$ options = [(_("All Time"), url_prefix)]
+$if mb.is_my_page or mb.is_public:
+  $for (year, count) in yearly_reads:
+    $ options += [("%s (%s)" % (year, count), url_prefix + "/%s/" % year)]
+
+$:render_template("books/breadcrumb_select", selected, options)

@@ -157,9 +157,9 @@ class mybooks_feed(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)/stats"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)/stats(/\\d{4})?"
 
-    def GET(self, username, key='want-to-read'):
+    def GET(self, username, key='want-to-read', year=None):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
@@ -168,8 +168,15 @@ class readinglog_stats(delegate.page):
         if not cur_user or cur_user.key.split('/')[-1] != username:
             return render.permission_denied(web.ctx.path, 'Permission Denied')
 
+        yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(username)
+        if year:
+            # Skip the '/'
+            year = int(year[1:])
+            # This takes a substring of year (from the GET request) starting at index 1
+            # Thus, the / is removed
+
         readlog = ReadingLog(user=user)
-        works = readlog.get_works(key, page=1, limit=2000).docs
+        works = readlog.get_works(key, page=1, limit=2000, year=year).docs
         works_json = [
             {
                 # Fallback to key if it is a redirect
@@ -203,6 +210,8 @@ class readinglog_stats(delegate.page):
             web.ctx.path.rsplit('/', 1)[0],
             key,
             lang=web.ctx.lang,
+            year=year,
+            yearly_reads=yearly_reads,
         )
 
 
