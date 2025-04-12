@@ -1,9 +1,10 @@
-import time
 import re
+import time
+
 import requests
 
-from openlibrary.plugins.upstream.utils import get_marc21_language
 from openlibrary.config import load_config
+from openlibrary.plugins.upstream.utils import get_marc21_language
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # GitHub raw content URL for the JSON file on EbookFoundation
@@ -19,6 +20,7 @@ def fix_text_format(text):
     text = text.replace("\r\n", "\n")
     text = re.sub(r'\n+', '\n', text)
     return text
+
 
 def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
     attempt = 0
@@ -39,6 +41,7 @@ def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
                 print("Max retries reached. Exiting...")
                 return None  # Return None if max retries are exceeded
 
+
 def flatten_books(data):
     flat_list = []
 
@@ -52,25 +55,23 @@ def flatten_books(data):
                     continue
 
                 authors = []
-                raw_authors = (
-                    book["author"].split(",") if ("author" in book) else []
-                )
+                raw_authors = book["author"].split(",") if ("author" in book) else []
 
                 for author in raw_authors:
                     if not author:
                         continue
 
                     authors.append({"name": fix_text_format(author.strip())})
-                
+
                 notes = "".join(book.get("notes", []))
                 format = ""
 
-                if ("pdf" in notes.lower()):
+                if "pdf" in notes.lower():
                     format = "pdf"
-                elif ("epub" in notes.lower()):
+                elif "epub" in notes.lower():
                     format = "epub"
                 else:
-                    format = "web" 
+                    format = "web"
 
                 entry = {
                     "title": fix_text_format(book.get("title", "????")),
@@ -106,7 +107,7 @@ def flatten_books(data):
             for language_section in child.get("children", []):
                 if "sections" not in language_section:
                     continue
-                
+
                 language_name = (
                     language_section["language"].get("code", "????")
                     if ("language" in language_section)
@@ -118,6 +119,7 @@ def flatten_books(data):
                 traverse(language_section["sections"], [], language_code)
 
     return flat_list
+
 
 def main(ol_config: str):
     """
