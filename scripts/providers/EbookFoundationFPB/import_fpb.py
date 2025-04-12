@@ -205,7 +205,7 @@ def flatten_books(data):
                 entry = {
                     "title": fix_text_format(book.get("title", "????")),
                     "authors": authors,
-                    "source_records": ["EbookFoundation"],
+                    "source_records": ["EbookFoundation:%s" % book["url"]],
                     "publishers": ["????"],
                     "publish_date": "????",
                     "subjects": new_topics,
