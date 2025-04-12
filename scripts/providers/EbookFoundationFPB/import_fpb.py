@@ -257,14 +257,14 @@ def process_books():
 
         result, _ = detect_inaccessible_books(url)
 
-        if (not result):
+        if not result:
             continue
-        
+
         metadata = scrape_metadata(url)
 
         if metadata["title"] and not book["title"]:
             book["title"] = fix_text_format(metadata["title"])
-        
+
         if metadata["authors"] and not book["authors"]:
             for author in metadata["authors"]:
                 author["name"] = fix_text_format(author["name"])
@@ -282,15 +282,15 @@ def process_books():
 
         if metadata["description"]:
             book["description"] = fix_text_format(metadata["description"])
-        
+
         if metadata["cover"]:
             book["cover"] = metadata["cover"]
-        
+
         if not book["authors"]:
             book["authors"].append({"name": "????"})
-        
+
         books.append(book)
-    
+
     return books
 
 
