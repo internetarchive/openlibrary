@@ -57,33 +57,38 @@ def detect_inaccessible_books(url):
 
         if response_code == 200:
             return True, f"Page accessible code {response_code}"
-        
+
         response = requests.get(url, allow_redirects=True, timeout=10)
         response_text = response.text
-        
-        if (not response_text):
-            response = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
+
+        if not response_text:
+            response = requests.get(
+                url, headers=headers, allow_redirects=True, timeout=10
+            )
             response_text = response.text
-        
+
         # Check content
         soup = BeautifulSoup(response_text, 'html.parser')
         title_text = soup.title.string if soup.title else "No title found"
         title = title_text.lower().strip()
-        
+
         # Check if title indicates page not found
         if "not found" in title or "404" in title or "error" in title:
-            return False, f"Page might be available but contains error content. Title: {title}"
-            
+            return (
+                False,
+                f"Page might be available but contains error content. Title: {title}",
+            )
+
         # You could also check for specific error text in the body
         body_text = soup.get_text().lower().strip()[:1000]
         error_phrases = ["page not found", "does not exist", "could not be found"]
-        
+
         for phrase in error_phrases:
             if phrase in body_text:
                 return False, f"Page content contains error phrase: '{phrase}'"
-        
+
         return True, f"Page accessible code {response_code}"
-        
+
     except Exception as e:
         return False, f"Error accessing page: {e}"
 
@@ -100,29 +105,41 @@ def scrape_metadata(url):
         # Send HTTP request to fetch the webpage content
         response = requests.get(url, allow_redirects=True, timeout=10)
         response_text = response.text
-        
-        if (not response_text):
-            response = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
+
+        if not response_text:
+            response = requests.get(
+                url, headers=headers, allow_redirects=True, timeout=10
+            )
             response_text = response.text
 
         # Parse HTML content using BeautifulSoup
         soup = BeautifulSoup(response_text, 'html.parser')
 
         # Extract Open Graph metadata
-        title = soup.find("meta", property="og:title") or soup.find("meta", property="twitter:title") or soup.find("meta", attrs={"name": "title"})
+        title = (
+            soup.find("meta", property="og:title")
+            or soup.find("meta", property="twitter:title")
+            or soup.find("meta", attrs={"name": "title"})
+        )
         author = soup.find_all("meta", attrs={"name": "author"})
         publisher = soup.find_all("meta", attrs={"name": "publisher"})
         publish_date = soup.find("meta", attrs={"name": "publisher_date"})
-        description = soup.find("meta", property="og:description") or soup.find("meta", property="twitter:description") or soup.find("meta", attrs={"name": "description"})
-        cover_image = soup.find("meta", property="og:image") or soup.find("meta", property="twitter:image")
+        description = (
+            soup.find("meta", property="og:description")
+            or soup.find("meta", property="twitter:description")
+            or soup.find("meta", attrs={"name": "description"})
+        )
+        cover_image = soup.find("meta", property="og:image") or soup.find(
+            "meta", property="twitter:image"
+        )
 
         authors, publishers = [], []
         for a in author:
-            if "content" in a and a["content"]:
+            if a.get("content"):
                 authors.append({"name": a["content"].strip()})
 
         for p in publisher:
-            if "content" in p and p["content"]:
+            if p.get("content"):
                 publishers.append(p["content"].strip())
 
         # Get the content attributes
@@ -130,9 +147,13 @@ def scrape_metadata(url):
             "title": title.get("content", "").strip() if (title) else "",
             "authors": authors,
             "publishers": publishers,
-            "publish_date": publish_date.get("content", "").strip() if (publish_date) else "",
-            "description": description.get("content", "").strip() if (description) else "",
-            "cover": cover_image.get("content", "") if (cover_image) else ""
+            "publish_date": (
+                publish_date.get("content", "").strip() if (publish_date) else ""
+            ),
+            "description": (
+                description.get("content", "").strip() if (description) else ""
+            ),
+            "cover": cover_image.get("content", "") if (cover_image) else "",
         }
 
         return metadata
@@ -143,7 +164,7 @@ def scrape_metadata(url):
             "publishers": [],
             "publish_date": "",
             "description": "",
-            "cover": ""
+            "cover": "",
         }
 
 
