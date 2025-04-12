@@ -1,14 +1,14 @@
-import re
-import time
 import datetime
 import json
+import re
+import time
 
 import requests
 from bs4 import BeautifulSoup
 
 from openlibrary.config import load_config
-from openlibrary.plugins.upstream.utils import get_marc21_language
 from openlibrary.core.imports import Batch
+from openlibrary.plugins.upstream.utils import get_marc21_language
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # GitHub raw content URL for the JSON file on EbookFoundation
@@ -312,7 +312,7 @@ def main(ol_config: str, batch_size=1000, dry_run=False):
 
     book_items = []
     for line_num, book in enumerate(books):
-        book_items.append({'ia_id': book['source_records'][0], 'data':book})
+        book_items.append({'ia_id': book['source_records'][0], 'data': book})
 
         if dry_run:
             print(json.dumps(book))
