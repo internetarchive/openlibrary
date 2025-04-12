@@ -1,5 +1,5 @@
 import time
-
+import re
 import requests
 
 from openlibrary.config import load_config
@@ -7,6 +7,17 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # GitHub raw content URL for the JSON file on EbookFoundation
 FPB_URL = "https://raw.githubusercontent.com/EbookFoundation/free-programming-books-search/main/fpb.json"
+
+
+def fix_encoding(text):
+    try:
+        text = text.encode('latin1').decode('utf-8', errors='ignore')
+    except:
+        pass
+
+    text = text.replace("\r\n", "\n")
+    text = re.sub(r'\n+', '\n', text)
+    return text
 
 
 def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
