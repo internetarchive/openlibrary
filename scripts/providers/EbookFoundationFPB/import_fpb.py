@@ -2,6 +2,7 @@ import datetime
 import json
 import re
 import time
+import contextlib
 
 import requests
 from bs4 import BeautifulSoup
@@ -16,10 +17,8 @@ FPB_URL = "https://raw.githubusercontent.com/EbookFoundation/free-programming-bo
 
 
 def fix_text_format(text):
-    try:
+    with contextlib.suppress(UnicodeEncodeError, UnicodeDecodeError):
         text = text.encode('latin1').decode('utf-8', errors='ignore')
-    except:
-        pass
 
     text = text.replace("\r\n", "\n")
     text = re.sub(r'\n+', '\n', text)
@@ -92,7 +91,7 @@ def detect_inaccessible_books(url):
 
         return True, f"Page accessible code {response_code}"
 
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         return False, f"Error accessing page: {e}"
 
 
@@ -160,7 +159,7 @@ def scrape_metadata(url):
         }
 
         return metadata
-    except Exception as e:
+    except requests.exceptions.RequestException:
         return {
             "title": "",
             "authors": [],
