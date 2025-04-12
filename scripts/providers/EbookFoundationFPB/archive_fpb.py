@@ -1,6 +1,8 @@
 import os
-import requests
 from contextlib import redirect_stdout
+
+import requests
+
 from openlibrary.config import load_config
 
 
