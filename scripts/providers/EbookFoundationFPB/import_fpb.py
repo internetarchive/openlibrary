@@ -247,11 +247,59 @@ def flatten_books(data):
     return flat_list
 
 
+def process_books():
+    raw_data = fetch_data_from_ebookfoundation()
+    data = flatten_books(raw_data)
+    books = []
+
+    for i, book in enumerate(data):
+        url = book["providers"][0]["url"]
+
+        result, _ = detect_inaccessible_books(url)
+
+        if (not result):
+            continue
+        
+        metadata = scrape_metadata(url)
+
+        if metadata["title"] and not book["title"]:
+            book["title"] = fix_text_format(metadata["title"])
+        
+        if metadata["authors"] and not book["authors"]:
+            for author in metadata["authors"]:
+                author["name"] = fix_text_format(author["name"])
+
+            book["authors"] = metadata["authors"]
+
+        if metadata["publishers"]:
+            for i in range(len(metadata["publishers"])):
+                metadata["publishers"][i] = fix_text_format(metadata["publishers"][i])
+
+            book["publishers"] = metadata["publishers"]
+
+        if metadata["publish_date"]:
+            book["publish_date"] = fix_text_format(metadata["publish_date"])
+
+        if metadata["description"]:
+            book["description"] = fix_text_format(metadata["description"])
+        
+        if metadata["cover"]:
+            book["cover"] = metadata["cover"]
+        
+        if not book["authors"]:
+            book["authors"].append({"name": "????"})
+        
+        books.append(book)
+    
+    return books
+
+
 def main(ol_config: str):
     """
     :param str ol_config: Path to openlibrary.yml file
     """
     load_config(ol_config)
+    books = process_books()
 
 
 if __name__ == "__main__":
