@@ -1,8 +1,8 @@
+import contextlib
 import datetime
 import json
 import re
 import time
-import contextlib
 
 import requests
 from bs4 import BeautifulSoup
