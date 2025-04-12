@@ -1,11 +1,14 @@
 import re
 import time
+import datetime
+import json
 
 import requests
 from bs4 import BeautifulSoup
 
 from openlibrary.config import load_config
 from openlibrary.plugins.upstream.utils import get_marc21_language
+from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # GitHub raw content URL for the JSON file on EbookFoundation
@@ -294,12 +297,33 @@ def process_books():
     return books
 
 
-def main(ol_config: str):
+def main(ol_config: str, batch_size=1000, dry_run=False):
     """
     :param str ol_config: Path to openlibrary.yml file
     """
     load_config(ol_config)
     books = process_books()
+
+    if not dry_run:
+        load_config(ol_config)
+        date = datetime.date.today()
+        batch_name = f"fpb_ebookfoundation-{date:%Y%m}"
+        batch = Batch.find(batch_name) or Batch.new(batch_name)
+
+    book_items = []
+    for line_num, book in enumerate(books):
+        book_items.append({'ia_id': book['source_records'][0], 'data':book})
+
+        if dry_run:
+            print(json.dumps(book))
+        # If we have enough items, submit a batch
+        elif not ((line_num + 1) % batch_size):
+            batch.add_items(book_items)
+            book_items = []  # clear added items
+
+    # Add any remaining book_items to batch
+    if not dry_run and book_items:
+        batch.add_items(book_items)
 
 
 if __name__ == "__main__":
