@@ -51,7 +51,7 @@ def fix_text_format(text: str) -> str:
 
 def fetch_data_from_ebookfoundation(
     max_retries: int = 10, delay: int = 5
-) -> dict | None:
+) -> dict:
     """
     Fetches JSON data from the Ebook Foundation URL with retry logic.
 
@@ -63,7 +63,7 @@ def fetch_data_from_ebookfoundation(
         delay (int): Number of seconds to wait between retries (default is 5).
 
     Returns:
-        dict or None: Parsed JSON data if the request is successful; otherwise, None.
+        dict: Parsed JSON data if the request is successful; otherwise, {}.
     """
 
     attempt = 0
@@ -83,7 +83,7 @@ def fetch_data_from_ebookfoundation(
 
             if attempt >= max_retries:
                 logger.error("Max retries reached. Exiting without data.")
-                return None  # Return None if max retries are exceeded
+                return {}  # Return None if max retries are exceeded
 
 
 def detect_inaccessible_books(url: str) -> tuple[bool, str]:
