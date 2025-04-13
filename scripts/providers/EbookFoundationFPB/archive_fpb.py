@@ -4,6 +4,29 @@ from contextlib import redirect_stdout
 import requests
 
 from openlibrary.config import load_config
+from scripts.providers.EbookFoundationFPB.import_fpb import fetch_data_from_ebookfoundation, flatten_books, detect_inaccessible_books
+
+
+def process_urls(include_error_links=False):
+    raw_data = fetch_data_from_ebookfoundation()
+    books = flatten_books(raw_data)
+    all_urls = []
+
+    for book in books:
+        all_urls.append(book["providers"][0]["url"])
+
+    if not include_error_links:
+        working_urls = []
+
+        for url in all_urls:
+            result, _ = detect_inaccessible_books(url)
+
+            if (result):
+                working_urls.append(url)
+        
+        return working_urls
+    
+    return all_urls
 
 
 def format_archive_book_request(
@@ -42,5 +65,8 @@ if __name__ == "__main__":
         with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
             load_config(ol_config)
 
-    data = format_archive_book_request("")
-    post_data({}, data)
+    urls = process_urls(True)
+
+    for url in urls:
+        data = format_archive_book_request(url)
+        post_data({}, data)
