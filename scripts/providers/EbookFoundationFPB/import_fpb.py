@@ -1,3 +1,9 @@
+"""
+To run:
+
+PYTHONPATH=. python ./scripts/providers/EbookFoundation/import_fpb.py /olsystem/etc/openlibrary.yml
+"""
+
 import contextlib
 import datetime
 import json
@@ -17,6 +23,22 @@ FPB_URL = "https://raw.githubusercontent.com/EbookFoundation/free-programming-bo
 
 
 def fix_text_format(text):
+    """
+    Cleans and normalizes a string by fixing encoding issues and standardizing line breaks.
+
+    - Attempts to re-encode the text from 'latin1' to 'utf-8' to fix common mojibake issues 
+      (e.g., incorrectly displayed accented characters).
+    - Silently skips re-encoding if it raises encoding/decoding errors.
+    - Replaces Windows-style line breaks (\r\n) with Unix-style (\n).
+    - Collapses multiple consecutive newlines into a single newline.
+
+    Args:
+        text (str): The input string potentially containing encoding issues and inconsistent line breaks.
+
+    Returns:
+        str: The cleaned and normalized text.
+    """
+
     with contextlib.suppress(UnicodeEncodeError, UnicodeDecodeError):
         text = text.encode('latin1').decode('utf-8', errors='ignore')
 
@@ -26,6 +48,20 @@ def fix_text_format(text):
 
 
 def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
+    """
+    Fetches JSON data from the Ebook Foundation URL with retry logic.
+
+    Retries the request up to `max_retries` times with a delay of `delay` seconds
+    between attempts if a RequestException occurs.
+
+    Args:
+        max_retries (int): Maximum number of retry attempts (default is 10).
+        delay (int): Number of seconds to wait between retries (default is 5).
+
+    Returns:
+        dict or None: Parsed JSON data if the request is successful; otherwise, None.
+    """
+
     attempt = 0
 
     while True:
@@ -46,6 +82,16 @@ def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
 
 
 def detect_inaccessible_books(url):
+    """
+    Checks whether a given URL is accessible and doesn't contain typical error content.
+
+    Args:
+        url (str): The URL to check.
+
+    Returns:
+        tuple: (bool, str) — True and message if accessible, otherwise False and reason.
+    """
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
@@ -96,6 +142,17 @@ def detect_inaccessible_books(url):
 
 
 def scrape_metadata(url):
+    """
+    Scrapes Open Graph and other metadata (title, author, publisher, publish date, description, cover image)
+    from a given URL.
+
+    Args:
+        url (str): The URL of the webpage to scrape.
+
+    Returns:
+        dict: A dictionary containing metadata fields with extracted values, or empty defaults on failure.
+    """
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
