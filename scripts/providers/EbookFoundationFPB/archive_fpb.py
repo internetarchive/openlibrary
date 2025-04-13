@@ -4,7 +4,11 @@ from contextlib import redirect_stdout
 import requests
 
 from openlibrary.config import load_config
-from scripts.providers.EbookFoundationFPB.import_fpb import fetch_data_from_ebookfoundation, flatten_books, detect_inaccessible_books
+from scripts.providers.EbookFoundationFPB.import_fpb import (
+    detect_inaccessible_books,
+    fetch_data_from_ebookfoundation,
+    flatten_books,
+)
 
 
 def process_urls(include_error_links=False):
@@ -21,11 +25,11 @@ def process_urls(include_error_links=False):
         for url in all_urls:
             result, _ = detect_inaccessible_books(url)
 
-            if (result):
+            if result:
                 working_urls.append(url)
-        
+
         return working_urls
-    
+
     return all_urls
 
 
