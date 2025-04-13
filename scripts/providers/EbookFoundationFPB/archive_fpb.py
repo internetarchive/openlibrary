@@ -9,7 +9,7 @@ from scripts.providers.EbookFoundationFPB.import_fpb import (
 )
 
 
-def process_urls(include_error_links=False):
+def process_urls(include_error_links: bool = False) -> list[str]:
     raw_data = fetch_data_from_ebookfoundation()
     books = flatten_books(raw_data)
     all_urls = []
@@ -82,4 +82,4 @@ if __name__ == "__main__":
 
     for url in urls:
         data = format_archive_book_request(url)
-        post_data(headers, data)
+        response = post_data(headers, data)

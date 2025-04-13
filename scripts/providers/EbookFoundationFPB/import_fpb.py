@@ -13,6 +13,7 @@ import time
 
 import requests
 from bs4 import BeautifulSoup
+from typing import Optional
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
@@ -24,7 +25,7 @@ FPB_URL = "https://raw.githubusercontent.com/EbookFoundation/free-programming-bo
 logger = logging.getLogger("openlibrary.importer.fpb")
 
 
-def fix_text_format(text):
+def fix_text_format(text: str) -> str:
     """
     Cleans and normalizes a string by fixing encoding issues and standardizing line breaks.
 
@@ -49,7 +50,7 @@ def fix_text_format(text):
     return text
 
 
-def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
+def fetch_data_from_ebookfoundation(max_retries: int = 10, delay: int = 5) -> Optional[dict]:
     """
     Fetches JSON data from the Ebook Foundation URL with retry logic.
 
@@ -84,7 +85,7 @@ def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
                 return None  # Return None if max retries are exceeded
 
 
-def detect_inaccessible_books(url):
+def detect_inaccessible_books(url: str) -> tuple[bool, str]:
     """
     Checks whether a given URL is accessible and doesn't contain typical error content.
 
@@ -145,7 +146,7 @@ def detect_inaccessible_books(url):
         return False, f"Error accessing page: {e}"
 
 
-def scrape_metadata(url):
+def scrape_metadata(url: str) -> dict:
     """
     Scrapes Open Graph and other metadata (title, author, publisher, publish date, description, cover image)
     from a given URL.
@@ -232,7 +233,7 @@ def scrape_metadata(url):
         }
 
 
-def flatten_books(data):
+def flatten_books(data: dict) -> list[dict]:
     """
     Recursively flattens a nested EbookFoundation dataset structure into a list of book entries.
 
@@ -329,7 +330,7 @@ def flatten_books(data):
     return flat_list
 
 
-def process_books():
+def process_books() -> list[dict]:
     """
     Fetches raw book data from the EbookFoundation, flattens the data into book entries,
     checks the accessibility of each book, and scrapes additional metadata to enrich the book information.
@@ -415,9 +416,11 @@ def process_books():
     return books
 
 
-def main(ol_config: str, batch_size=1000, dry_run=False):
+def main(ol_config: str, batch_size: int = 1000, dry_run: bool = False) -> None:
     """
-    :param str ol_config: Path to openlibrary.yml file
+    :param ol_config: Path to openlibrary.yml file
+    :param batch_size: Number of items to submit per batch
+    :param dry_run: If True, do not submit to the batch system
     """
     load_config(ol_config)
     books = process_books()
