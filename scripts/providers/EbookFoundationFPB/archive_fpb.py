@@ -1,5 +1,4 @@
-import os
-from contextlib import redirect_stdout
+from getpass import getpass
 
 import requests
 
@@ -63,14 +62,17 @@ def post_data(headers: dict[str, str], data: dict) -> dict:
 
 
 if __name__ == "__main__":
-    ol_config = os.getenv("OL_CONFIG")
+    # Prompt user for secrets securely
+    access_key = getpass("Enter your access key: ")
+    secret = getpass("Enter your secret key: ")
 
-    if ol_config:
-        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
-            load_config(ol_config)
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"LOW {access_key}:{secret}"
+    }
 
     urls = process_urls(True)
 
     for url in urls:
         data = format_archive_book_request(url)
-        post_data({}, data)
+        post_data(headers, data)
