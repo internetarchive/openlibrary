@@ -57,7 +57,13 @@ def format_archive_book_request(
 
 def post_data(headers: dict[str, str], data: dict) -> dict:
     api_url = "https://web.archive.org/save"
-    return requests.post(api_url, headers=headers, data=data)
+    response = requests.post(api_url, headers=headers, data=data)
+    
+    try:
+        return response.json()
+    except ValueError:
+        return {"error": "Response is not valid JSON", "status_code": response.status_code}
+
 
 
 if __name__ == "__main__":
