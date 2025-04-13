@@ -49,9 +49,7 @@ def fix_text_format(text: str) -> str:
     return text
 
 
-def fetch_data_from_ebookfoundation(
-    max_retries: int = 10, delay: int = 5
-) -> dict:
+def fetch_data_from_ebookfoundation(max_retries: int = 10, delay: int = 5) -> dict:
     """
     Fetches JSON data from the Ebook Foundation URL with retry logic.
 
