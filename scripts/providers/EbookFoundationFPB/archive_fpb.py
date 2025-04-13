@@ -2,7 +2,6 @@ from getpass import getpass
 
 import requests
 
-from openlibrary.config import load_config
 from scripts.providers.EbookFoundationFPB.import_fpb import (
     detect_inaccessible_books,
     fetch_data_from_ebookfoundation,
@@ -68,7 +67,7 @@ if __name__ == "__main__":
 
     headers = {
         "Accept": "application/json",
-        "Authorization": f"LOW {access_key}:{secret}"
+        "Authorization": f"LOW {access_key}:{secret}",
     }
 
     urls = process_urls(True)
