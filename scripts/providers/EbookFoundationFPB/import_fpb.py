@@ -9,6 +9,7 @@ import datetime
 import json
 import re
 import time
+import logging
 
 import requests
 from bs4 import BeautifulSoup
@@ -20,6 +21,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # GitHub raw content URL for the JSON file on EbookFoundation
 FPB_URL = "https://raw.githubusercontent.com/EbookFoundation/free-programming-books-search/main/fpb.json"
+logger = logging.getLogger("openlibrary.importer.fpb")
 
 
 def fix_text_format(text):
@@ -68,16 +70,17 @@ def fetch_data_from_ebookfoundation(max_retries=10, delay=5):
         try:
             response = requests.get(FPB_URL, timeout=10)
             response.raise_for_status()  # Raise an error if request fails
+            logger.info("Successfully fetched data from Ebook Foundation.")
             return response.json()  # Successfully fetched JSON
         except requests.exceptions.RequestException as e:
             attempt += 1
-            print(
+            logger.warning(
                 f"Attempt {attempt}: Failed to fetch JSON ({e}). Retrying in {delay} seconds..."
             )
             time.sleep(delay)  # Wait before retrying
 
             if attempt >= max_retries:
-                print("Max retries reached. Exiting...")
+                logger.error("Max retries reached. Exiting without data.")
                 return None  # Return None if max retries are exceeded
 
 
@@ -138,6 +141,7 @@ def detect_inaccessible_books(url):
         return True, f"Page accessible code {response_code}"
 
     except requests.exceptions.RequestException as e:
+        logger.warning(f"Failed to access {url}: {e}")
         return False, f"Error accessing page: {e}"
 
 
@@ -216,7 +220,8 @@ def scrape_metadata(url):
         }
 
         return metadata
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"Failed to scrape metadata from {url}: {e}")
         return {
             "title": "",
             "authors": [],
@@ -228,6 +233,23 @@ def scrape_metadata(url):
 
 
 def flatten_books(data):
+    """
+    Recursively flattens a nested EbookFoundation dataset structure into a list of book entries.
+
+    Each entry in the returned list is a dictionary representing a single book, including:
+    - title, authors, and subjects (inferred from section hierarchy)
+    - source record and URL
+    - access format (pdf, epub, or web)
+    - placeholder values for missing metadata like publisher or publish date
+    - language code if available and valid
+
+    Args:
+        data (dict): The nested JSON-like structure containing book sections organized by language and topics.
+
+    Returns:
+        list: A list of dictionaries where each dictionary is a flat representation of a book entry.
+    """
+
     flat_list = []
 
     def traverse(sections, topics, language_code):
@@ -303,53 +325,91 @@ def flatten_books(data):
 
                 traverse(language_section["sections"], [], language_code)
 
+    logger.info(f"Flattening complete. Total books found: {len(flat_list)}")
     return flat_list
 
 
 def process_books():
+    """
+    Fetches raw book data from the EbookFoundation, flattens the data into book entries, 
+    checks the accessibility of each book, and scrapes additional metadata to enrich the book information.
+
+    The function performs the following tasks:
+    1. Fetches raw data from the EbookFoundation API.
+    2. Flattens the data into a list of book entries.
+    3. For each book, checks the accessibility of the associated URL.
+    4. If the book is accessible, scrapes metadata (title, authors, publishers, etc.).
+    5. Updates the book entry with the scraped metadata, if available.
+    6. If any field is missing, the function tries to fill it with placeholder data.
+    7. Returns a list of processed books with enriched metadata.
+
+    Returns:
+        list: A list of books with metadata including title, authors, publishers, 
+              publish date, description, and cover image URL.
+    """
+
+    logger.info("Fetching raw data from EbookFoundation...")
     raw_data = fetch_data_from_ebookfoundation()
+
+    if not raw_data:
+        logger.error("Failed to fetch data. Exiting process.")
+        return []
+
+    logger.info("Flattening raw data into book entries...")
     data = flatten_books(raw_data)
     books = []
 
+    logger.info(f"Processing {len(data)} books...")
     for i, book in enumerate(data):
         url = book["providers"][0]["url"]
+        logger.debug(f"[{i+1}/{len(data)}] Checking accessibility for URL: {url}")
 
-        result, _ = detect_inaccessible_books(url)
+        result, reason = detect_inaccessible_books(url)
 
         if not result:
+            logger.warning(f"Skipping inaccessible book at {url}. Reason: {reason}")
             continue
 
+        logger.debug(f"Scraping metadata for URL: {url}")
         metadata = scrape_metadata(url)
 
         if metadata["title"] and not book["title"]:
             book["title"] = fix_text_format(metadata["title"])
+            logger.debug(f"Title updated from metadata: {book['title']}")
 
         if metadata["authors"] and not book["authors"]:
             for author in metadata["authors"]:
                 author["name"] = fix_text_format(author["name"])
 
             book["authors"] = metadata["authors"]
+            logger.debug(f"Authors added from metadata: {book['authors']}")
 
         if metadata["publishers"]:
             for i in range(len(metadata["publishers"])):
                 metadata["publishers"][i] = fix_text_format(metadata["publishers"][i])
 
             book["publishers"] = metadata["publishers"]
+            logger.debug(f"Publishers added from metadata: {book['publishers']}")
 
         if metadata["publish_date"]:
             book["publish_date"] = fix_text_format(metadata["publish_date"])
+            logger.debug(f"Publish date added from metadata: {book['publish_date']}")
 
         if metadata["description"]:
             book["description"] = fix_text_format(metadata["description"])
+            logger.debug("Description added from metadata.")
 
         if metadata["cover"]:
             book["cover"] = metadata["cover"]
+            logger.debug(f"Cover image URL added: {book['cover']}")
 
         if not book["authors"]:
             book["authors"].append({"name": "????"})
+            logger.debug("Author unknown, added placeholder.")
 
         books.append(book)
 
+    logger.info(f"Processing complete. {len(books)} accessible books processed successfully.")
     return books
 
 
