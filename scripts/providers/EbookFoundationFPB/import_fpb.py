@@ -7,9 +7,9 @@ PYTHONPATH=. python ./scripts/providers/EbookFoundation/import_fpb.py /olsystem/
 import contextlib
 import datetime
 import json
+import logging
 import re
 import time
-import logging
 
 import requests
 from bs4 import BeautifulSoup
@@ -331,7 +331,7 @@ def flatten_books(data):
 
 def process_books():
     """
-    Fetches raw book data from the EbookFoundation, flattens the data into book entries, 
+    Fetches raw book data from the EbookFoundation, flattens the data into book entries,
     checks the accessibility of each book, and scrapes additional metadata to enrich the book information.
 
     The function performs the following tasks:
@@ -344,7 +344,7 @@ def process_books():
     7. Returns a list of processed books with enriched metadata.
 
     Returns:
-        list: A list of books with metadata including title, authors, publishers, 
+        list: A list of books with metadata including title, authors, publishers,
               publish date, description, and cover image URL.
     """
 
@@ -409,7 +409,9 @@ def process_books():
 
         books.append(book)
 
-    logger.info(f"Processing complete. {len(books)} accessible books processed successfully.")
+    logger.info(
+        f"Processing complete. {len(books)} accessible books processed successfully."
+    )
     return books
 
 
