@@ -399,7 +399,7 @@ def process_books() -> list[dict]:
             book["description"] = fix_text_format(metadata["description"])
             logger.debug("Description added from metadata.")
 
-        if metadata["cover"]:
+        if metadata["cover"] and "githubassets" not in metadata["cover"]:
             book["cover"] = metadata["cover"]
             logger.debug(f"Cover image URL added: {book['cover']}")
 
