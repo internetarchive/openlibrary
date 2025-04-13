@@ -26,7 +26,7 @@ def fix_text_format(text):
     """
     Cleans and normalizes a string by fixing encoding issues and standardizing line breaks.
 
-    - Attempts to re-encode the text from 'latin1' to 'utf-8' to fix common mojibake issues 
+    - Attempts to re-encode the text from 'latin1' to 'utf-8' to fix common mojibake issues
       (e.g., incorrectly displayed accented characters).
     - Silently skips re-encoding if it raises encoding/decoding errors.
     - Replaces Windows-style line breaks (\r\n) with Unix-style (\n).
