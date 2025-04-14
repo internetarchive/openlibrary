@@ -22,7 +22,7 @@ def process_urls(include_error_links: bool = False) -> list[str]:
     Returns:
         list[str]: A list of book provider URLs.
     """
-     
+
     raw_data = fetch_data_from_ebookfoundation()
     books = flatten_books(raw_data)
     all_urls = []
@@ -93,7 +93,7 @@ def post_data(headers: dict[str, str], data: dict) -> dict:
         dict: A dictionary containing the parsed JSON response, or an error message
         if the response is not valid JSON.
     """
-    
+
     api_url = "https://web.archive.org/save"
     response = requests.post(api_url, headers=headers, data=data)
 
