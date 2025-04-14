@@ -10,6 +10,19 @@ from scripts.providers.EbookFoundationFPB.import_fpb import (
 
 
 def process_urls(include_error_links: bool = False) -> list[str]:
+    """
+    Fetches book URLs from the Ebook Foundation dataset.
+
+    If include_error_links is False, filters out inaccessible links using
+    detect_inaccessible_books. Otherwise, returns all URLs.
+
+    Args:
+        include_error_links (bool): Whether to include URLs that fail accessibility checks.
+
+    Returns:
+        list[str]: A list of book provider URLs.
+    """
+     
     raw_data = fetch_data_from_ebookfoundation()
     books = flatten_books(raw_data)
     all_urls = []
@@ -37,6 +50,19 @@ def format_archive_book_request(
     capture_outlinks: bool = True,
     capture_screenshot: bool = True,
 ) -> dict[str, str]:
+    """
+    Formats a request payload for the Internet Archive Save Page Now API.
+
+    Args:
+        url (str): The URL to archive.
+        capture_all (bool): Whether to request a full page capture (including all resources).
+        capture_outlinks (bool): Whether to capture linked pages.
+        capture_screenshot (bool): Whether to request a screenshot of the page.
+
+    Returns:
+        dict[str, str]: A dictionary formatted for submission to the archive API.
+    """
+
     data = {
         "url": url,  # <-- our url here
         "if_not_archived_within": "1m",
@@ -56,6 +82,18 @@ def format_archive_book_request(
 
 
 def post_data(headers: dict[str, str], data: dict) -> dict:
+    """
+    Sends a POST request to the Internet Archive Save Page Now API.
+
+    Args:
+        headers (dict[str, str]): HTTP headers to include in the request.
+        data (dict): The form data to be submitted.
+
+    Returns:
+        dict: A dictionary containing the parsed JSON response, or an error message
+        if the response is not valid JSON.
+    """
+    
     api_url = "https://web.archive.org/save"
     response = requests.post(api_url, headers=headers, data=data)
 
