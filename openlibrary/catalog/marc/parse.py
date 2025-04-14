@@ -86,6 +86,7 @@ FIELDS_WANTED = (
 
 
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 016: National Bibliographic Agency Control Number
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or ['']
@@ -96,6 +97,7 @@ def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
 
 
 def read_doi(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 024: Other Standard Identifier
     fields = rec.get_fields('024')
     for f in fields:
         (source,) = f.get_subfield_values('2') or ['']
