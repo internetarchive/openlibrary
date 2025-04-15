@@ -1,6 +1,7 @@
 import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
@@ -29,7 +30,7 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.core import helpers as h
-from openlibrary.core import lending, stats
+from openlibrary.core import cache, lending, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -44,7 +45,7 @@ from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
-from openlibrary.utils.dateutil import elapsed_time
+from openlibrary.utils.dateutil import DAY_SECS, elapsed_time
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Work
@@ -270,6 +271,47 @@ class account(delegate.page):
         return render.account(user)
 
 
+@dataclass
+class PDOption:
+    """Represents an option in the print-disability qualifying organization selector"""
+    label: str
+    value: str
+
+
+def get_pd_options():
+    options = [
+        PDOption("BARD", "ia_nlsbardaccess_disabilityresources"),
+        PDOption("BookShare", "ia_bookshareaccess_disabilityresources"),
+        PDOption("ACE", "aceportalocul_disabilityresources"),
+        PDOption("I don't have one yet", "unqualified"),
+    ]
+
+    pd_orgs = cached_pd_org_query()
+    options += [PDOption(org.get("title"), org.get("identifier")) for org in pd_orgs]
+
+    return options
+
+def make_pd_org_query():
+    # TODO : Configure URL
+    url = "https://archive.org/advancedsearch.php?q=collection%3Aprint_disability_access&fl[]=identifier,title&rows=1000&page=1&output=json"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except requests.HTTPError:
+        return []
+    except requests.exceptions.JSONDecodeError:
+        return []
+
+    return response.json().get("response", {}).get("docs", []) or []
+
+
+@cache.memoize(
+    engine="memcache", key="pd-org-query", expires=DAY_SECS
+)
+def cached_pd_org_query():
+    return make_pd_org_query()
+
+
 class account_create(delegate.page):
     """New account creation.
 
@@ -280,7 +322,7 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        return render['account/create'](f)
+        return render['account/create'](f, pd_options=get_pd_options())
 
     def get_form(self) -> forms.RegisterForm:
         f = forms.Register()
@@ -329,6 +371,9 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
+                if f.pd_request.checked:
+                    web.setcookie("rpd", "1", expires=-1)
+                    web.setcookie("pda", web.input().get("pd_program"), expires=-1)
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
