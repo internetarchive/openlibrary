@@ -1,202 +1,383 @@
 <template>
-    <div class="floating-controls-wrapper">
-      <div class="floating-controls" :class="{open: openTabs.length > 0}">
-        <div class="tab-bar">
-          <button class="chunky-icon tab-bar--tab" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
-            <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px;">
-              &times;
-            </div>
-            <div class="chunky-icon--label">
-              Close
-            </div>
-          </button>
-          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
-            <div class="chunky-icon--icon">
-              <FilterIcon/>
-            </div>
-            <div class="chunky-icon--label">
-              Filter
-              <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
-            </div>
-          </button>
-          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
-            <div class="chunky-icon--icon">
-              <SortIcon/>
-            </div>
-            <div class="chunky-icon--label">Sort</div>
-          </button>
-          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
-            <div class="chunky-icon--icon">
-              <SettingsIcon/>
-            </div>
-            <div class="chunky-icon--label">Settings</div>
-          </button>
-          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
-            <div class="chunky-icon--icon">
-              <FeedbackIcon/>
-            </div>
-            <div class="chunky-icon--label">Feedback</div>
-          </button>
-        </div>
-        <div class="tabs-contents">
-          <main v-if="openTabs.includes('filter')">
-            <div class="filter-wrapper">
-              <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
-              <small class="computed-filter" v-if="inDebugMode">{{computedFilters}}</small>
-            </div>
-            <div class="click-controls">
-              <div class="horizontal-selector">
-                <div class="label">First Published Year</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterState.year" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.year" value="[2010 TO 9998]">New (2010+)
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.year" value="[1985 TO 9998]">Modern (1985+)
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.year" value="[* TO 1924]">Public Domain (&lt;1924)
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div class="label">Has ebook/preview?</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterState.has_ebook" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.has_ebook" value="true">Yes
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.has_ebook" value="false">No
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div class="label">Age Range</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterState.age" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.age" value="juvenile">Juvenile
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div class="label">Language</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="quickLanguageSelect" value>Any
-                  </label>
-                  <label v-for="lang of top3Languages" :key="lang.key">
-                    <input type="radio" v-model="quickLanguageSelect" :value="lang">{{lang.name.split(' / ')[0]}}
-                  </label>
-                  <label>
-                    <input type="radio" v-model="quickLanguageSelect" value="custom">
-                    <multiselect v-model="fullLanguageSelect"
-                      placeholder="Other..."
-                      :options="langOpts"
-                      :multiple="true"
-                      :internal-search="false"
-                      :hide-selected="true"
-                      track-by="key"
-                      label="name"
-                      :loading="langLoading"
-                      selectLabel=""
-                      @search-change="findLanguage"
-                    >
-                    </multiselect>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <!-- <pre>{{parsedFilter}}</pre> -->
-          </main>
-          <main class="click-controls" v-if="openTabs.includes('sort')">
-              <div class="horizontal-selector">
-                <div>Sort Order</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="sortState.order" value="editions">Most Editions
-                  </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" value="new">Newest
-                  </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" value="old">Oldest
-                  </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" value="rating">Top Rated
-                  </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" value="readinglog">Reading Log
-                  </label>
-                  <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
-                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
-                  </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
-                    <button
-                      v-if="sortState.order.startsWith('random')"
-                      @click="sortState.order = randomWithSeed = 'random_' + Date.now()"
-                    >Shuffle</button>
-                  </label>
-                </div>
-              </div>
-          </main>
-          <main class="click-controls" v-if="openTabs.includes('settings')">
+  <div class="floating-controls-wrapper">
+    <div
+      class="floating-controls"
+      :class="{open: openTabs.length > 0}"
+    >
+      <div class="tab-bar">
+        <button
+          v-if="openTabs.length"
+          class="chunky-icon tab-bar--tab"
+          @click="openTabs.splice(0, openTabs.length)"
+        >
+          <div
+            class="chunky-icon--icon"
+            style="font-size: 32px; font-weight: 100; line-height: 28px;"
+          >
+            &times;
+          </div>
+          <div class="chunky-icon--label">
+            Close
+          </div>
+        </button>
+        <button
+          class="chunky-icon tab-bar--tab"
+          :class="{active: openTabs.includes('filter')}"
+          @click="toggleTab('filter')"
+        >
+          <div class="chunky-icon--icon">
+            <FilterIcon />
+          </div>
+          <div class="chunky-icon--label">
+            Filter
+            <span
+              v-if="activeFiltersCount"
+              style="opacity: .55"
+            >({{ activeFiltersCount }})</span>
+          </div>
+        </button>
+        <button
+          class="chunky-icon tab-bar--tab"
+          :class="{active: openTabs.includes('sort')}"
+          @click="toggleTab('sort')"
+        >
+          <div class="chunky-icon--icon">
+            <SortIcon />
+          </div>
+          <div class="chunky-icon--label">
+            Sort
+          </div>
+        </button>
+        <button
+          class="chunky-icon tab-bar--tab"
+          :class="{active: openTabs.includes('settings')}"
+          @click="toggleTab('settings')"
+        >
+          <div class="chunky-icon--icon">
+            <SettingsIcon />
+          </div>
+          <div class="chunky-icon--label">
+            Settings
+          </div>
+        </button>
+        <button
+          class="chunky-icon tab-bar--tab"
+          :class="{active: openTabs.includes('feedback')}"
+          @click="toggleTab('feedback')"
+        >
+          <div class="chunky-icon--icon">
+            <FeedbackIcon />
+          </div>
+          <div class="chunky-icon--label">
+            Feedback
+          </div>
+        </button>
+      </div>
+      <div class="tabs-contents">
+        <main v-if="openTabs.includes('filter')">
+          <div class="filter-wrapper">
+            <input
+              v-model="filterState.filter"
+              class="filter"
+              placeholder="Custom filter..."
+            >
+            <small
+              v-if="inDebugMode"
+              class="computed-filter"
+            >{{ computedFilters }}</small>
+          </div>
+          <div class="click-controls">
             <div class="horizontal-selector">
-              <div class="label">Classification</div>
-              <div class="options">
-                <label v-for="c of settingsState.classifications" :key="c.name" :title="c.longName">
-                  <input type="radio" v-model="settingsState.selectedClassification" :value="c">
-                  {{c.name}}
-                </label>
+              <div class="label">
+                First Published Year
               </div>
-            </div>
-            <div class="horizontal-selector" v-for="(opts, name) of styles" :key="name">
-              <div class="label">{{name}} style</div>
               <div class="options">
-                <label v-for="cls of opts.options" :key="cls">
-                  <input type="radio" v-model="opts.selected" :value="cls">
-                  {{cls}}
+                <label>
+                  <input
+                    v-model="filterState.year"
+                    type="radio"
+                    value
+                  >Any
+                </label>
+                <label>
+                  <input
+                    v-model="filterState.year"
+                    type="radio"
+                    value="[2010 TO 9998]"
+                  >New (2010+)
+                </label>
+                <label>
+                  <input
+                    v-model="filterState.year"
+                    type="radio"
+                    value="[1985 TO 9998]"
+                  >Modern (1985+)
+                </label>
+                <label>
+                  <input
+                    v-model="filterState.year"
+                    type="radio"
+                    value="[* TO 1924]"
+                  >Public Domain (&lt;1924)
                 </label>
               </div>
             </div>
             <div class="horizontal-selector">
-              <div class="label">Label Fields</div>
+              <div class="label">
+                Has ebook/preview?
+              </div>
               <div class="options">
                 <label>
-                  <input type="checkbox" v-model="settingsState.labels" value="classification">
-                  Classifications
+                  <input
+                    v-model="filterState.has_ebook"
+                    type="radio"
+                    value
+                  >Any
                 </label>
                 <label>
-                  <input type="checkbox" v-model="settingsState.labels" value="first_publish_year">
-                  First Publish Year
+                  <input
+                    v-model="filterState.has_ebook"
+                    type="radio"
+                    value="true"
+                  >Yes
                 </label>
                 <label>
-                  <input type="checkbox" v-model="settingsState.labels" value="edition_count">
-                  Number of Editions
+                  <input
+                    v-model="filterState.has_ebook"
+                    type="radio"
+                    value="false"
+                  >No
                 </label>
               </div>
             </div>
-          </main>
-          <main class="feedback-panel" v-if="openTabs.includes('feedback')">
-            <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
+            <div class="horizontal-selector">
+              <div class="label">
+                Age Range
+              </div>
+              <div class="options">
+                <label>
+                  <input
+                    v-model="filterState.age"
+                    type="radio"
+                    value
+                  >Any
+                </label>
+                <label>
+                  <input
+                    v-model="filterState.age"
+                    type="radio"
+                    value="juvenile"
+                  >Juvenile
+                </label>
+              </div>
+            </div>
+            <div class="horizontal-selector">
+              <div class="label">
+                Language
+              </div>
+              <div class="options">
+                <label>
+                  <input
+                    v-model="quickLanguageSelect"
+                    type="radio"
+                    value
+                  >Any
+                </label>
+                <label
+                  v-for="lang of top3Languages"
+                  :key="lang.key"
+                >
+                  <input
+                    v-model="quickLanguageSelect"
+                    type="radio"
+                    :value="lang"
+                  >{{ lang.name.split(' / ')[0] }}
+                </label>
+                <label>
+                  <input
+                    v-model="quickLanguageSelect"
+                    type="radio"
+                    value="custom"
+                  >
+                  <multiselect
+                    v-model="fullLanguageSelect"
+                    placeholder="Other..."
+                    :options="langOpts"
+                    :multiple="true"
+                    :internal-search="false"
+                    :hide-selected="true"
+                    track-by="key"
+                    label="name"
+                    :loading="langLoading"
+                    select-label=""
+                    @search-change="findLanguage"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+          <!-- <pre>{{parsedFilter}}</pre> -->
+        </main>
+        <main
+          v-if="openTabs.includes('sort')"
+          class="click-controls"
+        >
+          <div class="horizontal-selector">
+            <div>Sort Order</div>
+            <div class="options">
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  value="editions"
+                >Most Editions
+              </label>
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  value="new"
+                >Newest
+              </label>
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  value="old"
+                >Oldest
+              </label>
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  value="rating"
+                >Top Rated
+              </label>
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  value="readinglog"
+                >Reading Log
+              </label>
+              <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  :value="`${settingsState.selectedClassification.field}_sort asc`"
+                >Shelf Order
+              </label>
+              <label>
+                <input
+                  v-model="sortState.order"
+                  type="radio"
+                  :value="randomWithSeed"
+                >Random
+                <button
+                  v-if="sortState.order.startsWith('random')"
+                  @click="sortState.order = randomWithSeed = 'random_' + Date.now()"
+                >Shuffle</button>
+              </label>
+            </div>
+          </div>
+        </main>
+        <main
+          v-if="openTabs.includes('settings')"
+          class="click-controls"
+        >
+          <div class="horizontal-selector">
+            <div class="label">
+              Classification
+            </div>
+            <div class="options">
+              <label
+                v-for="c of settingsState.classifications"
+                :key="c.name"
+                :title="c.longName"
+              >
+                <input
+                  v-model="settingsState.selectedClassification"
+                  type="radio"
+                  :value="c"
+                >
+                {{ c.name }}
+              </label>
+            </div>
+          </div>
+          <div
+            v-for="(opts, name) of styles"
+            :key="name"
+            class="horizontal-selector"
+          >
+            <div class="label">
+              {{ name }} style
+            </div>
+            <div class="options">
+              <label
+                v-for="cls of opts.options"
+                :key="cls"
+              >
+                <input
+                  v-model="opts.selected"
+                  type="radio"
+                  :value="cls"
+                >
+                {{ cls }}
+              </label>
+            </div>
+          </div>
+          <div class="horizontal-selector">
+            <div class="label">
+              Label Fields
+            </div>
+            <div class="options">
+              <label>
+                <input
+                  v-model="settingsState.labels"
+                  type="checkbox"
+                  value="classification"
+                >
+                Classifications
+              </label>
+              <label>
+                <input
+                  v-model="settingsState.labels"
+                  type="checkbox"
+                  value="first_publish_year"
+                >
+                First Publish Year
+              </label>
+              <label>
+                <input
+                  v-model="settingsState.labels"
+                  type="checkbox"
+                  value="edition_count"
+                >
+                Number of Editions
+              </label>
+            </div>
+          </div>
+        </main>
+        <main
+          v-if="openTabs.includes('feedback')"
+          class="feedback-panel"
+        >
+          <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
 
-            <p>
-              If you have any feedback you'd like to give, please fill out our <a :href="googleForms.url" target="_blank">Feedback Form</a>.
-              If you like what you see, and want to share it with others, why not <a :href="twitterUrl" target="_blank">Share on Twitter</a>?
-            </p>
-          </main>
-        </div>
+          <p>
+            If you have any feedback you'd like to give, please fill out our <a
+              :href="googleForms.url"
+              target="_blank"
+            >Feedback Form</a>.
+            If you like what you see, and want to share it with others, why not <a
+              :href="twitterUrl"
+              target="_blank"
+            >Share on Twitter</a>?
+          </p>
+        </main>
       </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -248,37 +429,6 @@ export default {
         }
     },
 
-    async created() {
-        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
-        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
-        this.langOpts = this.topLanguages;
-    },
-
-    watch: {
-        quickLanguageSelect(newVal) {
-            if (newVal === '') this.filterState.languages = [];
-            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
-            else this.filterState.languages = [newVal];
-        },
-
-        fullLanguageSelect(newVal) {
-            this.filterState.languages = newVal;
-        },
-
-        ['sortState.order'](newVal) {
-            const desiredLabel = {
-                editions: 'edition_count',
-                new: 'first_publish_year',
-                old: 'first_publish_year',
-                ddc_sort: 'classification',
-                lcc_sort: 'classification',
-            }[newVal];
-            if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
-                this.settingsState.labels.push(desiredLabel);
-            }
-        }
-    },
-
     computed: {
         twitterUrl() {
             return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
@@ -308,6 +458,37 @@ export default {
         styles() {
             return this.inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
         }
+    },
+
+    watch: {
+        quickLanguageSelect(newVal) {
+            if (newVal === '') this.filterState.languages = [];
+            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
+            else this.filterState.languages = [newVal];
+        },
+
+        fullLanguageSelect(newVal) {
+            this.filterState.languages = newVal;
+        },
+
+        ['sortState.order'](newVal) {
+            const desiredLabel = {
+                editions: 'edition_count',
+                new: 'first_publish_year',
+                old: 'first_publish_year',
+                ddc_sort: 'classification',
+                lcc_sort: 'classification',
+            }[newVal];
+            if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
+                this.settingsState.labels.push(desiredLabel);
+            }
+        }
+    },
+
+    async created() {
+        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
+        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
+        this.langOpts = this.topLanguages;
     },
 
     methods: {

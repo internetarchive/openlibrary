@@ -1,14 +1,22 @@
 <template>
   <div id="page-barcodescanner">
-    <div class="viewport" ref="viewport" :class="{'loading': loading}"></div>
+    <div
+      ref="viewport"
+      class="viewport"
+      :class="{'loading': loading}"
+    />
     <div class="barcodescanner__toolbar">
       <details class="barcodescanner__advanced">
         <summary class="glass-button icon-button">
-          <SettingsIcon/>
-                Advanced
+          <SettingsIcon />
+          Advanced
         </summary>
         <div class="barcodescanner__controls">
-          <button class="barcodescanner__read-isbn glass-button" @click="handleISBNDetected" :disabled="disableISBNTextButton || canvasInactive">
+          <button
+            class="barcodescanner__read-isbn glass-button"
+            :disabled="disableISBNTextButton || canvasInactive"
+            @click="handleISBNDetected"
+          >
             Read Text ISBN
             <br>
             <small>For books that print the ISBN without a barcode</small>
@@ -16,7 +24,12 @@
         </div>
       </details>
       <div class="barcodescanner__result-strip">
-         <LazyBookCard v-for="isbnObj in isbnList" :key="isbnObj.isbn" :isbn="isbnObj.isbn" :tentativeCover="isbnObj.cover" />
+        <LazyBookCard
+          v-for="isbnObj in isbnList"
+          :key="isbnObj.isbn"
+          :isbn="isbnObj.isbn"
+          :tentative-cover="isbnObj.cover"
+        />
         <div class="empty">
           Point your camera at a barcode! 📷
         </div>
@@ -65,6 +78,10 @@ export default {
             quaggaVideo: null,
             ocrScanner: null,
         }
+    },
+    async mounted() {
+        await this.start();
+        this.canvasInactive = false;
     },
     methods: {
         start() {
@@ -205,10 +222,6 @@ export default {
             return code.startsWith('97');
         },
 
-    },
-    async mounted() {
-        await this.start();
-        this.canvasInactive = false;
     }
 }
 </script>
