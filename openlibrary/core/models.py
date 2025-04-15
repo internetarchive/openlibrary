@@ -496,7 +496,6 @@ class Work(Thing):
 
     def get_patrons_who_also_read(self, limit: int = 15):
         key = self.key.split('/')[-1][2:-1]
-        print("get_patrons_who_also_read firing", flush=True)
         return Bookshelves.patrons_who_also_read(key, limit)
 
     def get_users_read_status(self, username):
