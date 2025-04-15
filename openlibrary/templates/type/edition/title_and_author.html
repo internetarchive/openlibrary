@@ -23,6 +23,11 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
     </div>
     $ book_title = edition.get('title', '') or (work.title if work else '')
     <h1 class="work-title" itemprop="name">$book_title</h1>
+    $if page.type.key in ["/type/redirect"]:
+        <div class="pageRedirect">
+            $if page.location:
+                <p>Redirected from <a href="$page.url()" rel="nofollow" title="$page.title">$page.title</a></p>
+        </div>
 
     $if edition:
       $if edition.subtitle:
