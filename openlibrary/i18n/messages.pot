@@ -7344,21 +7344,21 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid ""
-"Showing all works by author. Would you like to see <a "
-"href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"Showing ebooks only. Would you like to see <a "
-"href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "Search %(author)s books"
+msgstr ""
+
+#: type/author/view.html
+msgid "Sort by: "
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: type/author/view.html
