@@ -6,11 +6,15 @@
       :sort="sortState.order"
       :class="bookRoomClass"
       :features="bookRoomFeatures"
-      :appSettings="settingsState"
-      :jumpTo="jumpTo"
+      :app-settings="settingsState"
+      :jump-to="jumpTo"
     />
 
-    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
+    <LibraryToolbar
+      :filter-state="filterState"
+      :settings-state="settingsState"
+      :sort-state="sortState"
+    />
   </div>
 </template>
 
