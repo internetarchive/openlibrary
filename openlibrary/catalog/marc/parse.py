@@ -86,12 +86,24 @@ FIELDS_WANTED = (
 
 
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 016: National Bibliographic Agency Control Number
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or ['']
         (control_number,) = f.get_subfield_values('a') or ['']
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
+    return None
+
+
+def read_doi(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 024: Other Standard Identifier
+    fields = rec.get_fields('024')
+    for f in fields:
+        (source,) = f.get_subfield_values('2') or ['']
+        (control_number,) = f.get_subfield_values('a') or ['']
+        if source == 'doi' and control_number:
+            return {'doi': [control_number]}
     return None
 
 
@@ -686,6 +698,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_dnb, 'identifiers')
+    update_edition(rec, edition, read_doi, 'identifiers')
     update_edition(rec, edition, read_issn, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
