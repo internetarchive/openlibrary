@@ -79,12 +79,6 @@ jQuery(function () {
 
     init($);
 
-    // conditionally load functionality based on what's in the page
-    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import(/* webpackChunkName: "editions-table" */ './editions-table')
-            .then(module => module.initEditionsTable());
-    }
-
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
@@ -328,8 +322,17 @@ jQuery(function () {
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
             .then((module) => module.init());
+        // Import ile then the datatable to apply clickable classes to all listed editions
+        if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+            import(/* webpackChunkName: "editions-table" */ './editions-table')
+                .then(module => module.initEditionsTable())
+        }
     }
-
+    // conditionally load functionality based on what's in the page
+    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+        import(/* webpackChunkName: "editions-table" */ './editions-table')
+            .then(module => module.initEditionsTable());
+    }
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
