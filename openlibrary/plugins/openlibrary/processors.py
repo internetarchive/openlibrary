@@ -1,12 +1,9 @@
-"""web.py application processors for Open Library.
-"""
+"""web.py application processors for Open Library."""
 
 import re
-from datetime import datetime
 
 import web
 
-from infogami.core.code import logout as infogami_logout
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
@@ -109,23 +106,6 @@ class PreferenceProcessor:
             if username != user.get_username() and not user.is_admin():
                 # Can only view preferences if page owner or admin
                 raise web.Forbidden
-
-        return handler()
-
-
-cutoff = '2024-11-07T18:00:00'
-stale_date = datetime.fromisoformat(cutoff)
-
-
-class RequireLogoutProcessor:
-
-    def __call__(self, handler):
-        if session_cookie := web.cookies().get("session"):
-            split_cookie = session_cookie.split(",")
-            create_date = datetime.fromisoformat(split_cookie[1])
-
-            if create_date < stale_date:
-                infogami_logout().POST()
 
         return handler()
 

@@ -8,4 +8,4 @@ In the project's root directory, run `npm run storybook` to view stories on your
 
 ## Building Storybook for deployment
 
-Running `npm run build-storybook` in the project's root directory will result in a deployable instance being built in the `storybook-static` directory.
+Running `npm run build-storybook` in the project's root directory will result in a deployable instance being built in the `stories/storybook-static` directory.

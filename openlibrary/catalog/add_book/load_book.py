@@ -9,6 +9,7 @@ from openlibrary.catalog.utils import (
     key_int,
 )
 from openlibrary.core.helpers import extract_year
+from openlibrary.utils import extract_numeric_id_from_olid, uniq
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -149,8 +150,48 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             seen.add(obj['key'])
         return obj
 
-    # Try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
-    # then last name with identical birth and death dates (that are not themselves `None` or '').
+    def get_redirected_authors(authors: list["Author"]):
+        keys = [a.type.key for a in authors]
+        if any(k != '/type/author' for k in keys):
+            seen: set[dict] = set()
+            all_authors = [
+                walk_redirects(a, seen) for a in authors if a['key'] not in seen
+            ]
+            return all_authors
+        return authors
+
+    # Look for OL ID first.
+    if (key := author.get("key")) and (record := web.ctx.site.get(key)):
+        # Always match on OL ID, even if remote identifiers don't match.
+        return get_redirected_authors([record])
+
+    # Try other identifiers next.
+    if remote_ids := author.get("remote_ids"):
+        queries = []
+        matched_authors: list[Author] = []
+        # Get all the authors that match any incoming identifier.
+        for identifier, val in remote_ids.items():
+            queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
+        for query in queries:
+            if reply := list(web.ctx.site.things(query)):
+                matched_authors.extend(
+                    get_redirected_authors(list(web.ctx.site.get_many(reply)))
+                )
+        matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
+        # The match is whichever one has the most identifiers in common
+        if matched_authors:
+            selected_match = sorted(
+                matched_authors,
+                key=lambda a: (
+                    # First sort by number of matches desc
+                    -1 * a.merge_remote_ids(remote_ids)[1],
+                    # If there's a tie, prioritize lower OL ID
+                    extract_numeric_id_from_olid(a.key),
+                ),
+            )[0]
+            return [selected_match]
+
+    # Fall back to name/date matching, which we did before introducing identifiers.
     name = author["name"].replace("*", r"\*")
     queries = [
         {"type": "/type/author", "name~": name},
@@ -162,15 +203,31 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
         },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
     ]
+    things = []
     for query in queries:
         if reply := list(web.ctx.site.things(query)):
+            things = get_redirected_authors(list(web.ctx.site.get_many(reply)))
             break
-
-    authors = [web.ctx.site.get(k) for k in reply]
-    if any(a.type.key != '/type/author' for a in authors):
-        seen: set[dict] = set()
-        authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
-    return authors
+    match = []
+    seen = set()
+    for a in things:
+        key = a['key']
+        if key in seen:
+            continue
+        seen.add(key)
+        assert a.type.key == '/type/author'
+        if 'birth_date' in author and 'birth_date' not in a:
+            continue
+        if 'birth_date' not in author and 'birth_date' in a:
+            continue
+        if not author_dates_match(author, a):
+            continue
+        match.append(a)
+    if not match:
+        return []
+    if len(match) == 1:
+        return match
+    return [pick_from_matches(author, match)]
 
 
 def find_entity(author: dict[str, Any]) -> "Author | None":
@@ -183,29 +240,11 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if author.get('entity_type', 'person') != 'person':
-        return things[0] if things else None
-    match = []
-    seen = set()
-    for a in things:
-        key = a['key']
-        if key in seen:
-            continue
-        seen.add(key)
-        orig_key = key
-        assert a.type.key == '/type/author'
-        if 'birth_date' in author and 'birth_date' not in a:
-            continue
-        if 'birth_date' not in author and 'birth_date' in a:
-            continue
-        if not author_dates_match(author, a):
-            continue
-        match.append(a)
-    if not match:
-        return None
-    if len(match) == 1:
-        return match[0]
-    return pick_from_matches(author, match)
+    if "remote_ids" in author:
+        for index, t in enumerate(things):
+            t.remote_ids, _ = t.merge_remote_ids(author["remote_ids"])
+            things[index] = t
+    return things[0] if things else None
 
 
 def remove_author_honorifics(name: str) -> str:
@@ -253,7 +292,15 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
             new['death_date'] = author['death_date']
         return new
     a = {'type': {'key': '/type/author'}}
-    for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':
+    for f in (
+        'name',
+        'title',
+        'personal_name',
+        'birth_date',
+        'death_date',
+        'date',
+        'remote_ids',
+    ):
         if f in author:
             a[f] = author[f]
     return a

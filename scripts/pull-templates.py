@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Script to pull templates and macros from an openlibrary instance to repository.
-"""
+"""Script to pull templates and macros from an openlibrary instance to repository."""
 import os
 from optparse import OptionParser
 

@@ -10,48 +10,46 @@ body:
 
   - type: textarea
     attributes:
-      label: Proposal
+      label: Feature Request
       description: Provide a brief summary of the proposed feature and any details, designs, or screenshots that may be relevant.
       value: |
-        <!-- Brief overview of the proposal -->
+        ### Problem / Opportunity
+        <!-- Describe: What is the problem this proposal addresses & for which audience(s)? -->
 
-        <!-- Designs / screenshots that may help reviewers understand your proposal -->
+        <!-- Justify: Why should we work on this and what is the measurable impact? -->
 
-  - type: textarea
-    attributes:
-      label: Justification
-      description: Help us understand, what problem(s) the proposal addresses, what is the predicted impact and how might it be measured, which audiences are served, are there precedents for the feature, and any other context we might consider.
-      value: |
-        <!-- Problem: What problem does this proposal address & for what audience(s)? -->
+        <!-- Define Success: How will we know when the problem is solved? -->
 
-        <!-- Impact: What's the predicted impact, how do we measure, & what does success look like? -->
+        ### Proposal
+        <!-- Brief overview of your proposed solution -->
 
-        <!-- Research: Are there any precedents or findings from other projects or studies that support this feature? (link or screenshot if possible) -->
+        <!-- Relevant designs, screenshots, or reference implementations that may help reviewers evaluate your proposal -->
+    validations:
+      required: true
 
   - type: textarea
     attributes:
       label: Breakdown
-      description: |
-        Instructions for completing this feature. Please leave this section blank for leads/maintainers if you are unsure what to enter
+      description: If you are unsure what to enter, please leave this section blank for leads/maintainers
       value: |
-
-        #### Requirements Checklist
-        <!-- What steps, functional pieces, or requirements need to be met to satisfy the proposal? -->
-        * [ ]
-
-        #### Related files
-        <!-- Files related to the implementation of feature; useful for good first issues -->
+        ### Related files
+        <!-- Add links to files relevant to the implementation of this proposal; useful for good first issues -->
+        Refer to [this map of common Endpoints](https://github.com/internetarchive/openlibrary/wiki/Endpoints):
         *
 
-        #### Stakeholders
-        <!-- @ tag stakeholders of this feature w/ questions or context as necessary -->
+        ### Requirements Checklist
+        Checklist of requirements that need to be satisfied in order for this issue to be closed:
+        * [ ]
+
+        ### Stakeholders
+        <!-- @ tag stakeholders of this feature, clarify their stake, and specify what checkoff is required from them -->
         *
 
         <hr>
 
-        #### Instructions for Contributors
+        ### Instructions for Contributors
         <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
-        Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to Github, because the pre-commit bot may add commits to your PRs upstream.
+        * **Before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) or pushing up changes to a PR, please first [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date, as the pre-commit bot may add commits to your PRs upstream.
 
   - type: markdown
     attributes:

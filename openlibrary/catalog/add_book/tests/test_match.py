@@ -173,32 +173,6 @@ class TestExpandRecord:
 
 
 class TestAuthors:
-    @pytest.mark.xfail(
-        reason=(
-            'This expected result taken from the amazon and '
-            'merge versions of compare_author, '
-            'Current merge_marc.compare_authors() '
-            'does NOT take by_statement into account.'
-        )
-    )
-    def test_compare_authors_by_statement(self):
-        rec1 = {
-            'title': 'Full Title, required',
-            'authors': [{'name': 'Alistair Smith'}],
-        }
-        rec2 = {
-            'title': 'A different Full Title, only matching authors here.',
-            'authors': [
-                {
-                    'name': 'National Gallery (Great Britain)',
-                    'entity_type': 'org',
-                }
-            ],
-            'by_statement': 'Alistair Smith.',
-        }
-        result = compare_authors(expand_record(rec1), expand_record(rec2))
-        assert result == ('main', 'exact match', 125)
-
     def test_author_contrib(self):
         rec1 = {
             'authors': [{'name': 'Bruner, Jerome S.'}],
@@ -218,7 +192,6 @@ class TestAuthors:
                     )
                 }
             ],
-            # TODO: the contrib db_name needs to be populated by expand_record() to be useful
             'contribs': [{'name': 'Bruner, Jerome S.', 'db_name': 'Bruner, Jerome S.'}],
             'title': 'Contemporary approaches to cognition ',
             'subtitle': 'a symposium held at the University of Colorado',
@@ -233,8 +206,7 @@ class TestAuthors:
             'exact match',
             125,
         )
-        threshold = 875
-        assert threshold_match(rec1, rec2, threshold) is True
+        assert threshold_match(rec1, rec2, THRESHOLD) is True
 
 
 class TestTitles:
@@ -342,8 +314,7 @@ class TestRecordMatching:
             'exact match',
             125,
         )
-        threshold = 875
-        assert threshold_match(bpl, lc, threshold) is True
+        assert threshold_match(bpl, lc, THRESHOLD) is True
 
     def test_match_low_threshold(self):
         # year is off by < 2 years, counts a little
@@ -423,4 +394,43 @@ class TestRecordMatching:
             'title': 'Just A Title',
             'source_records': ['marc:somelibrary/some_marc.mrc'],
         }
+        assert threshold_match(existing_edition, potential_match, THRESHOLD) is False
+
+    def test_noisbn_record_should_not_match_title_only_live(self):
+        # An existing light title + ISBN only record https://openlibrary.org/books/OL53786744M
+        existing_edition = {
+            # NO author
+            # NO date
+            'title': 'Psychology',
+            'isbn_10': ['8177583859'],
+            'isbn_13': ['9788177583854'],
+            'source_records': ['promise:bwb_daily_pallets_2024-09-09:W9-CKB-586'],
+        }
+        potential_match = {
+            'publish_date': '1897',
+            'publishers': ['Harper'],
+            'title': 'Psychology',
+            #'oclc': '4790636',
+            'source_records': ['marc:somelibrary/some_marc.mrc'],
+        }
+        assert threshold_match(existing_edition, potential_match, THRESHOLD) is False
+
+    def test_noisbn_record_should_not_match_missing_date(self):
+        # An existing light title + ISBN only record should not match
+        # an earlier edition from the same publisher.
+        existing_edition = {
+            #'publish_date': '2025', NO DATE
+            'publishers': ['Penguin'],
+            'title': 'Sense and Sensibility',
+            'authors': [{'name': 'Jane Austen'}],
+            'isbn_13': ['9780241734872'],
+        }
+        potential_match = {
+            'authors': [{'name': 'Jane Austen'}],
+            'publish_date': '1913',
+            'publishers': ['Penguin'],
+            'title': 'Sense and Sensibility',
+            'source_records': ['marc:somelibrary/some_marc.mrc'],
+        }
+        assert threshold_match(potential_match, existing_edition, THRESHOLD) is False
         assert threshold_match(existing_edition, potential_match, THRESHOLD) is False

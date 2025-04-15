@@ -14,6 +14,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -21,7 +22,6 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -261,12 +261,7 @@ class mybooks_readinglog(delegate.page):
 
         # Add yearly reading goals to the MyBooksTemplate
         if mb.key == 'already-read' and mb.is_my_page:
-            mb.reading_goals = [
-                str(result.year)
-                for result in YearlyReadingGoals.select_by_username(
-                    mb.username, order='year DESC'
-                )
-            ]
+            mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -420,7 +415,7 @@ class MyBooksTemplate:
             else {}
         )
 
-        self.reading_goals: list = []
+        self.yearly_reads: list[tuple[int, int]] = []
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:

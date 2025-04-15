@@ -1,5 +1,4 @@
-"""Custom OL Actions.
-"""
+"""Custom OL Actions."""
 
 import sys
 

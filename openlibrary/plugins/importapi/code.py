@@ -1,5 +1,4 @@
-"""Open Library Import API
-"""
+"""Open Library Import API"""
 
 import base64
 import json
@@ -217,7 +216,9 @@ def raise_non_book_marc(marc_record, **kwargs):
 
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
-    if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+    # MARC leader$6,7 reference: https://www.loc.gov/marc/bibliographic/bdleader.html
+    ACCEPTED_TYPES = 'am'  # a: Language material, m: Computer file
+    if not (marc_leaders[6] in ACCEPTED_TYPES and marc_leaders[7] == 'm'):
         raise BookImportError('item-not-book', details, **kwargs)
 
 

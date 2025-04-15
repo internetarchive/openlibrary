@@ -1,0 +1,12 @@
+$def with (olid)
+
+$ key = '/books/' + olid
+$ edition = get_document(key)
+$ authors = edition.get_authors()
+
+<div class="olid-macro">
+  <img src="https://covers.openlibrary.org/b/olid/$(olid)-S.jpg" alt="$edition.title"/>
+  <a href="$edition.key">$edition.title</a>
+  $if authors:
+    <span>$_("by  %(authors)s", authors=', '.join(authors.name))</span>
+</div>

@@ -1,21 +1,14 @@
-$def with (lst, new=False, admin_only=False)
+$def with (lst, new=False)
 $putctx('cssfile', 'list-edit')
 $var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
 
 $putctx("robots", "noindex,nofollow")
 
 $ can_save = True
-$if admin_only:
-    $ can_save = (ctx.user and ctx.user.is_admin())
 
 <div id="contentHead">
     $:macros.databarEdit(lst)
     <h1>$(_("Create a list") if new else _("Edit List"))</h1>
-
-    $if admin_only:
-        <b class="warning">
-            $_("⚠️ Saving global lists is admin-only while the feature is under development.")
-        </b>
 </div>
 
 $# Render the ith seed input field
@@ -31,6 +24,7 @@ $jsdef render_seed_field(i, seed):
 
     <li class="mia__input ac-input">
         <div class="seed--controls">
+            $# detect-missing-i18n-skip-line
             <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
             <button class="mia__remove" type="button">$_("Remove")</button>
         </div>

@@ -48,7 +48,7 @@ def increment(key, n=1, rate=1.0):
     "Increments the value of ``key`` by ``n``"
 
     if client:
-        pystats_logger.debug("Incrementing %s" % key)
+        pystats_logger.debug(f"Incrementing {key}")
         for i in range(n):
             try:
                 client.increment(key, sample_rate=rate)

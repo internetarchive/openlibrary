@@ -18,6 +18,14 @@ table#editions,
     margin: 0 auto;
   }
 
+  // make cta with dropper same size as cta with no dropper
+  .cta-dropper {
+    width: fit-content;
+    margin: 0 auto;
+    .cta-dropper-button { width: 145px; }
+    .dropper-menu { width: 185px; }
+  }
+
   thead {
     border: 1px solid @light-grey;
 
@@ -48,7 +56,7 @@ table#editions,
 
   td.book {
     vertical-align: top;
-    display: inline-flex;
+    display: table-cell;
   }
 
   div.cover {
@@ -167,6 +175,15 @@ table#editions,
   }
 }
 
+@media only screen and (max-width: @width-breakpoint-desktop) {
+  table#editions {
+    td.book {
+      width: 100%;
+      display: inline-flex;
+    }
+  }
+}
+
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
     width: 100%;
@@ -178,6 +195,7 @@ table#editions,
       flex-direction: column;
       border-bottom: 1px solid @lighter-grey;
       padding-bottom: 10px;
+      overflow: visible;
     }
     hr {
       visibility: hidden;
@@ -185,7 +203,7 @@ table#editions,
     form {
       padding: 10px;
     }
-    ul.links ul,li {
+    ul.links ul, li.read-option {
       display: inline;
     }
     td.book {
@@ -198,9 +216,6 @@ table#editions,
     .links a {
       font-size: 120%;
     }
-    .editions-table__links {
-      display: none;
-    }
 
     td.icon {
       width: 100%;
@@ -209,15 +224,11 @@ table#editions,
 
     td.icon.read {
       order: 3;
-      .read {
+      ul.read {
         display: flex;
         flex-direction: column;
-        // stylelint-disable max-nesting-depth
-        ul {
-          order: -1;
-          padding: 10px 0;
-        }
-        // stylelint-enable max-nesting-depth
+        order: -1;
+        padding: 10px 0;
       }
     }
 
@@ -231,6 +242,9 @@ table#editions,
     .cta-button-group {
       width: unset;
     }
+    .cta-dropper {
+      width: auto;
+    }
   }
 }
 
@@ -243,14 +257,4 @@ tbody {
 
 .edition-adder {
   text-align: right;
-}
-
-.editions-table__links {
-  text-align: center;
-}
-
-a.paginate_button.current {
-  background-color: @lightest-grey;
-  border: 1px solid @lighter-grey;
-  color: @black;
 }

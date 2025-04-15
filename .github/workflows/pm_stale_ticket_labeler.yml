@@ -5,6 +5,7 @@ on:
 
 jobs:
   label-stale:
+    if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -20,5 +21,5 @@ jobs:
           days-before-pr-stale: -1
           include-only-assigned: true
           stale-issue-label: "Needs: Review Assignee"
-          stale-issue-message: 'This issue has been marked "Needs: Review Assignee" since there have been no updates within the past two weeks'
+          stale-issue-message: ""
           repo-token: ${{ secrets.GITHUB_TOKEN }}

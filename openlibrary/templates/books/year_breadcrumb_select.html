@@ -1,11 +1,8 @@
-$def with (mb, selected=_("All Time"))
+$def with (yearly_reads, all_time_url, year_url, selected=_("All Time"))
 
-$ url_prefix = "/people/%s/books/already-read/" % mb.username
-$ readlog_url = url_prefix + "/year/%s/"
+$ selected = selected or _("All Time")
+$ options = [(_("All Time"), all_time_url)]
+$for (year, count) in yearly_reads:
+  $ options += [("%d (%d)" % (year, count), year_url % year)]
 
-
-$ options = [(_("All Time"), url_prefix)]
-$if mb.is_my_page or mb.is_public:
-  $for year in mb.reading_goals:
-    $ options += [ (year, readlog_url % year)]
 $:render_template("books/breadcrumb_select", selected, options)

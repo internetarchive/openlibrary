@@ -1,6 +1,9 @@
 # Welcome to the Installation Guide for Open Library Developers
 
-1. [Pull code locally](#clone-the-open-library-repository)
+> [!TIP]
+> Want to try Open Library in your browser without having to install anything on your personal computer? Try (experimental) Gitpod integration! [![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)  
+
+1. [Pull code locally](#pull-code-locally)
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)
 4. [Build the project](#build-the-project)
@@ -8,10 +11,10 @@
 6. [Update code dependencies](#code-updates)
 7. [Teardown commands](#teardown-commands)
 8. [Full reset](#fully-resetting-your-environment)
-9. [Useful docker commands](#Useful-Runtime-Commands)
+9. [Useful docker commands](#useful-runtime-commands)
 10. [Troubleshooting](#troubleshooting)
-11. [Developing the Dockerfile](#Developing-the-Dockerfile) and [Debugging and Profiling docker images](#Debugging-and-Profiling-the-docker-image)
-12. [Technical Notes](#Technical-notes)
+11. [Developing the Dockerfile](#developing-the-dockerfile) and [Debugging and Profiling docker images](#debugging-and-profiling-the-docker-image)
+12. [Technical Notes](#technical-notes)
 
 ## Pull code locally
 
@@ -62,18 +65,26 @@ See 'docker run --help'.
 
 ## Build the project
 
-Change (`cd`) into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
+For most architectures, you can `cd` and change into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
 
 ```
 docker compose build
 ```
 
-This may take from a few minutes to more than 15 on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
+The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command.
 
-> [!IMPORTANT]
-> If you are running arm64 (see: [#10276](https://github.com/internetarchive/openlibrary/issues/10276)) and this command fails, [for now](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779) you may have to run [this workaround](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718).
+If you are using a mac [`arm64` #10276](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [`M2` #10078](https://github.com/internetarchive/openlibrary/issues/10078#issuecomment-2495487385), or some other architecture, it's possible the `build` command may **fail** with an error of:
+```
+failed to solve openlibrary/olbase:latest` no match for platform in manifest: not found
+```
 
-If you **hit errors** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
+In these cases, [until we standardize our images across architectures](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779), try running the following and proceed with the installation steps normally:
+
+```
+docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
+```
+
+If you hit another **error** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
 
 ## Run the app
 ```sh

@@ -64,6 +64,10 @@ class AuthorRecord(TypedDict, total=False):
     author: ThingReferenceDict | None
 
 
+class TocParseError(BaseException):
+    pass
+
+
 @dataclass
 class TocEntry:
     level: int
@@ -120,6 +124,7 @@ class TocEntry:
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', None)
         """
+
         RE_LEVEL = web.re_compile(r"(\**)(.*)")
         level, text = RE_LEVEL.match(line.strip()).groups()
 
@@ -130,13 +135,20 @@ class TocEntry:
             title = text
             label = page = ""
             extra_fields = ''
+        try:
+            extra_fields = json.loads(extra_fields or '{}')
+        except json.JSONDecodeError as e:
+            raise TocParseError(f"Invalid JSON: {e}")
+
+        if not isinstance(extra_fields, dict):
+            raise TocParseError("Invalid formatting!")
 
         return TocEntry(
             level=len(level),
             label=label.strip() or None,
             title=title.strip() or None,
             pagenum=page.strip() or None,
-            **json.loads(extra_fields or '{}'),
+            **extra_fields,
         )
 
     def to_markdown(self) -> str:

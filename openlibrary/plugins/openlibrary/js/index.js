@@ -79,12 +79,6 @@ jQuery(function () {
 
     init($);
 
-    // conditionally load functionality based on what's in the page
-    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import(/* webpackChunkName: "editions-table" */ './editions-table')
-            .then(module => module.initEditionsTable());
-    }
-
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
@@ -207,16 +201,11 @@ jQuery(function () {
     }
 
     // Enable any carousels in the page
-    const $carouselElements = $('.carousel--progressively-enhanced');
-    if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced')
+    if (carouselElements.length) {
+        import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => {
-                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
-                $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') !== undefined) {
-                        $(this).attr('id',$(this).attr('aria-describedby'));
-                    }
-                });
+                module.initialzeCarousels(carouselElements)
             })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
@@ -270,8 +259,9 @@ jQuery(function () {
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
     const saveCoversElement = document.getElementsByClassName('imageSaved').length;
+    const coverForm = document.querySelector('.ol-cover-form--clipboard');
 
-    if (addCoversElement || manageCoversElement || saveCoversElement) {
+    if (addCoversElement || manageCoversElement || saveCoversElement || coverForm) {
         import(/* webpackChunkName: "covers" */ './covers')
             .then((module) => {
                 if (manageCoversElement) {
@@ -282,6 +272,9 @@ jQuery(function () {
                 }
                 if (saveCoversElement) {
                     module.initCoversSaved();
+                }
+                if (coverForm) {
+                    module.initPasteForm(coverForm);
                 }
             });
     }
@@ -329,8 +322,17 @@ jQuery(function () {
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
             .then((module) => module.init());
+        // Import ile then the datatable to apply clickable classes to all listed editions
+        if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+            import(/* webpackChunkName: "editions-table" */ './editions-table')
+                .then(module => module.initEditionsTable())
+        }
     }
-
+    // conditionally load functionality based on what's in the page
+    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+        import(/* webpackChunkName: "editions-table" */ './editions-table')
+            .then(module => module.initEditionsTable());
+    }
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
@@ -514,6 +516,12 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const interstitial = document.querySelector('.interstitial');
+    if (interstitial) {
+        import (/* webpackChunkName: "interstitial" */ './interstitial')
+            .then(module => module.initInterstitial(interstitial));
+    }
+
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
         import(/* webpackChunkName: "waitlist" */ './waitlist')
@@ -552,5 +560,19 @@ jQuery(function () {
     if (backLinks.length) {
         import (/* webpackChunkName: "go-back-links" */ './go-back-links')
             .then(module => module.initGoBackLinks(backLinks))
+    }
+
+    // Lazy-load book page lists section
+    const listSection = document.querySelector('.lists-section')
+    if (listSection) {
+        import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
+            .then(module => module.initListsSection(listSection))
+    }
+
+    // Generalized carousel lazy-loading
+    const lazyCarousels = document.querySelectorAll('.lazy-carousel')
+    if (lazyCarousels.length) {
+        import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
+            .then(module => module.initLazyCarousel(lazyCarousels))
     }
 });

@@ -1,5 +1,4 @@
-"""Library for interacting with archive.org.
-"""
+"""Library for interacting with archive.org."""
 
 import datetime
 import logging
@@ -19,6 +18,8 @@ logger = logging.getLogger('openlibrary.ia')
 IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
+EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
+
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
     """
@@ -35,7 +36,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
         else:
             logger.info(f'{r.status_code} response received from {url}')
     except Exception as e:
-        logger.exception('Exception occurred accessing %s.' % url)
+        logger.exception(f'Exception occurred accessing {url}.')
     stats.end()
     return api_response
 
@@ -115,6 +116,15 @@ def edition_from_item_metadata(itemid, metadata):
 
 
 def get_cover_url(item_id):
+    """Gets the URL of the archive.org item's cover page."""
+    base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
+    cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
+    if cover_response.status_code == 404:
+        return get_fallback_cover_url(item_id)
+    return base_url + 'default.jpg'
+
+
+def get_fallback_cover_url(item_id):
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
@@ -124,7 +134,7 @@ def get_cover_url(item_id):
 
 
 def get_item_manifest(item_id, item_server, item_path):
-    url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
+    url = f'https://{item_server}/BookReader/BookReaderJSON.php'
     url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
     return get_api_response(url)
 
@@ -205,7 +215,6 @@ class ItemEdition(dict):
             metadata.get("noindex") == "true"
             and "printdisabled" not in collections
             and "inlibrary" not in collections
-            and "lendinglibrary" not in collections
         ):
             return "noindex-true"
         # Gio - April 2016
@@ -309,9 +318,8 @@ def get_candidates_url(
             '!noindex:true',
         ]
     )
-    exempt_collections = ' OR '.join(  # noqa: FLY002
-        ["collection:thoth-archiving-network"]
-    )
+    exempt_collections = ' OR '.join(EXEMPT_COLLECTIONS)
+
     params = {
         'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',

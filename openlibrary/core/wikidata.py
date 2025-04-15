@@ -17,7 +17,7 @@ from openlibrary.core.helpers import days_since
 
 logger = logging.getLogger("core.wikidata")
 
-WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/'
+WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/'
 WIKIDATA_CACHE_TTL_DAYS = 30
 
 # TODO: Pull the icon, label, and base_url from wikidata itself
@@ -190,16 +190,24 @@ def get_wikidata_entity(
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:
-    response = requests.get(f'{WIKIDATA_API_URL}{id}')
-    if response.status_code == 200:
-        entity = WikidataEntity.from_dict(
-            response=response.json(), updated=datetime.now()
-        )
-        _add_to_cache(entity)
-        return entity
-    else:
-        logger.error(f'Wikidata Response: {response.status_code}, id: {id}')
-        return None
+    try:
+        response = requests.get(f'{WIKIDATA_API_URL}{id}')
+        response.raise_for_status()
+        if response.status_code == 200:
+            entity = WikidataEntity.from_dict(
+                response=response.json(), updated=datetime.now()
+            )
+            _add_to_cache(entity)
+            return entity
+    except requests.exceptions.HTTPError as err:
+        from openlibrary.plugins.openlibrary.sentry import sentry
+
+        if sentry and sentry.enabled:
+            sentry.capture_exception(err)
+
+        logger.error(f'Wikidata Response: {err.response.status_code}, id: {id}')
+
+    return None
     # Responses documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
 
 

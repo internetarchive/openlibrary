@@ -1,6 +1,3 @@
-
-
-
 <template>
     <div class="bulk-search-controls">
 
@@ -27,9 +24,14 @@
                         </select></label>
 
                         <label v-if="this.showApiKey"><strong >OpenAI API Key</strong> <br>
-                            <input class="api-key-bar" v-if="showPassword" placeholder= "Enter your OpenAI API key to use this feature." type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
-
-                            <input class="api-key-bar" v-else type="text" placeholder= "OpenAI API key here...." @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
+                            <input
+                                class="api-key-bar"
+                                :type="showPassword ? 'password' : 'text'"
+                                placeholder="OpenAI API key here...."
+                                @focus="showPassword = false"
+                                @blur="showPassword = true"
+                                v-model="bulkSearchState.extractionOptions.openaiApiKey"
+                            />
                         </label>
 
 
