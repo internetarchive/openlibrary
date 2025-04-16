@@ -191,7 +191,7 @@ identifiers:
 -   label: LCCN
     name: lccn
     url: https://lccn.loc.gov/@@@
--   label: Library Thing
+-   label: LibraryThing
     name: librarything
     url: https://www.librarything.com/work/@@@
 -   label: Lulu

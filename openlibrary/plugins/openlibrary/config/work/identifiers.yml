@@ -8,7 +8,7 @@ identifiers:
     name: ficbook
     notes: ''
     url: https://ficbook.net/readfic/@@@
--   label: Library Thing
+-   label: LibraryThing
     name: librarything
     url: https://www.librarything.com/work/@@@
 -   label: MusicBrainz
