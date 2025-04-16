@@ -806,6 +806,7 @@ def get_language(lang_or_key: str) -> "None | Thing | Nothing":
         return lang_or_key
 
 
+@public
 def get_marc21_language(language: str) -> str | None:
     """
     Get a three character MARC 21 language abbreviation from another abbreviation format:
