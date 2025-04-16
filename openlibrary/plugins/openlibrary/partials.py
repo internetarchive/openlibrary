@@ -321,7 +321,7 @@ class LazyCarouselPartial(PartialDataHandler):
             title=self.i.title,
             sort=self.i.sort,
             key=self.i.key,
-            limit=self.i.limit,
+            limit=int(self.i.limit),
             search=self.i.search,
             has_fulltext_only=self.i.has_fulltext_only,
             url=self.i.url,
