@@ -190,11 +190,6 @@ jQuery(function () {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
-    // conditionally loads Related Carousels based on class in the page
-    if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
-            .then(module => module.initCarouselsPartials());
-    }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');

@@ -552,7 +552,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
   $ component_times['RelatedWorksCarousel'] = time()
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    $:macros.LoadingIndicator(_("Loading Related Books"), "carousel-loading")
+    $:render_template("books/RelatedWorksCarousel", work)
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 

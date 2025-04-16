@@ -17,10 +17,6 @@
       "maxSize": "6KB"
     },
     {
-      "path": "static/build/carousels-partials.*.js",
-      "maxSize": "6KB"
-    },
-    {
       "path": "static/build/covers.*.js",
       "maxSize": "8KB"
     },
