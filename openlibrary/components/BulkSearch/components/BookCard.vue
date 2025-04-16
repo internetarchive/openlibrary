@@ -1,13 +1,27 @@
 <template>
   <div class="book-card">
     <div class="cover">
-      <img :src="coverImage" loading="lazy">
+      <img
+        :src="coverImage"
+        loading="lazy"
+      >
     </div>
     <div class="info">
-      <a class="title" :href="workUrl" target="_blank">{{ doc.title }}</a>
-      <div class="byline">{{ doc.author_name[0] }}</div>
-      <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
-      <a class="action actionName" target="_blank"></a>
+      <a
+        class="title"
+        :href="workUrl"
+        target="_blank"
+      >{{ doc.title }}</a>
+      <div class="byline">
+        {{ doc.author_name[0] }}
+      </div>
+      <div class="identifier">
+        {{ doc.first_publish_year }} - {{ doc.edition_count }} editions
+      </div>
+      <a
+        class="action actionName"
+        target="_blank"
+      />
     </div>
   </div>
 </template>
