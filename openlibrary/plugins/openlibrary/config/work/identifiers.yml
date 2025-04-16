@@ -10,7 +10,7 @@ identifiers:
     url: https://ficbook.net/readfic/@@@
 -   label: MusicBrainz
     name: musicbrainz
-    url: https://musicbrainz.org/artist/@@@
+    url: https://musicbrainz.org/work/@@@
     website: https://musicbrainz.org
 -   label: MyAnimeList
     name: myanimelist
