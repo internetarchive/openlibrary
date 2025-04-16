@@ -2,8 +2,8 @@ identifiers:
 -   label: BookBrainz
     name: bookbrainz
     notes: ''
-    url:  https://bookbrainz.org/work/@@@
-    website:  https://bookbrainz.org
+    url: https://bookbrainz.org/work/@@@
+    website: https://bookbrainz.org
 -   label: Книга Файнфиков
     name: ficbook
     notes: ''
