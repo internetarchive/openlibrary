@@ -8,6 +8,9 @@ identifiers:
     name: ficbook
     notes: ''
     url: https://ficbook.net/readfic/@@@
+-   label: Goodreads
+    name: goodreads
+    url: https://www.goodreads.com/work/editions/@@@
 -   label: LibraryThing
     name: librarything
     url: https://www.librarything.com/work/@@@
