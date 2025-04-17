@@ -499,7 +499,7 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
     # If this is a Wikisource import, always make a new edition, unless the match already has a Wikisource source record.
     q = {'type': '/type/edition', key: value}
     if any('wikisource:' in src for src in rec['source_records']):
-        q = {"source_records~": "wikisource:"} 
+        q["source_records~"] = "wikisource:"
 
     ekeys = list(web.ctx.site.things(q))
     return ekeys
