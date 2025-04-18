@@ -1,4 +1,4 @@
-$def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False)
+$def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False, user_lang_only=False)
 
 $code:
   title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
@@ -12,4 +12,10 @@ $code:
     "mode": "page",
     "limit": limit
   }
+
+$ web_lang= get_lang() or 'en'
+$if user_lang_only and web_lang:
+  $ user_lang= get_marc21_language(web_lang)
+   $if user_lang:
+    $ query = query + ' language:' + user_lang
 $:render_template("books/custom_carousel", books, title=title, url=title_url, key=key, min_books=min_books, load_more=load_more_config, test=test, compact_mode=compact_mode)

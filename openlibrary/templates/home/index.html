@@ -27,19 +27,19 @@ $add_metatag(property="og:site_name", content="Open Library")
 
     $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", url="/search?q=ddc%3A8*+first_publish_year%3A%5B*+TO+1950%5D+publish_year%3A%5B2000+TO+*%5D+NOT+public_scan_b%3Afalse&mode=ebooks&has_fulltext=true", title=_('Classic Books'), key="public_domain", sort='random.hourly', use_cache=False)
 
-  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=False)
 
-  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=False)
 
-  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["lending___last_browse desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=False)
 
-  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["lending___last_browse desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=False)
 
   $if not test:
-    $:macros.QueryCarousel(query="subject:thrillers ratings_count:[10 TO *] ebook_access:[borrowable TO *]", title=_('Thrillers'), key="thrillers", url="/subjects/thrillers", sort='random.hourly', use_cache=False)
-    $:macros.QueryCarousel(query="subject_key:textbooks publish_year:[1990 TO *] readinglog_count :[5 TO *] ebook_access:[borrowable TO *]", title=_('Textbooks'), key="textbooks", url="/subjects/textbooks", sort='random.hourly', use_cache=False)
+    $:macros.QueryCarousel(query="subject:thrillers ratings_count:[10 TO *] ebook_access:[borrowable TO *]", title=_('Thrillers'), key="thrillers", url="/subjects/thrillers", sort='random.hourly', use_cache=False, user_lang_only=False)
+    $:macros.QueryCarousel(query="subject_key:textbooks publish_year:[1990 TO *] readinglog_count :[5 TO *] ebook_access:[borrowable TO *]", title=_('Textbooks'), key="textbooks", url="/subjects/textbooks", sort='random.hourly', use_cache=False, user_lang_only=False)
 
-  $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", sorts=["lending___last_browse desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=False)
 
   $:render_template("home/categories", test=test)
 
