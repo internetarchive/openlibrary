@@ -10,7 +10,7 @@ class AuthorSearchScheme(SearchScheme):
     def __init__(self):
         super().__init__()
         self._universe: list[str] = ['type:author']
-        self._all_fields: set[str] =  {
+        self._all_fields: set[str] = {
             'key',
             'name',
             'alternate_names',
@@ -22,8 +22,8 @@ class AuthorSearchScheme(SearchScheme):
         }
         self.non_solr_fields: set[str] = set()
         self.facet_fields: set[str] = set()
-        self.field_name_map: dict[str,str] = {}
-        self.sorts: dict[str, str|Callable[[],str]] = {
+        self.field_name_map: dict[str, str] = {}
+        self.sorts: dict[str, str | Callable[[], str]] = {
             'work_count desc': 'work_count desc',
             # Random
             'random': 'random_1 asc',
@@ -41,7 +41,7 @@ class AuthorSearchScheme(SearchScheme):
             'top_subjects',
             'work_count',
         }
-        self.facet_rewrites: dict[tuple[str,str], str|Callable[[],str]] = {}
+        self.facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
     def q_to_solr_params(
         self,
