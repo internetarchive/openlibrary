@@ -9,8 +9,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 class AuthorSearchScheme(SearchScheme):
     def __init__(self):
         super().__init__()
-        self._universe = {'type:author'}
-        self._all_fields = {
+        self._universe: list[str] = ['type:author']
+        self._all_fields: set[str] =  {
             'key',
             'name',
             'alternate_names',
@@ -20,10 +20,10 @@ class AuthorSearchScheme(SearchScheme):
             'top_subjects',
             'work_count',
         }
-        self._non_solr_fields = set()
-        self._facet_fields = set()
-        self._field_name_map = {}
-        self._sorts = {
+        self.non_solr_fields: set[str] = set()
+        self.facet_fields: set[str] = set()
+        self.field_name_map: dict[str,str] = {}
+        self.sorts: dict[str, str|Callable[[],str]] = {
             'work_count desc': 'work_count desc',
             # Random
             'random': 'random_1 asc',
@@ -32,7 +32,7 @@ class AuthorSearchScheme(SearchScheme):
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
-        self._default_fetched_fields = {
+        self.default_fetched_fields: set[str] = {
             'key',
             'name',
             'birth_date',
@@ -41,7 +41,7 @@ class AuthorSearchScheme(SearchScheme):
             'top_subjects',
             'work_count',
         }
-        self._facet_rewrites = {}
+        self.facet_rewrites: dict[tuple[str,str], str|Callable[[],str]] = {}
 
     def q_to_solr_params(
         self,

@@ -15,7 +15,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 class SearchScheme:
     def __init__(self):
         # Set of queries that define the universe of this scheme
-        self.universe = set()
+        self.universe: list[str] = []
         # All actual solr fields that can be in a user query
         self.all_fields = set()
         # Fields that can be read, but which aren't stored in solr
