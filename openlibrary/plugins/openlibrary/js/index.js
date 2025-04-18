@@ -472,20 +472,16 @@ jQuery(function () {
     if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                if (librarianQueue) {
-                    module.initLibrarianQueue(librarianQueue)
-                }
+                module.initLibrarianQueue(librarianQueue)
             })
     }
 
     // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container')
     if (teamCards) {
-        import('./team')
+        import(/* webpackChunkName "team" */ './team')
             .then(module => {
-                if (teamCards) {
-                    module.initTeamFilter();
-                }
+                module.initTeamFilter();
             })
     }
 
