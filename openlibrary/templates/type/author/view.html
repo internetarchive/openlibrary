@@ -130,16 +130,14 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         <div class="clearfix"></div>
 
                 $if books_count > 1:
-                <div id="books">
-                    <label for="sortOptions">$_('Sort by: ')</label>
-                    $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-                    $if input(mode="everything").mode == "everything":
-                        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-                    $else:
-                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
-                </div>
-
-
+                    <div id="books">
+                        <label for="sortOptions">$_('Sort by: ')</label>
+                        $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+                        $if input(mode="everything").mode == "everything":
+                            <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
+                        $else:
+                            <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
+                    </div>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
