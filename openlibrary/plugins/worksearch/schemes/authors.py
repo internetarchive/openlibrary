@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from datetime import datetime
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -8,39 +7,41 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class AuthorSearchScheme(SearchScheme):
-    universe = ['type:author']
-    all_fields = {
-        'key',
-        'name',
-        'alternate_names',
-        'birth_date',
-        'death_date',
-        'date',
-        'top_subjects',
-        'work_count',
-    }
-    non_solr_fields: set[str] = set()
-    facet_fields: set[str] = set()
-    field_name_map: dict[str, str] = {}
-    sorts = {
-        'work_count desc': 'work_count desc',
-        # Random
-        'random': 'random_1 asc',
-        'random asc': 'random_1 asc',
-        'random desc': 'random_1 desc',
-        'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
-        'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-    }
-    default_fetched_fields = {
-        'key',
-        'name',
-        'birth_date',
-        'death_date',
-        'date',
-        'top_subjects',
-        'work_count',
-    }
-    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
+    def __init__(self):
+        super().__init__()
+        self._universe: list[str] = ['type:author']
+        self._all_fields: set[str] = {
+            'key',
+            'name',
+            'alternate_names',
+            'birth_date',
+            'death_date',
+            'date',
+            'top_subjects',
+            'work_count',
+        }
+        self.non_solr_fields: set[str] = set()
+        self.facet_fields: set[str] = set()
+        self.field_name_map: dict[str, str] = {}
+        self.sorts: dict[str, str | Callable[[], str]] = {
+            'work_count desc': 'work_count desc',
+            # Random
+            'random': 'random_1 asc',
+            'random asc': 'random_1 asc',
+            'random desc': 'random_1 desc',
+            'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
+            'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+        }
+        self.default_fetched_fields: set[str] = {
+            'key',
+            'name',
+            'birth_date',
+            'death_date',
+            'date',
+            'top_subjects',
+            'work_count',
+        }
+        self.facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
     def q_to_solr_params(
         self,
