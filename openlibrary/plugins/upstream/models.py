@@ -3,6 +3,7 @@ import re
 import sys
 from collections import defaultdict
 from functools import cached_property
+from typing import cast
 
 import web
 from isbnlib import NotValidISBNError, canonical, mask
@@ -18,11 +19,15 @@ from openlibrary.plugins.upstream import (
     borrow,
 )
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
-from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config
+from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import (
+    isbn_10_to_isbn_13,
+    isbn_13_to_isbn_10,
+    normalize_isbn,
+)
 from openlibrary.utils.lccn import normalize_lccn
 
 
@@ -69,7 +74,7 @@ class Edition(models.Edition):
 
     def get_cover(self):
         covers = self.get_covers()
-        return (covers and covers[0]) or None
+        return covers[0] if covers else None
 
     def get_cover_url(self, size):
         if cover := self.get_cover():
@@ -114,17 +119,18 @@ class Edition(models.Edition):
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
-        try:
-            isbn = mask(isbns[0])
-        except NotValidISBNError:
-            return isbns[0]
-        return isbn or isbns[0]
+        if isbn := normalize_isbn(isbns[0]):
+            try:
+                isbn = mask(isbns[0])
+            except NotValidISBNError:
+                return isbn
+        return isbn
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(
-            get_edition_config().identifiers, names, self.identifiers
+            get_identifier_config('edition').identifiers, names, self.identifiers
         )
 
     def get_ia_meta_fields(self):
@@ -149,11 +155,7 @@ class Edition(models.Edition):
         if not meta_fields:
             return
         v = meta_fields['collection']
-        return 'printdisabled' in v or 'lendinglibrary' in v
-
-    #      def is_lending_library(self):
-    #         collections = self.get_ia_collections()
-    #         return 'lendinglibrary' in collections
+        return 'printdisabled' in v
 
     def get_lending_resources(self):
         """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
@@ -168,21 +170,9 @@ class Edition(models.Edition):
         #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
         # </external-identifier>
 
-        itemid = self.ocaid
-        if not itemid:
+        if not self.ocaid:
             return []
-
-        lending_resources = []
-        # Check if available for in-browser lending - marked with 'browserlending' collection
-        browserLendingCollections = ['browserlending']
-        for collection in self.get_ia_meta_fields()['collection']:
-            if collection in browserLendingCollections:
-                lending_resources.append('bookreader:%s' % self.ocaid)
-                break
-
-        lending_resources.extend(self.get_ia_meta_fields()['external-identifier'])
-
-        return lending_resources
+        return self.get_ia_meta_fields()['external-identifier']
 
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
@@ -358,10 +348,15 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
+        if not d.items():
+            self.identifiers = None
+
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
-            get_edition_config().classifications, names, self.classifications
+            get_identifier_config('edition').classifications,
+            names,
+            self.classifications,
         )
 
     def set_classifications(self, classifications):
@@ -385,6 +380,9 @@ class Edition(models.Edition):
                 self[name] = value
             else:
                 self.classifications[name] = value
+
+        if not self.classifications.items():
+            self.classifications = None
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -496,7 +494,7 @@ class Author(models.Author):
 
     def get_photo(self):
         photos = self.get_photos()
-        return (photos and photos[0]) or None
+        return photos[0] if photos else None
 
     def get_photo_url(self, size):
         photo = self.get_photo()
@@ -550,7 +548,7 @@ class Work(models.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_covers(self, use_solr=True):
+    def get_covers(self, use_solr=True) -> list[Image]:
         if self.covers:
             return [Image(self._site, "w", id) for id in self.covers if id > 0]
         elif use_solr:
@@ -558,7 +556,7 @@ class Work(models.Work):
         else:
             return []
 
-    def get_covers_from_solr(self):
+    def get_covers_from_solr(self) -> list[Image]:
         try:
             w = self._solr_data
         except Exception as e:
@@ -570,7 +568,9 @@ class Work(models.Work):
             if 'cover_id' in w:
                 return [Image(self._site, "w", int(w['cover_id']))]
             elif 'cover_edition_key' in w:
-                cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
+                cover_edition = cast(
+                    Edition, web.ctx.site.get("/books/" + w['cover_edition_key'])
+                )
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -602,7 +602,7 @@ class Work(models.Work):
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
-        return (covers and covers[0]) or None
+        return covers[0] if covers else None
 
     def get_cover_url(self, size, use_solr=True):
         cover = self.get_cover(use_solr=use_solr)
@@ -735,7 +735,7 @@ class Work(models.Work):
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
         ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability_of_ocaids(ocaids) if ocaids else {}
+        availability = lending.get_availability('identifier', ocaids)
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
@@ -767,6 +767,66 @@ class Work(models.Work):
         if self.subtitle:
             record['subtitle'] = self.subtitle
         return record
+
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        names = []
+        return self._process_identifiers(
+            get_identifier_config('work').identifiers, names, self.identifiers
+        )
+
+    def set_identifiers(self, identifiers):
+        """Updates the work from identifiers specified as (name, value) pairs."""
+
+        d = {}
+        if identifiers:
+            for id in identifiers:
+                if 'name' not in id or 'value' not in id:
+                    continue
+                name, value = id['name'], id['value']
+                if value is not None:
+                    d.setdefault(name, []).append(value)
+
+        self.identifiers = {}
+
+        for name, value in d.items():
+            self.identifiers[name] = value
+
+        if not d.items():
+            self.identifiers = None
+
+    def _process_identifiers(self, config_, names, values):
+        id_map = {}
+        for id in config_:
+            id_map[id.name] = id
+            id.setdefault("label", id.name)
+            id.setdefault("url_format", None)
+
+        d = MultiDict()
+
+        def process(name, value):
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
+                for v in value:
+                    d[id.name] = web.storage(
+                        name=id.name,
+                        label=id.label,
+                        value=v,
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
+                    )
+
+        for name in names:
+            process(name, self[name])
+
+        for name in values:
+            process(name, values[name])
+
+        return d
 
 
 class Subject(client.Thing):

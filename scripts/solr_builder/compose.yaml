@@ -101,6 +101,10 @@ services:
     build:
       context: ../..
       dockerfile: scripts/solr_builder/Dockerfile.olpython
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+        - HTTPS_PROXY=${HTTPS_PROXY:-}
+        - NO_PROXY=${NO_PROXY:-}
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor

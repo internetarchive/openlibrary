@@ -1,5 +1,4 @@
-"""Simple implementation of mock infogami site to use in testing.
-"""
+"""Simple implementation of mock infogami site to use in testing."""
 
 import glob
 import itertools
@@ -421,7 +420,8 @@ def mock_site(request):
 
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
+            with open(path) as file:
+                text = file.read()
             doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc

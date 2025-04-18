@@ -39,141 +39,170 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    def __init__(self):
-        super().__init__()
-
-        # Instance variables for WorkSearchScheme
-        self.universe = ['type:work']
-        self.all_fields = {
-            "key",
-            "redirects",
-            "title",
-            "subtitle",
-            "alternative_title",
-            "alternative_subtitle",
-            "cover_i",
-            "ebook_access",
-            "edition_count",
-            "edition_key",
-            "format",
-            "by_statement",
-            "publish_date",
-            "lccn",
-            "ia",
-            "oclc",
-            "isbn",
-            "contributor",
-            "publish_place",
-            "publisher",
-            "first_sentence",
-            "author_key",
-            "author_name",
-            "author_alternative_name",
-            "subject",
-            "person",
-            "place",
-            "time",
-            "has_fulltext",
-            "title_suggest",
-            "publish_year",
-            "language",
-            "number_of_pages_median",
-            "ia_count",
-            "publisher_facet",
-            "author_facet",
-            "first_publish_year",
-            "ratings_count",
-            "readinglog_count",
-            "want_to_read_count",
-            "currently_reading_count",
-            "already_read_count",
-            # Subjects
-            "subject_key",
-            "person_key",
-            "place_key",
-            "time_key",
-            # Classifications
-            "lcc",
-            "ddc",
-            "lcc_sort",
-            "ddc_sort",
-            "osp_count",
-        }
-        self.non_solr_fields = {'description', 'providers'}
-        self.facet_fields = {
-            "has_fulltext",
-            "author_facet",
-            "language",
-            "first_publish_year",
-            "publisher_facet",
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-            "public_scan_b",
-        }
-        self.field_name_map = {
-            'author': 'author_name',
-            'authors': 'author_name',
-            'by': 'author_name',
-            'number_of_pages': 'number_of_pages_median',
-            'publishers': 'publisher',
-            'subtitle': 'alternative_subtitle',
-            'title': 'alternative_title',
-            'work_subtitle': 'subtitle',
-            'work_title': 'title',
-            # "Private" fields
-            # This is private because we'll change it to a multi-valued field instead of a
-            # plain string at the next opportunity, which will make it much more usable.
-            '_ia_collection': 'ia_collection_s',
-        }
-        self.sorts = {
-            'editions': 'edition_count desc',
-            'old': 'def(first_publish_year, 9999) asc',
-            'new': 'first_publish_year desc',
-            'rating': 'ratings_sortable desc',
-            'rating asc': 'ratings_sortable asc',
-            'rating desc': 'ratings_sortable desc',
-            'readinglog': 'readinglog_count desc',
-            'want_to_read': 'want_to_read_count desc',
-            'currently_reading': 'currently_reading_count desc',
-            'already_read': 'already_read_count desc',
-            'title': 'title_sort asc',
-            'scans': 'ia_count desc',
-            # Classifications
-            'lcc_sort': 'lcc_sort asc',
-            'lcc_sort asc': 'lcc_sort asc',
-            'lcc_sort desc': 'lcc_sort desc',
-            'ddc_sort': 'ddc_sort asc',
-            'ddc_sort asc': 'ddc_sort asc',
-            'ddc_sort desc': 'ddc_sort desc',
-            # Ebook access
-            'ebook_access': 'ebook_access desc',
-            'ebook_access asc': 'ebook_access asc',
-            'ebook_access desc': 'ebook_access desc',
-            # Open Syllabus Project
-            'osp_count': 'osp_count desc',
-            'osp_count asc': 'osp_count asc',
-            'osp_count desc': 'osp_count desc',
-            # Key
-            'key': 'key asc',
-            'key asc': 'key asc',
-            'key desc': 'key desc',
-            # Random
-            'random': 'random_1 asc',
-            'random asc': 'random_1 asc',
-            'random desc': 'random_1 desc',
-            'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
-            'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-        }
-        self.default_fetched_fields = {
-            'key',
-            'author_name',
-            'author_key',
-            'title',
-            'subtitle',
-            'edition_count',
-            'ia',
+    universe = ['type:work']
+    all_fields = {
+        "key",
+        "redirects",
+        "title",
+        "subtitle",
+        "alternative_title",
+        "alternative_subtitle",
+        "cover_i",
+        "ebook_access",
+        "edition_count",
+        "edition_key",
+        "format",
+        "by_statement",
+        "publish_date",
+        "lccn",
+        "lexile",
+        "ia",
+        "oclc",
+        "isbn",
+        "contributor",
+        "publish_place",
+        "publisher",
+        "first_sentence",
+        "author_key",
+        "author_name",
+        "author_alternative_name",
+        "subject",
+        "person",
+        "place",
+        "time",
+        "has_fulltext",
+        "title_suggest",
+        "publish_year",
+        "language",
+        "number_of_pages_median",
+        "ia_count",
+        "publisher_facet",
+        "author_facet",
+        "first_publish_year",
+        "ratings_count",
+        "readinglog_count",
+        "want_to_read_count",
+        "currently_reading_count",
+        "already_read_count",
+        # Subjects
+        "subject_key",
+        "person_key",
+        "place_key",
+        "time_key",
+        # Classifications
+        "lcc",
+        "ddc",
+        "lcc_sort",
+        "ddc_sort",
+        "osp_count",
+    }
+    non_solr_fields = {
+        'description',
+        'providers',
+    }
+    facet_fields = {
+        "has_fulltext",
+        "author_facet",
+        "language",
+        "first_publish_year",
+        "publisher_facet",
+        "subject_facet",
+        "person_facet",
+        "place_facet",
+        "time_facet",
+        "public_scan_b",
+    }
+    field_name_map = {
+        'author': 'author_name',
+        'authors': 'author_name',
+        'by': 'author_name',
+        'number_of_pages': 'number_of_pages_median',
+        'publishers': 'publisher',
+        'subtitle': 'alternative_subtitle',
+        'title': 'alternative_title',
+        'work_subtitle': 'subtitle',
+        'work_title': 'title',
+        # "Private" fields
+        # This is private because we'll change it to a multi-valued field instead of a
+        # plain string at the next opportunity, which will make it much more usable.
+        '_ia_collection': 'ia_collection_s',
+    }
+    sorts = {
+        'editions': 'edition_count desc',
+        'old': 'def(first_publish_year, 9999) asc',
+        'new': 'first_publish_year desc',
+        'rating': 'ratings_sortable desc',
+        'rating asc': 'ratings_sortable asc',
+        'rating desc': 'ratings_sortable desc',
+        'readinglog': 'readinglog_count desc',
+        'want_to_read': 'want_to_read_count desc',
+        'currently_reading': 'currently_reading_count desc',
+        'already_read': 'already_read_count desc',
+        'title': 'title_sort asc',
+        'scans': 'ia_count desc',
+        # Classifications
+        'lcc_sort': 'lcc_sort asc',
+        'lcc_sort asc': 'lcc_sort asc',
+        'lcc_sort desc': 'lcc_sort desc',
+        'ddc_sort': 'ddc_sort asc',
+        'ddc_sort asc': 'ddc_sort asc',
+        'ddc_sort desc': 'ddc_sort desc',
+        # Ebook access
+        'ebook_access': 'ebook_access desc',
+        'ebook_access asc': 'ebook_access asc',
+        'ebook_access desc': 'ebook_access desc',
+        # Open Syllabus Project
+        'osp_count': 'osp_count desc',
+        'osp_count asc': 'osp_count asc',
+        'osp_count desc': 'osp_count desc',
+        # Key
+        'key': 'key asc',
+        'key asc': 'key asc',
+        'key desc': 'key desc',
+        # Random
+        'random': 'random_1 asc',
+        'random asc': 'random_1 asc',
+        'random desc': 'random_1 desc',
+        'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
+        'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+    }
+    default_fetched_fields = {
+        'key',
+        'author_name',
+        'author_key',
+        'title',
+        'subtitle',
+        'edition_count',
+        'ia',
+        'has_fulltext',
+        'first_publish_year',
+        'cover_i',
+        'cover_edition_key',
+        'public_scan_b',
+        'lending_edition_s',
+        'lending_identifier_s',
+        'language',
+        'ia_collection_s',
+        # FIXME: These should be fetched from book_providers, but can't cause circular
+        # dep
+        'id_project_gutenberg',
+        'id_project_runeberg',
+        'id_librivox',
+        'id_standard_ebooks',
+        'id_openstax',
+        'id_cita_press',
+        'id_wikisource',
+    }
+    facet_rewrites = {
+        ('public_scan', 'true'): 'ebook_access:public',
+        ('public_scan', 'false'): '-ebook_access:public',
+        ('print_disabled', 'true'): 'ebook_access:printdisabled',
+        ('print_disabled', 'false'): '-ebook_access:printdisabled',
+        (
+            'has_fulltext',
+            'true',
+        ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
+        (
             'has_fulltext',
             'first_publish_year',
             'cover_i',
@@ -299,7 +328,7 @@ class WorkSearchScheme(SearchScheme):
             # If the whole tree is removed, we should just search for everything
             final_work_query = luqum_parser('*:*')
 
-        new_params.append(('workQuery', str(final_work_query)))
+        new_params.append(('userWorkQuery', str(final_work_query)))
 
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
@@ -323,8 +352,8 @@ class WorkSearchScheme(SearchScheme):
             bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
-            # arbitrarily called workQuery.
-            v='$workQuery',
+            # arbitrarily called userWorkQuery.
+            v='$userWorkQuery',
         )
         ed_q = None
         full_ed_query = None
@@ -469,15 +498,23 @@ class WorkSearchScheme(SearchScheme):
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
-            full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
+            # Note that if there is no edition query (because no fields in
+            # the user's work query apply), we use the special value *:* to
+            # match everything, but still get boosting.
+            new_params.append(('userEdQuery', ed_q or '*:*'))
+            # Needs to also set this on the editions subquery; subqueries appear
+            # to have their own scope for template parameters, so in order
+            # for `userEdQuery` to be available to `editions.q`, we will
+            # need to specify it twice.
+            new_params.append(('editions.userEdQuery', ed_q or '*:*'))
+
+            full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
                 qf='text alternative_title^4 author_name^4',
-                # Because we include the edition query inside the v="..." part,
-                # we need to escape quotes. Also note that if there is no
-                # edition query (because no fields in the user's work query apply),
-                # we use the special value *:* to match everything, but still get
-                # boosting.
-                v=ed_q.replace('"', '\\"') or '*:*',
+                # Reading from the url parameter userEdQuery. This lets us avoid
+                # having to try to escape the query in order to fit inside this
+                # other query.
+                v='$userEdQuery',
                 # bq (boost query): Boost which edition is promoted to the top
                 bq=' '.join(
                     (
@@ -493,7 +530,9 @@ class WorkSearchScheme(SearchScheme):
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            new_params.append(('edQuery', cast(str, full_ed_query) if ed_q else '*:*'))
+            new_params.append(
+                ('fullEdQuery', cast(str, full_ed_query) if ed_q else '*:*')
+            )
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
@@ -501,7 +540,7 @@ class WorkSearchScheme(SearchScheme):
                 # editions matching the edition query.
                 # Also include edition-less works (i.e. edition_count:0)
                 '+('
-                '_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}" '
+                '_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" '
                 'OR edition_count:0'
                 ')'
             )

@@ -6,17 +6,21 @@
       :sort="sortState.order"
       :class="bookRoomClass"
       :features="bookRoomFeatures"
-      :appSettings="settingsState"
-      :jumpTo="jumpTo"
+      :app-settings="settingsState"
+      :jump-to="jumpTo"
     />
 
-    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
+    <LibraryToolbar
+      :filter-state="filterState"
+      :settings-state="settingsState"
+      :sort-state="sortState"
+    />
   </div>
 </template>
 
 <script>
-import BookRoom from './LibraryExplorer/components/BookRoom';
-import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
+import BookRoom from './LibraryExplorer/components/BookRoom.vue';
+import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar.vue';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';

@@ -1,4 +1,4 @@
-$def with (q, lists)
+$def with (search_request, search_response, lists)
 
 $var title: $_('Search results for Lists')
 
@@ -8,25 +8,42 @@ $var title: $_('Search results for Lists')
 
 <div id="contentBody">
   $:macros.SearchNavigation()
+
   <div class="section">
     <form class="siteSearch olform" action="/search/lists">
-      $:render_template("search/searchbox", q=q)
+      $:render_template("search/searchbox", q=search_request.q)
     </form>
   </div>
 
-  $if lists:
-    <div class="mybooks-list">
-      <ul id="listResults" class="list-books">
-      $for list in lists:
-        <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
-      </ul>
-    </div>
-  $elif q:
-    <center>
-      <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
-      <hr>
-    </center>
-    <div id="fulltext-search-suggestion" data-query="$q">
+  $if search_request.q and search_response.error:
+    <strong>
+      $for line in search_response.error.splitlines():
+        $line
+        $if not loop.last:
+          <br>
+    </strong>
+
+  $if search_request.q and not search_response.error:
+    $if search_response.num_found:
+      <div class="search-results-stats">
+        $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
+      </div>
+
+      <div class="mybooks-list">
+        <ul id="listResults" class="list-books">
+          $for list in lists:
+            <li class="searchResultItem">$:render_template("lists/preview", list)</li>
+        </ul>
+      </div>
+
+      $:macros.Pager(search_request.page, search_response.num_found, search_request.limit)
+
+    $else:
+      <center>
+        <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
+        <hr>
+      </center>
+      <div id="fulltext-search-suggestion" data-query="$search_request.q">
         $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-    </div>
+      </div>
 </div>

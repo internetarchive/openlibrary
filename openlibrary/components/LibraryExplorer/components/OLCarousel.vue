@@ -1,35 +1,79 @@
 <template>
   <div class="ol-carousel">
-    <BooksCarousel v-if="status === 'Loaded' || results.length" :books="results">
-      <template v-slot:cover-label="{book}">
-        <slot name="cover-label" v-bind:book="book"/>
+    <BooksCarousel
+      v-if="status === 'Loaded' || results.length"
+      :books="results"
+    >
+      <template #cover-label="{book}">
+        <slot
+          name="cover-label"
+          :book="book"
+        />
       </template>
 
-      <template v-slot:cover="{book}">
-        <slot name="cover" v-bind:book="book"/>
+      <template #cover="{book}">
+        <slot
+          name="cover"
+          :book="book"
+        />
       </template>
 
       <template #book-end-start>
-        <slot name="book-end-start"/>
-        <div class="book-end" v-if="offset > 0">
-          <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
-          <button class="load-more" @click="loadPrevPage" :disabled="offset === 0">Load previous</button>
-          <a class="view-all" :href="olUrl" target="_blank">View all</a>
+        <slot name="book-end-start" />
+        <div
+          v-if="offset > 0"
+          class="book-end"
+        >
+          <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
+          <button
+            class="load-more"
+            :disabled="offset === 0"
+            @click="loadPrevPage"
+          >
+            Load previous
+          </button>
+          <a
+            class="view-all"
+            :href="olUrl"
+            target="_blank"
+          >View all</a>
         </div>
       </template>
       <template #book-end>
         <div class="book-end">
-          <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
-          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length === numFound">Load next</button>
-          <a class="view-all" :href="olUrl" target="_blank">View all</a>
+          <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
+          <button
+            class="load-more"
+            :disabled="offset + results.length === numFound"
+            @click="loadNextPage"
+          >
+            Load next
+          </button>
+          <a
+            class="view-all"
+            :href="olUrl"
+            target="_blank"
+          >View all</a>
         </div>
       </template>
     </BooksCarousel>
     <transition>
-      <div class="status-text" v-if="status === 'Errored'">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
+      <div
+        v-if="status === 'Errored'"
+        class="status-text"
+      >
+        Something went wrong... <button @click="reloadResults('reload')">
+          Retry
+        </button>
+      </div>
     </transition>
     <transition>
-      <div class="status-text" v-if="status === 'Loading'">Loading...</div>
+      <div
+        v-if="status === 'Loading'"
+        class="status-text"
+      >
+        Loading...
+      </div>
     </transition>
   </div>
 </template>
@@ -37,7 +81,7 @@
 <script>
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
-import Vue from 'vue';
+
 import CONFIGS from '../../configs';
 // import * as Vibrant from "node-vibrant";
 
@@ -125,7 +169,7 @@ export default {
             get() { return this.node.requests[this.query]?.offset ?? 0; },
             set(newVal) {
                 if (!this.node.requests[this.query]) {
-                    Vue.set(this.node.requests, this.query, { offset: 0 });
+                    this.node.requests[this.query] = { offset: 0 };
                 }
                 return this.node.requests[this.query].offset = newVal;
             },
@@ -165,7 +209,7 @@ export default {
         await waitUntil(() => this.$el.isConnected);
         this.intersectionObserver.observe(this.$el);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.intersectionObserver.unobserve(this.$el);
     },
 

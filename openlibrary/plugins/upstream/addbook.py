@@ -23,6 +23,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream.models import Author, Edition, Work
+from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 
@@ -595,8 +596,9 @@ class SaveBookHelper:
                 elif self.work is not None and new_work_key is None:
                     # we're trying to create an orphan; let's not do that
                     edition_data.works = [{'key': self.work.key}]
-
             if self.work is not None:
+                work_identifiers = work_data.pop('identifiers', {})
+                self.work.set_identifiers(work_identifiers)
                 self.work.update(work_data)
                 saveutil.save(self.work)
 
@@ -643,7 +645,12 @@ class SaveBookHelper:
                 edition_data.pop('physical_dimensions', None)
             )
             self.edition.set_weight(edition_data.pop('weight', None))
-            self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+            try:
+                self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+            except TocParseError as e:
+                raise ClientException(
+                    "400 Bad Request", f"Table of contents parse error: {e}"
+                )
 
             if edition_data.pop('translation', None) != 'yes':
                 edition_data.translation_of = None
@@ -782,8 +789,8 @@ class SaveBookHelper:
         else:
             work.subtitle = None
 
-        for k in ('excerpts', 'links'):
-            work[k] = work.get(k) or []
+        for k in ['excerpts', 'links', 'identifiers']:
+            work[k] = work.get(k, {})
 
         # ignore empty authors
         work.authors = [

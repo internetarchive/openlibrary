@@ -2,7 +2,7 @@
   <div class="value-card">
     <CardHeader
       :description="description"
-      />
+    />
     <CardBody
       ref="card-body"
       :values="values"
@@ -11,13 +11,13 @@
       :all-selected-values="allSelectedValues"
       :work-key="workKey"
       :username="username"
-      />
+    />
   </div>
 </template>
 
 <script>
-import CardBody from './CardBody'
-import CardHeader from './CardHeader';
+import CardBody from './CardBody.vue'
+import CardHeader from './CardHeader.vue';
 
 export default {
     name: 'ValueCard',

@@ -3,20 +3,18 @@
     <OLChip
       v-for="item in values"
       :key="item + type"
-      :text="item"
       :ref="'chip-' + item"
+      :text="item"
       selectable
       :selected="selectedValues.includes(item)"
       class="value-chip"
       @update-selected="updateSelected"
-      />
+    />
   </div>
 </template>
 
 <script>
-import Vue from 'vue'
-
-import OLChip from './OLChip'
+import OLChip from './OLChip.vue'
 
 import { updateObservation } from '../ObservationService'
 
@@ -79,6 +77,14 @@ export default {
             required: true
         }
     },
+    computed: {
+        /**
+         * Returns an array of all of this book tag type's currently selected values.
+         */
+        selectedValues: function() {
+            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
+        }
+    },
     methods: {
         /**
          * Updates the currently selected book tags when a value chip is clicked.
@@ -99,7 +105,7 @@ export default {
                             updatedValues.pop();
                         })
                         .finally(() => {
-                            Vue.set(this.allSelectedValues, this.type, updatedValues);
+                            this.allSelectedValues[this.type] = updatedValues;
                         })
                 } else {
                     if (updatedValues.length) {
@@ -115,7 +121,7 @@ export default {
                                             updatedValues = [text]
                                         })
                                         .finally(() => {
-                                            Vue.set(this.allSelectedValues, this.type, updatedValues)
+                                            this.allSelectedValues[this.type] = updatedValues;
                                         })
                                 }
                             })
@@ -129,14 +135,6 @@ export default {
                         updatedValues.push(text);
                     })
             }
-        }
-    },
-    computed: {
-        /**
-         * Returns an array of all of this book tag type's currently selected values.
-         */
-        selectedValues: function() {
-            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
         }
     }
 }

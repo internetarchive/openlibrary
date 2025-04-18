@@ -21,6 +21,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import setup_requests
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -38,25 +39,19 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-from openlibrary.core import cache
-from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
-from openlibrary.core.vendors import (
-    create_edition_from_amazon_metadata,  # noqa: F401 side effects may be needed
-)
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.plugins.worksearch.code import do_search
-from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
-delegate.app.add_processor(processors.RequireLogoutProcessor())
+# Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
+# delegate.app.add_processor(processors.RequireLogoutProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -202,14 +197,11 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename='sampledump.txt.gz'):
-    if filename.endswith('.gz'):
-        import gzip
+    import gzip
 
-        f = gzip.open(filename)
-    else:
-        f = open(filename)
+    with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
+        queries = [json.loads(line) for line in file]
 
-    queries = [json.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -400,9 +392,8 @@ def save(filename, text):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    f = open(path, 'w')
-    f.write(text)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(text)
 
 
 def change_ext(filename, ext):
@@ -646,6 +637,8 @@ class BatchImportPendingView(delegate.page):
 
 
 class isbn_lookup(delegate.page):
+    """The endpoint for /isbn"""
+
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
     def GET(self, isbn: str):
@@ -1119,9 +1112,8 @@ def save_error():
         os.makedirs(dir)
 
     error = web.safestr(web.djangoerror())
-    f = open(path, 'w')
-    f.write(error)
-    f.close()
+    with open(path, 'w') as file:
+        file.write(error)
 
     print('error saved to', path, file=web.debug)
     return name
@@ -1129,6 +1121,10 @@ def save_error():
 
 def internalerror():
     name = save_error()
+
+    import sys
+
+    exception_type, exception_value, _ = sys.exc_info()
 
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
     # Can't have sub-metrics, so can't add more info
@@ -1144,7 +1140,9 @@ def internalerror():
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
-        msg = render.site(render.internalerror(name))
+        msg = render.site(
+            render.internalerror(name, etype=exception_type, evalue=exception_value)
+        )
         raise web.internalerror(web.safestr(msg))
 
 
@@ -1160,103 +1158,6 @@ class memory(delegate.page):
 
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
-
-
-def _get_relatedcarousels_component(workid):
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-    work = web.ctx.site.get('/works/%s' % workid) or {}
-    component = render_template('books/RelatedWorksCarousel', work)
-    return {0: str(component)}
-
-
-def get_cached_relatedcarousels_component(*args, **kwargs):
-    memoized_get_component_metadata = cache.memcache_memoize(
-        _get_relatedcarousels_component,
-        "book.bookspage.component.relatedcarousels",
-        timeout=dateutil.HALF_DAY_SECS,
-    )
-    return (
-        memoized_get_component_metadata(*args, **kwargs)
-        or memoized_get_component_metadata.update(*args, **kwargs)[0]
-    )
-
-
-class Partials(delegate.page):
-    path = '/partials'
-    encoding = 'json'
-
-    def GET(self):
-        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
-        # `data['args']` is meant to be a list of a template's positional arguments, in order.
-        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
-        i = web.input(workid=None, _component=None, data=None)
-        component = i.pop("_component")
-        partial = {}
-        if component == "RelatedWorkCarousel":
-            partial = _get_relatedcarousels_component(i.workid)
-        elif component == "AffiliateLinks":
-            data = json.loads(i.data)
-            args = data.get('args', [])
-            # XXX : Throw error if args length is less than 2
-            macro = web.template.Template.globals['macros'].AffiliateLinks(
-                args[0], args[1]
-            )
-            partial = {"partials": str(macro)}
-
-        elif component == 'SearchFacets':
-            data = json.loads(i.data)
-            path = data.get('path')
-            query = data.get('query', '')
-            parsed_qs = parse_qs(query.replace('?', ''))
-            param = data.get('param', {})
-
-            sort = None
-            search_response = do_search(
-                param, sort, rows=0, spellcheck_count=3, facet=True
-            )
-
-            sidebar = render_template(
-                'search/work_search_facets',
-                param,
-                facet_counts=search_response.facet_counts,
-                async_load=False,
-                path=path,
-                query=parsed_qs,
-            )
-
-            active_facets = render_template(
-                'search/work_search_selected_facets',
-                param,
-                search_response,
-                param.get('q', ''),
-                path=path,
-                query=parsed_qs,
-            )
-
-            partial = {
-                "sidebar": str(sidebar),
-                "title": active_facets.title,
-                "activeFacets": str(active_facets).strip(),
-            }
-
-        elif component == "FulltextSearchSuggestion":
-            query = i.get('data', '')
-            data = fulltext_search(query)
-            # Add caching headers only if there were no errors in the search results
-            if 'error' not in data:
-                # Cache for 5 minutes (300 seconds)
-                web.header('Cache-Control', 'public, max-age=300')
-            hits = data.get('hits', [])
-            if not hits['hits']:
-                macro = '<div></div>'
-            else:
-                macro = web.template.Template.globals[
-                    'macros'
-                ].FulltextSearchSuggestion(query, data)
-            partial = {"partials": str(macro)}
-
-        return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
@@ -1342,10 +1243,11 @@ def setup_template_globals():
             "en": {"code": "en", "localized": _('English'), "native": "English"},
             "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
             "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
             "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
-            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "ro": {"code": "ro", "localized": _('Romanian'), "native": "Română"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
@@ -1388,32 +1290,6 @@ def setup_context_defaults():
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
-def setup_requests():
-    logger.info("Setting up requests")
-
-    logger.info("Setting up proxy")
-    if infogami.config.get("http_proxy", ""):
-        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = infogami.config.get(
-            'http_proxy'
-        )
-        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = infogami.config.get(
-            'http_proxy'
-        )
-        logger.info('Proxy environment variables are set')
-    else:
-        logger.info("No proxy configuration found")
-
-    logger.info("Setting up proxy bypass")
-    if infogami.config.get("no_proxy_addresses", []):
-        no_proxy = ",".join(infogami.config.get("no_proxy_addresses"))
-        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
-        logger.info('Proxy bypass environment variables are set')
-    else:
-        logger.info("No proxy bypass configuration found")
-
-    logger.info("Requests set up")
-
-
 def setup():
     from openlibrary.plugins.openlibrary import (
         authors,
@@ -1421,6 +1297,7 @@ def setup():
         design,
         events,
         home,
+        partials,
         sentry,
         stats,
         status,
@@ -1436,6 +1313,7 @@ def setup():
     status.setup()
     authors.setup()
     swagger.setup()
+    partials.setup()
 
     from openlibrary.plugins.openlibrary import (
         api,  # noqa: F401 side effects may be needed

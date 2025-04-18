@@ -65,7 +65,8 @@ class WebTestCase:
         b = self.browser
 
         path = join(static_dir, path)
-        content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()})
+        with open(path) as file:
+            content_type, data = utils.urlencode({'olid': olid, 'data': file.read()})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         return json.loads(b.data)['id']
 
@@ -88,12 +89,14 @@ class WebTestCase:
 class TestDB:
     def test_write(self, setup_db, image_dir):
         path = static_dir + '/logos/logo-en.png'
-        data = open(path).read()
+        with open(path) as file:
+            data = file.read()
         d = coverlib.save_image(data, category='b', olid='OL1M')
 
         assert 'OL1M' in d.filename
         path = config.data_root + '/localdisk/' + d.filename
-        assert open(path).read() == data
+        with open(path) as file:
+            assert file.read() == data
 
 
 class TestWebapp(WebTestCase):
@@ -114,16 +117,12 @@ class TestWebappWithDB(WebTestCase):
         id2 = self.upload('OL1M', 'logos/logo-it.png')
 
         assert id1 < id2
-        assert (
-            b.open('/b/olid/OL1M.jpg').read()
-            == open(static_dir + '/logos/logo-it.png').read()
-        )
+        with open(static_dir + '/logos/logo-it.png') as file:
+            assert b.open('/b/olid/OL1M.jpg').read() == file.read()
 
         b.open('/b/touch', urllib.parse.urlencode({'id': id1}))
-        assert (
-            b.open('/b/olid/OL1M.jpg').read()
-            == open(static_dir + '/logos/logo-en.png').read()
-        )
+        with open(static_dir + '/logos/logo-en.png') as file:
+            assert b.open('/b/olid/OL1M.jpg').read() == file.read()
 
     def test_delete(self, setup_db):
         b = self.browser
@@ -137,7 +136,8 @@ class TestWebappWithDB(WebTestCase):
         b = self.browser
 
         path = join(static_dir, 'logos/logo-en.png')
-        filedata = open(path).read()
+        with open(path) as file:
+            filedata = file.read()
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': filedata})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
@@ -147,7 +147,8 @@ class TestWebappWithDB(WebTestCase):
 
     def test_upload_with_url(self, monkeypatch):
         b = self.browser
-        filedata = open(join(static_dir, 'logos/logo-en.png')).read()
+        with open(join(static_dir, 'logos/logo-en.png')) as file:
+            filedata = file.read()
         source_url = 'http://example.com/bookcovers/1.jpg'
 
         mock = Mock()
@@ -201,11 +202,13 @@ class TestWebappWithDB(WebTestCase):
         for f in files:
             f.id = self.upload(f.olid, f.filename)
             f.path = join(static_dir, f.filename)
-            assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
+            with open(f.path) as file:
+                assert b.open('/b/id/%d.jpg' % f.id).read() == file.read()
 
         archive.archive()
 
         for f in files:
             d = self.jsonget('/b/id/%d.json' % f.id)
             assert 'tar:' in d['filename']
-            assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
+            with open(f.path) as file:
+                assert b.open('/b/id/%d.jpg' % f.id).read() == file.read()

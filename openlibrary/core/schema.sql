@@ -69,6 +69,10 @@ CREATE TABLE bookshelves_events (
     created timestamp without time zone default (current_timestamp at time zone 'utc')
 );
 
+-- Multi-index optimized to fetch a specific user's check-ins
+CREATE INDEX bookshelves_events_user_checkins_idx
+    ON bookshelves_events (username, work_id, event_type DESC, event_date DESC);
+
 CREATE TABLE observations (
     work_id INTEGER not null,
     edition_id INTEGER default -1,

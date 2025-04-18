@@ -29,17 +29,17 @@
   "authors": [
     {
       "birth_date": "1959",
-      "personal_name": "Bard, Mitchell Geoffrey",
       "name": "Bard, Mitchell Geoffrey",
       "entity_type": "person"
+    },
+    {
+      "name": "American-Israeli Cooperative Enterprise",
+      "entity_type": "org"
     }
   ],
   "by_statement": "edited by Mitchell G. Bard ; foreword by Eli E. Hertz",
   "publish_places": [
     "Chevy Chase, MD"
-  ],
-  "contributions": [
-    "American-Israeli Cooperative Enterprise"
   ],
   "subjects": ["Politics and government", "Jewish-Arab relations", "Middle East", "Arab-Israeli conflict"],
   "subject_times": ["1945-"]

@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False)
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None)
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -18,18 +18,43 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
-<div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
-      $:analytics_attr(analytics_action)
-      $if loan:
-        data-userid="$(loan['userid'])"
-      >$label</a>
-  $if listen:
-    <a href="$(stream_url)&_autoReadAloud=show"
-       title="$title using Read Aloud"
-       $:analytics_attr(action.capitalize() + 'Listen')
-       class="cta-btn cta-btn--available cta-btn--w-icon">
-      <span class="btn-icon read-aloud"></span>
-      <span class="btn-label">$_("Listen")</span>
-    </a>
-</div>
+$ menu_items = [listen, edition_key]
+$ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
+$if any(menu_items) and not is_carousel:
+  <div class="cta-dropper">
+    <div class="cta-button-group cta-dropper-button">
+      <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+          $:analytics_attr(analytics_action)
+          $if loan:
+            data-userid="$(loan['userid'])"
+          >$label</a>
+    </div>
+    <details>
+      <summary>
+      </summary>
+      <ul class="dropper-menu">
+        $if listen:
+          <li>
+            <a href="$(stream_url)&_autoReadAloud=show"
+              title="$title using Read Aloud"
+              $:analytics_attr(action.capitalize() + 'Listen')
+              class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon listen"></span>
+              <span class="btn-label">$_("Listen")</span>
+            </a>
+          </li>
+        $if edition_key:
+          <li>
+            $:macros.LocateButton(edition_key, icon=True)
+          </li>
+      </ul>
+    </details>
+  </div>
+$else:
+  <div class="cta-button-group">
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+        $:analytics_attr(analytics_action)
+        $if loan:
+          data-userid="$(loan['userid'])"
+        >$label</a>
+  </div>

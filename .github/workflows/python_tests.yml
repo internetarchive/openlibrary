@@ -49,7 +49,6 @@ jobs:
           git fetch --no-tags --prune --depth=1 origin master
           make test-py
           source scripts/run_doctests.sh
-          mypy --install-types --non-interactive .
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         env:

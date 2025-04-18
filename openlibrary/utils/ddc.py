@@ -43,7 +43,7 @@ def collapse_multiple_space(s: str) -> str:
     return MULTIPLE_SPACES_RE.sub(' ', s)
 
 
-VALID_CHARS = set(printable) - set("/'′’,")
+VALID_CHARS = set(printable) - set("/'′’,")  # noqa: RUF001
 
 
 def normalize_ddc(ddc: str) -> list[str]:
@@ -106,7 +106,7 @@ def normalize_ddc(ddc: str) -> list[str]:
             # Discard catalog edition number
             # At least one classification number available
             # And number is without decimal component
-            if len(results) and re.search(r'(^0?\d{1,2}$)', parts['number']):
+            if results and re.search(r'(^0?\d{1,2}$)', parts['number']):
                 continue
 
         # Handle [Fic] or [E]

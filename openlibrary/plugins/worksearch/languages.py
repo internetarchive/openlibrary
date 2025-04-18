@@ -1,5 +1,4 @@
-"""Language pages
-"""
+"""Language pages"""
 
 import json
 import logging

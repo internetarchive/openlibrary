@@ -1,4 +1,5 @@
-openlibrary/components/_dev.js
+storybook-static/
+openlibrary/components/dev/_dev.js
 *venv
 *.pyc
 *~

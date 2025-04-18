@@ -11,7 +11,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 from urllib.parse import (
     parse_qs,
     urlparse,
@@ -33,7 +33,7 @@ from web.utils import Storage
 
 from infogami import config
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
-from infogami.utils import delegate, stats, view
+from infogami.utils import delegate, features, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
 from infogami.utils.view import (
@@ -55,6 +55,8 @@ if TYPE_CHECKING:
 
 STRIP_CHARS = ",'\" "
 REPLACE_CHARS = "]["
+
+logger = logging.getLogger('openlibrary')
 
 
 class LanguageMultipleMatchError(Exception):
@@ -168,10 +170,15 @@ def kebab_case(upper_camel_case: str) -> str:
     >>> kebab_case('HelloWorld')
     'hello-world'
     >>> kebab_case("MergeUI")
-    'merge-u-i'
+    'merge-ui'
     """
-    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
-    return '-'.join(parts).lower()
+    # Match positions where a lowercase letter is followed by an uppercase letter,
+    # or an uppercase letter is followed by another uppercase followed by a lowercase letter.
+    kebab = re.sub(
+        r'([a-z])([A-Z])', r'\1-\2', upper_camel_case
+    )  # Handle camel case boundaries
+    kebab = re.sub(r'([A-Z])([A-Z][a-z])', r'\1-\2', kebab)  # Handle acronyms
+    return kebab.lower()
 
 
 @public
@@ -198,14 +205,19 @@ def render_component(
     html = ''
     included = web.ctx.setdefault("included-components", [])
 
-    if len(included) == 0:
-        # Need to include Vue
-        html += '<script src="%s"></script>' % static_url('build/vue.js')
+    if not included:
+        # Support for legacy browsers (see vite.config.mjs)
+        polyfills_url = static_url('build/components/production/ol-polyfills-legacy.js')
+        html += f'<script nomodule src="{polyfills_url}" defer></script>'
 
     if name not in included:
-        url = static_url('build/components/production/ol-%s.min.js' % name)
+        url = static_url('build/components/production/ol-%s.js' % name)
         script_attrs = '' if not asyncDefer else 'async defer'
-        html += f'<script {script_attrs} src="{url}"></script>'
+        html += f'<script type="module" {script_attrs} src="{url}"></script>'
+
+        legacy_url = static_url('build/components/production/ol-%s-legacy.js' % name)
+        html += f'<script nomodule src="{legacy_url}" defer></script>'
+
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
@@ -299,8 +311,13 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d) -> str:
-    return json.dumps(d)
+def json_encode(d, indent=0) -> str:
+    return json.dumps(d, indent=indent)
+
+
+@public
+def is_feature_enabled(feature_name: str) -> bool:
+    return features.is_enabled(feature_name)
 
 
 def unflatten(d: dict, separator: str = "--") -> dict:
@@ -1004,7 +1021,9 @@ def get_marc21_language(language: str) -> str | None:
         'ms': 'msa',
         'mt': 'mlt',
         'mul': 'mul',
-        'my': 'mya',
+        'my': 'bur',
+        'mya': 'bur',
+        'burmese': 'bur',
         'myn': 'myn',
         'nai': 'nai',
         'nav': 'nav',
@@ -1166,55 +1185,38 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 
 
 @public
-def get_author_config():
-    return _get_author_config()
+def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
+    return _get_identifier_config(identifier)
 
 
 @web.memoize
-def _get_author_config():
-    """Returns the author config.
-
-    The results are cached on the first invocation.
-    Any changes to /config/author page require restarting the app.
+def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
-    # Load the author config from the author.yml file in the author directory
-    with open(
-        'openlibrary/plugins/openlibrary/config/author/identifiers.yml'
-    ) as in_file:
-        id_config = yaml.safe_load(in_file)
-        identifiers = [
-            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
-        ]
+    Returns the identifier config.
 
-    return Storage(identifiers=identifiers)
-
-
-@public
-def get_edition_config() -> Storage:
-    return _get_edition_config()
-
-
-@web.memoize
-def _get_edition_config():
-    """Returns the edition config.
-
-    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    The results are cached on the first invocation. Any changes to /config/{identifier} page require restarting the app.
 
     This is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
-    thing = web.ctx.site.get('/config/edition')
-    classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    roles = thing.roles
     with open(
-        'openlibrary/plugins/openlibrary/config/edition/identifiers.yml'
+        f'openlibrary/plugins/openlibrary/config/{identifier}/identifiers.yml'
     ) as in_file:
         id_config = yaml.safe_load(in_file)
         identifiers = [
             Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
         ]
-    return Storage(
-        classifications=classifications, identifiers=identifiers, roles=roles
-    )
+
+    if identifier == 'edition':
+        thing = web.ctx.site.get('/config/edition')
+        classifications = [
+            Storage(t.dict()) for t in thing.classifications if 'name' in t
+        ]
+        roles = thing.roles
+        return Storage(
+            classifications=classifications, identifiers=identifiers, roles=roles
+        )
+
+    return Storage(identifiers=identifiers)
 
 
 from openlibrary.core.olmarkdown import OLMarkdown
@@ -1630,6 +1632,28 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
+
+
+def setup_requests(config=config) -> None:
+    logger.info("Setting up requests")
+
+    logger.info("Setting up proxy")
+    if config.get("http_proxy", ""):
+        os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = config.get('http_proxy')
+        os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = config.get('http_proxy')
+        logger.info('Proxy environment variables are set')
+    else:
+        logger.info("No proxy configuration found")
+
+    logger.info("Setting up proxy bypass")
+    if config.get("no_proxy_addresses", []):
+        no_proxy = ",".join(config.get("no_proxy_addresses"))
+        os.environ['NO_PROXY'] = os.environ['no_proxy'] = no_proxy
+        logger.info('Proxy bypass environment variables are set')
+    else:
+        logger.info("No proxy bypass configuration found")
+
+    logger.info("Requests set up")
 
 
 def setup() -> None:

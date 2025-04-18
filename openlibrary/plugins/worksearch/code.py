@@ -7,7 +7,7 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Literal, cast
 from unicodedata import normalize
 
 import requests
@@ -24,11 +24,13 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
+    safeget,
     urlencode,
 )
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -115,7 +117,7 @@ def process_facet(
 
 
 def process_facet_counts(
-    facet_counts: dict[str, list]
+    facet_counts: dict[str, list],
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':
@@ -134,7 +136,6 @@ def execute_solr_query(
     stats.begin("solr", url=url)
     try:
         response = get_solr().raw_request(solr_path, urlencode(params))
-        response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -252,11 +253,11 @@ def run_solr_query(  # noqa: PLR0912
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
     response = execute_solr_query(solr_select_url, params)
-    solr_result = response.json() if response else None
+    solr_result = response.json() if response is not None else None
     end_time = time.time()
     duration = end_time - start_time
 
-    if solr_result is not None:
+    if safeget(lambda: solr_result['response']['docs']):
         non_solr_fields = set(fields) & scheme.non_solr_fields
         if non_solr_fields:
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
@@ -615,48 +616,106 @@ class advancedsearch(delegate.page):
         return render_template("search/advancedsearch.html")
 
 
+@dataclass
+class ListSearchRequest:
+    q: str
+    offset: int
+    limit: int
+    page: int
+    fields: str
+    sort: str
+    api: Literal['', 'next']
+
+    @staticmethod
+    def from_web_input(i: web.storage) -> 'ListSearchRequest':
+        offset = safeint(i.get('offset', 0), 0)
+        limit = safeint(i.get('limit', 20), 20)
+        fields = i.get('fields', '')
+        if i.get('api') != 'next':
+            limit = min(1000, limit)
+            fields = 'key'  # Just need the key since the old API fetches from DB
+            if i.get('sort'):
+                raise ValueError('sort not supported in the old API')
+
+        if i.get('page'):
+            page = safeint(i.page, 1)
+            offset = limit * (page - 1)
+        else:
+            page = offset // limit + 1
+
+        return ListSearchRequest(
+            q=i.get('q', ''),
+            offset=offset,
+            limit=limit,
+            page=page,
+            fields=fields,
+            sort=i.get('sort', ''),
+            api=i.get('api', ''),
+        )
+
+
+# searches for lists and returns results in html format
 class list_search(delegate.page):
     path = '/search/lists'
 
-    def GET(self):
-        i = web.input(q='', offset='0', limit='10')
+    def GET(self):  # referenced subject_search
+        req = ListSearchRequest.from_web_input(web.input(api='new'))
+        # Can't set fields when rendering html
+        req.fields = 'key'
+        resp = self.get_results(req)
+        lists = list(web.ctx.site.get_many([doc['key'] for doc in resp.docs]))
+        return render_template('search/lists.html', req, resp, lists)
 
-        lists = self.get_results(i.q, i.offset, i.limit)
-
-        return render_template('search/lists.tmpl', q=i.q, lists=lists)
-
-    def get_results(self, q, offset=0, limit=100):
-        if 'env' not in web.ctx:
-            delegate.fakeload()
-
-        keys = web.ctx.site.things(
-            {
-                "type": "/type/list",
-                "name~": q,
-                "limit": int(limit),
-                "offset": int(offset),
-            }
+    def get_results(self, req: ListSearchRequest):
+        return run_solr_query(
+            ListSearchScheme(),
+            {'q': req.q},
+            offset=req.offset,
+            rows=req.limit,
+            fields=req.fields,
+            sort=req.sort,
         )
 
-        return web.ctx.site.get_many(keys)
 
-
+# inherits from list_search but modifies the GET response to return results in JSON format
 class list_search_json(list_search):
+    # used subject_search_json as a reference
     path = '/search/lists'
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=10)
-        offset = safeint(i.offset, 0)
-        limit = safeint(i.limit, 10)
-        limit = min(100, limit)
-
-        docs = self.get_results(i.q, offset=offset, limit=limit)
-
-        response = {'start': offset, 'docs': [doc.preview() for doc in docs]}
+        req = ListSearchRequest.from_web_input(web.input())
+        resp = self.get_results(req)
 
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        if req.api == 'next':
+            # Match search.json
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'numFound': resp.num_found,
+                        'num_found': resp.num_found,
+                        'start': req.offset,
+                        'q': req.q,
+                        'docs': resp.docs,
+                    }
+                )
+            )
+        else:
+            # Default to the old API shape for a while, then we'll flip
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'start': req.offset,
+                        'docs': [
+                            lst.preview()
+                            for lst in web.ctx.site.get_many(
+                                [doc['key'] for doc in resp.docs]
+                            )
+                        ],
+                    }
+                )
+            )
 
 
 class subject_search(delegate.page):
@@ -774,7 +833,8 @@ def rewrite_list_query(q, page, offset, limit):
             cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
         )(q, offset, limit)
 
-        q = f"key:({' OR '.join(book_keys)})"
+        # Compose a query for book_keys or fallback special query w/ no results
+        q = f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*"
 
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
@@ -822,7 +882,12 @@ def work_search(
     # backward compatibility
     response['num_found'] = response['numFound']
     if fields == '*' or 'availability' in fields:
-        response['docs'] = add_availability(response['docs'])
+        add_availability(
+            [
+                work.get('editions', {}).get('docs', [None])[0] or work
+                for work in response['docs']
+            ]
+        )
     return response
 
 
@@ -857,7 +922,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        fields = query.pop('fields', '*').split(',')
+        fields = WorkSearchScheme.default_fetched_fields
+        if _fields := query.pop('fields', ''):
+            fields = _fields.split(',')
+
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -878,9 +946,13 @@ class search_json(delegate.page):
             facet=False,
             spellcheck_count=spellcheck_count,
         )
+        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+        # force all other params to appear before `docs` in json
+        docs = response['docs']
+        del response['docs']
+        response['docs'] = docs
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 

@@ -17,7 +17,7 @@
 body {
   text-align: left;
   background-color: @white !important;
-  overflow: hidden;
+  overflow: scroll;
 }
 
 /* stylelint-disable selector-max-specificity */
@@ -143,4 +143,63 @@ div#revertLink,
     width: 560px;
     float: left;
   }
+}
+
+// Styling for the new cover form accepting Copy/Pasted images
+
+.ol-cover-form {
+  margin-bottom: 20px;
+
+  .label {
+    margin-bottom: 10px;
+  }
+
+  .input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  &--ia {
+    &_image {
+      height: 200px;
+    }
+  }
+
+  &--clipboard {
+    .image-container img {
+      max-width: 100%;
+      max-height: 400px;
+    }
+
+    #hiddenFileInput {
+      display: none;
+    }
+
+    .paste-button,
+    .upload-button {
+      width: auto;
+      margin-top: 0;
+    }
+
+    .button-container {
+      display: flex;
+      gap: 10px;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+}
+
+.popAlert {
+  &#errors {
+    display: none;
+    &.visible {
+      display: block;
+    }
+  }
+}
+
+.imageIntro {
+  margin-bottom: 20px;
 }

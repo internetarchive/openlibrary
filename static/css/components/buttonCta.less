@@ -134,6 +134,22 @@ a.cta-btn {
   }
 }
 
+// Button inside carousel
+.carousel-section .cta-btn {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  text-align: center;
+
+  &.cta-btn--external {
+    padding-right: 25px;
+    // stylelint-disable-next-line selector-max-specificity
+    .btn-label {
+      padding: 8px 10px;
+    }
+  }
+}
+
 // Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
@@ -167,7 +183,6 @@ a.cta-btn {
   }
 
   .cta-btn {
-    margin: 0;
     padding: 8px 0;
 
     &:first-child {
@@ -187,5 +202,11 @@ a.cta-btn {
     &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
     // stylelint-disable-next-line selector-max-specificity
     &:not(:first-child):hover { width: 100%; }
+  }
+
+  &.cta-dropper-button { // only read dropper buttons
+    // Rule broken by .cta-btn:not(:first-child):hover
+    // stylelint-disable-next-line no-descending-specificity
+    .cta-btn { margin: 0; }
   }
 }

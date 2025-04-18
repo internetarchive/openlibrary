@@ -44,7 +44,7 @@ class InvalidationProcessor:
 
     When the reload is triggered:
 
-    * A request to the datebase is made to find list of documents modified after the last_poll_time.
+    * A request to the database is made to find list of documents modified after the last_poll_time.
     * Trigger on_new_version event for each modified document. The application
       code that is handling the caching must listen to that event and
       invalidate/update its cached copy.

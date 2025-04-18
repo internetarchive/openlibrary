@@ -1,5 +1,4 @@
-"""Utilities to build the app.
-"""
+"""Utilities to build the app."""
 
 from web.template import TemplateResult
 

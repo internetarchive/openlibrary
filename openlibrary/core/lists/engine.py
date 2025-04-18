@@ -1,5 +1,4 @@
-"""Utility functions for processing lists.
-"""
+"""Utility functions for processing lists."""
 
 import collections
 import re

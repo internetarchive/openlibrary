@@ -357,7 +357,9 @@ class work_editions(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/work":
-            raise web.notfound('')
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit) or 50
@@ -401,7 +403,9 @@ class author_works(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/author":
-            raise web.notfound('')
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit, 50)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Fetches Open Library GitHub issues that have been commented on
+Fetches Open Library GitHub issues and PRs that have been commented on
 within some amount of time, in hours.
 
 If called with a Slack token and channel, publishes a digest of
@@ -99,7 +99,6 @@ def fetch_issues():
 def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
     """
     Returns list of issues that have the following criteria:
-    - Are issues, not pull requests
     - Issues have at least one comment
     - Issues have been last updated since the given number of hours
     - Latest comment is not from an issue lead
@@ -125,11 +124,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
         updated = datetime.fromisoformat(i['updated_at'])
         updated = updated.replace(tzinfo=None)
         if updated < since:
-            # Issues is stale
-            continue
-
-        if i.get('pull_request', {}):
-            # Issue is actually a pull request
+            # Issue not recently updated
             continue
 
         if i['comments'] == 0:

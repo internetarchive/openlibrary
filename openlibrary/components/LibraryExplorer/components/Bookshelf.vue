@@ -6,7 +6,7 @@
       :parent="node"
       :node="lvl"
       :classification="classification"
-      :expandBookshelf="expandBookshelf"
+      :expand-bookshelf="expandBookshelf"
       :labels="labels"
       :features="features"
       :filter="filter"
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Shelf from './Shelf';
+import Shelf from './Shelf.vue';
 
 
 export default {

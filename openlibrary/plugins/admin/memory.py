@@ -1,5 +1,4 @@
-"""memory profiler
-"""
+"""memory profiler"""
 
 import gc
 from collections import defaultdict

@@ -1,5 +1,4 @@
-"""Open Library Import API
-"""
+"""Open Library Import API"""
 
 import base64
 import json
@@ -217,7 +216,9 @@ def raise_non_book_marc(marc_record, **kwargs):
 
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
-    if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+    # MARC leader$6,7 reference: https://www.loc.gov/marc/bibliographic/bdleader.html
+    ACCEPTED_TYPES = 'am'  # a: Language material, m: Computer file
+    if not (marc_leaders[6] in ACCEPTED_TYPES and marc_leaders[7] == 'm'):
         raise BookImportError('item-not-book', details, **kwargs)
 
 
@@ -659,18 +660,17 @@ class ils_search:
                 d[i] = identifiers[i]
             d.update(doc)
 
+        elif authenticated:
+            d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
+            for i in keys:
+                if i.startswith('/books'):
+                    d['editions'].append(i)
+                if i.startswith('/works'):
+                    d['works'].append(i)
+                if i.startswith('/authors'):
+                    d['authors'].append(i)
         else:
-            if authenticated:
-                d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
-                for i in keys:
-                    if i.startswith('/books'):
-                        d['editions'].append(i)
-                    if i.startswith('/works'):
-                        d['works'].append(i)
-                    if i.startswith('/authors'):
-                        d['authors'].append(i)
-            else:
-                d = {'status': 'notfound'}
+            d = {'status': 'notfound'}
         return d
 
 

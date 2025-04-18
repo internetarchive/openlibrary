@@ -1,43 +1,44 @@
 <template>
-  <div class="selections" v-show="selectedValues.length">
+  <div
+    v-show="selectedValues.length"
+    class="selections"
+  >
     <div
       v-if="!selectedValues.length"
       class="no-selections-message"
-      >
+    >
       No tags selected.
     </div>
     <div
       v-else
       class="selection-panel"
+    >
+      <OLChip
+        v-for="value in selectedValues"
+        :key="value"
+        :ref="value"
+        :text="value"
+        :class-list="getClassList(value)"
+        class="selection-chip"
       >
-        <OLChip
-          v-for="value in selectedValues"
-          :key="value"
-          :text="value"
-          :ref="value"
-          :class-list="getClassList(value)"
-          class="selection-chip"
+        <template #after>
+          <span
+            class="close-icon"
+            title="Remove value"
+            @mouseover="addHoverClass(value)"
+            @mouseout="removeHoverClass(value)"
+            @click="removeItem(value)"
           >
-          <template v-slot:after>
-            <span
-              class="close-icon"
-              title="Remove value"
-              @mouseover="addHoverClass(value)"
-              @mouseout="removeHoverClass(value)"
-              @click="removeItem(value)"
-              >
-                &times;
-            </span>
-          </template>
-        </OLChip>
-      </div>
+            &times;
+          </span>
+        </template>
+      </OLChip>
+    </div>
   </div>
 </template>
 
 <script>
-import Vue from 'vue'
-
-import OLChip from './OLChip'
+import OLChip from './OLChip.vue'
 
 import { updateObservation } from '../ObservationService'
 
@@ -95,6 +96,22 @@ export default {
             classLists: {}
         }
     },
+    computed: {
+        /**
+         * An array of a patron's book tags.
+         */
+        selectedValues: function() {
+            const results = [];
+
+            for (const type in this.allSelectedValues) {
+                for (const value of this.allSelectedValues[type]) {
+                    results.push(`${type}: ${value}`)
+                }
+            }
+
+            return results;
+        }
+    },
     methods: {
         /**
          * Removes a book tag from a patron's selections.
@@ -115,7 +132,6 @@ export default {
                 .finally(() => {
                     if (valueArr.length === 0) {
                         delete this.allSelectedValues[type]
-                        Vue.delete(this.allSelectedValues, type)
                     }
                 })
 
@@ -128,7 +144,7 @@ export default {
          * @param {String} value The chip's key.
          */
         addHoverClass: function(value) {
-            Vue.set(this.classLists, value, 'hover')
+            this.classLists[value] = 'hover';
         },
         /**
          * Sets a chip's class list to an empty string.
@@ -136,7 +152,7 @@ export default {
          * @param {String} value The chip's key.
          */
         removeHoverClass: function(value) {
-            Vue.set(this.classLists, value, '')
+            this.classLists[value] = ''
         },
         /**
          * Returns the class list string for the chip with the given key.
@@ -146,22 +162,6 @@ export default {
          */
         getClassList: function(value) {
             return this.classLists[value] ? this.classLists[value] : ''
-        }
-    },
-    computed: {
-        /**
-         * An array of a patron's book tags.
-         */
-        selectedValues: function() {
-            const results = [];
-
-            for (const type in this.allSelectedValues) {
-                for (const value of this.allSelectedValues[type]) {
-                    results.push(`${type}: ${value}`)
-                }
-            }
-
-            return results;
         }
     }
 }

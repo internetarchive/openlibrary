@@ -79,7 +79,6 @@ $if editions and not edition:
 
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
-$ is_editionless_work = edition.type != '/type/edition'
 
 $if not edition.get('availability'):
   $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
@@ -438,18 +437,24 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
 
           <div class="section">
-            <h3>$_("ID Numbers")</h3>
+            <h3>$_("Edition Identifiers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
-                $ no_index = edition.get_ia_meta_fields().get('noindex', False)
+                $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
-                    $if not (edition.is_in_private_collection() and identifier_label == 'Internet Archive'):
-                        $if is_privileged_user or not (no_index and identifier_label == 'Internet Archive'):
-                            $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                    $if identifier_label != "Internet Archive" or is_viewable_book:
+                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
+            </dl>
+            <h3>$_("Work Identifiers")</h3>
+            <dl class="meta">
+                $:display_identifiers("Work ID", [storage(url=None, value=work.key.split("/")[-1])])
+                $for name, values in work.get_identifiers().multi_items():
+                    $ identifier_label = values[0].label
+                    $:display_identifiers(identifier_label, values)
             </dl>
           </div>
 	  $ source_records = edition.get('source_records')
@@ -518,33 +523,29 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $:render_template("observations/review_component", work, reader_observations, page.key)
         $ component_times['Review component'] = time() - component_times['Review component']
       <a id="lists-section" class="section-anchor"></a>
-      <div class="workFooter tab-section">
-        $# pages like /books/ia:foo00bar are fake records created from metadata API.
-        $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-        $if "lists" in ctx.features and not page.is_fake_record():
+      $# pages like /books/ia:foo00bar are fake records created from metadata API.
+      $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+      $if "lists" in ctx.features and not page.is_fake_record():
+        $ component_times['Lists section'] = time()
+        $code:
+          data_ids = {}
+          if work and work.key:
+            data_ids["work"] = work.key
+          if edition and edition.key:
+            data_ids["edition"] = edition.key
+        <div class="workFooter tab-section lists-section" data-ids="$json_encode(data_ids)">
           <div class="lists-heading">
             <h2 class="lists-title">$_('Lists')</h2>
-            $ has_lists = False
-            $if (work and work.get_lists()) or (edition and edition.get_lists()):
-              $ has_lists = True
-            $if has_lists:
-              <a href="$page.url()/lists">$_('See All')</a>
+            <a class="hidden" href="$page.url()/lists">$_('See All')</a>
           </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
-              $if work and work.key:
-                $ component_times['lists widget: WorkListTime'] = time()
-                $:render_template("lists/widget", work, include_header=False, include_widget=False)
-                $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
-              $if edition and is_editionless_work:
-                $ component_times['lists widget: EditionListTime'] = time()
-                $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-                $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
-              $if not has_lists:
-                $_('This work does not appear on any lists.')
+                $:macros.LoadingIndicator(_("Loading Lists"))
             </div>
           </div>
-      </div>
+        </div>
+        $ component_times['Lists section'] = time() - component_times['Lists section']
+
       <a id="related-work-carousel" class="section-anchor"></a>
     </div>
   </div>

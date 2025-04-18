@@ -1,5 +1,4 @@
-"""Models of various OL objects.
-"""
+"""Models of various OL objects."""
 
 import logging
 from collections import defaultdict
@@ -31,6 +30,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
@@ -294,7 +294,7 @@ class Edition(Thing):
                 d['borrowed'] = doc.get("borrowed") == "true"
                 d['daisy_only'] = False
             elif 'printdisabled' not in collections:
-                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+                d['read_url'] = f"https://archive.org/stream/{self.ocaid}"
                 d['daisy_only'] = False
         return d
 
@@ -305,7 +305,6 @@ class Edition(Thing):
         collections = self.get_ia_collections()
         return bool(collections) and (
             'printdisabled' in collections
-            or 'lendinglibrary' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
         )
 
@@ -317,9 +316,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or 'inlibrary' in collections
-        ) and not self.is_in_private_collection()
+        return ('inlibrary' in collections) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
@@ -414,7 +411,7 @@ class Edition(Thing):
             if book_id == asin:
                 query = {"type": "/type/edition", 'identifiers': {'amazon': asin}}
             else:
-                query = {"type": "/type/edition", 'isbn_%s' % len(book_id): book_id}
+                query = {"type": "/type/edition", f'isbn_{len(book_id)}': book_id}
 
             if matches := web.ctx.site.things(query):
                 return web.ctx.site.get(matches[0])
@@ -764,6 +761,10 @@ class Work(Thing):
         logger.info(f"[update-redirects] Done, processed {total}, fixed {fixed}")
 
 
+class AuthorRemoteIdConflictError(ValueError):
+    pass
+
+
 class Author(Thing):
     """Class to represent /type/author objects in OL."""
 
@@ -806,17 +807,39 @@ class Author(Thing):
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
+    def merge_remote_ids(
+        self, incoming_ids: dict[str, str]
+    ) -> tuple[dict[str, str], int]:
+        """Returns the author's remote IDs merged with a given remote IDs object, as well as a count for how many IDs had conflicts.
+        If incoming_ids is empty, or if there are more conflicts than matches, no merge will be attempted, and the output will be (author.remote_ids, -1).
+        """
+        output = {**self.remote_ids}
+        if not incoming_ids:
+            return output, -1
+        # Count
+        matches = 0
+        config = get_identifier_config("author")
+        for id in config["identifiers"]:
+            identifier: str = id.name
+            if identifier in output and identifier in incoming_ids:
+                if output[identifier] != incoming_ids[identifier]:
+                    # For now, cause an error so we can see when/how often this happens
+                    raise AuthorRemoteIdConflictError(
+                        f"Conflicting remote IDs for author {self.key}: {output[identifier]} vs {incoming_ids[identifier]}"
+                    )
+                else:
+                    matches = matches + 1
+        return output, matches
+
 
 class User(Thing):
-    DEFAULT_PREFERENCES = {
-        'updates': 'no',
-        'public_readlog': 'no',
+    def get_default_preferences(self):
+        return {'update': 'no', 'public_readlog': 'no'}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
         # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
-    }
 
     def get_status(self):
         account = self.get_account() or {}
@@ -840,25 +863,27 @@ class User(Thing):
         return self.key.split("/")[-1]
 
     def preferences(self):
-        key = "%s/preferences" % self.key
+        key = f"{self.key}/preferences"
         prefs = web.ctx.site.get(key)
-        return (prefs and prefs.dict().get('notifications')) or self.DEFAULT_PREFERENCES
+        return (
+            prefs and prefs.dict().get('notifications')
+        ) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs, msg='updating user preferences'):
-        key = '%s/preferences' % self.key
+        key = f'{self.key}/preferences'
         old_prefs = web.ctx.site.get(key)
         prefs = (old_prefs and old_prefs.dict()) or {
             'key': key,
             'type': {'key': '/type/object'},
         }
         if 'notifications' not in prefs:
-            prefs['notifications'] = self.DEFAULT_PREFERENCES
+            prefs['notifications'] = self.get_default_preferences()
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
     def is_usergroup_member(self, usergroup):
         if not usergroup.startswith('/usergroup/'):
-            usergroup = '/usergroup/%s' % usergroup
+            usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
 
     def is_subscribed_user(self, username):
@@ -913,7 +938,7 @@ class User(Thing):
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username):
         username = username.split('/people/')[-1]
-        user = web.ctx.site.get('/people/%s' % username)
+        user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
 
         return f'https://archive.org/services/img/{itemname}'
@@ -1040,7 +1065,7 @@ class User(Thing):
         """
         extra_attrs = ''
         if cls:
-            extra_attrs += 'class="%s" ' % cls
+            extra_attrs += f'class="{cls}" '
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
@@ -1057,7 +1082,7 @@ class UserGroup(Thing):
         :rtype: UserGroup | None
         """
         if not key.startswith('/usergroup/'):
-            key = "/usergroup/%s" % key
+            key = f"/usergroup/{key}"
         return web.ctx.site.get(key)
 
     def add_user(self, userkey: str) -> None:
