@@ -193,6 +193,7 @@ class WorkSearchScheme(SearchScheme):
             'id_cita_press',
             'id_wikisource',
         }
+        
         self.facet_rewrites = {
             ('public_scan', 'true'): 'ebook_access:public',
             ('public_scan', 'false'): '-ebook_access:public',
