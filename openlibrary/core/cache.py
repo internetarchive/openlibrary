@@ -5,10 +5,10 @@ import hashlib
 import json
 import random
 import string
-import threading
 import time
 from collections.abc import Callable
-from typing import Any, Literal, cast
+from concurrent.futures import Future, ThreadPoolExecutor
+from typing import Any, Literal, cast, overload
 
 import memcache
 import web
@@ -67,7 +67,7 @@ class memcache_memoize:
         self._memcache = None
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
-        self.active_threads: dict = {}
+        self.active_futures: set[Future] = set()
         self.prethread = prethread
         self.hash_args = hash_args
 
@@ -115,60 +115,81 @@ class memcache_memoize:
         value_time = self.memcache_get(args, kw)
 
         if value_time is None:
+            # Cache miss. Compute the value and add it to memcache.
             self.stats.updates += 1
-            value, t = self.update(*args, **kw)
+            # Still compute on separate thread, but block until it's done.
+            value, t = self.update_blocking(args, kw)
         else:
             self.stats.hits += 1
 
             value, t = value_time
             if t + self.timeout < time.time():
                 self.stats.async_updates += 1
-                self.update_async(*args, **kw)
+                # Cache expired; return the old value and update it asynchronously.
+                self.update_non_blocking(args, kw)
 
         return value
 
-    def update_async(self, *args, **kw):
-        """Starts the update process asynchronously."""
-        t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
-        self.active_threads[t.name] = t
-        t.start()
+    def update_blocking(self, args, kw):
+        # Still compute on separate thread, but block until it's done.
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._update_worker, args, kw, blocking=True)
+            # Wait and return the result
+            return future.result()
 
-    def _update_async_worker(self, *args, **kw):
+    def update_non_blocking(self, args, kw):
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._update_worker, args, kw, blocking=False)
+            self.active_futures.add(future)
+            future.add_done_callback(lambda fut: self.active_futures.discard(fut))
+
+    @overload
+    def _update_worker(
+        self, args, kw, blocking: Literal[True]
+    ) -> tuple[Any, float]: ...
+
+    @overload
+    def _update_worker(
+        self, args, kw, blocking: Literal[False]
+    ) -> tuple[Any, float] | None: ...
+
+    def _update_worker(self, args, kw, blocking):
         key = self.compute_key(args, kw) + "/flag"
+        computation_in_progress = not self.memcache.add(key, "true")
 
-        if not self.memcache.add(key, "true"):
-            # already somebody else is computing this value.
+        if not blocking and computation_in_progress:
+            # already somebody else is computing this value. If non-blocking, just return.
             return
 
         try:
             if self.prethread:
                 self.prethread()
-            self.update(*args, **kw)
-        finally:
-            # Remove current thread from active threads
-            self.active_threads.pop(threading.current_thread().name, None)
 
-            # remove the flag
-            self.memcache.delete(key)
+            value = self.f(*args, **kw)
+            t = time.time()
+            self.memcache_set(args, kw, value, t)
+            return value, t
+        finally:
+            # remove the flag if we were the only one computing
+            if not blocking and not computation_in_progress:
+                self.memcache.delete(key)
 
     def update(self, *args, **kw):
         """Computes the value and adds it to memcache.
 
         Returns the computed value.
         """
-        value = self.f(*args, **kw)
-        t = time.time()
-
-        self.memcache_set(args, kw, value, t)
-        return value, t
+        return self.update_blocking(args, kw)
 
     def join_threads(self):
-        """Waits for all active threads to finish.
+        """
+        Waits for all active threads/futures to finish.
 
         Used only in testing.
         """
-        for name, thread in list(self.active_threads.items()):
-            thread.join()
+        # Copy to avoid set changing during iteration
+        for future in list(self.active_futures):
+            future.result()
 
     def encode_args(self, args, kw=None):
         """Encodes arguments to construct the memcache key."""
