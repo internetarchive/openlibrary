@@ -567,6 +567,18 @@ msgid "Year of Publication"
 msgstr ""
 
 #: RawQueryCarousel.html
+msgid "Loading carousel"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry?"
+msgstr ""
+
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 
@@ -1163,6 +1175,10 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "This work does not appear on any lists."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -2159,8 +2175,7 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-#: account/view.html admin/index.html books/year_breadcrumb_select.html
-#: trending.html
+#: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
 msgstr ""
 
@@ -7329,21 +7344,21 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid ""
-"Showing all works by author. Would you like to see <a "
-"href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"Showing ebooks only. Would you like to see <a "
-"href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "Search %(author)s books"
+msgstr ""
+
+#: type/author/view.html
+msgid "Sort by: "
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: type/author/view.html
@@ -7558,7 +7573,7 @@ msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "This work does not appear on any lists."
+msgid "Loading Lists"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7826,6 +7841,10 @@ msgstr ""
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag Deputy"
 msgstr ""
 
 #: type/tag/view.html

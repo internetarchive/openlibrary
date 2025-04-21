@@ -1,4 +1,6 @@
 import json
+from abc import ABC, abstractmethod
+from typing import cast
 from urllib.parse import parse_qs
 
 import web
@@ -8,33 +10,61 @@ from infogami.utils.view import render_template
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.utils import dateutil
 from openlibrary.views.loanstats import get_trending_books
 
 
-def _get_relatedcarousels_component(workid):
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-    work = web.ctx.site.get('/works/%s' % workid) or {}
-    component = render_template('books/RelatedWorksCarousel', work)
-    return {0: str(component)}
+class PartialResolutionError(Exception):
+    pass
 
 
-def get_cached_relatedcarousels_component(*args, **kwargs):
-    memoized_get_component_metadata = cache.memcache_memoize(
-        _get_relatedcarousels_component,
-        "book.bookspage.component.relatedcarousels",
-        timeout=dateutil.HALF_DAY_SECS,
-    )
-    return (
-        memoized_get_component_metadata(*args, **kwargs)
-        or memoized_get_component_metadata.update(*args, **kwargs)[0]
-    )
+class PartialDataHandler(ABC):
+    """Base class for partial data handlers.
+
+    Has a single method, `generate`, that is expected to return a
+    JSON-serializable dict that contains data necessary to update
+    a page.
+    """
+
+    @abstractmethod
+    def generate(self) -> dict:
+        pass
 
 
-class CarouselCardPartial:
+class RelatedWorksPartial(PartialDataHandler):
+    """Handler for the related works carousels."""
+
+    def __init__(self):
+        self.i = web.input(workid=None)
+
+    def generate(self) -> dict:
+        return self._get_relatedcarousels_component(self.i.workid)
+
+    def _get_relatedcarousels_component(self, workid) -> dict:
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+        work = web.ctx.site.get('/works/%s' % workid) or {}
+        component = render_template('books/RelatedWorksCarousel', work)
+        return {0: str(component)}
+
+    def _get_cached_relatedcarousels_component(self, *args, **kwargs):
+        memoized_get_component_metadata = cache.memcache_memoize(
+            self._get_relatedcarousels_component,
+            "book.bookspage.component.relatedcarousels",
+            timeout=dateutil.HALF_DAY_SECS,
+        )
+        return (
+            memoized_get_component_metadata(*args, **kwargs)
+            or memoized_get_component_metadata.update(*args, **kwargs)[0]
+        )
+
+
+class CarouselCardPartial(PartialDataHandler):
+    """Handler for carousel "load_more" requests"""
+
     MAX_VISIBLE_CARDS = 5
 
     def __init__(self):
@@ -144,83 +174,200 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
+class AffiliateLinksPartial(PartialDataHandler):
+    """Handler for affiliate links"""
+
+    def __init__(self):
+        self.i = web.input(data=None)
+
+    def generate(self) -> dict:
+        data = json.loads(self.i.data)
+        args = data.get("args", [])
+
+        if len(args) < 2:
+            raise PartialResolutionError("Unexpected amount of arguments")
+
+        macro = web.template.Template.globals['macros'].AffiliateLinks(args[0], args[1])
+        return {"partials": str(macro)}
+
+
+class SearchFacetsPartial(PartialDataHandler):
+    """Handler for search facets sidebar and "selected facets" affordances."""
+
+    def __init__(self):
+        self.i = web.input(data=None)
+
+    def generate(self) -> dict:
+        data = json.loads(self.i.data)
+        path = data.get('path')
+        query = data.get('query', '')
+        parsed_qs = parse_qs(query.replace('?', ''))
+        param = data.get('param', {})
+
+        sort = None
+        search_response = do_search(param, sort, rows=0, spellcheck_count=3, facet=True)
+
+        sidebar = render_template(
+            'search/work_search_facets',
+            param,
+            facet_counts=search_response.facet_counts,
+            async_load=False,
+            path=path,
+            query=parsed_qs,
+        )
+
+        active_facets = render_template(
+            'search/work_search_selected_facets',
+            param,
+            search_response,
+            param.get('q', ''),
+            path=path,
+            query=parsed_qs,
+        )
+
+        return {
+            "sidebar": str(sidebar),
+            "title": active_facets.title,
+            "activeFacets": str(active_facets).strip(),
+        }
+
+
+class FullTextSuggestionsPartial(PartialDataHandler):
+    """Handler for rendering full-text search suggestions."""
+
+    def __init__(self):
+        self.i = web.input(data=None)
+
+    def generate(self) -> dict:
+        query = self.i.get("data", "")
+        data = fulltext_search(query)
+        # Add caching headers only if there were no errors in the search results
+        if 'error' not in data:
+            # Cache for 5 minutes (300 seconds)
+            web.header('Cache-Control', 'public, max-age=300')
+        hits = data.get('hits', [])
+        if not hits['hits']:
+            macro = '<div></div>'
+        else:
+            macro = web.template.Template.globals['macros'].FulltextSearchSuggestion(
+                query, data
+            )
+        return {"partials": str(macro)}
+
+
+class BookPageListsPartial(PartialDataHandler):
+    """Handler for rendering the book page "Lists" section"""
+
+    def __init__(self):
+        self.i = web.input(workId="", editionId="")
+
+    def generate(self) -> dict:
+        results: dict = {"partials": []}
+        work_id = self.i.workId
+        edition_id = self.i.editionId
+
+        work = (work_id and web.ctx.site.get(work_id)) or None
+        edition = (edition_id and web.ctx.site.get(edition_id)) or None
+
+        # Do checks and render
+        has_lists = (work and work.get_lists(limit=1)) or (
+            edition and edition.get_lists(limit=1)
+        )
+        results["hasLists"] = bool(has_lists)
+
+        if not has_lists:
+            results["partials"].append(_('This work does not appear on any lists.'))
+        else:
+            if work and work.key:
+                work_list_template = render_template(
+                    "lists/widget", work, include_header=False, include_widget=False
+                )
+                results["partials"].append(str(work_list_template))
+            if edition and edition.get("type", "") != "/type/edition":
+                edition_list_template = render_template(
+                    "lists/widget",
+                    edition,
+                    include_header=False,
+                    include_widget=False,
+                )
+                results["partials"].append(str(edition_list_template))
+
+        return results
+
+
+class LazyCarouselPartial(PartialDataHandler):
+    """Handler for lazily-loaded query carousels."""
+
+    def __init__(self):
+        self.i = web.input(
+            query="",
+            title=None,
+            sort="new",
+            key="",
+            limit=20,
+            search=False,
+            has_fulltext_only=True,
+            url=None,
+            layout="carousel",
+        )
+        self.i.search = self.i.search != "false"
+        self.i.has_fulltext_only = self.i.has_fulltext_only != "false"
+
+    def generate(self) -> dict:
+        macro = web.template.Template.globals['macros'].CacheableMacro(
+            "RawQueryCarousel",
+            self.i.query,
+            lazy=False,
+            title=self.i.title,
+            sort=self.i.sort,
+            key=self.i.key,
+            limit=int(self.i.limit),
+            search=self.i.search,
+            has_fulltext_only=self.i.has_fulltext_only,
+            url=self.i.url,
+            layout=self.i.layout,
+        )
+        return {"partials": str(macro)}
+
+
+class PartialRequestResolver:
+    # Maps `_component` values to PartialDataHandler subclasses
+    component_mapping = {
+        "RelatedWorkCarousel": RelatedWorksPartial,
+        "CarouselLoadMore": CarouselCardPartial,
+        "AffiliateLinks": AffiliateLinksPartial,
+        "SearchFacets": SearchFacetsPartial,
+        "FulltextSearchSuggestion": FullTextSuggestionsPartial,
+        "BPListsSection": BookPageListsPartial,
+        "LazyCarousel": LazyCarouselPartial,
+    }
+
+    @staticmethod
+    def resolve(component: str) -> dict:
+        """Gets an instantiated PartialDataHandler and returns its generated dict"""
+        handler = PartialRequestResolver.get_handler(component)
+        return handler.generate()
+
+    @classmethod
+    def get_handler(cls, component: str) -> PartialDataHandler:
+        """Instantiates and returns the requested handler"""
+        if klass := cls.component_mapping.get(component):
+            concrete_class = cast(type[PartialDataHandler], klass)
+            return concrete_class()
+        raise PartialResolutionError(f'No handler found for key "{component}"')
+
+
 class Partials(delegate.page):
     path = '/partials'
     encoding = 'json'
 
     def GET(self):
-        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
-        # `data['args']` is meant to be a list of a template's positional arguments, in order.
-        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
-        i = web.input(workid=None, _component=None, data=None)
+        i = web.input(_component=None)
         component = i.pop("_component")
-        partial = {}
-        if component == "RelatedWorkCarousel":
-            partial = _get_relatedcarousels_component(i.workid)
-        elif component == "CarouselLoadMore":
-            partial = CarouselCardPartial().generate()
-        elif component == "AffiliateLinks":
-            data = json.loads(i.data)
-            args = data.get('args', [])
-            # XXX : Throw error if args length is less than 2
-            macro = web.template.Template.globals['macros'].AffiliateLinks(
-                args[0], args[1]
-            )
-            partial = {"partials": str(macro)}
-
-        elif component == 'SearchFacets':
-            data = json.loads(i.data)
-            path = data.get('path')
-            query = data.get('query', '')
-            parsed_qs = parse_qs(query.replace('?', ''))
-            param = data.get('param', {})
-
-            sort = None
-            search_response = do_search(
-                param, sort, rows=0, spellcheck_count=3, facet=True
-            )
-
-            sidebar = render_template(
-                'search/work_search_facets',
-                param,
-                facet_counts=search_response.facet_counts,
-                async_load=False,
-                path=path,
-                query=parsed_qs,
-            )
-
-            active_facets = render_template(
-                'search/work_search_selected_facets',
-                param,
-                search_response,
-                param.get('q', ''),
-                path=path,
-                query=parsed_qs,
-            )
-
-            partial = {
-                "sidebar": str(sidebar),
-                "title": active_facets.title,
-                "activeFacets": str(active_facets).strip(),
-            }
-
-        elif component == "FulltextSearchSuggestion":
-            query = i.get('data', '')
-            data = fulltext_search(query)
-            # Add caching headers only if there were no errors in the search results
-            if 'error' not in data:
-                # Cache for 5 minutes (300 seconds)
-                web.header('Cache-Control', 'public, max-age=300')
-            hits = data.get('hits', [])
-            if not hits['hits']:
-                macro = '<div></div>'
-            else:
-                macro = web.template.Template.globals[
-                    'macros'
-                ].FulltextSearchSuggestion(query, data)
-            partial = {"partials": str(macro)}
-
-        return delegate.RawText(json.dumps(partial), content_type='application/json')
+        return delegate.RawText(
+            json.dumps(PartialRequestResolver.resolve(component)),
+            content_type='application/json',
+        )
 
 
 def setup():

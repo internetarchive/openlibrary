@@ -15,7 +15,8 @@
   margin-top: 1.75em;
 }
 
-.carousel-container {
+.carousel-container,
+.lazy-carousel {
   margin: 0 -20px;
   padding: 3px 15px;
 }
@@ -199,4 +200,27 @@
   }
 }
 
+/* Styles for lazy-loading carousel placeholder element */
+.lazy-carousel {
+  height: 200px;
+  background: @book-cover-carousel-background;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .loadingIndicator {
+    border: 1px @grey solid;
+    width: 80%;
+    margin: 0 auto;
+  }
+
+  &-retry {
+    border: 1px @grey solid;
+    background: @lightest-grey;
+    margin: 0 auto;
+    padding: 20px;
+  }
+}
+
 @import (less) "category-item.less";
+@import (less) "loading-indicator.less";

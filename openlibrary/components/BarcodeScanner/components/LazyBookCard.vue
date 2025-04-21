@@ -1,5 +1,9 @@
 <template>
-  <a class="lazy-book-card" :href="link" :class="{ 'loading' : loading, 'errored' : errored}">
+  <a
+    class="lazy-book-card"
+    :href="link"
+    :class="{ 'loading' : loading, 'errored' : errored}"
+  >
     <div class="cover">
       <img :src="coverSrc">
     </div>
@@ -35,6 +39,9 @@ export default {
             loading: true,
         }
     },
+    mounted() {
+        this.fromISBN(this.isbn);
+    },
     methods: {
         async fromISBN(isbn) {
             fetch(`https://${CONFIGS.OL_BASE_PUBLIC}/isbn/${isbn}.json`).then(r => r.json())
@@ -65,9 +72,6 @@ export default {
                     this.errored = true;
                 });
         },
-    },
-    mounted() {
-        this.fromISBN(this.isbn);
     },
 }
 </script>

@@ -1,12 +1,12 @@
 <template>
   <span
     class="chip"
-    v-bind:class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]"
+    :class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]"
     @[canSelect]="onClick"
-    >
-    <slot name="before"></slot>
-    {{text}}
-    <slot name="after"></slot>
+  >
+    <slot name="before" />
+    {{ text }}
+    <slot name="after" />
   </span>
 </template>
 
@@ -71,6 +71,11 @@ export default {
             return this.selectable ? 'click' : null;
         }
     },
+    watch: {
+        selected (newValue) {
+            this.isSelected = newValue
+        }
+    },
     methods: {
         /**
          * Toggles the value of `isSelected` and fires an `update-selected` event.
@@ -90,11 +95,6 @@ export default {
          */
         toggleSelected: function() {
             this.isSelected = !this.isSelected;
-        }
-    },
-    watch: {
-        selected (newValue) {
-            this.isSelected = newValue
         }
     }
 }

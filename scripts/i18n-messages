@@ -31,7 +31,7 @@ def main(cmd, args):
         # Using shell=True, because otherwise the *.py seems to cause trouble
         # on some systems, resulting in no python files being extracted.
         py_sources = subprocess.run(
-            "grep -rlF ' _(' openlibrary/ --include '*.py'",
+            "grep -wrlF '_(' openlibrary/ --include '*.py'",
             shell=True,
             capture_output=True,
             check=False,
