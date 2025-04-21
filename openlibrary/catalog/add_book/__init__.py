@@ -71,7 +71,6 @@ SUSPECT_PUBLICATION_DATES: Final = [
     "1900",
     "January 1, 1900",
     "1900-01-01",
-    "????",
     "01-01-1900",
 ]
 SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
