@@ -260,16 +260,17 @@ class TestRecordTooMinimal:
 
 
 @pytest.mark.parametrize(
-    ("publish_date"),
+    ("publish_date", "should_error"),
     [
-        ({"publish_date": "1900"}),
-        ({"publish_date": "January 1, 1900"}),
-        ({"publish_date": "1900-01-01"}),
-        ({"publish_date": "01-01-1900"}),
+        ({"publish_date": "1900"}, True),
+        ({"publish_date": "January 1, 1900"}, True),
+        ({"publish_date": "1900-01-01"}, True),
+        ({"publish_date": "01-01-1900"}, True),
+        ({"publish_date": "????"}, False),
     ],
 )
 def test_records_with_substantively_bad_dates_should_not_validate(
-    publish_date: dict,
+    publish_date: dict, should_error: bool
 ) -> None:
     """
     Certain publish_dates are known to be suspect, so remove them prior to
@@ -285,8 +286,11 @@ def test_records_with_substantively_bad_dates_should_not_validate(
 
     record = record | publish_date
 
-    with pytest.raises(ValidationError):
-        validator.validate(record)
+    if should_error:
+        with pytest.raises(ValidationError):
+            validator.validate(record)
+    else:
+        assert validator.validate(record) is True
 
 
 @pytest.mark.parametrize(
