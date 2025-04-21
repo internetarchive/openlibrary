@@ -6,17 +6,17 @@ PYTHONPATH=. python ./scripts/update_stale_ocaid_references.py /olsystem/etc/ope
 """
 
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import json
 import logging
 import os
-import time # Keep for potential non-retry delays if needed, but not for backoff
+
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
-from requests.exceptions import RequestException
+
 # Import necessary components for advanced retries
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry # Correct import path
+from urllib3.util.retry import Retry  # Correct import path
 
 import infogami
 from infogami import config
@@ -25,14 +25,16 @@ from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 
 def create_session_with_retries(
     total_retries=5,
     backoff_factor=1,
-    status_forcelist=(500, 502, 503, 504), # Common server errors
-    allowed_methods=["HEAD", "GET", "OPTIONS"] # Methods to retry
+    status_forcelist=(500, 502, 503, 504),  # Common server errors
+    allowed_methods=["HEAD", "GET", "OPTIONS"],  # Methods to retry
 ):
     """Creates a requests Session configured with automatic retries."""
     session = requests.Session()
@@ -40,7 +42,7 @@ def create_session_with_retries(
         total=total_retries,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
-        allowed_methods=allowed_methods # Use allowed_methods instead of deprecated method_whitelist
+        allowed_methods=allowed_methods,  # Use allowed_methods instead of deprecated method_whitelist
     )
     # Mount the adapter with the retry strategy to handle HTTP and HTTPS
     adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -77,16 +79,22 @@ def get_dark_ol_editions(s3_keys, rows=10_000, since=None, until=None, statefile
         if cursor:
             query_params['cursor'] = cursor
 
-        response = response = session.get(scrape_api_url, headers=headers, params=query_params, timeout=60)
+        response = response = session.get(
+            scrape_api_url, headers=headers, params=query_params, timeout=60
+        )
         response.raise_for_status()
         data = response.json()
         cursor = data.get("cursor")
-        editions.update({
-            # Edition key `/books/OL123M` mapped to its ES dark item metadata
-            f'/books/{doc["openlibrary_edition"]}': doc
-            for doc in data.get("items", [])
-        })
-        print(f"Fetching batch {batch}; adding {len(data.get("items", []))} items -> {len(editions)}")
+        editions.update(
+            {
+                # Edition key `/books/OL123M` mapped to its ES dark item metadata
+                f'/books/{doc["openlibrary_edition"]}': doc
+                for doc in data.get("items", [])
+            }
+        )
+        print(
+            f"Fetching batch {batch}; adding {len(data.get("items", []))} items -> {len(editions)}"
+        )
         batch += 1
     if statefile:
         with open(statefile, 'w') as fout:
@@ -95,14 +103,20 @@ def get_dark_ol_editions(s3_keys, rows=10_000, since=None, until=None, statefile
 
 
 def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
-    counts = {"processed": 0, "dirty": 0, "updated": 0, "batches": 0, "total": len(es_editions)}
+    counts = {
+        "processed": 0,
+        "dirty": 0,
+        "updated": 0,
+        "batches": 0,
+        "total": len(es_editions),
+    }
 
     edition_keys = list(es_editions.keys())
 
     # Process ocaids in batches of 1000
     BATCH_SIZE = 1_000
     for i in range(0, len(edition_keys), BATCH_SIZE):
-        batch_keys = edition_keys[i:i + BATCH_SIZE]
+        batch_keys = edition_keys[i : i + BATCH_SIZE]
         ol_editions = web.ctx.site.get_many(list(batch_keys))
 
         updated_eds = []
@@ -139,7 +153,9 @@ def main(
         with open(statefile) as fin:
             es_editions = json.load(fin)
     else:
-        es_editions = get_dark_ol_editions(s3_keys, since=since, until=until, statefile=statefile)
+        es_editions = get_dark_ol_editions(
+            s3_keys, since=since, until=until, statefile=statefile
+        )
     counts = disassociate_dark_ocaids(s3_keys, es_editions, test=test)
     print(counts)
 
