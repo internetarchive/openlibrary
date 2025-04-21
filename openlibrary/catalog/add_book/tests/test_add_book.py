@@ -1781,6 +1781,21 @@ class TestNormalizeImportRecord:
                     'publish_date': '2000',
                 },
             ),
+            (
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '????',
+                },
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+            ),
         ],
     )
     def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
