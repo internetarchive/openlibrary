@@ -754,6 +754,13 @@ def normalize_import_record(rec: dict) -> None:
         for source_record in rec['source_records']
     ):
         rec.pop('publish_date')
+    
+    # Validation by parse_data(), prior to calling load(), requires facially
+    # valid publish_date. If data are unavailable, we provide throw-away data
+    # which validates. We use "????" as an override, but this must be
+    # removed prior to import.
+    if rec.get('publish_date') == "????":
+        rec.pop('publish_date')
 
 
 def validate_record(rec: dict) -> None:
