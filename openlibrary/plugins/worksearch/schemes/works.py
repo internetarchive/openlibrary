@@ -204,33 +204,9 @@ class WorkSearchScheme(SearchScheme):
         ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
         (
             'has_fulltext',
-            'first_publish_year',
-            'cover_i',
-            'cover_edition_key',
-            'public_scan_b',
-            'lending_edition_s',
-            'lending_identifier_s',
-            'language',
-            'ia_collection_s',
-            # FIXME: These should be fetched from book_providers, but can't cause circular
-            # dep
-            'id_project_gutenberg',
-            'id_project_runeberg',
-            'id_librivox',
-            'id_standard_ebooks',
-            'id_openstax',
-            'id_cita_press',
-            'id_wikisource',
-        }
-
-        self.facet_rewrites = {
-            ('public_scan', 'true'): 'ebook_access:public',
-            ('public_scan', 'false'): '-ebook_access:public',
-            ('print_disabled', 'true'): 'ebook_access:printdisabled',
-            ('print_disabled', 'false'): '-ebook_access:printdisabled',
-            ('has_fulltext', 'true'):  lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
-            ('has_fulltext', 'false'): lambda: f'ebook_access:[* TO {get_fulltext_min()}]'
-        }
+            'false',
+        ): lambda: f'ebook_access:[* TO {get_fulltext_min()}}}',
+    }
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
