@@ -64,11 +64,16 @@ export default {
         // fetch the `<title>` attributes and display them as countries
         // in the select dropdown
         window.EL = this;
-        const countryEls = Array.from(this.$el.querySelectorAll('svg.world-map-raw > *:not(.oceanxx)[id]'));
+        const titleEls = Array.from(this.$el.querySelectorAll('svg.world-map-raw > [id] > title, svg.world-map-raw > g > [id] > title'));
+        const countryEls = titleEls.map(el => this.findCountryElement(el));
+        countryEls.forEach(el => {
+            el.classList.add('selectable');
+        });
         const countries = countryEls
             .map(el => ({
                 name: el.querySelector('title').textContent.trim(),
                 id: el.id,
+                el,
                 emoji: el.id
                     .toUpperCase()
                     .replace(/./g, char =>
@@ -79,8 +84,18 @@ export default {
         this.countries = countries;
     },
     methods: {
+        findCountryElement(el) {
+            let curEl = el;
+            while (curEl?.id?.length !== 2) {
+                if (curEl.tagName === 'svg') {
+                    return null;
+                }
+                curEl = curEl.parentElement;
+            }
+            return curEl;
+        },
         handleMapClick(event) {
-            const countryEl = event.target.closest('svg > *:not(.oceanxx)[id]');
+            const countryEl = this.findCountryElement(event.target);
             if (!countryEl) return;
             this.selected = this.countries.find(country => country.id === countryEl.id);
         },
@@ -108,15 +123,15 @@ export default {
 svg {
   width: 100%;
 }
-svg > *:not(.oceanxx) {
+svg > .selectable {
   cursor: pointer;
   transition: fill 0.3s;
 }
-svg > *:not(.oceanxx):hover, svg > *:not(.oceanxx):hover * {
+svg > .selectable:hover, svg > .selectable:hover * {
   fill: #f00;
 }
 
-svg > *:not(.oceanxx).selected, svg > *:not(.oceanxx).selected * {
+svg > .selectable.selected, svg > .selectable.selected * {
   fill: #f00;
 }
 /** TMP: Needed because of the janky import of all OL styles. */
