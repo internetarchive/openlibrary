@@ -4,6 +4,7 @@
  */
 export async function queryWikidata(countryCode, limit) {
     const endpointUrl = 'https://query.wikidata.org/sparql';
+    const timestamp = new Date().toISOString().substr(0, 13); // by hour
     const sparqlQuery = `
   SELECT DISTINCT ?x ?xLabel ?olid
   WHERE {
@@ -12,7 +13,9 @@ export async function queryWikidata(countryCode, limit) {
     ?x wdt:P27/wdt:P297 "${countryCode}".    # ?x has country of citizenship (P27) whose ISO 3166-1 alpha-2 code (P297) is "${countryCode}"
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
   }
-  LIMIT ${limit}`;
+  ORDER BY RAND()
+  LIMIT ${limit}
+  # Timestamp: ${timestamp}`;
 
     // Encode the query for use in a URL
     const fullUrl = `${endpointUrl}?query=${encodeURIComponent(sparqlQuery)}`;
