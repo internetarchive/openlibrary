@@ -157,7 +157,7 @@ class mybooks_feed(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)/stats(/\\d{4})?"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)(/year/\\d{4})?/stats"
 
     def GET(self, username, key='want-to-read', year=None):
         user = web.ctx.site.get('/people/%s' % username)
