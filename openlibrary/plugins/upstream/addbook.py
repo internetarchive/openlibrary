@@ -906,7 +906,6 @@ class book_edit(delegate.page):
         else:
             work = None
 
-
         # using to debug "add" issue 10674
         referer = web.ctx.env.get('HTTP_REFERER', '')
         came_from_add_path = "/add" in referer and "/edit" not in referer
