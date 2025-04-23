@@ -1,6 +1,6 @@
 <template>
   <div class="author-map">
-    <WorldMap @click="handleMapClick" />
+    <WorldMap @country-selected="handleCountrySelected" />
 
     <h2 v-if="selectedCountry">
       Authors from {{ selectedCountry.name }}
@@ -40,20 +40,11 @@ export default {
         }
     },
     methods: {
-        async handleMapClick(event) {
+        async handleCountrySelected(country) {
             if (this.state === 'loading') return;
-            let countryEl = event.target.closest('.landxx');
-            // keep going up to parent most landxx
-            while (countryEl.parentElement.closest('.landxx')) {
-                countryEl = countryEl.parentElement.closest('.landxx');
-            }
-            if (!countryEl) return;
-            this.selectedCountry = {
-                id: countryEl.id,
-                name: countryEl.querySelector('title').textContent,
-            };
+            this.selectedCountry = country;
             this.state = 'loading';
-            this.authors = await getAuthorsForCountry(countryEl.id.toUpperCase());
+            this.authors = await getAuthorsForCountry(country.id.toUpperCase());
             this.state = 'idle';
         }
     }
@@ -65,15 +56,5 @@ export default {
 .author-map {
   max-width: 900px;
   margin: 0 auto;
-}
-svg {
-  width: 100%;
-}
-.landxx {
-  cursor: pointer;
-  transition: fill 0.3s;
-}
-svg > .landxx:hover, svg > .landxx:hover * {
-  fill: #f00;
 }
 </style>
