@@ -53,7 +53,7 @@ export default {
                 if (oldSelected) {
                     oldSelected.classList.remove('selected');
                 }
-                const newSelected = svg.querySelector(`svg.world-map-raw > .landxx#${newVal.id}`);
+                const newSelected = svg.querySelector(`svg.world-map-raw > *:not(.oceanxx)#${newVal.id}`);
                 if (newSelected) {
                     newSelected.classList.add('selected');
                 }
@@ -64,7 +64,7 @@ export default {
         // fetch the `<title>` attributes and display them as countries
         // in the select dropdown
         window.EL = this;
-        const countryEls = Array.from(this.$el.querySelectorAll('svg.world-map-raw > .landxx[id]'));
+        const countryEls = Array.from(this.$el.querySelectorAll('svg.world-map-raw > *:not(.oceanxx)[id]'));
         const countries = countryEls
             .map(el => ({
                 name: el.querySelector('title').textContent.trim(),
@@ -80,7 +80,7 @@ export default {
     },
     methods: {
         handleMapClick(event) {
-            const countryEl = event.target.closest('svg > .landxx[id]');
+            const countryEl = event.target.closest('svg > *:not(.oceanxx)[id]');
             if (!countryEl) return;
             this.selected = this.countries.find(country => country.id === countryEl.id);
         },
@@ -108,15 +108,15 @@ export default {
 svg {
   width: 100%;
 }
-svg > .landxx {
+svg > *:not(.oceanxx) {
   cursor: pointer;
   transition: fill 0.3s;
 }
-svg > .landxx:hover, svg > .landxx:hover * {
+svg > *:not(.oceanxx):hover, svg > *:not(.oceanxx):hover * {
   fill: #f00;
 }
 
-svg > .landxx.selected, svg > .landxx.selected * {
+svg > *:not(.oceanxx).selected, svg > *:not(.oceanxx).selected * {
   fill: #f00;
 }
 /** TMP: Needed because of the janky import of all OL styles. */
