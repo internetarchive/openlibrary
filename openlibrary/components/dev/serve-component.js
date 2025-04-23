@@ -15,7 +15,10 @@ import Aura from '@primeuix/themes/aura';
 const app = createApp(HelloWorld);
 app.use(PrimeVue, {
     theme: {
-        preset: Aura
+        preset: Aura,
+        options: {
+            darkModeSelector: '.ol-author-map-dark',
+        },
     }
 });
 app.mount('#app')
