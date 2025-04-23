@@ -2,7 +2,7 @@ import { defineCustomElement as VueDefineCustomElement, h, createApp, getCurrent
 import { createWebComponent } from 'vue-web-component-wrapper';
 import AsyncComputed from 'vue-async-computed';
 import { kebabCase } from 'lodash';
-
+import PrimeVue from 'primevue/config';
 
 export const createWebComponentSimple = (rootComponent, name) => {
     // This is the name we use in the DOM like: <ol-barcode-scanner></ol-barcode-scanner>
@@ -19,6 +19,8 @@ export const createWebComponentSimple = (rootComponent, name) => {
             install(GivenVue) {
                 if (elementName === 'ol-merge-ui') {
                     GivenVue.use(AsyncComputed);
+                } else if (elementName = 'ol-author-map') {
+                    GivenVue.use(PrimeVue);
                 }
             },
         }
