@@ -133,6 +133,13 @@ class library_explorer(delegate.page):
         return render_template('library_explorer')
 
 
+class map_explorer(delegate.page):
+    path = "/map_explorer"
+
+    def GET(self):
+        return render_template('map_explorer')
+
+
 class merge_work(delegate.page):
     path = "/works/merge"
 
