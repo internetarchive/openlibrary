@@ -1957,6 +1957,10 @@ msgstr ""
 msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
 
+#: map_explorer.html
+msgid "Map Explorer"
+msgstr ""
+
 #: messages.html
 msgid "Created new author record."
 msgstr ""
