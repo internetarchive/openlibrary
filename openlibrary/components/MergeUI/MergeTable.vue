@@ -272,50 +272,50 @@ export default {
             ];
         },
         merge() {
-  if (!this.records || !this.editions || !this.master_key) return undefined;
-  return this.build_merge(this.records);
-},
-enhancedMergeRecord() {
-  if (!this.enhancedRecords || !this.editions || !this.master_key) return undefined;
-  return this.build_merge(this.enhancedRecords)?.record;
-}
+            if (!this.records || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.records);
+        },
+        enhancedMergeRecord() {
+            if (!this.enhancedRecords || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.enhancedRecords)?.record;
+        }
     },
     methods: {
-  isCellUsed(record, field) {
-    if (!this.merge) return false;
-    return field in this.merge.sources
-      ? this.merge.sources[field].includes(record.key)
-      : record.key === this.master_key;
-  },
+        isCellUsed(record, field) {
+            if (!this.merge) return false;
+            return field in this.merge.sources
+                ? this.merge.sources[field].includes(record.key)
+                : record.key === this.master_key;
+        },
 
-  build_merge(records) {
-    const master = records.find(r => r.key === this.master_key);
-    const all_dupes = records
-      .filter(r => this.selected[r.key])
-      .filter(r => r.key !== this.master_key);
-    const dupes = all_dupes.filter(r => r.type.key === '/type/work');
-    const editions_to_move = _.flatMap(
-      all_dupes,
-      work => this.editions[work.key].entries
-    );
+        build_merge(records) {
+            const master = records.find(r => r.key === this.master_key);
+            const all_dupes = records
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key !== this.master_key);
+            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            const editions_to_move = _.flatMap(
+                all_dupes,
+                work => this.editions[work.key].entries
+            );
 
-    const [record, sources] = merge(master, dupes);
+            const [record, sources] = merge(master, dupes);
 
-    const extras = {
-      edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-      list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
-    };
+            const extras = {
+                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
+            };
 
-    const unmergeable_works = records
-      .filter(work => work.type.key === '/type/work' &&
+            const unmergeable_works = records
+                .filter(work => work.type.key === '/type/work' &&
         this.selected[work.key] &&
         work.key !== this.master_key &&
         this.editions[work.key].entries.length < this.editions[work.key].size)
-      .map(r => r.key);
+                .map(r => r.key);
 
-    return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
-  }
-}
+            return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
+        }
+    }
 
 };
 </script>
