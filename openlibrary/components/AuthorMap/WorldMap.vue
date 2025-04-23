@@ -1,35 +1,51 @@
 <template>
   <div class="world-map">
-    <prime-select
+    <prime-autocomplete
       v-model="selected"
-      :options="countries"
+      class="country-autocomplete"
+      :suggestions="filteredCountries"
       option-label="name"
       placeholder="Select a country"
-    />
+      dropdown
+      :force-selection="true"
+      @complete="searchCountry"
+    >
+      <template #option="{ option }">
+        <div class="flex items-center">
+          {{ option.emoji }}
+          <span>{{ option.name }}</span>
+        </div>
+      </template>
+    </prime-autocomplete>
     <WorldMapRaw @click="handleMapClick" />
   </div>
 </template>
 
 <script>
 import WorldMapRaw from './WorldMapRaw.vue';
-import Select from 'primevue/select';
+import AutoComplete from 'primevue/autocomplete';
 
 export default {
     name: 'WorldMap',
     components: {
-        'prime-select': Select,
+        'prime-autocomplete': AutoComplete,
         WorldMapRaw,
     },
     emits: ['country-selected'],
     data() {
         return {
+            // countryQuery: '',
+            /** @type {{ name: string, id: string } | undefined} */
             selected: null,
+            /** @type {Array<{ name: string, id: string }>} */
             countries: [],
+            /** @type {Array<{ name: string, id: string }>} */
+            filteredCountries: [],
         }
     },
     watch: {
         selected(newVal) {
-            if (newVal) {
+            if (newVal?.id) {
                 this.$emit('country-selected', newVal);
                 // find the country element in the map and add a selected class
                 const svg = this.$el.querySelector('svg.world-map-raw');
@@ -49,11 +65,18 @@ export default {
         // in the select dropdown
         window.EL = this;
         const countryEls = Array.from(this.$el.querySelectorAll('svg.world-map-raw > .landxx[id]'));
-        this.countries = countryEls
+        const countries = countryEls
             .map(el => ({
                 name: el.querySelector('title').textContent.trim(),
                 id: el.id,
+                emoji: el.id
+                    .toUpperCase()
+                    .replace(/./g, char =>
+                        String.fromCodePoint(char.charCodeAt(0) + 127397)
+                    )
             }));
+        countries.sort((a, b) => a.name.localeCompare(b.name));
+        this.countries = countries;
     },
     methods: {
         handleMapClick(event) {
@@ -61,12 +84,27 @@ export default {
             if (!countryEl) return;
             this.selected = this.countries.find(country => country.id === countryEl.id);
         },
+        searchCountry(event) {
+            const query = event.query.toLowerCase();
+            this.filteredCountries = this.countries.filter(country =>
+                country.name.toLowerCase().includes(query)
+            );
+        },
     }
-
 };
 </script>
 
 <style>
+.world-map {
+    position: relative;
+}
+.country-autocomplete {
+    position: absolute !important;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    margin: 10px;
+}
 svg {
   width: 100%;
 }
@@ -80,5 +118,9 @@ svg > .landxx:hover, svg > .landxx:hover * {
 
 svg > .landxx.selected, svg > .landxx.selected * {
   fill: #f00;
+}
+/** TMP: Needed because of the janky import of all OL styles. */
+input[type="email"], input[type="text"] {
+    margin: unset !important;
 }
 </style>
