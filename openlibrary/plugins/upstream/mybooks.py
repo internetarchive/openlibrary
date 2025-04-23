@@ -170,10 +170,8 @@ class readinglog_stats(delegate.page):
 
         yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(username)
         if year:
-            # Skip the '/'
-            year = int(year[1:])
-            # This takes a substring of year (from the GET request) starting at index 1
-            # Thus, the / is removed
+            # eg '/year/2025'; skip the '/year/'
+            year = int(year.split('/')[-1])
 
         readlog = ReadingLog(user=user)
         works = readlog.get_works(key, page=1, limit=2000, year=year).docs
