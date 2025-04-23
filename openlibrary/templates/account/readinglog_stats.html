@@ -107,8 +107,8 @@ $jsdef render_excluded_works_list(works, total):
     $if shelf_key == 'already-read' and yearly_reads:
     <div class="breadcrumb-wrapper">
         <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
-            $ all_url = '/people/openlibrary/books/already-read/stats'
-            $ year_url = '/people/openlibrary/books/already-read/stats/%d'
+            $ all_url = owner_key + '/books/already-read/stats'
+            $ year_url = owner_key + '/books/already-read/stats/%d'
             $if year:
                 $:render_template("books/year_breadcrumb_select", yearly_reads, all_url, year_url, selected= str(year))
             $else:
