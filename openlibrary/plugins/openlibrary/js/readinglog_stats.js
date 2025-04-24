@@ -144,8 +144,8 @@ export function init(config) {
             WHERE {
               VALUES (?x ?olid) {
                 ${authors.filter(a => a.remote_ids.wikidata).map(
-                  a => `"(wd:${a.remote_ids.wikidata} ${a.key.split('/')[2]})"`
-                ).join(' ')}
+        a => `"(wd:${a.remote_ids.wikidata} ${a.key.split('/')[2]})"`
+    ).join(' ')}
               }
 
               ${
