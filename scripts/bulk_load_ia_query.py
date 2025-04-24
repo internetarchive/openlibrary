@@ -23,6 +23,7 @@ import infogami
 from infogami import config
 from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+from itertools import batched
 
 spec = importlib.util.spec_from_file_location(
     "openlibrary", "scripts/manage-imports.py"
@@ -192,14 +193,13 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     return ids
 
 
-def import_ocaids(ocaids, batch_size=5_000):
+def import_ocaids(ocaids: list[str], batch_size=5_000):
     # get the month for yesterday
     date = datetime.date.today() - datetime.timedelta(days=1)
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = importer.Batch.find(batch_name) or importer.Batch.new(batch_name)
 
-    for i in range(0, len(ocaids), batch_size):
-        items = ocaids[i : i + batch_size]
+    for items in batched(ocaids, batch_size):
         batch.add_items(items)
 
 
