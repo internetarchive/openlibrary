@@ -154,7 +154,7 @@ def import_all(args, **kwargs):
     import multiprocessing
 
     servername = kwargs.get('servername')
-    require_marc = not kwargs.get('no_marc', False)
+    require_marc = False
 
     # Use multiprocessing to call do_import on each item
     with multiprocessing.Pool(processes=8) as pool:
@@ -162,7 +162,6 @@ def import_all(args, **kwargs):
             logger.info("find_pending START")
             items = ImportItem.find_pending()
             logger.info("find_pending END")
-
             if not items:
                 logger.info("No pending items found. sleeping for a minute.")
                 time.sleep(60)
