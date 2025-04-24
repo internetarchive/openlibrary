@@ -28,7 +28,9 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 spec = importlib.util.spec_from_file_location(
     "openlibrary", "scripts/manage-imports.py"
 )
+assert spec
 importer = importlib.util.module_from_spec(spec)
+assert spec.loader
 spec.loader.exec_module(importer)
 
 REQUIRED_FIELDS = [
@@ -44,7 +46,7 @@ REQUIRED_FIELDS = [
 ]
 SPECIAL_CASES = ["(-title:*report OR -isbn:*)", '-publisher:"[n.p.]"']
 EXCLUDE_TITLES = [
-    ' OR '.join(
+    ' OR '.join(  # noqa: FLY002
         [
             "annals",
             "proceeding",
@@ -56,7 +58,7 @@ EXCLUDE_TITLES = [
             "catalog",
             "catalogue",
             "cataloging",
-            "*nknown",
+            "*nknown",  # codespell:ignore
             "supplementary",
             "records",
             "announcement",
