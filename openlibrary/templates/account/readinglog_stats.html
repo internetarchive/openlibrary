@@ -108,7 +108,7 @@ $jsdef render_excluded_works_list(works, total):
     <div class="breadcrumb-wrapper">
         <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
             $ all_url = owner_key + '/books/already-read/stats'
-            $ year_url = owner_key + '/books/already-read/stats/%d'
+            $ year_url = owner_key + '/books/already-read/year/%d/stats'
             $if year:
                 $:render_template("books/year_breadcrumb_select", yearly_reads, all_url, year_url, selected= str(year))
             $else:
