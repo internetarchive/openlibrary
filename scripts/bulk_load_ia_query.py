@@ -30,12 +30,62 @@ spec = importlib.util.spec_from_file_location(
 importer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(importer)
 
+REQUIRED_FIELDS = [
+  "mediatype:texts", "format:pdf", "date:*", "title:*", "scanningcenter:*", "-volume:*",
+  "-issn:*", "(imagecount:[20 TO 9999] OR isbn:*)", "-source:folio"
+]
+SPECIAL_CASES = ["(-title:*report OR -isbn:*)", '-publisher:"[n.p.]"']
+EXCLUDE_TITLES = [' OR '.join([
+    "annals", "proceeding", "proceedings",
+    "*报告*",
+    "*任务书",
+    "*年度*",
+    "isbn*",
+    "catalog", "catalogue", "cataloging",
+    "*nknown",
+    "supplementary",
+    "records",
+    "announcement",
+    "dissertation",
+  ])]
+
+EXCLUDE_COMPLEX_TITLES = [' AND '.join([
+      f"-title:{t}" for t in [
+      '"journal of"',
+      '"guo jia ke ji"',
+      "(paper* AND on)",
+      "(paper* AND from)",
+      "(lette* to)",
+      "(lette* from)",
+      "(handbook AND congress)",
+      "(transactions AND congress)",
+      ]
+])]
+
+ELIGIBLE_COLLECTIONS = [
+    "internetarchivebooks", "toronto", "europeanlibraries", "americana", "inlibrary", "printdisabled"
+]
+
+EXCLUDE_GENERAL = [
+  "*ewspape*", "*amphle*", "microfi*", "Logboo*",
+  "*earboo*", "*eriodica*", "*ocumen*",  "*agazin*", "serial*", "*ovdoc*", "*vertis*", "posters*",
+  "Personnel*"
+]
+
+EXCLUDE_COLLECTIONS = [
+  "opensource", "additional_collections", "dlarc", "larc", "spiritualfrontiersarchive", "fedlink",
+  "newmannumismatic", "medicalofficerofhealthreports", "uoftgovpubs"
+] + EXCLUDE_GENERAL
+
+EXCLUDE_CREATORS = [
+  "*ongres*", "u.s. mint", "国家", "(united AND states)"
+]
 
 def create_session_with_retries(
     total_retries=5,
     backoff_factor=1,
     status_forcelist=(500, 502, 503, 504),  # Common server errors
-    allowed_methods=["HEAD", "GET", "OPTIONS"],  # Methods to retry
+    allowed_methods=("HEAD", "GET", "OPTIONS"),  # Methods to retry
 ):
     """Creates a requests Session configured with automatic retries."""
     session = requests.Session()
@@ -58,8 +108,13 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     scrape_api_url = "https://archive.org/services/search/v1/scrape"
     headers = {"authorization": "LOW {s3_key}:{s3_secret}".format(**s3_keys)}
     fields = ["identifier"]
-    q = 'mediatype:texts AND format:pdf AND date:* AND title:* AND scanningcenter:* AND -volume:* AND -issn:* AND (imagecount:[20 TO 9999] OR isbn:*) AND -source:folio AND (-title:*report OR -isbn:*) AND -publisher:"[n.p.]" AND -title:"journal of" AND -title:"guo jia ke ji" AND -title:(paper* AND on) AND -title:(paper* AND from) AND -title:(lette* to) AND -title:(lette* from) AND -title:(handbook AND congress) AND -title:(transactions AND congress) AND -title:(proceeding OR proceedings OR *报告* OR *任务书 OR *年度* OR isbn* OR catalog OR catalogue OR cataloging OR *nknown OR supplementary OR records OR announcement OR dissertation) AND -collection:(opensource OR additional_collections OR dlarc OR larc OR spiritualfrontiersarchive OR fedlink OR newmannumismatic OR medicalofficerofhealthreports OR uoftgovpubs OR *ewspape* OR *amphle* OR microfi* OR Logboo* OR *earboo* OR *eriodica* OR *ocumen* OR *agazin* OR serial* OR *ovdoc* OR *vertis* OR posters* OR Personnel*) AND -subjects:(*ewspape* OR *amphle* OR microfi* OR Logboo* OR *earboo* OR *eriodica* OR *ocumen* OR *agazin* OR serial* OR *ovdoc* OR *vertis* OR posters* OR Personnel*) AND -creators:(*ewspape* OR *amphle* OR microfi* OR Logboo* OR *earboo* OR *eriodica* OR *ocumen* OR *agazin* OR serial* OR *ovdoc* OR *vertis* OR posters* OR Personnel*)'
-
+    q = ' AND '.join(
+        REQUIRED_FIELDS + SPECIAL_CASES + EXCLUDE_COMPLEX_TITLES +
+          [f"-title:({' OR '.join(xt for xt in EXCLUDE_TITLES)})"] +
+          [f"-collection:({' OR '.join(xc for xc in EXCLUDE_COLLECTIONS)})"] +
+          [f"-subjects:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"] +
+          [f"-creators:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"]
+    )
     query_params = {
         "q": q,
         "count": rows,
