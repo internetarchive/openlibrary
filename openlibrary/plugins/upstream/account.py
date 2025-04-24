@@ -385,6 +385,7 @@ class account_login_json(delegate.page):
                 }
                 raise olib.code.BadRequest(json.dumps(resp))
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
+            web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
             if audit.get('ia_email'):
                 ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
