@@ -41,7 +41,11 @@ def create_session_with_retries(
         total=total_retries,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
-        allowed_methods=["HEAD", "GET", "OPTIONS"],  # Use allowed_methods instead of deprecated method_whitelist
+        allowed_methods=[
+            "HEAD",
+            "GET",
+            "OPTIONS",
+        ],  # Use allowed_methods instead of deprecated method_whitelist
     )
     # Mount the adapter with the retry strategy to handle HTTP and HTTPS
     adapter = HTTPAdapter(max_retries=retry_strategy)
