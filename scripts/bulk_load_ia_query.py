@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-PYTHONPATH=. python ./scripts/bulk_load_ia_query.py /olsystem/etc/openlibrary.yml --idfile "ids.json" --no-test
+See colab:
+https://colab.research.google.com/drive/1HETHnP9bCS7zgli6YU32z5dWzlq0F1sY?authuser=2#scrollTo=7xd5NY4f_4pd
 
-# e.g. https://openlibrary.org/recentchanges/2025/03/16/bulk_update/146351306
+PYTHONPATH=. python ./scripts/bulk_load_ia_query.py /olsystem/etc/openlibrary.yml --idfile "ids.json" --no-test
 """
 
 
@@ -106,7 +107,7 @@ def main(
 ):
     load_config(ol_config)
     infogami._setup()
-    s3_keys = config.get('ia_ol_metadata_write_s3')  # XXX needs dark scope
+    s3_keys = config.get('ia_ol_metadata_write_s3')
     if idfile and os.path.exists(idfile):
         with open(idfile) as fin:
             ocaids = json.load(fin)
