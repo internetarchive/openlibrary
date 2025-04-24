@@ -31,55 +31,96 @@ importer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(importer)
 
 REQUIRED_FIELDS = [
-  "mediatype:texts", "format:pdf", "date:*", "title:*", "scanningcenter:*", "-volume:*",
-  "-issn:*", "(imagecount:[20 TO 9999] OR isbn:*)", "-source:folio"
+    "mediatype:texts",
+    "format:pdf",
+    "date:*",
+    "title:*",
+    "scanningcenter:*",
+    "-volume:*",
+    "-issn:*",
+    "(imagecount:[20 TO 9999] OR isbn:*)",
+    "-source:folio",
 ]
 SPECIAL_CASES = ["(-title:*report OR -isbn:*)", '-publisher:"[n.p.]"']
-EXCLUDE_TITLES = [' OR '.join([
-    "annals", "proceeding", "proceedings",
-    "*报告*",
-    "*任务书",
-    "*年度*",
-    "isbn*",
-    "catalog", "catalogue", "cataloging",
-    "*nknown",
-    "supplementary",
-    "records",
-    "announcement",
-    "dissertation",
-  ])]
+EXCLUDE_TITLES = [
+    ' OR '.join(
+        [
+            "annals",
+            "proceeding",
+            "proceedings",
+            "*报告*",
+            "*任务书",
+            "*年度*",
+            "isbn*",
+            "catalog",
+            "catalogue",
+            "cataloging",
+            "*nknown",
+            "supplementary",
+            "records",
+            "announcement",
+            "dissertation",
+        ]
+    )
+]
 
-EXCLUDE_COMPLEX_TITLES = [' AND '.join([
-      f"-title:{t}" for t in [
-      '"journal of"',
-      '"guo jia ke ji"',
-      "(paper* AND on)",
-      "(paper* AND from)",
-      "(lette* to)",
-      "(lette* from)",
-      "(handbook AND congress)",
-      "(transactions AND congress)",
-      ]
-])]
+EXCLUDE_COMPLEX_TITLES = [
+    ' AND '.join(
+        [
+            f"-title:{t}"
+            for t in [
+                '"journal of"',
+                '"guo jia ke ji"',
+                "(paper* AND on)",
+                "(paper* AND from)",
+                "(lette* to)",
+                "(lette* from)",
+                "(handbook AND congress)",
+                "(transactions AND congress)",
+            ]
+        ]
+    )
+]
 
 ELIGIBLE_COLLECTIONS = [
-    "internetarchivebooks", "toronto", "europeanlibraries", "americana", "inlibrary", "printdisabled"
+    "internetarchivebooks",
+    "toronto",
+    "europeanlibraries",
+    "americana",
+    "inlibrary",
+    "printdisabled",
 ]
 
 EXCLUDE_GENERAL = [
-  "*ewspape*", "*amphle*", "microfi*", "Logboo*",
-  "*earboo*", "*eriodica*", "*ocumen*",  "*agazin*", "serial*", "*ovdoc*", "*vertis*", "posters*",
-  "Personnel*"
+    "*ewspape*",
+    "*amphle*",
+    "microfi*",
+    "Logboo*",
+    "*earboo*",
+    "*eriodica*",
+    "*ocumen*",
+    "*agazin*",
+    "serial*",
+    "*ovdoc*",
+    "*vertis*",
+    "posters*",
+    "Personnel*",
 ]
 
 EXCLUDE_COLLECTIONS = [
-  "opensource", "additional_collections", "dlarc", "larc", "spiritualfrontiersarchive", "fedlink",
-  "newmannumismatic", "medicalofficerofhealthreports", "uoftgovpubs"
+    "opensource",
+    "additional_collections",
+    "dlarc",
+    "larc",
+    "spiritualfrontiersarchive",
+    "fedlink",
+    "newmannumismatic",
+    "medicalofficerofhealthreports",
+    "uoftgovpubs",
 ] + EXCLUDE_GENERAL
 
-EXCLUDE_CREATORS = [
-  "*ongres*", "u.s. mint", "国家", "(united AND states)"
-]
+EXCLUDE_CREATORS = ["*ongres*", "u.s. mint", "国家", "(united AND states)"]
+
 
 def create_session_with_retries(
     total_retries=5,
@@ -109,11 +150,13 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     headers = {"authorization": "LOW {s3_key}:{s3_secret}".format(**s3_keys)}
     fields = ["identifier"]
     q = ' AND '.join(
-        REQUIRED_FIELDS + SPECIAL_CASES + EXCLUDE_COMPLEX_TITLES +
-          [f"-title:({' OR '.join(xt for xt in EXCLUDE_TITLES)})"] +
-          [f"-collection:({' OR '.join(xc for xc in EXCLUDE_COLLECTIONS)})"] +
-          [f"-subjects:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"] +
-          [f"-creators:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"]
+        REQUIRED_FIELDS
+        + SPECIAL_CASES
+        + EXCLUDE_COMPLEX_TITLES
+        + [f"-title:({' OR '.join(xt for xt in EXCLUDE_TITLES)})"]
+        + [f"-collection:({' OR '.join(xc for xc in EXCLUDE_COLLECTIONS)})"]
+        + [f"-subjects:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"]
+        + [f"-creators:({' OR '.join(xs for xs in EXCLUDE_GENERAL)})"]
     )
     query_params = {
         "q": q,
