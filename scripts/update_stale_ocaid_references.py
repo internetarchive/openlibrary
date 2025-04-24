@@ -34,7 +34,6 @@ def create_session_with_retries(
     total_retries=5,
     backoff_factor=1,
     status_forcelist=(500, 502, 503, 504),  # Common server errors
-    allowed_methods=["HEAD", "GET", "OPTIONS"],  # Methods to retry
 ):
     """Creates a requests Session configured with automatic retries."""
     session = requests.Session()
@@ -42,7 +41,7 @@ def create_session_with_retries(
         total=total_retries,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
-        allowed_methods=allowed_methods,  # Use allowed_methods instead of deprecated method_whitelist
+        allowed_methods=["HEAD", "GET", "OPTIONS"],  # Use allowed_methods instead of deprecated method_whitelist
     )
     # Mount the adapter with the retry strategy to handle HTTP and HTTPS
     adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -79,7 +78,7 @@ def get_dark_ol_editions(s3_keys, rows=10_000, since=None, until=None, statefile
         if cursor:
             query_params['cursor'] = cursor
 
-        response = response = session.get(
+        response = session.get(
             scrape_api_url, headers=headers, params=query_params, timeout=60
         )
         response.raise_for_status()
