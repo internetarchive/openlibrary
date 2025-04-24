@@ -11,6 +11,7 @@ import datetime
 import importlib.util
 import json
 import os
+from itertools import batched
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
@@ -23,7 +24,6 @@ import infogami
 from infogami import config
 from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-from itertools import batched
 
 spec = importlib.util.spec_from_file_location(
     "openlibrary", "scripts/manage-imports.py"
