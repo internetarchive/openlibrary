@@ -287,7 +287,7 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     assert isinstance(author, dict), "Author must be a dictionary."
 
     # Validate that the author dictionary contains a valid name
-    if not author.get('name'):
+    if not author.get('name', '').strip():
         raise ValueError("Author dictionary must contain a valid 'name' field.")
 
     if author.get('entity_type') != 'org' and not eastern:
