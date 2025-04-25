@@ -166,7 +166,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return get_redirected_authors([record])
 
     # Validate that the author name is not empty
-    if not author.get("name"):
+    if not author.get("name", "").strip():
         return []
 
     name = author["name"].replace("*", r"\*")
