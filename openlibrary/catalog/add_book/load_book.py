@@ -165,6 +165,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([record])
 
+    # Validate that the author name is not empty
+    if not author.get("name"):
+        return []
+
+    name = author["name"].replace("*", r"\*")
+
     # Try other identifiers next.
     if remote_ids := author.get("remote_ids"):
         queries = []
@@ -192,7 +198,6 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             return [selected_match]
 
     # Fall back to name/date matching, which we did before introducing identifiers.
-    name = author["name"].replace("*", r"\*")
     queries = [
         {"type": "/type/author", "name~": name},
         {"type": "/type/author", "alternate_names~": name},
@@ -279,7 +284,12 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
-    assert isinstance(author, dict)
+    assert isinstance(author, dict), "Author must be a dictionary."
+
+    # Validate that the author dictionary contains a valid name
+    if not author.get('name'):
+        raise ValueError("Author dictionary must contain a valid 'name' field.")
+
     if author.get('entity_type') != 'org' and not eastern:
         do_flip(author)
     if existing := find_entity(author):
