@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import requests
 import web
@@ -300,6 +300,34 @@ class account_create(delegate.page):
             or "openlibrary.plugins." + name in delegate.get_plugins()
         )
 
+    def extract_book_title(redirect_url):
+        parsed_url = urlparse(redirect_url)
+        path_parts = parsed_url.path.split('/')
+        if len(path_parts) > 2:
+            book_title = unquote(path_parts[-1]).replace('_', ' ')
+            return book_title
+        return 'P L A C E H O L D E R'
+
+    def extract_book_cover(redirect_url):
+        parsed_url = urlparse(redirect_url)
+        path_parts = parsed_url.path.split('/')
+        if len(path_parts) > 2:
+            book_id = path_parts[2]
+            if 'books' in path_parts:
+                book_cover_url = f'https://covers.openlibrary.org/b/olid/{book_id}-S.jpg'
+            elif 'works' in path_parts:
+                book_cover_url = f'https://covers.openlibrary.org/w/olid/{book_id}-S.jpg'
+            else:
+                return None
+
+            response = requests.get(book_cover_url, stream=True)
+            if response.status_code == 200 and int(response.headers.get('Content-Length', 0)) > 100:
+                return book_cover_url
+            else:
+                return None
+
+        return None
+
     def POST(self):
         f: forms.RegisterForm = self.get_form()
         
@@ -311,7 +339,13 @@ class account_create(delegate.page):
         # Set a 'cta' cookie to persist the redirect value
         if redirect_url:
             web.setcookie("cta", redirect_url, expires=3600, path="/")
-            
+            book_title = self.extract_book_title(redirect_url)
+            book_cover_url = self.extract_book_cover(redirect_url)
+            redirect_url = redirect_url
+        else :
+            book_title = 'P L A C E H O L D E R'
+            book_cover_url = None
+            redirect_url = '/account/books' #go to my books if no url found
 
         if f.validates(web.input()):
             try:
@@ -336,9 +370,14 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
-                return render['account/verify'](
-                    username=f.username.value, email=f.email.value
+                
+                return (
+                    render['account/verify'](
+                        username=f.username.value, email=f.email.value
+                    ),
+                    render_template('account/return_banner.html', book_title=book_title)
                 )
+            
             except OLAuthenticationError as e:
                 f.note = get_login_error(e.__str__())
                 from openlibrary.plugins.openlibrary.sentry import sentry
@@ -642,6 +681,7 @@ class account_validation(delegate.page):
         if ol_account:
             return _('Email already registered')
 
+        logger.info("Checking if email %s exists in IA", email)
         ia_account = InternetArchiveAccount.get(email=email)
         if ia_account:
             return _('An Internet Archive account already exists with this email')
