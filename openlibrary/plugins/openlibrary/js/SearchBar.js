@@ -364,8 +364,8 @@ export class SearchBar {
         const text = this.$facetSelect.find('option:selected').text();
         $('header#header-bar .search-facet-value').html(text);
 
-        // Get new results
-        if (this.$input.is(':focus')) {
+        // Add immediate refresh when input has value and focus is on the facet selector
+        if (this.$input.val() && this.$facetSelect.is(':focus')) {
             this.renderAutocompletionResults();
         }
     }
