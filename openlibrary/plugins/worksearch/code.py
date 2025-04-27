@@ -77,8 +77,14 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
+<<<<<<< HEAD
 def get_solr_works(work_keys: set[str],
                    fields =Iterable[str] | None = None , editions=False) -> dict[str, web.storage]:
+=======
+def get_solr_works(
+    work_key: Iterable[str], fields: Iterable[str] | None = None
+) -> dict[str, dict]:
+>>>>>>> f5a4aa509 ([pre-commit.ci] auto fixes from pre-commit.com hooks)
     from openlibrary.plugins.worksearch.search import get_solr
 
     if editions:

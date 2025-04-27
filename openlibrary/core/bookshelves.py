@@ -138,7 +138,10 @@ class Bookshelves(db.CommonExtras):
         offset = (page - 1) * limit
         oldb = db.get_db()
         if fields is None:
-            fields = list(WorkSearchScheme.default_fetched_fields | {'subject', 'person', 'place', 'time', 'edition_key'})
+            fields = list(
+                WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}
+            )
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
             where += ' AND created >= $since'
@@ -165,7 +168,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books, fields) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items , fields: Iterable[str] | None = None ):
+    def fetch(cls, readinglog_items, fields: Iterable[str] | None = None):
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
