@@ -60,14 +60,7 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
-<<<<<<< Updated upstream
-    fields=list(
-        WorkSearchScheme.default_fetched_fields
-        | {'subject', 'person', 'place', 'time', 'edition_key'}
-    ),
-=======
     fields= None,
->>>>>>> Stashed changes
 ):
     logged_books = (
         Bookshelves.fetch(
