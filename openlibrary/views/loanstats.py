@@ -4,7 +4,6 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 from .. import app
 from ..core import cache
@@ -60,7 +59,7 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
-    fields= None,
+    fields=None,
 ):
     logged_books = (
         Bookshelves.fetch(
@@ -161,11 +160,11 @@ class lending_stats(app.view):
         raise web.seeother("/")
 
 
-def get_activity_stream(limit=None, page=1,  fields = None):
+def get_activity_stream(limit=None, page=1, fields=None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
-    return Bookshelves.get_recently_logged_books(limit=limit, page=page, fields = fields)
+    return Bookshelves.get_recently_logged_books(limit=limit, page=page, fields=fields)
 
 
 def get_cached_activity_stream(limit):
