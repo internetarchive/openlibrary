@@ -60,10 +60,14 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
+<<<<<<< Updated upstream
     fields=list(
         WorkSearchScheme.default_fetched_fields
         | {'subject', 'person', 'place', 'time', 'edition_key'}
     ),
+=======
+    fields= None,
+>>>>>>> Stashed changes
 ):
     logged_books = (
         Bookshelves.fetch(
@@ -81,7 +85,7 @@ def get_trending_books(
         )
     )
     return (
-        [book['work'] for book in logged_books if book.get('work,')]
+        [book['work'] for book in logged_books if book.get('work')]
         if books_only
         else logged_books
     )
@@ -164,18 +168,11 @@ class lending_stats(app.view):
         raise web.seeother("/")
 
 
-def get_activity_stream(
-    limit=None,
-    page=1,
-    fields=list(
-        WorkSearchScheme.default_fetched_fields
-        | {'subject', 'person', 'place', 'time', 'edition_key'}
-    ),
-):
+def get_activity_stream(limit=None, page=1,  fields = None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
-    return Bookshelves.get_recently_logged_books(limit=limit, page=page)
+    return Bookshelves.get_recently_logged_books(limit=limit, page=page, fields = fields)
 
 
 def get_cached_activity_stream(limit):

@@ -82,18 +82,15 @@ class trending_books_api(delegate.page):
 
         period = period[1:]  # remove slash
         i = web.input(
-            page=1,
-            limit=100,
-            days=0,
-            hours=0,
-            sort_by_count=False,
-            minimum=0,
-            fields=list(
-                WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}
-            ),
+            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0,
+              fields='',
         )
         days = SINCE_DAYS.get(period, int(i.days))
+        if i.fields == '':
+            i.fields = list( WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'})
+        else:
+            i.fields = i.fields.split(',')
         works = get_trending_books(
             since_days=days,
             since_hours=int(i.hours),
