@@ -708,7 +708,13 @@ class Work(Thing):
                 )
                 summary['modified'] = summary['modified'] or any(
                     any(r['updates'][group].values())
-                    for group in ['readinglog', 'ratings', 'booknotes', 'observations']
+                    for group in [
+                        'readinglog',
+                        'ratings',
+                        'booknotes',
+                        'observations',
+                        'bestbooks',
+                    ]
                 )
 
         return summary

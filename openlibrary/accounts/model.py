@@ -19,6 +19,7 @@ from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
 from openlibrary.core import helpers, stats
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue

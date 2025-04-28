@@ -21,7 +21,7 @@ class Bestbook(db.CommonExtras):
             int: count of awards
         """
         oldb = db.get_db()
-        query = "SELECT COUNT(*) FROM bestbooks "
+        query = f"SELECT COUNT(*) FROM {cls.TABLENAME} "
 
         if work_id:
             query += "WHERE work_id=$work_id "
@@ -58,7 +58,7 @@ class Bestbook(db.CommonExtras):
             list: list of awards
         """
         oldb = db.get_db()
-        query = "SELECT * FROM bestbooks "
+        query = f"SELECT * FROM {cls.TABLENAME} "
 
         if work_id:
             query += "WHERE work_id=$work_id "
@@ -97,11 +97,7 @@ class Bestbook(db.CommonExtras):
         oldb = db.get_db()
         data = {'submitter': submitter, 'work_id': work_id, 'topic': topic}
 
-        query = """
-            SELECT *
-            FROM bestbooks
-            WHERE submitter=$submitter
-        """
+        query = f"SELECT * FROM {cls.TABLENAME} WHERE submitter=$submitter"
 
         if topic and work_id:
             query += " AND (work_id=$work_id AND topic=$topic)"
@@ -126,13 +122,13 @@ class Bestbook(db.CommonExtras):
         Returns:
             award or raises Bestbook.AwardConditionsError
         """
-        oldb = db.get_db()
-
         # Raise cls.AwardConditionsError if any failing conditions
         cls._check_award_conditions(submitter, work_id, topic)
 
+        oldb = db.get_db()
+
         return oldb.insert(
-            'bestbooks',
+            cls.TABLENAME,
             submitter=submitter,
             work_id=work_id,
             edition_id=edition_id,
@@ -169,7 +165,7 @@ class Bestbook(db.CommonExtras):
 
         try:
             return oldb.delete(
-                'bestbooks',
+                cls.TABLENAME,
                 where=where_clause,
                 vars={
                     'submitter': submitter,
@@ -188,16 +184,12 @@ class Bestbook(db.CommonExtras):
             list: list of best books
         """
         oldb = db.get_db()
-        query = """
-            SELECT
-                work_id,
-                COUNT(*) AS count
-            FROM bestbooks
-            GROUP BY work_id
-            ORDER BY count DESC
-        """
-        result = oldb.query(query)
-        print(result)
+        result = db.select(
+            cls.TABLENAME,
+            what='work_id, COUNT(*) AS count',
+            group='work_id',
+            order='count DESC',
+        )
         return list(result) if result else []
 
     @classmethod
@@ -205,7 +197,9 @@ class Bestbook(db.CommonExtras):
         errors = []
 
         if not (work_id and topic):
-            errors += "A work ID and a topic are both required for best book awards"
+            errors.append(
+                "A work ID and a topic are both required for best book awards"
+            )
 
         else:
             has_read_book = Bookshelves.user_has_read_work(
