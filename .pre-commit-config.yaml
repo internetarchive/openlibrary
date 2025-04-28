@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.5
+    rev: v0.11.7
     hooks:
       - id: ruff
         args: [ --fix ]
@@ -72,7 +72,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.24.0
+    rev: v9.25.1
     hooks:
       - id: eslint
         types: [file]
