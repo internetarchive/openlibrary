@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install -y libxml2 libxslt-dev
       - name: Install dependencies
         run: |
-          pip install --upgrade pip setuptools wheel
+          pip install --upgrade "pip<23.2" "setuptools<68" "wheel<0.41"
           pip install -r requirements_test.txt
           pip list --outdated
       - run: make git
