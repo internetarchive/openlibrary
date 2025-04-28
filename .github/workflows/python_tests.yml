@@ -34,27 +34,16 @@ jobs:
           sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
-      - name: Check if pip is broken and reinstall if needed
-        run: |
-          set -e
-          # Try to upgrade pip, setuptools, and wheel
-          python -m pip install --upgrade pip setuptools wheel || {
-            # Try to get current versions of pip, setuptools, and wheel
-            PIP_VERSION=$(pip freeze | grep '^pip==' | cut -d'=' -f3 || echo "")
-            SETUPTOOLS_VERSION=$(pip freeze | grep '^setuptools==' | cut -d'=' -f3 || echo "")
-            WHEEL_VERSION=$(pip freeze | grep '^wheel==' | cut -d'=' -f3 || echo "")
-
-            # If pip is broken or missing, reinstall using the found versions (if available)
-            if [[ -z "$PIP_VERSION" || -z "$SETUPTOOLS_VERSION" || -z "$WHEEL_VERSION" ]]; then
-              echo "pip is broken or missing, reinstalling..."
-              curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py "$PIP_VERSION" "$SETUPTOOLS_VERSION" "$WHEEL_VERSION"
-              rm -f get-pip.py
-            fi
-          }
       - name: Install dependencies
         run: |
-          pip install --upgrade pip setuptools wheel
+          # Try to upgrade pip, setuptools, and wheel
+          python -m pip install --upgrade pip setuptools wheel || {
+            echo "pip is broken or missing, reinstalling..."
+            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            python get-pip.py
+            rm -f get-pip.py
+            python -m pip install --upgrade pip setuptools wheel
+          }
           pip install -r requirements_test.txt
           pip list --outdated
       - run: make git
