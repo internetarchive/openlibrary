@@ -14,6 +14,35 @@ class Bestbook(db.CommonExtras):
         pass
 
     @classmethod
+    def prepare_query(cls, select="*", work_id=None, submitter=None, topic=None):
+        """Prepare query for fetching bestbook awards
+
+        Args:
+            work_id (int): work id
+            submitter (string): username of submitter
+            topic (string): topic for bestbook award
+
+        Returns:
+            str: query string
+        """
+        conditions = []
+        filters = {
+            'work_id': work_id,
+            'submitter': submitter,
+            'topic': topic,
+        }
+        vars = {}
+
+        for key, value in filters.items():
+            if value is not None:
+                conditions.append(f"{key}=${key}")
+                vars[key] = value
+        query = f"SELECT {select} FROM {cls.TABLENAME}"
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        return query, vars
+
+    @classmethod
     def get_count(cls, work_id=None, submitter=None, topic=None) -> int:
         """Used to get count of awards with different filters
 
@@ -21,28 +50,10 @@ class Bestbook(db.CommonExtras):
             int: count of awards
         """
         oldb = db.get_db()
-        query = f"SELECT COUNT(*) FROM {cls.TABLENAME} "
-
-        if work_id:
-            query += "WHERE work_id=$work_id "
-
-        if submitter:
-            if query.find("WHERE") != -1:
-                query += "AND "
-            else:
-                query += "WHERE "
-            query += "submitter=$submitter "
-
-        if topic:
-            if query.find("WHERE") != -1:
-                query += "AND "
-            else:
-                query += "WHERE "
-            query += "topic=$topic "
-
-        result = oldb.query(
-            query, vars={'work_id': work_id, 'submitter': submitter, 'topic': topic}
+        query, vars = cls.prepare_query(
+            select="count(*)", work_id=work_id, submitter=submitter, topic=topic
         )
+        result = oldb.query(query, vars=vars)
         return result[0]['count'] if result else 0
 
     @classmethod
@@ -58,55 +69,11 @@ class Bestbook(db.CommonExtras):
             list: list of awards
         """
         oldb = db.get_db()
-        query = f"SELECT * FROM {cls.TABLENAME} "
-
-        if work_id:
-            query += "WHERE work_id=$work_id "
-
-        if submitter:
-            if query.find("WHERE") != -1:
-                query += "AND "
-            else:
-                query += "WHERE "
-            query += "submitter=$submitter "
-
-        if topic:
-            if query.find("WHERE") != -1:
-                query += "AND "
-            else:
-                query += "WHERE "
-            query += "topic=$topic "
-
-        result = oldb.query(
-            query, vars={'work_id': work_id, 'submitter': submitter, 'topic': topic}
+        query, vars = cls.prepare_query(
+            select="*", work_id=work_id, submitter=submitter, topic=topic
         )
+        result = oldb.query(query, vars=vars)
         return list(result) if result else []
-
-    @classmethod
-    def check_if_award_given(cls, submitter, work_id=None, topic=None):
-        """This function checks if the award is already given to a book or topic by patron
-
-        Args:
-            submitter (text): submitter identifier
-            work_id (text): unique identifier of book
-            topic (text): topic for which award is given
-
-        Returns:
-            award: returns first matching award or None
-        """
-        oldb = db.get_db()
-        data = {'submitter': submitter, 'work_id': work_id, 'topic': topic}
-
-        query = f"SELECT * FROM {cls.TABLENAME} WHERE submitter=$submitter"
-
-        if topic and work_id:
-            query += " AND (work_id=$work_id AND topic=$topic)"
-        elif work_id:
-            query += " AND work_id=$work_id"
-        elif topic:
-            query += " AND topic=$topic"
-        award = list(oldb.query(query, vars=data))
-        return award[0] if award else None
 
     @classmethod
     def add(cls, submitter, work_id, topic, comment="", edition_id=None) -> bool:
@@ -205,8 +172,8 @@ class Bestbook(db.CommonExtras):
             has_read_book = Bookshelves.user_has_read_work(
                 username=username, work_id=work_id
             )
-            awarded_book = cls.check_if_award_given(username, work_id=work_id)
-            awarded_topic = cls.check_if_award_given(username, topic=topic)
+            awarded_book = cls.get_awards(submitter=username, work_id=work_id)
+            awarded_topic = cls.get_awards(submitter=username, topic=topic)
 
             if not has_read_book:
                 errors.append(
@@ -219,8 +186,8 @@ class Bestbook(db.CommonExtras):
             if awarded_topic:
                 errors.append(
                     f"A topic may only be nominated one time for a best book award: "
-                    f"The work {awarded_topic.work_id} has already been nominated "
-                    f"for topic {awarded_topic.topic}"
+                    f"The work {awarded_topic[0].work_id} has already been nominated "
+                    f"for topic {awarded_topic[0].topic}"
                 )
 
         if errors:

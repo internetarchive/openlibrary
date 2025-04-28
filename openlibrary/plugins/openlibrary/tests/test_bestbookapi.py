@@ -96,9 +96,7 @@ def test_bestbook_award_limit():
         patch('web.input') as mock_web_input,
         patch(has_read_book) as mock_get_users_read_status_of_work,
         patch('openlibrary.accounts.get_current_user') as mock_get_current_user,
-        patch(
-            'openlibrary.core.bestbook.Bestbook.check_if_award_given'
-        ) as mock_check_if_award_given,
+        patch('openlibrary.core.bestbook.Bestbook.get_awards') as mock_get_awards,
         patch('openlibrary.core.bestbook.Bestbook.add') as mock_bestbook_add,
     ):
         mock_web_input.side_effect = mock_web_input_func(
@@ -113,7 +111,7 @@ def test_bestbook_award_limit():
         mock_get_users_read_status_of_work.return_value = (
             3  # Simulate user has read the book
         )
-        mock_check_if_award_given.return_value = True  # Simulate award already given
+        mock_get_awards.return_value = True  # Simulate award already given
         with patch(
             'openlibrary.plugins.openlibrary.api.bestbook_award.POST',
             return_value={
@@ -158,9 +156,7 @@ def test_bestbook_add_unread_award():
         patch('web.input') as mock_web_input,
         patch(has_read_book) as mock_get_users_read_status_of_work,
         patch('openlibrary.accounts.get_current_user') as mock_get_current_user,
-        patch(
-            'openlibrary.core.bestbook.Bestbook.check_if_award_given'
-        ) as mock_check_if_award_given,
+        patch('openlibrary.core.bestbook.Bestbook.get_awards') as mock_get_awards,
         patch(
             'openlibrary.core.bookshelves.Bookshelves.user_has_read_work'
         ) as mock_user_has_read_work,
@@ -177,7 +173,7 @@ def test_bestbook_add_unread_award():
         mock_get_users_read_status_of_work.return_value = (
             2  # Simulate user has not read the book
         )
-        mock_check_if_award_given.return_value = False
+        mock_get_awards.return_value = False
         mock_user_has_read_work.return_value = False
 
         result = json.loads(bestbook_award().POST(WORK_ID)['rawtext'])

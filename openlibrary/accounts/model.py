@@ -22,7 +22,6 @@ from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
