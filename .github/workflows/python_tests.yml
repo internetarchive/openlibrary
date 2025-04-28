@@ -34,9 +34,17 @@ jobs:
           sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
+      - name: Check if pip is broken and reinstall if needed
+        run: |
+          set -e
+          if ! python -m pip --version > /dev/null 2>&1; then
+            echo "pip is missing or broken, reinstalling..."
+            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            python get-pip.py "pip<23.2" "setuptools<68" "wheel<0.41"
+          fi
       - name: Install dependencies
         run: |
-          pip install --upgrade "pip<23.2" "setuptools<68" "wheel<0.41"
+          pip install --upgrade pip setuptools wheel
           pip install -r requirements_test.txt
           pip list --outdated
       - run: make git
