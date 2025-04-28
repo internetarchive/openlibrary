@@ -196,7 +196,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     name = author.get("name", "").strip().replace("*", r"\*")
     if not name:
         return []
-        
+
     # Fall back to name/date matching, which we did before introducing identifiers.
     queries = [
         {"type": "/type/author", "name~": name},
