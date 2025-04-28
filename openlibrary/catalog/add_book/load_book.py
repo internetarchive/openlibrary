@@ -165,8 +165,8 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([record])
 
-        # Fall back to name/date matching, which we did before introducing identifiers.
-        # Validate that the author name is not empty
+    # Fall back to name/date matching, which we did before introducing identifiers.
+    # Validate that the author name is not empty
     name = author.get("name", "").strip().replace("*", r"\*")
     if not name:
         return []
