@@ -43,7 +43,7 @@ jobs:
             PIP_VERSION=$(pip freeze | grep '^pip==' | cut -d'=' -f3 || echo "")
             SETUPTOOLS_VERSION=$(pip freeze | grep '^setuptools==' | cut -d'=' -f3 || echo "")
             WHEEL_VERSION=$(pip freeze | grep '^wheel==' | cut -d'=' -f3 || echo "")
-        
+
             # If pip is broken or missing, reinstall using the found versions (if available)
             if [[ -z "$PIP_VERSION" || -z "$SETUPTOOLS_VERSION" || -z "$WHEEL_VERSION" ]]; then
               echo "pip is broken or missing, reinstalling..."
