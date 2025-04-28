@@ -288,7 +288,9 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
 
     # Validate that the author dictionary contains a valid name
     if not author.get('name', '').strip() and not author.get('remote_ids'):
-        raise ValueError("Author dictionary must contain a valid 'name' or 'remote_ids' field.")
+        raise ValueError(
+            "Author dictionary must contain a valid 'name' or 'remote_ids' field."
+        )
 
     if author.get('entity_type') != 'org' and not eastern:
         do_flip(author)
