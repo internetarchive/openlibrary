@@ -166,10 +166,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         return get_redirected_authors([record])
 
     # Validate that the author name is not empty
-    if not author.get("name", "").strip():
+    name = author.get("name", "").strip().replace("*", r"\*")
+    if not name:
         return []
-
-    name = author["name"].replace("*", r"\*")
 
     # Try other identifiers next.
     if remote_ids := author.get("remote_ids"):
