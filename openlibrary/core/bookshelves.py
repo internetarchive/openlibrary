@@ -647,7 +647,8 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def user_has_read_work(cls, username: str, work_id: str) -> bool:
-        return cls.get_users_read_status_of_work(username, work_id) == 3
+        user_read_status = cls.get_users_read_status_of_work(username, work_id)
+        return user_read_status == cls.PRESET_BOOKSHELVES['Already Read']
 
     @classmethod
     def get_users_read_status_of_works(cls, username: str, work_ids: list[str]) -> list:
