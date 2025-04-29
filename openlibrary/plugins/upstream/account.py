@@ -391,6 +391,26 @@ class account_create(delegate.page):
 del delegate.pages['/account/register']
 
 
+def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int|str) -> None:
+    if ol_account.get_user().get_safe_mode() == 'yes':
+        web.setcookie('sfw', 'yes', expires=expires)
+    if 'yrg_banner_pref' in ol_account.get_user().preferences():
+        web.setcookie(
+            ol_account.get_user().preferences()['yrg_banner_pref'],
+            '1',
+            expires=(3600 * 24 * 365),
+        )
+
+def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
+    pda = web.cookies().get("pda")
+    ol_account.get_user().save_preferences({
+        "rpd": 1,
+        "pda": pda,
+    })
+    web.setcookie("rpd", "", expires=1)
+    web.setcookie("pda", "", expires=1)
+
+
 class account_login_json(delegate.page):
     encoding = "json"
     path = "/account/login"
@@ -433,18 +453,12 @@ class account_login_json(delegate.page):
             web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
             if audit.get('ia_email'):
-                ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
-                if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
-                    web.setcookie('sfw', 'yes', expires=expires)
-                if (
-                    ol_account
-                    and 'yrg_banner_pref' in ol_account.get_user().preferences()
-                ):
-                    web.setcookie(
-                        ol_account.get_user().preferences()['yrg_banner_pref'],
-                        '1',
-                        expires=(3600 * 24 * 365),
-                    )
+                if ol_account := OpenLibraryAccount.get(email=audit['ia_email']):
+                    _set_account_cookies(ol_account, expires)
+
+                    if web.cookies().get("rpd"):
+                        _handle_pd_cookies(ol_account)
+
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -529,15 +543,13 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
-        ol_account = OpenLibraryAccount.get(email=email)
-        if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
-            web.setcookie('sfw', 'yes', expires=expires)
-        if ol_account and 'yrg_banner_pref' in ol_account.get_user().preferences():
-            web.setcookie(
-                ol_account.get_user().preferences()['yrg_banner_pref'],
-                '1',
-                expires=(3600 * 24 * 365),
-            )
+
+        if ol_account := OpenLibraryAccount.get(email=email):
+            _set_account_cookies(ol_account, expires)
+
+            if web.cookies().get("rpd"):
+                _handle_pd_cookies(ol_account)
+
         blacklist = [
             "/account/login",
             "/account/create",
