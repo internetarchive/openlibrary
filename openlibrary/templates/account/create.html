@@ -77,10 +77,10 @@ $var title: $_("Sign Up to Open Library")
             <div class="ol-signup-form__checkbox">
                 $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
             </div>
-            <div class="ol-signup-form__checkbox">
+            <div id="rpd-checkbox" class="ol-signup-form__checkbox">
                 $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
             </div>
-            <div class="ol-signup-form__select">
+            <div id="pda-selector" class="ol-signup-form__select hidden">
                 <label for="pd_program">$_('I have qualified through this program')</label>
                 <select id="pd_program">
                     <option value="placeholder" disabled selected>$_("Select qualifying authority")</option>

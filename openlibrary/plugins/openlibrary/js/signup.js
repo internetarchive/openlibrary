@@ -2,7 +2,9 @@ import { debounce } from './nonjquery_utils.js';
 
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
-    const submitBtn = document.querySelector('button[name=signup]')
+    const submitBtn = document.querySelector('button[name=signup]');
+    const rpdCheckbox = document.querySelector("#rpd-checkbox")
+    const pdaSelector = document.querySelector("#pda-selector")
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
     const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
@@ -181,6 +183,14 @@ export function initSignupForm() {
             validateInput(this);
         }
     });
+
+    rpdCheckbox.addEventListener("change", (event) => {
+        if (event.target.checked) {
+            pdaSelector.classList.remove("hidden")
+        } else {
+            pdaSelector.classList.add("hidden")
+        }
+    })
 }
 
 export function initLoginForm() {
