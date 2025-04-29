@@ -411,11 +411,10 @@ def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
     web.setcookie("pda", "", expires=1)
 
 
-def _notify_slack_on_rpd_verification(email: str, pda: str):
-    msg = f"Patron with email {email} has selected {pda} as their `pda`"
-    channel = config.get("slack_pd_request_channel", "")
-    if channel:
-        post_to_slack(msg, channel)
+def _notify_on_rpd_verification(email: str):
+    msg = render_template("email/pd_request")
+    sendmail(email, msg)
+
 
 class account_login_json(delegate.page):
     encoding = "json"
@@ -464,8 +463,7 @@ class account_login_json(delegate.page):
 
                     if web.cookies().get("rpd"):
                         _handle_pd_cookies(ol_account)
-                        _notify_slack_on_rpd_verification(audit.get("ia_email"),
-                                                          ol_account.get_user().preferences()["pda"])
+                        _notify_on_rpd_verification(audit.get("ia_email"))
 
         # Fallback to infogami user/pass
         else:
@@ -557,7 +555,7 @@ class account_login(delegate.page):
 
             if web.cookies().get("rpd"):
                 _handle_pd_cookies(ol_account)
-                _notify_slack_on_rpd_verification(audit.get("ia_email"), ol_account.get_user().preferences()["pda"])
+                _notify_on_rpd_verification(audit.get("ia_email"))
 
         blacklist = [
             "/account/login",
@@ -1425,32 +1423,3 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
         'limit': limit,
         'page': page,
     }
-
-class SlackAPIError(Exception):
-    pass
-
-def post_to_slack(text, channel):
-    if not config.get("slack_auth_token"):
-        return
-
-    payload = {
-        "text": text,
-        "channel": channel,
-    }
-    response =  requests.post(
-        "https://slack.com/api/chat.postMessage",
-        headers={
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": f"Bearer {config.get('slack_auth_token')}"
-        },
-        json=payload,
-    )
-
-    if not response.ok:
-        response.raise_for_status()
-
-    result = response.json()
-    if not result.get('ok'):
-        raise SlackAPIError(result.get("error", "Unknown Slack API error"))
-
-    return result
