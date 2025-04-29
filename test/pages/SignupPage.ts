@@ -23,7 +23,11 @@ export class SignupPage {
     });
   }
 
-  async navigateToSignUp() {
+  async waitForLoad() {
+    await this.signupButton.waitFor()
+  }
+
+  async navigate() {
     await this.signupLinkLocator.click();
   }
 
