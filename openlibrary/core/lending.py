@@ -360,6 +360,7 @@ def get_availability(
     ids: list[str],
 ) -> dict[str, AvailabilityStatusV2]:
     from openlibrary.plugins.openlibrary.code import is_bot
+
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
