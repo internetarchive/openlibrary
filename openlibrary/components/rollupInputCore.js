@@ -20,7 +20,7 @@ export const createWebComponentSimple = (rootComponent, name) => {
             install(GivenVue) {
                 if (elementName === 'ol-merge-ui') {
                     GivenVue.use(AsyncComputed);
-                } else if (elementName = 'ol-author-map') {
+                } else if (elementName === 'ol-author-map') {
                     GivenVue.use(PrimeVue, {
                         theme: {
                             preset: Aura,
