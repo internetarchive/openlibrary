@@ -583,7 +583,7 @@ def read_series(rec: MarcBase) -> list[str]:
 def read_notes(rec: MarcBase) -> str:
     found = []
     for tag in range(500, 590):
-        if tag in (505, 520):
+        if tag in (505, 520, 583):
             continue
         fields = rec.get_fields(str(tag))
         for f in fields:
