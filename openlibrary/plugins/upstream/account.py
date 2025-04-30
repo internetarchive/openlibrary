@@ -292,8 +292,11 @@ def get_pd_options():
     return options
 
 def make_pd_org_query():
-    # TODO : Configure URL
-    url = "https://archive.org/advancedsearch.php?q=collection%3Aprint_disability_access&fl[]=identifier,title&rows=1000&page=1&output=json"
+    base_url = config.get("pda_org_search_url", "")
+    if not base_url:
+        return []
+    params = "q=collection:print_disability_access&fl[]=identifier,title&rows=1000&page=1&output=json"
+    url = f"{base_url}?{params}"
     try:
         response = requests.get(url)
         response.raise_for_status()
