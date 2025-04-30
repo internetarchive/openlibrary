@@ -460,8 +460,7 @@ class account_login_json(delegate.page):
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email'):
-                if ol_account := OpenLibraryAccount.get(email=audit['ia_email']):
+            if audit.get('ia_email') and (ol_account := OpenLibraryAccount.get(email=audit['ia_email'])):
                     _set_account_cookies(ol_account, expires)
 
                     if web.cookies().get("rpd"):
