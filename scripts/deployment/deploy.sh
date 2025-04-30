@@ -168,7 +168,7 @@ copy_to_servers() {
 }
 
 deploy_olsystem() {
-    echo "Starting $REPO deployment at $(date)"
+    echo "[Now] Starting $REPO deployment at $(date)"
     echo "Deploying to: $SERVERS"
 
     check_server_access
@@ -231,6 +231,9 @@ deploy_olsystem() {
     if [ $CLEANUP -eq 1 ]; then
         cleanup "$TMP_DIR"
     fi
+
+    echo "[Next] Run openlibrary deploy (~12m00 as of 2024-12-09):"
+    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh openlibrary"
 }
 
 date_to_timestamp() {
@@ -250,6 +253,7 @@ date_to_timestamp() {
 }
 
 deploy_openlibrary() {
+    echo "[Now] Deploying openlibrary"
     COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
     TMP_DIR=$(mktemp -d)
 
@@ -358,30 +362,80 @@ deploy_openlibrary() {
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
 
     cleanup $TMP_DIR
+
+    echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
+    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh review"
 }
 
-# Clone booklending utils
-# parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
+check_servers_in_sync() {
+    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
+    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/are_servers_in_sync.sh
+    echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
+    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh finalize"
+}
 
+clone_booklending_utils() {
+    echo "[Info] In case you need to clone booklending utils manually..."
+    echo "parallel --quote ssh {1} \"echo -e '\\\\n\\\\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi\" ::: \$SERVERS ::: /opt/booklending_utils"
+    read -p "[Now] Clone booklending utils? (usually not necessary) [N/y]" answer
+    answer=${answer:-N}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+	parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
+    fi
+}
 
-# Supports:
-# - deploy.sh olsystem
-# - deploy.sh openlibrary
+# See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
 
-if [ "$1" == "announce" ]; then
-    echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
-elif [ "$1" == "olsystem" ]; then
+if [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
+    clone_booklending_utils
+
+    if [ "$2" == "review" ]; then
+	check_servers_in_sync
+    else
+	read -p "[Now] Run review audit of servers now? [Y/n]" answer
+	answer=${answer:-Y}
+	if [[ "$answer" =~ ^[Yy]$ ]]; then
+	    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh review
+	fi
+    fi
 elif [ "$1" == "review" ]; then
-    # Ensure all the git repos, docker images are in sync across all servers (~50s as of 2024-12-09)
-    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/are_servers_in_sync.sh
+    check_servers_in_sync
 elif [ "$1" == "finalize" ]; then
-    # Restart things -- keep an eye on sentry/grafana (~3m as of 2024-12-09)
+    echo "[Now] Rebuilding & restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
+    echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
+    echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
     time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/restart_servers.sh
+    echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo "The Open Library weekly deploy is now complete. Please let us know @here if anything seems broken or delightful!"
 else
-    echo "Usage: $0 [olsystem|openlibrary]"
+    echo "Usage: $0 [announce|olsystem|openlibrary|review|finalize]"
+
+    # Pull openlibrary before continuing so we have latest deploy.sh
+    read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
+    answer=${answer:-Y}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+	git checkout master
+	git pull https://github.com/internetarchive/openlibrary.git master
+    fi
+
+    # Announce the deploy
+    echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
+    echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+    read -p "Once complete, press Enter to continue..."
+
+    echo "[Now] Kick off a fresh docker build: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
+    read -p "Once complete, press Enter to continue..."
+
+    echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
+    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh olsystem"
+    read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
+    answer=${answer:-N}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+	time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh olsystem
+    fi
+
     exit 1
 fi
