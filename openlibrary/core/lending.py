@@ -15,7 +15,6 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache
-from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 
@@ -360,6 +359,7 @@ def get_availability(
     id_type: Literal['identifier', 'openlibrary_work', 'openlibrary_edition'],
     ids: list[str],
 ) -> dict[str, AvailabilityStatusV2]:
+    from openlibrary.plugins.openlibrary.code import is_bot
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
