@@ -1404,6 +1404,18 @@ msgid ""
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
+#, python-format
+msgid ""
+"I require <a href=\"https://help.archive.org/help/program-"
+"overview/\">special access</a> for a <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">print "
+"disability</a> offered by one of these <a href=\"https://blog.archive.org"
+"/internet-archive-beta-program-for-competent-authority-"
+"registration/#:~:text=Qualifying%20Authorities-,Qualifying%20Authorities,-certify%20users%20as\">qualifying"
+" programs</a>"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
 msgstr ""
 
@@ -2397,6 +2409,14 @@ msgstr ""
 
 #: account/create.html
 msgid "screenname"
+msgstr ""
+
+#: account/create.html
+msgid "I have qualified through this program"
+msgstr ""
+
+#: account/create.html
+msgid "Select qualifying authority"
 msgstr ""
 
 #: account/create.html
@@ -5548,6 +5568,10 @@ msgid ""
 "It might take us a little while to read it because we receive lots of "
 "messages, but rest assured we will, and we'll get back to you if "
 "required."
+msgstr ""
+
+#: email/account/pd_request.html
+msgid "PLACEHOLDER_BODY"
 msgstr ""
 
 #: history/comment.html

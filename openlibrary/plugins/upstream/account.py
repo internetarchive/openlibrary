@@ -29,8 +29,8 @@ from openlibrary.accounts import (
     clear_cookies,
     valid_email,
 )
-from openlibrary.core import helpers as h
 from openlibrary.core import cache, lending, stats
+from openlibrary.core import helpers as h
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -274,6 +274,7 @@ class account(delegate.page):
 @dataclass
 class PDOption:
     """Represents an option in the print-disability qualifying organization selector"""
+
     label: str
     value: str
 
@@ -290,6 +291,7 @@ def get_pd_options():
     options += [PDOption(org.get("title"), org.get("identifier")) for org in pd_orgs]
 
     return options
+
 
 def make_pd_org_query():
     base_url = config.get("pda_org_search_url", "")
@@ -308,9 +310,7 @@ def make_pd_org_query():
     return response.json().get("response", {}).get("docs", []) or []
 
 
-@cache.memoize(
-    engine="memcache", key="pd-org-query", expires=DAY_SECS
-)
+@cache.memoize(engine="memcache", key="pd-org-query", expires=DAY_SECS)
 def cached_pd_org_query():
     return make_pd_org_query()
 
@@ -394,7 +394,7 @@ class account_create(delegate.page):
 del delegate.pages['/account/register']
 
 
-def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int|str) -> None:
+def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> None:
     if ol_account.get_user().get_safe_mode() == 'yes':
         web.setcookie('sfw', 'yes', expires=expires)
     if 'yrg_banner_pref' in ol_account.get_user().preferences():
@@ -404,12 +404,15 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int|str) -> No
             expires=(3600 * 24 * 365),
         )
 
+
 def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
-    ol_account.get_user().save_preferences({
-        "rpd": 1,
-        "pda": pda,
-    })
+    ol_account.get_user().save_preferences(
+        {
+            "rpd": 1,
+            "pda": pda,
+        }
+    )
     web.setcookie("rpd", "", expires=1)
     web.setcookie("pda", "", expires=1)
 
@@ -460,12 +463,14 @@ class account_login_json(delegate.page):
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email') and (ol_account := OpenLibraryAccount.get(email=audit['ia_email'])):
-                    _set_account_cookies(ol_account, expires)
+            if audit.get('ia_email') and (
+                ol_account := OpenLibraryAccount.get(email=audit['ia_email'])
+            ):
+                _set_account_cookies(ol_account, expires)
 
-                    if web.cookies().get("rpd"):
-                        _handle_pd_cookies(ol_account)
-                        _notify_on_rpd_verification(audit.get("ia_email"))
+                if web.cookies().get("rpd"):
+                    _handle_pd_cookies(ol_account)
+                    _notify_on_rpd_verification(audit.get("ia_email"))
 
         # Fallback to infogami user/pass
         else:

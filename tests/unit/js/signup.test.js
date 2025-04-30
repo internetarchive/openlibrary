@@ -217,23 +217,23 @@ describe('Password tests', () => {
     });
 });
 
-describe("Print disability tests", () => {
+describe('Print disability tests', () => {
     let checkbox, selector;
 
     beforeEach(() => {
         initSignupForm();
 
-        checkbox = document.querySelector("#pd_request");
-        selector = document.querySelector("#pda-selector")
+        checkbox = document.querySelector('#pd_request');
+        selector = document.querySelector('#pda-selector')
     })
 
-    test("Qualifying authority selector only visible when PD checkbox is checked", () => {
+    test('Qualifying authority selector only visible when PD checkbox is checked', () => {
         checkbox.checked = false
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-        expect(selector.classList.contains("hidden")).toBe(true);
+        expect(selector.classList.contains('hidden')).toBe(true);
 
         checkbox.checked = true
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-        expect(selector.classList.contains("hidden")).toBe(false);
+        expect(selector.classList.contains('hidden')).toBe(false);
     })
 })

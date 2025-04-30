@@ -129,7 +129,7 @@ class RegisterForm(Form):
                 '<a href="https://blog.archive.org/internet-archive-beta-program-for-competent-authority-registration/#:~:text=Qualifying%20Authorities-,Qualifying%20Authorities,-certify%20users%20as">'
                 'qualifying programs</a>'
             ),
-        )
+        ),
     )
 
     def __init__(self):

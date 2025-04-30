@@ -3,8 +3,8 @@ import { debounce } from './nonjquery_utils.js';
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const submitBtn = document.querySelector('button[name=signup]');
-    const rpdCheckbox = document.querySelector("#pd_request")
-    const pdaSelector = document.querySelector("#pda-selector")
+    const rpdCheckbox = document.querySelector('#pd_request')
+    const pdaSelector = document.querySelector('#pda-selector')
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
     const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
@@ -165,7 +165,7 @@ export function initSignupForm() {
             validateUsername();
         } else if (id === 'password') {
             validatePassword();
-        } else if (id !== "pd_request") {
+        } else if (id !== 'pd_request') {
             throw new Error('Input validation function not found');
         }
     }
@@ -184,11 +184,11 @@ export function initSignupForm() {
         }
     });
 
-    rpdCheckbox.addEventListener("change", (event) => {
+    rpdCheckbox.addEventListener('change', (event) => {
         if (event.target.checked) {
-            pdaSelector.classList.remove("hidden")
+            pdaSelector.classList.remove('hidden')
         } else {
-            pdaSelector.classList.add("hidden")
+            pdaSelector.classList.add('hidden')
         }
     })
 }
