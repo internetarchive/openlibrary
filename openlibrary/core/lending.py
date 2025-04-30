@@ -15,6 +15,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache
+from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 
@@ -394,6 +395,8 @@ def get_availability(
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
+        if web.ctx.env.get('HTTP_USER_AGENT', '') in is_bot:
+            return {'error': 'agent_denied'}
         resp = requests.get(
             config_ia_availability_api_v2_url,
             params={
