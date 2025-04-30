@@ -491,8 +491,11 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=None)
 
     def POST(self):
-
         user_key = delegate.context.user and delegate.context.user.key
+
+        if not user_key:
+            raise Forbidden("Must be logged in to create a batch import.")
+
         import_status = (
             "pending"
             if user_key in _get_members_of_group("/usergroup/admin")

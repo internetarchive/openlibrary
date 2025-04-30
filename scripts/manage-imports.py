@@ -154,7 +154,7 @@ def import_all(args, **kwargs):
     import multiprocessing
 
     servername = kwargs.get('servername')
-    require_marc = not kwargs.get('no_marc', False)
+    require_marc = False
 
     # Use multiprocessing to call do_import on each item
     with multiprocessing.Pool(processes=8) as pool:

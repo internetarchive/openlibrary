@@ -7,13 +7,11 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.utils import dateutil
 from openlibrary.views.loanstats import get_trending_books
 
 
@@ -32,34 +30,6 @@ class PartialDataHandler(ABC):
     @abstractmethod
     def generate(self) -> dict:
         pass
-
-
-class RelatedWorksPartial(PartialDataHandler):
-    """Handler for the related works carousels."""
-
-    def __init__(self):
-        self.i = web.input(workid=None)
-
-    def generate(self) -> dict:
-        return self._get_relatedcarousels_component(self.i.workid)
-
-    def _get_relatedcarousels_component(self, workid) -> dict:
-        if 'env' not in web.ctx:
-            delegate.fakeload()
-        work = web.ctx.site.get('/works/%s' % workid) or {}
-        component = render_template('books/RelatedWorksCarousel', work)
-        return {0: str(component)}
-
-    def _get_cached_relatedcarousels_component(self, *args, **kwargs):
-        memoized_get_component_metadata = cache.memcache_memoize(
-            self._get_relatedcarousels_component,
-            "book.bookspage.component.relatedcarousels",
-            timeout=dateutil.HALF_DAY_SECS,
-        )
-        return (
-            memoized_get_component_metadata(*args, **kwargs)
-            or memoized_get_component_metadata.update(*args, **kwargs)[0]
-        )
 
 
 class CarouselCardPartial(PartialDataHandler):
@@ -333,7 +303,6 @@ class LazyCarouselPartial(PartialDataHandler):
 class PartialRequestResolver:
     # Maps `_component` values to PartialDataHandler subclasses
     component_mapping = {
-        "RelatedWorkCarousel": RelatedWorksPartial,
         "CarouselLoadMore": CarouselCardPartial,
         "AffiliateLinks": AffiliateLinksPartial,
         "SearchFacets": SearchFacetsPartial,
