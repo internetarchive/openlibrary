@@ -395,7 +395,7 @@ def get_availability(
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        if web.ctx.env.get('HTTP_USER_AGENT', '') in is_bot:
+        if web.ctx.env.get('HTTP_USER_AGENT', '') in is_bot():
             return {'error': 'agent_denied'}
         resp = requests.get(
             config_ia_availability_api_v2_url,
