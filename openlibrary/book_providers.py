@@ -32,6 +32,13 @@ class EbookAccess(OrderedEnum):
         return self.name.lower()
 
     @staticmethod
+    def from_solr_str(literal: str) -> 'EbookAccess':
+        try:
+            return EbookAccess[literal.upper()]
+        except KeyError:
+            raise ValueError(f'Unknown access literal: {literal}')
+
+    @staticmethod
     def from_acquisition_access(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
         if literal == 'sample':
             # We need to update solr to handle these! Requires full reindex
