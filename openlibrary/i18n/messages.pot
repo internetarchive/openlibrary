@@ -5571,7 +5571,7 @@ msgid ""
 msgstr ""
 
 #: email/account/pd_request.html
-msgid "PLACEHOLDER_BODY"
+msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
 #: history/comment.html

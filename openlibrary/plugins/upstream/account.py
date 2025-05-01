@@ -21,7 +21,6 @@ from infogami.utils.view import (
     require_login,
 )
 from openlibrary import accounts
-from openlibrary.accounts.model import sendmail
 from openlibrary.accounts import (
     InternetArchiveAccount,
     OLAuthenticationError,
@@ -30,6 +29,7 @@ from openlibrary.accounts import (
     clear_cookies,
     valid_email,
 )
+from openlibrary.accounts.model import sendmail
 from openlibrary.core import cache, lending, stats
 from openlibrary.core import helpers as h
 from openlibrary.core.booknotes import Booknotes
@@ -283,6 +283,7 @@ def get_pd_org(identifier):
     orgs = cached_pd_org_query()
     return next((org for org in orgs if org['identifier'] == identifier), None)
 
+
 def get_pd_options():
     options = [
         PDOption("BARD", "ia_nlsbardaccess_disabilityresources"),
@@ -423,8 +424,16 @@ def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
 def _notify_on_rpd_verification(ol_account, org):
     if org:
         displayname = web.safestr(ol_account.displayname)
-        msg = render_template("email/account/pd_request", displayname=displayname, org=org)
-        web.sendmail(config.from_address, ol_account.email, subject=msg.subject.strip(), message=msg)
+        msg = render_template(
+            "email/account/pd_request", displayname=displayname, org=org
+        )
+        web.sendmail(
+            config.from_address,
+            ol_account.email,
+            subject=msg.subject.strip(),
+            message=msg,
+        )
+
 
 class account_login_json(delegate.page):
     encoding = "json"
@@ -474,7 +483,8 @@ class account_login_json(delegate.page):
 
                 if web.cookies().get("pda"):
                     _notify_on_rpd_verification(
-                        ol_account, get_pd_org(web.cookies().get("pda")))
+                        ol_account, get_pd_org(web.cookies().get("pda"))
+                    )
                     _handle_pd_cookies(ol_account)
 
         # Fallback to infogami user/pass
