@@ -51,10 +51,10 @@
     <tfoot>
       <MergeRow
         v-if="merge"
-        :record="enhancedMergeRecord"
+        :record="enhancedMergeRecord.record"
         :selected="selected"
         :fields="fields"
-        :merged="merge"
+        :merged="enhancedMergeRecord"
       >
         <template #pre>
           <td />
@@ -277,7 +277,7 @@ export default {
         },
         enhancedMergeRecord() {
             if (!this.enhancedRecords || !this.editions || !this.master_key) return undefined;
-            return this.build_merge(this.enhancedRecords)?.record;
+            return this.build_merge(this.enhancedRecords);
         }
     },
     methods: {
