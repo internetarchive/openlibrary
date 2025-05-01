@@ -21,6 +21,7 @@ from infogami.utils.view import (
     require_login,
 )
 from openlibrary import accounts
+from openlibrary.accounts.model import sendmail
 from openlibrary.accounts import (
     InternetArchiveAccount,
     OLAuthenticationError,
@@ -59,7 +60,6 @@ RESULTS_PER_PAGE: Final = 25
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
-sendmail = accounts.sendmail
 
 
 def get_login_error(error_key):
@@ -279,6 +279,10 @@ class PDOption:
     value: str
 
 
+def get_pd_org(identifier):
+    orgs = cached_pd_org_query()
+    return next((org for org in orgs if org['identifier'] == identifier), None)
+
 def get_pd_options():
     options = [
         PDOption("BARD", "ia_nlsbardaccess_disabilityresources"),
@@ -294,11 +298,11 @@ def get_pd_options():
 
 
 def make_pd_org_query():
-    base_url = config.get("pda_org_search_url", "")
+    base_url = config.get("bookreader_host", "")
     if not base_url:
         return []
     params = "q=collection:print_disability_access&fl[]=identifier,title&rows=1000&page=1&output=json"
-    url = f"{base_url}?{params}"
+    url = f"https://{base_url}/advancedsearch.php?{params}"
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -375,7 +379,6 @@ class account_create(delegate.page):
                     retries=USERNAME_RETRIES,
                 )
                 if f.pd_request.checked:
-                    web.setcookie("rpd", "1", expires=-1)
                     web.setcookie("pda", web.input().get("pd_program"), expires=-1)
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
@@ -417,10 +420,11 @@ def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
     web.setcookie("pda", "", expires=1)
 
 
-def _notify_on_rpd_verification(email: str):
-    msg = render_template("email/pd_request")
-    sendmail(email, msg)
-
+def _notify_on_rpd_verification(ol_account, org):
+    if org:
+        displayname = web.safestr(ol_account.displayname)
+        msg = render_template("email/account/pd_request", displayname=displayname, org=org)
+        web.sendmail(config.from_address, ol_account.email, subject=msg.subject.strip(), message=msg)
 
 class account_login_json(delegate.page):
     encoding = "json"
@@ -468,9 +472,10 @@ class account_login_json(delegate.page):
             ):
                 _set_account_cookies(ol_account, expires)
 
-                if web.cookies().get("rpd"):
+                if web.cookies().get("pda"):
+                    _notify_on_rpd_verification(
+                        ol_account, get_pd_org(web.cookies().get("pda")))
                     _handle_pd_cookies(ol_account)
-                    _notify_on_rpd_verification(audit.get("ia_email"))
 
         # Fallback to infogami user/pass
         else:
@@ -560,9 +565,11 @@ class account_login(delegate.page):
         if ol_account := OpenLibraryAccount.get(email=email):
             _set_account_cookies(ol_account, expires)
 
-            if web.cookies().get("rpd"):
+            if web.cookies().get("pda"):
+                _notify_on_rpd_verification(
+                    ol_account, get_pd_org(web.cookies().get("pda"))
+                )
                 _handle_pd_cookies(ol_account)
-                _notify_on_rpd_verification(audit.get("ia_email"))
 
         blacklist = [
             "/account/login",
