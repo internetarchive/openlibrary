@@ -379,8 +379,8 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
-                if f.pd_request.checked:
-                    web.setcookie("pda", web.input().get("pd_program"), expires=-1)
+                if "pd_request" in web.input() and web.input().get("pd_program"):
+                    web.setcookie("pda", web.input().get("pd_program"))
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
