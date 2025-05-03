@@ -392,7 +392,7 @@ class account_create(delegate.page):
                     extra = {'response': e.response} if hasattr(e, 'response') else None
                     sentry.capture_exception(e, extras=extra)
 
-        return render['account/create'](f)
+        return render['account/create'](f, pd_options=get_pd_options())
 
 
 del delegate.pages['/account/register']
