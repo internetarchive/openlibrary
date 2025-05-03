@@ -90,7 +90,7 @@ There are many ways volunteers can contribute to the Open Library project, from 
 
 ### Developers
 - **Getting Started:** Check out our [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) for instructions on how to set up your development environment, find issues to work on, and submit your contributions.
-- **Good First Issues:** Browse our [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to find beginner-friendly tasks.
+- **Good First Issues:** Browse our [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+is%3Aopen+is%3Aissue+-label%3A%22Needs%3A+Breakdown%22%2C%22Needs%3A+Lead%22%2C%22Needs%3A+Designs%22%2C%22Needs%3A+Triage%22+label%3A%22Good+first+issue%22+no%3Aassignee+is%3Aopen+-linked%3Apr) to find beginner-friendly tasks.
 
 ### Designers
 - **Design Contributions:** We welcome designers to help improve the user experience. You can start by looking at [design-related issues](https://github.com/internetarchive/openlibrary/labels/design).
