@@ -1022,7 +1022,6 @@ class User(Thing):
             if ocaid == loan['ocaid']:
                 return loan
 
-
     def get_user_waiting_loans(self, ocaid=None, use_cache=False):
         """
         Similar to get_waiting_loan_for, but fetches and caches all of user's waiting loans

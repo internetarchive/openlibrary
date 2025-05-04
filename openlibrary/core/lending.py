@@ -647,6 +647,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
     timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
 )
 
+
 def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
