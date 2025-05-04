@@ -647,36 +647,6 @@ get_cached_loans_of_user = cache.memcache_memoize(
     timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
 )
 
-
-def get_user_waiting_loans(user_key):
-    """Gets the waitingloans of the patron.
-
-    Returns [] if user has no waitingloans.
-    """
-    from .waitinglist import WaitingLoan
-
-    if "site" not in web.ctx:
-        delegate.fakeload()
-
-    try:
-        account = OpenLibraryAccount.get(key=user_key)
-        itemname = account.itemname
-        result = WaitingLoan.query(userid=itemname)
-        get_cached_user_waiting_loans.memcache_set(
-            [user_key], {}, result or {}, time.time()
-        )  # rehydrate cache
-        return result or []
-    except JSONDecodeError as e:
-        return []
-
-
-get_cached_user_waiting_loans = cache.memcache_memoize(
-    get_user_waiting_loans,
-    key_prefix='waitinglist.user_waiting_loans',
-    timeout=10 * dateutil.MINUTE_SECS,
-)
-
-
 def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]

@@ -38,7 +38,6 @@ from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be need
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
 from . import cache, waitinglist
 from .ia import get_metadata
-from .waitinglist import WaitingLoan
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -1023,12 +1022,6 @@ class User(Thing):
             if ocaid == loan['ocaid']:
                 return loan
 
-    def get_waiting_loan_for(self, ocaid):
-        """
-        :param str or None ocaid: edition ocaid
-        :rtype: dict (e.g. {position: number})
-        """
-        return ocaid and WaitingLoan.find(self.key, ocaid)
 
     def get_user_waiting_loans(self, ocaid=None, use_cache=False):
         """
