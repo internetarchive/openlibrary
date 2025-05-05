@@ -123,11 +123,8 @@ class RegisterForm(Form):
         Checkbox(
             "pd_request",
             description=_(
-                'I require <a href="https://help.archive.org/help/program-overview/">special access'
-                '</a> for a <a href="https://en.wikipedia.org/wiki/Print_disability">print disability'
-                '</a> offered by one of these '
-                '<a href="https://blog.archive.org/internet-archive-beta-program-for-competent-authority-registration/#:~:text=Qualifying%20Authorities-,Qualifying%20Authorities,-certify%20users%20as">'
-                'qualifying programs</a>'
+                'I would like to apply for <a href="https://help.archive.org/help/program-overview/">'
+                'special print disability access</a> through a qualifying program.'
             ),
         ),
     )
