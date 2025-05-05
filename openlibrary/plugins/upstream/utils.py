@@ -806,7 +806,6 @@ def get_language(lang_or_key: str) -> "None | Thing | Nothing":
         return lang_or_key
 
 
-
 def get_marc21_language(language: str) -> str | None:
     """
     Get a three character MARC 21 language abbreviation from another abbreviation format:
@@ -1171,6 +1170,7 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
 
     user_lang = web.ctx.lang or 'en'
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
+
 
 @public
 @functools.cache
