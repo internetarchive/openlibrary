@@ -732,7 +732,7 @@ class feedback_api(delegate.page):
                 json.dumps({"status": "ok"}), content_type="application/json"
             )
 
-        except Exception as e:
+        except ValueError as e:
             return delegate.RawText(
                 json.dumps({"status": "error", "message": str(e)}),
                 content_type="application/json",

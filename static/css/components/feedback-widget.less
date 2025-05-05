@@ -1,12 +1,17 @@
+@white: #ffffff;
+@gray-border: #cccccc;
+@green-light: #dff0d8;
+@z-index-widget: 1000;
+
 .feedback-widget {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: white;
+  background: @white;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid @gray-border;
   border-radius: 8px;
-  z-index: 1000;
+  z-index: @z-index-widget;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
 
   span {
@@ -31,8 +36,8 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: #dff0d8;
+  background: @green-light;
   padding: 10px;
   border-radius: 8px;
-  z-index: 1000;
+  z-index: @z-index-widget;
 }
