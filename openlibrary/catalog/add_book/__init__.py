@@ -455,6 +455,7 @@ def find_quick_match(rec: dict) -> str | None:
     :param dict rec: Edition record
     :return: First key matched of format "/books/OL..M" or None if no match found.
     """
+
     if 'openlibrary' in rec:
         return '/books/' + rec['openlibrary']
 
@@ -499,10 +500,12 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
     if value is None:
         value = rec[key]
 
-    # If this is a Wikisource import, always make a new edition, unless the match already has a Wikisource source record.
     q = {'type': '/type/edition', key: value}
+
+    # If this record is from wikisource, void any edition matches that don't already have a wikisource ID.
+    # Effectively forces it to create a separate edition for wikisource.
     if any('wikisource:' in src for src in rec['source_records']):
-        q["source_records~"] = "wikisource:"
+        q['identifiers.wikisource~'] = "*"
 
     ekeys = list(web.ctx.site.things(q))
     return ekeys
