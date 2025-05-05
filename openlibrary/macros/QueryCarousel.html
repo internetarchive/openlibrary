@@ -11,7 +11,7 @@ $# * layout (str) -- layout type, default 'carousel', currently also supports 'g
 
 $ web_lang= get_lang() or 'en'
 $if user_lang_only and web_lang:
-  $ user_lang= get_marc21_language(web_lang)
+  $ user_lang= convert_iso_to_marc(web_lang)
   $if user_lang:
         $ query = query + ' language:' + user_lang
 $if use_cache and not lazy:
