@@ -1,7 +1,9 @@
 import json
-import urllib.request
 import urllib.parse
+import urllib.request
+
 import pytest
+
 
 class FeedbackAPI:
     def __init__(self, server, username=None, password=None):
@@ -24,12 +26,10 @@ class FeedbackAPI:
         return self.opener.open(req)
 
     def submit_feedback(self, subject, comment):
-        data = {
-            "subject": subject,
-            "comment": comment
-        }
+        data = {"subject": subject, "comment": comment}
         response = self.urlopen("/feedback", data=data)
         return json.loads(response.read())
+
 
 # Example test
 # def test_feedback_submission(pytestconfig):
@@ -39,10 +39,13 @@ class FeedbackAPI:
 #     result = api.submit_feedback("Test Subject", "This is a test comment")
 #     assert result.get("success") is True
 
+
 def test_feedback_submission(pytestconfig):
     server = pytestconfig.getoption("server")
     if not server:
-        pytest.skip("Skipping test: --server argument not provided (e.g., --server=http://web:8080)")
+        pytest.skip(
+            "Skipping test: --server argument not provided (e.g., --server=http://web:8080)"
+        )
 
     api = FeedbackAPI(server)
     result = api.submit_feedback("Test Subject", "This is a test comment")

@@ -568,8 +568,8 @@ jQuery(function () {
     }
 });
 
-const subjectWidget = document.getElementById("feedback-widget");
+const subjectWidget = document.getElementById('feedback-widget');
 if (subjectWidget) {
-  import(/* webpackChunkName: "subject-feedback" */ './feedback-widget.js')
-    .then(module => module.initSubjectFeedback());
+    import(/* webpackChunkName: "subject-feedback" */ './feedback-widget.js')
+        .then(module => module.initSubjectFeedback());
 }

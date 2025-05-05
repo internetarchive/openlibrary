@@ -22,8 +22,8 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
+from openlibrary.core import feedback, lending, models
 from openlibrary.core import helpers as h
-from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
@@ -41,8 +41,6 @@ from openlibrary.plugins.worksearch.subjects import (
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
-
-from openlibrary.core import feedback
 
 
 class book_availability(delegate.page):
@@ -711,6 +709,7 @@ class create_qrcode(delegate.page):
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
 
+
 class feedback_api(delegate.page):
     path = "/api/feedback"
     encoding = "json"
@@ -725,15 +724,16 @@ class feedback_api(delegate.page):
             country = data.get("country", "unknown")
 
             # Save to DB
-            feedback.insert_feedback(key=key, score=score, patron_name=patron, country=country)
+            feedback.insert_feedback(
+                key=key, score=score, patron_name=patron, country=country
+            )
 
             return delegate.RawText(
-                json.dumps({"status": "ok"}),
-                content_type="application/json"
+                json.dumps({"status": "ok"}), content_type="application/json"
             )
 
         except Exception as e:
             return delegate.RawText(
                 json.dumps({"status": "error", "message": str(e)}),
-                content_type="application/json"
+                content_type="application/json",
             )
