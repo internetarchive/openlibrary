@@ -567,3 +567,9 @@ jQuery(function () {
             .then(module => module.initLazyCarousel(lazyCarousels))
     }
 });
+
+const subjectWidget = document.getElementById("feedback-widget");
+if (subjectWidget) {
+  import(/* webpackChunkName: "subject-feedback" */ './feedback-widget.js')
+    .then(module => module.initSubjectFeedback());
+}

@@ -42,6 +42,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
 
+from openlibrary.core import feedback
+
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -708,3 +710,30 @@ class create_qrcode(delegate.page):
             img.save(buf, format='PNG')
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
+
+class feedback_api(delegate.page):
+    path = "/api/feedback"
+    encoding = "json"
+
+    def POST(self):
+        try:
+            data = json.loads(web.data())
+
+            key = data.get("key")
+            score = data.get("score")
+            patron = data.get("patron_name", "anonymous")
+            country = data.get("country", "unknown")
+
+            # Save to DB
+            feedback.insert_feedback(key=key, score=score, patron_name=patron, country=country)
+
+            return delegate.RawText(
+                json.dumps({"status": "ok"}),
+                content_type="application/json"
+            )
+
+        except Exception as e:
+            return delegate.RawText(
+                json.dumps({"status": "error", "message": str(e)}),
+                content_type="application/json"
+            )

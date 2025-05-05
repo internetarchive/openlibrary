@@ -7,6 +7,19 @@ $ has_tag = 'tag' in page
 $ q = query_param('q')
 
 <div id="scrollHere"></div>
+
+<div id="feedback-widget" class="feedback-widget" style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+  <span>Is this collection useful to you?</span>
+  <button onclick="submitFeedback(1)">👍</button>
+  <button onclick="submitFeedback(-1)">👎</button>
+  <button onclick="dismissWidget()">❌</button>
+</div>
+
+<div id="feedback-message" class="feedback-message" style="display: none; position: fixed; bottom: 20px; right: 20px; background: #dff0d8; padding: 10px; border-radius: 8px;">
+  Thanks for your feedback!
+</div>
+
+
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">

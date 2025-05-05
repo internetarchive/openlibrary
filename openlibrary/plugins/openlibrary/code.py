@@ -1163,6 +1163,7 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
+
 def is_bot():
     r"""Generated on ol-www1 within /var/log/nginx with:
 
@@ -1335,3 +1336,23 @@ def setup():
 
 
 setup()
+
+class feedback(delegate.page):
+    path = '/feedback'
+
+    def POST(self):
+        try:
+            data = json.loads(web.data())
+            subject = data.get("subject")
+            comment = data.get("comment")
+
+            if not subject or not comment:
+                return web.badrequest()
+
+            logger.info(f"[FEEDBACK] {subject}: {comment}")
+
+            return web.ok(json.dumps({"success": True}))
+        except Exception as e:
+            logger.exception("Failed to handle feedback POST")
+            return web.internalerror(json.dumps({"success": False, "error": str(e)}))
+
