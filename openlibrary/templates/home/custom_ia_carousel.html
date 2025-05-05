@@ -15,7 +15,7 @@ $code:
 
 $ web_lang= get_lang() or 'en'
 $if user_lang_only and web_lang:
-  $ user_lang= get_marc21_language(web_lang)
+  $ user_lang= convert_iso_to_marc(web_lang)
    $if user_lang:
     $ query = query + ' language:' + user_lang
 $:render_template("books/custom_carousel", books, title=title, url=title_url, key=key, min_books=min_books, load_more=load_more_config, test=test, compact_mode=compact_mode)
