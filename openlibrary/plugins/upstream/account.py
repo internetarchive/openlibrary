@@ -417,7 +417,6 @@ def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
             "pda": pda,
         }
     )
-    web.setcookie("rpd", "", expires=1)
     web.setcookie("pda", "", expires=1)
 
 
