@@ -884,7 +884,11 @@ def work_search(
     if fields == '*' or 'availability' in fields:
         add_availability(
             [
-                work.get('editions', {}).get('docs', [None])[0] or work
+                (
+                    work['editions']['docs'][0]
+                    if work.get('editions', {}).get('docs')
+                    else work
+                )
                 for work in response['docs']
             ]
         )

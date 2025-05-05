@@ -7576,10 +7576,6 @@ msgstr ""
 msgid "Loading Lists"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
-msgid "Loading Related Books"
-msgstr ""
-
 #: type/language/view.html
 msgid "deprecated"
 msgstr ""

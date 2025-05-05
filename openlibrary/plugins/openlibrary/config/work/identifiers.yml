@@ -2,15 +2,21 @@ identifiers:
 -   label: BookBrainz
     name: bookbrainz
     notes: ''
-    url:  https://bookbrainz.org/work/@@@
-    website:  https://bookbrainz.org
+    url: https://bookbrainz.org/work/@@@
+    website: https://bookbrainz.org
 -   label: Книга Файнфиков
     name: ficbook
     notes: ''
     url: https://ficbook.net/readfic/@@@
+-   label: Goodreads
+    name: goodreads
+    url: https://www.goodreads.com/work/editions/@@@
+-   label: LibraryThing
+    name: librarything
+    url: https://www.librarything.com/work/@@@
 -   label: MusicBrainz
     name: musicbrainz
-    url: https://musicbrainz.org/artist/@@@
+    url: https://musicbrainz.org/work/@@@
     website: https://musicbrainz.org
 -   label: MyAnimeList
     name: myanimelist
