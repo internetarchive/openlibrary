@@ -504,7 +504,9 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
 
     # If this record is from wikisource, void any edition matches that don't already have a wikisource ID.
     # Effectively forces it to create a separate edition for wikisource.
-    if any('wikisource:' in src for src in rec['source_records']):
+    if 'source_records' in rec and any(
+        'wikisource:' in src for src in rec['source_records']
+    ):
         q['identifiers.wikisource~'] = "*"
 
     ekeys = list(web.ctx.site.things(q))
