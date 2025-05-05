@@ -2126,17 +2126,8 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: account/privacy.html admin/people/view.html subjects.html
-msgid "Yes"
-msgstr ""
-
-#: account/privacy.html admin/people/view.html books/edit/edition.html
 #: subjects.html
-msgid "No"
-msgstr ""
-
-#: subjects.html
-msgid "Dismiss"
+msgid "Is this collection useful to you?"
 msgstr ""
 
 #: subjects.html
@@ -2779,6 +2770,14 @@ msgid ""
 "This will enable others to see what books you want to read, are reading, "
 "or have already read. Patrons with reading logs set to public may be "
 "followed."
+msgstr ""
+
+#: account/privacy.html admin/people/view.html
+msgid "Yes"
+msgstr ""
+
+#: account/privacy.html admin/people/view.html books/edit/edition.html
+msgid "No"
 msgstr ""
 
 #: account/privacy.html
