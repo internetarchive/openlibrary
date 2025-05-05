@@ -455,7 +455,6 @@ def find_quick_match(rec: dict) -> str | None:
     :param dict rec: Edition record
     :return: First key matched of format "/books/OL..M" or None if no match found.
     """
-
     if 'openlibrary' in rec:
         return '/books/' + rec['openlibrary']
 
