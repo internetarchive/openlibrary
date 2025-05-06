@@ -29,8 +29,8 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.accounts.model import sendmail
-from openlibrary.core import lending, stats
 from openlibrary.core import helpers as h
+from openlibrary.core import lending, stats
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -438,7 +438,12 @@ class account_login_json(delegate.page):
                         ol_account, get_pd_org(web.cookies().get("pda"))
                     )
                     _handle_pd_cookies(ol_account)
-                    add_flash_message("info", _("Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."))
+                    add_flash_message(
+                        "info",
+                        _(
+                            "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+                        ),
+                    )
 
         # Fallback to infogami user/pass
         else:
@@ -533,7 +538,12 @@ class account_login(delegate.page):
                     ol_account, get_pd_org(web.cookies().get("pda"))
                 )
                 _handle_pd_cookies(ol_account)
-                add_flash_message("info", _("Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."))
+                add_flash_message(
+                    "info",
+                    _(
+                        "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+                    ),
+                )
 
         blacklist = [
             "/account/login",

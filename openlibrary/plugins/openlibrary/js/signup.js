@@ -159,15 +159,15 @@ export function initSignupForm() {
 
     function validatePDSelection() {
         if (!rpdCheckbox.checked) {
-            clearError("#pd_program", "#pd_programMessage")
+            clearError('#pd_program', '#pd_programMessage')
             return
         }
-        if (pdaSelector.value === "") {
-            renderError("#pd_program", "#pd_programMessage", i18nStrings["missing_pda_err"])
+        if (pdaSelector.value === '') {
+            renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err'])
             return
         }
 
-        clearError("#pd_program", "#pd_programMessage")
+        clearError('#pd_program', '#pd_programMessage')
     }
 
     // Maps input ID attribute to corresponding validation function
@@ -201,12 +201,12 @@ export function initSignupForm() {
     });
 
     // Validates the print-disability authority selection when the selection changes
-    $("form[name=signup] select").on("change", function() {
+    $('form[name=signup] select').on('change', function() {
         validatePDSelection()
     })
 
     // Validates the print-disability authority selection when the PD request checkbox is updated
-    $("#pd_request").on("input", function() {
+    $('#pd_request').on('input', function() {
         validatePDSelection()
     })
 

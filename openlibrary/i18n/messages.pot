@@ -1181,6 +1181,10 @@ msgstr ""
 msgid "This work does not appear on any lists."
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/pd.py
+msgid "I don't have one yet"
+msgstr ""
+
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -1260,6 +1264,13 @@ msgstr ""
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Thank you for registering an Open Library account and requesting special "
+"print disability access. You should receive an email detailing next steps"
+" in the process."
 msgstr ""
 
 #: account/password/reset_success.html account/verify.html
@@ -1404,15 +1415,10 @@ msgid ""
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
-#, python-format
 msgid ""
-"I require <a href=\"https://help.archive.org/help/program-"
-"overview/\">special access</a> for a <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print "
-"disability</a> offered by one of these <a href=\"https://blog.archive.org"
-"/internet-archive-beta-program-for-competent-authority-"
-"registration/#:~:text=Qualifying%20Authorities-,Qualifying%20Authorities,-certify%20users%20as\">qualifying"
-" programs</a>"
+"I would like to apply for <a href=\"https://help.archive.org/help"
+"/program-overview/\">special print disability access</a> through a "
+"qualifying program."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
@@ -2386,6 +2392,10 @@ msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
+msgid "Must select a qualifying authority"
+msgstr ""
+
+#: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
 
@@ -2412,11 +2422,13 @@ msgid "screenname"
 msgstr ""
 
 #: account/create.html
-msgid "I have qualified through this program"
+msgid "Select qualifying authority"
 msgstr ""
 
 #: account/create.html
-msgid "Select qualifying authority"
+msgid ""
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
 msgstr ""
 
 #: account/create.html
