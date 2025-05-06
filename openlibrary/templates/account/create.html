@@ -7,6 +7,7 @@ $ i18n_strings = {
     $ "username_length_err": _("Must be between 3 and 20 characters"),
     $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
     $ "password_length_err": _("Must be between 3 and 20 characters"),
+    $ "missing_pda_err": _("Must select a qualifying authority"),
     $ "loading_text": _("Loading...")
     $ }
 
@@ -81,8 +82,9 @@ $var title: $_("Sign Up to Open Library")
                 $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
             </div>
             <div id="pda-selector" class="ol-signup-form__select hidden">
+                <div class="ol-signup-form__error" id="pd_programMessage"></div>
                 <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying authority')">
-                    <option value="placeholder" disabled selected>$_("Select qualifying authority")</option>
+                    <option value="" disabled selected>$_("Select qualifying authority")</option>
                     $for option in pd_options:
                         <option value="$option.value" label="$option.label"></option>
                 </select>

@@ -5,6 +5,7 @@ export function initSignupForm() {
     const submitBtn = document.querySelector('button[name=signup]');
     const rpdCheckbox = document.querySelector('#pd_request')
     const pdaSelectorContainer = document.querySelector('#pda-selector')
+    const pdaSelector = document.querySelector('#pd_program')
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
     const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
@@ -29,7 +30,7 @@ export function initSignupForm() {
     // Includes invalid input count to account for checks not covered by reportValidity
     $(signupForm).on('submit', function(e) {
         e.preventDefault();
-        const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
+        const numInvalidInputs = signupForm.querySelectorAll('.invalid').length;
         const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity();
         if (numInvalidInputs === 0 && isFormattingValid && window.grecaptcha) {
             $(submitBtn).prop('disabled', true).text(i18nStrings['loading_text']);
@@ -156,6 +157,19 @@ export function initSignupForm() {
         clearError('#password', '#passwordMessage');
     }
 
+    function validatePDSelection() {
+        if (!rpdCheckbox.checked) {
+            clearError("#pd_program", "#pd_programMessage")
+            return
+        }
+        if (pdaSelector.value === "") {
+            renderError("#pd_program", "#pd_programMessage", i18nStrings["missing_pda_err"])
+            return
+        }
+
+        clearError("#pd_program", "#pd_programMessage")
+    }
+
     // Maps input ID attribute to corresponding validation function
     function validateInput(input) {
         const id = $(input).attr('id');
@@ -165,24 +179,36 @@ export function initSignupForm() {
             validateUsername();
         } else if (id === 'password') {
             validatePassword();
-        } else if (id !== 'pd_request') {
+        } else {
             throw new Error('Input validation function not found');
         }
     }
 
-    // Validates inputs already marked as invalid on value change
-    $('form[name=signup] input').on('input', debounce(function(){
+    const $nonCheckboxInputs = $('form[name=signup] input:not([type="checkbox"])')
+
+    // Validates input fields already marked as invalid on value change
+    $nonCheckboxInputs.on('input', debounce(function(){
         if ($(this).hasClass('invalid')) {
             validateInput(this);
         }
     }, 50));
 
-    // Validates all other inputs (i.e. not already marked as invalid) on blur
-    $('form[name=signup] input').on('blur', function() {
+    // Validates all other input fields (i.e. not already marked as invalid) on blur
+    $nonCheckboxInputs.on('blur', function() {
         if (!$(this).hasClass('invalid')) {
             validateInput(this);
         }
     });
+
+    // Validates the print-disability authority selection when the selection changes
+    $("form[name=signup] select").on("change", function() {
+        validatePDSelection()
+    })
+
+    // Validates the print-disability authority selection when the PD request checkbox is updated
+    $("#pd_request").on("input", function() {
+        validatePDSelection()
+    })
 
     function updateSelectorVisibility() {
         if (rpdCheckbox.checked) {
