@@ -32,9 +32,17 @@ def get_pd_options() -> list[PDOption]:
 
 
 def get_pd_org(identifier: str) -> str|None:
-    """Returns the name of the organization associated with the given identifier."""
+    """Returns the name of the organization associated with the given identifier.
+    Falls back to vtmas_disabilityresources if no match is found.
+    """
     orgs = cached_pd_org_query()
-    return next((org for org in orgs if org['identifier'] == identifier), None)
+    vtmas = None
+    for org in orgs:
+        if org['identifier'] == identifier:
+            return org
+        if org['identifier'] == 'vtmas_disabilityresources':
+            vtmas = org
+    return vtmas
 
 
 def make_pd_org_query() -> list:
