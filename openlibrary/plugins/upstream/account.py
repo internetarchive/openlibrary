@@ -362,6 +362,8 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> 
 
 def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
+    if pda == "unqualified":
+        pda = "vtmas_disabilityresources"
     ol_account.get_user().save_preferences(
         {
             "rpd": 1,
