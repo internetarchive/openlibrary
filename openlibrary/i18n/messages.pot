@@ -1416,9 +1416,9 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid ""
-"I would like to apply for <a href=\"https://help.archive.org/help"
-"/program-overview/\">special print disability access</a> through a "
-"qualifying program."
+"I want to apply for <a href=\"https://help.archive.org/help/program-"
+"overview/\">special print disability access</a> through a qualifying "
+"program."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
@@ -2392,7 +2392,7 @@ msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
-msgid "Must select a qualifying authority"
+msgid "A qualifying program must be selected"
 msgstr ""
 
 #: account/create.html
