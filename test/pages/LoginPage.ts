@@ -7,6 +7,7 @@ export class LoginPage {
   passwordFieldLocator: Locator;
   loginButton: Locator;
   errorMessage = "Please include an '@' in the email address.";
+  logoutButton: Locator;
 
   constructor({ page }: { page: Page }) {
     this.page = page;
@@ -14,9 +15,14 @@ export class LoginPage {
     this.emailFieldLocator = page.getByRole("textbox", { name: "Email" });
     this.passwordFieldLocator = page.getByText("Password", { exact: true });
     this.loginButton = page.getByRole("button", { name: "Log In" });
+    this.logoutButton = page.getByRole("button", { name: "Log out" });
   }
 
-  async navigateToLoginPage(): Promise<void> {
+  async waitForLoad() {
+    await this.loginButton.waitFor();
+  }
+
+  async navigate(): Promise<void> {
     await this.loginLinkLocator.click();
   }
 
