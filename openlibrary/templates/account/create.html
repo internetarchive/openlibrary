@@ -83,8 +83,8 @@ $var title: $_("Sign Up to Open Library")
             </div>
             <div id="pda-selector" class="ol-signup-form__select hidden">
                 <div class="ol-signup-form__error" id="pd_programMessage"></div>
-                <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying authority')">
-                    <option value="" disabled selected>$_("Select qualifying authority")</option>
+                <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')">
+                    <option value="" disabled selected>$_("Select qualifying program")</option>
                     $for option in pd_options:
                         <option value="$option.value" label="$option.label"></option>
                 </select>
