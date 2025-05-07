@@ -30,6 +30,7 @@ export function initSignupForm() {
     // Includes invalid input count to account for checks not covered by reportValidity
     $(signupForm).on('submit', function(e) {
         e.preventDefault();
+        validatePDSelection()
         const numInvalidInputs = signupForm.querySelectorAll('.invalid').length;
         const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity();
         if (numInvalidInputs === 0 && isFormattingValid && window.grecaptcha) {
@@ -205,11 +206,6 @@ export function initSignupForm() {
         validatePDSelection()
     })
 
-    // Validates the print-disability authority selection when the PD request checkbox is updated
-    $('#pd_request').on('input', function() {
-        validatePDSelection()
-    })
-
     function updateSelectorVisibility() {
         if (rpdCheckbox.checked) {
             pdaSelectorContainer.classList.remove('hidden')
@@ -218,8 +214,11 @@ export function initSignupForm() {
         }
     }
 
-    updateSelectorVisibility()
     rpdCheckbox.addEventListener('change', updateSelectorVisibility)
+
+    // On page reload, display PD program options and validate selection
+    updateSelectorVisibility()
+    validatePDSelection()
 }
 
 export function initLoginForm() {
