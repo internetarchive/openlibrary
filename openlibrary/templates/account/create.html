@@ -92,6 +92,9 @@ $var title: $_("Sign Up to Open Library")
             </div>
             <div class="formElement bottom">
                 <br/>
+                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
+                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
+                <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
                 $ sitekey = classes = callback = ''
                 $if form.has_recaptcha:
                     $ callback = "data-callback=submitCreateAccountForm"
@@ -99,9 +102,6 @@ $var title: $_("Sign Up to Open Library")
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
                     <div class="$classes" $sitekey $callback data-size="invisible"></div>
-                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
-                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
-                <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
             </div>
         </form>
     </div>
