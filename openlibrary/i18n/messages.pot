@@ -2422,7 +2422,7 @@ msgid "screenname"
 msgstr ""
 
 #: account/create.html
-msgid "Select qualifying authority"
+msgid "Select qualifying program"
 msgstr ""
 
 #: account/create.html
