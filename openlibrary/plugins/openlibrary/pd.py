@@ -36,12 +36,14 @@ def get_pd_org(identifier: str) -> str | None:
     Falls back to vtmas_disabilityresources if no match is found.
     """
     orgs = cached_pd_org_query()
-    vtmas = None
+    vtmas = {
+        "identifier": "vtmas_disabilityresources",
+        "title": "Vermont Mutual Aid Society",
+    }
     for org in orgs:
         if org['identifier'] == identifier:
             return org
-        if org['identifier'] == 'vtmas_disabilityresources':
-            vtmas = org
+
     return vtmas
 
 
