@@ -543,7 +543,9 @@ class account_login(delegate.page):
                 add_flash_message(
                     "info",
                     _(
-                        "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+                        "Thank you for registering an Open Library account and "
+                        "requesting special print disability access. You should receive "
+                        "an email detailing next steps in the process."
                     ),
                 )
 
