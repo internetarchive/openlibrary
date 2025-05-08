@@ -201,39 +201,6 @@ def generic_carousel(
     return storify(books) if books else books
 
 
-def format_list_editions(key):
-    """Formats the editions of a list suitable for display in carousel."""
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    seed_list = web.ctx.site.get(key)
-    if not seed_list:
-        return []
-
-    editions = {}
-    for seed in seed_list.seeds:
-        if not isinstance(seed, str):
-            if seed.type.key == "/type/edition":
-                editions[seed.key] = seed
-            else:
-                try:
-                    e = pick_best_edition(seed)
-                except StopIteration:
-                    continue
-                editions[e.key] = e
-    return [format_book_data(e) for e in editions.values()]
-
-
-# cache the results of format_list_editions in memcache for 5 minutes
-format_list_editions = cache.memcache_memoize(
-    format_list_editions, "home.format_list_editions", timeout=5 * 60
-)
-
-
-def pick_best_edition(work):
-    return next(e for e in work.editions if e.ocaid)
-
-
 def format_work_data(work):
     d = dict(work)
 
