@@ -7,7 +7,7 @@ import hashlib
 import os
 import struct
 import sys
-import urllib.request
+import requests
 from typing import Final
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
@@ -28,8 +28,11 @@ class HashIP:
     def get_seed(self) -> None:
         """Get the day's seed."""
         try:
-            with urllib.request.urlopen(SEED_PATH) as handle:
-                content = handle.read()
+            r = requests.get(SEED_PATH)
+            r.raise_for_status()
+            content = r.text
+            """ with urllib.request.urlopen(SEED_PATH) as handle:
+                content = handle.read() """
         except Exception as e:  # noqa: BLE001
             print("Error retrieving seed:", e)
             sys.exit(1)
