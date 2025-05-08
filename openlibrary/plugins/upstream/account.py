@@ -320,7 +320,7 @@ class account_create(delegate.page):
                 `ml_updates`
                 """  # nopep8
                 mls = ['ml_best_of', 'ml_updates']
-                notifications = mls if f.ia_newsletter.checked else []
+                notifications = mls if "ia_newsletter" in web.input() else []
                 InternetArchiveAccount.create(
                     screenname=f.username.value,
                     email=f.email.value,
