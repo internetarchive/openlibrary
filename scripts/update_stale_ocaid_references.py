@@ -9,12 +9,12 @@ PYTHONPATH=. python ./scripts/update_stale_ocaid_references.py /olsystem/etc/ope
 import json
 import logging
 import os
+from itertools import batched
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
 
-from itertools import batched
 # Import necessary components for advanced retries
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry  # Correct import path
