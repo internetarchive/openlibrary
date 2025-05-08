@@ -66,9 +66,7 @@ def make_pd_org_query() -> list:
 
 
 def cached_pd_org_query() -> list:
-    mc = cache.memcache_memoize(
-        make_pd_org_query, "pd-org-query", timeout=DAY_SECS 
-    )
+    mc = cache.memcache_memoize(make_pd_org_query, "pd-org-query", timeout=DAY_SECS)
     if not (results := mc() or []):
         mc(_cache="delete")
     return results
