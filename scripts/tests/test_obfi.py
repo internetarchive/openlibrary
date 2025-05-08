@@ -3,7 +3,7 @@ import os
 import socket
 import sys
 import time
-import urllib.request
+import requests
 from pathlib import Path
 from types import MappingProxyType
 
@@ -13,12 +13,14 @@ os.environ['SEED_PATH'] = 'must be truthy for obfi/decode_ip scripts to run'
 from ..obfi import hide, mktable, reveal, shownames
 
 
-def mock_urlopen(*args, **kwargs):
+def mock_get(*args, **kwargs):
     """Mock for urllib.request.urlopen to always return seed=1234."""
 
-    class MockRead:
-        def read(self):
-            return b"seed=1234"
+    class MockGet:
+        text = b"seed=1234"
+
+        def raise_for_status(self):
+            return None
 
         def __enter__(self):
             return self
@@ -26,7 +28,7 @@ def mock_urlopen(*args, **kwargs):
         def __exit__(self, *args):
             pass
 
-    return MockRead()
+    return MockGet()
 
 
 @pytest.fixture
@@ -37,7 +39,7 @@ def get_patched_hide(monkeypatch) -> hide.HashIP:
 
     Give mktable a temp custom prefix to use when saving the real_ip db.
     """
-    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    monkeypatch.setattr(requests, "get", mock_get)
 
     hash_ip = hide.HashIP()
     return hash_ip
@@ -51,7 +53,7 @@ def get_patched_mktable(monkeypatch, tmp_path) -> mktable.HashIP:
 
     Give mktable a temp custom prefix to use when saving the real_ip db.
     """
-    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    monkeypatch.setattr(requests, "get", mock_get)
     file: Path = tmp_path / "hide_ip_map_"
     hash_ip = mktable.HashIP(real_ip_prefix=file.as_posix())
 
