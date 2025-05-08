@@ -28,6 +28,7 @@ from openlibrary.accounts import (
     clear_cookies,
     valid_email,
 )
+from openlibrary.accounts.model import sendmail
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
 from openlibrary.core.booknotes import Booknotes
@@ -41,6 +42,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
+from openlibrary.plugins.openlibrary.pd import get_pd_options, get_pd_org
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
@@ -58,7 +60,6 @@ RESULTS_PER_PAGE: Final = 25
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
-sendmail = accounts.sendmail
 
 
 def get_login_error(error_key):
@@ -280,7 +281,7 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        return render['account/create'](f)
+        return render['account/create'](f, pd_options=get_pd_options())
 
     def get_form(self) -> forms.RegisterForm:
         f = forms.Register()
@@ -329,6 +330,8 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
+                if "pd_request" in web.input() and web.input().get("pd_program"):
+                    web.setcookie("pda", web.input().get("pd_program"))
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
@@ -340,10 +343,48 @@ class account_create(delegate.page):
                     extra = {'response': e.response} if hasattr(e, 'response') else None
                     sentry.capture_exception(e, extras=extra)
 
-        return render['account/create'](f)
+        return render['account/create'](f, pd_options=get_pd_options())
 
 
 del delegate.pages['/account/register']
+
+
+def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> None:
+    if ol_account.get_user().get_safe_mode() == 'yes':
+        web.setcookie('sfw', 'yes', expires=expires)
+    if 'yrg_banner_pref' in ol_account.get_user().preferences():
+        web.setcookie(
+            ol_account.get_user().preferences()['yrg_banner_pref'],
+            '1',
+            expires=(3600 * 24 * 365),
+        )
+
+
+def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
+    pda = web.cookies().get("pda")
+    if pda == "unqualified":
+        pda = "vtmas_disabilityresources"
+    ol_account.get_user().save_preferences(
+        {
+            "rpd": 1,
+            "pda": pda,
+        }
+    )
+    web.setcookie("pda", "", expires=1)
+
+
+def _notify_on_rpd_verification(ol_account, org):
+    if org:
+        displayname = web.safestr(ol_account.displayname)
+        msg = render_template(
+            "email/account/pd_request", displayname=displayname, org=org
+        )
+        web.sendmail(
+            config.from_address,
+            ol_account.email,
+            subject=msg.subject.strip(),
+            message=msg,
+        )
 
 
 class account_login_json(delegate.page):
@@ -387,19 +428,17 @@ class account_login_json(delegate.page):
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email'):
-                ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
-                if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
-                    web.setcookie('sfw', 'yes', expires=expires)
-                if (
-                    ol_account
-                    and 'yrg_banner_pref' in ol_account.get_user().preferences()
-                ):
-                    web.setcookie(
-                        ol_account.get_user().preferences()['yrg_banner_pref'],
-                        '1',
-                        expires=(3600 * 24 * 365),
+            if audit.get('ia_email') and (
+                ol_account := OpenLibraryAccount.get(email=audit['ia_email'])
+            ):
+                _set_account_cookies(ol_account, expires)
+
+                if web.cookies().get("pda"):
+                    _notify_on_rpd_verification(
+                        ol_account, get_pd_org(web.cookies().get("pda"))
                     )
+                    _handle_pd_cookies(ol_account)
+
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -484,15 +523,24 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
-        ol_account = OpenLibraryAccount.get(email=email)
-        if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
-            web.setcookie('sfw', 'yes', expires=expires)
-        if ol_account and 'yrg_banner_pref' in ol_account.get_user().preferences():
-            web.setcookie(
-                ol_account.get_user().preferences()['yrg_banner_pref'],
-                '1',
-                expires=(3600 * 24 * 365),
-            )
+
+        if ol_account := OpenLibraryAccount.get(email=email):
+            _set_account_cookies(ol_account, expires)
+
+            if web.cookies().get("pda"):
+                _notify_on_rpd_verification(
+                    ol_account, get_pd_org(web.cookies().get("pda"))
+                )
+                _handle_pd_cookies(ol_account)
+                add_flash_message(
+                    "info",
+                    _(
+                        "Thank you for registering an Open Library account and "
+                        "requesting special print disability access. You should receive "
+                        "an email detailing next steps in the process."
+                    ),
+                )
+
         blacklist = [
             "/account/login",
             "/account/create",
