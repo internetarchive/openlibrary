@@ -11,7 +11,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
 
