@@ -14,6 +14,7 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import requests
 import web
 
+from itertools import batched
 # Import necessary components for advanced retries
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry  # Correct import path
@@ -118,8 +119,7 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
 
     # Process ocaids in batches of 1000
     BATCH_SIZE = 1_000
-    for i in range(0, len(edition_keys), BATCH_SIZE):
-        batch_keys = edition_keys[i : i + BATCH_SIZE]
+    for batch_keys in batched(edition_keys, BATCH_SIZE):
         ol_editions = web.ctx.site.get_many(list(batch_keys))
 
         updated_eds = []
