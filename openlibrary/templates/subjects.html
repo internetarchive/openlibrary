@@ -7,6 +7,19 @@ $ has_tag = 'tag' in page
 $ q = query_param('q')
 
 <div id="scrollHere"></div>
+
+<div id="feedback-widget" class="feedback-widget">
+  <p>$_("Is this collection useful to you?")</p>
+  <button onclick="submitFeedback(1)" title="$_ ('Yes')">👍</button>
+  <button onclick="submitFeedback(-1)" title="$_ ('No')">👎</button>
+  <button onclick="dismissWidget()" title="$_ ('Dismiss')">❌</button>
+</div>
+
+<div id="feedback-message" class="feedback-message">
+  {{ _('Thanks for your feedback!') }}
+</div>
+
+
 <div class="page-heading-search-box">
     $if can_add_tag:
       <div class="subjectTagEdit">

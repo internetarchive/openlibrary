@@ -22,8 +22,8 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
+from openlibrary.core import feedback, lending, models
 from openlibrary.core import helpers as h
-from openlibrary.core import lending, models
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
@@ -708,3 +708,32 @@ class create_qrcode(delegate.page):
             img.save(buf, format='PNG')
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
+
+
+class feedback_api(delegate.page):
+    path = "/api/feedback"
+    encoding = "json"
+
+    def POST(self):
+        try:
+            data = json.loads(web.data())
+
+            key = data.get("key")
+            score = data.get("score")
+            patron = data.get("patron_name", "anonymous")
+            country = data.get("country", "unknown")
+
+            # Save to DB
+            feedback.insert_feedback(
+                key=key, score=score, patron_name=patron, country=country
+            )
+
+            return delegate.RawText(
+                json.dumps({"status": "ok"}), content_type="application/json"
+            )
+
+        except ValueError as e:
+            return delegate.RawText(
+                json.dumps({"status": "error", "message": str(e)}),
+                content_type="application/json",
+            )
