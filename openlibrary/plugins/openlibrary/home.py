@@ -201,31 +201,6 @@ def generic_carousel(
     return storify(books) if books else books
 
 
-def format_work_data(work):
-    d = dict(work)
-
-    key = work.get('key', '')
-    # New solr stores the key as /works/OLxxxW
-    if not key.startswith("/works/"):
-        key = "/works/" + key
-
-    d['url'] = key
-    d['title'] = work.get('title', '')
-
-    if 'author_key' in work and 'author_name' in work:
-        d['authors'] = [
-            {"key": key, "name": name}
-            for key, name in zip(work['author_key'], work['author_name'])
-        ]
-
-    if 'cover_edition_key' in work:
-        coverstore_url = get_coverstore_public_url()
-        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
-
-    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
-    return d
-
-
 def format_book_data(book, fetch_availability=True):
     d = web.storage()
     d.key = book.get('key')
