@@ -1,182 +1,252 @@
-import Promise from 'promise-polyfill';
+class GoodreadsImport {
+    constructor() {
+        this.isbnToWorkId = {};
+        this.workIdToIsbn = {};
+        this.isbnNotInCollection = [];
+        this.shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
+        this.readingList = {
+            1: [],
+            2: [],
+            3: []
+        };
+        this.attempted = 1;
+        this.submit();
+    }
 
-export function initGoodreadsImport() {
+    async submit() {
+        document.querySelector('.import-submit').addEventListener('click', async () => {
+            document.querySelector('input.import-submit').classList.add('hidden');
+            document.getElementById('myProgress').classList.remove('hidden');
+            const response = await this.batchAddToBookshelves(await this.parseReadingList());
+            const reporter = new Reporter(
+                response, this.isbnNotInCollection,
+                this.workIdToIsbn, this.isbnToWorkId
+            );
+            reporter.handleReport();
+        })
+    }
 
-    var count, prevPromise;
+    async batchAddToBookshelves(readingList) {
+        try {
+            const response = await fetch('/works/batch/bookshelves.json', {
+                method: 'POST',
+                body: JSON.stringify({
+                    reading_list: readingList,
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                }
+            });
 
-    $(document).on('click', 'th.toggle-all input', function () {
-        var checked = $(this).prop('checked');
-        $('input.add-book').each(function () {
-            $(this).prop('checked', checked);
-            if (checked) {
-                $(this).attr('checked', 'checked');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            else {
-                $(this).removeAttr('checked');
-            }
-        });
-        const l = $('.add-book[checked*="checked"]').length;
-        $('.import-submit').attr('value', `Import ${l} Books`);
-    });
 
-    $(document).on('click', 'input.add-book', function () {
-        if ($(this).prop('checked')) {
-            $(this).attr('checked', 'checked');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /*
+    This function parses a readingList from the Goodreads Import page.
+    It returns a dictionary with the following structure:
+    {
+        '1': [{workId: number, editionId: number}, ...], // to-read
+        '2': [{workId: number, editionId: number}, ...], // currently-reading
+        '3': [{workId: number, editionId: number}, ...]  // read
+    }
+    */
+    async parseReadingList() {
+        const shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
+        const readingList = {
+            1: [],
+            2: [],
+            3: []
+        };
+
+        const rows = document.querySelectorAll('.table-row');
+        for (const row of rows) {
+            this.updateProgress();
+            if (!row.hasAttribute('isbn')) {
+                continue;
+            }
+
+            if (!row.querySelector('input.add-book').checked) {
+                continue;
+            }
+
+            this.attempted++;
+
+            const shelf = row.querySelector('[key="Exclusive Shelf"]').innerText;
+            const shelf_id = shelves[shelf];
+            if (shelf_id === undefined) {
+                Reporter.createNotice({
+                    workId: null,
+                    status: 'error',
+                    isbn: null,
+                    message: 'Custom shelves are not supported',
+                    row: row
+                });
+                continue;
+            }
+
+            const workId = await this.getIdSet(row.getAttribute('isbn'));
+            if (workId) {
+                readingList[shelf_id].push(workId);
+            }
+        }
+        return readingList;
+    }
+
+    /*
+    This function fetches the workId and editionId for a given ISBN.
+    return type: { workId: number, editionId: number }
+    */
+    async getIdSet(isbn) {
+        try {
+            const response = await fetch(`/isbn/${isbn}.json`);
+            const data = await response.json();
+            const workId = data['works'][0].key;
+            const workIdNumber = workId.slice(9, -1);
+            const editionId = data.key.slice(9, -1);
+            this.isbnToWorkId[isbn] = workId;
+            this.workIdToIsbn[workIdNumber] = isbn;
+            return {
+                workId: +workIdNumber,
+                editionId: +editionId
+            };
+        } catch (error) {
+            this.isbnNotInCollection.push(isbn);
+            return undefined;
+        }
+    }
+
+    updateProgress() {
+        if (this.attempted === 1) {
+            document.querySelector('input.import-submit').classList.add('hidden');
+            document.getElementById('myProgress').classList.remove('hidden');
         }
         else {
-            $(this).removeAttr('checked');
-        }
-        const l = $('.add-book[checked*="checked"]').length;
-        $('.import-submit').attr('value', `Import ${l} Books`);
-    });
-
-    //updates the progress bar based on the book count
-    function func1(value) {
-        const l = $('.add-book[checked*="checked"]').length;
-        const elem = document.getElementById('myBar');
-        elem.style.width = `${value * (100 / l)}%`;
-        elem.innerHTML = `${value} Books`;
-        if (value * (100 / l) >= 100) {
-            elem.innerHTML = '';
-            $('#myBar').append('<a href="/account/books" style="color:white"> Go to your Reading Log </a>');
-            $('.cancel-button').addClass('hidden');
+            Reporter.updateProgressBar(this.attempted);
         }
     }
+}
 
-    $('.import-submit').on('click', function () {
-        $('#myProgress').removeClass('hidden');
-        $('.cancel-button').removeClass('hidden');
-        $('input.import-submit').addClass('hidden');
-        $('th.import-status').removeClass('hidden');
-        $('th.status-reason').removeClass('hidden');
-        const shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
-        count = 0;
-        prevPromise = Promise.resolve();
-        $('input.add-book').each(function () {
-            var input = $(this),
-                checked = input.prop('checked');
-            var value = JSON.parse(input.val().replace(/'/g, '"'));
-            var shelf = value['Exclusive Shelf'];
-            var shelf_id = 0;
-            const hasFailure = function () {
-                return $(`[isbn=${value['ISBN']}]`).hasClass('import-failure');
-            };
-            const fail = function (reason) {
-                if (!hasFailure()) {
-                    const element = $(`[isbn=${value['ISBN']}]`);
-                    element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`)
-                    element.removeClass('selected');
-                    element.addClass('import-failure');
-                }
-            };
+class Toggler {
+    constructor() {
+        this.toggleAllBooks();
+        this.toggleSingleBook();
+    }
 
-            if (!checked) {
-                func1(++count);
-                return;
-            }
-
-            if (shelves[shelf]) {
-                shelf_id = shelves[shelf];
-            }
-
-            //used 'return' instead of 'return false' because the loop was being exited entirely
-            if (shelf_id === 0) {
-                fail('Custom shelves are not supported');
-                func1(++count);
-                return;
-            }
-
-            prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
-                $(`[isbn=${value['ISBN']}]`).addClass('selected');
-                return getWork(value['ISBN']); // return a new Promise
-            }).then(function (data) {
-                var obj = JSON.parse(data);
-                $.ajax({
-                    url: `${obj['works'][0].key}/bookshelves.json`,
-                    type: 'POST',
-                    data: {
-                        dont_remove: true,
-                        edition_id: obj['key'],
-                        bookshelf_id: shelf_id
-                    },
-                    dataType: 'json'
-                }).fail(function () {
-                    fail('Failed to add book to reading log');
-                }).done(function () {
-                    if (value['My Rating'] !== '0') {
-                        return $.ajax({
-                            url: `${obj['works'][0].key}/ratings.json`,
-                            type: 'POST',
-                            data: {
-                                rating: parseInt(value['My Rating']),
-                                edition_id: obj['key'],
-                                bookshelf_id: shelf_id
-                            },
-                            dataType: 'json',
-                            fail: function () {
-                                fail('Failed to add rating');
-                            }
-                        });
-                    }
-                }).then(function () {
-                    if (value['Date Read'] !== '') {
-                        const date_read = value['Date Read'].split('/'); // Format: "YYYY/MM/DD"
-                        return $.ajax({
-                            url: `${obj['works'][0].key}/check-ins`,
-                            type: 'POST',
-                            data: JSON.stringify({
-                                edition_key: obj['key'],
-                                event_type: 3,  // BookshelfEvent.FINISH
-                                year: parseInt(date_read[0]),
-                                month: parseInt(date_read[1]),
-                                day: parseInt(date_read[2])
-                            }),
-                            dataType: 'json',
-                            contentType: 'application/json',
-                            beforeSend: function (xhr) {
-                                xhr.setRequestHeader('Content-Type', 'application/json');
-                                xhr.setRequestHeader('Accept', 'application/json');
-                            },
-                            fail: function () {
-                                fail('Failed to set the read date');
-                            }
-                        });
-                    }
-                });
-                if (!hasFailure()) {
-                    $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>')
-                    $(`[isbn=${value['ISBN']}]`).removeClass('selected');
-                }
-                func1(++count);
-            }).catch(function () {
-                fail('Book not in collection');
-                func1(++count);
+    toggleAllBooks() {
+        document.querySelector('th.toggle-all input').addEventListener('click', (event) => {
+            const isChecked = event.target.checked;
+            document.querySelectorAll('input.add-book').forEach((input) => {
+                input.checked = isChecked;
             });
-        });
-
-        $('td.books-wo-isbn').each(function () {
-            $(this).removeClass('hidden');
-        });
-    });
-
-    function getWork(isbn) {
-        return new Promise(function (resolve, reject) {
-            var request = new XMLHttpRequest();
-
-            request.open('GET', `/isbn/${isbn}.json`);
-            request.onload = function () {
-                if (request.status === 200) {
-                    resolve(request.response); // we get the data here, so resolve the Promise
-                } else {
-                    reject(Error(request.statusText)); // if status is not 200 OK, reject.
-                }
-            };
-
-            request.onerror = function () {
-                reject(Error('Error fetching data.')); // error occurred, so reject the Promise
-            };
-
-            request.send(); // send the request
+            this.updateImportNumber();
         });
     }
+
+    toggleSingleBook() {
+        document.querySelectorAll('input.add-book').forEach((input) => {
+            input.addEventListener('click', () => {
+                this.updateImportNumber();
+            });
+        }
+        )}
+
+    updateImportNumber() {
+        const checked = document.querySelectorAll('input.add-book:checked').length;
+        document.querySelector('.import-submit').setAttribute('value', `Import ${checked} Books`);
+    }
+}
+
+class Reporter {
+    constructor(response, isbnNotInCollection, workIdToIsbn, isbnToWorkId) {
+        this.successfully_added = response.successfully_added;
+        this.unsuccessfully_added = response.unsuccessfully_added;
+        this.isbnNotInCollection = isbnNotInCollection;
+        this.workIdToIsbn = workIdToIsbn;
+        this.isbnToWorkId = isbnToWorkId;
+    }
+
+    handleReport() {
+        if (this.successfully_added) {
+            this.successfully_added.forEach((workId) => {
+                Reporter.createNotice({
+                    workId: workId,
+                    status: 'success',
+                    isbn: this.workIdToIsbn[workId],
+                    message: 'Success'
+                });
+            })
+        }
+        if (this.unsuccessfully_added) {
+            this.unsuccessfully_added.forEach((workId) => {
+                Reporter.createNotice({
+                    workId: workId,
+                    status: 'error',
+                    isbn: this.workIdToIsbn[workId],
+                    message: 'Likely already on shelf'
+                });
+            });
+        }
+        if (this.isbnNotInCollection) {
+            this.isbnNotInCollection.forEach((isbn) => {
+                Reporter.createNotice({
+                    workId: this.isbnToWorkId[isbn],
+                    status: 'not-in-collection',
+                    isbn: isbn,
+                    message: 'Not in Collection'
+
+                });
+            });
+        }
+    }
+
+    static updateProgressBar(attempted) {
+        const totalBooks = document.querySelectorAll('input.add-book:checked').length;
+        const progressBar = document.getElementById('myProgressBar');
+        const progress = (attempted / totalBooks) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.innerHTML = `${attempted} Books`;
+        if (progress >= 100) {
+            Reporter.goToReadingLog();
+        }
+    }
+
+    static goToReadingLog() {
+        const progressBar = document.getElementById('myProgressBar');
+        progressBar.innerHTML = '';
+        const link = document.createElement('a');
+        link.href = '/account/books';
+        link.style.color = 'white';
+        link.innerText = 'Go to your Reading Log';
+        progressBar.appendChild(link);
+        document.querySelector('.cancel-button').classList.add('hidden');
+    }
+
+    static createNotice(parameters) {
+        const notice = document.createElement('td');
+        notice.classList.add(`${parameters.status}-imported`);
+        notice.innerText = parameters.message;
+        const isbn = parameters.isbn
+        const row =
+            parameters.row
+            ?? document.querySelector(`[isbn="${isbn}"]`);
+        row.appendChild(notice);
+        row.classList.remove('selected');
+    }
+}
+
+export async function initGoodreadsImport() {
+    function init() {
+        new Toggler();
+        new GoodreadsImport();
+    }
+    init();
 }
