@@ -1172,6 +1172,7 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
+@public
 @functools.cache
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
