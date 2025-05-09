@@ -2,7 +2,8 @@ $def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, t
 
 $code:
   if user_lang_only:
-    user_lang= convert_iso_to_marc(get_lang() or 'en')
+    web_lang= get_lang() or 'en'
+    user_lang= convert_iso_to_marc(web_lang)
     if user_lang:
       query = query + ' language:' + user_lang
   title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
