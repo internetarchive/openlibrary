@@ -48,12 +48,18 @@ def get_homepage(devmode):
 
 
 def get_cached_homepage():
+    from openlibrary.plugins.openlibrary.code import is_bot
+
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
-    pd = web.cookies().get('pd', False)
-    key = "home.homepage." + lang
-    if pd:
+    key = f'home.homepage.{lang}'
+    cookies = web.cookies()
+    if cookies.get('pd', False):
         key += '.pd'
+    if cookies.get('sfw', ''):
+        key += '.sfw'
+    if is_bot():
+        key += '.bot'
 
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
@@ -72,8 +78,11 @@ def get_cached_homepage():
 # thread, so all the web.* stuff is correct. The inner function is executed on the
 # other thread, so all the web.* stuff will be dummy.
 def caching_prethread():
+    from openlibrary.plugins.openlibrary.code import is_bot
+
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang
+    _is_bot = is_bot()
 
     def main():
         # Leaving this in since this is a bit strange, but you can see it clearly
@@ -81,6 +90,7 @@ def caching_prethread():
         # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
         delegate.fakeload()
         web.ctx.lang = lang
+        web.ctx.is_bot = _is_bot
 
     return main
 
