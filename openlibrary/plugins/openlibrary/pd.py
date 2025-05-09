@@ -31,7 +31,7 @@ def get_pd_options() -> list[PDOption]:
     return options
 
 
-def get_pd_org(identifier: str) -> str | None:
+def get_pd_org(identifier: str) -> dict:
     """Returns the name of the organization associated with the given identifier.
     Falls back to vtmas_disabilityresources if no match is found.
     """
