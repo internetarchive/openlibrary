@@ -305,9 +305,15 @@ def list_recent_pages(path, limit=100, offset=0):
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
     lang = web.ctx.lang or 'en'
+    try:
+        locale = babel.Locale.parse(lang)
+    except babel.core.UnknownLocaleError:
+        # If the locale is not found, default to English
+        locale = babel.Locale.parse('en')
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
-    return format_list([str(x).strip() for x in items], locale=lang)
+    return format_list([str(x).strip() for x in items], locale=locale)
 
 
 @public
