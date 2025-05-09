@@ -11,7 +11,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
 
@@ -199,64 +199,6 @@ def generic_carousel(
             limit=limit,
         )[0]
     return storify(books) if books else books
-
-
-def format_list_editions(key):
-    """Formats the editions of a list suitable for display in carousel."""
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    seed_list = web.ctx.site.get(key)
-    if not seed_list:
-        return []
-
-    editions = {}
-    for seed in seed_list.seeds:
-        if not isinstance(seed, str):
-            if seed.type.key == "/type/edition":
-                editions[seed.key] = seed
-            else:
-                try:
-                    e = pick_best_edition(seed)
-                except StopIteration:
-                    continue
-                editions[e.key] = e
-    return [format_book_data(e) for e in editions.values()]
-
-
-# cache the results of format_list_editions in memcache for 5 minutes
-format_list_editions = cache.memcache_memoize(
-    format_list_editions, "home.format_list_editions", timeout=5 * 60
-)
-
-
-def pick_best_edition(work):
-    return next(e for e in work.editions if e.ocaid)
-
-
-def format_work_data(work):
-    d = dict(work)
-
-    key = work.get('key', '')
-    # New solr stores the key as /works/OLxxxW
-    if not key.startswith("/works/"):
-        key = "/works/" + key
-
-    d['url'] = key
-    d['title'] = work.get('title', '')
-
-    if 'author_key' in work and 'author_name' in work:
-        d['authors'] = [
-            {"key": key, "name": name}
-            for key, name in zip(work['author_key'], work['author_name'])
-        ]
-
-    if 'cover_edition_key' in work:
-        coverstore_url = get_coverstore_public_url()
-        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
-
-    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
-    return d
 
 
 def format_book_data(book, fetch_availability=True):
