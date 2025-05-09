@@ -2,7 +2,7 @@
 To Run:
 
 python -m pip install -r requirements_scripts.txt && \
-    PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml && \
+    PYTHONPATH=. python ./scripts/providers/import_wikisource.py conf/openlibrary.yml
     python -m pip uninstall -y -r requirements_scripts.txt
 """
 
@@ -235,6 +235,7 @@ class BookRecord:
     langconfig: LangConfig
     wikisource_page_title: str
     title: str | None = None
+    subtitle: str | None = None
     publish_date: str | None = None
     edition: str | None = None
     authors: list[Author] = field(default_factory=list)
@@ -248,6 +249,7 @@ class BookRecord:
     ia_id: str | None = None
     publish_places: list[str] = field(default_factory=list)
     page_count: int | None = None
+    wikidata_id: str | None = None
     oclcs: list[str] = field(default_factory=list)
     lccn: str | None = None
     isbn10: str | None = None
@@ -283,8 +285,8 @@ class BookRecord:
     @property
     def source_records(self) -> list[str]:
         records = [f"wikisource:{self.wikisource_id}"]
-        if self.ia_id is not None:
-            records.insert(0, f"ia:{self.ia_id}")
+        if self.wikidata_id is not None:
+            records.append(f"wikidata:{self.wikidata_id}")
         return records
 
     def to_dict(self):
@@ -295,8 +297,13 @@ class BookRecord:
             "source_records": self.source_records,
             "identifiers": {"wikisource": [self.wikisource_id]},
             "languages": [self.langconfig.ol_langcode],
-            "ia_id": self.source_records[0],
         }
+        if self.subtitle is not None:
+            output["subtitle"] = self.subtitle
+        if self.ia_id is not None:
+            output["ia_id"] = self.ia_id
+        if self.wikidata_id is not None:
+            output["identifiers"]["wikidata"] = [self.wikidata_id]
         if self.publish_date is not None:
             output["publish_date"] = self.publish_date
         if self.edition is not None:
@@ -323,7 +330,7 @@ class BookRecord:
         if self.publish_places:
             output["publish_places"] = self.publish_places
         if self.page_count:
-            output["pagination"] = self.page_count
+            output["number_of_pages"] = self.page_count
         if self.oclcs:
             output["oclc_numbers"] = self.oclcs
         if self.lccn:
@@ -526,6 +533,10 @@ def update_import_with_wikidata_api_response(
             ]
         )
 
+    # Page count
+    if "pageCount" in obj and "value" in obj["pageCount"]:
+        impt.page_count = int(obj["pageCount"]["value"])
+
     # Edition
     if "editionLabel" in obj and "value" in obj["editionLabel"]:
         impt.edition = obj["editionLabel"]["value"]
@@ -589,6 +600,7 @@ def scrape_wikidata_api(
         imports[item_id] = BookRecord(
             wikisource_page_title=quote(binding["page"]["value"].replace(' ', '_')),
             langconfig=cfg,
+            wikidata_id=item_id,
         )
 
     if not item_ids:
@@ -610,11 +622,13 @@ def scrape_wikidata_api(
   ?item
   ?itemLabel
   ?title
+  ?subtitle
   ?author
   ?authorLabel
   ?illustrator
   ?illustratorLabel
   ?publisher
+  ?publisherLabel
   ?publisherName
   ?publicationPlaceLabel
   ?editionLabel
@@ -632,13 +646,11 @@ WHERE {
             + ''.join([f"wd:{id}\n    " for id in batch])
             + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
+  OPTIONAL { ?item wdt:P1680 ?subtitle. }
   OPTIONAL { ?item wdt:P50 ?author. }
   OPTIONAL { ?item wdt:P110 ?illustrator. }
-  OPTIONAL {
-    ?item p:P123 ?publisherStatement.
-    ?publisherStatement ps:P123 ?publisher.
-    ?publisherStatement pq:P1932 ?publisherName.
-  }
+  OPTIONAL { ?item wdt:P123 ?publisher. }
+  OPTIONAL { ?item p:P123/pq:P1932 ?publisherName. }
   OPTIONAL { ?item wdt:P291 ?publicationPlace. }
   OPTIONAL { ?item wdt:P393 ?edition. }
   OPTIONAL { ?item wdt:P577 ?date. }
@@ -694,11 +706,17 @@ WHERE {
                 if "title" in obj and "value" in obj["title"]
                 else obj["itemLabel"]["value"]
             )
+            subtitle: str | None = (
+                obj["subtitle"]["value"]
+                if "subtitle" in obj and "value" in obj["subtitle"]
+                else None
+            )
 
             book_id = get_wd_item_id(obj["item"]["value"])
             impt = imports[book_id]
 
             impt.title = title
+            impt.subtitle = subtitle
             ids_for_wikisource_api.append(impt.wikisource_page_title)
 
             update_import_with_wikidata_api_response(impt, book_id, obj, author_map)
