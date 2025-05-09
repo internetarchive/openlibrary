@@ -488,11 +488,18 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @cached_property
     def _ia_editions(self) -> list[EditionSolrBuilder]:
         def get_ia_sorting_key(ed: EditionSolrBuilder) -> tuple[int, str]:
+            ia_id = cast(str, ed.ia)
+            # De-prioritize scans if lower quality
+            quality = '0: normal'
+            if ia_id.endswith('goog'):
+                quality = '1: goog'
+            if ia_id.startswith('cihm_'):
+                quality = '2: microfiche'
+
             return (
                 # -1 to sort in reverse and make public first
                 -1 * ed.ebook_access.value,
-                # De-prioritize google scans because they are lower quality
-                '0: non-goog' if not cast(str, ed.ia).endswith('goog') else '1: goog',
+                quality,
             )
 
         return sorted((e for e in self._solr_editions if e.ia), key=get_ia_sorting_key)
