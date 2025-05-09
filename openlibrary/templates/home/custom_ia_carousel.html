@@ -1,6 +1,10 @@
 $def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False, user_lang_only=False)
 
 $code:
+  if user_lang_only:
+    user_lang= convert_iso_to_marc(get_lang() or 'en')
+    if user_lang:
+      query = query + ' language:' + user_lang
   title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
   books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit) if not test else []
   sorts = ','.join(sorts) if sorts else ''
@@ -13,9 +17,5 @@ $code:
     "limit": limit
   }
 
-$ web_lang= get_lang() or 'en'
-$if user_lang_only and web_lang:
-  $ user_lang= convert_iso_to_marc(web_lang)
-   $if user_lang:
-    $ query = query + ' language:' + user_lang
+
 $:render_template("books/custom_carousel", books, title=title, url=title_url, key=key, min_books=min_books, load_more=load_more_config, test=test, compact_mode=compact_mode)
