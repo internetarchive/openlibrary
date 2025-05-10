@@ -86,6 +86,7 @@ class Solr:
         start=None,
         doc_wrapper=None,
         facet_wrapper=None,
+        _timeout=None,
         **kw,
     ):
         """Execute a solr query.
@@ -124,12 +125,18 @@ class Solr:
         json_data = self.raw_request(
             'select',
             urlencode(params, doseq=True),
+            _timeout=_timeout,
         ).json()
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    def raw_request(self, path_or_url: str, payload: str) -> requests.Response:
+    def raw_request(
+        self,
+        path_or_url: str,
+        payload: str,
+        _timeout: int | None = None,
+    ) -> requests.Response:
         if path_or_url.startswith("http"):
             # TODO: Should this only take a path, not a full url? Would need to
             # update worksearch.code.execute_solr_query accordingly.
@@ -137,19 +144,26 @@ class Solr:
         else:
             url = f'{self.base_url}/{path_or_url.lstrip("/")}'
 
+        if _timeout is not None:
+            timeout = _timeout
+        else:
+            timeout = 10
+
         # switch to POST request when the payload is too big.
         # XXX: would it be a good idea to switch to POST always?
         if len(payload) < 500:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
             logger.info("solr request: %s", url)
-            return self.session.get(url, timeout=10)
+            return self.session.get(url, timeout=timeout)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            return self.session.post(url, data=payload, headers=headers, timeout=10)
+            return self.session.post(
+                url, data=payload, headers=headers, timeout=timeout
+            )
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result['response']
