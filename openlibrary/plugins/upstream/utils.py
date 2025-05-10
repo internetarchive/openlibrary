@@ -307,7 +307,13 @@ def commify_list(items: Iterable[Any]) -> str:
     lang = web.ctx.lang or 'en'
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
-    return format_list([str(x).strip() for x in items], locale=lang)
+    try:
+        commified_list = format_list([str(x).strip() for x in items], locale=lang)
+    except babel.UnknownLocaleError as e:
+        logger.warning(f"unknown language for commify_list: {lang}. {e}")
+        commified_list = format_list([str(x).strip() for x in items], locale="en")
+
+    return commified_list
 
 
 @public
