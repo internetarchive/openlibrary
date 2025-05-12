@@ -14,7 +14,7 @@ from simplejson.errors import JSONDecodeError
 from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import cache
+from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 
@@ -410,7 +410,9 @@ def get_availability(
         response = cast(AvailabilityServiceResponse, resp.json())
 
         if not response['success']:
-            raise AvailabilityServiceError(response['error'])
+            logger.warning(f"AvailabilityServiceError: {response['error']}")
+            stats.increment('ol.availability.service_error', rate=0.01)
+            return {}
 
         uncached_values = {
             _id: update_availability_schema_to_v2(
