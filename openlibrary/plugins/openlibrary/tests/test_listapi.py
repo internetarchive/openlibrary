@@ -1,6 +1,8 @@
 # from py.test import config
 import json
+
 import requests
+
 
 def pytest_funcarg__config(request):
     return request.config
@@ -11,7 +13,7 @@ class ListAPI:
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
-        self.sesh = requests.Session() # Session object handles cookies automatically
+        self.sesh = requests.Session()  # Session object handles cookies automatically
 
     def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
@@ -28,7 +30,9 @@ class ListAPI:
 
     def login(self):
         data = {'username': self.username, 'password': self.password}
-        self.urlopen("/account/login", data=requests.utils.requote_uri(data), method="POST")
+        self.urlopen(
+            "/account/login", data=requests.utils.requote_uri(data), method="POST"
+        )
         print(self.cookiejar)
 
     def create_list(self, data):

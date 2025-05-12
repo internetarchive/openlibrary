@@ -3,11 +3,11 @@ import os
 import socket
 import sys
 import time
-import requests
 from pathlib import Path
 from types import MappingProxyType
 
 import pytest
+import requests
 
 os.environ['SEED_PATH'] = 'must be truthy for obfi/decode_ip scripts to run'
 from ..obfi import hide, mktable, reveal, shownames

@@ -14,12 +14,12 @@ import logging
 import re
 import socket
 import sys
-import requests
 from collections.abc import Iterator
 from pathlib import Path
 
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
+import requests
 import web
 
 from infogami import config
