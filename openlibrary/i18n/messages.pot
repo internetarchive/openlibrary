@@ -1181,6 +1181,10 @@ msgstr ""
 msgid "This work does not appear on any lists."
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/pd.py
+msgid "I don't have one yet"
+msgstr ""
+
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
 msgstr ""
@@ -1260,6 +1264,13 @@ msgstr ""
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Thank you for registering an Open Library account and requesting special "
+"print disability access. You should receive an email detailing next steps"
+" in the process."
 msgstr ""
 
 #: account/password/reset_success.html account/verify.html
@@ -1401,6 +1412,13 @@ msgid ""
 "I want to receive news, announcements, and resources from the <a "
 "href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
 "runs Open Library."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid ""
+"I want to apply for <a href=\"https://help.archive.org/help/program-"
+"overview/\">special print disability access</a> through a qualifying "
+"program."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
@@ -2374,6 +2392,10 @@ msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
+msgid "A qualifying program must be selected"
+msgstr ""
+
+#: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
 
@@ -2397,6 +2419,16 @@ msgstr ""
 
 #: account/create.html
 msgid "screenname"
+msgstr ""
+
+#: account/create.html
+msgid "Select qualifying program"
+msgstr ""
+
+#: account/create.html
+msgid ""
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
 msgstr ""
 
 #: account/create.html
@@ -5550,6 +5582,10 @@ msgid ""
 "required."
 msgstr ""
 
+#: email/account/pd_request.html
+msgid "Qualifying for Print Disability Special Access"
+msgstr ""
+
 #: history/comment.html
 msgid "Imported from"
 msgstr ""
@@ -7574,10 +7610,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Loading Lists"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Loading Related Books"
 msgstr ""
 
 #: type/language/view.html

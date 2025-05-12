@@ -1,4 +1,4 @@
-$def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, lang='en')
+$def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, year,yearly_reads, lang='en')
 
 $ reading_log_stats_config = {
 $    'works': works_json,
@@ -104,6 +104,19 @@ $jsdef render_excluded_works_list(works, total):
         &raquo;
     </div>
     <h1>$_('My %(shelf_name)s Stats', shelf_name=shelf_name)</h1>
+    $if shelf_key == 'already-read' and yearly_reads:
+    <div class="breadcrumb-wrapper">
+        <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
+            $ all_url = owner_key + '/books/already-read/stats'
+            $ year_url = owner_key + '/books/already-read/year/%d/stats'
+            $if year:
+                $:render_template("books/year_breadcrumb_select", yearly_reads, all_url, year_url, selected= str(year))
+            $else:
+
+                $:render_template("books/year_breadcrumb_select", yearly_reads, all_url, year_url )
+
+        </div>
+    </div>
 
     <p>$:_('Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count=works_count)</p>
 </div>

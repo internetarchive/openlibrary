@@ -360,22 +360,6 @@ deploy_openlibrary() {
     cleanup $TMP_DIR
 }
 
-# Example: send_slack_message "@openlibrary-g" "Hello world"
-# This is a slackbot currently owned by @cdrini
-send_slack_message() {
-    # Note channel must include e.g. "#" at start
-    local channel=$1
-    local message=$2
-
-    echo "Slack message to $channel: $message"
-    curl -X POST \
-        -H "Content-type: application/json; charset=utf-8" \
-        -H "Authorization: Bearer $SLACK_TOKEN" \
-        --data "{\"channel\": \"$channel\", \"link_names\": true, \"text\": \"$message\"}" \
-        "https://slack.com/api/chat.postMessage"
-}
-
-
 # Clone booklending utils
 # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 
