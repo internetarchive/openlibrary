@@ -89,7 +89,7 @@ class proxy:
         self.status_code = resp.status_code
         # a one-liner that replaces the __str__ functionality of the HTTPResponse object replaced from urllib
         self.status_msg = "\n".join(f"{k}: {v}" for k, v in resp.headers.items())
-        self.output = response.read()
+        self.output = resp.read()
 
         self.headers = resp.headers
         for k in ['transfer-encoding', 'server', 'connection', 'date']:
