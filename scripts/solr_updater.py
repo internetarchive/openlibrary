@@ -14,7 +14,7 @@ import logging
 import re
 import socket
 import sys
-import urllib
+import requests
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -68,8 +68,9 @@ class InfobaseLog:
             url = f"{self.base_url}/{self.offset}?limit=100"
             logger.debug("Reading log from %s", url)
             try:
-                jsontext = urllib.request.urlopen(url).read()
-            except urllib.error.URLError as e:
+                resp = requests.get(url)
+                resp.raise_for_status()
+            except requests.exceptions.HTTPError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
                 if e.args and e.args[0].args == (111, 'Connection refused'):
                     logger.error(
@@ -80,9 +81,9 @@ class InfobaseLog:
                 raise
 
             try:
-                d = json.loads(jsontext)
+                d = resp.json()
             except:
-                logger.error("Bad JSON: %s", jsontext)
+                logger.error("Bad JSON: %s", resp.text)
                 raise
             data = d['data']
             # no more data is available
