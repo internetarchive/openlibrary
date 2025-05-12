@@ -12,6 +12,11 @@ beforeEach(() => {
       <div id="passwordMessage" class="ol-signup-form__error"></div>
       <label for="password">Password</label>
       <input type="password" id="password">
+      <div id="rpd-checkbox" class="ol-signup-form__checkbox">
+        <input id="pd_request" type="checkbox">
+        <label for="pd_request">PD Checkbox</label>
+      </div>
+      <div id="pda-selector" class="ol-signup-form__select hidden"></div>
     </form>
   `;
 });
@@ -211,3 +216,24 @@ describe('Password tests', () => {
         expect(passwordLabel.classList.contains('invalid')).toBe(true);
     });
 });
+
+describe('Print disability tests', () => {
+    let checkbox, selector;
+
+    beforeEach(() => {
+        initSignupForm();
+
+        checkbox = document.querySelector('#pd_request');
+        selector = document.querySelector('#pda-selector')
+    })
+
+    test('Qualifying authority selector only visible when PD checkbox is checked', () => {
+        checkbox.checked = false
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(selector.classList.contains('hidden')).toBe(true);
+
+        checkbox.checked = true
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(selector.classList.contains('hidden')).toBe(false);
+    })
+})
