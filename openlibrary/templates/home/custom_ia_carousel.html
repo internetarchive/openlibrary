@@ -4,7 +4,7 @@ $code:
   if user_lang_only:
     web_lang= get_lang() or 'en'
     user_lang= convert_iso_to_marc(web_lang)
-    if user_lang:
+    if user_lang and user_lang in get_populated_languages():
       query = query + ' language:' + user_lang
   title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
   books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit) if not test else []

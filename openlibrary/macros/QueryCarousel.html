@@ -12,7 +12,7 @@ $# * layout (str) -- layout type, default 'carousel', currently also supports 'g
 $if user_lang_only:
   $ web_lang = get_lang() or 'en'
   $ user_lang= convert_iso_to_marc(web_lang)
-  $if user_lang:
+  $if user_lang and user_lang in get_populated_languages():
         $ query = query + ' language:' + user_lang
 $if use_cache and not lazy:
     $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout)

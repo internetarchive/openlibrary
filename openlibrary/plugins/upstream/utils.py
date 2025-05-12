@@ -1173,6 +1173,16 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
 
 
 @public
+def get_populated_languages() -> set[str]:
+    """
+    Get the languages for which we have many available ebooks, in MARC21 format
+    See https://openlibrary.org/languages
+    """
+    # Hard-coded for now to languages with more than 15k borrowable ebooks
+    return {'eng', 'fre', 'ger', 'spa', 'chi', 'ita', 'lat', 'dut', 'rus', 'jpn'}
+
+
+@public
 @functools.cache
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
