@@ -10,8 +10,8 @@ This adapter module is a filter that sits above an Infobase server and fakes the
 """
 
 import json
-import requests
 
+import requests
 import web
 
 urls = (
@@ -82,7 +82,7 @@ class proxy:
             web.ctx.method,
             server + self.path + '?' + requests.utils.requote_uri(self.input),
             data=self.data,
-            headers=self.headers
+            headers=self.headers,
         )
         prepped = req.prepare()
         resp = s.send(prepped)
