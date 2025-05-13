@@ -14,15 +14,15 @@ export class OpenLibraryLogo {
         this.openLibraryLogoTooltip = page.getByText(`The Internet Archive's Open Library: One page for every book`, {exact: true});
     }
 
-    async navigateBasePage() {
+    async navigateToHome() {
         await this.page.goto(BASE_URL);
     }
 
-    async clickOnOpenLibraryLogo() {
+    async click() {
         await this.openLibraryLogo.click()
     }
 
-    async hoverOnOpenLibraryLogo() {
+    async hover() {
         await this.openLibraryLogo.hover();
     }
 }
