@@ -19,35 +19,6 @@ details.librarian-dashboard {
     padding: 8px;
   }
 
-  .dq-table__row {
-    display: table-row;
-    background: @white;
-
-    td {
-      display: table-cell;
-      padding: 8px;
-    }
-
-    .dq-table__criterion-cell {
-      font-weight: 700;
-      width: 30%;
-    }
-
-    .dq-table__results-cell {
-      display: flex;
-      justify-content: flex-end;
-
-      span {
-        width: 60px;
-        text-align: right;
-      }
-    }
-
-    &:nth-child(even) {
-      background: @lightest-grey;
-    }
-  }
-
   .dqs-run-again {
     border: 0;
     background: none;
@@ -55,5 +26,34 @@ details.librarian-dashboard {
     color: @link-blue;
     cursor: pointer;
     float: right;
+  }
+}
+
+.dq-table__row {
+  display: table-row;
+  background: @white;
+
+  td {
+    display: table-cell;
+    padding: 8px;
+  }
+
+  .dq-table__criterion-cell {
+    font-weight: 700;
+    width: 30%;
+  }
+
+  .dq-table__results-cell {
+    display: flex;
+    justify-content: flex-end;
+
+    span {
+      width: 60px;
+      text-align: right;
+    }
+  }
+
+  &:nth-child(even) {
+    background: @lightest-grey;
   }
 }
