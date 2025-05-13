@@ -742,7 +742,7 @@ class bestbook_award(delegate.page):
                         {
                             "success": True,
                             "award": Bestbook.add(
-                                submitter=username,
+                                username=username,
                                 work_id=work_id,
                                 edition_id=edition_id or None,
                                 comment=i.comment,
@@ -775,8 +775,8 @@ class bestbook_count(delegate.page):
 
     @jsonapi
     def GET(self):
-        filt = web.input(work_id=None, submitter=None, topic=None)
+        filt = web.input(work_id=None, username=None, topic=None)
         result = Bestbook.get_count(
-            work_id=filt.work_id, submitter=filt.submitter, topic=filt.topic
+            work_id=filt.work_id, username=filt.username, topic=filt.topic
         )
         return json.dumps({'count': result})

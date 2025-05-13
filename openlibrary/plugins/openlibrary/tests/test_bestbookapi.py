@@ -193,7 +193,7 @@ def test_bestbook_count():
         mock_web_input.side_effect = mock_web_input_func(
             {
                 "work_id": "OL123W",
-                "submitter": "testuser",
+                "username": "testuser",
                 "topic": "Fiction",
             }
         )

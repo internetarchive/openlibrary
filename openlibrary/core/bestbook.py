@@ -14,12 +14,12 @@ class Bestbook(db.CommonExtras):
         pass
 
     @classmethod
-    def prepare_query(cls, select="*", work_id=None, submitter=None, topic=None):
+    def prepare_query(cls, select="*", work_id=None, username=None, topic=None):
         """Prepare query for fetching bestbook awards
 
         Args:
             work_id (int): work id
-            submitter (string): username of submitter
+            username (string): username of submitter
             topic (string): topic for bestbook award
 
         Returns:
@@ -28,7 +28,7 @@ class Bestbook(db.CommonExtras):
         conditions = []
         filters = {
             'work_id': work_id,
-            'submitter': submitter,
+            'username': username,
             'topic': topic,
         }
         vars = {}
@@ -43,7 +43,7 @@ class Bestbook(db.CommonExtras):
         return query, vars
 
     @classmethod
-    def get_count(cls, work_id=None, submitter=None, topic=None) -> int:
+    def get_count(cls, work_id=None, username=None, topic=None) -> int:
         """Used to get count of awards with different filters
 
         Returns:
@@ -51,18 +51,18 @@ class Bestbook(db.CommonExtras):
         """
         oldb = db.get_db()
         query, vars = cls.prepare_query(
-            select="count(*)", work_id=work_id, submitter=submitter, topic=topic
+            select="count(*)", work_id=work_id, username=username, topic=topic
         )
         result = oldb.query(query, vars=vars)
         return result[0]['count'] if result else 0
 
     @classmethod
-    def get_awards(cls, work_id=None, submitter=None, topic=None):
+    def get_awards(cls, work_id=None, username=None, topic=None):
         """fetch bestbook awards
 
         Args:
             work_id (int, optional): work id
-            submitter (string, optional): username of submitter
+            username (string, optional): username of submitter
             topic (string, optional): topic for bestbook award
 
         Returns:
@@ -70,17 +70,17 @@ class Bestbook(db.CommonExtras):
         """
         oldb = db.get_db()
         query, vars = cls.prepare_query(
-            select="*", work_id=work_id, submitter=submitter, topic=topic
+            select="*", work_id=work_id, username=username, topic=topic
         )
         result = oldb.query(query, vars=vars)
         return list(result) if result else []
 
     @classmethod
-    def add(cls, submitter, work_id, topic, comment="", edition_id=None) -> bool:
+    def add(cls, username, work_id, topic, comment="", edition_id=None) -> bool:
         """Add award to database only if award doesn't exist previously
 
         Args:
-            submitter (text): submitter identifier
+            username (text): username of identifier
             work_id (text): unique identifier of book
             edition_id (text): edition for which the award is given to that book
             topic (text): topic for which award is given
@@ -90,13 +90,13 @@ class Bestbook(db.CommonExtras):
             award or raises Bestbook.AwardConditionsError
         """
         # Raise cls.AwardConditionsError if any failing conditions
-        cls._check_award_conditions(submitter, work_id, topic)
+        cls._check_award_conditions(username, work_id, topic)
 
         oldb = db.get_db()
 
         return oldb.insert(
             cls.TABLENAME,
-            submitter=submitter,
+            username=username,
             work_id=work_id,
             edition_id=edition_id,
             topic=topic,
@@ -104,11 +104,11 @@ class Bestbook(db.CommonExtras):
         )
 
     @classmethod
-    def remove(cls, submitter, work_id=None, topic=None):
-        """Remove any award for this submitter where either work_id or topic matches.
+    def remove(cls, username, work_id=None, topic=None):
+        """Remove any award for this username where either work_id or topic matches.
 
         Args:
-            submitter (text): unique identifier of patron
+            username (text): unique identifier of patron
             work_id (text, optional): unique identifier of book
             topic (text, optional): topic for which award is given
 
@@ -127,15 +127,15 @@ class Bestbook(db.CommonExtras):
         if topic:
             conditions.append("topic = $topic")
 
-        # Combine with AND for submitter and OR for other conditions
-        where_clause = f"submitter = $submitter AND ({' OR '.join(conditions)})"
+        # Combine with AND for username and OR for other conditions
+        where_clause = f"username = $username AND ({' OR '.join(conditions)})"
 
         try:
             return oldb.delete(
                 cls.TABLENAME,
                 where=where_clause,
                 vars={
-                    'submitter': submitter,
+                    'username': username,
                     'work_id': work_id,
                     'topic': topic,
                 },
@@ -172,8 +172,8 @@ class Bestbook(db.CommonExtras):
             has_read_book = Bookshelves.user_has_read_work(
                 username=username, work_id=work_id
             )
-            awarded_book = cls.get_awards(submitter=username, work_id=work_id)
-            awarded_topic = cls.get_awards(submitter=username, topic=topic)
+            awarded_book = cls.get_awards(username=username, work_id=work_id)
+            awarded_topic = cls.get_awards(username=username, topic=topic)
 
             if not has_read_book:
                 errors.append(

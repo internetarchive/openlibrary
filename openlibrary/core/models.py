@@ -569,17 +569,17 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         return Bestbook.get_awards(work_id)
 
-    def check_if_user_awarded(self, submitter) -> bool:
+    def check_if_user_awarded(self, username) -> bool:
         if not self.key:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
-        return Bestbook.get_awards(submitter=submitter, work_id=work_id)
+        return bool(Bestbook.get_awards(username=username, work_id=work_id))
 
-    def get_award_by_submitter(self, submitter):
+    def get_award_by_username(self, username):
         if not self.key:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        awards = Bestbook.get_awards(submitter=submitter, work_id=work_id)
+        awards = Bestbook.get_awards(username=username, work_id=work_id)
         return awards[0] if awards else None
 
     def _get_d(self):
