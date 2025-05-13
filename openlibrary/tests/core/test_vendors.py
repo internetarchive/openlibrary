@@ -11,6 +11,7 @@ from openlibrary.core.vendors import (
     is_dvd,
     split_amazon_title,
 )
+from openlibrary.tests.core.sample_amazon_record import get_sample_amazon_item
 
 
 def test_clean_amazon_metadata_for_load_non_ISBN():
@@ -95,6 +96,7 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('isbn') is None
     assert result.get('isbn_13') == ['9780190906764']
     assert result.get('isbn_10') == ['0190906766']
+    assert result.get('languages') == ['english']
     assert result.get('identifiers') is None  # No Amazon id present
     assert result['source_records'] == ['amazon:0190906766']
     assert result['publish_date'] == 'Dec 18, 2018'
@@ -152,6 +154,7 @@ def test_clean_amazon_metadata_for_load_translator():
     assert result.get('isbn') is None
     assert result.get('isbn_13') == ['9780190906764']
     assert result.get('isbn_10') == ['0190906766']
+    assert result.get('languages') == ['english']
     assert result.get('identifiers') is None  # No Amazon id present
     assert result['source_records'] == ['amazon:0190906766']
     assert result['publish_date'] == 'Dec 18, 2018'
@@ -242,7 +245,7 @@ def test_clean_amazon_metadata_for_load_subtitle():
         result.get('full_title')
         == 'Killers of the Flower Moon : The Osage Murders and the Birth of the FBI'
     )
-    # TODO: test for, and implement languages
+    assert result['languages'] == ['english']
 
 
 def test_betterworldbooks_fmt():
@@ -393,6 +396,28 @@ def test_clean_amazon_metadata_does_not_load_DVDS_product_group(
     )
     result = AmazonAPI.serialize(amazon_metadata)
     assert result == expected
+
+
+def test_serialize_sample_record() -> None:
+    assert AmazonAPI.serialize(get_sample_amazon_item()) == {
+        'authors': [{'name': 'Glasgow, Kathleen'}],
+        'contributors': [{'name': 'Paris, Christel', 'role': 'Translator'}],
+        'cover': 'https://m.media-amazon.com/images/I/41vfxwDpB2L._SL500_.jpg',
+        'edition_num': None,
+        'isbn_10': ['2380821313'],
+        'isbn_13': ['9782380821314'],
+        'languages': ['French'],
+        'number_of_pages': 448,
+        'physical_format': 'paperback',
+        'price': '$34.59',
+        'price_amt': 3459,
+        'product_group': 'Book',
+        'publish_date': 'Sep 22, 2023',
+        'publishers': ['ANNE CARRIERE'],
+        'source_records': ['amazon:2380821313'],
+        'title': 'Girl in pieces',
+        'url': 'https://www.amazon.com/dp/2380821313/?tag=',
+    }
 
 
 def test_serialize_does_not_load_translators_as_authors() -> None:
