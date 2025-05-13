@@ -1,4 +1,5 @@
 import {initialzeCarousels} from './carousel';
+import { buildPartialsUrl } from './utils';
 
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
@@ -34,8 +35,7 @@ export function initLazyCarousel(elems) {
  * @returns {Promise<Response>}
  */
 async function fetchPartials(data) {
-    const searchParams = new URLSearchParams({...data, _component: 'LazyCarousel'})
-    return fetch(`/partials.json?${searchParams.toString()}`)
+    return fetch(buildPartialsUrl('/partials.json', {...data, _component: 'LazyCarousel'}))
 }
 
 /**
