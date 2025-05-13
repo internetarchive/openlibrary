@@ -274,9 +274,8 @@ def format_book_data(book, fetch_availability=True):
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
     d.work_key = work.key if work else book.key
-    cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
-    if cover:
+    if cover := book.get_cover():
         d.cover_url = cover.url("M")
     elif d.ocaid:
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
