@@ -1,10 +1,10 @@
 import { test, expect, Page } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
-import { LOGIN_URL, VALID_EMAIL, VALID_PASSWORD } from "../helper-config";
+import { VALID_EMAIL, VALID_PASSWORD } from "../helper-config";
 import { AddBookPage } from "../pages/AddBookPage";
 
 test.beforeEach(async ({ page }: { page: Page }) => {
-  await page.goto(LOGIN_URL);
+  await page.goto(LoginPage.LOGIN_URL);
   const loginPage = new LoginPage({ page });
   await loginPage.login(VALID_EMAIL, VALID_PASSWORD);
 });

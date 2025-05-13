@@ -1,9 +1,9 @@
 import { test, expect, Page } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
-import { LOGIN_URL, INVALID_EMAIL, VALID_EMAIL, VALID_PASSWORD, } from "../helper-config";
+import { INVALID_EMAIL, VALID_EMAIL, VALID_PASSWORD, } from "../helper-config";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(LOGIN_URL);
+  await page.goto(LoginPage.LOGIN_URL);
 });
 
 test("login with valid credentials", async ({ page }) => {
