@@ -4,6 +4,14 @@ import web
 
 from openlibrary.core.vendors import AmazonAPI
 
+# To get this:
+# Follow the incantation in scripts/affiliate_server.py to get
+# web.amazon_api, and then run the following. Note this is the
+# only layer we can use to get the response coerced into the
+# GetItemResponse class the paapi5_python_sdk package returns.
+#
+# web.amazon_api.get_products(["2380821313"], serialize=True)
+# web.amazon_api.api.api_client.last_response.data
 SAMPLE_AMAZON_RESPONSE_JSON = '''{
     "ItemsResult": {
         "Items": [
