@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
 
 $code:
   max_rendered_authors = 9
@@ -114,6 +114,17 @@ $code:
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if show_librarian_extras and doc.get('trending_z_score') is not None:
             $:macros.TrendingBadge(doc)
+
+          $if highlighting:
+            $if highlighting.get('subject'):
+              <br />
+              $_('Matching subjects:')
+              <span class="srw__subjects">
+                $for subj in highlighting['subject']:
+                  $# detect-missing-i18n-skip-line
+                  <a href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</a>
+              </span>
+
           $if doc.get('ia'):
             $if len(doc.get('ia')) > 1:
               $ blur_preview = "preview-covers--blur" if blur else ""

@@ -1661,6 +1661,14 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
 
+@public
+def subject_name_to_key(subject: str, prefix='') -> str:
+    # TODO: DRY with scripts/solr_builder/solr_builder/index_subjects.py
+    if prefix:
+        prefix = prefix.rstrip(':') + ':'
+    return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 

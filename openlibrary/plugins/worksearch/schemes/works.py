@@ -310,6 +310,7 @@ class WorkSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -550,6 +551,13 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', q))
         else:
             new_params.append(('q', full_work_query))
+
+        if highlight:
+            new_params.append(('hl', 'true'))
+            # NOTE: This only applies to the work, really
+            new_params.append(('hl.fl', 'subject'))
+            new_params.append(('hl.q', str(work_q_tree)))
+            new_params.append(('hl.snippets', '10'))
 
         if full_ed_query:
             edition_fields = {
