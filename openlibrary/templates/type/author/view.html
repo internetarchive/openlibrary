@@ -99,7 +99,9 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         </div>
 
     <div class="contentTwothird" style="margin-bottom:0;">
-
+        $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+        $if show_dashboard:
+          $:render_template("librarian_dashboard/data_quality_table", books_count)
         <div itemprop="description">
             $:format(page.get('bio', ''))
         </div>

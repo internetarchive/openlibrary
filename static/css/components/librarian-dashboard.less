@@ -1,0 +1,59 @@
+details.librarian-dashboard {
+  color: @grey;
+  margin-bottom: 15px;
+
+  summary {
+    font-weight: 700;
+  }
+}
+
+.dq-table {
+  min-width: 75%;
+  border: 1px solid @grey;
+  margin: 10px;
+
+  th {
+    background: @white;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .dq-table__row {
+    display: table-row;
+    background: @white;
+
+    td {
+      display: table-cell;
+      padding: 8px;
+    }
+
+    .dq-table__criterion-cell {
+      font-weight: 700;
+      width: 30%;
+    }
+
+    .dq-table__results-cell {
+      display: flex;
+      justify-content: flex-end;
+
+      span {
+        width: 60px;
+        text-align: right;
+      }
+    }
+
+    &:nth-child(even) {
+      background: @lightest-grey;
+    }
+  }
+
+  .dqs-run-again {
+    border: 0;
+    background: none;
+    text-decoration: underline;
+    color: @link-blue;
+    cursor: pointer;
+    float: right;
+  }
+}
