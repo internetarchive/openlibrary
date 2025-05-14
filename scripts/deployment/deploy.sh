@@ -236,12 +236,6 @@ deploy_olsystem() {
     # Present follow-up options
     echo "[Next] Run openlibrary deploy (~12m00 as of 2024-12-09):"
     echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh openlibrary"
-
-    read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
-    answer=${answer:-Y}
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" openlibrary review
-    fi
 }
 
 date_to_timestamp() {
@@ -258,17 +252,6 @@ date_to_timestamp() {
     else
         date -d "$1" +%s
     fi
-
-    read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
-}
-
-tag_deploy() {
-    DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
-    echo "[Info] Tagging deploy as $DEPLOY_TAG"
-    git -C openlibrary tag $DEPLOY_TAG
-    git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
-    git -C openlibrary tag -f production
-    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 tag_deploy() {
@@ -286,6 +269,33 @@ tag_deploy() {
     # Always update and push the 'production' tag
     git -C openlibrary tag -f production
     git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
+}
+
+check_olbase_image_up_to_date() {
+    echo "[Now] Checking if Docker image is up-to-date"
+
+    # Get latest commit timestamp from GitHub API
+    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/master"
+    GIT_LAST_UPDATED=$(curl -s "$GITHUB_COMMIT_API" | jq -r '.commit.committer.date')
+    echo "Latest Git commit: $GIT_LAST_UPDATED"
+
+    # Get latest Docker image timestamp from Docker Hub
+    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
+    IMAGE_LAST_UPDATED=$(echo "$IMAGE_META" | jq -r '.last_updated')
+    echo "Latest Docker image: $IMAGE_LAST_UPDATED"
+
+    # Convert to timestamps
+    GIT_LAST_UPDATED_TS=$(date_to_timestamp "$GIT_LAST_UPDATED")
+    IMAGE_LAST_UPDATED_TS=$(date_to_timestamp "$IMAGE_LAST_UPDATED")
+
+    if [ "$GIT_LAST_UPDATED_TS" -gt "$IMAGE_LAST_UPDATED_TS" ]; then
+        echo "✗ Docker image is NOT up-to-date."
+        echo -e "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
+	return 1
+    else
+        echo "✓ Docker image is up-to-date."
+	return 0
+    fi
 }
 
 deploy_openlibrary() {
@@ -388,10 +398,10 @@ deploy_openlibrary() {
     wait
     echo "   ... Done ✓"
 
+    tag_deploy
+
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
-
-    tag_deploy
 
     cleanup $TMP_DIR
 
@@ -405,11 +415,6 @@ check_servers_in_sync() {
     time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh finalize"
-    read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
-    answer=${answer:-N}
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" finalize
-    fi
 }
 
 clone_booklending_utils() {
@@ -424,11 +429,12 @@ recreate_services() {
 }
 
 post_deploy() {
-    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG"
+    LATEST_TAG_NAME=$(git tag --sort=-creatordate | head -n 1)
+    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
     read -p "Once announced, press Enter to continue..."
 
     echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
-    echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG. Please let us know @here if anything seems broken or delightful!"
+    echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
 }
 
 # See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
@@ -437,15 +443,8 @@ if [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
-
     if [ "$2" == "review" ]; then
 	check_servers_in_sync
-    else
-	read -p "[Now] Run review audit of servers now? [Y/n]" answer
-	answer=${answer:-Y}
-	if [[ "$answer" =~ ^[Yy]$ ]]; then
-	    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" review
-	fi
     fi
 elif [ "$1" == "utils" ]; then
     clone_booklending_utils
@@ -453,7 +452,6 @@ elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "finalize" ]; then
     recreate_services
-    post_deploy
 else
     echo "Usage: $0 [announce|olsystem|openlibrary|review|finalize]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
@@ -471,18 +469,34 @@ else
     echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
     read -p "Once announced, press Enter to continue..."
 
-    # Dockerhub workflow build
-    echo "[Now] Start a fresh docker build: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
-    read -p "Once built, press Enter to continue..."
+    if ! check_olbase_image_up_to_date; then
+	read -p "Once you've clicked 'Run workflow', press Enter to continue..."
+    fi
 
     # Deploy olsystem
     echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
     echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh olsystem"
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
-    answer=${answer:-N}
+    answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
 	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" olsystem
     fi
 
+    until check_olbase_image_up_to_date; do
+	read -p "Once built, press Enter to continue..."
+    done
+
+    read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
+    answer=${answer:-Y}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" openlibrary review
+    fi
+
+    read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
+    answer=${answer:-N}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" finalize
+	post_deploy
+    fi
     exit 1
 fi
