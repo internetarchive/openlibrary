@@ -8,7 +8,7 @@ on:
     branches:
       - master
   schedule:
-    - cron: '40 10 * * *'
+    - cron: "40 10 * * *"
 
 jobs:
   run-e2e-test:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: v18.19.1
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./test/package-lock.json
 
       - name: Start the server
@@ -37,17 +37,29 @@ jobs:
 
       - name: Run e2e tests
         working-directory: ./test
-        id: test
+        id: e2e-tests
+        continue-on-error: true
         run: |
-          npm install
+          npm ci
           npx playwright install chromium
-          npx playwright test e2e
+          npx playwright test e2e --retries=1
+
+      - name: Upload tracing results
+        if: steps.e2e-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-results
+          path: ./test/test-results
 
       - name: Log tracing results
+        if: steps.e2e-tests.outcome == 'failure'
         working-directory: ./test
-        if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
           echo "To view a trace, run the following command(s) locally:"
           for f in test-results/*/*.zip; do
-              echo "npx playwright show-trace $f"
+              echo "npx playwright show-trace $(dirname "$f")/trace.zip"
           done
+
+      - name: Exit on e2e tests failure
+        if: steps.e2e-tests.outcome == 'failure'
+        run: echo "E2E tests failed. Exiting..." && exit 1

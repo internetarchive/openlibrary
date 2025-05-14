@@ -12,7 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
   },
 
   projects: [

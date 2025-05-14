@@ -18,7 +18,5 @@ test("search existing book", async ({ page }) => {
 test("search non-existing book", async ({ page }) => {
   const searchPage = new SearchPage({ page });
   await searchPage.search(nonexistingBook);
-  await expect(
-   searchPage.getSearchNotMatchText()
-  ).toBeFalsy();
+  await expect(searchPage.getSearchNotMatchText()).toBeVisible();
 });
