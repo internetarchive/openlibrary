@@ -8,7 +8,8 @@ $def render_subjects(label, subjects, track_value, prefix=""):
           <h3>$label</h3>
           $:render_subject_links(subjects, prefix, track_value)
         </div>
-        $:macros.ReadMore()
+        $if len(subjects) > 5:
+          $:macros.ReadMore()
       </div>
     </div>
 
