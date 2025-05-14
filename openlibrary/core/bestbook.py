@@ -14,17 +14,14 @@ class Bestbook(db.CommonExtras):
         pass
 
     @classmethod
-    def prepare_query(cls, select="*", work_id=None, username=None, topic=None):
-        """Prepare query for fetching bestbook awards
-
-        Args:
-            work_id (int): work id
-            username (string): username of submitter
-            topic (string): topic for bestbook award
-
-        Returns:
-            str: query string
-        """
+    def prepare_query(
+        cls,
+        select: str = "*",
+        work_id: str | None = None,
+        username: str | None = None,
+        topic: str | None = None,
+    ) -> tuple[str, dict]:
+        """Prepare query for fetching bestbook awards"""
         conditions = []
         filters = {
             'work_id': work_id,
@@ -43,12 +40,13 @@ class Bestbook(db.CommonExtras):
         return query, vars
 
     @classmethod
-    def get_count(cls, work_id=None, username=None, topic=None) -> int:
-        """Used to get count of awards with different filters
-
-        Returns:
-            int: count of awards
-        """
+    def get_count(
+        cls,
+        work_id: str | None = None,
+        username: str | None = None,
+        topic: str | None = None,
+    ) -> int:
+        """Used to get count of awards with different filters"""
         oldb = db.get_db()
         query, vars = cls.prepare_query(
             select="count(*)", work_id=work_id, username=username, topic=topic
@@ -57,16 +55,16 @@ class Bestbook(db.CommonExtras):
         return result[0]['count'] if result else 0
 
     @classmethod
-    def get_awards(cls, work_id=None, username=None, topic=None):
-        """fetch bestbook awards
+    def get_awards(
+        cls,
+        work_id: str | None = None,
+        username: str | None = None,
+        topic: str | None = None,
+    ) -> list:
+        """Fetches a list of bestbook awards based on the provided filters.
 
-        Args:
-            work_id (int, optional): work id
-            username (string, optional): username of submitter
-            topic (string, optional): topic for bestbook award
-
-        Returns:
-            list: list of awards
+        This method queries the database to retrieve awards associated with a
+        specific work, submitted by a particular user, or related to a given topic.
         """
         oldb = db.get_db()
         query, vars = cls.prepare_query(
@@ -76,18 +74,16 @@ class Bestbook(db.CommonExtras):
         return list(result) if result else []
 
     @classmethod
-    def add(cls, username, work_id, topic, comment="", edition_id=None) -> bool:
+    def add(
+        cls,
+        username: str,
+        work_id: str,
+        topic: str,
+        comment: str = "",
+        edition_id: int | None = None,
+    ) -> int | None:
         """Add award to database only if award doesn't exist previously
-
-        Args:
-            username (text): username of identifier
-            work_id (text): unique identifier of book
-            edition_id (text): edition for which the award is given to that book
-            topic (text): topic for which award is given
-            comment (text): comment about award
-
-        Returns:
-            award or raises Bestbook.AwardConditionsError
+        or raises Bestbook.AwardConditionsError
         """
         # Raise cls.AwardConditionsError if any failing conditions
         cls._check_award_conditions(username, work_id, topic)
@@ -104,17 +100,10 @@ class Bestbook(db.CommonExtras):
         )
 
     @classmethod
-    def remove(cls, username, work_id=None, topic=None):
-        """Remove any award for this username where either work_id or topic matches.
-
-        Args:
-            username (text): unique identifier of patron
-            work_id (text, optional): unique identifier of book
-            topic (text, optional): topic for which award is given
-
-        Returns:
-            int: Number of rows deleted or 0 if no matches found.
-        """
+    def remove(
+        cls, username: str, work_id: str | None = None, topic: str | None = None
+    ) -> int:
+        """Remove any award for this username where either work_id or topic matches."""
         if not work_id and not topic:
             raise ValueError("Either work_id or topic must be specified.")
 
@@ -144,12 +133,8 @@ class Bestbook(db.CommonExtras):
             return 0
 
     @classmethod
-    def get_leaderboard(cls):
-        """Get the leaderboard of best books
-
-        Returns:
-            list: list of best books
-        """
+    def get_leaderboard(cls) -> list[dict]:
+        """Get the leaderboard of best books"""
         oldb = db.get_db()
         result = db.select(
             cls.TABLENAME,
@@ -160,7 +145,20 @@ class Bestbook(db.CommonExtras):
         return list(result) if result else []
 
     @classmethod
-    def _check_award_conditions(cls, username, work_id, topic):
+    def _check_award_conditions(cls, username: str, work_id: str, topic: str) -> bool:
+        """
+        Validates the conditions for adding a bestbook award.
+
+        This method checks if the provided work ID and topic meet the necessary
+        conditions for adding a best book award. It ensures that:
+        - Both a work ID and a topic are provided.
+        - The user has marked the book as read.
+        - The work has not already been nominated for a best book award by the user.
+        - The topic has not already been nominated for a best book award by the user.
+
+        If any of these conditions are not met, it raises a Bestbook.AwardConditionsError
+        with the appropriate error messages.
+        """
         errors = []
 
         if not (work_id and topic):
