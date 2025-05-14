@@ -105,7 +105,7 @@ $ layout = get_remembered_layout()
             $ subject_keys = [d.get('subject', []) for d in search_response.docs]
             $for work, subjects in zip(works, subject_keys):
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=search_response.highlighting.get(work.key), seq_index=loop.index0)
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
           </ul>
           $:macros.Pager(page, search_response.num_found, rows)
         </div>

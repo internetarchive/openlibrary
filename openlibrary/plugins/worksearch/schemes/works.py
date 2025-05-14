@@ -305,7 +305,7 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(  # noqa: PLR0915
+    def q_to_solr_params(  # noqa: PLR0915, C901
         self,
         q: str,
         solr_fields: set[str],
