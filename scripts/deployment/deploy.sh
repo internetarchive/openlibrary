@@ -22,6 +22,7 @@ trap 'handle_exit' SIGINT
 set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
@@ -239,7 +240,7 @@ deploy_olsystem() {
     read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh openlibrary review
+	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" openlibrary review
     fi
 }
 
@@ -266,6 +267,23 @@ tag_deploy() {
     echo "[Info] Tagging deploy as $DEPLOY_TAG"
     git -C openlibrary tag $DEPLOY_TAG
     git -C openlibrary push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
+    git -C openlibrary tag -f production
+    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
+}
+
+tag_deploy() {
+    DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
+
+    # Check if tag does NOT exist
+    if ! git -C openlibrary rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+	echo "[Info] Tagging deploy as $DEPLOY_TAG"
+	git -C openlibrary tag "$DEPLOY_TAG"
+	git -C openlibrary push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+    else
+	echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
+    fi
+
+    # Always update and push the 'production' tag
     git -C openlibrary tag -f production
     git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
 }
@@ -373,9 +391,9 @@ deploy_openlibrary() {
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
 
-    cleanup $TMP_DIR
-
     tag_deploy
+
+    cleanup $TMP_DIR
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
@@ -384,13 +402,13 @@ deploy_openlibrary() {
 
 check_servers_in_sync() {
     echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
-    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/are_servers_in_sync.sh
+    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh finalize"
     read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh finalize
+	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" finalize
     fi
 }
 
@@ -402,7 +420,7 @@ recreate_services() {
     echo "[Now] Rebuilding & restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
-    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/restart_servers.sh
+    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/restart_servers.sh"
 }
 
 post_deploy() {
@@ -426,7 +444,7 @@ elif [ "$1" == "openlibrary" ]; then
 	read -p "[Now] Run review audit of servers now? [Y/n]" answer
 	answer=${answer:-Y}
 	if [[ "$answer" =~ ^[Yy]$ ]]; then
-	    time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh review
+	    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" review
 	fi
     fi
 elif [ "$1" == "utils" ]; then
@@ -463,7 +481,7 @@ else
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh olsystem
+	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" olsystem
     fi
 
     exit 1
