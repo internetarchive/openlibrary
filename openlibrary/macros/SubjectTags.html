@@ -3,12 +3,28 @@ $def with(work, tags=[])
 $def render_subjects(label, subjects, track_value, prefix=""):
   $if subjects:
     <div class="section link-box">
-      <span class="clamp" data-before="&#9656; ">
-      <h3>$label</h3>
-        $for subject in subjects:
-          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
-      </span>
+      $ summary_length = 3
+      $ first_few_subjects = subjects[:summary_length]
+      $ rest_subjects = subjects[summary_length:]
+      $if rest_subjects:
+        <details>
+          <summary>
+            <h3>$label</h3>
+            $:render_subject_links(first_few_subjects, prefix, track_value)
+          </summary>
+          $:render_subject_links(rest_subjects, prefix, track_value)
+        </details>
+      $else:
+        <h3>$label</h3>
+        $:render_subject_links(subjects, prefix, track_value)
     </div>
+
+$def render_subject_links(subjects, prefix, track_value):
+    $ links = []
+    $for subject in subjects:
+        $ s = subject.lower().replace(' ', '_').replace(',', '').replace('/', '')
+        $ links.append('<a href="/subjects/' + prefix + utf8(s) + '" data-ol-link-track="' + track_value + '">' + subject + '</a>')
+    $ return ', '.join(links)
 
 $if work:
   $for tag in tags:
