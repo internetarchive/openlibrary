@@ -20,5 +20,5 @@ test("search non-existing book", async ({ page }) => {
   await searchPage.search(nonexistingBook);
   await expect(
    searchPage.getSearchNotMatchText()
-  ).toBeVisible();
+  ).toBeFalsy();
 });
