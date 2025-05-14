@@ -1,5 +1,4 @@
-import { initClampers, ReadMoreComponent } from '../../../openlibrary/plugins/openlibrary/js/readmore';
-import {clamperSample} from './html-test-data'
+import { ReadMoreComponent } from '../../../openlibrary/plugins/openlibrary/js/readmore';
 
 describe('ReadMoreComponent', () => {
     /** @type {ReadMoreComponent} */
@@ -36,60 +35,4 @@ describe('ReadMoreComponent', () => {
         expect(readMore.$container.classList.contains('read-more--expanded')).toBe(true);
         expect(readMore.$content.style.maxHeight).not.toBe('40px');
     });
-});
-
-describe('initClampers', () => {
-    test('clamp removed if not needed', () => {
-        const clamper = document.createElement('div');
-        clamper.classList.add('clamp');
-        jest
-            .spyOn(clamper, 'scrollHeight', 'get')
-            .mockImplementation(() => 100);
-        jest
-            .spyOn(clamper, 'clientHeight', 'get')
-            .mockImplementation(() => 100);
-        initClampers([clamper]);
-        expect(clamper.classList.contains('clamp')).toBe(false);
-
-    });
-
-    test('clamp not removed if  needed', () => {
-        const clamper = document.createElement('div');
-        clamper.classList.add('clamp');
-        jest
-            .spyOn(clamper, 'scrollHeight', 'get')
-            .mockImplementation(() => 100);
-        jest
-            .spyOn(clamper, 'clientHeight', 'get')
-            .mockImplementation(() => 10);
-        initClampers([clamper]);
-        expect(clamper.classList.contains('clamp')).toBe(true);
-
-    });
-
-    test('Clicking anchor tag does not expand', () => {
-        const $clamper = $(clamperSample);
-        jest
-            .spyOn($clamper[0], 'scrollHeight', 'get')
-            .mockImplementation(() => 100);
-        jest
-            .spyOn($clamper[0], 'clientHeight', 'get')
-            .mockImplementation(() => 10);
-        initClampers($clamper);
-        $($clamper).find('a').first().trigger('click');
-        expect($clamper.css('display')).toBe('unset');
-    });
-    test('Clicking non-anchor tag does clamp', () => {
-        const $clamper = $(clamperSample);
-        jest
-            .spyOn($clamper[0], 'scrollHeight', 'get')
-            .mockImplementation(() => 100);
-        jest
-            .spyOn($clamper[0], 'clientHeight', 'get')
-            .mockImplementation(() => 10);
-        initClampers($clamper);
-        $($clamper).find('h6').first().trigger('click');
-        expect($clamper.css('display')).not.toBe('unset');
-    });
-
 });

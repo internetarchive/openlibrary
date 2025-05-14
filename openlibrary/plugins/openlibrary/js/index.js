@@ -171,20 +171,17 @@ jQuery(function () {
             .then(module => module.initLoginForm());
     }
 
-    // conditionally load clamping components
+    // conditionally load read more components
     const readMoreComponents = document.getElementsByClassName('read-more');
-    const clampers = document.querySelectorAll('.clamp');
-    if (readMoreComponents.length || clampers.length) {
+    if (readMoreComponents.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => {
                 if (readMoreComponents.length) {
                     module.ReadMoreComponent.init();
                 }
-                if (clampers.length) {
-                    module.initClampers(clampers);
-                }
             });
     }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
