@@ -316,7 +316,6 @@ export default {
             return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
         }
     }
-
 };
 </script>
 
