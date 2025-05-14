@@ -1195,6 +1195,9 @@ def is_bot():
 
     Manually removed singleton `bot` (to avoid overly complex grep regex)
     """
+    if 'is_bot' in web.ctx:
+        return web.ctx.is_bot
+
     user_agent_bots = [
         'sputnikbot',
         'dotbot',

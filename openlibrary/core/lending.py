@@ -22,6 +22,7 @@ from . import helpers as h
 from . import ia
 
 if TYPE_CHECKING:
+    from openlibrary.book_providers import EbookAccess
     from openlibrary.plugins.upstream.models import Edition
 
 
@@ -336,6 +337,40 @@ class AvailabilityStatusV2(AvailabilityStatus):
     __src__: str
 
 
+def get_ebook_access_availability(
+    ocaid: str, ebook_access: 'EbookAccess'
+) -> AvailabilityStatusV2:
+    from openlibrary.book_providers import EbookAccess
+
+    status: Literal["borrow_available", "borrow_unavailable", "open", "error"] = "error"
+    if ebook_access == EbookAccess.BORROWABLE:
+        status = "borrow_available"
+    elif ebook_access == EbookAccess.PUBLIC:
+        status = "open"
+    return {
+        'status': status,
+        'error_message': None,
+        'available_to_browse': ebook_access == EbookAccess.BORROWABLE,
+        'available_to_borrow': ebook_access == EbookAccess.BORROWABLE,
+        'available_to_waitlist': False,
+        'is_printdisabled': ebook_access >= EbookAccess.PRINTDISABLED,
+        'is_readable': ebook_access == EbookAccess.PUBLIC,
+        'is_lendable': ebook_access == EbookAccess.BORROWABLE,
+        'is_previewable': ebook_access >= EbookAccess.PRINTDISABLED,
+        'identifier': ocaid,
+        'isbn': None,
+        'oclc': None,
+        'openlibrary_work': None,
+        'openlibrary_edition': None,
+        'last_loan_date': None,
+        'num_waitlist': None,
+        'last_waitlist_date': None,
+        'is_restricted': ebook_access <= EbookAccess.BORROWABLE,
+        'is_browseable': ebook_access == EbookAccess.BORROWABLE,
+        '__src__': 'core.models.lending.get_ebook_access_availability',
+    }
+
+
 def update_availability_schema_to_v2(
     v1_resp: AvailabilityStatus,
     ocaid: str | None,
@@ -506,12 +541,23 @@ def add_availability(
     :param items: items with fields containing ocaids
     """
     if mode == "identifier":
-        ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-        availabilities = get_availability('identifier', ocaids)
-        for item in items:
-            ocaid = get_ocaid(item)
-            if ocaid:
-                item['availability'] = availabilities.get(ocaid)
+        from openlibrary.book_providers import EbookAccess
+        from openlibrary.plugins.openlibrary.code import is_bot
+
+        if is_bot() and items and 'ebook_access' in items[0]:
+            for item in items:
+                ocaid = get_ocaid(item)
+                if ocaid:
+                    item['availability'] = get_ebook_access_availability(
+                        ocaid, EbookAccess.from_solr_str(item['ebook_access'])
+                    )
+        else:
+            ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
+            availabilities = get_availability('identifier', ocaids)
+            for item in items:
+                ocaid = get_ocaid(item)
+                if ocaid:
+                    item['availability'] = availabilities.get(ocaid)
     elif mode == "openlibrary_work":
         _ids = [item['key'].split('/')[-1] for item in items]
         availabilities = get_availability('openlibrary_work', _ids)
