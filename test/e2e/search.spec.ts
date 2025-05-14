@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { BASE_URL } from "../helper-config";
 import { SearchPage } from "../pages/SearchPage";
 
-const existingBook: string = "Luffy";
+const existingBook: string = "Robinson Crusoe";
 const nonexistingBook: string = "hfur";
 
 test.beforeEach(async ({ page }) => {
