@@ -1,0 +1,43 @@
+@white: #ffffff;
+@gray-border: #cccccc;
+@green-light: #dff0d8;
+@z-index-widget: 1000;
+
+.feedback-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: @white;
+  padding: 10px;
+  border: 1px solid @gray-border;
+  border-radius: 8px;
+  z-index: @z-index-widget;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+
+  span {
+    margin-right: 10px;
+  }
+
+  button {
+    margin-left: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.2em;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.feedback-message {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: @green-light;
+  padding: 10px;
+  border-radius: 8px;
+  z-index: @z-index-widget;
+}

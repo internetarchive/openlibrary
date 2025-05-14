@@ -111,3 +111,13 @@ CREATE TABLE wikidata (
     data json,
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 )
+
+CREATE TABLE feedback (
+    id SERIAL PRIMARY KEY,
+    key TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    patron_name TEXT,
+    country TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
