@@ -23,6 +23,20 @@ initServiceWorker();
 // because it sends the initial pageview to analytics.
 initAnalytics();
 
+// jQuery free inits
+
+// conditionally load read more components
+const readMoreComponents = document.getElementsByClassName('read-more');
+if (readMoreComponents.length) {
+    import(/* webpackChunkName: "readmore" */ './readmore.js')
+        .then(module => {
+            if (readMoreComponents.length) {
+                module.ReadMoreComponent.init();
+            }
+        });
+}
+
+
 // Initialise some things
 jQuery(function () {
     // conditionally load polyfill for <details> tags (IE11)
@@ -169,17 +183,6 @@ jQuery(function () {
     if (document.querySelector('form[name=login]')) {
         import(/* webpackChunkName: "signup" */'./signup.js')
             .then(module => module.initLoginForm());
-    }
-
-    // conditionally load read more components
-    const readMoreComponents = document.getElementsByClassName('read-more');
-    if (readMoreComponents.length) {
-        import(/* webpackChunkName: "readmore" */ './readmore.js')
-            .then(module => {
-                if (readMoreComponents.length) {
-                    module.ReadMoreComponent.init();
-                }
-            });
     }
 
     // conditionally loads Goodreads import based on class in the page
