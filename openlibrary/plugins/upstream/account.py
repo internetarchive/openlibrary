@@ -362,8 +362,6 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> 
 
 def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
-    if pda == "unqualified":
-        pda = "vtmas_disabilityresources"
     ol_account.get_user().save_preferences(
         {
             "rpd": 1,
@@ -375,6 +373,7 @@ def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
 
 def _notify_on_rpd_verification(ol_account, org):
     if org:
+        org = "vtmas_disabilityresources" if org == "unqualified" else org
         displayname = web.safestr(ol_account.displayname)
         msg = render_template(
             "email/account/pd_request", displayname=displayname, org=org
