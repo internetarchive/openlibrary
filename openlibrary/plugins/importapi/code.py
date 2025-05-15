@@ -181,6 +181,8 @@ class importapi:
         if not can_write():
             raise web.HTTPError('403 Forbidden')
 
+        i = web.input()
+        preview = i.get('preview') == 'true'
         data = web.data()
 
         try:
@@ -195,7 +197,7 @@ class importapi:
             return self.error('unknown-error', 'Failed to parse import data')
 
         try:
-            reply = add_book.load(edition)
+            reply = add_book.load(edition, save=not preview)
             # TODO: If any records have been created, return a 201, otherwise 200
             return json.dumps(reply)
         except add_book.RequiredField as e:
@@ -240,7 +242,11 @@ class ia_importapi(importapi):
 
     @classmethod
     def ia_import(
-        cls, identifier: str, require_marc: bool = True, force_import: bool = False
+        cls,
+        identifier: str,
+        require_marc: bool = True,
+        force_import: bool = False,
+        preview: bool = False,
     ) -> str:
         """
         Performs logic to fetch archive.org item + metadata,
@@ -289,7 +295,12 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
-        return cls.load_book(edition_data, from_marc_record)
+        result = add_book.load(
+            edition_data,
+            from_marc_record=from_marc_record,
+            save=not preview,
+        )
+        return json.dumps(result)
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -299,6 +310,7 @@ class ia_importapi(importapi):
 
         i = web.input()
 
+        preview = i.get('preview') == 'true'
         require_marc = i.get('require_marc') != 'false'
         force_import = i.get('force_import') == 'true'
         bulk_marc = i.get('bulk_marc') == 'true'
@@ -363,7 +375,7 @@ class ia_importapi(importapi):
 
                 except BookImportError as e:
                     return self.error(e.error_code, e.error, **e.kwargs)
-            result = add_book.load(edition)
+            result = add_book.load(edition, save=not preview)
 
             # Add next_data to the response as location of next record:
             result.update(next_data)
@@ -371,7 +383,10 @@ class ia_importapi(importapi):
 
         try:
             return self.ia_import(
-                identifier, require_marc=require_marc, force_import=force_import
+                identifier,
+                require_marc=require_marc,
+                force_import=force_import,
+                preview=preview,
             )
         except BookImportError as e:
             return self.error(e.error_code, e.error, **e.kwargs)
@@ -452,19 +467,6 @@ class ia_importapi(importapi):
         d['source_records'] = ['ia:' + metadata['identifier']]
         import_validator.import_validator().validate(d)
         return d
-
-    @staticmethod
-    def load_book(edition_data: dict, from_marc_record: bool = False) -> str:
-        """
-        Takes a well constructed full Edition record and sends it to add_book
-        to check whether it is already in the system, and to add it, and a Work
-        if they do not already exist.
-
-        :param dict edition_data: Edition record
-        :param bool from_marc_record: whether the record is based on a MARC record.
-        """
-        result = add_book.load(edition_data, from_marc_record=from_marc_record)
-        return json.dumps(result)
 
     @staticmethod
     def populate_edition_data(edition: dict, identifier: str) -> dict:
