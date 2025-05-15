@@ -92,7 +92,8 @@
       "<rootDir>/tests/unit/js/"
     ],
     "moduleNameMapper": {
-      "\\.(css|less)$": "<rootDir>/tests/unit/js/styleMock.js"
+      "\\.(css|less)$": "<rootDir>/tests/unit/js/styleMock.js",
+      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js"
     },
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
