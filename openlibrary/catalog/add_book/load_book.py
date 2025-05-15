@@ -268,7 +268,9 @@ def remove_author_honorifics(name: str) -> str:
     return name
 
 
-def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, Any]":
+def author_import_record_to_author(
+    author_import_record: dict[str, Any], eastern=False
+) -> "Author | dict[str, Any]":
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
@@ -279,17 +281,17 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
-    assert isinstance(author, dict)
-    if author.get('entity_type') != 'org' and not eastern:
-        do_flip(author)
-    if existing := find_entity(author):
+    assert isinstance(author_import_record, dict)
+    if author_import_record.get('entity_type') != 'org' and not eastern:
+        do_flip(author_import_record)
+    if existing := find_entity(author_import_record):
         assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
             if existing.k:
                 del existing.k
         new = existing
-        if 'death_date' in author and 'death_date' not in existing:
-            new['death_date'] = author['death_date']
+        if 'death_date' in author_import_record and 'death_date' not in existing:
+            new['death_date'] = author_import_record['death_date']
         return new
     a = {'type': {'key': '/type/author'}}
     for f in (
@@ -301,15 +303,15 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
         'date',
         'remote_ids',
     ):
-        if f in author:
-            a[f] = author[f]
+        if f in author_import_record:
+            a[f] = author_import_record[f]
     return a
 
 
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
 
-def build_query(rec: dict[str, Any]) -> dict[str, Any]:
+def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
     """
     Takes an edition record dict, rec, and returns an Open Library edition
     suitable for saving.
@@ -325,7 +327,9 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
                 for author in v:
                     author['name'] = remove_author_honorifics(author['name'])
                     east = east_in_by_statement(rec, author)
-                    book['authors'].append(import_author(author, eastern=east))
+                    book['authors'].append(
+                        author_import_record_to_author(author, eastern=east)
+                    )
             continue
 
         if k in ('languages', 'translated_from'):
