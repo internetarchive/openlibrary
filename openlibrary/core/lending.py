@@ -594,10 +594,7 @@ def is_loaned_out(identifier: str) -> bool:
 
     This doesn't worry about waiting lists.
     """
-    return (
-        is_loaned_out_on_ol(identifier)
-        or (is_loaned_out_on_ia(identifier) is True)
-    )
+    return is_loaned_out_on_ol(identifier) or (is_loaned_out_on_ia(identifier) is True)
 
 
 def is_loaned_out_on_ia(identifier: str) -> bool | None:
