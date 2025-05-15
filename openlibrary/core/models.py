@@ -76,7 +76,7 @@ class Image:
 
     def get_aspect_ratio(self) -> float | None:
         info = self.info()
-        if info and "width" in info and "height" in info:
+        if info and item.get('width') and item.get('height'):
             return info["width"] / info["height"]
         return None
 
