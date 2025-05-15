@@ -10,13 +10,10 @@ import { closePopup } from './utils';
 //cover/change.html
 export function initCoversChange() {
     // Pull data from data-config of class "manageCovers" in covers/manage.html
-    const manageCoversElement = $('.manageCovers');
-    const data_config_json = manageCoversElement.data('config');
+    const data_config_json = $('.manageCovers').data('config');
     const doc_type_key = data_config_json['key'];
     const add_url = data_config_json['add_url'];
     const manage_url = data_config_json['manage_url'];
-    // Hide the covers module until we run this function to avoid repaints.
-    manageCoversElement.removeClass('hidden');
 
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
