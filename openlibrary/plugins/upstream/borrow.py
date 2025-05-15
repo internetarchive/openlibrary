@@ -12,7 +12,6 @@ from datetime import datetime
 from typing import Literal
 
 import lxml.etree
-import requests
 import web
 from lxml import etree
 
@@ -43,11 +42,6 @@ logger = logging.getLogger("openlibrary.borrow")
 lending_library_subject = 'Lending library'
 in_library_subject = 'In library'
 lending_subjects = {lending_library_subject, in_library_subject}
-loanstatus_url = config.get('loanstatus_url')
-
-# ACS4 resource ids start with 'urn:uuid:'.  The meta.xml on archive.org
-# adds 'acs:epub:' or 'acs:pdf:' to distinguish the file type.
-acs_resource_id_prefixes = ['urn:uuid:', 'acs:epub:', 'acs:pdf:']
 
 # Max loans a user can have at once
 user_max_loans = 5
@@ -532,16 +526,6 @@ def is_loaned_out(resource_id: str) -> bool | None:
 
 def is_loaned_out_from_status(status) -> bool:
     return status and status['returned'] != 'T'
-
-
-def resource_uses_bss(resource_id: str) -> bool:
-    """Returns true if the resource should use the BSS for status"""
-
-    if resource_id:
-        for prefix in acs_resource_id_prefixes:
-            if resource_id.startswith(prefix):
-                return True
-    return False
 
 
 def user_can_borrow_edition(user, edition) -> Literal['borrow', 'browse', False]:
