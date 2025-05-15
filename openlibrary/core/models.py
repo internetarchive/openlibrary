@@ -59,7 +59,7 @@ class Image:
         self.category = category
         self.id = id
 
-    def info(self):
+    def info(self) -> dict[str, Any] | None:
         url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
@@ -75,7 +75,13 @@ class Image:
             # coverstore is down
             return None
 
-    def url(self, size="M"):
+    def get_aspect_ratio(self) -> float | None:
+        info = self.info()
+        if info and info.get('width') and info.get('height'):
+            return info["width"] / info["height"]
+        return None
+
+    def url(self, size="M") -> str:
         """Get the public URL of the image."""
         coverstore_url = get_coverstore_public_url()
         return f"{coverstore_url}/{self.category}/id/{self.id}-{size.upper()}.jpg"
