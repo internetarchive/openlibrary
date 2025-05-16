@@ -9,7 +9,8 @@ import requests
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
-from openlibrary.plugins.upstream.utils import get_marc21_language
+from openlibrary.plugins.upstream.utils import safe_get_marc21_language
+from openlibrary.utils import uniq
 from scripts.partner_batch_imports import is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -22,6 +23,50 @@ SCHEMA_URL = (
 
 NONBOOK: Final = ['dvd', 'dvd-rom', 'cd', 'cd-rom', 'cassette', 'sheet music', 'audio']
 RE_YEAR = re.compile(r'(\d{4})')
+# Legacy these overrode the default default matching logic ; unclear
+# if this are still needed, or if they should be migrated to elsewhere,
+# or if they're all correct.
+ISBNDB_LANGUAGE_OVERRIDES: Final = {
+    'agq': 'agq',
+    'asa': 'asa',
+    'ebu': 'ceb',
+    'en_us': 'eng',
+    'enf': 'enm',
+    'esp': 'und',
+    'eu': 'eus',
+    'f': 'fre',
+    'fle': 'fre',
+    'fra': 'fre',
+    'ga': 'gae',
+    'hy': 'hye',
+    'in': 'ind',
+    'irish': 'iri',
+    'iw': 'heb',
+    'jap': 'jpn',
+    'ka': 'kat',
+    'lan': 'und',
+    'lcc': 'und',
+    'lt': 'ltz',
+    'mfe': 'mfe',
+    'mk': 'mkh',
+    'ms': 'msa',
+    'mya': 'bur',
+    'nso': 'sot',
+    'opy': 'und',
+    'pt-br': 'por',
+    'scc': 'srp',
+    'sho': 'sna',
+    'slo': 'slv',
+    'swz': 'ssw',
+    'tag': 'tgl',
+    'tso': 'sot',
+    'tsonga': 'tsonga',
+    'tswana': 'tsw',
+    'un': 'und',
+    'yu': 'ypk',
+    'zh-cn': 'chi',
+    'zh-tw': 'chi',
+}
 
 
 def is_nonbook(binding: str, nonbooks: list[str]) -> bool:
@@ -90,13 +135,17 @@ class ISBNdb:
             return None
 
         possible_languages = re.split(',| |;', language_line)
-        unique_languages = []
-
-        for language in possible_languages:
-            if (
-                marc21_language := get_marc21_language(language)
-            ) and marc21_language not in unique_languages:
-                unique_languages.append(marc21_language)
+        unique_languages = uniq(
+            [
+                marc21_language
+                for language in possible_languages
+                if (
+                    marc21_language := safe_get_marc21_language(
+                        language, overrides=ISBNDB_LANGUAGE_OVERRIDES
+                    )
+                )
+            ]
+        )
 
         return unique_languages or None
 
