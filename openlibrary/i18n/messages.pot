@@ -1608,7 +1608,7 @@ msgstr ""
 msgid "Or copy/paste JSONL text:"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html import_preview.html
 msgid "Import"
 msgstr ""
 
@@ -1884,6 +1884,14 @@ msgstr ""
 
 #: books/daisy.html history.html
 msgid "Back"
+msgstr ""
+
+#: import_preview.html
+msgid "Import Preview"
+msgstr ""
+
+#: import_preview.html
+msgid "Preview Import"
 msgstr ""
 
 #: internalerror.html
