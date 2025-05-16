@@ -1,3 +1,5 @@
+import { buildPartialsUrl } from './utils'
+
 /**
  * Adds functionality to fetch affialite links asyncronously.
  *
@@ -49,9 +51,8 @@ function showLoadingIndicators(linkSections) {
  */
 async function getPartials(data, affiliateLinksSections) {
     const dataString = JSON.stringify(data)
-    const dataQueryParam = encodeURIComponent(dataString)
 
-    return fetch(`/partials.json?_component=AffiliateLinks&data=${dataQueryParam}`)
+    return fetch(buildPartialsUrl('/partials.json', {_component: 'AffiliateLinks', data: dataString}))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)

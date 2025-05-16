@@ -1,3 +1,5 @@
+import { buildPartialsUrl } from './utils'
+
 export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
     const isLoading = showLoadingIndicators(fulltextSearchSuggestion)
     if (isLoading) {
@@ -16,8 +18,7 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     return isLoading
 }
 async function getPartials(fulltextSearchSuggestion, query) {
-    const queryParam = encodeURIComponent(query)
-    return fetch(`/partials.json?_component=FulltextSearchSuggestion&data=${queryParam}`)
+    return fetch(buildPartialsUrl('/partials.json', {_component: 'FulltextSearchSuggestion', data: query}))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)

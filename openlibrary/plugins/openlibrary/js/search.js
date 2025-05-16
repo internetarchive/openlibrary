@@ -2,6 +2,8 @@
  * Functionalities for templates/work_search and related templates.
  */
 
+import { buildPartialsUrl } from './utils';
+
 /**
  * Displays more facets by removing the ui-helper-hidden class.
  *
@@ -129,12 +131,11 @@ function fetchPartials(param) {
         path: location.pathname,
         query: location.search
     }
-    const dataString = JSON.stringify(data)
 
-    return fetch(`/partials.json?${new URLSearchParams({
+    return fetch(buildPartialsUrl('/partials.json', {
         _component: 'SearchFacets',
-        data: dataString
-    })}`)
+        data: JSON.stringify(data),
+    }))
         .then((resp) => {
             if (!resp.ok) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
