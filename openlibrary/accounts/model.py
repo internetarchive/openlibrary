@@ -19,6 +19,7 @@ from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
 from openlibrary.core import helpers, stats
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
@@ -358,6 +359,9 @@ class Account(web.storage):
             self.username, new_username, _test=test
         )
         results['merge_request_count'] = CommunityEditsQueue.update_submitter_name(
+            self.username, new_username, _test=test
+        )
+        results['bestbooks_count'] = Bestbook.update_username(
             self.username, new_username, _test=test
         )
 

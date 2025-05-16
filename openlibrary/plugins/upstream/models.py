@@ -82,6 +82,11 @@ class Edition(models.Edition):
         elif self.ocaid:
             return self.get_ia_cover(self.ocaid, size)
 
+    def get_cover_aspect_ratio(self) -> float | None:
+        if cover := self.get_cover():
+            return cover.get_aspect_ratio()
+        return None
+
     def get_ia_cover(self, itemid, size):
         image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
         w, h = image_sizes[size.upper()]
