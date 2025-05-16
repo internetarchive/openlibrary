@@ -16,6 +16,7 @@ from infogami.infobase import client
 from openlibrary import accounts
 from openlibrary.catalog import add_book  # noqa: F401 side effects may be needed
 from openlibrary.core import lending
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -58,23 +59,30 @@ class Image:
         self.category = category
         self.id = id
 
-    def info(self):
+    def info(self, fetch_author: bool = True) -> dict[str, Any] | None:
         url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
             d = requests.get(url).json()
             d['created'] = parse_datetime(d['created'])
-            if d['author'] == 'None':
-                d['author'] = None
-            d['author'] = d['author'] and self._site.get(d['author'])
+            if fetch_author:
+                if d['author'] == 'None':
+                    d['author'] = None
+                d['author'] = d['author'] and self._site.get(d['author'])
 
             return web.storage(d)
         except OSError:
             # coverstore is down
             return None
 
-    def url(self, size="M"):
+    def get_aspect_ratio(self) -> float | None:
+        info = self.info(fetch_author=False)
+        if info and info.get('width') and info.get('height'):
+            return info["width"] / info["height"]
+        return None
+
+    def url(self, size="M") -> str:
         """Get the public URL of the image."""
         coverstore_url = get_coverstore_public_url()
         return f"{coverstore_url}/{self.category}/id/{self.id}-{size.upper()}.jpg"
@@ -561,6 +569,26 @@ class Work(Thing):
                 'num_ratings': rating_stats['num_ratings'],
             }
 
+    def get_awards(self) -> list:
+        if not self.key:
+            return []
+
+        work_id = extract_numeric_id_from_olid(self.key)
+        return Bestbook.get_awards(work_id)
+
+    def check_if_user_awarded(self, username) -> bool:
+        if not self.key:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        return bool(Bestbook.get_awards(username=username, work_id=work_id))
+
+    def get_award_by_username(self, username):
+        if not self.key:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        awards = Bestbook.get_awards(username=username, work_id=work_id)
+        return awards[0] if awards else None
+
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.
@@ -665,6 +693,7 @@ class Work(Thing):
             r['occurrences']['readinglog'] = len(Bookshelves.get_works_shelves(olid))
             r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
             r['occurrences']['booknotes'] = len(Booknotes.get_booknotes_for_work(olid))
+            r['occurrences']['bestbooks'] = Bestbook.get_count(work_id=olid)
             r['occurrences']['observations'] = len(
                 Observations.get_observations_for_work(olid)
             )
@@ -683,9 +712,18 @@ class Work(Thing):
                 r['updates']['observations'] = Observations.update_work_id(
                     olid, new_olid, _test=test
                 )
+                r['updates']['bestbooks'] = Bestbook.update_work_id(
+                    olid, new_olid, _test=test
+                )
                 summary['modified'] = summary['modified'] or any(
                     any(r['updates'][group].values())
-                    for group in ['readinglog', 'ratings', 'booknotes', 'observations']
+                    for group in [
+                        'readinglog',
+                        'ratings',
+                        'booknotes',
+                        'observations',
+                        'bestbooks',
+                    ]
                 )
 
         return summary
