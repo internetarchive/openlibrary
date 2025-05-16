@@ -2,6 +2,7 @@ import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
+from enum import Enum
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
@@ -360,15 +361,19 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> 
         )
 
 
-def _handle_pd_cookies(ol_account: OpenLibraryAccount) -> None:
+class PDRequestStatus(Enum):
+    REQUESTED = 0
+    EMAILED = 1
+
+
+def _update_account_for_pd(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
     ol_account.get_user().save_preferences(
         {
-            "rpd": 1,
+            "rpd": PDRequestStatus.REQUESTED.value,
             "pda": pda,
         }
     )
-    web.setcookie("pda", "", expires=1)
 
 
 def _notify_on_rpd_verification(ol_account, org):
@@ -384,6 +389,15 @@ def _notify_on_rpd_verification(ol_account, org):
             subject=msg.subject.strip(),
             message=msg,
         )
+        ol_account.get_user().save_preferences(
+            {
+                "rpd": PDRequestStatus.EMAILED.value,
+            }
+        )
+
+
+def _expire_pd_cookies():
+    web.setcookie("pda", "", expires=1)
 
 
 class account_login_json(delegate.page):
@@ -433,10 +447,11 @@ class account_login_json(delegate.page):
                 _set_account_cookies(ol_account, expires)
 
                 if web.cookies().get("pda"):
+                    _update_account_for_pd(ol_account)
                     _notify_on_rpd_verification(
                         ol_account, get_pd_org(web.cookies().get("pda"))
                     )
-                    _handle_pd_cookies(ol_account)
+                    _expire_pd_cookies()
 
         # Fallback to infogami user/pass
         else:
@@ -527,10 +542,11 @@ class account_login(delegate.page):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
+                _update_account_for_pd(ol_account)
                 _notify_on_rpd_verification(
                     ol_account, get_pd_org(web.cookies().get("pda"))
                 )
-                _handle_pd_cookies(ol_account)
+                _expire_pd_cookies()
                 add_flash_message(
                     "info",
                     _(
