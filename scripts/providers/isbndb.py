@@ -9,7 +9,7 @@ import requests
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
-from openlibrary.plugins.upstream.utils import safe_get_marc21_language
+from openlibrary.plugins.upstream.utils import safe_resolve_to_lang_code
 from openlibrary.utils import uniq
 from scripts.partner_batch_imports import is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -140,7 +140,7 @@ class ISBNdb:
                 marc21_language
                 for language in possible_languages
                 if (
-                    marc21_language := safe_get_marc21_language(
+                    marc21_language := safe_resolve_to_lang_code(
                         language, overrides=ISBNDB_LANGUAGE_OVERRIDES
                     )
                 )

@@ -771,42 +771,41 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
                 break
 
 
-def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
+def full_lang_name_to_lang_code(input_lang_name: str) -> str:
     """
-    Take a language name, in English, such as 'English' or 'French' and return
-    'eng' or 'fre', respectively, if there is one match.
+    Take a language name in any language, eg 'English' or 'Anglais' and return
+    the OL 3-letter language code, eg 'eng' or 'fre', respectively, if there
+    is exactly one match.
 
     If there are zero matches, raise LanguageNoMatchError.
     If there are multiple matches, raise a LanguageMultipleMatchError.
     """
-    if languages is None:
-        languages = get_languages().values()
-    target_abbrev = ""
+    lang_code = ""
 
     def normalize(s: str) -> str:
         return strip_accents(s).lower()
 
-    for language in languages:
+    for language in get_languages().values():
         if normalize(language.name) == normalize(input_lang_name):
-            if target_abbrev:
+            if lang_code:
                 raise LanguageMultipleMatchError(input_lang_name)
 
-            target_abbrev = language.code
+            lang_code = language.code
             continue
 
         for key in language.name_translated:
             if normalize(language.name_translated[key][0]) == normalize(
                 input_lang_name
             ):
-                if target_abbrev:
+                if lang_code:
                     raise LanguageMultipleMatchError(input_lang_name)
-                target_abbrev = language.code
+                lang_code = language.code
                 break
 
-    if not target_abbrev:
+    if not lang_code:
         raise LanguageNoMatchError(input_lang_name)
 
-    return target_abbrev
+    return lang_code
 
 
 def get_language(lang_or_key: str) -> "None | Thing | Nothing":
@@ -816,9 +815,10 @@ def get_language(lang_or_key: str) -> "None | Thing | Nothing":
         return lang_or_key
 
 
-def get_marc21_language(language: str, overrides: dict[str, str] | None = None) -> str:
+def resolve_to_lang_code(language: str, overrides: dict[str, str] | None = None) -> str:
     """
-    Map a language string match Open Library's expected format (which is mostly MARC21)
+    Resolve an arbitrary language string to match Open Library's expected
+    3-letter language code format (which is mostly MARC21).
 
     Supports a variety of input formats, including:
     - Full key, e.g. /languages/eng
@@ -845,15 +845,15 @@ def get_marc21_language(language: str, overrides: dict[str, str] | None = None) 
         or convert_iso_to_marc(input_lang)
         # Check if it's a full name, eg English, Anglais, etc
         # Note this must be last, since it raises errors
-        or get_abbrev_from_full_lang_name(language)
+        or full_lang_name_to_lang_code(language)
     )
 
 
-def safe_get_marc21_language(
+def safe_resolve_to_lang_code(
     language: str, overrides: dict[str, str] | None = None
 ) -> str | None:
     try:
-        return get_marc21_language(language, overrides)
+        return resolve_to_lang_code(language, overrides)
     except (LanguageNoMatchError, LanguageMultipleMatchError):
         # If we can't find a match, return None
         return None

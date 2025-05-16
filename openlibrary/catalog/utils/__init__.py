@@ -9,7 +9,7 @@ import web
 from openlibrary.plugins.upstream.utils import (
     LanguageMultipleMatchError,
     LanguageNoMatchError,
-    get_marc21_language,
+    resolve_to_lang_code,
 )
 from openlibrary.utils import uniq
 
@@ -473,11 +473,10 @@ def format_languages(languages: Iterable) -> list[dict[str, str]]:
         input_lang = language.lower()
 
         try:
-            marc_lang_code = get_marc21_language(input_lang)
+            lang_code = resolve_to_lang_code(input_lang)
         except (LanguageNoMatchError, LanguageMultipleMatchError):
-            # get_abbrev_from_full_lang_name raises errors
             raise InvalidLanguage(input_lang)
 
-        lang_keys.append(f'/languages/{marc_lang_code}')
+        lang_keys.append(f'/languages/{lang_code}')
 
     return [{'key': key} for key in uniq(lang_keys)]
