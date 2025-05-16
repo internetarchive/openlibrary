@@ -59,16 +59,17 @@ class Image:
         self.category = category
         self.id = id
 
-    def info(self) -> dict[str, Any] | None:
+    def info(self, fetch_author: bool = True) -> dict[str, Any] | None:
         url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
             d = requests.get(url).json()
             d['created'] = parse_datetime(d['created'])
-            if d['author'] == 'None':
-                d['author'] = None
-            d['author'] = d['author'] and self._site.get(d['author'])
+            if fetch_author:
+                if d['author'] == 'None':
+                    d['author'] = None
+                d['author'] = d['author'] and self._site.get(d['author'])
 
             return web.storage(d)
         except OSError:
@@ -76,7 +77,7 @@ class Image:
             return None
 
     def get_aspect_ratio(self) -> float | None:
-        info = self.info()
+        info = self.info(fetch_author=False)
         if info and info.get('width') and info.get('height'):
             return info["width"] / info["height"]
         return None
