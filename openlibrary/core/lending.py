@@ -1010,7 +1010,7 @@ def update_loan_status(identifier):
     if loan['resource_type'] == 'bookreader':
         if loan.is_expired():
             loan.delete()
-            return
+        return
 
 
 class IA_Lending_API:
