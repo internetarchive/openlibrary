@@ -75,7 +75,9 @@ $if include_widget:
 
   $if username and show_active_lists:
     <ul class="listLists already-lists">
-        $if not async_load:
+        $if async_load:
+          <div class="list-overview-loading-indicator"></div>
+        $else:
           $:render_already_lists(user_lists, user_key)
     </ul>
   $if work and include_rating:

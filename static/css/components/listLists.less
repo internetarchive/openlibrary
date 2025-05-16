@@ -48,7 +48,20 @@ ul.listLists {
     }
   }
   .list-overview-loading-indicator {
-    display: flex;
-    justify-content: center;
+    position: relative;
+
+    &::before {
+      content: "Loading...";
+      font-size: 8px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 0;
+      height: 8px;
+      width: calc(100% - 8px);
+      position: absolute;
+      top: -8px;
+      left: 0;
+      opacity: .75;
+    }
   }
 }
