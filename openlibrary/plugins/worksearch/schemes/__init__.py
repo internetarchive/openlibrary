@@ -13,7 +13,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class SearchScheme:
-    # facent_fields and default_fetched_fields are class variables because they are used as such.
+    # facet_fields and default_fetched_fields are class variables because they are used as such.
 
     # These fields are fetched for facets and can also be url params
     facet_fields: frozenset[str]
