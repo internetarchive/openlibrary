@@ -25,7 +25,7 @@
     padding: 10px 0 2px;
 
     label {
-      font-size: 1.0em;
+      font-size: 1em;
       font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
@@ -98,37 +98,38 @@
       width: 100%;
     }
 
-    .links-form__label, .links-form__url {
+    .links-form__label,
+    .links-form__url {
       flex: 1 1 0;
       min-width: 250px;
     }
   }
 
-  input[type=number],
-  input[type=text],
-  input[type=password],
-  input[type=url],
-  input[type=email] {
+  input[type="number"],
+  input[type="text"],
+  input[type="password"],
+  input[type="url"],
+  input[type="email"] {
     margin: 0 10px 5px 0;
   }
 
-  input[type=number],
-  input[type=text],
-  input[type=email],
-  input[type=password],
-  input[type=url],
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="url"],
   textarea {
-    font-size: 1.0em;
+    font-size: 1em;
     font-family: @lucida_sans_serif-5;
     padding: 3px;
     max-width: 100%;
     resize: vertical;
   }
 
-  input[type=number] {
+  input[type="number"] {
     width: 4em;
   }
-  input[type=submit] {
+  input[type="submit"] {
     padding: 5px;
   }
 
@@ -150,10 +151,10 @@
     /* stylelint-disable selector-max-specificity */
     .major {
       // stylelint-disable-next-line max-nesting-depth
-      input[type=text],
-      input[type=email],
-      input[type=password],
-      input[type=url],
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="url"],
       textarea {
         font-size: .875em;
         width: 100%;
@@ -200,7 +201,7 @@
   height: 265px;
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   .olform {
     // formBackLeft and formBackRight are presently only used in
     // openlibrary/templates/books/edit/edition.html (edit form)
@@ -220,13 +221,13 @@
   }
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   /* stylelint-disable selector-max-specificity */
   .olform {
-    input[type=text],
-    input[type=email],
-    input[type=password],
-    input[type=url],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="url"],
     textarea {
       width: 100%;
       resize: vertical;

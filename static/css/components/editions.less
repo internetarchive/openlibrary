@@ -22,8 +22,12 @@ table#editions,
   .cta-dropper {
     width: fit-content;
     margin: 0 auto;
-    .cta-dropper-button { width: 145px; }
-    .dropper-menu { width: 185px; }
+    .cta-dropper-button {
+      width: 145px;
+    }
+    .dropper-menu {
+      width: 185px;
+    }
   }
 
   thead {
@@ -33,10 +37,10 @@ table#editions,
       background: linear-gradient(0deg, @lightest-grey, transparent);
       // stylelint-disable max-nesting-depth
       th.read:focus {
-        outline: revert
+        outline: revert;
       }
       th.title:focus {
-        outline: revert
+        outline: revert;
       }
       // stylelint-enable max-nesting-depth
     }
@@ -158,7 +162,7 @@ table#editions,
   }
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   table#editions {
     float: left;
     width: 100%;
@@ -171,7 +175,6 @@ table#editions,
     div.cover {
       float: left;
     }
-
   }
 }
 
@@ -203,7 +206,8 @@ table#editions,
     form {
       padding: 10px;
     }
-    ul.links ul, li.read-option {
+    ul.links ul,
+    li.read-option {
       display: inline;
     }
     td.book {
