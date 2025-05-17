@@ -121,7 +121,7 @@
     // stylelint-disable max-nesting-depth, selector-max-specificity
     .subsection {
       font-weight: bold;
-      border-bottom: 2px solid hsl(32.7,14.7%,70.6%);
+      border-bottom: 2px solid hsl(32.7, 14.7%, 70.6%);
       padding: 16px 16px 3px;
       &:hover {
         background-color: transparent;
@@ -136,7 +136,9 @@
       margin: 0 8px;
     }
 
-    li a, li button, .login-links {
+    li a,
+    li button,
+    .login-links {
       padding: 10px 8px;
     }
 
@@ -197,7 +199,7 @@
 
     // stylelint-disable max-nesting-depth, selector-max-specificity
     details[open] {
-      .mask-menu{
+      .mask-menu {
         visibility: visible;
         opacity: .6;
         animation: fadeIn .2s ease-in-out;
@@ -218,13 +220,23 @@
     }
 
     @keyframes sweep {
-      0%    {opacity: 0; transform: translateX(50px)}
-      100%  {opacity: 1; transform: translateX(0)}
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     @keyframes fadeIn {
-      0% {opacity: 0;}
-      100% {opacity: .6;}
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: .6;
+      }
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
 
@@ -416,7 +428,7 @@
         }
       }
 
-      .search-bar-input input[type=text] {
+      .search-bar-input input[type="text"] {
         display: block;
         width: 100%;
       }
@@ -457,7 +469,7 @@
     .vertical-separator {
       border-left: 1px solid @light-grey;
       height: 34px;
-      margin: auto 5px auto 0
+      margin: auto 5px auto 0;
     }
 
     .search-by-barcode-submit {
@@ -478,7 +490,7 @@
     }
 
     .search-bar-input {
-      input[type=text] {
+      input[type="text"] {
         max-width: 100%;
       }
     }
@@ -676,7 +688,7 @@ div.search-facet:focus-within {
     .display-flex();
 
     /* stylelint-disable selector-max-specificity */
-    input[type=text] {
+    input[type="text"] {
       min-width: 0;
       margin: 3px;
       -webkit-box-flex: 1;
@@ -694,7 +706,7 @@ div.search-facet:focus-within {
       transition: all .5s;
       display: none;
     }
-    input[type=submit] {
+    input[type="submit"] {
       border: none;
       cursor: pointer;
       -webkit-appearance: none;
@@ -703,7 +715,7 @@ div.search-facet:focus-within {
     }
 
     .vertical-separator {
-      display: none
+      display: none;
     }
 
     .search-by-barcode-submit {
@@ -714,7 +726,7 @@ div.search-facet:focus-within {
 }
 
 @media only screen and (max-width: 25em) {
-  .search-bar-component{
+  .search-bar-component {
     margin-right: 15px;
   }
 }
@@ -722,7 +734,7 @@ div.search-facet:focus-within {
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   .header-bar {
-    .search-bar-component{
+    .search-bar-component {
       margin-right: 15px;
     }
     .navigation-component {
@@ -827,7 +839,7 @@ div.search-facet:focus-within {
         .display-flex();
 
         /* stylelint-disable selector-max-specificity */
-        input[type=text] {
+        input[type="text"] {
           display: block;
         }
 
@@ -855,7 +867,11 @@ div.search-facet:focus-within {
   #header-bar {
     position: sticky;
     top: 0;
-    background: linear-gradient(to bottom, @header-bar-gradient-start, @header-bar-gradient-end);
+    background: linear-gradient(
+      to bottom,
+      @header-bar-gradient-start,
+      @header-bar-gradient-end
+    );
     padding: 3px 0;
     box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
     z-index: @z-index-level-3;

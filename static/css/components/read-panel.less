@@ -25,7 +25,8 @@
   border: 1px solid @lighter-grey;
   margin-top: 0;
 
-  .cta-btn, .cta-btn.cta-btn--no-pointer {
+  .cta-btn,
+  .cta-btn.cta-btn--no-pointer {
     margin-bottom: 10px;
   }
 
@@ -132,7 +133,7 @@
   }
 }
 
-.cta-section-title.world-cat-link{
+.cta-section-title.world-cat-link {
   margin-top: 0;
 }
 
@@ -150,8 +151,12 @@
     text-align: center;
   }
 
-  hr { background: fade(@link-blue, 35%); }
-  a.learn-more { font-size: .9em; }
+  hr {
+    background: fade(@link-blue, 35%);
+  }
+  a.learn-more {
+    font-size: .9em;
+  }
 }
 
 .Tools .booklinks li {
@@ -160,7 +165,7 @@
 }
 
 // desktop
-@media only screen and (min-width: @width-breakpoint-desktop){
+@media only screen and (min-width: @width-breakpoint-desktop) {
   /* stylelint-disable selector-max-specificity */
   .mobile-vendor,
   .cta-button-group.mobile,
@@ -177,7 +182,7 @@
 }
 
 // mobile
-@media only screen and (max-width: @width-breakpoint-desktop){
+@media only screen and (max-width: @width-breakpoint-desktop) {
   .desktop-vendor,
   .cta-button-group.desktop {
     display: none;
@@ -190,13 +195,14 @@
     border: none;
     // Hide border for desktop version of modal links and ratings form on mobile
     /* stylelint-disable no-descending-specificity */
-    &> hr {
+    & > hr {
       display: none;
     }
     /* stylelint-enable no-descending-specificity */
   }
 
-  .star-rating-form.desktop, .modal-links.desktop {
+  .star-rating-form.desktop,
+  .modal-links.desktop {
     display: none;
   }
 
@@ -213,7 +219,7 @@
       display: none;
     }
 
-    &> hr {
+    & > hr {
       margin: 0 20px;
     }
 
@@ -251,7 +257,8 @@
         }
       }
 
-      li.avg-ratings, li.readers-stats__review-count {
+      li.avg-ratings,
+      li.readers-stats__review-count {
         display: none;
       }
       /* stylelint-enable selector-max-specificity */
