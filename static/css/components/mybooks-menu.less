@@ -33,7 +33,9 @@
     display: block;
     color: @link-blue;
   }
-  a:link, a:hover, a:visited {
+  a:link,
+  a:hover,
+  a:visited {
     text-decoration: none;
   }
 
@@ -165,7 +167,7 @@
     display: none;
   }
 
-  .mybooks-menu-mobile{
+  .mybooks-menu-mobile {
     max-width: none !important; /** fix in media query */
     flex-shrink: 0;
     border-right: 1px solid @lightest-grey;
@@ -290,12 +292,12 @@
     display: none;
   }
   .mybooks-menu {
-    width: 200px;  // 250px width + 75% width in `.mybooks-details {}` causes overflow.
+    width: 200px; // 250px width + 75% width in `.mybooks-details {}` causes overflow.
   }
 }
 
 @media only screen and (min-width: (@width-breakpoint-desktop + 1)) {
   .mybooks-menu {
-    width: 250px;  // Desktops are fine with the wider menu.
+    width: 250px; // Desktops are fine with the wider menu.
   }
 }

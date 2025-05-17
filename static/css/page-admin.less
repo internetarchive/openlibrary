@@ -15,14 +15,26 @@
 @import (less) "components/admin-table.less";
 
 .status {
-  &--0 { color: @red; }
-  &--1 { color: @orange; }
-  &--2 { color: @blue; }
-  &--3 { color: @green; }
+  &--0 {
+    color: @red;
+  }
+  &--1 {
+    color: @orange;
+  }
+  &--2 {
+    color: @blue;
+  }
+  &--3 {
+    color: @green;
+  }
 }
 .earnings {
-  &--profit { color: @green; }
-  &--loss { color: @red; }
+  &--profit {
+    color: @green;
+  }
+  &--loss {
+    color: @red;
+  }
 }
 
 .sponsor th {
@@ -175,7 +187,6 @@ div.sparkDisplay {
 @import (less) "legacy-borrowTable-adminUser.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-
   // openlibrary/admin/templates/admin/index.html
   div#uniqueIps {
     float: left;
@@ -208,7 +219,7 @@ div.sparkDisplay {
   }
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   // Graph shown on /stats
   // openlibrary/templates/admin/index.html
   .canvas-graph {

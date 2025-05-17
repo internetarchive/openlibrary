@@ -18,7 +18,8 @@
   min-height: 10px;
   padding-right: 0;
   .cover-animation {
-    transition: transform .8s, opacity .8s;
+    transition: transform .8s,
+      opacity .8s;
     position: relative;
     z-index: @z-index-level-negative;
   }
@@ -56,7 +57,7 @@ div.editionAbout {
   }
 }
 
-.work-description{
+.work-description {
   pre {
     overflow: auto;
   }
@@ -95,7 +96,8 @@ textarea[name="work--description"] + h3 + .wmd-preview,
   margin-top: 5px;
   margin-bottom: 20px;
 
-  ul, ol {
+  ul,
+  ol {
     padding-left: 2rem;
 
     li {
@@ -168,11 +170,12 @@ a.section-anchor {
   }
 }
 
-.meta dt, .meta dd {
+.meta dt,
+.meta dd {
   font-size: @font-size-label-medium;
 }
 
-.book-subtitle{
+.book-subtitle {
   margin-bottom: 0;
 }
 
@@ -228,7 +231,8 @@ div.editionTools {
   }
 }
 
-.print-disabled-download, .patron-metadata {
+.print-disabled-download,
+.patron-metadata {
   text-align: center;
   padding: 7px 0 0;
 }
@@ -285,7 +289,6 @@ div.editionTools {
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
-
     }
   }
 }
@@ -307,7 +310,7 @@ div.editionTools {
   font-weight: normal;
   color: @link-blue;
 }
-@media only screen and (max-width: @width-breakpoint-desktop){
+@media only screen and (max-width: @width-breakpoint-desktop) {
   div.editionAbout .book-description {
     padding-top: 1em;
   }

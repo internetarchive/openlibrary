@@ -14,7 +14,8 @@
     list-style: none !important;
     margin: 0 0 18px !important;
     clear: right;
-    &:after { /* clearing without presentational markup, IE gets extra treatment */
+    &:after {
+      /* clearing without presentational markup, IE gets extra treatment */
       display: block;
       clear: both;
       content: " ";
@@ -48,11 +49,11 @@
     }
     /* stylelint-disable selector-max-specificity */
     .ui-tabs-active {
-
       /* stylelint-disable max-nesting-depth */
       a {
         &:link,
-        &:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
+        &:visited {
+          /* @ Opera, use pseudo classes otherwise it confuses cursor... */
           background: @lightest-grey;
           border: 1px solid @lightest-grey;
           border-bottom: 3px solid @lightest-grey;
@@ -68,7 +69,8 @@
     a:active,
     .ui-tabs-deselectable a:hover,
     .ui-tabs-deselectable a:focus,
-    .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
+    .ui-tabs-deselectable a:active {
+      /* @ Opera, we need to be explicit again here now... */
       cursor: pointer;
     }
     /* stylelint-enable no-descending-specificity */
@@ -102,7 +104,8 @@
 }
 
 /* Additional IE specific bug fixes... */
-* html .ui-tabs-nav { /* auto clear, @ IE 6 & IE 7 Quirks Mode */
+* html .ui-tabs-nav {
+  /* auto clear, @ IE 6 & IE 7 Quirks Mode */
   display: inline-block;
 }
 
