@@ -39,6 +39,51 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
+    facet_fields = frozenset(
+        {
+            "has_fulltext",
+            "author_facet",
+            "language",
+            "first_publish_year",
+            "publisher_facet",
+            "subject_facet",
+            "person_facet",
+            "place_facet",
+            "time_facet",
+            "public_scan_b",
+        }
+    )
+    default_fetched_fields = frozenset(
+        {
+            'key',
+            'author_name',
+            'author_key',
+            'title',
+            'subtitle',
+            'edition_count',
+            'ebook_access',
+            'ia',
+            'has_fulltext',
+            'first_publish_year',
+            'cover_i',
+            'cover_edition_key',
+            'public_scan_b',
+            'lending_edition_s',
+            'lending_identifier_s',
+            'language',
+            'ia_collection_s',
+            # FIXME: These should be fetched from book_providers, but can't cause circular
+            # dep
+            'id_project_gutenberg',
+            'id_project_runeberg',
+            'id_librivox',
+            'id_standard_ebooks',
+            'id_openstax',
+            'id_cita_press',
+            'id_wikisource',
+        }
+    )
+
     def __init__(self):
         super().__init__()
         self.universe = ['type:work']
@@ -102,18 +147,6 @@ class WorkSearchScheme(SearchScheme):
             'description',
             'providers',
         }
-        self.facet_fields = {
-            "has_fulltext",
-            "author_facet",
-            "language",
-            "first_publish_year",
-            "publisher_facet",
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-            "public_scan_b",
-        }
         self.field_name_map = {
             'author': 'author_name',
             'authors': 'author_name',
@@ -167,34 +200,6 @@ class WorkSearchScheme(SearchScheme):
             'random desc': 'random_1 desc',
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-        }
-        self.default_fetched_fields = {
-            'key',
-            'author_name',
-            'author_key',
-            'title',
-            'subtitle',
-            'edition_count',
-            'ebook_access',
-            'ia',
-            'has_fulltext',
-            'first_publish_year',
-            'cover_i',
-            'cover_edition_key',
-            'public_scan_b',
-            'lending_edition_s',
-            'lending_identifier_s',
-            'language',
-            'ia_collection_s',
-            # FIXME: These should be fetched from book_providers, but can't cause circular
-            # dep
-            'id_project_gutenberg',
-            'id_project_runeberg',
-            'id_librivox',
-            'id_standard_ebooks',
-            'id_openstax',
-            'id_cita_press',
-            'id_wikisource',
         }
         self.facet_rewrites = {
             ('public_scan', 'true'): 'ebook_access:public',

@@ -9,6 +9,9 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 # define a search scheme for lists, similar to SubjectSearchScheme
 class ListSearchScheme(SearchScheme):
+    facet_fields = frozenset()
+    default_fetched_fields = frozenset({'key', 'name'})
+
     def __init__(self):
         super().__init__()
         self.universe = ['type:list']  # this search only applies to list type documents
@@ -29,7 +32,6 @@ class ListSearchScheme(SearchScheme):
         self.non_solr_fields = {
             'description',  # short description of the list
         }
-        self.facet_fields = set()
         self.field_name_map = {}
 
         self.sorts = {
@@ -40,10 +42,6 @@ class ListSearchScheme(SearchScheme):
             'random desc': 'random_1 desc',
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-        }
-        self.default_fetched_fields = {
-            'key',
-            'name',
         }
 
         # kept from SubjectSearchScheme for rewriting facet values (not used in this case)

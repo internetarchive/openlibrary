@@ -10,6 +10,9 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
+    facet_fields = frozenset()
+    default_fetched_fields = frozenset()
+
     def __init__(self):
         super().__init__()
         # Instance variables for EditionSearchScheme
@@ -33,7 +36,6 @@ class EditionSearchScheme(SearchScheme):
             "language",
             "publisher_facet",
         }
-        self.facet_fields: set[str] = set()
         self.field_name_map = {
             'publishers': 'publisher',
             'subtitle': 'alternative_subtitle',
@@ -62,7 +64,6 @@ class EditionSearchScheme(SearchScheme):
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
-        self.default_fetched_fields: set[str] = set()
         self.facet_rewrites = {}
 
     def is_search_field(self, field: str):

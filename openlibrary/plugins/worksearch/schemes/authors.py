@@ -8,6 +8,19 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class AuthorSearchScheme(SearchScheme):
+    facet_fields = frozenset()
+    default_fetched_fields = frozenset(
+        {
+            'key',
+            'name',
+            'birth_date',
+            'death_date',
+            'date',
+            'top_subjects',
+            'work_count',
+        }
+    )
+
     def __init__(self):
         super().__init__()
         self._universe: list[str] = ['type:author']
@@ -22,7 +35,6 @@ class AuthorSearchScheme(SearchScheme):
             'work_count',
         }
         self.non_solr_fields: set[str] = set()
-        self.facet_fields: set[str] = set()
         self.field_name_map: dict[str, str] = {}
         self.sorts: dict[str, str | Callable[[], str]] = {
             'work_count desc': 'work_count desc',
@@ -32,15 +44,6 @@ class AuthorSearchScheme(SearchScheme):
             'random desc': 'random_1 desc',
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-        }
-        self.default_fetched_fields: set[str] = {
-            'key',
-            'name',
-            'birth_date',
-            'death_date',
-            'date',
-            'top_subjects',
-            'work_count',
         }
         self.facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 

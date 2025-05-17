@@ -8,6 +8,9 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class SubjectSearchScheme(SearchScheme):
+    facet_fields = frozenset()
+    default_fetched_fields = frozenset({'key', 'name', 'subject_type', 'work_count'})
+
     def __init__(self):
         super().__init__()
         # Instance variables for SubjectSearchScheme
@@ -19,7 +22,6 @@ class SubjectSearchScheme(SearchScheme):
             'work_count',
         }
         self.non_solr_fields: set[str] = set()
-        self.facet_fields: set[str] = set()
         self.field_name_map: dict[str, str] = {}
         self.sorts = {
             'work_count desc': 'work_count desc',
@@ -29,12 +31,6 @@ class SubjectSearchScheme(SearchScheme):
             'random desc': 'random_1 desc',
             'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-        }
-        self.default_fetched_fields = {
-            'key',
-            'name',
-            'subject_type',
-            'work_count',
         }
         self.facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
