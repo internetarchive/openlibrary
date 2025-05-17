@@ -51,10 +51,10 @@
     <tfoot>
       <MergeRow
         v-if="merge"
-        :record="merge.record"
+        :record="enhancedMergeRecord.record"
         :selected="selected"
         :fields="fields"
-        :merged="merge"
+        :merged="enhancedMergeRecord"
       >
         <template #pre>
           <td />
@@ -214,38 +214,6 @@ export default {
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
-
-        async merge() {
-            if (!this.master_key || !this.records || !this.editions)
-                return undefined;
-
-            const master = this.records.find(r => r.key === this.master_key);
-            const all_dupes = this.records
-                .filter(r => this.selected[r.key])
-                .filter(r => r.key !== this.master_key);
-            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
-            const records = [master, ...all_dupes];
-            const editions_to_move = _.flatMap(
-                all_dupes,
-                work => this.editions[work.key].entries
-            );
-
-            const [record, sources] = merge(master, dupes);
-
-            const extras = {
-                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
-            };
-
-            const unmergeable_works = this.records
-                .filter(work => work.type.key === '/type/work' &&
-                this.selected[work.key] &&
-                work.key !== this.master_key &&
-                this.editions[work.key].entries.length < this.editions[work.key].size)
-                .map(r => r.key);
-
-            return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
-        }
     },
     computed: {
         fields() {
@@ -302,6 +270,14 @@ export default {
                 ...usedTextData,
                 ...otherFields
             ];
+        },
+        merge() {
+            if (!this.records || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.records);
+        },
+        enhancedMergeRecord() {
+            if (!this.enhancedRecords || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.enhancedRecords);
         }
     },
     methods: {
@@ -310,6 +286,34 @@ export default {
             return field in this.merge.sources
                 ? this.merge.sources[field].includes(record.key)
                 : record.key === this.master_key;
+        },
+
+        build_merge(records) {
+            const master = records.find(r => r.key === this.master_key);
+            const all_dupes = records
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key !== this.master_key);
+            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            const editions_to_move = _.flatMap(
+                all_dupes,
+                work => this.editions[work.key].entries
+            );
+
+            const [record, sources] = merge(master, dupes);
+
+            const extras = {
+                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
+            };
+
+            const unmergeable_works = records
+                .filter(work => work.type.key === '/type/work' &&
+        this.selected[work.key] &&
+        work.key !== this.master_key &&
+        this.editions[work.key].entries.length < this.editions[work.key].size)
+                .map(r => r.key);
+
+            return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
         }
     }
 };

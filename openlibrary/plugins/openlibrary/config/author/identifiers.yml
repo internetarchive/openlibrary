@@ -50,6 +50,10 @@ identifiers:
     name: musicbrainz
     url: https://musicbrainz.org/artist/@@@
     website: https://musicbrainz.org
+-   label: Patreon
+    name: patreon
+    url: https://www.patreon.com/@@@
+    website: https://www.patreon.com/
 -   label: Project Gutenberg
     name: project_gutenberg
     notes: Should be a number

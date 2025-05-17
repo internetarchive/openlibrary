@@ -26,6 +26,7 @@ from openlibrary.plugins.importapi import (
     import_edition_builder,
     import_opds,
     import_rdf,
+    import_validator,
 )
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.upstream.utils import (
@@ -283,6 +284,8 @@ class ia_importapi(importapi):
                 edition_data = cls.get_ia_record(metadata)
             except KeyError:
                 raise BookImportError('invalid-ia-metadata')
+            except ValidationError as e:
+                raise BookImportError('not-differentiable', str(e))
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
@@ -446,6 +449,8 @@ class ia_importapi(importapi):
             if publishers:
                 d['publishers'] = publishers
 
+        d['source_records'] = ['ia:' + metadata['identifier']]
+        import_validator.import_validator().validate(d)
         return d
 
     @staticmethod

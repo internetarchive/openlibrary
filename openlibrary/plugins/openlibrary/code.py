@@ -21,7 +21,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -42,7 +42,6 @@ from infogami.utils.view import (
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
-from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
@@ -276,6 +275,31 @@ class widget(delegate.page):
         )
 
 
+def format_work_data(work):
+    d = dict(work)
+
+    key = work.get('key', '')
+    # New solr stores the key as /works/OLxxxW
+    if not key.startswith("/works/"):
+        key = "/works/" + key
+
+    d['url'] = key
+    d['title'] = work.get('title', '')
+
+    if 'author_key' in work and 'author_name' in work:
+        d['authors'] = [
+            {"key": key, "name": name}
+            for key, name in zip(work['author_key'], work['author_name'])
+        ]
+
+    if 'cover_edition_key' in work:
+        coverstore_url = get_coverstore_public_url()
+        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
+
+    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
+    return d
+
+
 class addauthor(delegate.page):
     path = '/addauthor'
 
@@ -491,8 +515,11 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=None)
 
     def POST(self):
-
         user_key = delegate.context.user and delegate.context.user.key
+
+        if not user_key:
+            raise Forbidden("Must be logged in to create a batch import.")
+
         import_status = (
             "pending"
             if user_key in _get_members_of_group("/usergroup/admin")
@@ -1168,6 +1195,9 @@ def is_bot():
 
     Manually removed singleton `bot` (to avoid overly complex grep regex)
     """
+    if 'is_bot' in web.ctx:
+        return web.ctx.is_bot
+
     user_agent_bots = [
         'sputnikbot',
         'dotbot',

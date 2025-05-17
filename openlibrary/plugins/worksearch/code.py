@@ -76,15 +76,27 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
-def get_solr_works(work_key: Iterable[str]) -> dict[str, dict]:
+def get_solr_works(work_keys: set[str], editions=False) -> dict[str, dict]:
     from openlibrary.plugins.worksearch.search import get_solr
 
-    return {
-        doc['key']: doc
-        for doc in get_solr().get_many(
-            set(work_key), fields=WorkSearchScheme.default_fetched_fields
+    if editions:
+        # To get the top matching edition, need to do a proper query
+        resp = run_solr_query(
+            WorkSearchScheme(),
+            {'q': 'key:(%s)' % ' OR '.join(work_keys)},
+            rows=len(work_keys),
+            fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+            facet=False,
         )
-    }
+        return {doc['key']: get_doc(doc) for doc in resp.docs}
+    else:
+        return {
+            doc['key']: doc
+            for doc in get_solr().get_many(
+                work_keys,
+                fields=WorkSearchScheme.default_fetched_fields,
+            )
+        }
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -884,7 +896,11 @@ def work_search(
     if fields == '*' or 'availability' in fields:
         add_availability(
             [
-                work.get('editions', {}).get('docs', [None])[0] or work
+                (
+                    work['editions']['docs'][0]
+                    if work.get('editions', {}).get('docs')
+                    else work
+                )
                 for work in response['docs']
             ]
         )
