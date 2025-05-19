@@ -829,6 +829,34 @@ class show_log:
                 return f.read()
 
 
+class pd_dashboard:
+    def GET(self):
+        keys = web.ctx.site.things({
+                "type": "/type/object",
+                "key~": "/people/*/preferences",
+                "notifications": {
+                    "pda~": "*"
+                }
+            }
+        )
+
+        def sort_requests(pd_requests):
+            results = {
+                "requested_access": [],
+                "emailed": []
+            }
+            for r in pd_requests:
+                status = r.get("notifications", {}).get("rpd")
+                if status == 0:
+                    results["requested_access"].append(r)
+                else:
+                    results["emailed"].append(r)
+            return results
+
+        pd_requests = web.ctx.site.get_many(keys)
+        return render_template("admin/pd_dashboard", sort_requests(pd_requests))
+
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -862,6 +890,7 @@ def setup():
         r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label=""
     )
     register_admin_page('/admin/spamwords', spamwords, label="")
+    register_admin_page("/admin/pd", pd_dashboard)
 
     from openlibrary.plugins.admin import mem
 
