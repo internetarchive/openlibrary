@@ -69,7 +69,6 @@ config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
 config_ia_loan_api_developer_key = None
 config_http_request_timeout = None
-config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
 config_fts_context = None
@@ -77,7 +76,7 @@ config_fts_context = None
 
 def setup(config):
     """Initializes this module from openlibrary config."""
-    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host
+    global config_ia_access_secret, config_bookreader_host
     global config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key
     global config_ia_loan_api_url, config_http_request_timeout
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
@@ -85,7 +84,6 @@ def setup(config):
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
     global config_ia_domain, config_fts_context
 
-    config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_domain = config.get('ia_base_url', 'https://archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
@@ -596,20 +594,7 @@ def is_loaned_out(identifier: str) -> bool:
 
     This doesn't worry about waiting lists.
     """
-    # is_loaned_out_on_acs4 is to be deprecated, this logic (in PR)
-    # should be handled by is_loaned_out_on_ia which calls
-    # BorrowBooks.inc in petabox
-    return (
-        is_loaned_out_on_ol(identifier)
-        or is_loaned_out_on_acs4(identifier)
-        or (is_loaned_out_on_ia(identifier) is True)
-    )
-
-
-def is_loaned_out_on_acs4(identifier: str) -> bool:
-    """Returns True if the item is checked out on acs4 server."""
-    item = ACS4Item(identifier)
-    return item.has_loan()
+    return is_loaned_out_on_ol(identifier) or (is_loaned_out_on_ia(identifier) is True)
 
 
 def is_loaned_out_on_ia(identifier: str) -> bool | None:
@@ -1025,58 +1010,7 @@ def update_loan_status(identifier):
     if loan['resource_type'] == 'bookreader':
         if loan.is_expired():
             loan.delete()
-            return
-    else:
-        acs4_loan = ACS4Item(identifier).get_loan()
-        if not acs4_loan and not loan.is_yet_to_be_fulfilled():
-            logger.info(
-                "%s: loan returned or expired or timedout, deleting...", identifier
-            )
-            loan.delete()
-            return
-
-        if loan['expiry'] != acs4_loan['until']:
-            loan['expiry'] = acs4_loan['until']
-            loan.save()
-            logger.info("%s: updated expiry to %s", identifier, loan['expiry'])
-
-
-class ACS4Item:
-    """Represents an item on ACS4 server.
-
-    An item can have multiple resources (epub/pdf) and any of them could be loanded out.
-
-    This class provides a way to access the loan info from ACS4 server.
-    """
-
-    def __init__(self, identifier):
-        self.identifier = identifier
-
-    def get_data(self):
-        url = f'{config_loanstatus_url}/item/{self.identifier}'
-        try:
-            return requests.get(url).json()
-        except OSError:
-            logger.exception("unable to connect BSS server")
-
-    def has_loan(self):
-        return bool(self.get_loan())
-
-    def get_loan(self):
-        """Returns the information about loan in the ACS4 server."""
-        d = self.get_data() or {}
-        if not d.get('resources'):
-            return
-        for r in d['resources']:
-            if r['loans']:
-                loan = dict(r['loans'][0])
-                loan['resource_id'] = r['resourceid']
-                loan['resource_type'] = self._format2resource_type(r['format'])
-                return loan
-
-    def _format2resource_type(self, format):
-        formats = {"application/epub+zip": "epub", "application/pdf": "pdf"}
-        return formats[format]
+        return
 
 
 class IA_Lending_API:
