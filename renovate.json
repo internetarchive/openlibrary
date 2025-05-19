@@ -24,7 +24,7 @@
     {
       "matchPackageNames": [
         "jest",
-        "bundlesize",
+        "bundlesize2",
         "sinon",
         "stylelint",
         "stylelint-declaration-strict-value"
