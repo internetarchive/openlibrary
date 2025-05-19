@@ -219,7 +219,14 @@ div.sparkDisplay {
   }
 }
 
-@media all and (min-width: @width-breakpoint-desktop) {
+.pd-access-dashboard {
+  .pd-access-stat {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
   // Graph shown on /stats
   // openlibrary/templates/admin/index.html
   .canvas-graph {

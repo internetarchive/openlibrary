@@ -1,18 +1,11 @@
 $def with(pd_requests)
 
-<style>
-    .pd-access-stat {
-        display: flex;
-        justify-content: space-between;
-    }
-</style>
-
 <div id="contentHead">
     $:render_template("admin/menu")
     <h1>$_("Print Disability Access Requests")</h1>
 </div>
 
-<div id="contentBody">
+<div id="contentBody" class="pd-access-dashboard">
     <h2>Stats</h2>
     <div class="pd-access-stat">
         Total patrons that have requested print-disability access: <span class="pd-access-total">$(len(pd_requests.get("requested_access")) + len(pd_requests.get("emailed")))</span>
