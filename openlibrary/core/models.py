@@ -31,6 +31,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
+from openlibrary.coverstore.db import details as get_cover_details
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
@@ -77,9 +78,9 @@ class Image:
             return None
 
     def get_aspect_ratio(self) -> float | None:
-        info = self.info(fetch_author=False)
-        if info and info.get('width') and info.get('height'):
-            return info["width"] / info["height"]
+        d = get_cover_details(self.id)
+        if d and d.get('width') and d.get('height'):
+            return d['width'] / d['height']
         return None
 
     def url(self, size="M") -> str:
