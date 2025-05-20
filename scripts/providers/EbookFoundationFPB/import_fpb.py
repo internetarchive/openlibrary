@@ -285,7 +285,7 @@ def flatten_books(data: dict) -> list[dict]:
                     "authors": authors,
                     "source_records": ["EbookFoundation:%s" % book["url"]],
                     "publishers": ["????"],
-                    "publish_date": "????",
+                    "publish_date": "XXXX",
                     "subjects": new_topics,
                     "providers": [
                         {
@@ -404,7 +404,7 @@ def process_books() -> list[dict]:
             logger.debug(f"Cover image URL added: {book['cover']}")
 
         if not book["authors"]:
-            book["authors"].append({"name": "????"})
+            book["authors"].append({"name": "EbookFoundation Unknown"})
             logger.debug("Author unknown, added placeholder.")
 
         books.append(book)
