@@ -78,6 +78,10 @@ class Image:
             return None
 
     def get_aspect_ratio(self) -> float | None:
+
+        from openlibrary.coverstore import config
+
+        config.load_from_file("conf/coverstore.yml")
         d = get_cover_details(self.id)
         if d and d.get('width') and d.get('height'):
             return d['width'] / d['height']

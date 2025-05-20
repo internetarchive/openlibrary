@@ -14,3 +14,13 @@ blocked_covers: list[str] = []
 
 def get(name, default=None):
     return globals().get(name, default)
+
+
+def load_from_file(configfile: str) -> None:
+    """Load configuration from a file."""
+    import yaml
+
+    with open(configfile) as in_file:
+        d = yaml.safe_load(in_file)
+    for k, v in d.items():
+        globals()[k] = v
