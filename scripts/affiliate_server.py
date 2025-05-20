@@ -28,8 +28,8 @@ load_config('/olsystem/etc/openlibrary.yml')
 infogami._setup()
 from infogami import config;
 from openlibrary.core.vendors import AmazonAPI
-params=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
-web.amazon_api = AmazonAPI(*params, throttling=0.9)
+args=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
+web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=config.get('http_proxy'))
 products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 ```
 """

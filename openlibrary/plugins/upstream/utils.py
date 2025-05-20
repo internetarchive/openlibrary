@@ -230,15 +230,19 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
+    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
         lang = web.ctx.lang
         key_prefix = f'{name}.{lang}'
-        if web.cookies().get('pd', False):
+        cookies = web.cookies()
+        if cookies.get('pd', False):
             key_prefix += '.pd'
-        if web.cookies().get('sfw', ''):
+        if cookies.get('sfw', ''):
             key_prefix += '.sfw'
+        if is_bot():
+            key_prefix += '.bot'
         return key_prefix
 
     five_minutes = 5 * 60
@@ -307,7 +311,13 @@ def commify_list(items: Iterable[Any]) -> str:
     lang = web.ctx.lang or 'en'
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
-    return format_list([str(x).strip() for x in items], locale=lang)
+    try:
+        commified_list = format_list([str(x).strip() for x in items], locale=lang)
+    except babel.UnknownLocaleError as e:
+        logger.warning(f"unknown language for commify_list: {lang}. {e}")
+        commified_list = format_list([str(x).strip() for x in items], locale="en")
+
+    return commified_list
 
 
 @public
@@ -1172,6 +1182,17 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
+@public
+def get_populated_languages() -> set[str]:
+    """
+    Get the languages for which we have many available ebooks, in MARC21 format
+    See https://openlibrary.org/languages
+    """
+    # Hard-coded for now to languages with more than 15k borrowable ebooks
+    return {'eng', 'fre', 'ger', 'spa', 'chi', 'ita', 'lat', 'dut', 'rus', 'jpn'}
+
+
+@public
 @functools.cache
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
