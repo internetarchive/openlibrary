@@ -7,6 +7,7 @@ Disallow: /search
 Disallow: /search/publishers
 Disallow: /publishers
 Disallow: /search/inside
+Disallow: /books/add
 Disallow: */borrow*
 Disallow: /*.rdf$
 
