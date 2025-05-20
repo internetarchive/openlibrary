@@ -5,9 +5,14 @@ Disallow: /edit
 Disallow: /account
 Disallow: /search
 Disallow: /search/publishers
-Disallow: /publishers
+Disallow: /search/authors
 Disallow: /search/inside
+Disallow: /search/subjects
+Disallow: /search/lists
+Disallow: /advancedsearch
+Disallow: /publishers
 Disallow: /books/add
+Disallow: /qrcode
 Disallow: */borrow*
 Disallow: /*.rdf$
 
