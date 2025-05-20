@@ -56,11 +56,11 @@ $code:
             source_url = "https://openalex.org/" + item[9:]
         else:
             source_name = names.get(item, item)
-            source_url = f"//archive.org/details/{item}"
+            source_url = "//archive.org/details/" + item
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
     def link(url, label):
-        return f'<a href="{url}">{label}</a>' if url else label
+        return '<a href="' + url + '">' + label + '</a>' if url else label
 
     def get_source_html(record_id):
         record_type = _('record')
