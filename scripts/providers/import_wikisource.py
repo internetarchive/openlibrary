@@ -172,6 +172,36 @@ WHERE {
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self.excluded_category_names]
 
+    def exclude_book(self, book: 'BookRecord') -> bool:
+        bad_category = any(c for c in book.categories if c in self.excluded_categories)
+        if bad_category:
+            return True
+
+        if book.description:
+            # Check if book description contains a page range. These are generally articles
+            # or papers, not books.
+            # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
+            if re.search(r"[ .]\d{1,3}[-–]\d{1,3}\b", book.description):  # noqa RUF001
+                return True
+
+            # TODO: This is English-only
+            if re.search(r"^Letter\b", book.description):
+                return True
+
+        book_title = book.title or ""
+        if book.subtitle:
+            book_title += f" {book.subtitle}"
+        # TODO: This is English-only
+        if re.search(
+            r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
+            book_title,
+        ):
+            return True
+
+        return bool(
+            book.subjects and re.search(r'\b(speeches)\b', ' '.join(book.subjects))
+        )
+
 
 # Each version of wikisource has different category names and prefixes,
 # so the pool of categories to search within and the categories to filter out
@@ -905,10 +935,7 @@ def process_all_books(cfg: LangConfig):
 
     for book in list(imports.values()):
         # Skip if the book belongs to an ignored Wikisource page category, such as subpages (chapters), posters, etc
-        excluded_categories = [
-            c for c in book.categories if c in cfg.excluded_categories
-        ]
-        if excluded_categories:
+        if cfg.exclude_book(book):
             continue
 
         batch.append(book)
