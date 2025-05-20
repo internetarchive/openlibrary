@@ -84,7 +84,7 @@ class Image:
         config.load_from_file("conf/coverstore.yml")
         info = get_cover_details(self.id)
         if info and info.get('width') and info.get('height'):
-            return info['width'] / info['height']
+            return info["width"] / info["height"]
         return None
 
     def url(self, size="M") -> str:
