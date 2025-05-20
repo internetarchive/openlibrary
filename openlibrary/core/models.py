@@ -82,9 +82,9 @@ class Image:
         from openlibrary.coverstore import config
 
         config.load_from_file("conf/coverstore.yml")
-        d = get_cover_details(self.id)
-        if d and d.get('width') and d.get('height'):
-            return d['width'] / d['height']
+        info = get_cover_details(self.id)
+        if info and info.get('width') and info.get('height'):
+            return info['width'] / info['height']
         return None
 
     def url(self, size="M") -> str:
