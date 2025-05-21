@@ -256,19 +256,19 @@ date_to_timestamp() {
 
 tag_deploy() {
     DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
-
+    OL_REPO="$1"
     # Check if tag does NOT exist
-    if ! git -C openlibrary rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+    if ! git -C "$OL_REPO" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
-        git -C openlibrary tag "$DEPLOY_TAG"
-        git -C openlibrary push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        git -C "$OL_REPO" tag "$DEPLOY_TAG"
+        git -C "$OL_REPO" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
         echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
-    git -C openlibrary tag -f production
-    git -C openlibrary push -f git@github.com:internetarchive/openlibrary.git production
+    git -C "$OL_REPO" tag -f production
+    git -C "$OL_REPO" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 check_olbase_image_up_to_date() {
@@ -377,7 +377,7 @@ deploy_openlibrary() {
     wait
     echo "   ... Done ✓"
 
-    tag_deploy
+    tag_deploy openlibrary
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
