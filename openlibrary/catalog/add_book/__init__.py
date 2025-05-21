@@ -423,10 +423,12 @@ def isbns_from_record(rec: dict) -> list[str]:
 
 
 def find_wikisource_src(rec: dict) -> str | None:
-    if not rec['source_records']:
+    if not rec.get('source_records'):
         return None
     ws_prefix = 'wikisource:'
-    ws_match = next((src.startswith(ws_prefix) for src in rec['source_records']), None)
+    ws_match = next(
+        (src for src in rec['source_records'] if src.startswith(ws_prefix)), None
+    )
     if ws_match:
         return ws_match[len(ws_prefix) :]
     return None
@@ -445,7 +447,7 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
 
     if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = editions_matched(rec, 'identifiers.wikisource', ws_match)
+        ekeys = set(editions_matched(rec, 'identifier.wikisource', ws_match))
         if ekeys:
             pool['wikisource'] = ekeys
         return pool

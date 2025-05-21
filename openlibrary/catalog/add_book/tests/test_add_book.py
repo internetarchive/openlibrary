@@ -145,15 +145,10 @@ def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):
         'identifiers': {'wikisource': ['en:wikisourceidentifier']},
     }
 
-    # returns no results because the existing record is not from wikisource
+    # empty pool because the existing record is not from wikisource
 
-    result = editions_matched(ws_rec, 'isbn_10', '0190906767')
-    assert result == []
-
-    result_t = editions_matched(
-        ws_rec, 'title', 'test an import that is not from wikisource'
-    )
-    assert result_t == []
+    pool = build_pool(ws_rec)
+    assert pool == {}
 
 
 def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
