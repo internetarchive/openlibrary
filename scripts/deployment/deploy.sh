@@ -259,11 +259,11 @@ tag_deploy() {
 
     # Check if tag does NOT exist
     if ! git -C openlibrary rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
-	echo "[Info] Tagging deploy as $DEPLOY_TAG"
-	git -C openlibrary tag "$DEPLOY_TAG"
-	git -C openlibrary push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        echo "[Info] Tagging deploy as $DEPLOY_TAG"
+        git -C openlibrary tag "$DEPLOY_TAG"
+        git -C openlibrary push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
-	echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
+        echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
@@ -291,10 +291,10 @@ check_olbase_image_up_to_date() {
     if [ "$GIT_LAST_UPDATED_TS" -gt "$IMAGE_LAST_UPDATED_TS" ]; then
         echo "✗ Docker image is NOT up-to-date."
         echo -e "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
-	return 1
+        return 1
     else
         echo "✓ Docker image is up-to-date."
-	return 0
+        return 0
     fi
 }
 
@@ -310,22 +310,9 @@ deploy_openlibrary() {
     echo "✔ (SHA: $GIT_SHA)"
     echo ""
 
-    # Assert latest docker image is up-to-date
-    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
-    # eg 2024-11-26T19:28:20.054992Z
-    IMAGE_LAST_UPDATED=$(echo $IMAGE_META | jq -r '.last_updated')
-    # eg 2024-11-27T16:38:13-08:00
-    GIT_LAST_UPDATED=$(git -C openlibrary log -1 --format=%cd --date=iso-strict)
-    IMAGE_LAST_UPDATED_TS=$(date_to_timestamp $IMAGE_LAST_UPDATED)
-    GIT_LAST_UPDATED_TS=$(date_to_timestamp $GIT_LAST_UPDATED)
-
-    if [ $GIT_LAST_UPDATED_TS -gt $IMAGE_LAST_UPDATED_TS ]; then
-        echo "✗ Docker image is not up-to-date"
-        echo -e "Go to https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml and click on 'Run workflow' to build the latest image for the master branch.\n\nThen run this script again."
-        cleanup $TMP_DIR
-        exit 1
-    else
-        echo "✓ Docker image is up-to-date"
+    if ! check_olbase_image_up_to_date; then
+       cleanup $TMP_DIR
+       exit 1
     fi
 
     check_server_access
@@ -362,24 +349,16 @@ deploy_openlibrary() {
         "
     done
 
-    echo "Prune docker images/cache..."
-    for SERVER in $SERVERS; do
-        echo -n "   $SERVER ... "
-        # ssh $SERVER "docker image prune -f && docker builder prune -f"
-        if OUTPUT=$(ssh $SERVER "docker image prune -f" 2>&1); then
-            echo "✓"
-        else
-            echo "⚠"
-            echo "$OUTPUT"
-            cleanup "$TMP_DIR"
-            exit 1
-        fi
-    done
-    echo ""
+    if ! prune_docker image; then
+        cleanup "$TMP_DIR"
+        exit 1
+    fi
 
     echo "Pull the latest docker images..."
     # We need to fetch by the exact image sha, since the registry mirror on the prod servers
     # has a cache which means fetching the `latest` image could be stale.
+    # Assert latest docker image is up-to-date
+    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
     OLBASE_DIGEST=$(echo $IMAGE_META | jq -r '.images[0].digest')
     for SERVER_NAME in $SERVER_NAMES; do
         SERVER="$SERVER_NAME$SERVER_SUFFIX"
@@ -411,13 +390,53 @@ deploy_openlibrary() {
 }
 
 check_servers_in_sync() {
-    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"    
+    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
 }
 
+prune_docker () {
+    echo "[Now] Prune docker images/cache..."
+
+    PRUNE_CMD=""
+    for arg in "$@"; do
+        if [[ "$arg" == "image" ]]; then
+            PRUNE_CMD+="docker image prune -f;"
+        elif [[ "$arg" == "builder" ]]; then
+            read -p "[Warning] Docker on servers MUST NOT be restarted while 'prune builder' running. Continue? [N/y]..." answer
+            answer=${answer:-N}
+            if [[ "$answer" =~ ^[Yy]$ ]]; then
+                PRUNE_CMD+="docker builder prune -f;"
+            else
+                echo "Abandoning prune"
+                exit 1
+            fi
+        fi
+    done
+
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+
+        if [[ -z "$PRUNE_CMD" ]]; then
+            echo "[Error] Docker prune ran without image or builder args"
+            echo "deploy prune [image|builder]+"
+            exit 1
+        fi
+
+        if OUTPUT=$(ssh $SERVER "$PRUNE_CMD" 2>&1); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            return 1
+        fi
+    done
+    return 0
+}
+
 clone_booklending_utils() {
+    :
     # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 }
 
@@ -442,8 +461,8 @@ deploy_wizard() {
     read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	git checkout master
-	git pull https://github.com/internetarchive/openlibrary.git master
+        git checkout master
+        git pull https://github.com/internetarchive/openlibrary.git master
     fi
 
     # Announce the deploy
@@ -452,7 +471,7 @@ deploy_wizard() {
     read -p "Once announced, press Enter to continue..."
 
     if ! check_olbase_image_up_to_date; then
-	read -p "Once you've clicked 'Run workflow', press Enter to continue..."
+        read -p "Once you've clicked 'Run workflow', press Enter to continue..."
     fi
 
     # Deploy olsystem
@@ -461,27 +480,27 @@ deploy_wizard() {
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time olsystem
+        time olsystem
     fi
 
     until check_olbase_image_up_to_date; do
-	read -p "Once built, press Enter to continue..."
+        read -p "Once built, press Enter to continue..."
     done
 
     read -p "[Info] Skipping clone_booklending_utils, run manually if needed" answer
-    
+
     read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time deploy_openlibrary
-	time check_servers_in_sync
+        time deploy_openlibrary
+        time check_servers_in_sync
     fi
 
     read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time recreate_services
-	time post_deploy
+        time recreate_services
+        time post_deploy
     fi
 }
 
@@ -491,17 +510,23 @@ if [ "$1" == "olsystem" ]; then
     deploy_olsystem
 elif [ "$1" == "openlibrary" ]; then
     deploy_openlibrary
-    if [ "$2" == "review" ]; then
-	check_servers_in_sync
+    if [ "$2" == "--review" ]; then
+        check_servers_in_sync
     fi
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
     recreate_services
+elif [ "$1" == "prune" ]; then
+    if [ "$2" == "--all" ]; then
+        prune_docker image builder
+    else
+        prune_docker image
+    fi
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|rebuild]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
