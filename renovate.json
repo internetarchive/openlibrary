@@ -29,7 +29,8 @@
         "stylelint",
         "stylelint-declaration-strict-value",
         "stylelint-prettier",
-        "prettier"
+        "prettier",
+        "postcss-less"
       ],
       "automerge": true
     },
