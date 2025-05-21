@@ -422,6 +422,16 @@ def isbns_from_record(rec: dict) -> list[str]:
     return isbns
 
 
+def find_wikisource_src(rec: dict) -> str | None:
+    if not rec['source_records']:
+        return None
+    ws_prefix = 'wikisource:'
+    ws_match = next((src.startswith(ws_prefix) for src in rec['source_records']), None)
+    if ws_match:
+        return ws_match[len(ws_prefix) :]
+    return None
+
+
 def build_pool(rec: dict) -> dict[str, list[str]]:
     """
     Searches for existing edition matches on title and bibliographic keys.
@@ -432,6 +442,19 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
     """
     pool = defaultdict(set)
     match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
+
+    ws_match = find_wikisource_src(rec)
+    if ws_match:
+        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
+        ekeys = editions_matched(rec, 'identifiers.wikisource', ws_match)
+        if ekeys:
+            pool['wikisource'] = ekeys
+        return pool
+        # Is this redundant?
+        # If WS identifier has to match between import src rec and existing edition, will this ever run?
+        # WS identifier and source record are always the same for imports from WS, so in order to match an existing edition,
+        # the source record will need to have been imported already, meaning the import UI will skip it
+        # before even attempting to match?
 
     # Find records with matching fields
     for field in match_fields:
@@ -457,6 +480,15 @@ def find_quick_match(rec: dict) -> str | None:
     """
     if 'openlibrary' in rec:
         return '/books/' + rec['openlibrary']
+
+    ws_match = find_wikisource_src(rec)
+    if ws_match:
+        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
+        ekeys = editions_matched(rec, 'identifiers.wikisource', ws_match)
+        if ekeys:
+            return ekeys[0]
+        else:
+            return None
 
     ekeys = editions_matched(rec, 'ocaid')
     if ekeys:
@@ -500,13 +532,6 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
         value = rec[key]
 
     q = {'type': '/type/edition', key: value}
-
-    # If this record is from wikisource, void any edition matches that don't already have a wikisource ID.
-    # Effectively forces it to create a separate edition for wikisource.
-    if 'source_records' in rec and any(
-        'wikisource:' in src for src in rec['source_records']
-    ):
-        q['identifiers.wikisource~'] = "*"
 
     ekeys = list(web.ctx.site.things(q))
     return ekeys
