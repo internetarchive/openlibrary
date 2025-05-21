@@ -443,8 +443,7 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
     pool = defaultdict(set)
     match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
 
-    ws_match = find_wikisource_src(rec)
-    if ws_match:
+    if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
         ekeys = editions_matched(rec, 'identifiers.wikisource', ws_match)
         if ekeys:
@@ -481,8 +480,7 @@ def find_quick_match(rec: dict) -> str | None:
     if 'openlibrary' in rec:
         return '/books/' + rec['openlibrary']
 
-    ws_match = find_wikisource_src(rec)
-    if ws_match:
+    if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
         ekeys = editions_matched(rec, 'identifiers.wikisource', ws_match)
         if ekeys:
