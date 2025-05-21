@@ -831,20 +831,16 @@ class show_log:
 
 class pd_dashboard:
     def GET(self):
-        keys = web.ctx.site.things({
+        keys = web.ctx.site.things(
+            {
                 "type": "/type/object",
                 "key~": "/people/*/preferences",
-                "notifications": {
-                    "pda~": "*"
-                }
+                "notifications": {"pda~": "*"},
             }
         )
 
         def sort_requests(pd_requests):
-            results = {
-                "requested_access": [],
-                "emailed": []
-            }
+            results = {"requested_access": [], "emailed": []}
             for r in pd_requests:
                 status = r.get("notifications", {}).get("rpd")
                 if status == 0:

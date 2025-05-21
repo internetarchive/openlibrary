@@ -3367,7 +3367,7 @@ msgstr ""
 msgid "Items"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html admin/pd_dashboard.html
 msgid "Stats"
 msgstr ""
 
@@ -3546,6 +3546,10 @@ msgid "Admin Center"
 msgstr ""
 
 #: admin/menu.html
+msgid "PD Access Requests"
+msgstr ""
+
+#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -3567,6 +3571,31 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Print Disability Access Requests"
+msgstr ""
+
+#: admin/pd_dashboard.html
+#, python-format
+msgid ""
+"Total patrons that have requested print-disability access: <span class"
+"=\"pd-access-total\">%(total)d</span>"
+msgstr ""
+
+#: admin/pd_dashboard.html
+#, python-format
+msgid ""
+"Total number of patrons awaiting follow-up email: <span class=\"pd-"
+"access-total\">%(total)d</span>"
+msgstr ""
+
+#: admin/pd_dashboard.html
+#, python-format
+msgid ""
+"Total number of patrons emailed: <span class=\"pd-access-"
+"total\">%(total)d</span>"
 msgstr ""
 
 #: admin/permissions.html
