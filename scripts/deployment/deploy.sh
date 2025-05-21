@@ -235,7 +235,7 @@ deploy_olsystem() {
 
     # Present follow-up options
     echo "[Next] Run openlibrary deploy (~12m00 as of 2024-12-09):"
-    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh openlibrary"
+    echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh openlibrary"
 }
 
 date_to_timestamp() {
@@ -407,25 +407,25 @@ deploy_openlibrary() {
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
-    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh review"
+    echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh review"
 }
 
 check_servers_in_sync() {
-    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
-    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/are_servers_in_sync.sh"
+    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"    
+    time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
-    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh finalize"
+    echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
 }
 
 clone_booklending_utils() {
-    parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
+    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 }
 
 recreate_services() {
     echo "[Now] Rebuilding & restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
-    time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/restart_servers.sh"
+    time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/restart_servers.sh"
 }
 
 post_deploy() {
@@ -437,25 +437,7 @@ post_deploy() {
     echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
 }
 
-# See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
-
-if [ "$1" == "olsystem" ]; then
-    deploy_olsystem
-elif [ "$1" == "openlibrary" ]; then
-    deploy_openlibrary
-    if [ "$2" == "review" ]; then
-	check_servers_in_sync
-    fi
-elif [ "$1" == "utils" ]; then
-    clone_booklending_utils
-elif [ "$1" == "review" ]; then
-    check_servers_in_sync
-elif [ "$1" == "finalize" ]; then
-    recreate_services
-else
-    echo "Usage: $0 [announce|olsystem|openlibrary|review|finalize]"
-    echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
-
+deploy_wizard() {
     # Pull openlibrary before continuing so we have latest deploy.sh
     read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
     answer=${answer:-Y}
@@ -475,28 +457,51 @@ else
 
     # Deploy olsystem
     echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
-    echo "time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh olsystem"
+    echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh olsystem"
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" olsystem
+	time olsystem
     fi
 
     until check_olbase_image_up_to_date; do
 	read -p "Once built, press Enter to continue..."
     done
 
+    read -p "[Info] Skipping clone_booklending_utils, run manually if needed" answer
+    
     read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" openlibrary review
+	time deploy_openlibrary
+	time check_servers_in_sync
     fi
 
     read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-	time SERVER_SUFFIX='.us.archive.org' "$SCRIPT_DIR/deploy.sh" finalize
-	post_deploy
+	time recreate_services
+	time post_deploy
     fi
+}
+
+
+# See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
+if [ "$1" == "olsystem" ]; then
+    deploy_olsystem
+elif [ "$1" == "openlibrary" ]; then
+    deploy_openlibrary
+    if [ "$2" == "review" ]; then
+	check_servers_in_sync
+    fi
+elif [ "$1" == "review" ]; then
+    check_servers_in_sync
+elif [ "$1" == "rebuild" ]; then
+    recreate_services
+elif [ "$1" == "" ]; then  # If this works to detect empty
+    deploy_wizard
+else
+    echo "Usage: $0 [olsystem|openlibrary|review|rebuild]"
+    echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
