@@ -18,14 +18,15 @@
   min-height: 10px;
   padding-right: 0;
   .cover-animation {
-    transition: transform .8s,
-      opacity .8s;
+    transition:
+      transform 0.8s,
+      opacity 0.8s;
     position: relative;
     z-index: @z-index-level-negative;
   }
   .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-    opacity: .8;
+    opacity: 0.8;
   }
 }
 @import (less) "components/cover.less";
@@ -102,7 +103,7 @@ textarea[name="work--description"] + h3 + .wmd-preview,
 
     li {
       list-style-type: initial;
-      font-size: .8rem;
+      font-size: 0.8rem;
     }
   }
 }
@@ -301,7 +302,7 @@ div.editionTools {
 }
 
 .preview-languages {
-  font-size: .8em;
+  font-size: 0.8em;
   color: @grey;
 }
 

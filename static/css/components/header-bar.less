@@ -76,7 +76,7 @@
         text-decoration: none;
         color: @dark-grey;
         white-space: nowrap;
-        font-size: .9em;
+        font-size: 0.9em;
         padding: 15px 10px;
         display: block;
       }
@@ -111,7 +111,7 @@
     .app-drawer__badge {
       color: @white;
       background-color: @primary-blue;
-      font-size: .9em;
+      font-size: 0.9em;
       padding: 2px 6px 1px;
       border-radius: 4px;
       float: right;
@@ -129,7 +129,7 @@
     }
 
     li {
-      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, .25);
+      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, 0.25);
     }
 
     li:not(.subsection) {
@@ -170,7 +170,7 @@
       align-items: center;
       border-radius: 6px;
       padding: 6px;
-      transition: .3s;
+      transition: 0.3s;
     }
 
     .login-links .login-links__primary {
@@ -201,11 +201,11 @@
     details[open] {
       .mask-menu {
         visibility: visible;
-        opacity: .6;
-        animation: fadeIn .2s ease-in-out;
+        opacity: 0.6;
+        animation: fadeIn 0.2s ease-in-out;
       }
       summary ~ * {
-        animation: sweep .2s ease-in-out;
+        animation: sweep 0.2s ease-in-out;
       }
       .hamburger__icon {
         background-color: @account-icon-background;
@@ -235,7 +235,7 @@
         opacity: 0;
       }
       100% {
-        opacity: .6;
+        opacity: 0.6;
       }
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
@@ -277,7 +277,7 @@
     opacity: 0;
     bottom: 0;
     // stylelint-enable declaration-block-no-redundant-longhand-properties
-    background: rgba(0, 0, 0, .5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: @z-index-level-1;
     visibility: hidden;
   }
@@ -462,8 +462,8 @@
       background: url(/static/images/search-icon.svg) center no-repeat;
       width: 35px;
       height: 45px;
-      border-top-left-radius: .3em;
-      border-bottom-left-radius: .3em;
+      border-top-left-radius: 0.3em;
+      border-bottom-left-radius: 0.3em;
     }
 
     .vertical-separator {
@@ -481,7 +481,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: .3em;
+      border-radius: 0.3em;
       position: relative;
     }
 
@@ -502,14 +502,14 @@
       /* stylelint-disable selector-max-specificity */
       .search-results {
         background: @white;
-        border-top-left-radius: .3em;
-        border-top-right-radius: .3em;
+        border-top-left-radius: 0.3em;
+        border-top-right-radius: 0.3em;
 
         li {
           text-align: left;
           padding: 7px;
           border-top: 1px solid @lighter-grey;
-          font-size: .9rem;
+          font-size: 0.9rem;
           &:hover {
             background-color: @white;
           }
@@ -653,7 +653,7 @@ div.search-facet:focus-within {
   .logo-org {
     text-align: left;
     font-weight: 300;
-    font-size: .9em;
+    font-size: 0.9em;
     color: @grey;
     margin: 3px;
     padding: 0;
@@ -673,10 +673,10 @@ div.search-facet:focus-within {
   .search-bar {
     max-width: none;
     min-width: none;
-    -webkit-transition: all .2s;
-    -o-transition: all .2s;
-    transition: all .2s;
-    border-radius: .3em;
+    -webkit-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
+    border-radius: 0.3em;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
     flex: 1;
@@ -701,9 +701,9 @@ div.search-facet:focus-within {
       outline: none;
       background: @grey-fafafa;
       color: @grey;
-      -webkit-transition: all .5s;
-      -o-transition: all .5s;
-      transition: all .5s;
+      -webkit-transition: all 0.5s;
+      -o-transition: all 0.5s;
+      transition: all 0.5s;
       display: none;
     }
     input[type="submit"] {
