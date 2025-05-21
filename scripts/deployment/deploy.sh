@@ -464,15 +464,18 @@ deploy_wizard() {
         git checkout master
         git pull https://github.com/internetarchive/openlibrary.git master
     fi
+    echo ""
 
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
     read -p "Once announced, press Enter to continue..."
+    echo ""
 
     if ! check_olbase_image_up_to_date; then
         read -p "Once you've clicked 'Run workflow', press Enter to continue..."
     fi
+    echo ""
 
     # Deploy olsystem
     echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
@@ -482,25 +485,32 @@ deploy_wizard() {
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time olsystem
     fi
+    echo ""
 
     until check_olbase_image_up_to_date; do
         read -p "Once built, press Enter to continue..."
     done
+    echo ""
 
     read -p "[Info] Skipping clone_booklending_utils, run manually if needed" answer
+    echo ""
 
     read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time deploy_openlibrary
+        echo ""
         time check_servers_in_sync
+        echo ""
     fi
 
     read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time recreate_services
+        echo ""
         time post_deploy
+        echo ""
     fi
 }
 
