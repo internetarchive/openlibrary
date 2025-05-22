@@ -447,7 +447,7 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
 
     if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = set(editions_matched(rec, 'identifier.wikisource', ws_match))
+        ekeys = set(editions_matched(rec, 'identifiers.wikisource', ws_match))
         if ekeys:
             pool['wikisource'] = ekeys
         return {k: list(v) for k, v in pool.items() if v}
