@@ -77,7 +77,11 @@ SUSPECT_PUBLICATION_DATES: Final = [
 SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
-ALLOWED_COVER_HOSTS: Final = ("m.media-amazon.com", "books.google.com")
+ALLOWED_COVER_HOSTS: Final = (
+    "books.google.com",
+    "commons.wikimedia.org",
+    "m.media-amazon.com",
+)
 
 
 type_map = {
