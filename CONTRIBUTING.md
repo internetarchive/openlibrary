@@ -67,10 +67,6 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Common Setup Tasks
 
-### Logging in as Admin
-Our login process on Open Library's dev instance is a bit funky. You need to correctly enter the right credentials (email: `openlibrary@example.com` pw: `admin123`) the **first** time or you will be logged in with a non-admin account (and will not be able to login as admin until you clear your cookies). More info here:
-- https://github.com/internetarchive/openlibrary/issues/1197#issuecomment-479752932
-
 ### Adding Data to Open Library
 - If you are looking to add data using MARC and ONIX records, visit [Open Library Bots](https://github.com/internetarchive/openlibrary-bots).
 
