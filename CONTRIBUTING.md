@@ -20,7 +20,6 @@ This welcome section is intended for new contributors.
     * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
     * [Open Library Public APIs](https://openlibrary.org/developers/api)
 6. **Common Tasks**
-    * [Logging in locally](https://github.com/internetarchive/openlibrary/wiki/Getting-Started#logging-in)
     * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
 7. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
