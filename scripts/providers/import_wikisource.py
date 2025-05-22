@@ -2,7 +2,7 @@
 To Run:
 
 python -m pip install -r requirements_scripts.txt && \
-    PYTHONPATH=. python ./scripts/providers/import_wikisource.py conf/openlibrary.yml
+    PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml && \
     python -m pip uninstall -y -r requirements_scripts.txt
 """
 
@@ -103,6 +103,9 @@ class LangConfig:
     category_prefix: str
     included_category_names: list[str]
     excluded_category_names: list[str]
+    description_exclusion_re: str | None
+    title_exclusion_re: str | None
+    subject_exclusion_re: str | None
 
     def _catformat(self, category: str) -> str:
         return f"{self.category_prefix}:{category}"
@@ -177,29 +180,24 @@ WHERE {
         if bad_category:
             return True
 
-        if book.description:
-            # Check if book description contains a page range. These are generally articles
-            # or papers, not books.
-            # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
-            if re.search(r"[ .]\d{1,3}[-–]\d{1,3}\b", book.description):  # noqa RUF001
-                return True
-
-            # TODO: This is English-only
-            if re.search(r"^Letter\b", book.description):
-                return True
+        if (
+            self.description_exclusion_re
+            and book.description
+            and re.search(self.description_exclusion_re, book.description)
+        ):
+            return True
 
         book_title = book.title or ""
         if book.subtitle:
             book_title += f" {book.subtitle}"
-        # TODO: This is English-only
-        if re.search(
-            r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
-            book_title,
-        ):
+
+        if self.title_exclusion_re and re.search(self.title_exclusion_re, book_title):
             return True
 
         return bool(
-            book.subjects and re.search(r'\b(speeches)\b', ' '.join(book.subjects))
+            self.subject_exclusion_re
+            and book.subjects
+            and re.search(self.subject_exclusion_re, ' '.join(book.subjects))
         )
 
 
@@ -235,6 +233,12 @@ ws_languages = [
             "PD-EdictGov",
             "Film",
         ],
+        # Check if book description contains a page range. These are generally articles
+        # or papers, not books.
+        # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
+        description_exclusion_re=r"^Letter\b|[ .]\d{1,3}[-–]\d{1,3}\b",  # noqa RUF001
+        title_exclusion_re=r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
+        subject_exclusion_re=r'\b(speeches)\b',
     )
 ]
 
@@ -303,7 +307,7 @@ class BookRecord:
 
     def add_illustrators(self, illustrators: list[str]) -> None:
         new_illustrators: list[ContributorDict] = [
-            {"name": format_human_name(a), "role": "illustrator"} for a in illustrators
+            {"name": a, "role": "illustrator"} for a in illustrators
         ]
         self.illustrators = uniq(self.illustrators + new_illustrators, key=json.dumps)
 
