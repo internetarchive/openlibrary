@@ -22,7 +22,7 @@ pydantic==2.4.0
 pymarc==5.1.0
 python-dateutil==2.8.2
 python-memcached==1.59
-PyYAML==6.0.1
+PyYAML==6.0.2
 qrcode==7.4.2
 requests==2.32.2
 sentry-sdk==2.19.2
