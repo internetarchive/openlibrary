@@ -74,9 +74,6 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 [Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Interacting-with-GitHub-Issues) and [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues) explain how GitHub issues are triaged, labeled, and prioritized.
 
-### Data Cleanup
-- If you notice a set of entries on Open Library which need to be updated (possibly in bulk) please report them as an issue to https://github.com/internetarchive/openlibrary-client (the Open Library Client).
-
 ### Tagging
 - If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
 
