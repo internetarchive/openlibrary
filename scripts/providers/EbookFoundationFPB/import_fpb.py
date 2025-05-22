@@ -285,7 +285,7 @@ def flatten_books(data: dict) -> list[dict]:
                     "authors": authors,
                     "source_records": ["EbookFoundation:%s" % book["url"]],
                     "publishers": ["????"],
-                    "publish_date": "XXXX",
+                    "publish_date": "20xx",
                     "subjects": new_topics,
                     "providers": [
                         {
