@@ -451,11 +451,6 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
         if ekeys:
             pool['wikisource'] = ekeys
         return {k: list(v) for k, v in pool.items() if v}
-        # Is this redundant?
-        # If WS identifier has to match between import src rec and existing edition, will this ever run?
-        # WS identifier and source record are always the same for imports from WS, so in order to match an existing edition,
-        # the source record will need to have been imported already, meaning the import UI will skip it
-        # before even attempting to match?
 
     # Find records with matching fields
     for field in match_fields:
