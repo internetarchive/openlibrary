@@ -86,6 +86,7 @@ You can see this year (and previous year's) roadmap(s) [here](https://docs.googl
 
 ## Development Practices
 
+### Branch Names
 Whenever working on a new feature/hotfix/refactor, make sure a corresponding issue exists.
 We use the issue number in the branch name.
 
@@ -95,20 +96,8 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 123/refactor/simplifying-authentication-using-xauthn
 ```
 
-With respect to client side patches, before submitting your patch you'll want to check it adheres to code styling rules and tests. We use `npm` to test our client side code.
-
-```
-npm install --no-audit
-npm test
-```
-
-If it passes your patch is ready for review!
-
-Many issues can be automatically fixed using the following command:
-
-```
-npm run lint-fix
-```
+### Testing
+See https://docs.openlibrary.org/2_Developers/misc/Testing.html for more information.
 
 ## pre-commit hooks
 
