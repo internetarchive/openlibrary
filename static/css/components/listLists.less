@@ -3,12 +3,15 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listslists
  */
 ul.listLists {
+  position: relative;
   margin: 0;
   padding: 0;
+
   span {
     display: block;
     color: @grey;
   }
+
   li {
     // See #1388
     // This needs to be !important for pages that are not v2
@@ -47,8 +50,17 @@ ul.listLists {
       margin: 5px 0;
     }
   }
+
   .list-overview-loading-indicator {
-    display: flex;
-    justify-content: center;
+    font-size: 8px;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 0;
+    height: 8px;
+    width: calc(100% - 8px);
+    position: absolute;
+    top: -8px;
+    left: 0;
+    opacity: .75;
   }
 }
