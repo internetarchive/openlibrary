@@ -28,7 +28,6 @@ from openlibrary.accounts import (
     clear_cookies,
     valid_email,
 )
-from openlibrary.accounts.model import sendmail
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
 from openlibrary.core.booknotes import Booknotes
