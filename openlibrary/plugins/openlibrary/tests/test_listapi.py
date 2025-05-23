@@ -13,7 +13,9 @@ class ListAPI:
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
-        self.sesh = requests.Session()  # Session object handles cookies automatically
+        self.session = (
+            requests.Session()
+        )  # Session object handles cookies automatically
 
     def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
@@ -25,8 +27,7 @@ class ListAPI:
                 method = "GET"
 
         req = requests.Request(method, self.server + path, data=data, headers=headers)
-        prepped = req.prepare()
-        return self.sesh.send(prepped)
+        return self.session.send(req)
 
     def login(self):
         data = {'username': self.username, 'password': self.password}
