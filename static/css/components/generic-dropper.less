@@ -113,7 +113,9 @@
     height: 100%;
     cursor: pointer;
     list-style-type: none;
-    &:hover { background-color: darken(@primary-blue, 20%); }
+    &:hover {
+      background-color: darken(@primary-blue, 20%);
+    }
     border-radius: 2px 5px 5px 2px;
   }
   // hide extra arrow on iOS
@@ -144,7 +146,9 @@
 // dropdown containing Listen/Search/Download/Locate buttons
 .dropper-menu {
   z-index: @z-index-level-4;
-  .cta-btn.cta-btn--w-icon, .cta-btn:link, .cta-btn:visited {
+  .cta-btn.cta-btn--w-icon,
+  .cta-btn:link,
+  .cta-btn:visited {
     background: @white;
     color: @black;
     text-align: left;
@@ -153,13 +157,26 @@
     border-radius: 0;
     margin: 0;
   }
-  .cta-btn .btn-label { padding: 0; }
-  .cta-btn:hover { background-color: @lighter-grey; }
+  .cta-btn .btn-label {
+    padding: 0;
+  }
+  .cta-btn:hover {
+    background-color: @lighter-grey;
+  }
   li {
-    &+li { border-top: 1px solid @lighter-grey; }
-    &:first-child, &:last-child { overflow: clip; }
-    &:first-child { border-radius: 5px 5px 0 0; }
-    &:last-child { border-radius: 0 0 5px 5px; }
+    & + li {
+      border-top: 1px solid @lighter-grey;
+    }
+    &:first-child,
+    &:last-child {
+      overflow: clip;
+    }
+    &:first-child {
+      border-radius: 5px 5px 0 0;
+    }
+    &:last-child {
+      border-radius: 0 0 5px 5px;
+    }
   }
   .btn-icon {
     display: inline-block;
@@ -169,9 +186,14 @@
     height: 1.25em;
   }
   // icons
-  .listen { background-image: url(/static/images/icons/icon_listen.png); }
-  .map { background-image: url(/static/images/icons/icon_map.png); }
-  .listen, .map {
+  .listen {
+    background-image: url(/static/images/icons/icon_listen.png);
+  }
+  .map {
+    background-image: url(/static/images/icons/icon_map.png);
+  }
+  .listen,
+  .map {
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
@@ -191,5 +213,7 @@
     list-style: none;
     margin: 0;
   }
-  .btn-icon { width: 1.25em; }
+  .btn-icon {
+    width: 1.25em;
+  }
 }

@@ -33,7 +33,9 @@
     display: block;
     color: @link-blue;
   }
-  a:link, a:hover, a:visited {
+  a:link,
+  a:hover,
+  a:visited {
     text-decoration: none;
   }
 
@@ -81,7 +83,7 @@
     padding: 4px 15px;
     text-transform: uppercase;
     font-weight: bold;
-    font-size: .8em;
+    font-size: 0.8em;
     color: @grey;
     background: @background-grey;
     border: 1px solid @lighter-grey;
@@ -100,7 +102,7 @@
       border-radius: 5px;
       cursor: pointer;
       padding: 2px 5%;
-      font-size: .96em;
+      font-size: 0.96em;
       background-color: @background-grey;
       border: 1px solid @lighter-grey;
       color: @grey;
@@ -139,7 +141,7 @@
   .li-count {
     position: relative;
     float: right;
-    font-size: .9em;
+    font-size: 0.9em;
     margin-top: 1px;
     color: @count-blue-grey;
     margin-left: 4px;
@@ -165,7 +167,7 @@
     display: none;
   }
 
-  .mybooks-menu-mobile{
+  .mybooks-menu-mobile {
     max-width: none !important; /** fix in media query */
     flex-shrink: 0;
     border-right: 1px solid @lightest-grey;
@@ -233,7 +235,7 @@
       padding: 4px 15px;
       text-transform: uppercase;
       font-weight: bold;
-      font-size: .8em;
+      font-size: 0.8em;
       color: @grey;
       background: @background-grey;
       border: 1px solid @lighter-grey;
@@ -273,7 +275,7 @@
 
     .li-count {
       float: right;
-      font-size: .9em;
+      font-size: 0.9em;
       margin-top: 1px;
       color: @count-blue-grey;
       margin-left: 4px;
@@ -290,12 +292,12 @@
     display: none;
   }
   .mybooks-menu {
-    width: 200px;  // 250px width + 75% width in `.mybooks-details {}` causes overflow.
+    width: 200px; // 250px width + 75% width in `.mybooks-details {}` causes overflow.
   }
 }
 
 @media only screen and (min-width: (@width-breakpoint-desktop + 1)) {
   .mybooks-menu {
-    width: 250px;  // Desktops are fine with the wider menu.
+    width: 250px; // Desktops are fine with the wider menu.
   }
 }
