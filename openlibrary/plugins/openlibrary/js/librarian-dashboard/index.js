@@ -45,7 +45,7 @@ async function updateRow(row, totalCount) {
     const searchPageUrl = row.dataset.searchUiUrl
 
     // Make query
-    const data = await makeQuery(apiUrl)
+    const data = await fetch(apiUrl)
         .then((resp) => {
             if (!resp.ok) {
                 throw new Error(`Data quality response status : ${resp.status}`)
@@ -89,16 +89,6 @@ async function updateRow(row, totalCount) {
         // Retry query
         updateRow(row, totalCount)
     })
-}
-
-/**
- * Makes a `GET` query to the given URL.
- *
- * @param url {string}
- * @returns {Promise<Response>}
- */
-async function makeQuery(url) {
-    return fetch(url)
 }
 
 /**
