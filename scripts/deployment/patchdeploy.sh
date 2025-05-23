@@ -12,15 +12,10 @@ PR_NUMBER=$1
 PATCH_URL="https://patch-diff.githubusercontent.com/raw/internetarchive/openlibrary/pull/${PR_NUMBER}.diff"
 echo "Note: Patch Deploys cannot rebuild js/css"
 
-read -p "Enter SSH username (or press Enter to use current user): " SSH_USER
-
-# Default to current logged-in user if no input is given
-SSH_USER=${SSH_USER:-$USER}
-
 # Iterate over hosts
-HOSTS=("ol-web0" "ol-web1" "ol-web2" "ol-www0")
+SERVERS=${SERVERS:-"ol-web0 ol-web1 ol-web1 ol-www0"}
 
-for host in "${HOSTS[@]}"; do
+for host in $SERVERS; do
     echo "Applying patch on ${host}.us.archive.org..."
 
     # Determine container name based on host
@@ -30,7 +25,7 @@ for host in "${HOSTS[@]}"; do
         CONTAINER="openlibrary-web-1"
     fi
 
-    ssh -T "${SSH_USER}@${host}.us.archive.org" <<EOF
+    ssh -T "${host}.us.archive.org" <<EOF
     set -e  # Exit immediately if any command fails
 
     cd /opt/openlibrary
