@@ -698,6 +698,58 @@ class Bookshelves(db.CommonExtras):
             )
 
     @classmethod
+    def add_batch(
+        cls, username: str, reading_list: dict[str, list[dict[str, int]]]
+    ) -> dict[str, Any]:
+        """Adds a batch of books with `work_ids` to user's bookshelf designated by
+        `bookshelf`"""
+
+        oldb = db.get_db()
+
+        # Metrics
+        unsuccessfully_added = []
+        successfully_added = []
+
+        insert_values = ""
+        for bookshelf, id_sets in reading_list.items():
+            for id_set in id_sets:
+                if cls.get_users_read_status_of_work(username, str(id_set["workId"])):
+                    unsuccessfully_added.append(str(id_set["workId"]))
+                    continue
+
+                if id_set["workId"] in successfully_added:
+                    continue
+
+                work_id = int(id_set["workId"])
+                edition_id = int(id_set["editionId"])
+                bookshelf_int = int(bookshelf)
+                insert_values += (
+                    f"('{username}', {bookshelf_int}, {work_id}, {edition_id}),"
+                )
+                successfully_added.append(str(work_id))
+        insert_values = insert_values[:-1]  # remove last comma
+
+        if not insert_values:
+            return {
+                "success": False,
+                "message": "All books already on shelf",
+                "unsuccessfully_added": unsuccessfully_added,
+                "successfully_added": successfully_added,
+            }
+        else:
+            query = (
+                "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, edition_id) VALUES "
+                + insert_values
+            )
+            oldb.query(query)
+            return {
+                "success": True,
+                "message": f"Added {', '.join(successfully_added)} books to shelf. Failed to add these books: {', '.join(unsuccessfully_added)}.",
+                "unsuccessfully_added": unsuccessfully_added,
+                "successfully_added": successfully_added,
+            }
+
+    @classmethod
     def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):
         oldb = db.get_db()
         where = {'username': username, 'work_id': int(work_id)}
