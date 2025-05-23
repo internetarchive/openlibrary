@@ -105,12 +105,36 @@
                 <i> Now that you've found your books, why not save them to your reading log? Or a list?</i>
               </p>
             </div>
-            <a
-              id="listMakerLink"
-              :href="bulkSearchState.listUrl"
-              target="_blank"
-            ><button :disabled="createListDisabled">Add to list</button></a>
-          </div>
+            <div v-if="bulkSearchState?.matchedBooks.length <50">
+              <a
+                id="listMakerLink"
+                :href="bulkSearchState.listUrl"
+                target="_blank"
+              ><button :disabled="createListDisabled">Add to list</button></a>
+            </div>
+            <div v-else>
+              Hello
+              <form
+                method="POST"
+                action="/account/lists/add?preview=true"
+                target="_blank"
+              >
+                <input
+                  type="hidden"
+                  name="seeds"
+                  :value="bulkSearchState?.listString"
+                >
+                <input
+                  type="hidden"
+                  name="preview"
+                  :value="true"
+                >
+                <button type="submit">
+                  Add to List
+                </button>
+              </form>
+            </div>
+          </div>v
         </div>
       </div>
     </div>
