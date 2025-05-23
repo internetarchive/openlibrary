@@ -16,8 +16,8 @@ from ..obfi import hide, mktable, reveal, shownames
 def mock_get(*args, **kwargs):
     """Mock for requests.get to always return seed=1234."""
 
-    class MockGet:
-        text = b"seed=1234"
+    class MockResponse:
+        content = b"seed=1234"
 
         def raise_for_status(self):
             return None
@@ -28,7 +28,7 @@ def mock_get(*args, **kwargs):
         def __exit__(self, *args):
             pass
 
-    return MockGet()
+    return MockResponse()
 
 
 @pytest.fixture
