@@ -31,7 +31,7 @@ class HashIP:
         try:
             r = requests.get(SEED_PATH)
             r.raise_for_status()
-            content = r.text
+            content = r.content
         except Exception as e:  # noqa: BLE001
             print("Error retrieving seed:", e)
             sys.exit(1)
