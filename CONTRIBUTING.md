@@ -20,7 +20,6 @@ This welcome section is intended for new contributors.
     * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
     * [Open Library Public APIs](https://openlibrary.org/developers/api)
 6. **Common Tasks**
-    * [Logging in locally](https://github.com/internetarchive/openlibrary/wiki/Getting-Started#logging-in)
     * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
 7. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
@@ -35,7 +34,7 @@ A quick public tour of Open Library to get you familiar with the service and its
 
 ## Onboarding
 
-A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#).
+A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h).
 If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
@@ -54,11 +53,7 @@ We are a non-profit, open-source, inclusive project, and we believe everyone des
 ### Join our Community
 
 * The core Open Library team communicates over an invite-only Slack channel. You may request an invitation on our [volunteers](https://openlibrary.org/volunteer) page.
-* If you have a quick question about getting started, anyone can ask on our [gitter chat](https://gitter.im/theopenlibrary/Lobby).
-* The Open Library hosts two weekly video calls:
-    * The Open Library general Community Call every Tuesday @ 9:00am PT
-    * The Open Library Design call on Friday @ 9:00am PT
-    * [Request an invite](https://openlibrary.org/volunteer) to join us!
+* The Open Library hosts weekly video calls. Check the [community call page](https://docs.openlibrary.org/1_Everyone/Community-Call.html) for times and details.
 
 ## Installing Open Library
 For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation).
@@ -71,19 +66,12 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Common Setup Tasks
 
-### Logging in as Admin
-Our login process on Open Library's dev instance is a bit funky. You need to correctly enter the right credentials (email: `openlibrary@example.com` pw: `admin123`) the **first** time or you will be logged in with a non-admin account (and will not be able to login as admin until you clear your cookies). More info here:
-- https://github.com/internetarchive/openlibrary/issues/1197#issuecomment-479752932
-
 ### Adding Data to Open Library
 - If you are looking to add data using MARC and ONIX records, visit [Open Library Bots](https://github.com/internetarchive/openlibrary-bots).
 
 ## Submitting Issues
 
 [Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Interacting-with-GitHub-Issues) and [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues) explain how GitHub issues are triaged, labeled, and prioritized.
-
-### Data Cleanup
-- If you notice a set of entries on Open Library which need to be updated (possibly in bulk) please report them as an issue to https://github.com/internetarchive/openlibrary-client (the Open Library Client).
 
 ### Tagging
 - If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
@@ -97,6 +85,7 @@ You can see this year (and previous year's) roadmap(s) [here](https://docs.googl
 
 ## Development Practices
 
+### Branch Names
 Whenever working on a new feature/hotfix/refactor, make sure a corresponding issue exists.
 We use the issue number in the branch name.
 
@@ -106,20 +95,8 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 123/refactor/simplifying-authentication-using-xauthn
 ```
 
-With respect to client side patches, before submitting your patch you'll want to check it adheres to code styling rules and tests. We use `npm` to test our client side code.
-
-```
-npm install --no-audit
-npm test
-```
-
-If it passes your patch is ready for review!
-
-Many issues can be automatically fixed using the following command:
-
-```
-npm run lint-fix
-```
+### Testing
+See https://docs.openlibrary.org/2_Developers/misc/Testing.html for more information.
 
 ## pre-commit hooks
 
@@ -159,12 +136,6 @@ Follow these rules when creating a PR:
 3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
 4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
 5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
-
-## QA Testing
-
-Once a Pull Request has been submitted, ask an approved member of staff to spin up an isolated kubernetes Open Library pod for the branch that you're working on.
-They will give you a link which will let you test your branch's current code against a near-production environment.
-Read more about our [Plans for Kubernetes](https://github.com/internetarchive/openlibrary/wiki/Kubernetes)
 
 # Maintainers
 
