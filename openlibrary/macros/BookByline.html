@@ -5,24 +5,17 @@ $def render_author_link(author):
   $ url = author.get('url')
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
 
-  $if url:
-    <a href="$url" $:attrs>
-  $else:
-    <span $:attrs>
-
-  $rendered_name
-
   $if show_years:
     $ birth_year = extract_year(author.get('birth_date') or '', int_only=False)
     $ death_year = extract_year(author.get('death_date') or '', int_only=False)
 
     $if birth_year or death_year:
-      ($birth_year – $death_year)
+      $ rendered_name += ' (%s – %s)' %(birth_year, death_year)
 
   $if url:
-    </a>
+    <a href="$url" $:attrs>$rendered_name</a>
   $else:
-    </span>
+    <span $:attrs>$rendered_name</span>
 
 $def render_overflow_link(remaining_authors, overflow_url):
   <small><em><a href="$overflow_url" $:attrs>$ungettext('%(n)s other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>

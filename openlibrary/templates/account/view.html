@@ -28,10 +28,10 @@ $var title: $header_title
         $else:
           <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
             $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
-            $if header_title=="Already Read" and mb.reading_goals:
 
-              $ selected_year = mb.selected_year if mb.selected_year else _("All Time")
-              $:render_template("books/year_breadcrumb_select", mb, selected= selected_year)
+            $if mb.key == 'already-read' and mb.yearly_reads:
+              $ url_prefix = "/people/%s/books/already-read" % mb.username
+              $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
 
           </div>
       </div>

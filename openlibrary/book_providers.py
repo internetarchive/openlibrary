@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Generic, Literal, TypedDict, TypeVar, cast
+from typing import Generic, Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -30,6 +30,13 @@ class EbookAccess(OrderedEnum):
 
     def to_solr_str(self):
         return self.name.lower()
+
+    @staticmethod
+    def from_solr_str(literal: str) -> 'EbookAccess':
+        try:
+            return EbookAccess[literal.upper()]
+        except KeyError:
+            raise ValueError(f'Unknown access literal: {literal}')
 
     @staticmethod
     def from_acquisition_access(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
@@ -189,10 +196,14 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         return f"book_providers/{self.short_name}_{typ}.html"
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult:
         return render_template(
             self.get_template_path('read_button'),
+            edition_key,
             self.get_best_identifier(ed_or_solr),
             analytics_attr,
         )
@@ -495,7 +506,10 @@ class DirectProvider(AbstractBookProvider):
             return []
 
     def render_read_button(
-        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+        self,
+        edition_key: str,
+        ed_or_solr: Edition | dict,
+        analytics_attr: Callable[[str], str],
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (
@@ -519,7 +533,7 @@ class DirectProvider(AbstractBookProvider):
         parsed_url = parse.urlparse(url)
         domain = parsed_url.netloc
         return render_template(
-            self.get_template_path('read_button'), acquisition, domain
+            self.get_template_path('read_button'), edition_key, acquisition, domain
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
@@ -543,6 +557,18 @@ class DirectProvider(AbstractBookProvider):
 class WikisourceProvider(AbstractBookProvider):
     short_name = 'wikisource'
     identifier_key = 'wikisource'
+
+    @override
+    def get_acquisitions(self, edition: Edition) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://wikisource.org/wiki/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [

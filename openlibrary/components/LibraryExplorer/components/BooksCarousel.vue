@@ -1,21 +1,45 @@
 <template>
-  <transition-group name="bcbook" class="books-carousel" tag="div" @before-leave="beforeBookLeave">
-    <div class="book-end-wrapper" key="book-end-start">
-      <slot name="book-end-start"/>
+  <transition-group
+    name="bcbook"
+    class="books-carousel"
+    tag="div"
+    @before-leave="beforeBookLeave"
+  >
+    <div
+      key="book-end-start"
+      class="book-end-wrapper"
+    >
+      <slot name="book-end-start" />
     </div>
 
-    <a class="book" v-for="book in books" :key="book.key" :href="`${OL_BASE_BOOKS}${book.key}`" target="_blank" :title="book.title">
-      <slot name="cover" v-bind:book="book">
-        <FlatBookCover :book="book"/>
+    <a
+      v-for="book in books"
+      :key="book.key"
+      class="book"
+      :href="`${OL_BASE_BOOKS}${book.key}`"
+      target="_blank"
+      :title="book.title"
+    >
+      <slot
+        name="cover"
+        :book="book"
+      >
+        <FlatBookCover :book="book" />
       </slot>
 
       <div class="cover-label">
-        <slot name="cover-label" v-bind:book="book"/>
+        <slot
+          name="cover-label"
+          :book="book"
+        />
       </div>
     </a>
 
-    <div class="book-end-wrapper" key="book-end-end">
-      <slot name="book-end"/>
+    <div
+      key="book-end-end"
+      class="book-end-wrapper"
+    >
+      <slot name="book-end" />
     </div>
   </transition-group>
 </template>

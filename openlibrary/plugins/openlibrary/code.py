@@ -21,7 +21,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -39,15 +39,10 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-from openlibrary.core import cache
-from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
-from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.plugins.worksearch.code import do_search
-from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -280,6 +275,31 @@ class widget(delegate.page):
         )
 
 
+def format_work_data(work):
+    d = dict(work)
+
+    key = work.get('key', '')
+    # New solr stores the key as /works/OLxxxW
+    if not key.startswith("/works/"):
+        key = "/works/" + key
+
+    d['url'] = key
+    d['title'] = work.get('title', '')
+
+    if 'author_key' in work and 'author_name' in work:
+        d['authors'] = [
+            {"key": key, "name": name}
+            for key, name in zip(work['author_key'], work['author_name'])
+        ]
+
+    if 'cover_edition_key' in work:
+        coverstore_url = get_coverstore_public_url()
+        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
+
+    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
+    return d
+
+
 class addauthor(delegate.page):
     path = '/addauthor'
 
@@ -495,8 +515,11 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=None)
 
     def POST(self):
-
         user_key = delegate.context.user and delegate.context.user.key
+
+        if not user_key:
+            raise Forbidden("Must be logged in to create a batch import.")
+
         import_status = (
             "pending"
             if user_key in _get_members_of_group("/usergroup/admin")
@@ -1164,103 +1187,6 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
-def _get_relatedcarousels_component(workid):
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-    work = web.ctx.site.get('/works/%s' % workid) or {}
-    component = render_template('books/RelatedWorksCarousel', work)
-    return {0: str(component)}
-
-
-def get_cached_relatedcarousels_component(*args, **kwargs):
-    memoized_get_component_metadata = cache.memcache_memoize(
-        _get_relatedcarousels_component,
-        "book.bookspage.component.relatedcarousels",
-        timeout=dateutil.HALF_DAY_SECS,
-    )
-    return (
-        memoized_get_component_metadata(*args, **kwargs)
-        or memoized_get_component_metadata.update(*args, **kwargs)[0]
-    )
-
-
-class Partials(delegate.page):
-    path = '/partials'
-    encoding = 'json'
-
-    def GET(self):
-        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
-        # `data['args']` is meant to be a list of a template's positional arguments, in order.
-        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
-        i = web.input(workid=None, _component=None, data=None)
-        component = i.pop("_component")
-        partial = {}
-        if component == "RelatedWorkCarousel":
-            partial = _get_relatedcarousels_component(i.workid)
-        elif component == "AffiliateLinks":
-            data = json.loads(i.data)
-            args = data.get('args', [])
-            # XXX : Throw error if args length is less than 2
-            macro = web.template.Template.globals['macros'].AffiliateLinks(
-                args[0], args[1]
-            )
-            partial = {"partials": str(macro)}
-
-        elif component == 'SearchFacets':
-            data = json.loads(i.data)
-            path = data.get('path')
-            query = data.get('query', '')
-            parsed_qs = parse_qs(query.replace('?', ''))
-            param = data.get('param', {})
-
-            sort = None
-            search_response = do_search(
-                param, sort, rows=0, spellcheck_count=3, facet=True
-            )
-
-            sidebar = render_template(
-                'search/work_search_facets',
-                param,
-                facet_counts=search_response.facet_counts,
-                async_load=False,
-                path=path,
-                query=parsed_qs,
-            )
-
-            active_facets = render_template(
-                'search/work_search_selected_facets',
-                param,
-                search_response,
-                param.get('q', ''),
-                path=path,
-                query=parsed_qs,
-            )
-
-            partial = {
-                "sidebar": str(sidebar),
-                "title": active_facets.title,
-                "activeFacets": str(active_facets).strip(),
-            }
-
-        elif component == "FulltextSearchSuggestion":
-            query = i.get('data', '')
-            data = fulltext_search(query)
-            # Add caching headers only if there were no errors in the search results
-            if 'error' not in data:
-                # Cache for 5 minutes (300 seconds)
-                web.header('Cache-Control', 'public, max-age=300')
-            hits = data.get('hits', [])
-            if not hits['hits']:
-                macro = '<div></div>'
-            else:
-                macro = web.template.Template.globals[
-                    'macros'
-                ].FulltextSearchSuggestion(query, data)
-            partial = {"partials": str(macro)}
-
-        return delegate.RawText(json.dumps(partial))
-
-
 def is_bot():
     r"""Generated on ol-www1 within /var/log/nginx with:
 
@@ -1269,6 +1195,9 @@ def is_bot():
 
     Manually removed singleton `bot` (to avoid overly complex grep regex)
     """
+    if 'is_bot' in web.ctx:
+        return web.ctx.is_bot
+
     user_agent_bots = [
         'sputnikbot',
         'dotbot',
@@ -1398,6 +1327,7 @@ def setup():
         design,
         events,
         home,
+        partials,
         sentry,
         stats,
         status,
@@ -1413,6 +1343,7 @@ def setup():
     status.setup()
     authors.setup()
     swagger.setup()
+    partials.setup()
 
     from openlibrary.plugins.openlibrary import (
         api,  # noqa: F401 side effects may be needed

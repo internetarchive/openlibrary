@@ -25,6 +25,7 @@ from infogami.utils.view import (
 )
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
     models,  # noqa: F401 side effects may be needed
@@ -143,7 +144,11 @@ class borrow(delegate.page):
             and acquisitions[0].access == "open-access"
         ):
             stats.increment('ol.loans.webbook')
-            raise web.seeother(acquisitions[0].url)
+            return render_template(
+                "interstitial",
+                url=acquisitions[0].url,
+                provider_name=acquisitions[0].provider_name,
+            )
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:

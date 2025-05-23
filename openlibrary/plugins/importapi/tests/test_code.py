@@ -51,6 +51,7 @@ def test_get_ia_record(monkeypatch, mock_site, add_languages) -> None:  # noqa F
         "publishers": ["Simon & Schuster"],
         "subjects": ["Red Cloud, 1822-1909", "Oglala Indians"],
         "title": "The heart of everything that is",
+        "source_records": ["ia:heartofeverythin0000drur_j2n5"],
     }
 
     result = code.ia_importapi.get_ia_record(ia_metadata)
@@ -87,6 +88,7 @@ def test_get_ia_record_logs_warning_when_language_has_multiple_matches(
         "publish_date": "2013",
         "publishers": ["The Publisher"],
         "title": "Frisian is Fun",
+        "source_records": ["ia:ia_frisian001"],
     }
 
     result = code.ia_importapi.get_ia_record(ia_metadata)

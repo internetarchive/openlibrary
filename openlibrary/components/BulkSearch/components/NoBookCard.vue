@@ -1,7 +1,7 @@
 <template>
-    <div class="noBookCard">
-        <p> No Books Found</p>
-    </div>
+  <div class="noBookCard">
+    <p> No Books Found</p>
+  </div>
 </template>
 
 <script>

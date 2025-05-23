@@ -14,6 +14,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -21,7 +22,6 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -157,9 +157,9 @@ class mybooks_feed(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)/stats"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)(/year/\\d{4})?/stats"
 
-    def GET(self, username, key='want-to-read'):
+    def GET(self, username, key='want-to-read', year=None):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
@@ -168,8 +168,13 @@ class readinglog_stats(delegate.page):
         if not cur_user or cur_user.key.split('/')[-1] != username:
             return render.permission_denied(web.ctx.path, 'Permission Denied')
 
+        yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(username)
+        if year:
+            # eg '/year/2025'; skip the '/year/'
+            year = int(year.split('/')[-1])
+
         readlog = ReadingLog(user=user)
-        works = readlog.get_works(key, page=1, limit=2000).docs
+        works = readlog.get_works(key, page=1, limit=2000, year=year).docs
         works_json = [
             {
                 # Fallback to key if it is a redirect
@@ -203,6 +208,8 @@ class readinglog_stats(delegate.page):
             web.ctx.path.rsplit('/', 1)[0],
             key,
             lang=web.ctx.lang,
+            year=year,
+            yearly_reads=yearly_reads,
         )
 
 
@@ -261,12 +268,7 @@ class mybooks_readinglog(delegate.page):
 
         # Add yearly reading goals to the MyBooksTemplate
         if mb.key == 'already-read' and mb.is_my_page:
-            mb.reading_goals = [
-                str(result.year)
-                for result in YearlyReadingGoals.select_by_username(
-                    mb.username, order='year DESC'
-                )
-            ]
+            mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -420,7 +422,7 @@ class MyBooksTemplate:
             else {}
         )
 
-        self.reading_goals: list = []
+        self.yearly_reads: list[tuple[int, int]] = []
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:

@@ -1,7 +1,9 @@
 """
 To Run:
 
-PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml
+python -m pip install -r requirements_scripts.txt && \
+    PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml && \
+    python -m pip uninstall -y -r requirements_scripts.txt
 """
 
 import itertools
@@ -10,7 +12,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypedDict
 from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse, urlunparse
 
 # Using both mwparserfromhell and wikitextparser because the former doesn't have a markup stripper
@@ -101,6 +103,9 @@ class LangConfig:
     category_prefix: str
     included_category_names: list[str]
     excluded_category_names: list[str]
+    description_exclusion_re: str | None
+    title_exclusion_re: str | None
+    subject_exclusion_re: str | None
 
     def _catformat(self, category: str) -> str:
         return f"{self.category_prefix}:{category}"
@@ -170,6 +175,31 @@ WHERE {
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self.excluded_category_names]
 
+    def exclude_book(self, book: 'BookRecord') -> bool:
+        bad_category = any(c for c in book.categories if c in self.excluded_categories)
+        if bad_category:
+            return True
+
+        if (
+            self.description_exclusion_re
+            and book.description
+            and re.search(self.description_exclusion_re, book.description)
+        ):
+            return True
+
+        book_title = book.title or ""
+        if book.subtitle:
+            book_title += f" {book.subtitle}"
+
+        if self.title_exclusion_re and re.search(self.title_exclusion_re, book_title):
+            return True
+
+        return bool(
+            self.subject_exclusion_re
+            and book.subjects
+            and re.search(self.subject_exclusion_re, ' '.join(book.subjects))
+        )
+
 
 # Each version of wikisource has different category names and prefixes,
 # so the pool of categories to search within and the categories to filter out
@@ -203,11 +233,17 @@ ws_languages = [
             "PD-EdictGov",
             "Film",
         ],
+        # Check if book description contains a page range. These are generally articles
+        # or papers, not books.
+        # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
+        description_exclusion_re=r"^Letter\b|[ .]\d{1,3}[-–]\d{1,3}\b",  # noqa RUF001
+        title_exclusion_re=r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
+        subject_exclusion_re=r'\b(speeches)\b',
     )
 ]
 
 
-def format_contributor(raw_name: str) -> str:
+def format_human_name(raw_name: str) -> str:
     name = HumanName(raw_name)
     fn = f"{name.first} " if name.first != "" else ""
     mid = f"{name.middle} " if name.middle != "" else ""
@@ -219,6 +255,8 @@ def format_contributor(raw_name: str) -> str:
 @dataclass
 class Author:
     friendly_name: str | None = None
+    key: str | None = None
+    remote_ids: dict[str, str] = field(default_factory=dict[str, str])
     birth_date: str | None = None
     death_date: str | None = None
 
@@ -226,24 +264,31 @@ class Author:
         return hash((self.friendly_name, self.birth_date, self.death_date))
 
 
+class ContributorDict(TypedDict):
+    name: str
+    role: str
+
+
 @dataclass
 class BookRecord:
     langconfig: LangConfig
     wikisource_page_title: str
     title: str | None = None
+    subtitle: str | None = None
     publish_date: str | None = None
     edition: str | None = None
     authors: list[Author] = field(default_factory=list)
-    illustrators: list[str] = field(default_factory=list)
+    illustrators: list[ContributorDict] = field(default_factory=list)
     description: str | None = None
     subjects: list[str] = field(default_factory=list)
     cover: str | None = None
     publishers: list[str] = field(default_factory=list)
     imagename: str | None = None
     categories: list[str] = field(default_factory=list)
-    ia_id: str | None = None
+    ocaid: str | None = None
     publish_places: list[str] = field(default_factory=list)
     page_count: int | None = None
+    wikidata_id: str | None = None
     oclcs: list[str] = field(default_factory=list)
     lccn: str | None = None
     isbn10: str | None = None
@@ -261,7 +306,10 @@ class BookRecord:
         )
 
     def add_illustrators(self, illustrators: list[str]) -> None:
-        self.illustrators = uniq(self.illustrators + illustrators)
+        new_illustrators: list[ContributorDict] = [
+            {"name": a, "role": "illustrator"} for a in illustrators
+        ]
+        self.illustrators = uniq(self.illustrators + new_illustrators, key=json.dumps)
 
     def add_subjects(self, subjects: list[str]) -> None:
         self.subjects = uniq(self.subjects + subjects)
@@ -279,8 +327,8 @@ class BookRecord:
     @property
     def source_records(self) -> list[str]:
         records = [f"wikisource:{self.wikisource_id}"]
-        if self.ia_id is not None:
-            records.insert(0, f"ia:{self.ia_id}")
+        if self.wikidata_id is not None:
+            records.append(f"wikidata:{self.wikidata_id}")
         return records
 
     def to_dict(self):
@@ -291,8 +339,9 @@ class BookRecord:
             "source_records": self.source_records,
             "identifiers": {"wikisource": [self.wikisource_id]},
             "languages": [self.langconfig.ol_langcode],
-            "ia_id": self.source_records[0],
         }
+        if self.subtitle is not None:
+            output["subtitle"] = self.subtitle
         if self.publish_date is not None:
             output["publish_date"] = self.publish_date
         if self.edition is not None:
@@ -301,8 +350,10 @@ class BookRecord:
             output["authors"] = [
                 {
                     "name": author.friendly_name,
-                    "birth_date": author.birth_date,
-                    "death_date": author.death_date,
+                    **({"birth_date": author.birth_date} if author.birth_date else {}),
+                    **({"death_date": author.death_date} if author.death_date else {}),
+                    **({"remote_ids": author.remote_ids} if author.remote_ids else {}),
+                    **({"key": author.key} if author.key else {}),
                 }
                 for author in self.authors
             ]
@@ -314,20 +365,33 @@ class BookRecord:
             output["cover"] = self.cover
         if publishers:
             output["publishers"] = publishers
-        if self.publish_places:
-            output["publish_places"] = self.publish_places
         if self.page_count:
-            output["pagination"] = self.page_count
-        if self.oclcs:
-            output["oclc_numbers"] = self.oclcs
-        if self.lccn:
-            output["lccn"] = self.lccn
+            output["number_of_pages"] = self.page_count
         if self.illustrators:
-            output["contributions"] = self.illustrators
-        if self.isbn10:
-            output["isbn_10"] = self.isbn10
-        if self.isbn13:
-            output["isbn_13"] = self.isbn13
+            output["contributors"] = self.illustrators
+
+        #
+        # These are disabled, since we decided to create new editions for
+        # the Wikisource books, so this metadata doesn't apply to the
+        # Wikisource edition, but to the original edition.
+        #
+        # Leaving here since we will need code like this when creating a
+        # Wikidata-based importer for those original editions.
+        #
+        # if self.ocaid is not None:
+        #     output["ocaid"] = self.ocaid
+        # if self.wikidata_id is not None:
+        #     output["identifiers"]["wikidata"] = [self.wikidata_id]
+        # if self.publish_places:
+        #     output["publish_places"] = self.publish_places
+        # if self.oclcs:
+        #     output["oclc_numbers"] = self.oclcs
+        # if self.lccn:
+        #     output["lccn"] = self.lccn
+        # if self.isbn10:
+        #     output["isbn_10"] = self.isbn10
+        # if self.isbn13:
+        #     output["isbn_13"] = self.isbn13
 
         return output
 
@@ -391,6 +455,8 @@ def update_record_with_wikisource_metadata(
         except ValueError:
             pass
 
+    # Not all WD book entities are properly linked to author entities. In those cases, fall back to using any author data from Wikisource infoboxes.
+    # Wikisource infoboxes are unstructured and do not necessarily follow stringent formatting standards, so we force that info into a format OL will prefer.
     if not [b for b in author_map if book_id in author_map[b]] and not book.authors:
         try:
             author = template.get("author").value.strip()
@@ -398,18 +464,19 @@ def update_record_with_wikisource_metadata(
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
                 if authors:
                     book.add_authors(
-                        [Author(friendly_name=format_contributor(a)) for a in authors]
+                        [Author(friendly_name=format_human_name(a)) for a in authors]
                     )
         except ValueError:
             pass
 
+    # Same goes for illustrators.
     if not book.illustrators:
         try:
             illustrator = template.get("illustrator").value.strip()
             if illustrator != "":
                 illustrators = re.split(r"(?:\sand\s|,\s?)", illustrator)
                 if illustrators:
-                    book.add_illustrators([format_contributor(a) for a in illustrators])
+                    book.add_illustrators([format_human_name(a) for a in illustrators])
         except ValueError:
             pass
 
@@ -434,6 +501,9 @@ def update_record_with_wikisource_metadata(
 
 def print_records(records: list[BookRecord]):
     for rec in records:
+        # Don't know why a few records are turning out like this yet
+        if rec.title is None or rec.publish_date is None or len(rec.authors) == 0:
+            continue
         r = rec.to_dict()
         print(json.dumps(r))
 
@@ -494,13 +564,11 @@ def update_import_with_wikidata_api_response(
         author_map[author_id].append(book_id)
     # If author isn't a WD object, add them as plaintext
     elif "authorLabel" in obj and "value" in obj["authorLabel"]:
-        impt.add_authors(
-            [Author(friendly_name=format_contributor(obj["authorLabel"]["value"]))]
-        )
+        impt.add_authors([Author(friendly_name=obj["authorLabel"]["value"])])
 
     # Illustrators
     if "illustratorLabel" in obj and "value" in obj["illustratorLabel"]:
-        impt.add_illustrators([format_contributor(obj["illustratorLabel"]["value"])])
+        impt.add_illustrators([obj["illustratorLabel"]["value"]])
 
     # Publisher
     if ("publisher" in obj and "value" in obj["publisher"]) or (
@@ -516,6 +584,10 @@ def update_import_with_wikidata_api_response(
             ]
         )
 
+    # Page count
+    if "pageCount" in obj and "value" in obj["pageCount"]:
+        impt.page_count = int(obj["pageCount"]["value"])
+
     # Edition
     if "editionLabel" in obj and "value" in obj["editionLabel"]:
         impt.edition = obj["editionLabel"]["value"]
@@ -529,8 +601,8 @@ def update_import_with_wikidata_api_response(
         impt.publish_date = extract_year(obj["date"]["value"])
 
     # IA ID
-    if "iaId" in obj and "value" in obj["iaId"]:
-        impt.ia_id = obj["iaId"]["value"]
+    if "ocaid" in obj and "value" in obj["ocaid"]:
+        impt.ocaid = obj["ocaid"]["value"]
 
     # Publish place
     if "publicationPlaceLabel" in obj and "value" in obj["publicationPlaceLabel"]:
@@ -579,6 +651,7 @@ def scrape_wikidata_api(
         imports[item_id] = BookRecord(
             wikisource_page_title=quote(binding["page"]["value"].replace(' ', '_')),
             langconfig=cfg,
+            wikidata_id=item_id,
         )
 
     if not item_ids:
@@ -600,11 +673,13 @@ def scrape_wikidata_api(
   ?item
   ?itemLabel
   ?title
+  ?subtitle
   ?author
   ?authorLabel
   ?illustrator
   ?illustratorLabel
   ?publisher
+  ?publisherLabel
   ?publisherName
   ?publicationPlaceLabel
   ?editionLabel
@@ -612,7 +687,7 @@ def scrape_wikidata_api(
   ?date
   ?subjectLabel
   ?imageUrl
-  ?iaId
+  ?ocaid
   ?oclcLabel
   ?lccn
   ?isbn10
@@ -622,19 +697,17 @@ WHERE {
             + ''.join([f"wd:{id}\n    " for id in batch])
             + '''}
   OPTIONAL { ?item wdt:P1476 ?title. }
+  OPTIONAL { ?item wdt:P1680 ?subtitle. }
   OPTIONAL { ?item wdt:P50 ?author. }
   OPTIONAL { ?item wdt:P110 ?illustrator. }
-  OPTIONAL {
-    ?item p:P123 ?publisherStatement.
-    ?publisherStatement ps:P123 ?publisher.
-    ?publisherStatement pq:P1932 ?publisherName.
-  }
+  OPTIONAL { ?item wdt:P123 ?publisher. }
+  OPTIONAL { ?item p:P123/pq:P1932 ?publisherName. }
   OPTIONAL { ?item wdt:P291 ?publicationPlace. }
   OPTIONAL { ?item wdt:P393 ?edition. }
   OPTIONAL { ?item wdt:P577 ?date. }
   OPTIONAL { ?item wdt:P921 ?subject. }
   OPTIONAL { ?item wdt:P18 ?image. }
-  OPTIONAL { ?item wdt:P724 ?iaId. }
+  OPTIONAL { ?item wdt:P724 ?ocaid. }
   OPTIONAL { ?item wdt:P1104 ?pageCount. }
   OPTIONAL { ?item wdt:P243 ?oclc. }
   OPTIONAL { ?item wdt:P244 ?lccn. }
@@ -684,10 +757,17 @@ WHERE {
                 if "title" in obj and "value" in obj["title"]
                 else obj["itemLabel"]["value"]
             )
+            subtitle: str | None = (
+                obj["subtitle"]["value"]
+                if "subtitle" in obj and "value" in obj["subtitle"]
+                else None
+            )
+
             book_id = get_wd_item_id(obj["item"]["value"])
             impt = imports[book_id]
 
             impt.title = title
+            impt.subtitle = subtitle
             ids_for_wikisource_api.append(impt.wikisource_page_title)
 
             update_import_with_wikidata_api_response(impt, book_id, obj, author_map)
@@ -738,12 +818,42 @@ def fix_contributor_data(
             '''SELECT DISTINCT
   ?contributor
   ?contributorLabel
+  ?olId
+  ?viaf
+  ?bookbrainz
+  ?musicbrainz
+  ?goodreads
+  ?isni
+  ?imdb
+  ?lc_naf
+  ?librarything
+  ?librivox
+  ?project_gutenberg
+  ?opac_sbn
+  ?amazon
+  ?storygraph
+  ?youtube
   ?birthDate
   ?deathDate
 WHERE {
   VALUES ?contributor {'''
             + ''.join([f"wd:{id}\n    " for id in batch])
             + '''}
+  OPTIONAL { ?contributor wdt:P648 ?olId. }
+  OPTIONAL { ?contributor wdt:P214 ?viaf. }
+  OPTIONAL { ?contributor wdt:P2607 ?bookbrainz. }
+  OPTIONAL { ?contributor wdt:P434 ?musicbrainz. }
+  OPTIONAL { ?contributor wdt:P2963 ?goodreads. }
+  OPTIONAL { ?contributor wdt:P213 ?isni. }
+  OPTIONAL { ?contributor wdt:P345 ?imdb. }
+  OPTIONAL { ?contributor wdt:P244 ?lc_naf. }
+  OPTIONAL { ?contributor wdt:P7400 ?librarything. }
+  OPTIONAL { ?contributor wdt:P1899 ?librivox. }
+  OPTIONAL { ?contributor wdt:P1938 ?project_gutenberg. }
+  OPTIONAL { ?contributor wdt:P396 ?opac_sbn. }
+  OPTIONAL { ?contributor wdt:P4862 ?amazon. }
+  OPTIONAL { ?contributor wdt:P12430 ?storygraph. }
+  OPTIONAL { ?contributor wdt:P2397 ?youtube. }
   OPTIONAL { ?contributor wdt:P569 ?birthDate. }
   OPTIONAL { ?contributor wdt:P570 ?deathDate. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
@@ -770,21 +880,49 @@ WHERE {
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
 
             # Don't include author if their name is incomplete, for whatever reason
-            if "contributorLabel" in obj and "value" in obj["contributorLabel"]:
-                contributor = Author(
-                    friendly_name=format_contributor(obj["contributorLabel"]["value"])
-                )
+            if not ("contributorLabel" in obj and "value" in obj["contributorLabel"]):
+                continue
 
-                if "birthDate" in obj and "value" in obj["birthDate"]:
-                    contributor.birth_date = obj["birthDate"]["value"]
+            contributor = Author(friendly_name=obj["contributorLabel"]["value"])
 
-                if "deathDate" in obj and "value" in obj["deathDate"]:
-                    contributor.death_date = obj["deathDate"]["value"]
+            if "birthDate" in obj and "value" in obj["birthDate"]:
+                contributor.birth_date = extract_year(obj["birthDate"]["value"])
 
-                if contributor_id in map:
-                    book_ids = map[contributor_id]
-                    for book_id in book_ids:
-                        imports[book_id].add_authors([contributor])
+            if "deathDate" in obj and "value" in obj["deathDate"]:
+                contributor.death_date = extract_year(obj["deathDate"]["value"])
+
+            if "olId" in obj and "value" in obj["olId"]:
+                contributor.key = f"/authors/{obj["olId"]["value"]}"
+
+            contributor.remote_ids['wikidata'] = contributor_id
+
+            # Couldn't find inventaire
+            for id in [
+                "viaf",
+                "bookbrainz",
+                "musicbrainz",
+                "goodreads",
+                "isni",
+                "imdb",
+                "lc_naf",
+                "librarything",
+                "librivox",
+                "project_gutenberg",
+                "opac_sbn",
+                "amazon",
+                "storygraph",
+                "youtube",
+            ]:
+                if id in obj and "value" in obj[id]:
+                    val = obj[id]["value"]
+                    if id == "youtube" and val[0] != "@":
+                        val = f'@{val}'
+                    contributor.remote_ids[id] = val
+
+            if contributor_id in map:
+                book_ids = map[contributor_id]
+                for book_id in book_ids:
+                    imports[book_id].add_authors([contributor])
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
@@ -801,10 +939,7 @@ def process_all_books(cfg: LangConfig):
 
     for book in list(imports.values()):
         # Skip if the book belongs to an ignored Wikisource page category, such as subpages (chapters), posters, etc
-        excluded_categories = [
-            c for c in book.categories if c in cfg.excluded_categories
-        ]
-        if excluded_categories:
+        if cfg.exclude_book(book):
             continue
 
         batch.append(book)

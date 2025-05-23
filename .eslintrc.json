@@ -4,7 +4,7 @@
     "eslint-plugin-no-jquery"
   ],
   "extends": [
-    "plugin:vue/vue3-essential",
+    "plugin:vue/vue3-recommended",
     "plugin:no-jquery/deprecated"
   ],
   "env": {
@@ -14,7 +14,10 @@
   "parserOptions": {
     "parser": "@babel/eslint-parser",
     "sourceType": "module",
-    "ecmaVersion": 6
+    "ecmaVersion": 6,
+    "babelOptions": {
+      "configFile": "./.babelrc"
+    }
   },
   "globals": {},
   "rules": {

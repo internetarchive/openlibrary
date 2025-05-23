@@ -1,7 +1,9 @@
 <template>
   <div>
     <h3>Add your reviews:</h3>
-    <p class="subtitle">Reviews listed above have been saved.</p>
+    <p class="subtitle">
+      Reviews listed above have been saved.
+    </p>
     <div class="chip-group">
       <OLChip
         v-for="o in observationsArray"
@@ -12,9 +14,12 @@
         :selected="isSelected(o.id)"
         class="category-chip"
         @update-selected="updateSelected"
-        >
-        <template v-slot:before>
-          <span class="symbol" v-html="displaySymbol(o.label)"></span>
+      >
+        <template #before>
+          <span
+            class="symbol"
+            v-html="displaySymbol(o.label)"
+          />
         </template>
       </OLChip>
     </div>

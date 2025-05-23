@@ -1,16 +1,23 @@
 <template>
-    <tr>
-        <td>{{ index + 1 }}</td>
-        <td>{{ bookMatch.extractedBook.title }}</td>
-        <td>{{ bookMatch.extractedBook.author }}</td>
-        <td>
-            <div class="bookCards">
-                <a :href="searchUrl"  title="View results in Open Library">🔎</a>
-                <BookCard v-for="(doc, index) in bookMatch.solrDocs.docs" :doc="doc" :key="index" />
-                <NoBookCard v-if="bookMatch.solrDocs.numFound===0"></NoBookCard>
-            </div>
-        </td>
-    </tr>
+  <tr>
+    <td>{{ index + 1 }}</td>
+    <td>{{ bookMatch.extractedBook.title }}</td>
+    <td>{{ bookMatch.extractedBook.author }}</td>
+    <td>
+      <div class="bookCards">
+        <a
+          :href="searchUrl"
+          title="View results in Open Library"
+        >🔎</a>
+        <BookCard
+          v-for="(doc, index) in bookMatch.solrDocs.docs"
+          :key="index"
+          :doc="doc"
+        />
+        <NoBookCard v-if="bookMatch.solrDocs.numFound===0" />
+      </div>
+    </td>
+  </tr>
 </template>
 
 <script>

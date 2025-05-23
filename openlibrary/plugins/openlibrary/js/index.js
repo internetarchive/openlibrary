@@ -79,12 +79,6 @@ jQuery(function () {
 
     init($);
 
-    // conditionally load functionality based on what's in the page
-    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import(/* webpackChunkName: "editions-table" */ './editions-table')
-            .then(module => module.initEditionsTable());
-    }
-
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
@@ -196,27 +190,17 @@ jQuery(function () {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
-    // conditionally loads Related Carousels based on class in the page
-    if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
-            .then(module => module.initCarouselsPartials());
-    }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
     }
 
     // Enable any carousels in the page
-    const $carouselElements = $('.carousel--progressively-enhanced');
-    if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced')
+    if (carouselElements.length) {
+        import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => {
-                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
-                $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') !== undefined) {
-                        $(this).attr('id',$(this).attr('aria-describedby'));
-                    }
-                });
+                module.initialzeCarousels(carouselElements)
             })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
@@ -333,8 +317,17 @@ jQuery(function () {
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
             .then((module) => module.init());
+        // Import ile then the datatable to apply clickable classes to all listed editions
+        if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+            import(/* webpackChunkName: "editions-table" */ './editions-table')
+                .then(module => module.initEditionsTable())
+        }
     }
-
+    // conditionally load functionality based on what's in the page
+    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+        import(/* webpackChunkName: "editions-table" */ './editions-table')
+            .then(module => module.initEditionsTable());
+    }
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
@@ -474,20 +467,16 @@ jQuery(function () {
     if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                if (librarianQueue) {
-                    module.initLibrarianQueue(librarianQueue)
-                }
+                module.initLibrarianQueue(librarianQueue)
             })
     }
 
     // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container')
     if (teamCards) {
-        import('./team')
+        import(/* webpackChunkName "team" */ './team')
             .then(module => {
-                if (teamCards) {
-                    module.initTeamFilter();
-                }
+                module.initTeamFilter();
             })
     }
 
@@ -516,6 +505,12 @@ jQuery(function () {
     if (crumbs.length) {
         import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
             .then(module => module.initBreadcrumbSelect(crumbs));
+    }
+
+    const interstitial = document.querySelector('.interstitial');
+    if (interstitial) {
+        import (/* webpackChunkName: "interstitial" */ './interstitial')
+            .then(module => module.initInterstitial(interstitial));
     }
 
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
@@ -556,5 +551,19 @@ jQuery(function () {
     if (backLinks.length) {
         import (/* webpackChunkName: "go-back-links" */ './go-back-links')
             .then(module => module.initGoBackLinks(backLinks))
+    }
+
+    // Lazy-load book page lists section
+    const listSection = document.querySelector('.lists-section')
+    if (listSection) {
+        import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
+            .then(module => module.initListsSection(listSection))
+    }
+
+    // Generalized carousel lazy-loading
+    const lazyCarousels = document.querySelectorAll('.lazy-carousel')
+    if (lazyCarousels.length) {
+        import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
+            .then(module => module.initLazyCarousel(lazyCarousels))
     }
 });

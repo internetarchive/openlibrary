@@ -1,17 +1,20 @@
 <template>
-  <div class="observation-form" ref="form">
+  <div
+    ref="form"
+    class="observation-form"
+  >
     <SavedTags
       :all-selected-values="allSelectedValues"
       :work-key="work_key"
       :username="username"
-      />
+    />
     <CategorySelector
       ref="categories"
       :observations-array="observationsArray"
       :all-selected-values="allSelectedValues"
       :initial-selected-id="getSelectedId"
       @update-selected="updateSelected"
-      />
+    />
     <ValueCard
       v-if="selectedObservation"
       ref="value-card"
@@ -22,7 +25,7 @@
       :all-selected-values="allSelectedValues"
       :work-key="work_key"
       :username="username"
-      />
+    />
   </div>
 </template>
 
@@ -112,23 +115,6 @@ export default {
             observationsArray: null,
         }
     },
-    methods: {
-        /**
-         * Sets the currently selected book tag type to a new value.
-         *
-         * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
-         */
-        updateSelected: function(observation) {
-            this.selectedObservation = observation
-        },
-        /**
-         * Randomly sets a selected observation.
-         */
-        selectRandomObservation: function() {
-            const randomNumber = Math.floor(Math.random() * 100000);
-            this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
-        }
-    },
     computed: {
         /**
          * Return the selected observation's ID, or null if no observation is selected.
@@ -157,6 +143,23 @@ export default {
     beforeUnmount: function() {
         if (this.observer) {
             this.observer.disconnect()
+        }
+    },
+    methods: {
+        /**
+         * Sets the currently selected book tag type to a new value.
+         *
+         * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
+         */
+        updateSelected: function(observation) {
+            this.selectedObservation = observation
+        },
+        /**
+         * Randomly sets a selected observation.
+         */
+        selectRandomObservation: function() {
+            const randomNumber = Math.floor(Math.random() * 100000);
+            this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
         }
     }
 }
