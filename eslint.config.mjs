@@ -54,9 +54,6 @@ export default defineConfig([globalIgnores([
             ...globals.jquery,
         },
 
-        ecmaVersion: 6,
-        sourceType: "module",
-
         parserOptions: {
             parser: "@babel/eslint-parser",
 
