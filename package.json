@@ -23,10 +23,10 @@
     "build-assets:js": "make js",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
-    "lint:js": "eslint --ext js,vue .",
+    "lint:js": "eslint .",
     "lint:css": "stylelint ./**/*.less",
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
-    "lint-fix:js": "eslint --fix --ext js,vue .",
+    "lint-fix:js": "eslint --fix .",
     "lint-fix:css": "stylelint --fix ./**/*.less",
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
-    "@babel/eslint-parser": "^7.24.7",
+    "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.7",
     "@ericblade/quagga2": "^1.7.4",
     "@vitejs/plugin-legacy": "^6.0.0",
@@ -51,9 +51,9 @@
     "datatables.net-dt": "1.13.11",
     "details-polyfill": "1.2.0",
     "diff": "4.0.2",
-    "eslint": "^8.49.0",
-    "eslint-plugin-no-jquery": "2.7.0",
-    "eslint-plugin-vue": "^9.32.0",
+    "eslint": "^9.27.0",
+    "eslint-plugin-no-jquery": "^3.1.1",
+    "eslint-plugin-vue": "^9.33.0",
     "flot": "0.8.3",
     "isbn3": "1.1.1",
     "jest": "29.7.0",
@@ -115,6 +115,7 @@
     "collectCoverage": true
   },
   "dependencies": {
+    "globals": "^16.1.0",
     "postcss-less": "^6.0.0"
   }
 }
