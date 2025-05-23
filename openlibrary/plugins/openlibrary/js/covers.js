@@ -153,7 +153,7 @@ async function pasteImage() {
             return formData;
         }
         alert('No image found in clipboard');
-    } catch (error) {
+    } catch {
 
     }
 }

@@ -125,7 +125,7 @@ export function websafe(value) {
             return htmlquote(value.toString());
         }
     }
-    catch (e) {
+    catch {
         return '';
     }
 }
