@@ -20,7 +20,6 @@ VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 session = requests.Session()
 
-
 def get_api_response(url: str, params: dict | None = None) -> dict:
     """
     Makes an API GET request to archive.org, collects stats
@@ -30,7 +29,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     api_response = {}
     stats.begin('archive.org', url=url)
     try:
-        r = session.get(url, params=params)
+        r = session.get(url, params=params, timeout=3)
         if r.status_code == requests.codes.ok:
             api_response = r.json()
         else:

@@ -434,7 +434,7 @@ def get_availability(
                 "scope": "printdisabled",
             },
             headers=headers,
-            timeout=10,
+            timeout=config_http_request_timeout,
         )
 
         # This API should always return 200
@@ -601,7 +601,7 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url).json()
+        response = ia.session.get(url, timeout=config_http_request_timeout).json()
         return response and response.get('checkedout')
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
