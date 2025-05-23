@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
+import pluginVue from 'eslint-plugin-vue'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,7 +30,9 @@ export default defineConfig([globalIgnores([
     "**/vendor/",
     "tests/screenshots/",
     "**/venv/",
-]), {
+]),
+...pluginVue.configs['flat/recommended'],
+{
     files: ["**/*.js", "**/*.vue"],
     // Eventually we may want to stop ignoring some of these but for the migration it seems necessary
     ignores: [
@@ -39,7 +42,7 @@ export default defineConfig([globalIgnores([
         "openlibrary/components/dev/serve-component.js",
         "**/tests/**/*.js",// we need to setup a custom config for this one that used to be in tests/unit/.eslintrc.json
     ],
-    extends: compat.extends("plugin:vue/vue3-recommended", "plugin:no-jquery/deprecated"),
+    extends: compat.extends("plugin:no-jquery/deprecated"),
 
     plugins: {
         "no-jquery": noJquery,
