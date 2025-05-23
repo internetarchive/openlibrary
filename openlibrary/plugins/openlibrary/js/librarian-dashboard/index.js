@@ -6,7 +6,7 @@ let i18nStrings;
  * Adds click listener to root details element of the dashboard that
  * triggers the data quality queries.
  *
- * @param rootElement {HTMLDetailsElement}
+ * @param {HTMLDetailsElement} rootElement
  */
 export function initLibrarianDashboard(rootElement) {
     i18nStrings = JSON.parse(rootElement.dataset.i18n)
@@ -19,7 +19,7 @@ export function initLibrarianDashboard(rootElement) {
 /**
  * Updates each row of the given data quality table.
  *
- * @param table {HTMLTableElement}
+ * @param {HTMLTableElement} table
  * @returns {Promise<void>}
  */
 async function populateTable(table) {
@@ -36,8 +36,8 @@ async function populateTable(table) {
 /**
  * Fetches data quality information and updates the given row accordingly.
  *
- * @param row {HTMLTableRowElement} A row in the data quality table
- * @param totalCount {number} Total number of search results
+ * @param {HTMLTableRowElement} row A row in the data quality table
+ * @param {number} totalCount Total number of search results
  * @returns {Promise<void>}
  */
 async function updateRow(row, totalCount) {
@@ -94,10 +94,9 @@ async function updateRow(row, totalCount) {
 /**
  * Returns an HTML string containing the data quality results of the given row.
  *
- * @param row {HTMLTableRowElement}
- * @param results {Record} Search results
- * @param totalCount {Number} Total number of results
- * @param failingHref {string} URL of the `/search` page for the row's query
+ * @param {Record} results Search results
+ * @param {Number} totalCount Total number of results
+ * @param {string} failingHref URL of the `/search` page for the row's query
  *
  * @returns {string} HTML string
  */
@@ -130,7 +129,7 @@ function renderRetryCell() {
 /**
  * Returns an HTML string containing an error message.
  *
- * @param href {string}
+ * @param {string} href
  * @returns {string}
  */
 function renderErrorCell(href) {
