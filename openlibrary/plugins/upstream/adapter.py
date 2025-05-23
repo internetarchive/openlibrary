@@ -84,12 +84,11 @@ class proxy:
             data=self.data,
             headers=self.headers,
         )
-        prepped = req.prepare()
-        resp = s.send(prepped)
+        resp = s.send(req)
         self.status_code = resp.status_code
         # a one-liner that replaces the __str__ functionality of the HTTPResponse object replaced from urllib
         self.status_msg = "\n".join(f"{k}: {v}" for k, v in resp.headers.items())
-        self.output = resp.read()
+        self.output = resp.content
 
         self.headers = resp.headers
         for k in ['transfer-encoding', 'server', 'connection', 'date']:
