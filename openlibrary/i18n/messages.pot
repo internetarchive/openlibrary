@@ -1273,20 +1273,6 @@ msgid ""
 " in the process."
 msgstr ""
 
-#: account/password/reset_success.html account/verify.html
-#: account/verify/activated.html account/verify/success.html
-#: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid "Hi, %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
-msgstr ""
-
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
 msgstr ""
@@ -1328,10 +1314,6 @@ msgstr ""
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Password reset failed."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -3037,6 +3019,12 @@ msgstr ""
 
 #: account/verify.html
 msgid "Verification email sent"
+msgstr ""
+
+#: account/password/reset_success.html account/verify.html
+#: account/verify/activated.html account/verify/success.html
+#, python-format
+msgid "Hi, %(user)s"
 msgstr ""
 
 #: account/verify.html
