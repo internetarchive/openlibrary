@@ -39,6 +39,7 @@
     "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.7",
     "@ericblade/quagga2": "^1.7.4",
+    "@eslint/js": "^9.27.0",
     "@vitejs/plugin-legacy": "^6.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "babel-loader": "^9.1.3",
