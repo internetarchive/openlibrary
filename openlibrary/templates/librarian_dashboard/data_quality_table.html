@@ -3,12 +3,10 @@ $def with(total_books)
 $# Template for the librarian data quality table.
 $# Each row in the table is meant to display the amount of books that do not
 $# meet a specific data quality criterion.
-$# Queries for the data scores are expected to be made client-side.  Query URLs
-$# for each row are added as data attributes.
 
 $# total_books : number : Total number of books in the universe of books represented by the table
 
-$ checklist = get_quality_criteria()
+$ quality_criteria = get_quality_criteria()
 $ i18n_strings = {
 $     "error": _("Error"),
 $     "loading": _("Loading..."),
@@ -27,9 +25,9 @@ $ }
       <th scope="col">$_("Quality Criteria")</th>
       <th scope="colgroup" colspan="3">$_("Status")</th>
     </tr>
-    $for item in checklist:
+    $for item in quality_criteria:
       $# Each row starts in a "Pending" state
-      <tr class="dq-table__row" data-api-url="$item.get('apiUrl')" data-search-ui-url="$item.get('searchPageUrl')">
+      <tr class="dq-table__row" data-query-fragment="$item.get('queryFragment')">
           <td class="dq-table__criterion-cell">$item.get("name")</td>
           <td colspan="3">$_("Loading...")</td>
       </tr>

@@ -26,11 +26,7 @@ async function populateTable(table) {
     const bookCount = Number(table.dataset.totalBooks)
     const rows = table.querySelectorAll(".dq-table__row")
 
-    for (const row of rows) {
-        updateRow(row, bookCount)
-        // Wait before updating next row
-        await new Promise(resolve => setTimeout(resolve, 500))
-    }
+    await Promise.all([...rows].map(row => updateRow(row, bookCount)))
 }
 
 /**
@@ -41,8 +37,9 @@ async function populateTable(table) {
  * @returns {Promise<void>}
  */
 async function updateRow(row, totalCount) {
-    const apiUrl = row.dataset.apiUrl
-    const searchPageUrl = row.dataset.searchUiUrl
+    const queryFragment = row.dataset.queryFragment
+    const apiUrl = buildUrl(queryFragment, false)
+    const searchPageUrl = buildUrl(queryFragment)
 
     // Make query
     const data = await fetch(apiUrl)
@@ -56,39 +53,60 @@ async function updateRow(row, totalCount) {
             return null;
         })
 
-    // Update row with results
+    // Render status cell markup
     let newCellMarkup
     if (data === null) {
-        newCellMarkup = renderErrorCell(row)
+        newCellMarkup = renderErrorCell(searchPageUrl)
     } else {
-        newCellMarkup = renderResultsCells(row, data, totalCount, searchPageUrl)
+        newCellMarkup = renderResultsCells(data, totalCount, searchPageUrl)
     }
 
+    // Include retry affordance, regardless of result
     newCellMarkup += renderRetryCell()
 
-    const mutableCells = row.querySelectorAll("td:not(.dq-table__criterion-cell)")
-    for (const cell of mutableCells) {
+    replaceStatusCells(row, newCellMarkup)
+
+    // Add listener to retry affordance
+    const retryAffordance = row.querySelector(".dqs-run-again")
+    retryAffordance.addEventListener("click", () => {
+        // Update view to "pending"
+        replaceStatusCells(row, renderPendingCell())
+
+        // Retry query
+        updateRow(row, totalCount)
+    })
+}
+
+/**
+ * Constructs a search API or page URL containing the given query fragment.
+ *
+ * @param {string} queryFragment
+ * @param {boolean} forUi
+ */
+function buildUrl(queryFragment, forUi = true) {
+    const match = window.location.pathname.match(/authors\/(OL\d+A)/)
+    const queryParamString = match ? `?q=author_key:${match[1]}` : window.location.search
+
+    const params = new URLSearchParams(queryParamString)
+    params.set("q", `${params.get("q")} ${queryFragment}`)
+    return `/search${forUi ? '' : '.json'}?${params.toString()}`
+}
+
+/**
+ * Replaces the "status" cells of the given row with the given rendered HTML
+ *
+ * @param {HTMLTableRowElement} row
+ * @param {string} newCellMarkup Markup for the new status cells
+ */
+function replaceStatusCells(row, newCellMarkup) {
+    const statusCells = row.querySelectorAll("td:not(.dq-table__criterion-cell)")
+    for (const cell of statusCells) {
         cell.remove()
     }
 
     const template = document.createElement("template")
     template.innerHTML = newCellMarkup
     row.append(...template.content.children)
-
-    // Add listener to retry affordance
-    const retryAffordance = row.querySelector(".dqs-run-again")
-    retryAffordance.addEventListener("click", () => {
-        // Update view to "pending"
-        const oldCells = row.querySelectorAll("td:not(.dq-table__criterion-cell)")
-        for (const cell of oldCells) {
-            cell.remove()
-        }
-        template.innerHTML = renderPendingCell()
-        row.append(...template.content.children)
-
-        // Retry query
-        updateRow(row, totalCount)
-    })
 }
 
 /**
@@ -100,7 +118,7 @@ async function updateRow(row, totalCount) {
  *
  * @returns {string} HTML string
  */
-function renderResultsCells(row, results, totalCount, failingHref) {
+function renderResultsCells(results, totalCount, failingHref) {
     const numFound = results.numFound
     const percentage = Math.floor(((totalCount - numFound) / totalCount) * 100)
 
@@ -129,7 +147,7 @@ function renderRetryCell() {
 /**
  * Returns an HTML string containing an error message.
  *
- * @param {string} href
+ * @param {string} href Link to search page for failing query
  * @returns {string}
  */
 function renderErrorCell(href) {

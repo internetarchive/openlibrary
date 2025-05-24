@@ -20,70 +20,58 @@ def get_quality_criteria():
         params["q"] = [q]
 
         if for_ui:
-            params["rows"] = ["0"]
             return f"/search?{urlencode(params, doseq=True)}"
 
+        params["rows"] = ["0"]
         return f"/search.json?{urlencode(params, doseq=True)}"
 
     return [
         {
             "name": _("At least 1 subject"),
-            "apiUrl": build_url("NOT subject:*", for_ui=False),
-            "searchPageUrl": build_url("NOT subject:*"),
+            "queryFragment": "NOT subject:*",
         },
         {
             "name": _("At least 1 author"),
-            "apiUrl": build_url("NOT author_key:*", for_ui=False),
-            "searchPageUrl": build_url("NOT author_key:*"),
+            "queryFragment": "NOT author_key:*",
         },
         {
             "name": _("At least 1 edition"),
-            "apiUrl": build_url("edition_count:0", for_ui=False),
-            "searchPageUrl": build_url("edition_count:0"),
+            "queryFragment": "edition_count:0",
         },
         {
             "name": _("Has work (orphaned)"),
-            "apiUrl": build_url("key:*M", for_ui=False),
-            "searchPageUrl": build_url("key:*M"),
+            "queryFragment": "key:*M",
         },
         {
             "name": _("Has publication year"),
-            "apiUrl": build_url("NOT publish_year:*", for_ui=False),
-            "searchPageUrl": build_url("NOT publish_year:*"),
+            "queryFragment": "NOT publish_year:*",
         },
         {
             "name": _("Has cover"),
-            "apiUrl": build_url("NOT cover_i:*", for_ui=False),
-            "searchPageUrl": build_url("NOT cover_i:*"),
+            "queryFragment": "NOT cover_i:*",
         },
         {
             "name": _("Has language"),
-            "apiUrl": build_url("NOT language:*", for_ui=False),
-            "searchPageUrl": build_url("NOT language:*"),
+            "queryFragment": "NOT language:*",
         },
         {
             "name": _("Has publisher"),
-            "apiUrl": build_url("NOT publisher:*", for_ui=False),
-            "searchPageUrl": build_url("NOT publisher:*"),
+            "queryFragment": "NOT publisher:*",
         },
         {
             "name": _("At least 2 editions"),
-            "apiUrl": build_url("edition_count:[0 TO 1]", for_ui=False),
-            "searchPageUrl": build_url("edition_count:[0 TO 1]"),
+            "queryFragment": "edition_count:[0 TO 1]",
         },
         {
             "name": _("Has dewey decimal"),
-            "apiUrl": build_url("NOT ddc:*", for_ui=False),
-            "searchPageUrl": build_url("NOT ddc:*"),
+            "queryFragment": "NOT ddc:*",
         },
         {
             "name": _("Has LoC classification"),
-            "apiUrl": build_url("NOT lcc:*", for_ui=False),
-            "searchPageUrl": build_url("NOT lcc:*"),
+            "queryFragment": "NOT lcc:*",
         },
         {
             "name": _("Has number of pages"),
-            "apiUrl": build_url("OT number_of_pages_median:*", for_ui=False),
-            "searchPageUrl": build_url("OT number_of_pages_median:*"),
+            "queryFragment": "NOT number_of_pages_median:*",
         },
     ]
