@@ -5805,8 +5805,15 @@ msgstr ""
 
 #: languages/index.html
 #, python-format
-msgid "%s book"
-msgid_plural "%s books"
+msgid "%s work"
+msgid_plural "%s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: languages/index.html
+#, python-format
+msgid "%s ebook edition"
+msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -6969,6 +6976,10 @@ msgid "Relevance"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -6978,6 +6989,14 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Last Modified"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Language Name"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -6997,15 +7016,11 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Any"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
