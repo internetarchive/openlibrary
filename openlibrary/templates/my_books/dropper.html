@@ -29,7 +29,7 @@ $ primary_action = render_template('my_books/primary_action', work_key, edition_
 $ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
 $:render_template('lib/dropper', primary_action, dropdown_content, classes=additional_classes, data=data)
 
-$if work_key:
+$if ctx.user and work_key:
     $ last_read_date = get_latest_read_date(work_key)
     $ date = last_read_date['event_date'] if last_read_date else None
     $ event_id = last_read_date['id'] if last_read_date else None
