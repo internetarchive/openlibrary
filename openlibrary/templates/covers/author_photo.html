@@ -2,12 +2,14 @@ $def with(author, size="M")
 
 $ author_thumbnail_url = author.get_photo_url(size)
 $ author_photo_url = author.get_photo_url("L")
+$ photo_aspect_ratio = author.get_photo_aspect_ratio()
+$ photo_aspect_ratio_str = 'aspect-ratio: ' + str(photo_aspect_ratio) if photo_aspect_ratio else ""
 
 $if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
             <a aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
-                <img src="$author_thumbnail_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
+                <img src="$author_thumbnail_url" itemprop="image" class="cover" style="$photo_aspect_ratio_str" alt="$_('Photo of %(author)s', author=author.name)"/>
             </a>
         </div>
     </div>
