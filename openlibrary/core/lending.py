@@ -280,7 +280,7 @@ def get_available(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = requests.get(
+        response = ia.session.get(
             url, headers=headers, timeout=config_http_request_timeout
         )
         items = response.json().get('response', {}).get('docs', [])
@@ -427,14 +427,14 @@ def get_availability(
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
                 **config_ia_ol_metadata_write_s3
             )
-        resp = requests.get(
+        resp = ia.session.get(
             config_ia_availability_api_v2_url,
             params={
                 id_type: ','.join(ids_to_fetch),
                 "scope": "printdisabled",
             },
             headers=headers,
-            timeout=10,
+            timeout=config_http_request_timeout,
         )
 
         # This API should always return 200
@@ -601,7 +601,7 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = requests.get(url).json()
+        response = ia.session.get(url, timeout=config_http_request_timeout).json()
         return response and response.get('checkedout')
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
