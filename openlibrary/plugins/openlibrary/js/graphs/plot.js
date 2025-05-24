@@ -263,7 +263,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
     } else {
         try {
             data = JSON.parse(dataSource.textContent);
-        } catch (e) {
+        } catch {
             throw new Error(`Unable to parse JSON in ${graphSelector}`);
         }
         if (tooltip_message) {
