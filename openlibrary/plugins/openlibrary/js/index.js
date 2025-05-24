@@ -568,9 +568,9 @@ jQuery(function () {
     }
 
     // Librarian Dashboard
-    const librarianDashboard = document.querySelector(".librarian-dashboard")
+    const librarianDashboard = document.querySelector('.librarian-dashboard')
     if (librarianDashboard) {
-        import(/* webpackChunkName: "librarian-dashboard" */ "./librarian-dashboard")
+        import(/* webpackChunkName: "librarian-dashboard" */ './librarian-dashboard')
             .then(module => module.initLibrarianDashboard(librarianDashboard))
     }
 });

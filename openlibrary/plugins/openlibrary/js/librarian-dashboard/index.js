@@ -10,8 +10,8 @@ let i18nStrings;
  */
 export function initLibrarianDashboard(rootElement) {
     i18nStrings = JSON.parse(rootElement.dataset.i18n)
-    const table = rootElement.querySelector(".dq-table")
-    rootElement.addEventListener("click", () => {
+    const table = rootElement.querySelector('.dq-table')
+    rootElement.addEventListener('click', () => {
         populateTable(table)
     }, {once: true})
 }
@@ -24,7 +24,7 @@ export function initLibrarianDashboard(rootElement) {
  */
 async function populateTable(table) {
     const bookCount = Number(table.dataset.totalBooks)
-    const rows = table.querySelectorAll(".dq-table__row")
+    const rows = table.querySelectorAll('.dq-table__row')
 
     await Promise.all([...rows].map(row => updateRow(row, bookCount)))
 }
@@ -67,8 +67,8 @@ async function updateRow(row, totalCount) {
     replaceStatusCells(row, newCellMarkup)
 
     // Add listener to retry affordance
-    const retryAffordance = row.querySelector(".dqs-run-again")
-    retryAffordance.addEventListener("click", () => {
+    const retryAffordance = row.querySelector('.dqs-run-again')
+    retryAffordance.addEventListener('click', () => {
         // Update view to "pending"
         replaceStatusCells(row, renderPendingCell())
 
@@ -88,7 +88,7 @@ function buildUrl(queryFragment, forUi = true) {
     const queryParamString = match ? `?q=author_key:${match[1]}` : window.location.search
 
     const params = new URLSearchParams(queryParamString)
-    params.set("q", `${params.get("q")} ${queryFragment}`)
+    params.set('q', `${params.get('q')} ${queryFragment}`)
     return `/search${forUi ? '' : '.json'}?${params.toString()}`
 }
 
@@ -99,12 +99,12 @@ function buildUrl(queryFragment, forUi = true) {
  * @param {string} newCellMarkup Markup for the new status cells
  */
 function replaceStatusCells(row, newCellMarkup) {
-    const statusCells = row.querySelectorAll("td:not(.dq-table__criterion-cell)")
+    const statusCells = row.querySelectorAll('td:not(.dq-table__criterion-cell)')
     for (const cell of statusCells) {
         cell.remove()
     }
 
-    const template = document.createElement("template")
+    const template = document.createElement('template')
     template.innerHTML = newCellMarkup
     row.append(...template.content.children)
 }
@@ -139,7 +139,7 @@ function renderResultsCells(results, totalCount, failingHref) {
 function renderRetryCell() {
     return `<td>
         <button class="dqs-run-again" title="${i18nStrings['retry']}">
-            ${i18nStrings["retry"]}
+            ${i18nStrings['retry']}
         </button>
     </td>`
 }
