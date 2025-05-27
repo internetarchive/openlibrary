@@ -1,4 +1,5 @@
 /* eslint-env node */
+import process from 'process';
 
 // Make jQuery available globally for tests
 import $ from 'jquery';

@@ -5,7 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
-import pluginVue from 'eslint-plugin-vue'
+import pluginVue from 'eslint-plugin-vue';
+import pluginJest from 'eslint-plugin-jest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,4 +99,64 @@ export default defineConfig([globalIgnores([
             ignores: ["Bookshelf", "Shelf"],
         }],
     },
-}]);
+},
+
+{
+    files: ["**/tests/**/*.js"],
+    extends: compat.extends("plugin:no-jquery/deprecated"),
+
+    plugins: {
+        "no-jquery": noJquery,
+        jest: pluginJest,
+    },
+
+    languageOptions: {
+        globals: {
+            ...pluginJest.environments.globals.globals,
+            global: true,
+            ...globals.browser,
+            ...globals.jquery,
+        },
+
+        parserOptions: {
+            parser: "@babel/eslint-parser",
+
+            babelOptions: {
+                configFile: "./.babelrc",
+            },
+        },
+    },
+
+    rules: {
+        "prefer-template": "error",
+        eqeqeq: ["error", "always"],
+        quotes: ["error", "single"],
+        "eol-last": ["error", "always"],
+        indent: 2,
+        "no-console": "error",
+        "no-extra-semi": "error",
+        "no-mixed-spaces-and-tabs": "error",
+        "no-redeclare": "error",
+        "no-trailing-spaces": "error",
+        "no-undef": "error",
+        "no-unused-vars": "error",
+        "no-useless-escape": "error",
+        "space-in-parens": "error",
+        "vars-on-top": "error",
+        "prefer-const": "error",
+        "template-curly-spacing": "error",
+        "quote-props": ["error", "as-needed"],
+
+        "keyword-spacing": ["error", {
+            before: true,
+            after: true,
+        }],
+
+        "key-spacing": ["error", {
+            mode: "strict",
+        }],
+
+    },
+}
+
+]);
