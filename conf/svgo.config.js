@@ -1,7 +1,7 @@
 /* eslint-env node */
 
 const {extendDefaultPlugins} = require('svgo'); // eslint-disable-line no-undef
-module.exports = {
+module.exports = { // eslint-disable-line no-undef
     plugins: extendDefaultPlugins([
         // Disable plugins enabled by default
         {name: 'removeXMLProcInst', active: false},
