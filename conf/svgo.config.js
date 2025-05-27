@@ -1,5 +1,6 @@
-/* eslint-env node, es6 */
-const {extendDefaultPlugins} = require('svgo');
+/* eslint-env node */
+
+const {extendDefaultPlugins} = require('svgo'); // eslint-disable-line no-undef
 module.exports = {
     plugins: extendDefaultPlugins([
         // Disable plugins enabled by default

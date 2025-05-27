@@ -17,20 +17,9 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([globalIgnores([
-    ".*",
-    "**/conf/",
-    "**/config/",
-    "**/docker/",
-    "**/infogami/",
-    "**/node_modules/",
-    "**/scripts/",
-    "static/build/",
-    "static/js/",
-    "static/build/vendor.js",
-    "**/provisioning/",
+    "**/scripts/solr_restarter/index.js", // Needs to follow the guidelines better
+    "static/",
     "**/vendor/",
-    "tests/screenshots/",
-    "**/venv/",
 ]),
 ...pluginVue.configs['flat/recommended'],
 {
@@ -41,7 +30,8 @@ export default defineConfig([globalIgnores([
         "**/vue.config.js",
         "**/stories/**/*.js",
         "openlibrary/components/dev/serve-component.js",
-        "**/tests/**/*.js",// we need to setup a custom config for this one that used to be in tests/unit/.eslintrc.json
+        // Tests are ignored here so we can use the correct plugins in the next section
+        "**/tests/**/*.js",
     ],
     extends: compat.extends("plugin:no-jquery/deprecated"),
 
