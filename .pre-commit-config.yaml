@@ -76,6 +76,7 @@ repos:
     hooks:
       - id: eslint
         types: [file]
+        language_version: "22.16.0"
         types_or: [javascript, vue]
         additional_dependencies:
           - eslint@9.27.0
