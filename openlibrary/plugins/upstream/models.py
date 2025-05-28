@@ -505,6 +505,11 @@ class Author(models.Author):
         photo = self.get_photo()
         return photo and photo.url(size)
 
+    def get_photo_aspect_ratio(self) -> float | None:
+        if photo := self.get_photo():
+            return photo.get_aspect_ratio()
+        return None
+
     def get_olid(self):
         return self.key.split('/')[-1]
 
