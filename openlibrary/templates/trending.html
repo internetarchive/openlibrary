@@ -20,7 +20,7 @@ $ page = int(input(page=1).page)
   <div class="mybooks-list">
     <ul class="list-books">
       $if logged_books:
-        $ valid_entries = [entry for entry in logged_books if entry.get('work')]
+        $ valid_entries = (entry for entry in logged_books if entry.get('work'))
         $for entry in valid_entries:
           $if 'bookshelf_id' in entry:
             $ shelf = {1: _("Want to Read"), 2: _("Currently Reading"), 3: _("Read")}[entry['bookshelf_id']]
