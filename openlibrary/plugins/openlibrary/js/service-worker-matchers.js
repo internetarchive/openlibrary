@@ -9,7 +9,7 @@ It is in a is a separate file to avoid this error when writing tests:
 
 export function matchMiscFiles({ url }) {
     const miscFiles = ['/favicon.ico', '/static/manifest.json', '/cdn/archive.org/athena.js',
-        '/cdn/archive.org/donate.js', '/static/css/fonts/slick.woff']
+        '/cdn/archive.org/donate.js']
     return miscFiles.includes(url.pathname);
 }
 
