@@ -1,11 +1,12 @@
 details.librarian-dashboard {
   color: @grey;
   margin-bottom: 15px;
+  max-width: 700px;
 }
 
 .dq-table {
-  min-width: 75%;
   border: 1px solid @grey;
+  width: 100%;
   margin: 10px;
 
   th {
@@ -40,6 +41,11 @@ details.librarian-dashboard {
   .dq-table__results-cell {
     display: flex;
     justify-content: flex-end;
+
+    span {
+      width: 60px;
+      text-align: right;
+    }
   }
 
   &:nth-child(even) {

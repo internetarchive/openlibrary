@@ -6237,7 +6237,7 @@ msgid ""
 msgstr ""
 
 #: librarian_dashboard/data_quality_table.html
-msgid "Retry"
+msgid "Reload"
 msgstr ""
 
 #: librarian_dashboard/data_quality_table.html

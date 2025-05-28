@@ -138,8 +138,8 @@ function renderResultsCells(results, totalCount, failingHref) {
  */
 function renderRetryCell() {
     return `<td>
-        <button class="dqs-run-again" title="${i18nStrings['retry']}">
-            ${i18nStrings['retry']}
+        <button class="dqs-run-again">
+            ${i18nStrings['reload']}
         </button>
     </td>`
 }
