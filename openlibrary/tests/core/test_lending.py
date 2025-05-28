@@ -42,7 +42,7 @@ class TestAddAvailability:
 
 class TestGetAvailability:
     def test_cache(self):
-        with patch("openlibrary.core.lending.requests.get") as mock_get:
+        with patch("openlibrary.core.ia.session.get") as mock_get:
             mock_get.return_value = Mock()
             mock_get.return_value.json.return_value = {
                 "success": True,
