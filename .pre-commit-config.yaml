@@ -71,21 +71,14 @@ repos:
     hooks:
       - id: validate-pyproject
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.27.0
+  - repo: local
     hooks:
       - id: eslint
+        name: eslint
+        entry: ./scripts/run_eslint.sh
+        language: node
         types: [file]
-        language_version: "22.16.0"
         types_or: [javascript, vue]
-        additional_dependencies:
-          - eslint@9.27.0
-          - eslint-plugin-no-jquery@3.1.1
-          - eslint-plugin-vue@10.1.0
-          - "@babel/eslint-parser@7.27.1"
-          - "@babel/plugin-syntax-dynamic-import@7.8.3"
-          - "@babel/preset-env@7.24.7"
-        args: [--fix]
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
