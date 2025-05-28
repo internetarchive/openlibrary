@@ -3,5 +3,5 @@
 # It seems running eslint from a bash script is the only way to have it work in pre-commit for v9.
 
 
-npm i --no-audit
+npm i --only=dev --no-audit
 npx eslint --fix $1
