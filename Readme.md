@@ -1,5 +1,5 @@
 # Open Library
-🌍 Read this in other languages: [简体中文](README.zh.md) | [Español](README_es.md)
+🌍 Read this in other languages: [简体中文](Readme_chinese.md) | [Español](Readme_es.md) | [Tiếng Việt](Readme_vn.md)
 
 
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
