@@ -6,6 +6,10 @@ $def with (q_param, search_response, get_doc, param, page, rows)
     </div>
 
 <div id="contentBody">
+  $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+  $if show_dashboard:
+    $:render_template("librarian_dashboard/data_quality_table", search_response.num_found)
+
   $:macros.SearchNavigation()
   <div class="section">
 

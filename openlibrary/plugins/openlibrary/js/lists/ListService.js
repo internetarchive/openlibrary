@@ -3,6 +3,8 @@
  * @module lists/ListService
  */
 
+import { buildPartialsUrl } from '../utils';
+
 /**
  * Makes a POST to a `.json` endpoint.
  * @param {object} data Configurations and payload for POST request.
@@ -158,14 +160,14 @@ export function updateReadingLog(formElem, success) {
 export function fetchPartials(key, success) {
     $.ajax({
         type: 'GET',
-        url: `/lists/partials.json?key=${key}`,
+        url: buildPartialsUrl('/lists/partials.json', {key}),
         success: success
     })
 }
 
 // XXX : jsdoc
 export async function getListPartials() {
-    return await fetch('/lists/partials.json', {
+    return await fetch(buildPartialsUrl('/lists/partials.json'), {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

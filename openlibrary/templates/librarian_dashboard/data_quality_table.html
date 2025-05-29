@@ -1,0 +1,35 @@
+$def with(total_books)
+
+$# Template for the librarian data quality table.
+$# Each row in the table is meant to display the amount of books that do not
+$# meet a specific data quality criterion.
+
+$# total_books : number : Total number of books in the universe of books represented by the table
+
+$ quality_criteria = get_quality_criteria()
+$ i18n_strings = {
+$     "error": _("Error"),
+$     "loading": _("Loading..."),
+$     "reload": _("Reload"),
+$     "failing": _("failing"),
+$ }
+
+<details class="librarian-dashboard" data-i18n="$json_encode(i18n_strings)">
+  <summary>$_("Data quality table")</summary>
+  <table class="dq-table" data-total-books="$total_books">
+    <colgroup>
+      <col />
+      <col span="3" />
+    </colgroup>
+    <tr class="dq-table__table-header">
+      <th scope="col">$_("Quality Criteria")</th>
+      <th scope="colgroup" colspan="3">$_("Status")</th>
+    </tr>
+    $for item in quality_criteria:
+      $# Each row starts in a "Pending" state
+      <tr class="dq-table__row" data-query-fragment="$item.get('queryFragment')">
+          <td class="dq-table__criterion-cell">$item.get("name")</td>
+          <td colspan="3">$_("Loading...")</td>
+      </tr>
+  </table>
+</details>

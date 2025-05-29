@@ -123,7 +123,7 @@ class RegisterForm(Form):
         Checkbox(
             "pd_request",
             description=_(
-                'I want to apply for <a href="https://help.archive.org/help/program-overview/">'
+                'I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">'
                 'special print disability access</a> through a qualifying program.'
             ),
         ),

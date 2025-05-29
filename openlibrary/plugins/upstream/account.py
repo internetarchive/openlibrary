@@ -12,7 +12,6 @@ import web
 
 import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
-from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import (
     add_flash_message,
@@ -29,7 +28,6 @@ from openlibrary.accounts import (
     clear_cookies,
     valid_email,
 )
-from openlibrary.accounts.model import sendmail
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
 from openlibrary.core.booknotes import Booknotes
@@ -45,7 +43,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.openlibrary.pd import get_pd_options, get_pd_org
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import borrow, forms, utils
+from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
@@ -59,7 +57,6 @@ USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
-send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 
 
@@ -570,24 +567,6 @@ class account_login(delegate.page):
         stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
-    def POST_resend_verification_email(self, i):
-        try:
-            ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
-        except ClientException as e:
-            code = e.get_data().get("code")
-            if code != "account_not_verified":
-                return self.error("account_incorrect_password", i)
-
-        account = OpenLibraryAccount.get(email=i.email)
-        account.send_verification_email()
-
-        title = _("Hi, %(user)s", user=account.displayname)
-        message = _(
-            "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
-            email=account.email,
-        )
-        return render.message(title, message)
-
 
 class account_logout(delegate.page):
     """Account logout.
@@ -604,58 +583,6 @@ class account_logout(delegate.page):
         from infogami.core.code import logout as infogami_logout
 
         return infogami_logout().POST()
-
-
-class account_verify(delegate.page):
-    """Verify user account."""
-
-    path = "/account/verify/([0-9a-f]*)"
-
-    def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if docs:
-            doc = docs[0]
-
-            account = accounts.find(username=doc['username'])
-            if account and account['status'] != "pending":
-                return render['account/verify/activated'](account)
-            account.activate()
-            user = web.ctx.site.get("/people/" + doc['username'])  # TBD
-            return render['account/verify/success'](account)
-        else:
-            return render['account/verify/failed']()
-
-    def POST(self, code=None):
-        """Called to regenerate account verification code."""
-        i = web.input(email=None)
-        account = accounts.find(email=i.email)
-        if not account:
-            return render_template("account/verify/failed", email=i.email)
-        elif account['status'] != "pending":
-            return render['account/verify/activated'](account)
-        else:
-            account.send_verification_email()
-            title = _("Hi, %(user)s", user=account.displayname)
-            message = _(
-                "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
-                email=account.email,
-            )
-            return render.message(title, message)
-
-
-class account_verify_old(account_verify):
-    """Old account verification code.
-
-    This takes username, email and code as url parameters. The new one takes just the code as part of the url.
-    """
-
-    path = "/account/verify"
-
-    def GET(self):
-        # It is too long since we switched to the new account verification links.
-        # All old links must be expired by now.
-        # Show failed message without thinking.
-        return render['account/verify/failed']()
 
 
 class account_validation(delegate.page):
@@ -734,16 +661,6 @@ class account_email_verify(delegate.page):
         return render.message(title, message)
 
 
-class account_email_verify_old(account_email_verify):
-    path = "/account/email/verify"
-
-    def GET(self):
-        # It is too long since we switched to the new email verification links.
-        # All old links must be expired by now.
-        # Show failed message without thinking.
-        return self.bad_link()
-
-
 class account_ia_email_forgot(delegate.page):
     path = "/account/email/forgot-ia"
 
@@ -772,59 +689,6 @@ class account_ia_email_forgot(delegate.page):
         else:
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
-
-
-class account_password_forgot(delegate.page):
-    path = "/account/password/forgot"
-
-    def GET(self):
-        f = forms.ForgotPassword()
-        return render['account/password/forgot'](f)
-
-    def POST(self):
-        i = web.input(email='')
-
-        f = forms.ForgotPassword()
-
-        if not f.validates(i):
-            return render['account/password/forgot'](f)
-
-        account = accounts.find(email=i.email)
-
-        if account.is_blocked():
-            f.note = utils.get_error("account_blocked")
-            return render_template('account/password/forgot', f)
-
-        send_forgot_password_email(account.username, i.email)
-        return render['account/password/sent'](i.email)
-
-
-class account_password_reset(delegate.page):
-    path = "/account/password/reset/([0-9a-f]*)"
-
-    def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if not docs:
-            title = _("Password reset failed.")
-            message = "Your password reset link seems invalid or expired."
-            return render.message(title, message)
-
-        f = forms.ResetPassword()
-        return render['account/password/reset'](f)
-
-    def POST(self, code):
-        link = accounts.get_link(code)
-        if not link:
-            title = _("Password reset failed.")
-            message = "The password reset link seems invalid or expired."
-            return render.message(title, message)
-
-        username = link['username']
-        i = web.input()
-
-        accounts.update_account(username, password=i.password)
-        link.delete()
-        return render_template("account/password/reset_success", username=username)
 
 
 class account_audit(delegate.page):
@@ -1302,19 +1166,6 @@ class account_waitlist(delegate.page):
 #
 #     def GET(self, path):
 #         return render.notfound(path, create=False)
-
-
-def send_forgot_password_email(username: str, email: str) -> None:
-    key = f"account/{username}/password"
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/password/reset/" + doc['code']
-    msg = render_template(
-        "email/password/reminder", username=username, email=email, link=link
-    )
-    sendmail(email, msg)
 
 
 def as_admin(f):

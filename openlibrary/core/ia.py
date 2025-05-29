@@ -17,8 +17,8 @@ logger = logging.getLogger('openlibrary.ia')
 # See lending.py for an example of how to do it correctly.
 IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
-
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
+session = requests.Session()
 
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
@@ -30,7 +30,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     api_response = {}
     stats.begin('archive.org', url=url)
     try:
-        r = requests.get(url, params=params)
+        r = session.get(url, params=params, timeout=3)
         if r.status_code == requests.codes.ok:
             api_response = r.json()
         else:
@@ -343,7 +343,7 @@ def get_candidate_ocaids(
     :param marcs: require MARCs present?
     """
     url = get_candidates_url(day, marcs=marcs)
-    results = requests.get(url).json()['response']['docs']
+    results = session.get(url).json()['response']['docs']
     assert len(results) < 100_000, f'100,000 results returned for {day}'
 
     for row in results:

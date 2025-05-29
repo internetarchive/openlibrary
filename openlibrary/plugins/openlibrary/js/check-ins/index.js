@@ -4,6 +4,7 @@
  */
 import { PersistentToast } from '../Toast'
 import { initDialogs } from '../native-dialog'
+import { buildPartialsUrl } from '../utils'
 
 /**
  * Enum for check-in event types.
@@ -587,7 +588,7 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
-    fetch(`/reading-goal/partials.json?year=${goalYear}`)
+    fetch(buildPartialsUrl('/reading-goal/partials.json', {year: goalYear}))
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element')

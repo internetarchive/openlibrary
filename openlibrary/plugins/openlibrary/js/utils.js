@@ -72,3 +72,17 @@ export function trimInputValues(param) {
         });
     });
 }
+
+export function buildPartialsUrl(path, params) {
+    const curUrl = new URL(window.location.href);
+    const url = new URL(location.origin + path);
+    if (curUrl.searchParams.has('lang')) {
+        url.searchParams.set('lang', curUrl.searchParams.get('lang'));
+    }
+
+    for (const key in params) {
+        url.searchParams.set(key, params[key]);
+    }
+
+    return url;
+}

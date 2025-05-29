@@ -449,7 +449,7 @@ def fetch_ia_js(filename: str) -> str:
 
 
 class ia_js_cdn(delegate.page):
-    path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
+    path = r'/cdn/archive.org/(donate\.js|athena\.js)'
 
     def GET(self, filename):
         web.header('Content-Type', 'text/javascript')
@@ -1347,6 +1347,7 @@ def setup():
 
     from openlibrary.plugins.openlibrary import (
         api,  # noqa: F401 side effects may be needed
+        librarian_dashboard,  # noqa: F401 import required
     )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))

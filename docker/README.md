@@ -20,7 +20,7 @@
 
 Refer to these [these instructions](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
 
-```
+```sh
 git clone git@github.com:YOUR_USERNAME/openlibrary.git
 ```
 
@@ -49,7 +49,7 @@ For **macs** using an `M1 Chip`, please use [Docker Desktop >= 4.3.0](https://do
 ### Test Docker
 Before continuing, ensure Docker is correctly configured by running the `hello-world` container.
 
-```
+```sh
 docker run hello-world
 ```
 
@@ -67,7 +67,7 @@ See 'docker run --help'.
 
 For most architectures, you can `cd` and change into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
 
-```
+```sh
 docker compose build
 ```
 
@@ -80,7 +80,7 @@ failed to solve openlibrary/olbase:latest` no match for platform in manifest: no
 
 In these cases, [until we standardize our images across architectures](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779), try running the following and proceed with the installation steps normally:
 
-```
+```sh
 docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
 ```
 
@@ -157,7 +157,7 @@ For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 
 Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break. To do a full reset of your docker environment so that you have the latest of everything:
 
-```
+```sh
 # Stop the site
 docker compose down
 
@@ -202,7 +202,7 @@ Note: please update this README with the exact wording of the error if you run i
 ### "No module named 'infogami'"
 
 The following should populate the target of the `infogami` symbolic link (i.e. `vendor/infogami/`):
-```
+```sh
 cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
@@ -239,7 +239,7 @@ docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-we
 # output: map[openlibrary_dbnet:0xc00037c1c0]
 ```
 Because you've read this far, you can now directly fix the problem without removing the containers and networks. Simply reconnect the container to the network:
-```
+```sh
 docker network connect openlibrary_webnet openlibrary-web-1  # or `openlibrary_dbnet` as the case may be.
 docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
 # output: map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
@@ -264,7 +264,7 @@ Finally, as of this writing (early 2023), the `docker-compose` that comes with r
 
 See Docker's docs for more: https://docs.docker.com/compose/reference/overview
 
-```bash
+```sh
 # Read a service's logs (replace `web` with service name)
 docker compose logs web # Show all logs (onetime)
 docker compose logs -f --tail=10 web # Show last 10 lines and follow
@@ -284,7 +284,7 @@ docker compose run --rm home npm run build-assets
 
 https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
 
-```bash
+```sh
 # Launch a temporary container and run tests
 docker compose run --rm home make test
 
@@ -304,7 +304,7 @@ docker compose down && \
 
 If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it with:
 
-```bash
+```sh
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
 ```
 

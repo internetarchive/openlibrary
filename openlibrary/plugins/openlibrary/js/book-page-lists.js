@@ -1,3 +1,5 @@
+import { buildPartialsUrl } from './utils'
+
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -61,6 +63,6 @@ async function fetchPartials(workId, editionId) {
     if (editionId) {
         params.editionId = editionId
     }
-    const searchParams = new URLSearchParams(params)
-    return fetch(`/partials.json?${searchParams.toString()}`)
+
+    return fetch(buildPartialsUrl('/partials.json', params));
 }

@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Generic, Literal, TypedDict, TypeVar, cast
+from typing import Generic, Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -557,6 +557,18 @@ class DirectProvider(AbstractBookProvider):
 class WikisourceProvider(AbstractBookProvider):
     short_name = 'wikisource'
     identifier_key = 'wikisource'
+
+    @override
+    def get_acquisitions(self, edition: Edition) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://wikisource.org/wiki/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [
