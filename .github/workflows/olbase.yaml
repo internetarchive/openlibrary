@@ -36,7 +36,7 @@ jobs:
           context: "."
           file: "./docker/Dockerfile.olbase"
           platforms: linux/amd64
-          tags: openlibrary/olbase:latest, openlibrary/olbase:latest-amd64
+          tags: openlibrary/olbase:latest
           push: true
 
       - name: Master Build and push arm64
@@ -46,13 +46,15 @@ jobs:
           context: "."
           file: "./docker/Dockerfile.olbase"
           platforms: linux/arm64
-          # Don't push up as :latest!
           tags: openlibrary/olbase:latest-arm64
           push: true
 
       - name: Combine the manifests of the amd and arm images in a manifest
         if: github.ref == 'refs/heads/master'
         run: |
+          docker tag openlibrary/olbase:latest openlibrary/olbase:latest-amd64
+          docker push openlibrary/olbase:latest-amd64
+
           docker manifest create openlibrary/olbase:latest \
             openlibrary/olbase:latest-amd64 \
             openlibrary/olbase:latest-arm64
@@ -68,7 +70,7 @@ jobs:
           context: "."
           file: "./docker/Dockerfile.olbase"
           platforms: linux/amd64
-          tags: openlibrary/olbase:${{ github.ref_name }}, openlibrary/olbase:${{ github.ref_name }}-amd64
+          tags: openlibrary/olbase:${{ github.ref_name }}
           push: true
 
       - name: Test Branch Build and push arm64
@@ -77,13 +79,16 @@ jobs:
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
-          platforms: linux/amd64
+          platforms: linux/arm64
           tags: openlibrary/olbase:${{ github.ref_name }}-arm64
           push: true
 
       - name: Test Branch Combine the manifests of the amd and arm images in a manifest
         if: github.ref != 'refs/heads/master'
         run: |
+          docker tag openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:${{ github.ref_name }}-amd64
+          docker push openlibrary/olbase:${{ github.ref_name }}-amd64
+
           docker manifest create openlibrary/olbase:${{ github.ref_name }} \
             openlibrary/olbase:${{ github.ref_name }}-amd64 \
             openlibrary/olbase:${{ github.ref_name }}-arm64
