@@ -114,7 +114,7 @@ $def seed_attrs(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
                 <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
                     <div class="sri__main">

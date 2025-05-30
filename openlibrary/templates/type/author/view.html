@@ -146,7 +146,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 <div id="searchResults">
                     <ul class="list-books">
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
                     </ul>
                 </div>
 
