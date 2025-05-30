@@ -94,7 +94,7 @@ def log_top_ip_counts():
 async def monitor_haproxy():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
-    from scripts.haproxy_monitor import main
+    from scripts.monitoring.haproxy_monitor import main
 
     web_haproxy_ip = get_service_ip("web_haproxy")
 
