@@ -52,14 +52,15 @@ jobs:
       - name: Combine the manifests of the amd and arm images in a manifest
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag openlibrary/olbase:latest openlibrary/olbase:latest-amd64
-          docker push openlibrary/olbase:latest-amd64
+          # Pull out the digests
+          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:latest | jq -r '.manifests[0].digest')
+          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:latest-arm64 | jq -r '.manifests[0].digest')
 
           docker manifest create openlibrary/olbase:latest \
-            openlibrary/olbase:latest-amd64 \
-            openlibrary/olbase:latest-arm64
-          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase:latest-amd64 --os linux --arch amd64
-          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase:latest-arm64 --os linux --arch arm64
+            openlibrary/olbase:@${AMD64_DIGEST} \
+            openlibrary/olbase:@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase:@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase:@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:latest
 
       # If on another branch, use the branch name -- just the branch name, not the full ref
@@ -86,12 +87,13 @@ jobs:
       - name: Test Branch Combine the manifests of the amd and arm images in a manifest
         if: github.ref != 'refs/heads/master'
         run: |
-          docker tag openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:${{ github.ref_name }}-amd64
-          docker push openlibrary/olbase:${{ github.ref_name }}-amd64
+          # Pull out the digests
+          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ github.ref_name }} | jq -r '.manifests[0].digest')
+          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ github.ref_name }}-arm64 | jq -r '.manifests[0].digest')
 
           docker manifest create openlibrary/olbase:${{ github.ref_name }} \
-            openlibrary/olbase:${{ github.ref_name }}-amd64 \
-            openlibrary/olbase:${{ github.ref_name }}-arm64
-          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:${{ github.ref_name }}-amd64 --os linux --arch amd64
-          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:${{ github.ref_name }}-arm64 --os linux --arch arm64
+            openlibrary/olbase:@${AMD64_DIGEST} \
+            openlibrary/olbase:@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${{ github.ref_name }}
