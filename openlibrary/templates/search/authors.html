@@ -27,6 +27,11 @@ $ sort = query_param('sort', None)
 
     $ results = get_results(q, offset=offset, limit=results_per_page, sort=sort)
 
+    $if not q:
+        <p>
+            $:_$('Try the experimental <a href="/map/authors">Map of Authors</a> to find authors from around the world.')
+        </p>
+
     $if q and results.error:
         <strong>
             $for line in results.error.splitlines():

@@ -134,7 +134,7 @@ class library_explorer(delegate.page):
 
 
 class map_explorer(delegate.page):
-    path = "/map_explorer"
+    path = "/map/authors"
 
     def GET(self):
         return render_template('map_explorer')

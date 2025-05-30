@@ -2008,7 +2008,7 @@ msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
 
 #: map_explorer.html
-msgid "Map Explorer"
+msgid "Map of Authors Experiment"
 msgstr ""
 
 #: messages.html
