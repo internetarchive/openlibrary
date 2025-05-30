@@ -30,23 +30,71 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # If on master, use the latest tag, otherwise use the branch name
-      - name: Master Build and push
+      - name: Master Build and push amd64
         uses: docker/build-push-action@v6
         if: github.ref == 'refs/heads/master'
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: openlibrary/olbase:latest
           push: true
 
+      - name: Master Build and push arm64
+        uses: docker/build-push-action@v6
+        if: github.ref == 'refs/heads/master'
+        with:
+          context: "."
+          file: "./docker/Dockerfile.olbase"
+          platforms: linux/arm64
+          tags: openlibrary/olbase:latest-arm64
+          push: true
+
+      - name: Combine the manifests of the amd and arm images in a manifest
+        if: github.ref == 'refs/heads/master'
+        run: |
+          # Pull out the digests
+          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:latest | jq -r '.manifests[0].digest')
+          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:latest-arm64 | jq -r '.manifests[0].digest')
+
+          docker manifest create openlibrary/olbase:latest \
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:latest openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:latest
+
       # If on another branch, use the branch name -- just the branch name, not the full ref
-      - name: Test Branch Build and push
+      - name: Test Branch Build and push amd64
         uses: docker/build-push-action@v6
         if: github.ref != 'refs/heads/master'
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: openlibrary/olbase:${{ github.ref_name }}
           push: true
+
+      - name: Test Branch Build and push arm64
+        uses: docker/build-push-action@v6
+        if: github.ref != 'refs/heads/master'
+        with:
+          context: "."
+          file: "./docker/Dockerfile.olbase"
+          platforms: linux/arm64
+          tags: openlibrary/olbase:${{ github.ref_name }}-arm64
+          push: true
+
+      - name: Test Branch Combine the manifests of the amd and arm images in a manifest
+        if: github.ref != 'refs/heads/master'
+        run: |
+          # Pull out the digests
+          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ github.ref_name }} | jq -r '.manifests[0].digest')
+          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ github.ref_name }}-arm64 | jq -r '.manifests[0].digest')
+
+          docker manifest create openlibrary/olbase:${{ github.ref_name }} \
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:${{ github.ref_name }}
