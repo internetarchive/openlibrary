@@ -92,8 +92,8 @@ jobs:
           ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ github.ref_name }}-arm64 | jq -r '.manifests[0].digest')
 
           docker manifest create openlibrary/olbase:${{ github.ref_name }} \
-            openlibrary/olbase:@${AMD64_DIGEST} \
-            openlibrary/olbase:@${ARM64_DIGEST}
-          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:@${AMD64_DIGEST}
-          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase:@${ARM64_DIGEST}
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${{ github.ref_name }} openlibrary/olbase@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${{ github.ref_name }}
