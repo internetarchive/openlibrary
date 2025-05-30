@@ -9,11 +9,11 @@ from apscheduler.events import (
     EVENT_JOB_SUBMITTED,
     JobEvent,
 )
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.util import undefined
 
 
-class OlBlockingScheduler(BlockingScheduler):
+class OlAsyncIOScheduler(AsyncIOScheduler):
     def __init__(self):
         super().__init__({'apscheduler.timezone': 'UTC'})
         self.add_listener(
@@ -59,11 +59,11 @@ class OlBlockingScheduler(BlockingScheduler):
 
 def job_listener(event: JobEvent):
     if event.code == EVENT_JOB_SUBMITTED:
-        print(f"Job {event.job_id} has started.", flush=True)
+        print(f"[OL-MONITOR] Job {event.job_id} has started.", flush=True)
     elif event.code == EVENT_JOB_EXECUTED:
-        print(f"Job {event.job_id} completed successfully.", flush=True)
+        print(f"[OL-MONITOR] Job {event.job_id} completed successfully.", flush=True)
     elif event.code == EVENT_JOB_ERROR:
-        print(f"Job {event.job_id} failed.", flush=True)
+        print(f"[OL-MONITOR] Job {event.job_id} failed.", flush=True)
 
 
 def bash_run(cmd: str, sources: list[str] | None = None, capture_output=False):
@@ -99,7 +99,7 @@ def bash_run(cmd: str, sources: list[str] | None = None, capture_output=False):
     )
 
 
-def limit_server(allowed_servers: list[str], scheduler: BlockingScheduler):
+def limit_server(allowed_servers: list[str], scheduler: AsyncIOScheduler):
     """
     Decorate that un-registers a job if the server does not match any of the allowed servers.
 
@@ -118,3 +118,28 @@ def limit_server(allowed_servers: list[str], scheduler: BlockingScheduler):
         return func
 
     return decorator
+
+
+def get_service_ip(image_name: str) -> str:
+    """
+    Get the IP address of a Docker image.
+
+    :param image_name: The name of the Docker image.
+    :return: The IP address of the Docker image.
+    """
+    if '-' not in image_name:
+        image_name = f'openlibrary-{image_name}-1'
+
+    result = subprocess.run(
+        [
+            "docker",
+            "inspect",
+            "-f",
+            "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
+            image_name,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
