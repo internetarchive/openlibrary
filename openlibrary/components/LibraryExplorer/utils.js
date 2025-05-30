@@ -83,6 +83,29 @@ export function decrementStringSolr(string, caseSensitive=true, numeric=false) {
 }
 
 /**
+ * @template T
+ * Helper method that polls the provided function until it returns a truthy
+ * value or the timeout is reached.
+ * @param {() => T | undefined} fn - The function to poll.
+ * @returns {Promise<T | undefined>} - A promise that resolves to the truthy value returned by the function, or undefined if the timeout is reached.
+ */
+export async function pollUntilTruthy(fn, { timeout = 1000, step = 100 } = {}) {
+    return new Promise(resolve => {
+        const start = Date.now();
+        const interval = setInterval(() => {
+            const val = fn();
+            if (val) {
+                clearInterval(interval);
+                resolve(val);
+            } else if (Date.now() - start > timeout) {
+                clearInterval(interval);
+                resolve(undefined);
+            }
+        }, step);
+    });
+}
+
+/**
  * @typedef {object} ClassificationNode
  * @property {string} name
  * @property {string} short

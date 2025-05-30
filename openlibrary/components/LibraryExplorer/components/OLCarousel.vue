@@ -204,6 +204,8 @@ export default {
     },
 
     async mounted() {
+        // HACK to make this method accessible from html
+        this.$el._hack_loadPageContainingOffset = this.loadPageContainingOffset.bind(this);
         // We should only start observing once we're connected to the document,
         // otherwise Chrome seems to never fire isVisible sometimes.
         await waitUntil(() => this.$el.isConnected);
