@@ -231,7 +231,7 @@ export default {
                 limit: 0,
             })}`).then(r => r.json()).then(r => r.numFound);
             const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
-            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
+            const pageOffset = await olCarousel._hack_loadPageContainingOffset(offset + 1);
             olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
                 inline: 'center'
             });
