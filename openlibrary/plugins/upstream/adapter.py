@@ -10,8 +10,8 @@ This adapter module is a filter that sits above an Infobase server and fakes the
 """
 
 import json
-import urllib
 
+import requests
 import web
 
 urls = (
@@ -76,22 +76,21 @@ class proxy:
         }
 
         self.before_request()
-        try:
-            server = web.config.infobase_server
-            req = urllib.request.Request(
-                server + self.path + '?' + urllib.parse.urlencode(self.input),
-                self.data,
-                headers=headers,
-            )
-            req.get_method = lambda: web.ctx.method
-            response = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            response = e
-        self.status_code = response.code
-        self.status_msg = response.msg
-        self.output = response.read()
+        s = requests.Session()
+        server = web.config.infobase_server
+        req = requests.Request(
+            web.ctx.method,
+            server + self.path + '?' + requests.utils.requote_uri(self.input),
+            data=self.data,
+            headers=self.headers,
+        )
+        resp = s.send(req)
+        self.status_code = resp.status_code
+        # a one-liner that replaces the __str__ functionality of the HTTPResponse object replaced from urllib
+        self.status_msg = "\n".join(f"{k}: {v}" for k, v in resp.headers.items())
+        self.output = resp.content
 
-        self.headers = dict(response.headers.items())
+        self.headers = resp.headers
         for k in ['transfer-encoding', 'server', 'connection', 'date']:
             self.headers.pop(k, None)
 
@@ -263,7 +262,7 @@ class save_many(proxy):
             q = json.loads(i['query'])
             q = convert_dict(q)
             i['query'] = json.dumps(q)
-            self.data = urllib.parse.urlencode(i)
+            self.data = requests.utils.requote_uri(i)
 
 
 class reindex(proxy):
@@ -272,7 +271,7 @@ class reindex(proxy):
         if 'keys' in i:
             keys = [convert_key(k) for k in json.loads(i['keys'])]
             i['keys'] = json.dumps(keys)
-            self.data = urllib.parse.urlencode(i)
+            self.data = requests.utils.requote_uri(i)
 
 
 class account(proxy):

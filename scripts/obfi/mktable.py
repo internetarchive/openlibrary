@@ -19,8 +19,9 @@ import re
 import struct
 import sys
 import time
-import urllib.request
 from typing import Final
+
+import requests
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
 if not SEED_PATH:
@@ -58,8 +59,9 @@ class HashIP:
     def get_seed(self) -> None:
         """Get the day's seed."""
         try:
-            with urllib.request.urlopen(SEED_PATH) as handle:
-                content = handle.read()
+            r = requests.get(SEED_PATH)
+            r.raise_for_status()
+            content = r.content
         except Exception as e:  # noqa: BLE001
             print("Error retrieving seed:", e)
             sys.exit(1)
