@@ -473,6 +473,13 @@ SelectionManager.ACTIONS = [
         onclick: true,
     },
     {
+        applies_to_type: ['work', 'edition', 'author'],
+        requires_type: [],
+        multiple_only: false,
+        name: 'Create list...',
+        href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
+    },
+    {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
         multiple_only: true,
