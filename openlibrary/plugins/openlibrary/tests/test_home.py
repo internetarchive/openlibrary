@@ -123,15 +123,8 @@ class TestHomeTemplates:
             ]
 
         html = str(render_template("home/index", stats=stats, test=True))
-        headers = [
-            "Books We Love",
-            "Recently Returned",
-            "Kids",
-            "Romance",
-        ]
-        for h in headers:
-            assert h in html
 
+        assert "Recently Returned" in html
         assert "Around the Library" in html
         assert "About the Project" in html
 

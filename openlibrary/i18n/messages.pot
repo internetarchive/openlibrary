@@ -5698,6 +5698,10 @@ msgstr ""
 msgid "Thrillers"
 msgstr ""
 
+#: home/index.html
+msgid "Authors Alliance & MIT Press"
+msgstr ""
+
 #: home/loans.html
 #, python-format
 msgid ""
