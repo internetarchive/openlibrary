@@ -18,6 +18,9 @@ obfi() {
         echo "  obfi 'tac' | ...                      - reads the logs in reverse"
         echo "  obfi_previous_minute | ...            - reads the logs from the previous minute"
         echo "  obfi_walk_logs <days> | ...           - walks the gzip logs for the last <days> days"
+        echo "  obfi_range <start> <end> | ...        - ALPHA: reads the logs from the given range."
+        echo "                                          Only works for today's logs (access.log). Expects"
+        echo "                                          timestamps in milliseconds, eg from Grafana URLs."
         echo ""
         echo "From here, you can filter the logs with grep as normal, or the obfi grep commands."
         echo "These commands use grep, so support grep options like -i, -v, etc. See grep --help."
@@ -112,6 +115,48 @@ try:
 except BrokenPipeError:
     pass
     '
+}
+
+obfi_range() {
+    # Iterate over the logs and print the logs from the given range
+    if [[ -z "$1" || -z "$2" ]]; then
+        echo "Usage: obfi_range <start> <end>"
+        echo "Example: obfi_range 1748502382753 1748503464280"
+        echo "Timestamps eg from grafana URLs"
+        return 1
+    fi
+
+    START=$1
+    END=$2
+
+    obfi tac | python3 -c "
+import sys
+from datetime import datetime, timezone
+start = datetime.fromtimestamp($START / 1000, tz=timezone.utc)
+end = datetime.fromtimestamp($END / 1000, tz=timezone.utc)
+
+print(f'Start: {start:%d/%b/%Y:%H:%M:%S %z}, End: {end:%d/%b/%Y:%H:%M:%S %z}', file=sys.stderr)
+
+started = False
+buffer = 25  # Lines to read after mismatch
+try:
+    for line in sys.stdin:
+        # Extract the date from the line
+        # Get the date part, e.g. '18/Mar/2025:11:20:36 +0000'
+        date_str = ' '.join(line.split(' ', 5)[3:5])[1:-1]
+        log_date = datetime.strptime(date_str, '%d/%b/%Y:%H:%M:%S %z')
+
+        if start <= log_date <= end:
+            started = True
+            buffer = 25
+            sys.stdout.write(line)
+        elif started:
+            buffer -= 1
+            if buffer == 0:
+                break
+except BrokenPipeError:
+    pass
+    "
 }
 
 ###############################################################
