@@ -40,6 +40,7 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$ layout = query_param('layout', None)
 $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
@@ -133,10 +134,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
                 $if books_count > 1:
                     <div id="books">
-                        <label for="sortOptions">$_('Sort by: ')</label>
                         $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-
-                        $ layout = query_param('layout', None)
                         $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
 
                         $if input(mode="everything").mode == "everything":

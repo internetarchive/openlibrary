@@ -7051,7 +7051,7 @@ msgid "Grid"
 msgstr ""
 
 #: search/layout_options.html
-msgid "View as:"
+msgid "View as: "
 msgstr ""
 
 #: search/lists.html
@@ -7488,10 +7488,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
-
-#: type/author/view.html
-msgid "Sort by: "
 msgstr ""
 
 #: type/author/view.html
