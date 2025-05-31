@@ -111,7 +111,7 @@ class Biblio:
         "height",
     )
 
-    NONBOOK = [
+    NONBOOK = (
         "A2",
         "AA",
         "AB",
@@ -227,7 +227,7 @@ class Biblio:
         "XZ",
         "ZF",
         "ZZ",
-    ]
+    )
 
     def __init__(self, data):
         self.REQUIRED_FIELDS = required_fields
