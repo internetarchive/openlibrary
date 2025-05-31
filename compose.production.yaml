@@ -317,9 +317,10 @@ services:
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped
-    cap_add:
-      # Needed for py-spy
-      - SYS_PTRACE
+    # Needed to access other containers' networks
+    network_mode: host
+    # Needed for py-spy
+    cap_add: [SYS_PTRACE]
     # Needed for ps aux access across containers (py-spy)
     pid: host
     volumes:

@@ -3,9 +3,15 @@
 Defines various monitoring jobs, that check the health of the system.
 """
 
+import asyncio
 import os
 
-from scripts.monitoring.utils import OlBlockingScheduler, bash_run, limit_server
+from scripts.monitoring.utils import (
+    OlAsyncIOScheduler,
+    bash_run,
+    get_service_ip,
+    limit_server,
+)
 
 HOST = os.getenv("HOSTNAME")  # eg "ol-www0.us.archive.org"
 
@@ -13,7 +19,7 @@ if not HOST:
     raise ValueError("HOSTNAME environment variable not set.")
 
 SERVER = HOST.split(".")[0]  # eg "ol-www0"
-scheduler = OlBlockingScheduler()
+scheduler = OlAsyncIOScheduler()
 
 
 @limit_server(["ol-web*", "ol-covers0"], scheduler)
@@ -83,15 +89,42 @@ def log_top_ip_counts():
     )
 
 
-# Print out all jobs
-jobs = scheduler.get_jobs()
-print(f"{len(jobs)} job(s) registered:", flush=True)
-for job in jobs:
-    print(job, flush=True)
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_haproxy():
+    # Note this is a long-running job that does its own scheduling.
+    # But by having it on a 60s interval, we ensure it restarts if it fails.
+    from scripts.monitoring.haproxy_monitor import main
 
-# Start the scheduler
-print(f"Monitoring started ({HOST})", flush=True)
-try:
+    web_haproxy_ip = get_service_ip("web_haproxy")
+
+    await main(
+        haproxy_url=f'http://{web_haproxy_ip}:7072/admin?stats',
+        graphite_address='graphite.us.archive.org:2004',
+        prefix='stats.ol.haproxy',
+        dry_run=False,
+        fetch_freq=10,
+        commit_freq=30,
+        agg=None,  # No aggregation
+    )
+
+
+async def main():
+    # Print out all jobs
+    jobs = scheduler.get_jobs()
+    print(f"[OL-MONITOR] {len(jobs)} job(s) registered:", flush=True)
+    for job in jobs:
+        print("[OL-MONITOR]", job, flush=True)
+
+    print(f"[OL-MONITOR] Monitoring started ({HOST})", flush=True)
     scheduler.start()
-except (KeyboardInterrupt, SystemExit):
-    scheduler.shutdown()
+
+    # Keep the main coroutine alive
+    await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("[OL-MONITOR] Monitoring stopped.", flush=True)

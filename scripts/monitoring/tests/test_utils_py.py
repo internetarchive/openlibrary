@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from scripts.monitoring.utils import OlBlockingScheduler, bash_run, limit_server
+from scripts.monitoring.utils import OlAsyncIOScheduler, bash_run, limit_server
 
 
 def test_bash_run():
@@ -25,7 +25,7 @@ def test_bash_run():
 
 def test_limit_server():
     with patch("os.environ.get", return_value="allowed-server"):
-        scheduler = OlBlockingScheduler()
+        scheduler = OlAsyncIOScheduler()
 
         @limit_server(["allowed-server"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
@@ -36,7 +36,7 @@ def test_limit_server():
         assert scheduler.get_job("sample_job") is not None
 
     with patch("os.environ.get", return_value="other-server"):
-        scheduler = OlBlockingScheduler()
+        scheduler = OlAsyncIOScheduler()
 
         @limit_server(["allowed-server"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
@@ -47,7 +47,7 @@ def test_limit_server():
         assert scheduler.get_job("sample_job") is None
 
     with patch("os.environ.get", return_value="allowed-server0"):
-        scheduler = OlBlockingScheduler()
+        scheduler = OlAsyncIOScheduler()
 
         @limit_server(["allowed-server*"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
@@ -58,7 +58,7 @@ def test_limit_server():
         assert scheduler.get_job("sample_job") is not None
 
     with patch("os.environ.get", return_value="ol-web0.us.archive.org"):
-        scheduler = OlBlockingScheduler()
+        scheduler = OlAsyncIOScheduler()
 
         @limit_server(["ol-web0"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
