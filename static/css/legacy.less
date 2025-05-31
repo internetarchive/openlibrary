@@ -494,9 +494,10 @@ input {
 
 // openlibrary/templates/search/inside.html
 .search-results-stats {
-  margin: 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
   margin-bottom: 10px;
-  color: @grey;
   font-size: 0.9em;
 }
 
@@ -1480,9 +1481,14 @@ ul.list-books {
     padding: 0 5px;
     background: transparent;
     border: 0;
-    display: flex;
-    flex-direction: column;
     position: relative;
+
+    &:not(.sri--w-main),
+    .sri__main {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
 
     .bookcover {
       width: 100%;
@@ -1493,7 +1499,8 @@ ul.list-books {
       margin: 0;
     }
 
-    > .details {
+    > .details,
+    .sri__main > .details {
       display: none;
     }
 
@@ -1507,7 +1514,6 @@ ul.list-books {
 
     .cta-btn,
     a.cta-btn {
-      border-radius: 5px;
       font-size: unset;
     }
   }
