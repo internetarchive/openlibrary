@@ -1,4 +1,4 @@
-import { more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
+import { more,  less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
 
 /** Creates a dummy search facets section with a list of 'facetEntry' element and a
  * 'facetMoreLess' section.
