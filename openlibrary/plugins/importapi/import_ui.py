@@ -17,11 +17,32 @@ class import_preview(delegate.page):
     """Preview page for import API."""
 
     def GET(self):
+        user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
+        has_access = user and (
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
+        )
+        if not has_access:
+            raise web.forbidden()
+
         req = ImportPreviewRequest.from_input(web.input(provider='ia', identifier=''))
+        # GET requests should not save the import
         req.save = False
         return render_template("import_preview.html", metadata_provider_factory, req)
 
     def POST(self):
+        user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
+        has_access = user and (
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
+        )
+        if not has_access:
+            raise web.forbidden()
+
         try:
             req = ImportPreviewRequest.from_input(web.input())
         except ValueError as e:
@@ -48,6 +69,16 @@ class import_preview_json(delegate.page):
 
     @jsonapi
     def GET(self):
+        user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
+        has_access = user and (
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
+        )
+        if not has_access:
+            raise web.forbidden()
+
         try:
             req = ImportPreviewRequest.from_input(web.input())
         except ValueError as e:
@@ -60,6 +91,16 @@ class import_preview_json(delegate.page):
 
     @jsonapi
     def POST(self):
+        user = web.ctx.site.get_user()
+
+        if user is None:
+            raise web.unauthorized()
+        has_access = user and (
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
+        )
+        if not has_access:
+            raise web.forbidden()
+
         try:
             req = ImportPreviewRequest.from_input(web.input())
         except ValueError as e:
