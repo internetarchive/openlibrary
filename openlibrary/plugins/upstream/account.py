@@ -26,8 +26,8 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     audit_accounts,
     clear_cookies,
-    valid_email,
     get_current_user,
+    valid_email,
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
@@ -374,10 +374,11 @@ def _update_account_for_pd(ol_account: OpenLibraryAccount) -> None:
         }
     )
 
-def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount, status: PDRequestStatus) -> None:
-    ol_account.get_user().save_preferences(
-        { "rpd": status.value }
-    )
+
+def _update_account_on_pd_fulfillment(
+    ol_account: OpenLibraryAccount, status: PDRequestStatus
+) -> None:
+    ol_account.get_user().save_preferences({"rpd": status.value})
 
 
 def _notify_on_rpd_verification(ol_account, org):
@@ -404,8 +405,18 @@ def _expire_pd_cookies():
     web.setcookie("pda", "", expires=1)
 
 
-def _login(email, password, require_link, s3_access_key, s3_secret_key, remember=False, test=False) -> tuple[OpenLibraryAccount, bool]:
-    def get_account(_email, _password, _require_link, _s3_access_key, _s3_secret_key, _test) -> tuple:
+def _login(
+    email,
+    password,
+    require_link,
+    s3_access_key,
+    s3_secret_key,
+    remember=False,
+    test=False,
+) -> tuple[OpenLibraryAccount, bool]:
+    def get_account(
+        _email, _password, _require_link, _s3_access_key, _s3_secret_key, _test
+    ) -> tuple:
         audit = audit_accounts(
             _email,
             _password,
@@ -444,7 +455,9 @@ def _login(email, password, require_link, s3_access_key, s3_secret_key, remember
 
         return notify_for_pd
 
-    special_access, ol_account = get_account(email, password, require_link, s3_access_key, s3_secret_key, test)
+    special_access, ol_account = get_account(
+        email, password, require_link, s3_access_key, s3_secret_key, test
+    )
     set_pd_action = set_cookies(ol_account, special_access)
 
     return ol_account, set_pd_action
@@ -474,21 +487,12 @@ class account_login_json(delegate.page):
             raise Exception("Infogami username/password login is deprecated")
         try:
             _, set_pd_action = _login(
-                None,
-                None,
-                True,
-                access,
-                secret,
-                remember=bool(remember),
-                test=test
+                None, None, True, access, secret, remember=bool(remember), test=test
             )
             stats.increment('ol.account.xauth.login')
             stats.increment("ol.account.login.json")
         except OLAuthenticationError as err:
-            resp = {
-                "error": str(err),
-                "errorDisplayString": get_login_error(str(err))
-            }
+            resp = {"error": str(err), "errorDisplayString": get_login_error(str(err))}
             raise olib.code.BadRequest(json.dumps(resp))
 
 
@@ -547,7 +551,7 @@ class account_login(delegate.page):
                 i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
                 i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
                 remember=i.remember,
-                test=i.test
+                test=i.test,
             )
         except OLAuthenticationError as err:
             return self.render_error(str(err), i)
@@ -559,7 +563,9 @@ class account_login(delegate.page):
         if i.action:
             action = f"{i.action},{action}" if action else i.action
 
-        raise web.seeother(f"/account/login/success?redirect={i.redirect}&action={action}")
+        raise web.seeother(
+            f"/account/login/success?redirect={i.redirect}&action={action}"
+        )
 
 
 class post_login_hendler(delegate.page):
@@ -605,12 +611,11 @@ class post_login_hendler(delegate.page):
             publisher = args
             patron = get_current_user()
             if publisher_account := OpenLibraryAccount.get_by_username(publisher):
-                PubSub.subscribe(
-                    subscriber=patron.get_username(), publisher=publisher
-                )
+                PubSub.subscribe(subscriber=patron.get_username(), publisher=publisher)
 
                 publisher_name = publisher_account["data"]["displayname"]
                 add_flash_message(f"You are now following {publisher_name}!")
+
 
 class account_logout(delegate.page):
     """Account logout.
