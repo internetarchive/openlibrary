@@ -38,22 +38,25 @@ $add_metatag(property="og:image", content=meta_photo_url)
       <form method="GET" class="olform pagesearchbox">
         $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
-    $if q:
-      <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
-    $else:
-      <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
-        $if sort_order == 'desc':
-          <strong class="lightgreen">$_("Date Added (newest)")</strong>
-          |
-          <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
-        $else:
-          <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
-          |
-          <strong class="lightgreen">$_("Date Added (oldest)")</strong>
-      </span>
 
-    $ layout = get_remembered_layout()
-    $:render_template("search/layout_options.html", selected_layout=layout)
+    <div class="search-results-stats">
+      $if q:
+        $ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))
+      $else:
+        <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+          $if sort_order == 'desc':
+            <strong class="lightgreen">$_("Date Added (newest)")</strong>
+            |
+            <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
+          $else:
+            <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
+            |
+            <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+        </span>
+
+      $ layout = get_remembered_layout()
+      $:render_template("search/layout_options.html", selected_layout=layout)
+    </div>
 
     $if not checkin_year:
       $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
