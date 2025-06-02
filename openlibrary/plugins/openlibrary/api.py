@@ -96,8 +96,8 @@ class trending_books_api(delegate.page):
         result = {
             'query': f"/trending/{period}",
             'works': [
-                dict(work) for work in works
-            ],  # It is possible that works is not returning what is expected.
+                {key: value for key, value in dict(work).items() if key != 'collections'} for work in works
+            ],
             'days': days,
             'hours': i.hours,
         }
