@@ -377,9 +377,7 @@ def get_doc(doc: SolrDocument):
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
         collections=(
-            set(doc['ia_collection_s'].split(';'))
-            if doc.get('ia_collection_s')
-            else set()
+            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
         ),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
