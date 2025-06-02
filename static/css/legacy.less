@@ -497,8 +497,10 @@ input {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 10px;
+  padding-bottom: 10px;
   font-size: 0.9em;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
 /* Search v2 */
@@ -1512,9 +1514,9 @@ ul.list-books {
       width: 100%;
     }
 
-    .cta-btn,
-    a.cta-btn {
-      font-size: unset;
+    .check-in-prompt,
+    .star-rating-form {
+      display: none;
     }
   }
 }
