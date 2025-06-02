@@ -314,10 +314,15 @@ class AmazonAPI:
                 if contrib.role == 'Translator'
             ],
             'publishers': list({p for p in (brand, manufacturer) if p}),
-            'number_of_pages': (
-                edition_info
-                and edition_info.pages_count
-                and edition_info.pages_count.display_value
+            **(
+                {'number_of_pages': edition_info.pages_count.display_value}
+                if (
+                    edition_info
+                    and edition_info.pages_count
+                    # Note this intentionally excludes 0
+                    and edition_info.pages_count.display_value
+                )
+                else {}
             ),
             'edition_num': (
                 edition_info
