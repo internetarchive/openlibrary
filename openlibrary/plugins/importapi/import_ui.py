@@ -27,7 +27,9 @@ class import_preview(delegate.page):
         if not has_access:
             raise web.forbidden()
 
-        req = ImportPreviewRequest.from_input(web.input(provider='ia', identifier=''))
+        req = ImportPreviewRequest.from_input(
+            web.input(provider='amazon', identifier='')
+        )
         # GET requests should not save the import
         req.save = False
         return render_template("import_preview.html", metadata_provider_factory, req)
@@ -158,11 +160,6 @@ class AbstractMetadataProvider:
         )
 
 
-class InternetArchiveMetadataProvider(AbstractMetadataProvider):
-    full_name = "Internet Archive"
-    id_name = 'ia'
-
-
 class AmazonMetadataProvider(AbstractMetadataProvider):
     full_name = "Amazon"
     id_name = 'amazon'
@@ -181,17 +178,10 @@ class AmazonMetadataProvider(AbstractMetadataProvider):
         )
 
 
-class GoogleBooksMetadataProvider(AbstractMetadataProvider):
-    full_name = "Google Books"
-    id_name = 'google'
-
-
 class MetadataProviderFactory:
     def __init__(self):
         providers = [
-            InternetArchiveMetadataProvider(),
             AmazonMetadataProvider(),
-            GoogleBooksMetadataProvider(),
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 
