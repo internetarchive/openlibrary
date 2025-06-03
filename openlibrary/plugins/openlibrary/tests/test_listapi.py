@@ -29,9 +29,7 @@ class ListAPI:
 
     def login(self):
         data = {'username': self.username, 'password': self.password}
-        self.urlopen(
-            "/account/login", data=data, method="POST"
-        )
+        self.urlopen("/account/login", data=data, method="POST")
         print(self.cookiejar)
 
     def create_list(self, data):
