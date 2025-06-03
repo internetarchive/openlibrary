@@ -23,12 +23,14 @@ set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVER_SUFFIX=${SERVER_SUFFIX:-""}
+SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
+DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -255,7 +257,6 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
     OL_REPO="$1"
     # Check if tag does NOT exist
     if ! git -C "$OL_REPO" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
@@ -300,7 +301,6 @@ check_olbase_image_up_to_date() {
 
 deploy_openlibrary() {
     echo "[Now] Deploying openlibrary"
-    COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
     TMP_DIR=$(mktemp -d)
 
     cd $TMP_DIR
@@ -355,23 +355,9 @@ deploy_openlibrary() {
     fi
 
     echo "Pull the latest docker images..."
-    # We need to fetch by the exact image sha, since the registry mirror on the prod servers
-    # has a cache which means fetching the `latest` image could be stale.
-    # Assert latest docker image is up-to-date
-    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
-    OLBASE_DIGEST=$(echo $IMAGE_META | jq -r '.images[0].digest')
-    for SERVER_NAME in $SERVER_NAMES; do
-        SERVER="$SERVER_NAME$SERVER_SUFFIX"
 
-        echo "   $SERVER_NAME ... "
-        ssh -t $SERVER "
-            set -e;
-            docker pull openlibrary/olbase@$OLBASE_DIGEST
-            echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME pull
-            source /opt/olsystem/bin/build_env.sh;
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME build
-        " &> /dev/null &
+    for SERVER_NAME in $SERVER_NAMES; do
+        deploy_image "$SERVER_NAME"
     done
 
     wait
@@ -388,6 +374,37 @@ deploy_openlibrary() {
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh review"
 }
+
+deploy_image() {
+    local SERVER_NAME=$1
+    local SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
+
+    # Lazy-fetch OLBASE_DIGEST if not set
+    if [ -z "$OLBASE_DIGEST" ]; then
+        # We need to fetch by the exact image sha, since the registry mirror on the prod servers
+        # has a cache which means fetching the `latest` image could be stale.
+        # Assert latest docker image is up-to-date
+        echo "Fetching OLBASE_DIGEST ..."
+        IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
+        OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
+    fi
+
+    echo "   Pulling docker image $OLBASE_DIGEST to $SERVER_NAME ... "
+
+    echo $SERVER
+    echo $OLBASE_DIGEST
+    echo $IMAGE_META
+    echo $COMPOSE_FILE
+    ssh -t "$SERVER" "
+        set -e;
+        docker pull openlibrary/olbase@${OLBASE_DIGEST}
+        echo 'FROM openlibrary/olbase@${OLBASE_DIGEST}' | docker build --tag openlibrary/olbase:latest -f - .
+        COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} pull
+        source /opt/olsystem/bin/build_env.sh;
+        COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
+    " &> /dev/null &
+}
+
 
 check_servers_in_sync() {
     echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
@@ -483,7 +500,7 @@ deploy_wizard() {
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-        time olsystem
+        time deploy_olsystem
     fi
     echo ""
 
@@ -492,7 +509,7 @@ deploy_wizard() {
     done
     echo ""
 
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed" answer
+    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
     read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
@@ -523,6 +540,8 @@ elif [ "$1" == "openlibrary" ]; then
     if [ "$2" == "--review" ]; then
         check_servers_in_sync
     fi
+elif [ "$1" == "image" ]; then
+    deploy_image $2
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
