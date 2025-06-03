@@ -13,9 +13,7 @@ class ListAPI:
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
-        self.session = (
-            requests.Session()
-        )  # Session object handles cookies automatically
+        self.session = requests.Session()
 
     def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
