@@ -659,7 +659,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         if save:
             cover_id = add_cover(cover_url, edition_key, account_key=account_key)
         else:
-            # Something to indicate that it will exist if we're just previewing
+            # Something to indicate that it will exist if we're just previewing.
+            # Must be a number for downstream code to work
             cover_id = -2
 
     if cover_id:
@@ -837,7 +838,7 @@ def find_match(rec: dict, edition_pool: dict) -> str | None:
 
 
 def update_edition_with_rec_data(
-    rec: dict, account_key: str | None, edition: "Edition"
+    rec: dict, account_key: str | None, edition: "Edition", save: bool
 ) -> bool:
     """
     Enrich the Edition by adding certain fields present in rec but absent
@@ -849,7 +850,13 @@ def update_edition_with_rec_data(
     # Add cover to edition
     if 'cover' in rec and not edition.get_covers():
         cover_url = rec['cover']
-        cover_id = add_cover(cover_url, edition.key, account_key=account_key)
+        if save:
+            cover_id = add_cover(cover_url, edition.key, account_key=account_key)
+        else:
+            # Something to indicate that it will exist if we're just previewing
+            # Must be a number for downstream code to work
+            cover_id = -2
+
         if cover_id:
             edition['covers'] = [cover_id]
             need_edition_save = True
@@ -1052,7 +1059,7 @@ def load(
         )
 
     need_edition_save = update_edition_with_rec_data(
-        rec=rec, account_key=account_key, edition=existing_edition
+        rec=rec, account_key=account_key, edition=existing_edition, save=save
     )
     need_work_save = update_work_with_rec_data(
         rec=rec, edition=existing_edition, work=work, need_work_save=need_work_save

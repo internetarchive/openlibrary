@@ -166,9 +166,9 @@ class AmazonMetadataProvider(AbstractMetadataProvider):
 
     @override
     def do_import(self, identifier: str, save: bool):
-        id_type = "isbn" if identifier.isdigit() else "asin"
+        id_type = "isbn" if identifier[0].isdigit() else "asin"
         import_record = get_amazon_metadata(
-            id_=identifier, id_type=id_type, high_priority=True, stage_import=True
+            id_=identifier, id_type=id_type, high_priority=True, stage_import=False
         )
         assert import_record, "No metadata found for the given identifier"
         return add_book.load(
