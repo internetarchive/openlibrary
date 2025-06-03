@@ -223,11 +223,24 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
+    web.ctx.site.save(
+        {
+            "code": "por",
+            "key": "/languages/por",
+            "name": "Portuguese",
+            "type": {"key": "/type/language"},
+            "name_translated": {
+                "en": ["Portuguese", "Portuguese Brazilian"],
+            },
+        }
+    )
+
     assert utils.get_abbrev_from_full_lang_name("EnGlish") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Dorerin Ingerand") == "eng"
     assert utils.get_abbrev_from_full_lang_name("ингилисӣ") == "eng"
     assert utils.get_abbrev_from_full_lang_name("ингилиси") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Anglais") == "fre"
+    assert utils.get_abbrev_from_full_lang_name("Portuguese Brazilian") == "por"
 
     # See openlibrary/catalog/add_book/tests/conftest.py for imported languages.
     with pytest.raises(utils.LanguageMultipleMatchError):
