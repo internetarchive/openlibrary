@@ -6491,10 +6491,6 @@ msgstr ""
 msgid "You"
 msgstr ""
 
-#: lists/widget.html
-msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
-
 #: merge/authors.html
 msgid "Merge Authors"
 msgstr ""

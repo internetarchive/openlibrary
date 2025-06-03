@@ -2,13 +2,40 @@ $def with(work, tags=[])
 
 $def render_subjects(label, subjects, track_value, prefix=""):
   $if subjects:
-    <div class="section link-box">
-      <span class="clamp" data-before="&#9656; ">
-      <h3>$label</h3>
-        $for subject in subjects:
-          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
-      </span>
-    </div>
+    $if query_param('subject_mode') == "subject_details":
+      <div class="section link-box">
+        $ summary_length = 6
+        $ summary_subjects = subjects[:summary_length]
+        $ details_subjects = subjects[summary_length:]
+        $if details_subjects:
+          <details>
+            <summary>
+              <h3>$label</h3>
+              $:render_subject_links(summary_subjects, prefix, track_value)
+            </summary>
+            $:render_subject_links(details_subjects, prefix, track_value)
+          </details>
+        $else:
+          <h3>$label</h3>
+          $:render_subject_links(subjects, prefix, track_value)
+      </div>
+    $else:
+      <div class="section link-box">
+        <div class="book-description read-more">
+          <div class="read-more__content" style="max-height:35px">
+            <h3>$label</h3>
+            $:render_subject_links(subjects, prefix, track_value)
+          </div>
+        </div>
+      </div>
+
+
+$def render_subject_links(subjects, prefix, track_value):
+    $ links = []
+    $for subject in subjects:
+        $ s = subject.lower().replace(' ', '_').replace(',', '').replace('/', '')
+        $ links.append('<a href="/subjects/' + prefix + utf8(s) + '" data-ol-link-track="' + track_value + '">' + subject + '</a>')
+    $ return ', '.join(links)
 
 $if work:
   $for tag in tags:
