@@ -30,7 +30,7 @@ class ListAPI:
     def login(self):
         data = {'username': self.username, 'password': self.password}
         self.urlopen(
-            "/account/login", data=requests.utils.requote_uri(data), method="POST"
+            "/account/login", data=data, method="POST"
         )
         print(self.cookiejar)
 
