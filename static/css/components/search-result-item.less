@@ -17,6 +17,7 @@
   position: relative;
   background-color: transparent;
   margin: -5px auto;
+  font-size: @font-size-label-large;
 
   // When Preview button is a text link, have it take up only the width
   // of the content (not full 100% width)
@@ -56,7 +57,8 @@
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
 
-  &, .sri__main {
+  &,
+  .sri__main {
     .display-flex();
     align-items: center;
     flex-direction: column;
@@ -92,13 +94,13 @@
   }
 
   .resultStats {
-    font-size: .75em;
+    font-size: 0.75em;
     color: @grey;
     font-family: @lucida_sans_serif-6;
     display: block;
   }
   span.resultType {
-    font-size: .6875em;
+    font-size: 0.6875em;
   }
   .resultDetails {
     display: block;
@@ -115,7 +117,7 @@
   }
   .preview-covers img {
     border-radius: 4px;
-    opacity: .7;
+    opacity: 0.7;
   }
   .preview-covers--blur {
     img {
@@ -126,7 +128,7 @@
     width: 100%;
     margin: 10px 10px 0 5px;
     text-align: center;
-    overflow: hidden;
+
     img {
       border-radius: 4px;
       max-width: 100%;
@@ -151,14 +153,14 @@
 }
 
 .searchResultItem__librarian-extras {
-  font-size: .7em;
+  font-size: 0.7em;
   border-top: 1px dashed currentColor;
   margin-top: 8px;
   margin-bottom: -5px;
   color: @grey;
   padding: 7px 0;
   line-height: 1em;
-  transition: color .2s;
+  transition: color 0.2s;
   text-decoration: dotted underline;
 
   &:hover {

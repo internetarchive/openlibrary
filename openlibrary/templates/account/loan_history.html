@@ -11,7 +11,7 @@ $def with (docs, current_page, include_ratings=False, ratings=[], show_next=Fals
             $:macros.IABook(doc=doc, ia_base_url=ia_base_url)
           $else:
             $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=idx+1, rating=ratings[idx]) if include_ratings else None
-            $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating)
+            $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating, seq_index=loop.index0)
     </ul>
     $:macros.Pager_loanhistory(page=current_page, show_next=show_next)
   $else:

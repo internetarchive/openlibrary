@@ -173,6 +173,7 @@ class WorkSearchScheme(SearchScheme):
         'title',
         'subtitle',
         'edition_count',
+        'ebook_access',
         'ia',
         'has_fulltext',
         'first_publish_year',

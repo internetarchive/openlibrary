@@ -1,9 +1,9 @@
 FROM python:3.12.2-slim-bookworm
 
-ENV LANG en_US.UTF-8
+ENV LANG=en_US.UTF-8
 
 # required for postgres
-ENV LC_ALL POSIX
+ENV LC_ALL=POSIX
 
 # Create openlibrary users
 # We use 999:999 for the openlibrary user. Any volume mounts which require read/write

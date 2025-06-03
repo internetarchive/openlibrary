@@ -1,6 +1,7 @@
 // Slick#1.6.0 is not on npm
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.less';
+import { buildPartialsUrl } from  '../utils.js';
 
 /**
  * @typedef {Object} CarouselConfig
@@ -142,9 +143,8 @@ export class Carousel {
     }
 
     fetchPartials() {
-        const url = new URL(`${location.origin}/partials.json`)
         const loadMore = this.loadMore
-        const params = {
+        const url = buildPartialsUrl('/partials.json', {
             _component: 'CarouselLoadMore',
             queryType: loadMore.queryType,
             q: loadMore.q,
@@ -156,8 +156,7 @@ export class Carousel {
             hasFulltextOnly: loadMore.hasFulltextOnly,
             secondaryAction: loadMore.secondaryAction,
             key: loadMore.key
-        }
-        url.search = new URLSearchParams(params).toString()
+        });
         this.appendLoadingSlide();
         $.ajax({url: url, type: 'GET'})
             .then((results) => {

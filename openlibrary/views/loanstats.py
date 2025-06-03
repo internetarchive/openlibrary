@@ -206,9 +206,11 @@ class readinglog_stats(app.view):
         stats = get_cached_reading_log_stats(limit=limit)
 
         solr_docs = get_solr_works(
-            f"/works/OL{item['work_id']}W"
-            for leaderboard in stats['leaderboard'].values()
-            for item in leaderboard
+            {
+                f"/works/OL{item['work_id']}W"
+                for leaderboard in stats['leaderboard'].values()
+                for item in leaderboard
+            }
         )
 
         # Fetch works from solr and inject into leaderboard

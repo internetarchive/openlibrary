@@ -566,4 +566,11 @@ jQuery(function () {
         import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
             .then(module => module.initLazyCarousel(lazyCarousels))
     }
+
+    // Librarian Dashboard
+    const librarianDashboard = document.querySelector('.librarian-dashboard')
+    if (librarianDashboard) {
+        import(/* webpackChunkName: "librarian-dashboard" */ './librarian-dashboard')
+            .then(module => module.initLibrarianDashboard(librarianDashboard))
+    }
 });

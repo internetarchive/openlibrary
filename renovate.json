@@ -24,10 +24,13 @@
     {
       "matchPackageNames": [
         "jest",
-        "bundlesize",
+        "bundlesize2",
         "sinon",
         "stylelint",
-        "stylelint-declaration-strict-value"
+        "stylelint-declaration-strict-value",
+        "stylelint-prettier",
+        "prettier",
+        "postcss-less"
       ],
       "automerge": true
     },

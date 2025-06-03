@@ -11,7 +11,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
 
@@ -48,12 +48,18 @@ def get_homepage(devmode):
 
 
 def get_cached_homepage():
+    from openlibrary.plugins.openlibrary.code import is_bot
+
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
-    pd = web.cookies().get('pd', False)
-    key = "home.homepage." + lang
-    if pd:
+    key = f'home.homepage.{lang}'
+    cookies = web.cookies()
+    if cookies.get('pd', False):
         key += '.pd'
+    if cookies.get('sfw', ''):
+        key += '.sfw'
+    if is_bot():
+        key += '.bot'
 
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
@@ -72,8 +78,11 @@ def get_cached_homepage():
 # thread, so all the web.* stuff is correct. The inner function is executed on the
 # other thread, so all the web.* stuff will be dummy.
 def caching_prethread():
+    from openlibrary.plugins.openlibrary.code import is_bot
+
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang
+    _is_bot = is_bot()
 
     def main():
         # Leaving this in since this is a bit strange, but you can see it clearly
@@ -81,6 +90,7 @@ def caching_prethread():
         # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
         delegate.fakeload()
         web.ctx.lang = lang
+        web.ctx.is_bot = _is_bot
 
     return main
 
@@ -201,64 +211,6 @@ def generic_carousel(
     return storify(books) if books else books
 
 
-def format_list_editions(key):
-    """Formats the editions of a list suitable for display in carousel."""
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    seed_list = web.ctx.site.get(key)
-    if not seed_list:
-        return []
-
-    editions = {}
-    for seed in seed_list.seeds:
-        if not isinstance(seed, str):
-            if seed.type.key == "/type/edition":
-                editions[seed.key] = seed
-            else:
-                try:
-                    e = pick_best_edition(seed)
-                except StopIteration:
-                    continue
-                editions[e.key] = e
-    return [format_book_data(e) for e in editions.values()]
-
-
-# cache the results of format_list_editions in memcache for 5 minutes
-format_list_editions = cache.memcache_memoize(
-    format_list_editions, "home.format_list_editions", timeout=5 * 60
-)
-
-
-def pick_best_edition(work):
-    return next(e for e in work.editions if e.ocaid)
-
-
-def format_work_data(work):
-    d = dict(work)
-
-    key = work.get('key', '')
-    # New solr stores the key as /works/OLxxxW
-    if not key.startswith("/works/"):
-        key = "/works/" + key
-
-    d['url'] = key
-    d['title'] = work.get('title', '')
-
-    if 'author_key' in work and 'author_name' in work:
-        d['authors'] = [
-            {"key": key, "name": name}
-            for key, name in zip(work['author_key'], work['author_name'])
-        ]
-
-    if 'cover_edition_key' in work:
-        coverstore_url = get_coverstore_public_url()
-        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
-
-    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
-    return d
-
-
 def format_book_data(book, fetch_availability=True):
     d = web.storage()
     d.key = book.get('key')
@@ -274,9 +226,8 @@ def format_book_data(book, fetch_availability=True):
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
     d.work_key = work.key if work else book.key
-    cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
-    if cover:
+    if cover := book.get_cover():
         d.cover_url = cover.url("M")
     elif d.ocaid:
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid

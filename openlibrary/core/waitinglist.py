@@ -267,31 +267,11 @@ def _get_expiry_in_days(loan):
         return delta.days + 1
 
 
+# Unreferenced
 def _get_loan_timestamp_in_days(loan):
     t = datetime.datetime.fromtimestamp(loan['loaned_at'])
     delta = datetime.datetime.utcnow() - t
     return delta.days
-
-
-def prune_expired_waitingloans():
-    """Removes all the waiting loans that are expired.
-
-    A waiting loan expires if the person fails to borrow a book with in
-    24 hours after his waiting loan becomes "available".
-    """
-    return
-
-
-def update_all_waitinglists():
-    rows = WaitingLoan.query(limit=10000)
-    identifiers = {row['identifier'] for row in rows}
-    for identifier in identifiers:
-        try:
-            _wl_api.request("loan.sync", identifier=identifier)
-        except Exception:
-            logger.error(
-                "failed to update waitinglist for %s", identifier, exc_info=True
-            )
 
 
 def update_all_ebooks():

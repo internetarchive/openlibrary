@@ -53,8 +53,17 @@ class CarouselCardPartial(PartialDataHandler):
         layout = params.get("layout")
         key = params.get("key") or ""
 
-        for index, book in enumerate(search_results):
+        for index, work in enumerate(search_results):
             lazy = index > self.MAX_VISIBLE_CARDS
+            editions = work.get('editions', {})
+            if not editions:
+                book = work
+            elif isinstance(editions, list):
+                book = editions[0]
+            else:
+                book = editions.get('docs', [None])[0]
+            book['authors'] = work.get('authors', [])
+
             cards.append(
                 render_template(
                     "books/custom_carousel_card",

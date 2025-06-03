@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-# matches ip#'s from input, builds reverse table to unhide hidden ips
+# matches ip's from input, builds reverse table to unhide hidden ips
 # use:
-#  sudo tcpdump -n (dst port 80 or dst port 443) | ./mktable
-# leave running .. reveal uses the table
-# or netstat -n | ./mktable
+#    sudo tcpdump -i eth0 -n '(dst port 80 or dst port 443) and tcp[tcpflags] & tcp-syn != 0' | sudo ./mktable
 #
-# or
-# sudo tcpdump -n dst port 80 and 'tcp[tcpflags] & tcp-syn != 0' | ./mktable
+# leave running; ./reveal uses the file.
+# Stop listening with Ctrl-C.
 #
-# Exit with control+c.
+# You can also do:
+# - netstat -n | sudo ./mktable
+# - tcpdump -n '(dst port 80 or dst port 443)' | sudo ./mktable
+# - tcpdump -n dst port 80 and 'tcp[tcpflags] & tcp-syn != 0' | sudo ./mktable
 
 import dbm.ndbm
 import hashlib

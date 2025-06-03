@@ -9,6 +9,8 @@ $if not author_names:
 
 $ cover_url = book.get_cover_url("M")
 $ cover_lg = book.get_cover_url("L")
+$ cover_aspect_ratio = book.get_cover_aspect_ratio()
+$ cover_aspect_ratio_str = 'aspect-ratio: ' + str(cover_aspect_ratio) if cover_aspect_ratio else ""
 
 $ src = cover_url or '/images/icons/avatar_book.png'
 $ srcset = '%s 2x' % (cover_lg or '/images/icons/avatar_book-lg.png')
@@ -30,6 +32,7 @@ $if preload:
                 src="$src"
                 srcset="$srcset"
                 class="cover"
+                style="$cover_aspect_ratio_str"
                 alt="$_('Cover of: %(title)s by %(authors)s', title=title, authors=author_names)"
             >
         </a>

@@ -1,12 +1,69 @@
 # Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
 
+py_spy_cur_fn() {
+    pid=$1
+
+    if [[ -z "$pid" || "$pid" == "--help" ]]; then
+        echo "Usage: $0 <pid>"
+        echo "Get the current function running on the PID process using py-spy"
+        echo "Excludes some internal-y/system-y functions"
+        return 1
+    fi
+
+    py-spy dump --nonblocking --pid $pid \
+    | grep -vE '^(Process|Python|Thread)' \
+    | grep -vE '(\bssl\.py|(readinto) .*socket\.py|http/client\.py|sentry_sdk|urllib3/connection\.py|<genexpr>|urllib3/connectionpool\.py|requests/(api|adapters|sessions)\.py)' \
+    | head -n2 | tail -n1
+}
+export -f py_spy_cur_fn
+
+py_spy_find_worker() {
+    # Note this is unused in this file, and is just a helper function
+    pattern="$1"
+
+    if [[ -z "$pattern" || "$pattern" == "--help" ]]; then
+        echo "Usage: $0 <pattern>"
+        echo "Finds the first gunicorn worker process matching the pattern " \
+             "anywhere in its stack trace using py-spy, and prints that stack trace"
+        return 1
+    fi
+
+    for pid in $(ps aux | grep 'gunicorn' | grep -v 'grep' | awk '{print $2}'); do
+        echo -n "$pid... "
+        full_dump="$(py-spy dump --nonblocking --pid $pid)"
+        match=$(echo "$full_dump" | grep -E "$pattern")
+        if [ -z "$match" ]; then
+            echo "✗"
+        else
+            echo "✓"
+            echo "$full_dump"
+            return 0
+        fi
+    done 2>/dev/null
+    return 1
+}
+export -f py_spy_find_worker
+
 log_workers_cur_fn() {
     BUCKET="$1"
+
+    # Monitors the current function running on each gunicorn worker.
+    #
+    # Only explicitly names a few specific function to monitor:
+    # - connect: psycopg2; this was a bottleneck before we switched to using direct
+    #       IPs with psycopg2
+    # - sleep|wait: Normal gunicorn behavior denoting a worker not doing anything
+    # - getaddrinfo: Marker for DNS resolution time; saw this occasionally in Sentry's
+    #       profiling for solr requests
+    # - create_connection: Saw this in Sentry's profiling for IA requests; possibly
+    #       related to requests connection pooling
+    # - get_availability|get_api_response: Main time block for IA requests
+
     for pid in $(ps aux | grep 'gunicorn' | grep -v 'grep' | awk '{print $2}'); do
-        echo "$pid $(py-spy dump --nonblocking --pid $pid | head -n5 | tail -n1 | grep -oE '\S+' | head -n1)";
+        echo "$pid $(py_spy_cur_fn $pid)";
     done 2>/dev/null \
         | awk '{print $2}' \
-        | awk '{if ($1 ~ /^(connect|sleep|wait)$/) print $1; else print "other"}' \
+        | awk '{if ($1 ~ /^(connect|sleep|wait|getaddrinfo|create_connection|get_availability|get_api_response)$/) print $1; else print "other"}' \
         | sort \
         | uniq -c \
         | awk -v date=$(date +%s) -v bucket="$BUCKET" '{print bucket "." $2 " " $1 " " date}' \
