@@ -86,7 +86,6 @@ class proxy:
         )
         resp = s.send(req)
         self.status_code = resp.status_code
-        # a one-liner that replaces the __str__ functionality of the HTTPResponse object replaced from urllib
         self.status_msg = "\n".join(f"{k}: {v}" for k, v in resp.headers.items())
         self.output = resp.content
 
