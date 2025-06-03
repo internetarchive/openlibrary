@@ -1,5 +1,4 @@
-FROM openlibrary/olbase:latest
-
+FROM --platform=linux/amd64 openlibrary/olbase:late
 # Allow for nexus overrides (used in testing/staging builds)
 ARG NPM_CONFIG_REGISTRY
 ARG PIP_INDEX_URL

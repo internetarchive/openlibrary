@@ -32,6 +32,7 @@ $def list_card(list):
         $if lists:
             $ displayed_lists = 5
             $for list in lists[:displayed_lists]
+                <p>$(list)</p>
                 $:list_card(list)
 
             $if len(lists) > displayed_lists:

@@ -39,6 +39,24 @@ $def render_widget_display(lists, limit, user_key, exclude_own_lists):
                 $:render_template('lists/list_overview', list, user_key, seed_info)
                 $ count = count + 1
 
+$def render_widget_display2(lists, limit, user_key):
+    $ count = 0
+    $for i, list in enumerate(lists):
+        $if count < limit:
+            $if exclude_own_lists:
+                $ own_list = list.owner and list.owner.key == user_key
+                $if not own_list:
+                  $ converted = convert_list(list)
+                  $:render_template('lists/list_overview', list, user_key, seed_info)
+                  $ count = count + 1
+            $else:
+                $ converted = convert_list(list.key)
+                $ showcase = converted.get_patron_showcase()
+                <p>$(showcase)</p>
+                $:render_template('lists/list_overview', list, user_key, seed_info)
+                $ count = count + 1
+
+
 $def render_head(page_lists, page_url):
     <div>
       <h3 class="header">
@@ -84,8 +102,6 @@ $if include_widget:
     $:macros.StarRatings(work, edition)
 
 $if include_showcase:
-  <ul id="list-lists" class="listLists">
-    $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
-  </ul>
+  $:render_widget_display2(page_lists, 3, user_key )
 
 </div>

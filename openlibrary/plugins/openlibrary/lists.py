@@ -233,6 +233,10 @@ def get_user_lists(seed_info):
     seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
+@public
+def convert_list(list):
+    newList = List(None, list, None) 
+    return newList
 
 class lists_partials(delegate.page):
     path = "/lists/partials"
