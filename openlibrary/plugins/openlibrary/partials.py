@@ -311,7 +311,7 @@ class LazyCarouselPartial(PartialDataHandler):
 
 class PartialRequestResolver:
     # Maps `_component` values to PartialDataHandler subclasses
-    component_mapping = {
+    component_mapping = {  # noqa: RUF012
         "CarouselLoadMore": CarouselCardPartial,
         "AffiliateLinks": AffiliateLinksPartial,
         "SearchFacets": SearchFacetsPartial,
