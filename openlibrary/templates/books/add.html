@@ -77,8 +77,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ is_admin = ctx.user and ctx.user.is_admin()
-        $if is_admin:
+        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
             <div class="formElement">
                 <div class="label">
                     <label for="web_book_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>
