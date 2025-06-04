@@ -362,7 +362,7 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> 
 class PDRequestStatus(Enum):
     REQUESTED = 0
     EMAILED = 1
-    FULFILLED = 3
+    FULFILLED = 2
 
 
 def _update_account_for_pd(ol_account: OpenLibraryAccount) -> None:
