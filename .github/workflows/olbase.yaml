@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # To test this GitHub action, you can create an upstream branch, and manually trigger
+      # it from GitHub. The tag name of the image will be your branch name, so don't use
+      # any weird characters. Note this will not work with a fork ; you need an upstream branch!
       TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
 
     steps:
