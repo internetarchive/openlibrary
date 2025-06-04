@@ -361,9 +361,10 @@ def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> 
 class PDRequestStatus(Enum):
     REQUESTED = 0
     EMAILED = 1
+    FULFILLED = 2
 
 
-def _update_account_for_pd(ol_account: OpenLibraryAccount) -> None:
+def _update_account_on_pd_request(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
     ol_account.get_user().save_preferences(
         {
@@ -391,6 +392,10 @@ def _notify_on_rpd_verification(ol_account, org):
                 "rpd": PDRequestStatus.EMAILED.value,
             }
         )
+
+
+def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount) -> None:
+    ol_account.get_user().save_preferences({"rpd": PDRequestStatus.FULFILLED.value})
 
 
 def _expire_pd_cookies():
@@ -444,11 +449,19 @@ class account_login_json(delegate.page):
                 _set_account_cookies(ol_account, expires)
 
                 if web.cookies().get("pda"):
-                    _update_account_for_pd(ol_account)
+                    _update_account_on_pd_request(ol_account)
                     _notify_on_rpd_verification(
                         ol_account, get_pd_org(web.cookies().get("pda"))
                     )
                     _expire_pd_cookies()
+
+                has_special_access = audit.get('special_access')
+                if (
+                    has_special_access
+                    and ol_account.get_user().preferences().get('rpd')
+                    != PDRequestStatus.FULFILLED.value
+                ):
+                    _update_account_on_pd_fulfillment(ol_account)
 
         # Fallback to infogami user/pass
         else:
@@ -539,7 +552,7 @@ class account_login(delegate.page):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
-                _update_account_for_pd(ol_account)
+                _update_account_on_pd_request(ol_account)
                 _notify_on_rpd_verification(
                     ol_account, get_pd_org(web.cookies().get("pda"))
                 )
@@ -552,6 +565,14 @@ class account_login(delegate.page):
                         "an email detailing next steps in the process."
                     ),
                 )
+
+            has_special_access = audit.get('special_access')
+            if (
+                has_special_access
+                and ol_account.get_user().preferences().get('rpd')
+                != PDRequestStatus.FULFILLED.value
+            ):
+                _update_account_on_pd_fulfillment(ol_account)
 
         blacklist = [
             "/account/login",
