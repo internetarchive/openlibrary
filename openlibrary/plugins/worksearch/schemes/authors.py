@@ -9,8 +9,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class AuthorSearchScheme(SearchScheme):
-    universe: frozenset[str] = frozenset(['type:author'])
-    all_fields: frozenset[str] = frozenset(
+    universe = frozenset(['type:author'])
+    all_fields = frozenset(
         {
             'key',
             'name',
@@ -25,7 +25,7 @@ class AuthorSearchScheme(SearchScheme):
     non_solr_fields: frozenset[str]
     facet_fields: frozenset[str]
     field_name_map: MappingProxyType[str, str]
-    sorts: MappingProxyType[str, str | Callable[[], str]] = MappingProxyType(
+    sorts = MappingProxyType(
         {
             'work_count desc': 'work_count desc',
             # Random
@@ -36,7 +36,7 @@ class AuthorSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
     )
-    default_fetched_fields: frozenset[str] = frozenset(
+    default_fetched_fields = frozenset(
         {
             'key',
             'name',
