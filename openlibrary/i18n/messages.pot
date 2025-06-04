@@ -981,10 +981,6 @@ msgid "Check nearby libraries"
 msgstr ""
 
 #: WorldcatLink.html
-msgid "Library.link"
-msgstr ""
-
-#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
 msgstr ""
 
@@ -1166,6 +1162,54 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 subject"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 author"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 edition"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has work (orphaned)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publication year"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has cover"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has language"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 2 editions"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has dewey decimal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has LoC classification"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has number of pages"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
@@ -1273,20 +1317,6 @@ msgid ""
 " in the process."
 msgstr ""
 
-#: account/password/reset_success.html account/verify.html
-#: account/verify/activated.html account/verify/success.html
-#: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid "Hi, %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
-msgstr ""
-
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
 msgstr ""
@@ -1328,10 +1358,6 @@ msgstr ""
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Password reset failed."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -1416,9 +1442,9 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid ""
-"I want to apply for <a href=\"https://help.archive.org/help/program-"
-"overview/\">special print disability access</a> through a qualifying "
-"program."
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\">special print disability access</a> through"
+" a qualifying program."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
@@ -1644,7 +1670,8 @@ msgstr ""
 
 #: account/import.html account/loans.html admin/imports.html
 #: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: batch_import_pending_view.html batch_import_view.html status.html
+#: batch_import_pending_view.html batch_import_view.html
+#: librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr ""
 
@@ -1690,7 +1717,7 @@ msgid "Import Time"
 msgstr ""
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
-#: batch_import_view.html
+#: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
 msgstr ""
 
@@ -1904,7 +1931,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: account/create.html books/custom_carousel.html login.html
+#: account/create.html books/custom_carousel.html
+#: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
@@ -3037,6 +3065,12 @@ msgstr ""
 
 #: account/verify.html
 msgid "Verification email sent"
+msgstr ""
+
+#: account/password/reset_success.html account/verify.html
+#: account/verify/activated.html account/verify/success.html
+#, python-format
+msgid "Hi, %(user)s"
 msgstr ""
 
 #: account/verify.html
@@ -5660,6 +5694,10 @@ msgstr ""
 msgid "Thrillers"
 msgstr ""
 
+#: home/index.html
+msgid "Authors Alliance & MIT Press"
+msgstr ""
+
 #: home/loans.html
 #, python-format
 msgid ""
@@ -6220,6 +6258,22 @@ msgid ""
 " href=\"/account/create\" title=\"Create an Open Library account\">create"
 " an account</a>, your IP address is concealed and you can more easily "
 "keep track of all your edits and additions."
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Reload"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "failing"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Data quality table"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Quality Criteria"
 msgstr ""
 
 #: lists/export_as_html.html

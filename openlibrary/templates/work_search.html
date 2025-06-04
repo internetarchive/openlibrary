@@ -6,6 +6,10 @@ $def with (q_param, search_response, get_doc, param, page, rows)
     </div>
 
 <div id="contentBody">
+  $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+  $if show_dashboard:
+    $:render_template("librarian_dashboard/data_quality_table", search_response.num_found)
+
   $:macros.SearchNavigation()
   <div class="section">
 
@@ -96,7 +100,7 @@ $def with (q_param, search_response, get_doc, param, page, rows)
             $ subject_keys = [d.get('subject', []) for d in search_response.docs]
             $for work, subjects in zip(works, subject_keys):
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, seq_index=loop.index0)
           </ul>
           $:macros.Pager(page, search_response.num_found, rows)
         </div>

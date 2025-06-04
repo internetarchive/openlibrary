@@ -18,7 +18,6 @@ $ id = '--mobile' if mobile else ''
   <li class="avg-ratings" onclick="location.href='#starRatingSection';" data-ol-link-track="StarRating|StatsComponentClick">
     $if ratings_count:
       $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page')
-      <span class="dot">·</span>
   </li>
   $if want_to_read_count:
     <li class="reading-log-stat"><span class="readers-stats__stat">$want_to_read_count</span> <span class="readers-stats__label">$_("Want to read")</span></li>

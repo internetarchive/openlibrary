@@ -1,7 +1,7 @@
 /**
-* OpenLibrary-specific convenience functions for use with Archive.org analytics.js
+* OpenLibrary-specific convenience functions for use with Archive.org athena.js
 *
-* Depends on Archive.org analytics.js function archive_analytics.send_ping()
+* Depends on Archive.org athena.js function archive_analytics.send_ping()
 *
 */
 

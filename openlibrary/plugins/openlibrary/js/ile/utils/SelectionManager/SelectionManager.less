@@ -9,8 +9,8 @@
   box-shadow: 0 0 10px 2px inset @selection-outline;
 }
 .ile-selectable {
-  box-shadow: 0 0 0 2px inset rgba(0,0,0,.1);
-  transition-duration: .2s;
+  box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
+  transition-duration: 0.2s;
   transition-property: background-color, box-shadow;
   border-radius: 4px;
 }
@@ -28,7 +28,7 @@
   background: @ile-toolbar-background;
   color: @ile-toolbar-text-color;
   z-index: @ile-toolbar-z-index;
-  font-size: .9em;
+  font-size: 0.9em;
 }
 #ile-toolbar a {
   padding: 4px 16px;
@@ -36,7 +36,7 @@
   color: @ile-toolbar-text-color;
   text-decoration: none;
   border-left: 2px dotted @ile-toolbar-text-color;
-  transition: background .2s;
+  transition: background 0.2s;
   cursor: pointer;
 }
 #ile-selection-actions {
@@ -73,7 +73,9 @@
 #ile-drag-status .images li:first-child {
   flex-shrink: 0;
 }
-#ile-drag-actions a:hover { background: rgba(0,0,0,.15); }
+#ile-drag-actions a:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
 
 a.ile-selectable[href^="/authors/OL"] {
   padding-right: 4px;
@@ -83,9 +85,9 @@ a.ile-selectable[href^="/authors/OL"] {
 .ile-select-handle {
   padding: 0 5px;
   text-decoration: none;
-  opacity: .2;
+  opacity: 0.2;
   cursor: default;
-  transition: opacity .2s;
+  transition: opacity 0.2s;
   color: @selection-outline;
 }
 

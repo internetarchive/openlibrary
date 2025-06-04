@@ -41,7 +41,7 @@
 .nav-bar-wrapper {
   display: flex;
   align-items: stretch;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 10px;
 
@@ -70,11 +70,11 @@
       max-width: unset !important;
     }
     &--left img {
-      transform: rotate(180deg)
+      transform: rotate(180deg);
     }
   }
 
-  .nav-arrow-left{
+  .nav-arrow-left {
     border: none;
     position: absolute;
     padding: 0;
@@ -85,10 +85,9 @@
     width: 44px;
     background: linear-gradient(to left, transparent, @white 10px);
 
-    img{
+    img {
       transform: rotate(180deg);
     }
-
   }
 
   .nav-bar.work-menu {
@@ -109,7 +108,7 @@
       padding: 4px 15px;
       vertical-align: text-top;
     }
-    li:first-child{
+    li:first-child {
       margin-left: 22px;
     }
     li:last-child {
@@ -142,7 +141,7 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .nav-bar-wrapper.sticky {
     position: sticky;
-    top: 62px;  /* The header has a 62px height in tablet views */
+    top: 62px; /* The header has a 62px height in tablet views */
   }
 }
 
@@ -160,7 +159,7 @@
     }
 
     &.nav-bar-wrapper--slidedown {
-      animation-duration: .15s;
+      animation-duration: 0.15s;
       animation-name: slidedown;
     }
 
@@ -171,8 +170,8 @@
     }
 
     &.nav-bar-wrapper--slideup {
-      animation-duration: .5s;
-      animation-name: slideup
+      animation-duration: 0.5s;
+      animation-name: slideup;
     }
 
     @keyframes slideup {

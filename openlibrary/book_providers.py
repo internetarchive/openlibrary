@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Generic, Literal, TypedDict, TypeVar, cast
+from typing import Generic, Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -30,6 +30,13 @@ class EbookAccess(OrderedEnum):
 
     def to_solr_str(self):
         return self.name.lower()
+
+    @staticmethod
+    def from_solr_str(literal: str) -> 'EbookAccess':
+        try:
+            return EbookAccess[literal.upper()]
+        except KeyError:
+            raise ValueError(f'Unknown access literal: {literal}')
 
     @staticmethod
     def from_acquisition_access(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
@@ -550,6 +557,18 @@ class DirectProvider(AbstractBookProvider):
 class WikisourceProvider(AbstractBookProvider):
     short_name = 'wikisource'
     identifier_key = 'wikisource'
+
+    @override
+    def get_acquisitions(self, edition: Edition) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://wikisource.org/wiki/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [
