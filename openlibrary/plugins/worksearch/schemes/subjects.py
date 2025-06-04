@@ -18,8 +18,8 @@ class SubjectSearchScheme(SearchScheme):
             'work_count',
         }
     )
-    non_solr_fields: frozenset[str] = frozenset()
-    facet_fields: frozenset[str] = frozenset()
+    non_solr_fields: frozenset[str]
+    facet_fields: frozenset[str]
     field_name_map: MappingProxyType[str, str]
     sorts = MappingProxyType(
         {
