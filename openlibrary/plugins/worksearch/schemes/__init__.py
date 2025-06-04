@@ -1,4 +1,8 @@
+# ruff: noqa: RUF012
+# See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
+
 import logging
+from collections.abc import Callable
 
 import luqum.tree
 from luqum.exceptions import ParseError
@@ -13,26 +17,22 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class SearchScheme:
-    # facet_fields and default_fetched_fields are class variables because they are used as such.
-
+    # Set of queries that define the universe of this scheme
+    universe: list[str]
+    # All actual solr fields that can be in a user query
+    all_fields: set[str]
+    # Fields that can be read, but which aren't stored in solr
+    non_solr_fields: set[str]
     # These fields are fetched for facets and can also be url params
-    facet_fields: frozenset[str]
+    facet_fields: set[str]
+    # Mapping of user-only fields to solr fields
+    field_name_map: dict[str, str]
+    # Mapping of user sort to solr sort
+    sorts: dict[str, str | Callable[[], str]]
     # Default
-    default_fetched_fields: frozenset[str]
-
-    def __init__(self):
-        # Set of queries that define the universe of this scheme
-        self.universe: list[str] = []
-        # All actual solr fields that can be in a user query
-        self.all_fields = set()
-        # Fields that can be read, but which aren't stored in solr
-        self.non_solr_fields = set()
-        # Mapping of user-only fields to solr fields
-        self.field_name_map = {}
-        # Mapping of user sort to solr sort
-        self.sorts = {}
-        # Fields that should be rewritten
-        self.facet_rewrites = {}
+    default_fetched_fields: set[str]
+    # Fields that should be rewritten
+    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]]
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
