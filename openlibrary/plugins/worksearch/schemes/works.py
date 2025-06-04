@@ -40,8 +40,8 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    universe: frozenset[str] = frozenset(['type:work'])
-    all_fields: frozenset[str] = frozenset(
+    universe = frozenset(['type:work'])
+    all_fields = frozenset(
         {
             "key",
             "redirects",
@@ -99,13 +99,13 @@ class WorkSearchScheme(SearchScheme):
             "osp_count",
         }
     )
-    non_solr_fields: frozenset[str] = frozenset(
+    non_solr_fields = frozenset(
         {
             'description',
             'providers',
         }
     )
-    facet_fields: frozenset[str] = frozenset(
+    facet_fields = frozenset(
         {
             "has_fulltext",
             "author_facet",
@@ -119,7 +119,7 @@ class WorkSearchScheme(SearchScheme):
             "public_scan_b",
         }
     )
-    field_name_map: MappingProxyType[str, str] = MappingProxyType(
+    field_name_map = MappingProxyType(
         {
             'author': 'author_name',
             'authors': 'author_name',
@@ -136,7 +136,7 @@ class WorkSearchScheme(SearchScheme):
             '_ia_collection': 'ia_collection_s',
         }
     )
-    sorts: MappingProxyType[str, str | Callable[[], str]] = MappingProxyType(
+    sorts = MappingProxyType(
         {
             'editions': 'edition_count desc',
             'old': 'def(first_publish_year, 9999) asc',
@@ -177,7 +177,7 @@ class WorkSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
     )
-    default_fetched_fields: frozenset[str] = frozenset(
+    default_fetched_fields = frozenset(
         {
             'key',
             'author_name',
@@ -207,23 +207,21 @@ class WorkSearchScheme(SearchScheme):
             'id_wikisource',
         }
     )
-    facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]] = (
-        MappingProxyType(
-            {
-                ('public_scan', 'true'): 'ebook_access:public',
-                ('public_scan', 'false'): '-ebook_access:public',
-                ('print_disabled', 'true'): 'ebook_access:printdisabled',
-                ('print_disabled', 'false'): '-ebook_access:printdisabled',
-                (
-                    'has_fulltext',
-                    'true',
-                ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
-                (
-                    'has_fulltext',
-                    'false',
-                ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
-            }
-        )
+    facet_rewrites = MappingProxyType(
+        {
+            ('public_scan', 'true'): 'ebook_access:public',
+            ('public_scan', 'false'): '-ebook_access:public',
+            ('print_disabled', 'true'): 'ebook_access:printdisabled',
+            ('print_disabled', 'false'): '-ebook_access:printdisabled',
+            (
+                'has_fulltext',
+                'true',
+            ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
+            (
+                'has_fulltext',
+                'false',
+            ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
+        }
     )
 
     def is_search_field(self, field: str):

@@ -12,8 +12,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe: frozenset[str] = frozenset(['type:work'])
-    all_fields: frozenset[str] = frozenset(
+    universe = frozenset(['type:work'])
+    all_fields = frozenset(
         {
             "key",
             "title",
@@ -36,7 +36,7 @@ class EditionSearchScheme(SearchScheme):
     )
     non_solr_fields: frozenset[str]
     facet_fields: frozenset[str]
-    field_name_map: MappingProxyType[str, str] = MappingProxyType(
+    field_name_map = MappingProxyType(
         {
             'publishers': 'publisher',
             'subtitle': 'alternative_subtitle',
@@ -47,7 +47,7 @@ class EditionSearchScheme(SearchScheme):
             '_ia_collection': 'ia_collection_s',
         }
     )
-    sorts: MappingProxyType[str, str | Callable[[], str]] = MappingProxyType(
+    sorts = MappingProxyType(
         {
             'old': 'def(publish_year, 9999) asc',
             'new': 'publish_year desc',

@@ -9,8 +9,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 
 class SubjectSearchScheme(SearchScheme):
-    universe: frozenset[str] = frozenset(['type:subject'])
-    all_fields: frozenset[str] = frozenset(
+    universe = frozenset(['type:subject'])
+    all_fields = frozenset(
         {
             'key',
             'name',
@@ -21,7 +21,7 @@ class SubjectSearchScheme(SearchScheme):
     non_solr_fields: frozenset[str] = frozenset()
     facet_fields: frozenset[str] = frozenset()
     field_name_map: MappingProxyType[str, str]
-    sorts: MappingProxyType[str, str | Callable[[], str]] = MappingProxyType(
+    sorts = MappingProxyType(
         {
             'work_count desc': 'work_count desc',
             # Random
@@ -32,7 +32,7 @@ class SubjectSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
     )
-    default_fetched_fields: frozenset[str] = frozenset(
+    default_fetched_fields = frozenset(
         {
             'key',
             'name',

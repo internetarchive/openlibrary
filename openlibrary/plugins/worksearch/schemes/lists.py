@@ -14,8 +14,8 @@ logger = logging.getLogger("openlibrary.worksearch")
 # define a search scheme for lists, similar to SubjectSearchScheme
 class ListSearchScheme(SearchScheme):
     # this search only applies to list type documents
-    universe: frozenset[str] = frozenset(['type:list'])
-    all_fields: frozenset[str] = frozenset(
+    universe = frozenset(['type:list'])
+    all_fields = frozenset(
         {
             'key',  # unique identifier for the list
             'name',  # name/title of the list
@@ -30,14 +30,13 @@ class ListSearchScheme(SearchScheme):
             'time_key',
         }
     )
-    non_solr_fields: frozenset[str] = frozenset(
-        {
-            'description',  # short description of the list
-        }
-    )
+
+    # short description of the list
+    non_solr_fields = frozenset({'description'})
+
     facet_fields: frozenset[str]
     field_name_map: MappingProxyType[str, str]
-    sorts: MappingProxyType[str, str | Callable[[], str]] = MappingProxyType(
+    sorts = MappingProxyType(
         {
             'name asc': 'name asc',  # sort alphabetically
             # Random (kept from SubjectSearchScheme)
