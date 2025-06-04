@@ -456,7 +456,11 @@ class account_login_json(delegate.page):
                     _expire_pd_cookies()
 
                 has_special_access = audit.get('special_access')
-                if has_special_access and ol_account.get_user().preferences().get('rpd') != PDRequestStatus.FULFILLED.value:
+                if (
+                    has_special_access
+                    and ol_account.get_user().preferences().get('rpd')
+                    != PDRequestStatus.FULFILLED.value
+                ):
                     _update_account_on_pd_fulfillment(ol_account)
 
         # Fallback to infogami user/pass
@@ -563,7 +567,11 @@ class account_login(delegate.page):
                 )
 
             has_special_access = audit.get('special_access')
-            if has_special_access and ol_account.get_user().preferences().get('rpd') != PDRequestStatus.FULFILLED.value:
+            if (
+                has_special_access
+                and ol_account.get_user().preferences().get('rpd')
+                != PDRequestStatus.FULFILLED.value
+            ):
                 _update_account_on_pd_fulfillment(ol_account)
 
         blacklist = [
