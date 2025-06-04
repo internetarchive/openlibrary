@@ -364,7 +364,7 @@ class PDRequestStatus(Enum):
     FULFILLED = 2
 
 
-def _update_account_for_pd(ol_account: OpenLibraryAccount) -> None:
+def _update_account_on_pd_request(ol_account: OpenLibraryAccount) -> None:
     pda = web.cookies().get("pda")
     ol_account.get_user().save_preferences(
         {
@@ -449,7 +449,7 @@ class account_login_json(delegate.page):
                 _set_account_cookies(ol_account, expires)
 
                 if web.cookies().get("pda"):
-                    _update_account_for_pd(ol_account)
+                    _update_account_on_pd_request(ol_account)
                     _notify_on_rpd_verification(
                         ol_account, get_pd_org(web.cookies().get("pda"))
                     )
@@ -548,7 +548,7 @@ class account_login(delegate.page):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
-                _update_account_for_pd(ol_account)
+                _update_account_on_pd_request(ol_account)
                 _notify_on_rpd_verification(
                     ol_account, get_pd_org(web.cookies().get("pda"))
                 )
