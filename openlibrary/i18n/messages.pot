@@ -981,10 +981,6 @@ msgid "Check nearby libraries"
 msgstr ""
 
 #: WorldcatLink.html
-msgid "Library.link"
-msgstr ""
-
-#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
 msgstr ""
 
@@ -5696,6 +5692,10 @@ msgstr ""
 
 #: home/index.html
 msgid "Thrillers"
+msgstr ""
+
+#: home/index.html
+msgid "Authors Alliance & MIT Press"
 msgstr ""
 
 #: home/loans.html

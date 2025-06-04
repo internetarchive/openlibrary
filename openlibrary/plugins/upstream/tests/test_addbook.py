@@ -359,6 +359,8 @@ class TestSaveBookHelper:
                     "type": {"key": "/type/work"},
                     "key": "/works/OL100W",
                     "title": "Original Work Title",
+                    "authors": [{"key": "/authors/OL123A"}],
+                    "subjects": [{"key": "/subjects/Horror"}],
                 },
                 {
                     "type": {"key": "/type/edition"},
@@ -392,6 +394,99 @@ class TestSaveBookHelper:
         assert new_work.title == "Original Edition Title"
         # Should ignore edits to work data
         assert web.ctx.site.get("/works/OL100W").title == "Original Work Title"
+        # Should ignore authors/subjects by default
+        assert not new_work.authors
+        assert not new_work.subjects
+
+    def test_moving_edition_to_new_work_can_copy_data(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL100W",
+                    "title": "Original Work Title",
+                    "authors": [{"key": "/authors/OL123A"}],
+                    "subjects": [{"key": "/subjects/Horror"}],
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL100W"}],
+                },
+            ]
+        )
+
+        work = web.ctx.site.get("/works/OL100W")
+        edition = web.ctx.site.get("/books/OL1M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL100W",
+                "work--title": "FOO BAR",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "__new__",
+                "new_work_options--copy_authors": "yes",
+                "new_work_options--copy_subjects": "yes",
+            }
+        )
+        # But if we pass in the authors/subjects, it should use them
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        assert len(web.ctx.site.docs) == 3
+        old_work = web.ctx.site.get("/works/OL100W")
+        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert new_work.key != old_work.key
+        # Should ignore authors/subjects by default
+        assert new_work.authors == old_work.authors
+        assert new_work.subjects == old_work.subjects
+
+    def test_moving_edition_to_new_work_copy_when_none(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL100W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL100W"}],
+                },
+            ]
+        )
+
+        work = web.ctx.site.get("/works/OL100W")
+        edition = web.ctx.site.get("/books/OL1M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL100W",
+                "work--title": "FOO BAR",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "__new__",
+                "new_work_options--copy_authors": "yes",
+                "new_work_options--copy_subjects": "yes",
+            }
+        )
+        # But if we pass in the authors/subjects, it should use them
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        assert len(web.ctx.site.docs) == 3
+        old_work = web.ctx.site.get("/works/OL100W")
+        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert new_work.key != old_work.key
+        # Should ignore authors/subjects by default
+        assert not new_work.authors
+        assert not new_work.subjects
 
 
 class TestMakeWork:
