@@ -212,6 +212,7 @@ export function init() {
                 handle: '.mia__reorder',
                 items: '.mia__input',
                 update: update_indices,
+                cancel: '.mia__move, .mia__remove'
             });
         }
 
@@ -220,6 +221,54 @@ export function init() {
                 $(this).closest('.mia__input').remove();
                 update_visible();
                 update_indices();
+            }
+        });
+
+        // Add move button functionality
+        container.on('click', '.mia__move', function(event) {
+            event.preventDefault();
+            const $currentItem = $(this).closest('.mia__input');
+            const $allItems = container.find('.mia__input');
+            const currentIndex = $allItems.index($currentItem);
+            const totalItems = $allItems.length;
+
+            // Create move options - always show the main three options
+            const moveOptions = ['Move to Top', 'Move to Bottom', 'Move to Position...', 'Cancel'];
+
+            // Simple implementation using prompt
+            // You can replace this with a proper modal dialog
+            const optionsText = moveOptions.map((opt, idx) => `${idx + 1}. ${opt}`).join('\n');
+            const selection = prompt(`Choose move option:\n${optionsText}\n\nEnter number (1-${moveOptions.length}):`);
+            const selectedIndex = parseInt(selection) - 1;
+            const choice = (selectedIndex >= 0 && selectedIndex < moveOptions.length) ? moveOptions[selectedIndex] : 'Cancel';
+
+            if (choice === 'Cancel') return;
+
+            // Handle different move operations
+            if (choice === 'Move to Top' && currentIndex > 0) {
+                $currentItem.insertBefore($allItems.first());
+                update_indices();
+            } else if (choice === 'Move to Bottom' && currentIndex < totalItems - 1) {
+                $currentItem.insertAfter($allItems.last());
+                update_indices();
+            } else if (choice === 'Move to Position...') {
+                const newPosition = prompt(`Enter new position (1-${totalItems}):`);
+                const newIndex = parseInt(newPosition) - 1;
+                
+                if (newIndex >= 0 && newIndex < totalItems && newIndex !== currentIndex) {
+                    if (newIndex === 0) {
+                        $currentItem.insertBefore($allItems.first());
+                    } else if (newIndex === totalItems - 1) {
+                        $currentItem.insertAfter($allItems.last());
+                    } else {
+                        if (newIndex < currentIndex) {
+                            $currentItem.insertBefore($allItems.eq(newIndex));
+                        } else {
+                            $currentItem.insertAfter($allItems.eq(newIndex));
+                        }
+                    }
+                    update_indices();
+                }
             }
         });
 
