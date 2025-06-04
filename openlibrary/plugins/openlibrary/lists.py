@@ -235,7 +235,9 @@ def get_user_lists(seed_info):
 
 @public
 def convert_list(list):
-    newList = List(None, list, None) 
+    site = web.ctx.site
+    data = site._load(list)
+    newList = List(site, list, data) 
     return newList
 
 class lists_partials(delegate.page):
