@@ -1057,7 +1057,7 @@ class daisy(delegate.page):
 class work_identifiers(delegate.view):
     # TODO: (cclauss) Fix typing in infogami.utils.delegate and remove type: ignore
     suffix = "identifiers"  # type: ignore[assignment]
-    types = ["/type/edition"]  # type: ignore[assignment]
+    types = ["/type/edition"]  # type: ignore[assignment] # noqa: RUF012
 
     def POST(self, edition):
         saveutil = DocSaveHelper()
