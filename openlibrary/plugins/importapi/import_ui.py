@@ -13,7 +13,6 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
-from openlibrary.plugins.importapi.code import ia_importapi
 
 
 class import_preview(delegate.page):
@@ -188,6 +187,9 @@ class IaMetadataProvider(AbstractMetadataProvider):
 
     @override
     def do_import(self, identifier: str, save: bool):
+        # This appears to be causing a circular dependency... only in tests?
+        from openlibrary.plugins.importapi.code import ia_importapi
+
         import_record, from_marc_record = ia_importapi.get_ia_import_record(
             identifier,
             require_marc=False,
