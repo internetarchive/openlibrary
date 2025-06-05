@@ -157,7 +157,10 @@ $code:
                   $for chapter in matching_chapters:
                     $if not chapter.strip():
                       $continue
-                    $ chapter_parts = chapter.split('|')
+                    $ ed_olid, rest = chapter.split(' | ', 1)
+                    $if '/books/' + ed_olid != selected_ed.get('key'):
+                      $continue
+                    $ chapter_parts = rest.split('|')
                     $if len(chapter_parts) < 3:
                       $ chapter_parts = ['', chapter, '']
                     $ pagenum = None

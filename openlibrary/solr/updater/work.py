@@ -335,7 +335,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def chapter(self) -> set[str]:
-        return {chapter for ed in self._solr_editions for chapter in ed.chapter}
+        return {
+            # HACK store the edition olid in the chapter :/
+            f'{ed.key.split('/')[-1]} | {chapter}'
+            for ed in self._solr_editions
+            for chapter in ed.chapter
+        }
 
     @property
     def edition_count(self) -> int:
