@@ -248,6 +248,27 @@ class ia_importapi(importapi):
         force_import: bool = False,
         preview: bool = False,
     ) -> str:
+        import_record, from_marc_record = cls.get_ia_import_record(
+            identifier,
+            require_marc=require_marc,
+            force_import=force_import,
+            preview=preview,
+        )
+        result = add_book.load(
+            import_record,
+            from_marc_record=from_marc_record,
+            save=not preview,
+        )
+        return json.dumps(result)
+
+    @classmethod
+    def get_ia_import_record(
+        cls,
+        identifier: str,
+        require_marc: bool = True,
+        force_import: bool = False,
+        preview: bool = False,
+    ) -> tuple[dict, bool]:
         """
         Performs logic to fetch archive.org item + metadata,
         produces a data dict, then loads into Open Library
@@ -281,26 +302,22 @@ class ia_importapi(importapi):
             if not force_import:
                 raise_non_book_marc(marc_record)
             try:
-                edition_data = read_edition(marc_record)
+                import_record = read_edition(marc_record)
             except MarcException as e:
                 logger.error(f'failed to read from MARC record {identifier}: {e}')
                 raise BookImportError('invalid-marc-record')
         else:
             try:
-                edition_data = cls.get_ia_record(metadata)
+                import_record = cls.get_ia_record(metadata)
             except KeyError:
                 raise BookImportError('invalid-ia-metadata')
             except ValidationError as e:
                 raise BookImportError('not-differentiable', str(e))
 
         # Add IA specific fields: ocaid, source_records, and cover
-        edition_data = cls.populate_edition_data(edition_data, identifier)
-        result = add_book.load(
-            edition_data,
-            from_marc_record=from_marc_record,
-            save=not preview,
-        )
-        return json.dumps(result)
+        cls.populate_edition_data(import_record, identifier)
+
+        return import_record, from_marc_record
 
     def POST(self):
         web.header('Content-Type', 'application/json')

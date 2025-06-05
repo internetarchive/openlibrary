@@ -10,6 +10,7 @@ from infogami.utils.flash import add_flash_message
 from infogami.utils.template import render_template
 from openlibrary.catalog import add_book
 from openlibrary.core.vendors import get_amazon_metadata
+from openlibrary.plugins.importapi.code import ia_importapi
 
 
 class import_preview(delegate.page):
@@ -178,10 +179,32 @@ class AmazonMetadataProvider(AbstractMetadataProvider):
         )
 
 
+class IaMetadataProvider(AbstractMetadataProvider):
+    full_name = "Internet Archive"
+    id_name = 'ia'
+
+    @override
+    def do_import(self, identifier: str, save: bool):
+        import_record, from_marc_record = ia_importapi.get_ia_import_record(
+            identifier,
+            require_marc=False,
+            force_import=True,
+            preview=not save,
+        )
+        assert import_record, "No metadata found for the given identifier"
+        return add_book.load(
+            import_record,
+            account_key='account/ImportBot',
+            from_marc_record=from_marc_record,
+            save=save,
+        )
+
+
 class MetadataProviderFactory:
     def __init__(self):
         providers = [
             AmazonMetadataProvider(),
+            IaMetadataProvider(),
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 
