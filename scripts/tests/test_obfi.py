@@ -3,22 +3,24 @@ import os
 import socket
 import sys
 import time
-import urllib.request
 from pathlib import Path
 from types import MappingProxyType
 
 import pytest
+import requests
 
 os.environ['SEED_PATH'] = 'must be truthy for obfi/decode_ip scripts to run'
 from ..obfi import hide, mktable, reveal, shownames
 
 
-def mock_urlopen(*args, **kwargs):
-    """Mock for urllib.request.urlopen to always return seed=1234."""
+def mock_get(*args, **kwargs):
+    """Mock for requests.get to always return seed=1234."""
 
-    class MockRead:
-        def read(self):
-            return b"seed=1234"
+    class MockResponse:
+        content = b"seed=1234"
+
+        def raise_for_status(self):
+            return None
 
         def __enter__(self):
             return self
@@ -26,18 +28,18 @@ def mock_urlopen(*args, **kwargs):
         def __exit__(self, *args):
             pass
 
-    return MockRead()
+    return MockResponse()
 
 
 @pytest.fixture
 def get_patched_hide(monkeypatch) -> hide.HashIP:
     """
-    Patch hide's call to urllib so we can use the same key and not rely
+    Patch hide's call to requests so we can use the same key and not rely
     on network connectivity.
 
     Give mktable a temp custom prefix to use when saving the real_ip db.
     """
-    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    monkeypatch.setattr(requests, "get", mock_get)
 
     hash_ip = hide.HashIP()
     return hash_ip
@@ -51,7 +53,7 @@ def get_patched_mktable(monkeypatch, tmp_path) -> mktable.HashIP:
 
     Give mktable a temp custom prefix to use when saving the real_ip db.
     """
-    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    monkeypatch.setattr(requests, "get", mock_get)
     file: Path = tmp_path / "hide_ip_map_"
     hash_ip = mktable.HashIP(real_ip_prefix=file.as_posix())
 
@@ -123,12 +125,12 @@ class TestReveal:
 
 class TestMkTable:
     """
-    Tests for mktable. All tests use a mocked urllib and temporary file for
+    Tests for mktable. All tests use a mocked requests call and temporary file for
     hide_ip_map_<yday>.
     """
 
     def test_get_seed(self, get_patched_mktable) -> None:
-        """urllib.requests.urlopen has been patched to return a seed of 1234."""
+        """requests.get has been patched to return a seed of 1234."""
         hash_ip = get_patched_mktable
         assert hash_ip.seed == b"1234"
 

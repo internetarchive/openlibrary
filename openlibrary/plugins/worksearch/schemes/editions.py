@@ -1,3 +1,5 @@
+# ruff: noqa: RUF012
+# See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
 import logging
 from datetime import datetime
 
