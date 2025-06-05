@@ -112,7 +112,7 @@ import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
 import { nextTick } from 'vue';
-import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
+import { decrementStringSolr, hierarchyFind, testLuceneSyntax, pollUntilTruthy } from '../utils.js';
 import CONFIGS from '../../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
 
@@ -230,9 +230,17 @@ export default {
                 q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
                 limit: 0,
             })}`).then(r => r.json()).then(r => r.numFound);
-            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
-            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
-            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
+            const olCarousel = await pollUntilTruthy(
+                () => this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`),
+                { timeout: 5000, interval: 100 }
+            );
+            const pageOffset = await olCarousel._hack_loadPageContainingOffset(offset + 1);
+            const bookEl = await pollUntilTruthy(
+                () => olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`),
+                { timeout: 5000, interval: 100 }
+            );
+
+            bookEl.scrollIntoView({
                 inline: 'center'
             });
         }
