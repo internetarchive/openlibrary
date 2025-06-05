@@ -6191,6 +6191,10 @@ msgid "Pending Merge Requests"
 msgstr ""
 
 #: lib/nav_head.html
+msgid "Admin Page"
+msgstr ""
+
+#: lib/nav_head.html
 msgid "Trending"
 msgstr ""
 

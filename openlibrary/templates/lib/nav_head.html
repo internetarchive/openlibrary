@@ -12,6 +12,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
     $ ]
       $if is_privileged_user:
         $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests", "badge": True })
+      $if ctx.user.is_admin():
+        $ loginLinks.append({ "href": "/admin", "text": _("Admin Page"), "track": "Admin"})
   $else:
     $ loginLinks = [
     $     { "loginClass": "login-links" }
