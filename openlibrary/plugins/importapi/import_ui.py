@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import cast, override
 
+import requests
 import web
 
 from infogami.plugins.api.code import jsonapi
@@ -9,6 +10,8 @@ from infogami.utils import delegate
 from infogami.utils.flash import add_flash_message
 from infogami.utils.template import render_template
 from openlibrary.catalog import add_book
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.plugins.importapi.code import ia_importapi
 
@@ -200,11 +203,45 @@ class IaMetadataProvider(AbstractMetadataProvider):
         )
 
 
+class RawMarcMetadataProvider(AbstractMetadataProvider):
+    full_name = "Raw MARC"
+    id_name = 'marc'
+
+    @override
+    def do_import(self, identifier: str, save: bool):
+        # The "ID" is a url, with a byte offset for the start of the MARC record.
+        # Example: "https://archive.org/download/harvard_bibliographic_metadata/20220215_007.bib.mrc:35217689"
+        url, offset = identifier.rsplit(':', 1)
+
+        headers = {'Range': f'bytes={offset}-'}
+        response = requests.get(url, headers=headers, stream=True)
+        if response.status_code != 206:
+            raise ValueError(
+                f"Failed to fetch MARC record from {url}: {response.status_code}"
+            )
+
+        # The first 5 bytes are the length of the MARC record.
+        marc_data = response.raw.read(5)
+        if len(marc_data) < 5:
+            raise ValueError("Invalid MARC record data: less than 5 bytes received")
+        length = int(marc_data[:5])
+        marc_data += response.raw.read(length - 5)
+        marc_record = MarcBinary(marc_data)
+        import_record = read_edition(marc_record)
+        return add_book.load(
+            import_record,
+            account_key='account/ImportBot',
+            from_marc_record=True,
+            save=save,
+        )
+
+
 class MetadataProviderFactory:
     def __init__(self):
         providers = [
             AmazonMetadataProvider(),
             IaMetadataProvider(),
+            RawMarcMetadataProvider(),
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 
