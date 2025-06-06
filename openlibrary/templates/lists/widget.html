@@ -4,6 +4,7 @@ $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
+$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
 
 <div class="lists-widget-container">
 $if "lists" not in ctx.features:
@@ -35,6 +36,9 @@ $def render_widget_display(lists, limit, user_key):
           $:list_card(converted, list.owner, own_list) 
           $ count = count + 1
 
+$def render_follow_button(owner_username, is_subscribed):
+  $ request = "/people/" + owner_username
+  $:macros.Follow(owner_username, following=is_subscribed, request_path=request)
 
 $def list_card(list, owner, own_list):
     $ has_owner = owner
@@ -61,7 +65,14 @@ $def list_card(list, owner, own_list):
                </div>
                $if not own_list:
                 <div class="list-card__num-books">
-                  follow $(owner.displayname)
+                  From $(owner.displayname)
+                </div>
+                 $ owner_username = owner.key.split('/')[-1]
+                 $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
+                 $:render_follow_button(owner_username, is_subscribed) 
+               $else:
+                <div class="list-card__num-books">
+                  From you 
                 </div>
               </div>
             </div>

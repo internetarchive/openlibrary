@@ -1,15 +1,14 @@
-$def with (publisher, fid='', following=False)
+$def with (publisher, fid='', following=False, request_path='')
 
 $ subscriber = ctx.user and ctx.user.key
-
-
+$ custom_request_path = request_path if request_path != '' else request.fullpath 
 <div>
   $if ctx.user:
     <form class="follow-form" id="follow_$fid" method="POST" action="$(subscriber)/follows.json"
           property="follow" typeof="Follows" vocab="http://schema.org/">
       <input type="hidden" value="$following" name="state"/>
       <input type="hidden" value="$publisher" name="publisher"/>
-      <input type="hidden" value="$request.fullpath" name="redir_url"/>
+      <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
       <button type="submit" class="cta-btn cta-btn--$(css_treatment)">$_("Unfollow" if following else "Follow")</button>
     </form>
