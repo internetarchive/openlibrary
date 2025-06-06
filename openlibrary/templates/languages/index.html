@@ -6,13 +6,16 @@ $var title: $_("Languages")
     <h1>$_("Languages")</h1>
 </div>
 <div id="contentBody">
+    $:render_template("search/sort_options.html", selected_sort=query_param('sort', None), default_sort='count', search_scheme="languages")
     <ul class="subjectList">
         $for lang in languages:
             <li>
                 <a href="$lang.key">$lang.name</a>
                 <span class="count">
-                    $ pattern = ungettext("%s book", "%s books", lang.count)
-                    <b>$sprintf(pattern, commify(lang.count))</b>
+                    $# Avoid newlines in the <a> tags, since that renders as a trailing underline
+                    <a href="/search?q=language:$lang.marc_code">$ungettext("%s work", "%s works", lang.count, commify(lang.count))</a>
+                    &bull;
+                    <a href="/search?q=language:$lang.marc_code+ebook_access:[borrowable TO *]">$ungettext("%s ebook edition", "%s ebook editions", lang.ebook_edition_count, commify(lang.ebook_edition_count))</a>
                 </span>
             </li>
     </ul>
