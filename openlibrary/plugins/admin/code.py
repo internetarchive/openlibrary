@@ -33,6 +33,7 @@ from openlibrary.core import (
     imports,
 )
 from openlibrary.core.models import Work
+from openlibrary.core.pd import make_pd_request_query
 from openlibrary.plugins.upstream import forms, spamcheck
 
 logger = logging.getLogger("openlibrary.admin")
@@ -831,30 +832,14 @@ class show_log:
 
 class pd_dashboard:
     def GET(self):
-        keys = web.ctx.site.things({
-                "type": "/type/object",
-                "key~": "/people/*/preferences",
-                "notifications": {
-                    "pda~": "*"
-                }
-            }
-        )
+        results = {
+            "requested_access": [],
+            "emailed": [],
+            "fulfilled": [],
+        }
+        request_data = make_pd_request_query()
 
-        def sort_requests(pd_requests):
-            results = {
-                "requested_access": [],
-                "emailed": []
-            }
-            for r in pd_requests:
-                status = r.get("notifications", {}).get("rpd")
-                if status == 0:
-                    results["requested_access"].append(r)
-                else:
-                    results["emailed"].append(r)
-            return results
-
-        pd_requests = web.ctx.site.get_many(keys)
-        return render_template("admin/pd_dashboard", sort_requests(pd_requests))
+        return render_template("admin/pd_dashboard", request_data)
 
 
 def setup():
