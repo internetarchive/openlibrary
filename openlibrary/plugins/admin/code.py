@@ -33,7 +33,7 @@ from openlibrary.core import (
     imports,
 )
 from openlibrary.core.models import Work
-from openlibrary.core.pd import make_pd_request_query
+from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
 
 logger = logging.getLogger("openlibrary.admin")
@@ -832,14 +832,9 @@ class show_log:
 
 class pd_dashboard:
     def GET(self):
-        results = {
-            "requested_access": [],
-            "emailed": [],
-            "fulfilled": [],
-        }
-        request_data = make_pd_request_query()
+        dashboard_data = get_pd_dashboard_data()
 
-        return render_template("admin/pd_dashboard", request_data)
+        return render_template("admin/pd_dashboard", dashboard_data)
 
 
 def setup():
