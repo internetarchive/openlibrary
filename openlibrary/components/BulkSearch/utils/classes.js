@@ -117,7 +117,7 @@ export class AiExtractor extends AbstractExtractor{
                     new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})
                 )
         }
-        catch (error) {
+        catch {
             return []
         }
 
