@@ -4,6 +4,7 @@ import requests
 
 from infogami import config
 from openlibrary.core import cache
+from openlibrary.core.pd import make_pd_request_query
 from openlibrary.i18n import gettext as _
 from openlibrary.utils.dateutil import DAY_SECS
 
@@ -70,6 +71,30 @@ def cached_pd_org_query() -> list:
     if not (results := mc() or []):
         mc(_cache="delete")
     return results
+
+
+def get_pd_dashboard_data() -> dict:
+    def enrich_data(_request_data):
+        for d in _request_data:
+            pda = d['pda']
+            d['display_name'] = (
+                "No Qualifying Authority Selected"
+                if pda == "unqualified"
+                else get_pd_org(pda)['title']
+            )
+
+    request_data = make_pd_request_query()
+    totals = request_data and request_data.pop(0)
+    enrich_data(request_data)
+    return {
+        "data": request_data,
+        "totals": {
+            'requested': totals['requested'],
+            'emailed': totals['emailed'],
+            'fulfilled': totals['fulfilled'],
+            'total': totals['requested'] + totals['emailed'] + totals['fulfilled'],
+        },
+    }
 
 
 def setup():

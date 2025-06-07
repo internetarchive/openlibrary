@@ -3328,7 +3328,8 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
+#: site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -3580,6 +3581,10 @@ msgid "Admin Center"
 msgstr ""
 
 #: admin/menu.html
+msgid "PD Access Requests"
+msgstr ""
+
+#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -3601,6 +3606,10 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Print Disability Access Requests"
 msgstr ""
 
 #: admin/permissions.html
