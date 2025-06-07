@@ -27,58 +27,6 @@ $def render_already_lists(lists, user_key):
         $if list['active']:
             $:render_template('lists/list_overview', list, user_key, seed_info)
 
-$def render_widget_display(lists, limit, user_key):
-    $ count = 0
-    $for i, list in enumerate(lists):
-        $if count < limit:
-          $ own_list = list.owner and list.owner.key == user_key
-          $ converted = convert_list(list.key)
-          $:list_card(converted, list.owner, own_list) 
-          $ count = count + 1
-
-$def render_follow_button(owner_username, is_subscribed):
-  $ request = "/people/" + owner_username
-  $:macros.Follow(owner_username, following=is_subscribed, request_path=request)
-
-$def list_card(list, owner, own_list):
-    $ has_owner = owner
-    $ cached_info = list.get_patron_showcase()
-    $ count = cached_info["count"]
-    <div class="list-card" >
-        <a class="list-card__covers" href="$list.get_url()">
-            $for img_url in cached_info["covers"]:
-                $if img_url:
-                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
-                $else:
-                    $ img_url = '/images/icons/avatar_book-sm.png'
-                <img src="$img_url" loading="lazy" width="80"/>
-        </a>
-          <div class="list-card__name-tag">
-            <div class="list-card__name-avatar">
-              <a href="$owner.key">
-                <img src="$(owner.key)/avatar" class="list-card__avatar"/>
-              </a>
-              <div class="list-card__text">
-               <div class="list-card__title">$cached_info["title"]</div>
-               <div class="list-card__num-books">
-                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
-               </div>
-               $if not own_list:
-                <div class="list-card__num-books">
-                  From $(owner.displayname)
-                </div>
-                 $ owner_username = owner.key.split('/')[-1]
-                 $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
-                 $:render_follow_button(owner_username, is_subscribed) 
-               $else:
-                <div class="list-card__num-books">
-                  From you 
-                </div>
-              </div>
-            </div>
-          </div>
-    </div>
-
 $def render_head(page_lists, page_url):
     <div>
       <h3 class="header">
@@ -126,7 +74,7 @@ $if include_widget:
 $if include_showcase:    
   <div class="carousel-section">
     <div class="list-showcase">
-      $:render_widget_display(page_lists, 5, user_key )
+      $:render_template('lists/list_follow', page_lists, 5, user_key)
       $if len(page_lists) > 5:
           <a
             class="list-showcase__see-all cta-btn cta-btn--vanilla"
