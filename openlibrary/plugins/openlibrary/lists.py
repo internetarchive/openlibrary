@@ -360,6 +360,10 @@ class lists_add_account(delegate.page):
     def GET(self):
         return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
 
+    @require_login
+    def POST(self):
+        return web.tempredirect(f'{get_current_user().key}/lists/add{web.ctx.query}')
+
 
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/lists/add"
@@ -375,6 +379,15 @@ class lists_add(delegate.page):
         return render_template("type/list/edit", list_record, new=True)
 
     def POST(self, user_key: str | None):  # type: ignore[override]
+        val = parse_qs(bytes.decode(web.data()))
+        if val.get("preview", []) == ["true"]:
+            list_record = ListRecord(
+                seeds=[
+                    ListRecord.normalize_input_seed(seed)
+                    for seed in val.get("seeds", [])[0].split(",")
+                ]
+            )
+            return render_template("type/list/edit", list_record, new=True)
         return lists_edit().POST(user_key, None)
 
 
