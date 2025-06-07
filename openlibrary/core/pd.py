@@ -1,5 +1,6 @@
 from . import db
 
+
 def make_pd_request_query():
     oldb = db.get_db()
 
@@ -28,9 +29,9 @@ def make_pd_request_query():
                 status_key ON status.key_id = status_key.key_id
             GROUP BY
                 pda.value
-        
+
             UNION ALL
-        
+
             -- Total row
             SELECT
                 'TOTAL' AS pda,
@@ -47,7 +48,7 @@ def make_pd_request_query():
             JOIN
                 status_key ON status.key_id = status_key.key_id
         )
-        
+
         SELECT
             pda,
             requested,

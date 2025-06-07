@@ -77,7 +77,11 @@ def get_pd_dashboard_data() -> dict:
     def enrich_data(_request_data):
         for d in _request_data:
             pda = d['pda']
-            d['display_name'] = "No Qualifying Authority Selected" if pda == "unqualified" else get_pd_org(pda)['title']
+            d['display_name'] = (
+                "No Qualifying Authority Selected"
+                if pda == "unqualified"
+                else get_pd_org(pda)['title']
+            )
 
     request_data = make_pd_request_query()
     totals = request_data and request_data.pop(0)
