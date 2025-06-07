@@ -43,6 +43,7 @@ DUMP_PREFIXES = (
     '_deworks',
     '_ratings',
     '_reading-log',
+    '_wikidata',
 )
 
 
