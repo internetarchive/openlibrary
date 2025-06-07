@@ -52,7 +52,7 @@ CREATE TABLE bookshelves_books (
     primary key (username, work_id, bookshelf_id)
 );
 CREATE INDEX bookshelves_books_work_id_idx ON bookshelves_books (work_id);
-
+CREATE INDEX bookshelves_books_updated_idx ON bookshelves_books (updated);
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
