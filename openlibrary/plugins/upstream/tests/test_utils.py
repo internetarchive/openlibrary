@@ -176,7 +176,7 @@ def test_strip_accents():
     assert f('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'
 
 
-def test_get_abbrev_from_full_lang_name(
+def test_full_lang_name_to_lang_code(
     mock_site: MockSite, monkeypatch, add_languages  # noqa F811
 ) -> None:
     utils.get_languages.cache_clear()
@@ -223,24 +223,24 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    assert utils.get_abbrev_from_full_lang_name("EnGlish") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("Dorerin Ingerand") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("ингилисӣ") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("ингилиси") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("Anglais") == "fre"
+    assert utils.full_lang_name_to_lang_code("EnGlish") == "eng"
+    assert utils.full_lang_name_to_lang_code("Dorerin Ingerand") == "eng"
+    assert utils.full_lang_name_to_lang_code("ингилисӣ") == "eng"
+    assert utils.full_lang_name_to_lang_code("ингилиси") == "eng"
+    assert utils.full_lang_name_to_lang_code("Anglais") == "fre"
 
     # See openlibrary/catalog/add_book/tests/conftest.py for imported languages.
     with pytest.raises(utils.LanguageMultipleMatchError):
-        utils.get_abbrev_from_full_lang_name("frisian")
+        utils.full_lang_name_to_lang_code("frisian")
 
     with pytest.raises(utils.LanguageMultipleMatchError):
-        utils.get_abbrev_from_full_lang_name("inlish aru")
+        utils.full_lang_name_to_lang_code("inlish aru")
 
     with pytest.raises(utils.LanguageMultipleMatchError):
-        utils.get_abbrev_from_full_lang_name("Spanish")
+        utils.full_lang_name_to_lang_code("Spanish")
 
     with pytest.raises(utils.LanguageNoMatchError):
-        utils.get_abbrev_from_full_lang_name("Missing or non-existent language")
+        utils.full_lang_name_to_lang_code("Missing or non-existent language")
 
 
 def test_get_colon_only_loc_pub() -> None:

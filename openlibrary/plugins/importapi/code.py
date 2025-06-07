@@ -32,8 +32,8 @@ from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.upstream.utils import (
     LanguageMultipleMatchError,
     LanguageNoMatchError,
-    get_abbrev_from_full_lang_name,
     get_location_and_publisher,
+    resolve_to_lang_code,
     safeget,
 )
 from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
@@ -414,7 +414,7 @@ class ia_importapi(importapi):
             # E.g. English -> eng.
             else:
                 try:
-                    if lang_code := get_abbrev_from_full_lang_name(language):
+                    if lang_code := resolve_to_lang_code(language):
                         d['languages'] = [lang_code]
                 except LanguageMultipleMatchError as e:
                     logger.warning(
