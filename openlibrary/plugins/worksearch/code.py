@@ -377,7 +377,7 @@ def get_doc(doc: SolrDocument):
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
         collections=(
-            set(doc['ia_collection_s'].split(';'))
+            list(doc['ia_collection_s'].split(';'))
             if doc.get('ia_collection_s')
             else set()
         ),
