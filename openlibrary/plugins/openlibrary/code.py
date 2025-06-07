@@ -1321,6 +1321,7 @@ def setup_context_defaults():
 
 
 def setup():
+    from openlibrary.plugins.importapi import import_ui
     from openlibrary.plugins.openlibrary import (
         authors,
         borrow_home,
@@ -1344,6 +1345,7 @@ def setup():
     authors.setup()
     swagger.setup()
     partials.setup()
+    import_ui.setup()
 
     from openlibrary.plugins.openlibrary import (
         api,  # noqa: F401 side effects may be needed
