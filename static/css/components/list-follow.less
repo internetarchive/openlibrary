@@ -30,53 +30,76 @@
   display: flex;
   flex-direction: column;
 
-//   background-color: @grey-f4f4f4;
+  background-color: @beige;
 
-  @card-width: 250px;
+  @card-width: 215px;
   width: @card-width;
-  height: 200px;
+  height: 150px;
 
   border: 1px solid fade(@black, 25%);
   border-radius: 4px;
   box-shadow: 2px 2px 4px fade(@black, 15%);
 
-  &__name-tag {
-    // background: @grey-f4f4f4;
+  &__header{
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 7px 10px;
     border-radius: 0 0 4px 4px;
-    // box-shadow: 0 0 4px fade(@black, 25%);
   }
   &__name-avatar {
     display: flex;
   }
   &__bottom{
+    background: @grey-f4f4f4;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     padding-bottom: 5px;
+    padding-top: 5px;
   }
   &__avatar {
-    border-radius: 100px;
-    width: 25px;
-    height: 25px;
+    border-radius: 8px;
+    width: 30px;
+    height: 30px;
     margin-right: 5px; 
+    margin-top: -10px;
+    position: relative;
+    z-index: 10;
+    border: 2px solid white;
   }
   &__user{
    display: flex;
    align-items: center;  
-   font-size: x-small;
    font-weight: bold;
+   font-size: x-small;
+   padding-left: 5px;
+  }
 
+  &__username{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__text {
    display: flex; 
    flex-direction: column;
   }
+  &__follow-button {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding-right: 5px;
 
+    .cta-btn {
+     font-size: 12px;  // Override base size
+     padding: 1px 10px;  // Less padding
+     border-radius: 4px;  // Custom radius
+     box-shadow: none;  // Remove default shadow if present
+     margin: 0px;
+  }
+}
   &__title {
     font-weight: bold;
     font-size: @font-size-label-large;
@@ -106,7 +129,6 @@
     display: flex;
     align-items: center;
     padding: 0 @padding;
-    justify-content: space-evenly;
 
     img {
       width: @cover-width;
@@ -114,24 +136,27 @@
       box-shadow: 4px 4px 0 fade(@black, 25%);
     }
 
-    // @top-cover: 3;
-    // @mid-cover: 2;
-    // @bottom-cover: 1;
+    @top-cover: 3;
+    @mid-cover: 2;
+    @bottom-cover: 1;
 
-    // @overlap: ((3 * @cover-width - (@card-width - 2 * @padding)) / 2);
+    @overlap: ((3 * @cover-width - (@card-width - 2 * @padding)) / 2);
 
-    // img:nth-child(1) {
-    //   z-index: @top-cover;
-    //   transform: translate(0, @padding);
-    // }
-    // img:nth-child(2) {
-    //   z-index: @mid-cover;
-    //   transform: translate(-@overlap, @padding);
-    // }
-    // img:nth-child(3) {
-    //   z-index: @bottom-cover;
-    //   transform: translate(-2 * @overlap, @padding);
-    // }
+    img:nth-child(1) {
+      z-index: @top-cover;
+      transform: translate(0, @padding);
+    }
+    img:nth-child(2) {
+      z-index: @mid-cover;
+      transform: translate(-@overlap, @padding);
+    }
+    img:nth-child(3) {
+      z-index: @bottom-cover;
+      transform: translate(-2 * @overlap, @padding);
+    }
+    &:hover img {
+    scale: 1.05;
+  }
   }
 
   // stylelint-disable-next-line no-descending-specificity
@@ -139,7 +164,5 @@
     transition: scale 0.2s;
   }
 
-  &:hover img {
-    scale: 1.05;
-  }
+  
 }

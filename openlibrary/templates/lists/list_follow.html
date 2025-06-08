@@ -8,8 +8,8 @@ $def list_card(list, owner, own_list):
     $ has_owner = owner
     $ cached_info = list.get_patron_showcase()
     $ count = cached_info["count"]
-    <div class="list-follow-card" >
-        <div class="list-follow-card__name-tag">
+    <div class="list-follow-card">
+        <div class="list-follow-card__header">
             <div class="list-follow-card__title">$cached_info["title"]</div>
             <div class="list-follow-card__num-books">
                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
@@ -26,22 +26,25 @@ $def list_card(list, owner, own_list):
             
             <div class="list-follow-card__bottom">
               <div class="list-follow-card__user">
-                <a href="$owner.key">
-                 <img src="$(owner.key)/avatar" class="list-follow-card__avatar"/>
-                </a>
-               
-                $if not own_list:
-                 $('@' + owner.displayname)
-                 
-                $else:
+                <div>
+                 <a href="$owner.key">
+                  <img src="$(owner.key)/avatar" class="list-follow-card__avatar"/>
+                 </a>
+                </div>
+                
+                <div class="list-follow-card__username"> 
+                 $if not own_list:
+                  $('@' + owner.displayname)
+                 $else:
                     $_('You') 
+                </div>
             </div>
+            <div class="list-follow-card__follow-button">
                $if not own_list:
-               <div class="list-follow-card__name-avatar">
                  $ owner_username = owner.key.split('/')[-1]
                  $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
                  $:render_follow_button(owner_username, is_subscribed) 
-                </div>
+            </div>
             </div>
     </div>
 
