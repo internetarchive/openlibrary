@@ -8,8 +8,14 @@ $def list_card(list, owner, own_list):
     $ has_owner = owner
     $ cached_info = list.get_patron_showcase()
     $ count = cached_info["count"]
-    <div class="list-card" >
-        <a class="list-card__covers" href="$list.get_url()">
+    <div class="list-follow-card" >
+        <div class="list-follow-card__name-tag">
+            <div class="list-follow-card__title">$cached_info["title"]</div>
+            <div class="list-follow-card__num-books">
+                $ungettext("%(count)d book", "%(count)d books", count, count=count)
+            </div>
+        </div>
+        <a class="list-follow-card__covers" href="$list.get_url()">
             $for img_url in cached_info["covers"]:
                 $if img_url:
                     $ img_url = img_url.replace("-S.jpg", "-M.jpg")
@@ -17,31 +23,26 @@ $def list_card(list, owner, own_list):
                     $ img_url = '/images/icons/avatar_book-sm.png'
                 <img src="$img_url" loading="lazy" width="80"/>
         </a>
-          <div class="list-card__name-tag">
-            <div class="list-card__name-avatar">
-              <a href="$owner.key">
-                <img src="$(owner.key)/avatar" class="list-card__avatar"/>
-              </a>
-              <div class="list-card__text">
-               <div class="list-card__title">$cached_info["title"]</div>
-               <div class="list-card__num-books">
-                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
-               </div>
+            
+            <div class="list-follow-card__bottom">
+              <div class="list-follow-card__user">
+                <a href="$owner.key">
+                 <img src="$(owner.key)/avatar" class="list-follow-card__avatar"/>
+                </a>
+               
+                $if not own_list:
+                 $('@' + owner.displayname)
+                 
+                $else:
+                    $_('You') 
+            </div>
                $if not own_list:
-                <div class="list-card__num-books">
-                 From $(owner.displayname)
+               <div class="list-follow-card__name-avatar">
                  $ owner_username = owner.key.split('/')[-1]
                  $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
                  $:render_follow_button(owner_username, is_subscribed) 
                 </div>
-                 
-               $else:
-                <div class="list-card__num-books">
-                  From you 
-                </div>
-              </div>
             </div>
-          </div>
     </div>
 
 $ count = 0
