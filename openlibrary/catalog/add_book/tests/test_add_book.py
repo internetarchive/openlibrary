@@ -10,7 +10,7 @@ from openlibrary.catalog.add_book import (
     IndependentlyPublished,
     PublicationYearTooOld,
     PublishedInFutureYear,
-    RequiredField,
+    RequiredFields,
     SourceNeedsISBN,
     build_pool,
     check_cover_url_host,
@@ -173,7 +173,7 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
 
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
-    pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
+    pytest.raises(RequiredFields, load, {'ocaid': 'test_item'})
 
 
 def test_load_test_item(mock_site, add_languages, ia_writeback):

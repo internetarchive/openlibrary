@@ -200,7 +200,7 @@ class importapi:
             reply = add_book.load(edition, save=not preview)
             # TODO: If any records have been created, return a 201, otherwise 200
             return json.dumps(reply)
-        except add_book.RequiredField as e:
+        except add_book.RequiredFields as e:
             return self.error('missing-required-field', str(e))
         except ClientException as e:
             return self.error('bad-request', **json.loads(e.json))

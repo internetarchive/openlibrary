@@ -100,12 +100,12 @@ class CoverNotSaved(Exception):
         return f"coverstore responded with: '{self.f}'"
 
 
-class RequiredField(Exception):
-    def __init__(self, f):
-        self.f = f
+class RequiredFields(Exception):
+    def __init__(self, fields: Iterable[str]):
+        self.fields = fields
 
     def __str__(self):
-        return "missing required field(s): %s" % ", ".join(self.f)
+        return f"missing required field(s): {self.fields}"
 
 
 class PublicationYearTooOld(Exception):
@@ -762,13 +762,12 @@ def normalize_import_record(rec: dict) -> None:
 
         NOTE: This function modifies the passed-in rec in place.
     """
-    required_fields = [
+    required_fields = {
         'title',
         'source_records',
-    ]  # ['authors', 'publishers', 'publish_date']
-    for field in required_fields:
-        if not rec.get(field):
-            raise RequiredField(field)
+    }  # ['authors', 'publishers', 'publish_date']
+    if missing_required_fields := required_fields - rec.keys():
+        raise RequiredFields(missing_required_fields)
 
     # Ensure source_records is a list.
     if not isinstance(rec['source_records'], list):
