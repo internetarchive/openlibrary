@@ -90,19 +90,13 @@ export function decrementStringSolr(string, caseSensitive=true, numeric=false) {
  * @returns {Promise<T | undefined>} - A promise that resolves to the truthy value returned by the function, or undefined if the timeout is reached.
  */
 export async function pollUntilTruthy(fn, { timeout = 1000, step = 100 } = {}) {
-    return new Promise(resolve => {
-        const start = Date.now();
-        const interval = setInterval(() => {
-            const val = fn();
-            if (val) {
-                clearInterval(interval);
-                resolve(val);
-            } else if (Date.now() - start > timeout) {
-                clearInterval(interval);
-                resolve(undefined);
-            }
-        }, step);
-    });
+    const start = Date.now();
+    while (Date.now() - start <= timeout) {
+        const val = fn();
+        if (val) return val;
+        await new Promise(resolve => setTimeout(resolve, step));
+    }
+    return undefined;
 }
 
 /**
