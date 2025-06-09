@@ -4,6 +4,8 @@
       loading="lazy"
       :src="cover_url"
       @click="openEnlargedCover"
+      tabindex="0"
+      aria-label="Click to enlarge cover image"
     >
     <div class="links">
       <a
@@ -87,11 +89,7 @@ export default {
         },
 
         cover_id() {
-            if (this.edition.covers && this.edition.covers[0] && this.edition.covers[0] > 0) {
-                return this.edition.covers[0]
-            } else {
-                return null;
-            }
+            return this.edition.covers?.[0] ?? null;
         },
 
         cover_url() {
@@ -124,7 +122,7 @@ export default {
             let url = '';
             if (this.cover_id) {
                 url = `https://covers.openlibrary.org/b/id/${this.cover_id}.jpg`;
-            } else {
+            } else if (this.edition.ocaid) {
                 const ocaid = this.edition.ocaid;
                 url = `https://archive.org/download/${ocaid}/page/cover_w600_h600.jpg`;
             }
