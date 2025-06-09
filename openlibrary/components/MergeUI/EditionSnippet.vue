@@ -3,9 +3,9 @@
     <img
       loading="lazy"
       :src="cover_url"
-      @click="openEnlargedCover"
       tabindex="0"
       aria-label="Click to enlarge cover image"
+      @click="openEnlargedCover"
     >
     <div class="links">
       <a
