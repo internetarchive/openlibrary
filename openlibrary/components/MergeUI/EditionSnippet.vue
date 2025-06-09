@@ -3,6 +3,9 @@
     <img
       loading="lazy"
       :src="cover_url"
+      tabindex="0"
+      aria-label="Click to enlarge cover image"
+      @click="openEnlargedCover"
     >
     <div class="links">
       <a
@@ -85,18 +88,18 @@ export default {
             return title;
         },
 
+        cover_id() {
+            return this.edition.covers?.[0] ?? null;
+        },
+
         cover_url() {
-            const id =
-        this.edition.covers && this.edition.covers[0]
-            ? this.edition.covers[0]
-            : null;
-            if (id) return `https://covers.openlibrary.org/b/id/${id}-M.jpg`;
+            if (this.cover_id) return `https://covers.openlibrary.org/b/id/${this.cover_id}-M.jpg`;
 
             const ocaid = this.edition.ocaid;
             if (ocaid)
                 return `https://archive.org/download/${ocaid}/page/cover_w180_h360.jpg`;
 
-            return 'https://covers.openlibrary.org/b/id/-1-M.jpg';
+            return '';
         },
 
         languages() {
@@ -111,6 +114,22 @@ export default {
                 this.edition.isbn_10 && ISBN.asIsbn10(this.edition.isbn_10),
                 this.edition.isbn_13 && ISBN.asIsbn10(this.edition.isbn_13),
             ].filter(x => x));
+        }
+    },
+
+    methods: {
+        openEnlargedCover() {
+            let url = '';
+            if (this.cover_id) {
+                url = `https://covers.openlibrary.org/b/id/${this.cover_id}.jpg`;
+            } else if (this.edition.ocaid) {
+                const ocaid = this.edition.ocaid;
+                url = `https://archive.org/download/${ocaid}/page/cover_w600_h600.jpg`;
+            }
+
+            if (!url) return;
+
+            window.open(url, undefined, 'width=600,height=600');
         }
     }
 };
@@ -135,6 +154,9 @@ export default {
     margin-right: 7px;
     // Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading
     min-height: 80px;
+    &:not([src=""]) {
+      cursor: zoom-in;
+    }
     &:hover {
       object-fit: contain;
     }
