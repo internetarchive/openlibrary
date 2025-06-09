@@ -230,6 +230,10 @@ class RawMarcMetadataProvider(AbstractMetadataProvider):
         marc_data += response.raw.read(length - 5)
         marc_record = MarcBinary(marc_data)
         import_record = read_edition(marc_record)
+
+        if 'source_records' not in import_record:
+            import_record['source_records'] = [f'marc:{url}:{offset}:{length}']
+
         return add_book.load(
             import_record,
             account_key='account/ImportBot',
