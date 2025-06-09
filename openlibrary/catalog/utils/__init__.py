@@ -9,9 +9,7 @@ import web
 from openlibrary.plugins.upstream.utils import (
     LanguageMultipleMatchError,
     LanguageNoMatchError,
-    convert_iso_to_marc,
-    get_abbrev_from_full_lang_name,
-    get_languages,
+    resolve_to_lang_code,
 )
 from openlibrary.utils import uniq
 
@@ -475,21 +473,10 @@ def format_languages(languages: Iterable) -> list[dict[str, str]]:
         input_lang = language.lower()
 
         try:
-            marc_lang_code = (
-                # First check if it's a full key, eg /languages/eng
-                get_languages().get(input_lang, {}).get('code')
-                # Maybe it's a 3-letter code, eg eng
-                or get_languages().get(f"/languages/{input_lang}", {}).get('code')
-                # Check if it's a 2-letter code, eg en
-                or convert_iso_to_marc(input_lang)
-                # Check if it's a full name, eg English, Anglais, etc
-                # Note this must be last, since it raises errors
-                or get_abbrev_from_full_lang_name(language)
-            )
+            lang_code = resolve_to_lang_code(input_lang)
         except (LanguageNoMatchError, LanguageMultipleMatchError):
-            # get_abbrev_from_full_lang_name raises errors
             raise InvalidLanguage(input_lang)
 
-        lang_keys.append(f'/languages/{marc_lang_code}')
+        lang_keys.append(f'/languages/{lang_code}')
 
     return [{'key': key} for key in uniq(lang_keys)]
