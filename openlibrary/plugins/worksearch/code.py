@@ -15,6 +15,7 @@ import web
 from requests import Response
 
 from infogami import config
+from infogami.infobase.client import storify
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
@@ -76,7 +77,7 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
-def get_solr_works(work_keys: set[str], editions=False) -> dict[str, dict]:
+def get_solr_works(work_keys: set[str], editions=False) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
     if editions:
@@ -88,7 +89,11 @@ def get_solr_works(work_keys: set[str], editions=False) -> dict[str, dict]:
             fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
             facet=False,
         )
-        return {doc['key']: get_doc(doc) for doc in resp.docs}
+        return {
+            # storify isn't typed properly, but basically recursively call web.storage
+            doc['key']: cast(web.storage, storify(doc))
+            for doc in resp.docs
+        }
     else:
         return {
             doc['key']: doc
@@ -377,9 +382,7 @@ def get_doc(doc: SolrDocument):
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
         collections=(
-            set(doc['ia_collection_s'].split(';'))
-            if doc.get('ia_collection_s')
-            else set()
+            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
         ),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),

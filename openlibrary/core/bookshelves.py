@@ -176,7 +176,10 @@ class Bookshelves(db.CommonExtras):
         )
 
         add_availability(
-            [(w.get('editions') or [None])[0] or w for w in work_index.values()]
+            [
+                ((w.get('editions') or {}).get('docs') or [None])[0] or w
+                for w in work_index.values()
+            ]
         )
 
         # Return items from the work_index in the order
