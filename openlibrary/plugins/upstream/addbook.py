@@ -918,9 +918,9 @@ class book_edit(delegate.page):
             helper.save(web.input())
 
             if add:
-                add_flash_message("info", utils.get_message("flash_book_added"))
+                add_flash_message("info", utils.get_message("flash_catalog_updated"))
             else:
-                add_flash_message("info", utils.get_message("flash_book_updated"))
+                add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
             if i.work_key and i.work_key.startswith('/works/'):
                 url = i.work_key
@@ -981,7 +981,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_work_updated"))
+            add_flash_message("info", utils.get_message("flash_catalog_updated"))
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
