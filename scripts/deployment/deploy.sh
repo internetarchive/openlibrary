@@ -413,6 +413,24 @@ check_servers_in_sync() {
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
 }
 
+check_server_storage() {
+    echo "Checking server storage space..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+        # Get available space (in bytes) for each relevant mount point
+        AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
+        for SIZE in $AVAILABLE_SIZES; do
+            if [ "$SIZE" -lt 2147483648 ]; then
+                echo "✗ (Less than 2GB free!)"
+                ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
+                return 1
+            fi
+        done
+        echo "✓"
+    done
+    return 0
+}
+
 prune_docker () {
     echo "[Now] Prune docker images/cache..."
 
@@ -553,10 +571,12 @@ elif [ "$1" == "prune" ]; then
     else
         prune_docker image
     fi
+elif [ "$1" == "check_server_storage" ]; then
+    check_server_storage
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
