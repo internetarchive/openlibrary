@@ -29,7 +29,6 @@ SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
-COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
 DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
@@ -360,8 +359,9 @@ deploy_openlibrary() {
         deploy_image "$SERVER_NAME"
     done
 
+    echo -n "Waiting for servers ... "
     wait
-    echo "   ... Done ✓"
+    echo "✓"
 
     tag_deploy openlibrary
 
@@ -378,23 +378,21 @@ deploy_openlibrary() {
 deploy_image() {
     local SERVER_NAME=$1
     local SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
+    local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
 
     # Lazy-fetch OLBASE_DIGEST if not set
     if [ -z "$OLBASE_DIGEST" ]; then
         # We need to fetch by the exact image sha, since the registry mirror on the prod servers
         # has a cache which means fetching the `latest` image could be stale.
         # Assert latest docker image is up-to-date
-        echo "Fetching OLBASE_DIGEST ..."
+        echo -n "   Fetching OLBASE_DIGEST ... "
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
+        echo "✓ ($OLBASE_DIGEST)"
     fi
 
-    echo "   Pulling docker image $OLBASE_DIGEST to $SERVER_NAME ... "
+    echo -n "   $SERVER_NAME ... "
 
-    echo $SERVER
-    echo $OLBASE_DIGEST
-    echo $IMAGE_META
-    echo $COMPOSE_FILE
     ssh -t "$SERVER" "
         set -e;
         docker pull openlibrary/olbase@${OLBASE_DIGEST}
@@ -403,6 +401,8 @@ deploy_image() {
         source /opt/olsystem/bin/build_env.sh;
         COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
     " &> /dev/null &
+
+    echo "(started in background)"
 }
 
 
@@ -555,7 +555,7 @@ elif [ "$1" == "prune" ]; then
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|image]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
