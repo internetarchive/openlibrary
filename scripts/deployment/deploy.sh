@@ -356,7 +356,7 @@ deploy_openlibrary() {
     echo "Pull the latest docker images..."
 
     for SERVER_NAME in $SERVER_NAMES; do
-        deploy_image "$SERVER_NAME"
+        deploy_images "$SERVER_NAME"
     done
 
     echo -n "Waiting for servers ... "
@@ -375,7 +375,7 @@ deploy_openlibrary() {
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh review"
 }
 
-deploy_image() {
+deploy_images() {
     local SERVER_NAME=$1
     local SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
     local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
@@ -540,8 +540,9 @@ elif [ "$1" == "openlibrary" ]; then
     if [ "$2" == "--review" ]; then
         check_servers_in_sync
     fi
-elif [ "$1" == "image" ]; then
-    deploy_image $2
+elif [ "$1" == "images" ]; then
+    deploy_images $2
+    wait
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
@@ -555,7 +556,7 @@ elif [ "$1" == "prune" ]; then
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|image]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
