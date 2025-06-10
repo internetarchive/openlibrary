@@ -237,10 +237,10 @@ export function initClassificationValidation() {
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
 
     // Prevent form submission on Enter for classification fields
-    $('#select-classification, #classification-value').on('keydown', function(e) {
+    $('#classification-value').on('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            $('#classifications').repeat('add');
+            $('#classifications .repeat-add').click();
             return false;
         }
     });
@@ -249,14 +249,11 @@ export function initClassificationValidation() {
         vars: {prefix: 'edition--'},
         validate: function (data) {
             if (data.name === '' || data.name === '---') {
-                return error('#classification-errors', '#select-classification',
-                    dataConfig['Please select a classification.']);
+                return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
             if (data.value === '') {
-                const label = $('#select-classification')
-                    .find(`option[value='${data.name}']`).html();
-                return error('#classification-errors', '#classification-value',
-                    dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
+                const label = $('#select-classification').find(`option[value='${data.name}']`).html();
+                return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
             }
             $('#classification-errors').hide();
             $('#select-classification, #classification-value').val('');
