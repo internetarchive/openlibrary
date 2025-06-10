@@ -353,15 +353,9 @@ deploy_openlibrary() {
         exit 1
     fi
 
+    echo ""
     echo "Pull the latest docker images..."
-
-    for SERVER_NAME in $SERVER_NAMES; do
-        deploy_images "$SERVER_NAME"
-    done
-
-    echo -n "Waiting for servers ... "
-    wait
-    echo "✓"
+    deploy_images "$SERVER_NAME"
 
     tag_deploy openlibrary
 
@@ -376,8 +370,6 @@ deploy_openlibrary() {
 }
 
 deploy_images() {
-    local SERVER_NAME=$1
-    local SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
     local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
 
     # Lazy-fetch OLBASE_DIGEST if not set
@@ -391,18 +383,22 @@ deploy_images() {
         echo "✓ ($OLBASE_DIGEST)"
     fi
 
-    echo -n "   $SERVER_NAME ... "
+    for SERVER_NAME in $SERVER_NAMES; do
+        echo -n "   $SERVER_NAME ... "
+        ssh -t "${SERVER_NAME}${SERVER_SUFFIX}" "
+            set -e;
+            docker pull openlibrary/olbase@${OLBASE_DIGEST}
+            echo 'FROM openlibrary/olbase@${OLBASE_DIGEST}' | docker build --tag openlibrary/olbase:latest -f - .
+            COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} pull
+            source /opt/olsystem/bin/build_env.sh;
+            COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
+        " &> /dev/null &
+        echo "(started in background)"
+    done
 
-    ssh -t "$SERVER" "
-        set -e;
-        docker pull openlibrary/olbase@${OLBASE_DIGEST}
-        echo 'FROM openlibrary/olbase@${OLBASE_DIGEST}' | docker build --tag openlibrary/olbase:latest -f - .
-        COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} pull
-        source /opt/olsystem/bin/build_env.sh;
-        COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
-    " &> /dev/null &
-
-    echo "(started in background)"
+    echo -n "Waiting for all servers to finish pulling images..."
+    wait
+    echo "✓"
 }
 
 
@@ -560,7 +556,6 @@ elif [ "$1" == "openlibrary" ]; then
     fi
 elif [ "$1" == "images" ]; then
     deploy_images $2
-    wait
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
