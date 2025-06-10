@@ -240,7 +240,7 @@ export function initClassificationValidation() {
     $('#classification-value').on('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            $('#classifications .repeat-add').click();
+            $('#classifications .repeat-add').trigger('click');
             return false;
         }
     });
