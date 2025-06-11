@@ -20,7 +20,7 @@ class SubjectSearchScheme(SearchScheme):
     )
     non_solr_fields = frozenset()
     facet_fields = frozenset()
-    field_name_map  = MappingProxyType({})
+    field_name_map = MappingProxyType({})
     sorts = MappingProxyType(
         {
             'work_count desc': 'work_count desc',
