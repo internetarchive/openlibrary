@@ -34,8 +34,8 @@ class ListSearchScheme(SearchScheme):
     # short description of the list
     non_solr_fields = frozenset({'description'})
 
-    facet_fields: frozenset[str]
-    field_name_map: MappingProxyType[str, str]
+    facet_fields = frozenset()
+    field_name_map = MappingProxyType({})
     sorts = MappingProxyType(
         {
             'name asc': 'name asc',  # sort alphabetically

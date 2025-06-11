@@ -34,8 +34,8 @@ class EditionSearchScheme(SearchScheme):
             "publisher_facet",
         }
     )
-    non_solr_fields: frozenset[str]
-    facet_fields: frozenset[str]
+    non_solr_fields = frozenset()
+    facet_fields = frozenset()
     field_name_map = MappingProxyType(
         {
             'publishers': 'publisher',
