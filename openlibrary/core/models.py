@@ -911,7 +911,9 @@ class User(Thing):
             prefs and prefs.dict().get('notifications')
         ) or self.get_default_preferences()
 
-    def save_preferences(self, new_prefs, msg='updating user preferences', use_store=False):
+    def save_preferences(
+        self, new_prefs, msg='updating user preferences', use_store=False
+    ):
         key = f'{self.key}/preferences'
         if use_store:
             old_prefs = self.preferences(use_store=use_store)
