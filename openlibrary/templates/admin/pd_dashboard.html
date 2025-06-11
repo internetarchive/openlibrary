@@ -36,7 +36,6 @@ $code:
     <table class="pd-request-table">
         <thead>
             <th class="table-header" scope="col">PDA</th>
-            <th class="table-header" scope="col">Requested</th>
             <th class="table-header" scope="col">Emailed</th>
             <th class="table-header" scope="col">Fulfilled</th>
             <th class="table-header" scope="col">Total</th>
@@ -56,14 +55,12 @@ $code:
                   <td>
                       <a href="https://archive.org/details/$(pda)">$display_name</a>
                   </td>
-                  <td>$requested_count</td>
                   <td>$emailed_count</td>
                   <td>$fulfilled_count</td>
                   <td>$total</td>
               </tr>
           <tr class="totals">
               <td>Totals</td>
-              <td>$requested_total</td>
               <td>$emailed_total</td>
               <td>$fulfilled_total</td>
               <td>$(requested_total + emailed_total + fulfilled_total)</td>
