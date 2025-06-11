@@ -9,43 +9,45 @@ $def list_card(list, owner, own_list):
     $ cached_info = list.get_patron_showcase()
     $ count = cached_info["count"]
     <div class="list-follow-card">
-        <div class="list-follow-card__header">
-            <div class="list-follow-card__title">$cached_info["title"]</div>
-            <div class="list-follow-card__num-books">
-                $ungettext("%(count)d book", "%(count)d books", count, count=count)
-            </div>
-        </div>
-        <a class="list-follow-card__covers" href="$list.get_url()">
-            $for img_url in cached_info["covers"]:
-                $if img_url:
-                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
-                $else:
-                    $ img_url = '/images/icons/avatar_book-sm.png'
-                <img src="$img_url" loading="lazy" width="80"/>
+        <a class="list-follow-card__header" href="$list.get_url()">
+             <div class="list-follow-card__title">$cached_info["title"]</div>
+             <div class="list-follow-card__num-books">
+                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
+             </div>
         </a>
-            
-            <div class="list-follow-card__bottom">
-              <div class="list-follow-card__user">
-                <div>
+        <a class="list-follow-card__covers" href="$list.get_url()">
+           $for img_url in cached_info["covers"]:
+               $if img_url:
+                   $ img_url = img_url.replace("-S.jpg", "-M.jpg")
+               $else:
+                   $ img_url = '/images/icons/avatar_book-sm.png'
+               <img src="$img_url" loading="lazy" width="80"/>
+        </a>
+        <div class="list-follow-card__bottom">
+            <div class="list-follow-card__user">
                  <a href="$owner.key">
-                  <img src="$(owner.key)/avatar" class="list-follow-card__avatar"/>
+                  <img src="$(owner.key)/avatar" />
                  </a>
-                </div>
-                
-                <div class="list-follow-card__username"> 
+                <div class="list-follow-card__username">
                  $if not own_list:
-                  $('@' + owner.displayname)
+                  <a class="list-follow-card__username-link" href="$owner.key">
+                    $('@' + owner.displayname)
+                  </a>
                  $else:
-                    $_('You') 
+                    $_('You')
                 </div>
             </div>
             <div class="list-follow-card__follow-button">
                $if not own_list:
                  $ owner_username = owner.key.split('/')[-1]
+                 $ owner_account = get_user_object(owner_username)
                  $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
-                 $:render_follow_button(owner_username, is_subscribed) 
+                 $ settings = owner_account.get_users_settings()
+                 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+                 $if is_public:
+                    $:render_follow_button(owner_username, is_subscribed)
             </div>
-            </div>
+        </div>
     </div>
 
 $ count = 0
@@ -53,6 +55,6 @@ $for i, list in enumerate(lists):
     $if count < limit:
       $ own_list = list.owner and list.owner.key == user_key
       $ converted = convert_list(list.key)
-      $:list_card(converted, list.owner, own_list) 
+      $:list_card(converted, list.owner, own_list)
       $ count = count + 1
 

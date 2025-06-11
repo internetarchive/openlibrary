@@ -54,6 +54,18 @@ $def i18n_input():
     $ }
   <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
 
+$def render_showcase():
+  <div class="carousel-section">
+    <div class="list-follow-showcase">
+      $:render_template('lists/list_follow', page_lists, 5, user_key)
+      $if len(page_lists) > 5:
+          <a
+            class="list-showcase__see-all cta-btn cta-btn--vanilla"
+             href="$page.url()/lists"
+            >$_("See all")</a>
+    </div>
+  </div>
+
 $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
@@ -65,29 +77,12 @@ $if include_widget:
         $if async_load:
           <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
         $else:
-         <div class="carousel-section">
-    <div class="list-follow-showcase">
-      $:render_template('lists/list_follow', page_lists, 5, user_key)
-      $if len(page_lists) > 5:
-          <a
-            class="list-showcase__see-all cta-btn cta-btn--vanilla"
-             href="$page.url()/lists"
-            >$_("See all")</a>
-    </div>
-  </div> 
+          $:render_showcase()
     </ul>
   $if work and include_rating:
     $:macros.StarRatings(work, edition)
-    
-$if include_showcase:    
-  <div class="carousel-section">
-    <div class="list-follow-showcase">
-      $:render_template('lists/list_follow', page_lists, 5, user_key)
-      $if len(page_lists) > 5:
-          <a
-            class="list-showcase__see-all cta-btn cta-btn--vanilla"
-             href="$page.url()/lists"
-            >$_("See all")</a>
-    </div>
-  </div>
+
+$if include_showcase:
+  $:render_showcase()
+
 </div>

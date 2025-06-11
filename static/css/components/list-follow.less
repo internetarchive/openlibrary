@@ -40,67 +40,78 @@
   border-radius: 4px;
   box-shadow: 2px 2px 4px fade(@black, 15%);
 
-  &__header{
+  &__header {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 7px 10px;
     border-radius: 0 0 4px 4px;
+    a& {
+      text-decoration: none;
+    }
   }
   &__name-avatar {
     display: flex;
   }
-  &__bottom{
+  &__bottom {
     background: @grey-f4f4f4;
     display: flex;
     justify-content: space-between;
     padding-bottom: 5px;
     padding-top: 5px;
   }
-  &__avatar {
-    border-radius: 8px;
-    width: 30px;
-    height: 30px;
-    margin-right: 5px; 
-    margin-top: -10px;
-    position: relative;
-    z-index: 10;
-    border: 2px solid white;
-  }
-  &__user{
-   display: flex;
-   align-items: center;  
-   font-weight: bold;
-   font-size: x-small;
-   padding-left: 5px;
+  &__user {
+    display: flex;
+    align-items: center;
+    font-size: @font-size-label-medium;
+    padding-left: 5px;
+
+    img {
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      margin-right: 5px;
+      margin-top: -10px;
+      position: relative;
+      z-index: @z-index-level-3;
+      border: 2px solid @white;
+    }
   }
 
-  &__username{
-    padding-bottom: 5px;
+  &__username {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-decoration: none;
+    padding-bottom: 5px;
   }
-
+  &__username-link {
+    a& {
+      text-decoration: none;
+      color: @dark-grey-two;
+      padding-bottom: 5px;
+    }
+  }
   &__text {
-   display: flex; 
-   flex-direction: column;
+    display: flex;
+    flex-direction: column;
   }
-  &__follow-button {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   padding-right: 5px;
 
+  &__follow-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 5px;
+    padding-bottom: 3px;
     .cta-btn {
-     font-size: 12px;  // Override base size
-     padding: 1px 10px;  // Less padding
-     border-radius: 4px;  // Custom radius
-     box-shadow: none;  // Remove default shadow if present
-     margin: 0px;
+      font-size: 12px; // Override base size
+      padding: 1px 10px; // Less padding
+      border-radius: 4px; // Custom radius
+      box-shadow: none; // Remove default shadow if present
+      margin: 0;
+    }
   }
-}
   &__title {
     font-weight: bold;
     font-size: @font-size-label-large;
@@ -116,8 +127,8 @@
     font-size: @font-size-label-medium;
   }
   &__info {
-      flex: 1;
-      flex-direction: row;
+    flex: 1;
+    flex-direction: row;
   }
   &__covers {
     @cover-width: 64px;
@@ -156,14 +167,12 @@
       transform: translate(-2 * @overlap, @padding);
     }
     &:hover img {
-    scale: 1.05;
-  }
+      scale: 1.05;
+    }
   }
 
   // stylelint-disable-next-line no-descending-specificity
   img {
     transition: scale 0.2s;
   }
-
-  
 }
