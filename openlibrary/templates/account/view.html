@@ -37,7 +37,6 @@ $var title: $header_title
       </div>
 
       $if not mb.is_my_page and mb.is_subscribed != -1:
-        <div>$(mb.username)</div>
         $:macros.Follow(mb.username, following=mb.is_subscribed)
 
       $if 'followers' in mb.counts:
