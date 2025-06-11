@@ -4,7 +4,6 @@ $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
-$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
 
 <div class="lists-widget-container">
 $if "lists" not in ctx.features:
