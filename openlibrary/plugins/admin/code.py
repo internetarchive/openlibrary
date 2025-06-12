@@ -33,6 +33,7 @@ from openlibrary.core import (
     imports,
 )
 from openlibrary.core.models import Work
+from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
 
 logger = logging.getLogger("openlibrary.admin")
@@ -829,6 +830,13 @@ class show_log:
                 return f.read()
 
 
+class pd_dashboard:
+    def GET(self):
+        dashboard_data = get_pd_dashboard_data()
+
+        return render_template("admin/pd_dashboard", dashboard_data)
+
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -862,6 +870,7 @@ def setup():
         r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label=""
     )
     register_admin_page('/admin/spamwords', spamwords, label="")
+    register_admin_page("/admin/pd", pd_dashboard)
 
     from openlibrary.plugins.admin import mem
 

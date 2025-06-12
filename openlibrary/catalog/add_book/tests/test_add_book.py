@@ -7,20 +7,19 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    ALLOWED_COVER_HOSTS,
     IndependentlyPublished,
     PublicationYearTooOld,
     PublishedInFutureYear,
-    RequiredField,
+    RequiredFields,
     SourceNeedsISBN,
     build_pool,
+    check_cover_url_host,
     editions_matched,
     find_match,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
-    process_cover_url,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -174,7 +173,7 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
 
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
-    pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
+    pytest.raises(RequiredFields, load, {'ocaid': 'test_item'})
 
 
 def test_load_test_item(mock_site, add_languages, ia_writeback):
@@ -2011,40 +2010,17 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
 
 
 @pytest.mark.parametrize(
-    ("edition", "expected_cover_url", "expected_edition"),
+    ("cover_url", "is_valid"),
     [
-        ({}, None, {}),
-        ({'cover': 'https://not-supported.org/image/123.jpg'}, None, {}),
-        (
-            {'cover': 'https://m.media-amazon.com/image/123.jpg'},
-            'https://m.media-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'cover': 'http://m.media-amazon.com/image/123.jpg'},
-            'http://m.media-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'cover': 'https://m.MEDIA-amazon.com/image/123.jpg'},
-            'https://m.MEDIA-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'title': 'a book without a cover'},
-            None,
-            {'title': 'a book without a cover'},
-        ),
+        (None, False),
+        ('https://not-supported.org/image/123.jpg', False),
+        ('https://m.media-amazon.com/image/123.jpg', True),
+        ('http://m.media-amazon.com/image/123.jpg', True),
+        ('https://m.MEDIA-amazon.com/image/123.jpg', True),
     ],
 )
-def test_process_cover_url(
-    edition: dict, expected_cover_url: str, expected_edition: dict
-) -> None:
+def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
     """
     Only cover URLs available via the HTTP Proxy are allowed.
     """
-    cover_url, edition = process_cover_url(
-        edition=edition, allowed_cover_hosts=ALLOWED_COVER_HOSTS
-    )
-    assert cover_url == expected_cover_url
-    assert edition == expected_edition
+    assert check_cover_url_host(cover_url) == is_valid

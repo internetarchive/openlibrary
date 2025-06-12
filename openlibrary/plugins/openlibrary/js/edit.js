@@ -235,6 +235,16 @@ export function validateIdentifiers(data) {
 export function initClassificationValidation() {
     initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
+
+    // Prevent form submission on Enter for classification fields
+    $('#classification-value').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $('#classifications .repeat-add').trigger('click');
+            return false;
+        }
+    });
+
     $('#classifications').repeat({
         vars: {prefix: 'edition--'},
         validate: function (data) {

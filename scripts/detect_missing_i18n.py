@@ -24,6 +24,8 @@ EXCLUDE_LIST = {
     "static/status-500.html",
     # Uses jsdef and the current stance is no i18n in JS.
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
+    # Admin-only dashboard
+    "openlibrary/templates/admin/pd_dashboard.html",
 }
 
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')

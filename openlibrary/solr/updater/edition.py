@@ -146,8 +146,9 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def lexile(self) -> int | None:
+        lexile_str = self._edition.get('lexile')
         try:
-            return int(self._edition.get('lexile', None)) or None
+            return int(lexile_str) if lexile_str else None
         except (TypeError, ValueError):
             return None
 
@@ -170,9 +171,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def number_of_pages(self) -> int | None:
+        number_of_pages_str = self._edition.get('number_of_pages')
         try:
-            return int(self._edition.get('number_of_pages', None)) or None
-        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
+            return int(number_of_pages_str) if number_of_pages_str else None
+        except (TypeError, ValueError):
             return None
 
     @property

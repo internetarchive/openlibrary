@@ -3,7 +3,8 @@ $def with (work, book)
 $ edition_config = get_identifier_config('edition')
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 $ is_admin = ctx.user and ctx.user.is_admin()
-$ is_privileged_user = is_librarian or is_admin
+$ is_super_librarian = ctx.user and ctx.user.is_super_librarian()
+$ is_privileged_user = is_librarian or is_super_librarian or is_admin
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -597,7 +598,7 @@ $code:
             return True
         return False
 
-$if is_admin:
+$if is_privileged_user:
     $ extra_class = ' hidden' if len(book.providers) == 0 else ''
     $ provider_index = 0
     <fieldset class="major">

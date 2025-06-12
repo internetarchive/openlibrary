@@ -413,6 +413,8 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
 
     def publish_place(s: str) -> str:
         place = s.strip(' /.,;:')
+        if place == '':
+            return ''
         # remove encompassing []
         if (place[0], place[-1]) == ('[', ']'):
             place = place[1:-1]

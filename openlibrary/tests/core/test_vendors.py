@@ -420,6 +420,13 @@ def test_serialize_sample_record() -> None:
     }
 
 
+def test_serialize_pages_0() -> None:
+    amz_item = get_sample_amazon_item()
+    amz_item.item_info.content_info.pages_count.display_value = 0
+    result = AmazonAPI.serialize(amz_item)
+    assert 'number_of_pages' not in result
+
+
 def test_serialize_does_not_load_translators_as_authors() -> None:
     """Ensure data load does not load translators as author and relies on fake API response objects"""
     classification = None
@@ -459,7 +466,6 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
             {'role': 'Translator', 'name': 'Second Translator'},
         ],
         'publishers': [],
-        'number_of_pages': '',
         'edition_num': '',
         'publish_date': '',
         'product_group': None,

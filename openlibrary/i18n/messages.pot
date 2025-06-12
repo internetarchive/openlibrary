@@ -1604,7 +1604,7 @@ msgstr ""
 msgid "Or copy/paste JSONL text:"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html import_preview.html
 msgid "Import"
 msgstr ""
 
@@ -1880,6 +1880,14 @@ msgstr ""
 
 #: books/daisy.html history.html
 msgid "Back"
+msgstr ""
+
+#: import_preview.html
+msgid "Import Preview"
+msgstr ""
+
+#: import_preview.html
+msgid "Preview Import"
 msgstr ""
 
 #: internalerror.html
@@ -3328,7 +3336,8 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
+#: site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -3580,6 +3589,10 @@ msgid "Admin Center"
 msgstr ""
 
 #: admin/menu.html
+msgid "PD Access Requests"
+msgstr ""
+
+#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -3601,6 +3614,10 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Print Disability Access Requests"
 msgstr ""
 
 #: admin/permissions.html
@@ -4374,6 +4391,10 @@ msgid "Invalid LC Control Number format"
 msgstr ""
 
 #: books/add.html
+msgid "Invalid OCLC/WorldCat Control Number format"
+msgstr ""
+
+#: books/add.html
 msgid "Please enter a value for the selected identifier"
 msgstr ""
 
@@ -4464,6 +4485,10 @@ msgstr ""
 
 #: books/add.html
 msgid "LibriVox"
+msgstr ""
+
+#: books/add.html
+msgid "OCLC/WorldCat"
 msgstr ""
 
 #: books/add.html
@@ -5855,8 +5880,15 @@ msgstr ""
 
 #: languages/index.html
 #, python-format
-msgid "%s book"
-msgid_plural "%s books"
+msgid "%s work"
+msgid_plural "%s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: languages/index.html
+#, python-format
+msgid "%s ebook edition"
+msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -7035,6 +7067,10 @@ msgid "Relevance"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -7044,6 +7080,14 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Last Modified"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Language Name"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -7063,15 +7107,11 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Any"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html

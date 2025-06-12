@@ -1,5 +1,6 @@
 import datetime
 import functools
+import itertools
 import json
 import logging
 import os
@@ -637,18 +638,19 @@ def url_quote(text: str | bytes) -> str:
 
 
 @public
-def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
+def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
+    from urllib.parse import quote, quote_plus
     from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
         tuples = list(dict_or_list_of_tuples.items())
     params = [(k, v.encode('utf-8') if isinstance(v, str) else v) for (k, v) in tuples]
-    return og_urlencode(params)
+    return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
 @public
@@ -787,17 +789,17 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
         return strip_accents(s).lower()
 
     for language in languages:
-        if normalize(language.name) == normalize(input_lang_name):
-            if target_abbrev:
-                raise LanguageMultipleMatchError(input_lang_name)
+        language_names = itertools.chain(
+            (language.name,),
+            (
+                name
+                for key in language.name_translated
+                for name in language.name_translated[key]
+            ),
+        )
 
-            target_abbrev = language.code
-            continue
-
-        for key in language.name_translated:
-            if normalize(language.name_translated[key][0]) == normalize(
-                input_lang_name
-            ):
+        for name in language_names:
+            if normalize(name) == normalize(input_lang_name):
                 if target_abbrev:
                     raise LanguageMultipleMatchError(input_lang_name)
                 target_abbrev = language.code
