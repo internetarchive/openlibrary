@@ -522,8 +522,8 @@ msgid "See more books by, and learn about, this author"
 msgstr ""
 
 #: ProlificAuthors.html account/loans.html authors/index.html
-#: lists/showcase.html publishers/view.html search/authors.html
-#: search/publishers.html search/subjects.html
+#: lists/list_follow.html lists/showcase.html publishers/view.html
+#: search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -3045,8 +3045,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: account/sidebar.html type/edition/view.html type/user/view.html
-#: type/work/view.html
+#: account/sidebar.html type/user/view.html
 msgid "See All"
 msgstr ""
 
@@ -6414,8 +6413,12 @@ msgstr ""
 msgid "No description."
 msgstr ""
 
-#: lists/home.html lists/showcase.html
+#: lists/home.html lists/showcase.html lists/widget.html
 msgid "See all"
+msgstr ""
+
+#: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
+msgid "You"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
@@ -6509,10 +6512,6 @@ msgstr[1] ""
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
-
-#: lists/widget.html my_books/dropdown_content.html
-msgid "You"
 msgstr ""
 
 #: lists/widget.html

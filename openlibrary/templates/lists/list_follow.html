@@ -31,7 +31,8 @@ $def list_card(list, owner, own_list):
                 <div class="list-follow-card__username">
                  $if not own_list:
                   <a class="list-follow-card__username-link" href="$owner.key">
-                    $('@' + owner.displayname)
+                    $ owner_username = owner.key.split('/')[-1]
+                    $('@' + owner_username)
                   </a>
                  $else:
                     $_('You')
