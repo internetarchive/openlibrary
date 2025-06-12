@@ -206,8 +206,29 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
-    <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+
+    <div class="edition-container">
+      $if edition and edition.number_of_pages:
+      ${
+        number_of_pages = edition.number_of_pages
+        if number_of_pages < 50:
+        width = 0
+        elif number_of_pages < 200:
+        width = 10
+        elif number_of_pages < 500:
+        width = 20
+        elif number_of_pages < 1000:
+        width = 30
+        elif number_of_pages < 1500:
+        width = 40
+        else:
+        width = 50
+      }
+      $if width > 0:
+      <div class="edition-spine spine-width-${width}"></div>
+      <div class="editionCover">
+        $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+      </div>
     </div>
 
     <div class="editionAbout">
