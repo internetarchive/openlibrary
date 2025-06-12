@@ -29,13 +29,13 @@ $def list_card(list, owner, own_list):
                   <img src="$(owner.key)/avatar" />
                  </a>
                 <div class="list-follow-card__username">
-                 $if not own_list:
-                  <a class="list-follow-card__username-link" href="$owner.key">
-                    $ owner_username = owner.key.split('/')[-1]
-                    $('@' + owner_username)
-                  </a>
-                 $else:
-                    $_('You')
+                    <a class="list-follow-card__username-link" href="$owner.key">
+                      $if not own_list:
+                        $ owner_username = owner.key.split('/')[-1]
+                        $('@' + owner_username)
+                      $else:
+                        $_('You')
+                    </a>
                 </div>
             </div>
             <div class="list-follow-card__follow-button">
