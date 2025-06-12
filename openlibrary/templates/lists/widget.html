@@ -26,19 +26,6 @@ $def render_already_lists(lists, user_key):
         $if list['active']:
             $:render_template('lists/list_overview', list, user_key, seed_info)
 
-$def render_widget_display(lists, limit, user_key, exclude_own_lists):
-    $ count = 0
-    $for i, list in enumerate(lists):
-        $if count < limit:
-            $if exclude_own_lists:
-                $ own_list = list.owner and list.owner.key == user_key
-                $if not own_list:
-                    $:render_template('lists/list_overview', list, user_key, seed_info)
-                    $ count = count + 1
-            $else:
-                $:render_template('lists/list_overview', list, user_key, seed_info)
-                $ count = count + 1
-
 $def render_head(page_lists, page_url):
     <div>
       <h3 class="header">
@@ -67,6 +54,18 @@ $def i18n_input():
     $ }
   <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
 
+$def render_showcase():
+  <div class="carousel-section">
+    <div class="list-follow-showcase">
+      $:render_template('lists/list_follow', page_lists, 5, user_key)
+      $if len(page_lists) > 5:
+          <a
+            class="list-follow-showcase__see-all cta-btn cta-btn--vanilla"
+             href="$page.url()/lists"
+            >$_("See all")</a>
+    </div>
+  </div>
+
 $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
@@ -78,14 +77,12 @@ $if include_widget:
         $if async_load:
           <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
         $else:
-          $:render_already_lists(user_lists, user_key)
+          $:render_showcase()
     </ul>
   $if work and include_rating:
     $:macros.StarRatings(work, edition)
 
 $if include_showcase:
-  <ul id="list-lists" class="listLists">
-    $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
-  </ul>
+  $:render_showcase()
 
 </div>

@@ -1553,6 +1553,12 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
+def get_user_object(username):
+    user = web.ctx.site.get(f'/people/{username}')
+    return user
+
+
+@public
 def reformat_html(html_str: str, max_length: int | None = None) -> str:
     """
     Reformats an HTML string, removing all opening and closing tags.
