@@ -393,14 +393,15 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <div class="section">
                 <h3>$_("Classifications")</h3>
                 <dl class="meta">
+                    $ explorer_prefix = None
                     $for name, values in classifications:
                         $if name == 'lc_classifications':
-                            $ short_name = 'lcc'
+                            $ explorer_prefix = 'lcc'
                         $elif name == 'dewey_decimal_class':
-                            $ short_name = 'ddc'
-                        $if short_name:
+                            $ explorer_prefix = 'ddc'
+                        $if explorer_prefix:
                             $for v in values:
-                                $ v['url'] = '/explore?' + urlencode({ 'jumpTo': short_name + ':' + v['value'] }, plus=False)
+                                $ v['url'] = '/explore?' + urlencode({ 'jumpTo': explorer_prefix + ':' + v['value'] }, plus=False)
                         $:display_identifiers(values[0].label, values)
                 </dl>
             </div>
