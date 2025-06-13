@@ -2,7 +2,6 @@
 # See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
 
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from types import MappingProxyType
 
@@ -49,7 +48,7 @@ class ListSearchScheme(SearchScheme):
     )
     default_fetched_fields = frozenset({'key', 'name'})
 
-    facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
+    facet_rewrites = MappingProxyType({})
 
     # converts user search query into a Solr-compatible query
     def q_to_solr_params(

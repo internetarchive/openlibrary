@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from types import MappingProxyType
 
@@ -40,7 +39,7 @@ class SubjectSearchScheme(SearchScheme):
             'work_count',
         }
     )
-    facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
+    facet_rewrites = MappingProxyType({})
 
     def q_to_solr_params(
         self,

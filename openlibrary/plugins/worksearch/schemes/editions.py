@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from types import MappingProxyType
 
@@ -68,8 +67,8 @@ class EditionSearchScheme(SearchScheme):
             'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
         }
     )
-    default_fetched_fields: frozenset[str]
-    facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
+    default_fetched_fields = frozenset()
+    facet_rewrites = MappingProxyType({})
 
     def is_search_field(self, field: str):
         return super().is_search_field(field) or field.startswith('id_')
