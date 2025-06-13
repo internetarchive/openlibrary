@@ -5510,7 +5510,7 @@ msgid "Paste image from clipboard"
 msgstr ""
 
 #: covers/add.html
-msgid "No Image Pasted"
+msgid "Paste Image"
 msgstr ""
 
 #: covers/add.html
