@@ -217,7 +217,7 @@ def run_solr_query(  # noqa: PLR0912
                 # Should never get here
                 raise ValueError(f'Invalid facet type: {facet}')
 
-    facet_params = (allowed_filter_params or scheme.facet_fields) & set(param)
+    facet_params = (allowed_filter_params or set(scheme.facet_fields)) & set(param)
     for (field, value), rewrite in scheme.facet_rewrites.items():
         if param.get(field) == value:
             if field in facet_params:
