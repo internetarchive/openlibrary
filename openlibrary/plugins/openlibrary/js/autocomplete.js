@@ -239,20 +239,20 @@ export function init() {
         Enter the new position number (1-${totalItems}):`;
 
             const userInput = prompt(message);
-            
+
             // Handle cancellation
             if (userInput === null) {
                 return;
             }
 
             const newPosition = parseInt(userInput.trim());
-            
+
             // Validate the input
             if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
                 alert(`Please enter a valid number between 1 and ${totalItems}.`);
                 return;
             }
-            
+
             // Check if it's the same position
             if (newPosition === currentPosition) {
                 alert('Item is already at that position.');
@@ -261,7 +261,7 @@ export function init() {
 
             // Perform the move
             const newIndex = newPosition - 1; // Convert to 0-based index
-            
+
             if (newIndex === 0) {
                 // Move to top
                 $currentItem.insertBefore($allItems.first());
@@ -276,7 +276,7 @@ export function init() {
                     $currentItem.insertAfter($allItems.eq(newIndex));
                 }
             }
-            
+
             // Update indices after move
             update_indices();
         });
