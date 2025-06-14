@@ -212,6 +212,7 @@ export function init() {
                 handle: '.mia__reorder',
                 items: '.mia__input',
                 update: update_indices,
+                cancel: '.mia__move, .mia__remove'
             });
         }
 
@@ -221,6 +222,63 @@ export function init() {
                 update_visible();
                 update_indices();
             }
+        });
+
+        // Add move button functionality
+        container.on('click', '.mia__move', function(event) {
+            event.preventDefault();
+            const $currentItem = $(this).closest('.mia__input');
+            const $allItems = container.find('.mia__input');
+            const currentIndex = $allItems.index($currentItem);
+            const currentPosition = currentIndex + 1; // 1-based position for user display
+            const totalItems = $allItems.length;
+
+            // Create a clear message showing current position
+            const message = `Current item position: ${currentPosition} of ${totalItems}
+
+        Enter the new position number (1-${totalItems}):`;
+
+            const userInput = prompt(message);
+
+            // Handle cancellation
+            if (userInput === null) {
+                return;
+            }
+
+            const newPosition = parseInt(userInput.trim());
+
+            // Validate the input
+            if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
+                alert(`Please enter a valid number between 1 and ${totalItems}.`);
+                return;
+            }
+
+            // Check if it's the same position
+            if (newPosition === currentPosition) {
+                alert('Item is already at that position.');
+                return;
+            }
+
+            // Perform the move
+            const newIndex = newPosition - 1; // Convert to 0-based index
+
+            if (newIndex === 0) {
+                // Move to top
+                $currentItem.insertBefore($allItems.first());
+            } else if (newIndex === totalItems - 1) {
+                // Move to bottom
+                $currentItem.insertAfter($allItems.last());
+            } else {
+                // Move to specific position
+                if (newIndex < currentIndex) {
+                    $currentItem.insertBefore($allItems.eq(newIndex));
+                } else {
+                    $currentItem.insertAfter($allItems.eq(newIndex));
+                }
+            }
+
+            // Update indices after move
+            update_indices();
         });
 
         container.on('click', '.mia__add', function(event) {
