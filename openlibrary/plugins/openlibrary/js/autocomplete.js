@@ -230,46 +230,55 @@ export function init() {
             const $currentItem = $(this).closest('.mia__input');
             const $allItems = container.find('.mia__input');
             const currentIndex = $allItems.index($currentItem);
+            const currentPosition = currentIndex + 1; // 1-based position for user display
             const totalItems = $allItems.length;
 
-            // Create move options - always show the main three options
-            const moveOptions = ['Move to Top', 'Move to Bottom', 'Move to Position...', 'Cancel'];
+            // Create a clear message showing current position
+            const message = `Current item position: ${currentPosition} of ${totalItems}
 
-            // Simple implementation using prompt
-            // You can replace this with a proper modal dialog
-            const optionsText = moveOptions.map((opt, idx) => `${idx + 1}. ${opt}`).join('\n');
-            const selection = prompt(`Choose move option:\n${optionsText}\n\nEnter number (1-${moveOptions.length}):`);
-            const selectedIndex = parseInt(selection) - 1;
-            const choice = (selectedIndex >= 0 && selectedIndex < moveOptions.length) ? moveOptions[selectedIndex] : 'Cancel';
+        Enter the new position number (1-${totalItems}):`;
 
-            if (choice === 'Cancel') return;
+            const userInput = prompt(message);
+            
+            // Handle cancellation
+            if (userInput === null) {
+                return;
+            }
 
-            // Handle different move operations
-            if (choice === 'Move to Top' && currentIndex > 0) {
+            const newPosition = parseInt(userInput.trim());
+            
+            // Validate the input
+            if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
+                alert(`Please enter a valid number between 1 and ${totalItems}.`);
+                return;
+            }
+            
+            // Check if it's the same position
+            if (newPosition === currentPosition) {
+                alert('Item is already at that position.');
+                return;
+            }
+
+            // Perform the move
+            const newIndex = newPosition - 1; // Convert to 0-based index
+            
+            if (newIndex === 0) {
+                // Move to top
                 $currentItem.insertBefore($allItems.first());
-                update_indices();
-            } else if (choice === 'Move to Bottom' && currentIndex < totalItems - 1) {
+            } else if (newIndex === totalItems - 1) {
+                // Move to bottom
                 $currentItem.insertAfter($allItems.last());
-                update_indices();
-            } else if (choice === 'Move to Position...') {
-                const newPosition = prompt(`Enter new position (1-${totalItems}):`);
-                const newIndex = parseInt(newPosition) - 1;
-                
-                if (newIndex >= 0 && newIndex < totalItems && newIndex !== currentIndex) {
-                    if (newIndex === 0) {
-                        $currentItem.insertBefore($allItems.first());
-                    } else if (newIndex === totalItems - 1) {
-                        $currentItem.insertAfter($allItems.last());
-                    } else {
-                        if (newIndex < currentIndex) {
-                            $currentItem.insertBefore($allItems.eq(newIndex));
-                        } else {
-                            $currentItem.insertAfter($allItems.eq(newIndex));
-                        }
-                    }
-                    update_indices();
+            } else {
+                // Move to specific position
+                if (newIndex < currentIndex) {
+                    $currentItem.insertBefore($allItems.eq(newIndex));
+                } else {
+                    $currentItem.insertAfter($allItems.eq(newIndex));
                 }
             }
+            
+            // Update indices after move
+            update_indices();
         });
 
         container.on('click', '.mia__add', function(event) {
