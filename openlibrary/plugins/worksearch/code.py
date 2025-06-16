@@ -78,8 +78,8 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 @public
 def get_solr_works(
-    work_key: Iterable[str], fields: Iterable[str] | None = None
-) -> dict[str, dict]:
+    work_keys: set[str], fields: Iterable[str] | None = None, editions=False
+) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
     if editions:
