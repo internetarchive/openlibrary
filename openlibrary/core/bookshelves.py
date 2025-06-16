@@ -155,7 +155,6 @@ class Bookshelves(db.CommonExtras):
             {where} {group_by} {order_by}
             limit $limit offset $offset"""
         logger.info("Query: %s", query)
-        fields = fields
         data = {
             'shelf_id': shelf_id,
             'limit': limit,
