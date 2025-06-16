@@ -112,29 +112,22 @@
                 target="_blank"
               ><button :disabled="createListDisabled">Add to list</button></a>
             </div>
-            <div v-else>
-              Hello
-              <form
-                method="POST"
-                action="/account/lists/add?preview=true"
-                target="_blank"
+            <form
+              v-else
+              method="POST"
+              action="/account/lists/add"
+              target="_blank"
+            >
+              <input
+                type="hidden"
+                name="seeds"
+                :value="bulkSearchState?.listString"
               >
-                <input
-                  type="hidden"
-                  name="seeds"
-                  :value="bulkSearchState?.listString"
-                >
-                <input
-                  type="hidden"
-                  name="preview"
-                  :value="true"
-                >
-                <button type="submit">
-                  Add to List
-                </button>
-              </form>
-            </div>
-          </div>v
+              <button type="submit">
+                Add to List
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

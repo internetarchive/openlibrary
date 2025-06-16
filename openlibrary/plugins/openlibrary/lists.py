@@ -117,7 +117,11 @@ class ListRecord:
 
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
-            for seed_list in i['seeds']
+            # Seeds can be a list of seeds or a CSV string of seeds.
+            for seed_list in (
+                i['seeds'] if isinstance(i['seeds'], list) else [i['seeds']]
+            )
+            # Each element of seeds can be a CSV string of seeds
             for seed in (
                 seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
             )
@@ -362,7 +366,10 @@ class lists_add_account(delegate.page):
 
     @require_login
     def POST(self):
-        return web.tempredirect(f'{get_current_user().key}/lists/add{web.ctx.query}')
+        # Force this to be preview mode, otherwise folks can create links that create
+        # lists without the clicker realizing a list is being created!
+        # Note: Temporary redirect is require to forward along the POST data.
+        return web.tempredirect(f'{get_current_user().key}/lists/add?preview=true')
 
 
 class lists_add(delegate.page):
@@ -379,14 +386,8 @@ class lists_add(delegate.page):
         return render_template("type/list/edit", list_record, new=True)
 
     def POST(self, user_key: str | None):  # type: ignore[override]
-        val = parse_qs(bytes.decode(web.data()))
-        if val.get("preview", []) == ["true"]:
-            list_record = ListRecord(
-                seeds=[
-                    ListRecord.normalize_input_seed(seed)
-                    for seed in val.get("seeds", [])[0].split(",")
-                ]
-            )
+        if web.input().get('preview') == 'true':
+            list_record = ListRecord.from_input()
             return render_template("type/list/edit", list_record, new=True)
         return lists_edit().POST(user_key, None)
 
