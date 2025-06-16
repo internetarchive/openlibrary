@@ -178,7 +178,7 @@ class Bookshelves(db.CommonExtras):
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
-            ({f"/works/OL{i['work_id']}W" for i in readinglog_items), fields},
+            {f"/works/OL{i['work_id']}W" for i in readinglog_items}, fields,
             editions=True,
         )
 
