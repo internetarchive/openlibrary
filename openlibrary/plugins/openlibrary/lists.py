@@ -366,10 +366,13 @@ class lists_add_account(delegate.page):
 
     @require_login
     def POST(self):
-        # Force this to be preview mode, otherwise folks can create links that create
-        # lists without the clicker realizing a list is being created!
-        # Note: Temporary redirect is require to forward along the POST data.
-        return web.tempredirect(f'{get_current_user().key}/lists/add?preview=true')
+        list_record = ListRecord.from_input()
+        return render_template(
+            "type/list/edit",
+            list_record,
+            new=True,
+            action=f'{get_current_user().key}/lists/add',
+        )
 
 
 class lists_add(delegate.page):
@@ -386,9 +389,6 @@ class lists_add(delegate.page):
         return render_template("type/list/edit", list_record, new=True)
 
     def POST(self, user_key: str | None):  # type: ignore[override]
-        if web.input().get('preview') == 'true':
-            list_record = ListRecord.from_input()
-            return render_template("type/list/edit", list_record, new=True)
         return lists_edit().POST(user_key, None)
 
 
