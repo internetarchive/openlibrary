@@ -108,15 +108,18 @@ class CarouselCardPartial(PartialDataHandler):
         sort = params.get("sorts", "new")  # XXX : check "new" assumption
         limit = int(params.get("limit", 20))
         page = int(params.get("page", 1))
-        query_params = {
-            "q": query,
-            "fields": ",".join(fields),
-        }
-        if fulltext := params.get("hasFulltextOnly"):
+        query_params = {"q": query}
+
+        if params.get("hasFulltextOnly"):
             query_params['has_fulltext'] = 'true'
 
         results = work_search(
-            query_params, sort=sort, limit=limit, facet=False, offset=page
+            query_params,
+            sort=sort,
+            fields=','.join(fields),
+            limit=limit,
+            facet=False,
+            offset=page,
         )
         return results.get("docs", [])
 
