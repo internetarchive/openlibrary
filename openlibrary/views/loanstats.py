@@ -63,8 +63,7 @@ def get_trending_books(
                 | {'subject', 'person', 'place', 'time', 'edition_key'})
 ):
     logged_books = (
-        Bookshelves.fetch(get_activity_stream(limit=limit, page=page,  fields=list( WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}))  # i.e. "now"
+        Bookshelves.fetch(get_activity_stream(limit=limit, page=page,  fields = fields))  # i.e. "now"
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
@@ -73,8 +72,7 @@ def get_trending_books(
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
-            fields=list( WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}
+            fields= fields,
         )
     )
     return (
@@ -162,7 +160,7 @@ class lending_stats(app.view):
 
 
 def get_activity_stream(limit=None, page=1,  fields=list( WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}):
+                | {'subject', 'person', 'place', 'time', 'edition_key'})):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
