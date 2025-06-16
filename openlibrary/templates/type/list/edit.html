@@ -1,4 +1,4 @@
-$def with (lst, new=False)
+$def with (lst, new=False, action=None)
 $putctx('cssfile', 'list-edit')
 $var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
 
@@ -91,7 +91,12 @@ $jsdef lazy_thing_preview(key, render_fn_name):
     </div>
 
 <div id="contentBody">
-    <form method="post" id="list-edit" class="olform">
+    <form
+        method="post"
+        id="list-edit"
+        class="olform"
+        $:cond(action, 'action="%s"' % action)
+    >
         $if not new:
             <input
                 required

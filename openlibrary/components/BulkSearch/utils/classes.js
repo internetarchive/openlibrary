@@ -236,6 +236,12 @@ export class BulkSearchState{
             .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
             .filter(key => key);
     }
+    /**@type {String} */
+    get listString(){
+        return `${this.matchedBooks
+            .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
+            .filter(key => key)}`;
+    }
 }
 
 
