@@ -116,3 +116,19 @@ div.head {
 a.nostyle {
   color: inherit;
 }
+
+.loading-gradient {
+  // stylelint-disable-next-line color-no-hex
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 1000px 100%; /* Make the gradient wider than the element */
+  animation: shimmer 2.5s infinite linear; /* Apply the animation */
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0; /* Start the gradient off-screen to the left */
+  }
+  100% {
+    background-position: 1000px 0; /* Move the gradient across to the right */
+  }
+}
