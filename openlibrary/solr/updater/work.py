@@ -19,7 +19,7 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
@@ -46,7 +46,6 @@ class WorkSolrUpdater(AbstractSolrUpdater):
 
         :param dict work: Work to insert/update
         """
-        base_url = get_solr_base_url() + '/query'
         wkey = work['key']
         update = SolrUpdateRequest()
 

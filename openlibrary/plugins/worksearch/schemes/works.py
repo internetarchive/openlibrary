@@ -97,6 +97,9 @@ class WorkSearchScheme(SearchScheme):
             "lcc_sort",
             "ddc_sort",
             "osp_count",
+            # Trending
+            "trending_score_hourly_sum",
+            "trending_z_score",
         }
     )
     non_solr_fields = frozenset(
@@ -141,6 +144,8 @@ class WorkSearchScheme(SearchScheme):
             'editions': 'edition_count desc',
             'old': 'def(first_publish_year, 9999) asc',
             'new': 'first_publish_year desc',
+            'daily': 'trending_score_hourly_sum desc',
+            'trending': 'trending_z_score desc',
             'rating': 'ratings_sortable desc',
             'rating asc': 'ratings_sortable asc',
             'rating desc': 'ratings_sortable desc',

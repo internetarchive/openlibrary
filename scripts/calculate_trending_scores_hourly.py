@@ -22,27 +22,29 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 #         0 events to 1 event.
 
 
-def fetch_works_trending_scores(current_hour: int):
+def fetch_works_trending_scores(current_hour: int, timestamp: datetime.datetime):
     ol_db = db.get_db()
-    query = "SELECT work_id, Count(updated)"
-    query += "FROM bookshelves_books "
-    query += "WHERE updated >= localtimestamp - interval '1 hour'"
-    query += "GROUP BY work_id"
+    # Use the provided timestamp for the time window
+    query = f"""
+        SELECT work_id, COUNT(updated)
+        FROM bookshelves_books
+        WHERE updated >= '{timestamp - datetime.timedelta(hours=1)}' AND updated < '{timestamp}'
+        GROUP BY work_id
+    """
     db_data = {
         f'/works/OL{storage.work_id}W': storage.count
         for storage in list(ol_db.query(query))
     }
-    print(db_data)
-    query = (
-        f'trending_score_hourly_{current_hour}:[1 TO *]'
-        + (" OR " if db_data != {} else "")
-        + (" OR ".join(["key:\"" + key + "\"" for key in db_data]))
-    )
-    print(query)
+    print(f"{len(db_data)} works with bookshelf books in the last hour")
+
     resp = execute_solr_query(
         '/export',
         {
-            "q": query,
+            "q": (
+                f'trending_score_hourly_{current_hour}:[1 TO *]'
+                + (" OR " if db_data != {} else "")
+                + (" OR ".join(["key:\"" + key + "\"" for key in db_data]))
+            ),
             "fl": ",".join(
                 [
                     "key",
@@ -53,17 +55,22 @@ def fetch_works_trending_scores(current_hour: int):
             ),
             "sort": "key asc",
         },
+        _timeout=10_000,  # Increase timeout for large datasets
     )
-    doc_data = {}
-    if resp:
-        data = resp.json()
-        docs = data["response"]["docs"]
-        print(docs)
-        doc_data = {
-            doc["key"]: {"count": db_data.get(doc["key"], 0), "solr_doc": doc}
-            for doc in docs
-        }
-    return doc_data
+
+    assert resp
+
+    data = resp.json()
+    for doc in data["response"]["docs"]:
+        # Ensure all expected fields are present, defaulting to 0 if missing
+        for i in range(7):
+            doc.setdefault(f"trending_score_daily_{i}", 0)
+        doc.setdefault("trending_score_hourly_sum", 0)
+        doc.setdefault(f"trending_score_hourly_{current_hour}", 0)
+    return {
+        doc["key"]: {"count": db_data.get(doc["key"], 0), "solr_doc": doc}
+        for doc in data["response"]["docs"]
+    }
 
 
 # If the arithmetic mean is below 10/7 (i.e: there have been)
@@ -110,29 +117,28 @@ def form_inplace_updates(work_id: str, count: int, solr_doc: dict, current_hour:
     return request_body
 
 
-def main(openlibrary_yml: str):
-    if openlibrary_yml:
+def main(openlibrary_yml: str, timestamp: str | None = None):
+    load_config(openlibrary_yml)
 
-        load_config(openlibrary_yml)
-
-        current_hour = datetime.datetime.now().hour
-        work_data = fetch_works_trending_scores(current_hour)
-        if work_data:
-            request_body = [
-                form_inplace_updates(
-                    work_id,
-                    work_data[work_id]["count"],
-                    work_data[work_id]["solr_doc"],
-                    current_hour,
-                )
-                for work_id in work_data
-            ]
-            print(request_body)
-            resp = get_solr().update_in_place(request_body, commit=True)
-            print(resp)
-            print("Hourly update completed.")
+    if timestamp:
+        ts = datetime.datetime.fromisoformat(timestamp)
     else:
-        print("Could not find environment variable \"OL_Config\"")
+        ts = datetime.datetime.now()
+    current_hour = ts.hour
+    if work_data := fetch_works_trending_scores(current_hour, ts):
+        request_body = [
+            form_inplace_updates(
+                work_id,
+                work_data[work_id]["count"],
+                work_data[work_id]["solr_doc"],
+                current_hour,
+            )
+            for work_id in work_data
+        ]
+        print(f"{len(request_body)} works to update")
+        resp = get_solr().update_in_place(request_body, commit=True)
+        print(resp)
+        print("Hourly update completed.")
 
 
 if __name__ == '__main__':

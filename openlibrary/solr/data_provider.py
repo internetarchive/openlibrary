@@ -307,7 +307,6 @@ class DataProvider:
                         "trending_score_daily_*",
                         "trending_z_score",
                     ],
-                    "sort": "trending_z_score desc",
                 }
             },
         )
