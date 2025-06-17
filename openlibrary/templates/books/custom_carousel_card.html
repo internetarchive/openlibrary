@@ -32,7 +32,7 @@ $else:
 $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_key')
 
 <div class="book carousel__item">
-  <div class="book-cover loading-gradient"
+  <div class="book-cover loading-gradient">
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
       $if cover_url:
         <img class="bookcover" loading="lazy"
