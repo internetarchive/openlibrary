@@ -87,8 +87,18 @@ function olidToKey(olid) {
 }
 
 async function fetchRecords(olids) {
-    const query = {key: olids.map(olidToKey), '*': null}
-    return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?query=${JSON.stringify(query)}`)).json()
+    if (olids.length > 1000) {
+        throw new Error("Cannot fetch more than 1000 records at a time");
+    }
+
+    const query = {
+        key: olids.map(olidToKey),
+        limit: olids.length,
+        '*': null,
+    };
+    const params = new URLSearchParams({query});
+
+    return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
 }
 
 export default {
