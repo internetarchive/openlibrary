@@ -12,7 +12,6 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
 from openlibrary.core import db
 
-
 DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
 PREFERENCE_TYPE = 'preferences'
 
@@ -41,7 +40,9 @@ def copy_preferences_to_store():
                 prefs['_rev'] = None
 
                 with RunAs(username):
-                    ol_acct.get_user().save_preferences(prefs, msg="Update preferences for store", use_store=True)
+                    ol_acct.get_user().save_preferences(
+                        prefs, msg="Update preferences for store", use_store=True
+                    )
                     time.sleep(0.5)
 
 
@@ -74,6 +75,7 @@ def _parse_args():
     )
     p.set_defaults(func=main)
     return p.parse_args()
+
 
 if __name__ == '__main__':
     _args = _parse_args()
