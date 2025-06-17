@@ -1,3 +1,5 @@
+@import "../less/font-families.less";
+
 .generic-dropper-wrapper {
   position: relative;
   z-index: @z-index-level-3;
@@ -38,7 +40,7 @@
       button {
         border: none;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: @font-size-label-large;
         height: 100%;
         width: 100%;
       }
@@ -82,6 +84,7 @@
     width: 100%;
     border-top: 1px solid @lighter-grey;
     position: absolute;
+    font-size: @font-size-label-medium;
   }
 }
 .book-progress-btn {

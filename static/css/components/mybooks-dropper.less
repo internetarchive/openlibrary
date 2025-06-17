@@ -49,22 +49,18 @@
 
 /* Styling for the My Books dropper's dropdown content: */
 .generic-dropper__dropdown {
+  min-width: 200px;
+  max-width: 100vw;
   border: 1px solid @mid-grey;
   background-color: @lightest-grey;
 
   p {
-    font-size: 0.875em;
     margin-bottom: 5px;
     margin-top: 0;
     color: @grey;
 
     a {
-      font-size: 0.875em;
       display: block;
-    }
-
-    span {
-      font-size: 0.8125em;
     }
   }
 
@@ -76,17 +72,14 @@
     /* stylelint-enable selector-max-specificity */
   }
 
-  p.create {
+  .create {
     border-top: 1px solid @lightest-grey;
     padding: 5px 10px;
     text-decoration: none;
     font-weight: bold;
     margin-bottom: 0;
-
-    a {
-      color: @dark-grey;
-      text-decoration: none;
-    }
+    display: block; // For <a> links
+    color: inherit;
   }
 
   .reading-lists {
@@ -94,7 +87,7 @@
       background: @white;
       padding: 5px 0 0 10px;
       margin: 0;
-      font-size: 0.8em;
+      font-size: @font-size-label-medium;
     }
     .my-lists {
       background: @white;
