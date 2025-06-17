@@ -88,7 +88,7 @@ function olidToKey(olid) {
 
 async function fetchRecords(olids) {
     if (olids.length > 1000) {
-        throw new Error("Cannot fetch more than 1000 records at a time");
+        throw new Error('Cannot fetch more than 1000 records at a time');
     }
 
     const query = {
