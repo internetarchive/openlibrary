@@ -126,14 +126,7 @@ export function make_redirect(master_key, dupe) {
 
 export function get_editions(work_key) {
     const endpoint = `${work_key}/editions.json`;
-    let base = '';
-    if (CONFIGS.OL_BASE_BOOKS) {
-        base = CONFIGS.OL_BASE_BOOKS;
-    } else {
-        // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-        base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
-    }
-    return fetch(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
+    return fetch(`${CONFIGS.OL_BASE_BOOKS}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
