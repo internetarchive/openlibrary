@@ -37,3 +37,13 @@ node_modules/
 venv/
 *.c
 *.so
+# Ignore Gradle build cache
+.gradle/
+
+# Ignore build outputs
+app-release*
+
+android.keystore
+
+# Ignore checksum file if it’s generated during build
+manifest-checksum.txt
