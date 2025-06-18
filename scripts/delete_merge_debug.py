@@ -25,7 +25,6 @@ def delete_records():
     while keys := web.ctx.site.store.keys(type=RECORD_TYPE):
         for key in keys:
             web.ctx.site.store.delete(key)
-            time.sleep(0.5)
 
 
 def main(args):
