@@ -7540,7 +7540,7 @@ msgid "See the page's history"
 msgstr ""
 
 #: type/edition/admin_bar.html
-msgid "Add to Staff Picks"
+msgid "Add IA Book to Staff Picks"
 msgstr ""
 
 #: type/edition/admin_bar.html
