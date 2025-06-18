@@ -282,7 +282,6 @@ async def main(
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
-    trending: bool = False,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning
@@ -290,7 +289,6 @@ async def main(
     :param solr_url: If wanting to override what's in the config file
     :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
-    :param trending: Whether to start the trending updater scheduler
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -323,7 +321,7 @@ async def main(
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
-    if trending:
+    if solr_next:
         logger.info("Starting trending updater scheduler")
         # This will run forever in the background
         task = asyncio.create_task(start_trending_scheduler(ol_config))

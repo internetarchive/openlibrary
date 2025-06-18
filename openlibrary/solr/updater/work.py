@@ -19,7 +19,7 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
@@ -276,7 +276,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         doc |= self.build_legacy_ia_fields()
         doc |= self.build_ratings() or {}
         doc |= self.build_reading_log() or {}
-        doc |= self._data_provider.get_solr_trending_scores(self.key) or {}
+        if get_solr_next():
+            doc |= self._data_provider.get_solr_trending_scores(self.key) or {}
         return cast(SolrDocument, doc)
 
     @property
