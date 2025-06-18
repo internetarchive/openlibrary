@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-Deletes all store entries with type `merge-authors-debug`.
+Deletes all store entries that have the type `merge-authors-debug`.
 """
 import argparse
-import time
 import web
 from pathlib import Path
 
