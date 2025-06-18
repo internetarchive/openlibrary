@@ -1,10 +1,8 @@
 import datetime
 
-import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
-
-from scripts.calculate_trending_scores_daily import main as daily_main
-from scripts.calculate_trending_scores_hourly import main as hourly_main
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+from scripts.solr_updater.trending_updater_daily import main as daily_main
+from scripts.solr_updater.trending_updater_hourly import main as hourly_main
 
 
 def main(openlibrary_yml: str):

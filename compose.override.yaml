@@ -35,7 +35,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     environment:
-      - EXTRA_OPTS=--solr-next
+      - EXTRA_OPTS=--solr-next --trending
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor

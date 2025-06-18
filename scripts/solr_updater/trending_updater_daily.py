@@ -1,7 +1,5 @@
 import datetime
 
-import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
-
 from openlibrary.config import load_config
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr

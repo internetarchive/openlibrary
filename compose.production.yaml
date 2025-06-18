@@ -279,6 +279,7 @@ services:
       - STATE_FILE=solr-next-update.offset
       - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary
         --solr-next
+        --trending
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem

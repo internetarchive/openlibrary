@@ -1,8 +1,6 @@
 import datetime
 from math import sqrt
 
-import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
-
 from openlibrary.config import load_config
 from openlibrary.core import db
 from openlibrary.plugins.worksearch.code import execute_solr_query

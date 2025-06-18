@@ -17,7 +17,6 @@ import sys
 from collections.abc import Iterator
 from pathlib import Path
 
-import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import requests
 import web
@@ -26,6 +25,9 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+from scripts.monitoring.utils import OlAsyncIOScheduler
+from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
+from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -236,6 +238,38 @@ async def update_keys(keys):
     return count
 
 
+async def start_trending_scheduler(ol_config: str):
+    scheduler = OlAsyncIOScheduler("TRENDING-UPDATER")
+
+    # At XX:05, check the counts of reading log events, and use them to
+    # update the trending count for 1) all works with a non-zero trending count
+    # and 2) all  works with reading-log events in the last hour.
+    scheduler.add_job(
+        trending_hourly_main,
+        'cron',
+        minute=5,
+        args=[ol_config],
+        id='trending_updater_hourly',
+    )
+
+    # At midnight each day, transfer the sum of the last 24 hours of trending
+    # scores to the appropriate 'daily' slot for each work. This once more
+    # affects: all works with a non-zero count for that day, or ones with a
+    # current sum of greater than zero for those 24 hours.
+    scheduler.add_job(
+        trending_daily_main,
+        'cron',
+        hour=0,
+        minute=0,
+        args=[ol_config],
+        id='trending_updater_daily',
+    )
+
+    scheduler.start()
+
+    return scheduler
+
+
 async def main(
     ol_config: str,
     osp_dump: Path | None = None,
@@ -248,6 +282,7 @@ async def main(
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
+    trending: bool = False,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning
@@ -255,6 +290,7 @@ async def main(
     :param solr_url: If wanting to override what's in the config file
     :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
+    :param trending: Whether to start the trending updater scheduler
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -286,6 +322,13 @@ async def main(
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
+
+    if trending:
+        logger.info("Starting trending updater scheduler")
+        # This will run forever in the background
+        # ruff: noqa: RUF006
+        asyncio.create_task(start_trending_scheduler(ol_config))
+        logger.info("Trending updater scheduler started")
 
     offset = read_state_file(state_file, initial_state)
 

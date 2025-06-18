@@ -19,7 +19,7 @@ if not HOST:
     raise ValueError("HOSTNAME environment variable not set.")
 
 SERVER = HOST.split(".")[0]  # eg "ol-www0"
-scheduler = OlAsyncIOScheduler()
+scheduler = OlAsyncIOScheduler("OL-MONITOR")
 
 
 @limit_server(["ol-web*", "ol-covers0"], scheduler)
@@ -110,13 +110,6 @@ async def monitor_haproxy():
 
 
 async def main():
-    # Print out all jobs
-    jobs = scheduler.get_jobs()
-    print(f"[OL-MONITOR] {len(jobs)} job(s) registered:", flush=True)
-    for job in jobs:
-        print("[OL-MONITOR]", job, flush=True)
-
-    print(f"[OL-MONITOR] Monitoring started ({HOST})", flush=True)
     scheduler.start()
 
     # Keep the main coroutine alive
