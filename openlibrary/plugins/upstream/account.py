@@ -402,6 +402,77 @@ def _expire_pd_cookies():
     web.setcookie("pda", "", expires=1)
 
 
+def _login(
+    email,
+    password,
+    require_link,
+    s3_access_key,
+    s3_secret_key,
+    remember=False,
+    test=False,
+):
+    """
+    Authenticates an Open Library patron.
+    :param email:
+    :param password:
+    :param require_link:
+    :param s3_access_key:
+    :param s3_secret_key:
+    :param remember:
+    :param test:
+    :return: 2-tuple containing the patron's OpenLibraryAccount and a boolean that signifies whether a post-login PD action should be taken
+    :raises OLAuthenticationError: on authentication failure
+    """
+    def _set_cookies(_ol_account, _special_access: str, _remember: bool) -> None:
+        expires = 3600 * 24 * 365 if remember else ""
+
+        web.setcookie('pd', _special_access, expires=expires)
+        web.setcookie(
+            config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
+        )
+        _set_account_cookies(ol_account, expires)
+
+    def _handle_pda_cookie(_ol_account) -> bool:
+        notify_for_pd = False
+        if web.cookies().get("pda"):
+            _update_account_on_pd_request(ol_account)
+            _notify_on_rpd_verification(
+                ol_account, get_pd_org(web.cookies().get("pda"))
+            )
+            _expire_pd_cookies()
+            notify_for_pd = True
+
+        return notify_for_pd
+
+    def _check_if_pda_fulfilled(_ol_account, _special_access: str):
+        if (
+            _special_access
+            and ol_account.get_user().preferences().get('rdp')
+            != PDRequestStatus.FULFILLED.value
+        ):
+            _update_account_on_pd_request(ol_account)
+
+    audit = audit_accounts(
+            email,
+            password,
+            require_link=require_link,
+            s3_access_key=s3_access_key,
+            s3_secret_key=s3_secret_key,
+            test=test,
+        )
+    if error := audit.get("error"):
+        raise OLAuthenticationError(error)
+
+    ol_account = OpenLibraryAccount.get(email=email or audit.get('ia_email'))
+    special_access = audit.get('special_access') or ''
+    _set_cookies(ol_account, special_access, remember)
+
+    set_pd_action = _handle_pda_cookie(ol_account)
+    _check_if_pda_fulfilled(ol_account, special_access)
+
+    return ol_account, set_pd_action
+
+
 class account_login_json(delegate.page):
     encoding = "json"
     path = "/account/login"
@@ -417,57 +488,20 @@ class account_login_json(delegate.page):
         )
 
         d = json.loads(web.data())
-        email = d.get('email', "")
         remember = d.get('remember', "")
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
 
-        # Try S3 authentication first, fallback to infogami user, pass
-        if access and secret:
-            audit = audit_accounts(
-                None,
-                None,
-                require_link=True,
-                s3_access_key=access,
-                s3_secret_key=secret,
-                test=test,
-            )
-            error = audit.get('error')
-            if error:
-                resp = {
-                    'error': error,
-                    'errorDisplayString': get_login_error(error),
-                }
-                raise olib.code.BadRequest(json.dumps(resp))
-            expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
-            web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
-            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email') and (
-                ol_account := OpenLibraryAccount.get(email=audit['ia_email'])
-            ):
-                _set_account_cookies(ol_account, expires)
-
-                if web.cookies().get("pda"):
-                    _update_account_on_pd_request(ol_account)
-                    _notify_on_rpd_verification(
-                        ol_account, get_pd_org(web.cookies().get("pda"))
-                    )
-                    _expire_pd_cookies()
-
-                has_special_access = audit.get('special_access')
-                if (
-                    has_special_access
-                    and ol_account.get_user().preferences().get('rpd')
-                    != PDRequestStatus.FULFILLED.value
-                ):
-                    _update_account_on_pd_fulfillment(ol_account)
-
-        # Fallback to infogami user/pass
-        else:
-            from infogami.plugins.api.code import login as infogami_login
-
-            infogami_login().POST()
+        if not access or not secret:
+            raise Exception("Infogami username/password is deprecated")
+        try:
+            _, set_pd_action = _login(None, None, True, access, secret, remember=bool(remember), test=test)
+            stats.increment('ol.account.xauth.login')
+            stats.increment("ol.account.login.json")
+        except OLAuthenticationError as err:
+            resp = {"error": str(err), "errorDisplayString": get_login_error(str(err))}
+            raise olib.code.BadRequest(resp)
 
 
 class account_login(delegate.page):
@@ -487,20 +521,6 @@ class account_login(delegate.page):
         f.fill(i)
         f.note = get_login_error(error_key)
         return render.login(f)
-
-    def perform_post_login_action(self, i, ol_account):
-        if i.action:
-            op, args = i.action.split(":")
-            if op == "follow" and args:
-                publisher = args
-                if publisher_account := OpenLibraryAccount.get_by_username(publisher):
-                    PubSub.subscribe(
-                        subscriber=ol_account.username, publisher=publisher
-                    )
-
-                    publisher_name = publisher_account["data"]["displayname"]
-                    flash_message = f"You are now following {publisher_name}!"
-                    return flash_message
 
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
@@ -524,69 +544,83 @@ class account_login(delegate.page):
             connect=None,
             password="",
             remember=False,
-            redirect='/',
+            redirect='/account/books',
             test=False,
             access=None,
             secret=None,
             action="",
         )
         email = i.username  # XXX username is now email
-        audit = audit_accounts(
-            email,
-            i.password,
-            require_link=True,
-            s3_access_key=i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
-            s3_secret_key=i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
-            test=i.test,
-        )
-        if error := audit.get('error'):
-            return self.render_error(error, i)
+        try:
+            ol_account, set_pd_action = _login(
+                email,
+                i.password,
+                True,
+                i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
+                i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
+                remember=i.remember,
+                test=i.test,
+            )
+        except OLAuthenticationError as err:
+            return self.render_error(str(err), i)
 
-        expires = 3600 * 24 * 365 if i.remember else ""
-        web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
-        web.setcookie(
-            config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
-        )
-
-        if ol_account := OpenLibraryAccount.get(email=email):
-            _set_account_cookies(ol_account, expires)
-
-            if web.cookies().get("pda"):
-                _update_account_on_pd_request(ol_account)
-                _notify_on_rpd_verification(
-                    ol_account, get_pd_org(web.cookies().get("pda"))
-                )
-                _expire_pd_cookies()
-                add_flash_message(
-                    "info",
-                    _(
-                        "Thank you for registering an Open Library account and "
-                        "requesting special print disability access. You should receive "
-                        "an email detailing next steps in the process."
-                    ),
-                )
-
-            has_special_access = audit.get('special_access')
-            if (
-                has_special_access
-                and ol_account.get_user().preferences().get('rpd')
-                != PDRequestStatus.FULFILLED.value
-            ):
-                _update_account_on_pd_fulfillment(ol_account)
-
-        blacklist = [
-            "/account/login",
-            "/account/create",
-        ]
-
-        # Processing post login action
-        if flash_message := self.perform_post_login_action(i, ol_account):
-            add_flash_message('note', _(flash_message))
-
-        if i.redirect == "" or any(path in i.redirect for path in blacklist):
-            i.redirect = "/account/books"
         stats.increment('ol.account.xauth.login')
-        raise web.seeother(i.redirect)
+        stats.increment("ol.account.login.html")
+
+        action = "pd_notify" if set_pd_action else ""
+        if i.action:
+            action = f"{i.action},{action}" if action else i.action
+
+        raise web.seeother(
+            f"/account/login/success?redirect={i.redirect}&action={action}"
+        )
+
+
+class post_login_handler(delegate.page):
+    path = "/account/login/success"
+    deny_list = frozenset([
+        "/account/login",
+        "/account/create",
+        "/account/login/success"
+    ])
+    default_redirect = "/account/books"
+
+    def GET(self):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
+
+        i = web.input(redirect="", action="")
+        actions = i.action.split(",")
+        for action in actions:
+            self.perform_post_login_action(action)
+
+        if i.redirect == "" or any(path in i.redirect for path in self.deny_list):
+            redirect = self.default_redirect
+        else:
+            redirect = i.redirect
+
+        raise web.seeother(redirect)
+
+    def perform_post_login_action(self, action):
+        op, args = action.split(":") if ":" in action else (action, "")
+
+        if op == "pd_notify":
+            add_flash_message(
+                "info",
+                _(
+                    "Thank you for registering an Open Library account and "
+                    "requesting special print disability access. You should receive "
+                    "an email detailing next steps in the process."
+                ),
+            )
+        if op == "follow" and args:
+            publisher = args
+            patron = accounts.get_current_user()
+            if publisher_account := OpenLibraryAccount.get_by_username(publisher):
+                PubSub.subscribe(subscriber=patron.get_username(), publisher=publisher)
+
+                publisher_name = publisher_account["data"]["displayname"]
+                add_flash_message(f"You are now following {publisher_name}!")
 
 
 class account_logout(delegate.page):

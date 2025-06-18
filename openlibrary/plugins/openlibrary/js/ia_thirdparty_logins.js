@@ -24,7 +24,14 @@ export function initMessageEventListener(element) {
             })
                 .then((resp) => {
                     if (resp.ok) {
-                        window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/books';
+                        const searchParams = {
+                            redirect: new URLSearchParams(window.location.search).get('redirect') || '/account/books'
+                        }
+                        const action = new URLSearchParams(window.location.search).get('action')
+                        if (action) {
+                            searchParams.action = action
+                        }
+                        window.location = `/account/login/success?${searchParams.toString()}`
                     }
                     return resp.json()
                 })
