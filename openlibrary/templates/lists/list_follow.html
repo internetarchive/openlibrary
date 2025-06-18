@@ -21,12 +21,12 @@ $def list_card(list, owner, own_list):
                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
                $else:
                    $ img_url = '/images/icons/avatar_book-sm.png'
-               <img src="$img_url" loading="lazy" width="80"/>
+               <img alt="$_('Cover of book in list')" src="$img_url" loading="lazy" width="80"/>
         </a>
         <div class="list-follow-card__bottom">
             <div class="list-follow-card__user">
                  <a href="$owner.key">
-                  <img src="$(owner.key)/avatar" />
+                  <img alt="$_('List owner profile picture')" src="$(owner.key)/avatar" />
                  </a>
                 <div class="list-follow-card__username">
                     <a class="list-follow-card__username-link" href="$owner.key">
