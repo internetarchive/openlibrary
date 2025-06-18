@@ -3,8 +3,9 @@
 Deletes all store entries that have the type `merge-authors-debug`.
 """
 import argparse
-import web
 from pathlib import Path
+
+import web
 
 import infogami
 from openlibrary.config import load_config
@@ -41,6 +42,7 @@ def _parse_args():
     )
     _parser.set_defaults(func=main)
     return _parser.parse_args()
+
 
 if __name__ == '__main__':
     _args = _parse_args()
