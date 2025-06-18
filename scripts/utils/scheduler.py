@@ -1,5 +1,6 @@
 import functools
 import typing
+from typing import TYPE_CHECKING
 
 from apscheduler.events import (
     EVENT_JOB_ERROR,
@@ -8,15 +9,17 @@ from apscheduler.events import (
     JobEvent,
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.util import undefined
 
 
 class OlAsyncIOScheduler(AsyncIOScheduler):
-    def __init__(self, print_prefix: str):
+    def __init__(self, print_prefix: str, sentry_monitoring: bool = False):
         super().__init__({'apscheduler.timezone': 'UTC'})
         self.print_prefix = print_prefix
+        self.sentry = sentry_monitoring
         self.add_listener(
-            functools.partial(job_listener, self.print_prefix),
+            functools.partial(print_job_listener, self.print_prefix),
             EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_SUBMITTED,
         )
 
@@ -38,7 +41,22 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
         replace_existing=False,
         **trigger_args,
     ):
-        return super().add_job(
+        if TYPE_CHECKING:
+            from sentry_sdk._types import MonitorConfig
+
+        monitor_config: MonitorConfig = {
+            'checkin_margin': 60,
+        }
+
+        if self.sentry:
+            from sentry_sdk.crons import monitor
+
+            monitored_func = monitor(id or func.__name__, monitor_config)(func)
+            # Preserve the original function name
+            monitored_func.__name__ = func.__name__
+            func = monitored_func
+
+        job = super().add_job(
             func,
             trigger,
             args,
@@ -55,6 +73,24 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
             replace_existing,
             **trigger_args,
         )
+
+        if self.sentry:
+            if isinstance(job.trigger, CronTrigger):
+                monitor_config['schedule'] = {
+                    'type': 'crontab',
+                    'value': cron_trigger_to_crontab(job.trigger),
+                }
+                print(
+                    f"[{self.print_prefix}] Monitoring job {job.id} with crontab: {monitor_config['schedule']['value']}",
+                    flush=True,
+                )
+            else:
+                raise ValueError(
+                    f"Unsupported trigger type: {type(job.trigger).__name__}. "
+                    "Only CronTrigger is supported for Sentry monitoring."
+                )
+
+        return job
 
     @typing.override
     def start(self, paused=False):
@@ -76,10 +112,21 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
         print(f"[{self.print_prefix}] Scheduler started.", flush=True)
 
 
-def job_listener(prefix: str, event: JobEvent):
+def print_job_listener(prefix: str, event: JobEvent):
     if event.code == EVENT_JOB_SUBMITTED:
         print(f"[{prefix}] Job {event.job_id} has started.", flush=True)
     elif event.code == EVENT_JOB_EXECUTED:
         print(f"[{prefix}] Job {event.job_id} completed successfully.", flush=True)
     elif event.code == EVENT_JOB_ERROR:
         print(f"[{prefix}] Job {event.job_id} failed.", flush=True)
+
+
+def cron_trigger_to_crontab(cron_trigger: CronTrigger) -> str:
+    """
+    Returns a standard crontab string representation of this trigger.
+    Only the fields minute, hour, day, month, and day_of_week are included, as per crontab format.
+    """
+    # Map field names to crontab order
+    crontab_fields = ['minute', 'hour', 'day', 'month', 'day_of_week']
+    field_map = {f.name: str(f) for f in cron_trigger.fields}
+    return ' '.join(field_map.get(name, '*') for name in crontab_fields)

@@ -239,7 +239,7 @@ async def update_keys(keys):
 
 
 async def start_trending_scheduler(ol_config: str):
-    scheduler = OlAsyncIOScheduler("TRENDING-UPDATER")
+    scheduler = OlAsyncIOScheduler("TRENDING-UPDATER", sentry_monitoring=True)
 
     # At XX:05, check the counts of reading log events, and use them to
     # update the trending count for 1) all works with a non-zero trending count
@@ -326,8 +326,14 @@ async def main(
     if trending:
         logger.info("Starting trending updater scheduler")
         # This will run forever in the background
-        # ruff: noqa: RUF006
-        asyncio.create_task(start_trending_scheduler(ol_config))
+        task = asyncio.create_task(start_trending_scheduler(ol_config))
+        task.add_done_callback(
+            lambda t: (
+                logger.error("Trending scheduler failed", exc_info=t.exception())
+                if t.exception()
+                else None
+            )
+        )
         logger.info("Trending updater scheduler started")
 
     offset = read_state_file(state_file, initial_state)
