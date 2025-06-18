@@ -77,26 +77,28 @@ import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_autho
 import CONFIGS from '../configs.js';
 
 
-/**
- * @param {string} olid
- */
-function fetchRecord(olid) {
+function olidToKey(olid) {
     const type = {
         W: 'works',
         M: 'books',
         A: 'authors'
     }[olid[olid.length - 1]];
-    let base = '';
-    if (CONFIGS.OL_BASE_BOOKS) {
-        base = CONFIGS.OL_BASE_BOOKS;
-    } else {
-        // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-        base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
+    return `/${type}/${olid}`;
+}
+
+async function fetchRecords(olids) {
+    if (olids.length > 1000) {
+        throw new Error('Cannot fetch more than 1000 records at a time');
     }
-    const record_key = `/${type}/${olid}`;
-    return fetch(`${base}${record_key}.json`).then(r => {
-        return (r.ok) ? r.json() : {key: record_key, type: {key: '/type/none'}, error: r.statusText};
-    });
+
+    const query = {
+        key: olids.map(olidToKey),
+        limit: olids.length,
+        '*': null,
+    };
+    const params = new URLSearchParams({query: JSON.stringify(query)});
+
+    return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
 }
 
 export default {
@@ -123,7 +125,7 @@ export default {
             );
             // Ensure orphaned editions are at the bottom of the list
             const records = _.orderBy(
-                await Promise.all(olids_sorted.map(fetchRecord)),
+                await fetchRecords(olids_sorted),
                 record => record.type.key, 'desc');
 
             let masterIndex = 0
