@@ -7,11 +7,11 @@ import asyncio
 import os
 
 from scripts.monitoring.utils import (
-    OlAsyncIOScheduler,
     bash_run,
     get_service_ip,
     limit_server,
 )
+from scripts.utils.scheduler import OlAsyncIOScheduler
 
 HOST = os.getenv("HOSTNAME")  # eg "ol-www0.us.archive.org"
 
