@@ -96,7 +96,7 @@ async function fetchRecords(olids) {
         limit: olids.length,
         '*': null,
     };
-    const params = new URLSearchParams({query});
+    const params = new URLSearchParams({query: JSON.stringify(query)});
 
     return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
 }
