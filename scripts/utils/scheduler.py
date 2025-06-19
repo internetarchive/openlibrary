@@ -1,12 +1,13 @@
 import functools
 import typing
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from apscheduler.events import (
     EVENT_JOB_ERROR,
     EVENT_JOB_EXECUTED,
     EVENT_JOB_SUBMITTED,
     JobEvent,
+    JobExecutionEvent,
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -118,7 +119,10 @@ def print_job_listener(prefix: str, event: JobEvent):
     elif event.code == EVENT_JOB_EXECUTED:
         print(f"[{prefix}] Job {event.job_id} completed successfully.", flush=True)
     elif event.code == EVENT_JOB_ERROR:
+        event = cast(JobExecutionEvent, event)
         print(f"[{prefix}] Job {event.job_id} failed.", flush=True)
+        if event.exception:
+            print(event.traceback, flush=True)
 
 
 def cron_trigger_to_crontab(cron_trigger: CronTrigger) -> str:
