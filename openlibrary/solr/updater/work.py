@@ -107,8 +107,19 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     for iaid in iaids
                 }
 
+                trending_data = {}
+                if get_solr_next():
+                    trending_data = await self.data_provider.get_trending_data(
+                        work['key']
+                    )
+
                 solr_doc = WorkSolrBuilder(
-                    work, editions, authors, self.data_provider, ia_metadata
+                    work,
+                    editions,
+                    authors,
+                    self.data_provider,
+                    ia_metadata,
+                    trending_data,
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work['key'], exc_info=True)
@@ -256,12 +267,14 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         authors: list[dict],
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
+        trending_data: dict,
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
+        self._trending_data = trending_data
         self._solr_editions = [
             EditionSolrBuilder(
                 e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
@@ -276,8 +289,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         doc |= self.build_legacy_ia_fields()
         doc |= self.build_ratings() or {}
         doc |= self.build_reading_log() or {}
-        if get_solr_next():
-            doc |= self._data_provider.get_solr_trending_scores(self.key) or {}
+        doc |= self._trending_data
         return cast(SolrDocument, doc)
 
     @property

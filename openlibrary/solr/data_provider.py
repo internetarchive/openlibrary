@@ -290,7 +290,7 @@ class DataProvider:
         """
         raise NotImplementedError
 
-    def get_solr_trending_scores(self, work_key: str) -> dict:
+    async def get_trending_data(self, work_key: str) -> dict:
         """
         Fetches the record's information from Solr.
         :param work_key: type-prefixed key, eg /works/OL1W
@@ -350,38 +350,37 @@ class LegacyDataProvider(DataProvider):
         return
 
     @typing.override
-    def get_solr_trending_scores(self, work_key: str) -> dict:
-        response = requests.post(
-            get_solr_base_url() + '/query',
-            json={
-                "params": {
-                    "json.nl": "arrarr",
-                    "q": "key: %s" % work_key,
-                    "fl": [
-                        "trending_score_hourly_sum",
-                        'trending_score_hourly_*',
-                        "trending_score_daily_*",
-                        "trending_z_score",
-                    ],
-                }
-            },
-        )
-        reply = response.json().get('docs', {}) if response.json() else {}
-        reply = reply[0] if reply else {}
-        doc: dict = {
-            f'trending_score_hourly_{index}': reply.get(
-                f'trending_score_hourly_{index}', 0
+    async def get_trending_data(self, work_key: str) -> dict:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                get_solr_base_url() + '/get',
+                params={
+                    'id': work_key,
+                    "fl": ','.join(  # noqa: FLY002
+                        (
+                            "trending_score_hourly_sum",
+                            'trending_score_hourly_*',
+                            "trending_score_daily_*",
+                            "trending_z_score",
+                        )
+                    ),
+                },
             )
-            for index in range(24)
-        }
-        doc |= {"trending_score_hourly_sum": reply.get("trending_score_hourly_sum", 0)}
-        doc |= {
-            f'trending_score_daily_{index}': reply.get(
-                f'trending_score_daily_{index}', 0
-            )
-            for index in range(7)
-        }
-        return doc
+            response.raise_for_status()
+            solr_doc = response.json()['doc'] or {}
+
+            return {
+                field: solr_doc.get(field, 0) for field in get_all_trending_fields()
+            }
+
+
+def get_all_trending_fields():
+    for index in range(24):
+        yield f'trending_score_hourly_{index}'
+    for index in range(7):
+        yield f'trending_score_daily_{index}'
+    yield 'trending_score_hourly_sum'
+    yield 'trending_z_score'
 
 
 class ExternalDataProvider(DataProvider):
