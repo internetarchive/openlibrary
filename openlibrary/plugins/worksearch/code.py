@@ -143,7 +143,9 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: dict | list[tuple[str, Any]]
+    solr_path: str,
+    params: dict | list[tuple[str, Any]],
+    _timeout: int | None = None,
 ) -> Response | None:
     url = solr_path
     if params:
@@ -152,7 +154,11 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(solr_path, urlencode(params))
+        response = get_solr().raw_request(
+            solr_path,
+            urlencode(params),
+            _timeout=_timeout,
+        )
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None

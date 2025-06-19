@@ -17,7 +17,6 @@ import sys
 from collections.abc import Iterator
 from pathlib import Path
 
-import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import requests
 import web
@@ -26,6 +25,9 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
+from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
+from scripts.utils.scheduler import OlAsyncIOScheduler
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -236,6 +238,38 @@ async def update_keys(keys):
     return count
 
 
+async def start_trending_scheduler(ol_config: str):
+    scheduler = OlAsyncIOScheduler("TRENDING-UPDATER", sentry_monitoring=True)
+
+    # At XX:05, check the counts of reading log events, and use them to
+    # update the trending count for 1) all works with a non-zero trending count
+    # and 2) all  works with reading-log events in the last hour.
+    scheduler.add_job(
+        trending_hourly_main,
+        'cron',
+        minute=5,
+        args=[ol_config],
+        id='trending_updater_hourly',
+    )
+
+    # At midnight each day, transfer the sum of the last 24 hours of trending
+    # scores to the appropriate 'daily' slot for each work. This once more
+    # affects: all works with a non-zero count for that day, or ones with a
+    # current sum of greater than zero for those 24 hours.
+    scheduler.add_job(
+        trending_daily_main,
+        'cron',
+        hour=0,
+        minute=0,
+        args=[ol_config],
+        id='trending_updater_daily',
+    )
+
+    scheduler.start()
+
+    return scheduler
+
+
 async def main(
     ol_config: str,
     osp_dump: Path | None = None,
@@ -243,13 +277,15 @@ async def main(
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,
     ol_url='http://openlibrary.org/',
-    solr_url: str | None = None,
     solr_next: bool = False,
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
 ):
     """
+    Useful environment variables:
+    - OL_SOLR_BASE_URL: Override the Solr base URL
+
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
     :param solr_url: If wanting to override what's in the config file
@@ -278,14 +314,24 @@ async def main(
         host = web.lstrips(ol_url, "http://").strip("/")
         update.set_query_host(host)
 
-    if solr_url:
-        update.set_solr_base_url(solr_url)
-
     update.set_solr_next(solr_next)
     set_osp_dump_location(osp_dump)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
+
+    if solr_next:
+        logger.info("Starting trending updater scheduler")
+        # This will run forever in the background
+        task = asyncio.create_task(start_trending_scheduler(ol_config))
+        task.add_done_callback(
+            lambda t: (
+                logger.error("Trending scheduler failed", exc_info=t.exception())
+                if t.exception()
+                else None
+            )
+        )
+        logger.info("Trending updater scheduler started")
 
     offset = read_state_file(state_file, initial_state)
 

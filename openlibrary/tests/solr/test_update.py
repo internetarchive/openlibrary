@@ -4,7 +4,11 @@ import pytest
 
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.solr import update
-from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
+from openlibrary.solr.data_provider import (
+    DataProvider,
+    WorkReadingLogSolrSummary,
+    get_all_trending_fields,
+)
 
 author_counter = 0
 edition_counter = 0
@@ -90,6 +94,9 @@ class FakeDataProvider(DataProvider):
 
     def get_metadata(self, id):
         return {}
+
+    async def get_trending_data(self, work_key: str) -> dict:
+        return dict.fromkeys(get_all_trending_fields(), 0)
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         return None
