@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 
 import httpx
@@ -30,9 +31,13 @@ def get_solr_base_url():
     """
     global solr_base_url
 
-    load_config()
+    if solr_base_url is not None:
+        return solr_base_url
 
-    if not solr_base_url:
+    if os.environ.get('OL_SOLR_BASE_URL'):
+        solr_base_url = os.environ['OL_SOLR_BASE_URL']
+    else:
+        load_config()
         solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
 
     return solr_base_url
