@@ -423,6 +423,7 @@ def _login(
     :return: 2-tuple containing the patron's OpenLibraryAccount and a boolean that signifies whether a post-login PD action should be taken
     :raises OLAuthenticationError: on authentication failure
     """
+
     def _set_cookies(_ol_account, _special_access: str, _remember: bool) -> None:
         expires = 3600 * 24 * 365 if remember else ""
 
@@ -453,13 +454,13 @@ def _login(
             _update_account_on_pd_request(ol_account)
 
     audit = audit_accounts(
-            email,
-            password,
-            require_link=require_link,
-            s3_access_key=s3_access_key,
-            s3_secret_key=s3_secret_key,
-            test=test,
-        )
+        email,
+        password,
+        require_link=require_link,
+        s3_access_key=s3_access_key,
+        s3_secret_key=s3_secret_key,
+        test=test,
+    )
     if error := audit.get("error"):
         raise OLAuthenticationError(error)
 
@@ -496,7 +497,9 @@ class account_login_json(delegate.page):
         if not access or not secret:
             raise Exception("Infogami username/password is deprecated")
         try:
-            _, set_pd_action = _login(None, None, True, access, secret, remember=bool(remember), test=test)
+            _, set_pd_action = _login(
+                None, None, True, access, secret, remember=bool(remember), test=test
+            )
             stats.increment('ol.account.xauth.login')
             stats.increment("ol.account.login.json")
         except OLAuthenticationError as err:
@@ -578,11 +581,9 @@ class account_login(delegate.page):
 
 class post_login_handler(delegate.page):
     path = "/account/login/success"
-    deny_list = frozenset([
-        "/account/login",
-        "/account/create",
-        "/account/login/success"
-    ])
+    deny_list = frozenset(
+        ["/account/login", "/account/create", "/account/login/success"]
+    )
     default_redirect = "/account/books"
 
     def GET(self):
