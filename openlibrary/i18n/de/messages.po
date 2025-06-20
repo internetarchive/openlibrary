@@ -1660,7 +1660,7 @@ msgstr "Alles anzeigen"
 
 #: account/sidebar.html type/list/edit.html
 msgid "Create a list"
-msgstr "Nuee Liste erstellen"
+msgstr "Neue Liste erstellen"
 
 #: account/topmenu.html
 msgid "Import & Export"
