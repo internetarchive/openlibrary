@@ -59,9 +59,12 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
+    fields=None,
 ):
     logged_books = (
-        Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
+        Bookshelves.fetch(
+            get_activity_stream(limit=limit, page=page, fields=fields)
+        )  # i.e. "now"
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
@@ -70,6 +73,7 @@ def get_trending_books(
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
+            fields=fields,
         )
     )
     return (
@@ -156,11 +160,11 @@ class lending_stats(app.view):
         raise web.seeother("/")
 
 
-def get_activity_stream(limit=None, page=1):
+def get_activity_stream(limit=None, page=1, fields=None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
-    return Bookshelves.get_recently_logged_books(limit=limit, page=page)
+    return Bookshelves.get_recently_logged_books(limit=limit, page=page, fields=fields)
 
 
 def get_cached_activity_stream(limit):
