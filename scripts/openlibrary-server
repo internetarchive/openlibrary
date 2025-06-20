@@ -16,13 +16,25 @@ USAGE:
     $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
 """
 import os
+import signal
 import sys
 
 import web
 import yaml
 from gunicorn.app.base import Application
 
-from openlibrary.utils.shutdown import setup_graceful_shutdown
+
+# TODO: idk why this import fails
+# from openlibrary.utils.shutdown import setup_graceful_shutdown
+def setup_graceful_shutdown():
+    def shutdown_handler(signum, frame):
+        print("Shutting down")
+        sys.exit(0)
+
+    # catch SIGINT and SIGTERM to allow graceful shutdown
+    signal.signal(signal.SIGINT, shutdown_handler)
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
 
 setup_graceful_shutdown()
 
