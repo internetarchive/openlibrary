@@ -71,45 +71,41 @@ def fetch_works_trending_scores(current_hour: int, timestamp: datetime.datetime)
     }
 
 
-# If the arithmetic mean is below 10/7 (i.e: there have been)
-# less than 10 reading log events for the work in the past week,
-# it should not show up on trending.
-AVERAGE_DAILY_EVENTS_FLOOR = 10 / 7
+# A book must have at least this many events in the past week to be considered for trending.
+MIN_DAILY_EVENTS = 5
 
 
-# This function calculates how many standard deviations the value for the last
-# 24 hours is away from the mean.
-def get_z_score(solr_doc: dict, count: int, current_hour: int):
-    arith_mean = sum([solr_doc[f'trending_score_daily_{i}'] for i in range(7)]) / 7
-    if arith_mean < AVERAGE_DAILY_EVENTS_FLOOR:
-        return 0
-    last_24_hours_value = (
-        solr_doc['trending_score_hourly_sum']
-        + count
+def get_trending_z_score(events_today: int, past_events: list[int]) -> float:
+    """
+    Calculate the trending z-score for the last 24h compared to the past events.
+    I.e. How many standard deviations the current number of events is away from the mean
+    of the past events.
+    """
+    past_sum = sum(past_events)
+    if (past_sum + events_today) < MIN_DAILY_EVENTS:
+        return 0.0
+    N = len(past_events)
+    past_mean = past_sum / N
+    std_dev = sqrt(sum((x - past_mean) ** 2 for x in past_events) / N)
+    return (events_today - past_mean) / (std_dev + 1.0)
+
+
+def form_inplace_updates(work_key: str, count: int, solr_doc: dict, current_hour: int):
+    new_hourly_sum = (
+        solr_doc["trending_score_hourly_sum"]
         - solr_doc[f'trending_score_hourly_{current_hour}']
+        + count
     )
-    st_dev = sqrt(
-        sum(
-            [
-                pow(solr_doc[f'trending_score_daily_{i}'] - arith_mean, 2)
-                for i in range(7)
-            ]
-        )
-        / 7
-    )
-    return (last_24_hours_value - arith_mean) / (st_dev + 1.0)
-
-
-def form_inplace_updates(work_id: str, count: int, solr_doc: dict, current_hour: int):
     request_body = {
-        "key": work_id,
+        "key": work_key,
         f'trending_score_hourly_{current_hour}': {"set": count},
-        "trending_score_hourly_sum": {
-            "set": solr_doc["trending_score_hourly_sum"]
-            - solr_doc[f'trending_score_hourly_{current_hour}']
-            + count
+        "trending_score_hourly_sum": {"set": new_hourly_sum},
+        "trending_z_score": {
+            "set": get_trending_z_score(
+                new_hourly_sum,
+                [solr_doc.get(f'trending_score_daily_{i}', 0) for i in range(7)],
+            )
         },
-        "trending_z_score": {"set": get_z_score(solr_doc, count, current_hour)},
     }
 
     return request_body
