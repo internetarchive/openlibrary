@@ -23,12 +23,13 @@ set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVER_SUFFIX=${SERVER_SUFFIX:-""}
+SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -255,7 +256,6 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
     OL_REPO="$1"
     # Check if tag does NOT exist
     if ! git -C "$OL_REPO" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
@@ -300,7 +300,6 @@ check_olbase_image_up_to_date() {
 
 deploy_openlibrary() {
     echo "[Now] Deploying openlibrary"
-    COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
     TMP_DIR=$(mktemp -d)
 
     cd $TMP_DIR
@@ -354,28 +353,9 @@ deploy_openlibrary() {
         exit 1
     fi
 
+    echo ""
     echo "Pull the latest docker images..."
-    # We need to fetch by the exact image sha, since the registry mirror on the prod servers
-    # has a cache which means fetching the `latest` image could be stale.
-    # Assert latest docker image is up-to-date
-    IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
-    OLBASE_DIGEST=$(echo $IMAGE_META | jq -r '.images[0].digest')
-    for SERVER_NAME in $SERVER_NAMES; do
-        SERVER="$SERVER_NAME$SERVER_SUFFIX"
-
-        echo "   $SERVER_NAME ... "
-        ssh -t $SERVER "
-            set -e;
-            docker pull openlibrary/olbase@$OLBASE_DIGEST
-            echo 'FROM openlibrary/olbase@$OLBASE_DIGEST' | docker build --tag openlibrary/olbase:latest -f - .
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME pull
-            source /opt/olsystem/bin/build_env.sh;
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME build
-        " &> /dev/null &
-    done
-
-    wait
-    echo "   ... Done ✓"
+    deploy_images "$SERVER_NAME"
 
     tag_deploy openlibrary
 
@@ -389,11 +369,62 @@ deploy_openlibrary() {
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh review"
 }
 
+deploy_images() {
+    local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
+
+    # Lazy-fetch OLBASE_DIGEST if not set
+    if [ -z "$OLBASE_DIGEST" ]; then
+        # We need to fetch by the exact image sha, since the registry mirror on the prod servers
+        # has a cache which means fetching the `latest` image could be stale.
+        # Assert latest docker image is up-to-date
+        echo -n "   Fetching OLBASE_DIGEST ... "
+        IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
+        OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
+        echo "✓ ($OLBASE_DIGEST)"
+    fi
+
+    for SERVER_NAME in $SERVER_NAMES; do
+        echo -n "   $SERVER_NAME ... "
+        ssh -t "${SERVER_NAME}${SERVER_SUFFIX}" "
+            set -e;
+            docker pull openlibrary/olbase@${OLBASE_DIGEST}
+            echo 'FROM openlibrary/olbase@${OLBASE_DIGEST}' | docker build --tag openlibrary/olbase:latest -f - .
+            COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} pull
+            source /opt/olsystem/bin/build_env.sh;
+            COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
+        " &> /dev/null &
+        echo "(started in background)"
+    done
+
+    echo -n "Waiting for all servers to finish pulling images..."
+    wait
+    echo "✓"
+}
+
+
 check_servers_in_sync() {
     echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
+}
+
+check_server_storage() {
+    echo "Checking server storage space..."
+    for SERVER in $SERVERS; do
+        echo -n "   $SERVER ... "
+        # Get available space (in bytes) for each relevant mount point
+        AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
+        for SIZE in $AVAILABLE_SIZES; do
+            if [ "$SIZE" -lt 2147483648 ]; then
+                echo "✗ (Less than 2GB free!)"
+                ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
+                return 1
+            fi
+        done
+        echo "✓"
+    done
+    return 0
 }
 
 prune_docker () {
@@ -483,7 +514,7 @@ deploy_wizard() {
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-        time olsystem
+        time deploy_olsystem
     fi
     echo ""
 
@@ -492,7 +523,7 @@ deploy_wizard() {
     done
     echo ""
 
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed" answer
+    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
     read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
@@ -523,6 +554,8 @@ elif [ "$1" == "openlibrary" ]; then
     if [ "$2" == "--review" ]; then
         check_servers_in_sync
     fi
+elif [ "$1" == "images" ]; then
+    deploy_images $2
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
@@ -533,10 +566,12 @@ elif [ "$1" == "prune" ]; then
     else
         prune_docker image
     fi
+elif [ "$1" == "check_server_storage" ]; then
+    check_server_storage
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
 fi
