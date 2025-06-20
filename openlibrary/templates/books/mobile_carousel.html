@@ -43,7 +43,7 @@ $def render_carousel_cover(book, lazy, index):
     <div class="book-cover mobile">
       <a class="mybooks mobile nopadding" href="$(url)">
         $if cover_url:
-          <img class="bookcover mobile $(last_book)" loading="lazy"
+          <img class="bookcover loading-gradient mobile $(last_book)" loading="lazy"
             title="$title$byline"
             alt="$title$byline"
           $if lazy:
