@@ -25,6 +25,7 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+from openlibrary.utils.shutdown import setup_graceful_shutdown
 from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
 from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
 from scripts.utils.scheduler import OlAsyncIOScheduler
@@ -32,6 +33,7 @@ from scripts.utils.scheduler import OlAsyncIOScheduler
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
 args: dict = {}
+setup_graceful_shutdown()
 
 
 def read_state_file(path, initial_state: str | None = None):

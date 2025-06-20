@@ -22,6 +22,10 @@ import web
 import yaml
 from gunicorn.app.base import Application
 
+from openlibrary.utils.shutdown import setup_graceful_shutdown
+
+setup_graceful_shutdown()
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable

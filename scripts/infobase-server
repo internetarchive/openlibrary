@@ -20,8 +20,10 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import web
 
 from openlibrary.utils.sentry import Sentry
+from openlibrary.utils.shutdown import setup_graceful_shutdown
 
 logger = logging.getLogger("openlibrary." + __file__)
+setup_graceful_shutdown()
 
 
 def setup_env():

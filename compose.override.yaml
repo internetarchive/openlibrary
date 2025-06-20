@@ -89,6 +89,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    init: true # this is needed for docker sigints to work without modifying the many scripts within
     command: docker/ol-home-start.sh
     networks:
       - webnet
