@@ -417,8 +417,6 @@ class account_login_json(delegate.page):
         )
 
         d = json.loads(web.data())
-        email = d.get('email', "")
-        remember = d.get('remember', "")
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -440,29 +438,7 @@ class account_login_json(delegate.page):
                     'errorDisplayString': get_login_error(error),
                 }
                 raise olib.code.BadRequest(json.dumps(resp))
-            expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
-            web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email') and (
-                ol_account := OpenLibraryAccount.get(email=audit['ia_email'])
-            ):
-                _set_account_cookies(ol_account, expires)
-
-                if web.cookies().get("pda"):
-                    _update_account_on_pd_request(ol_account)
-                    _notify_on_rpd_verification(
-                        ol_account, get_pd_org(web.cookies().get("pda"))
-                    )
-                    _expire_pd_cookies()
-
-                has_special_access = audit.get('special_access')
-                if (
-                    has_special_access
-                    and ol_account.get_user().preferences().get('rpd')
-                    != PDRequestStatus.FULFILLED.value
-                ):
-                    _update_account_on_pd_fulfillment(ol_account)
-
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
