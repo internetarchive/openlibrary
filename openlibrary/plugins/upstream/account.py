@@ -530,7 +530,7 @@ class account_login(delegate.page):
             secret=None,
             action="",
         )
-        email = i.username  # XXX username is now email
+        email = '' if (i.access and i.secret) else i.username
         audit = audit_accounts(
             email,
             i.password,
@@ -541,6 +541,7 @@ class account_login(delegate.page):
         )
         if error := audit.get('error'):
             return self.render_error(error, i)
+        email = email or audit.get('ol_email')
 
         expires = 3600 * 24 * 365 if i.remember else ""
         web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
