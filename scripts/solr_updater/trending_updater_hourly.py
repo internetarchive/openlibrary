@@ -48,7 +48,7 @@ class LogLine:
 
 
 def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
-    start_ts = dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000
+    start_ts = int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
     end_ts = start_ts + 3600 * 1000 - 1
 
     if extra_grep:
