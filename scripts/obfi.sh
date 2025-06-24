@@ -90,12 +90,11 @@ obfi_walk_logs() {
 obfi_previous_minute() {
     # Iterate over the logs and print the logs from the previous minute
     # E.g. running the script at 11:20:36 will print logs from 11:19:00 to 11:19:59
-    NOW=$(date +"%Y-%m-%d %H:%M:00")
-    NOW=$(date -d "$NOW" +%s)
-    MINUTE_START=$(($NOW - 60))
-    MINUTE_END=$(($NOW - 1))
+    CUR_MIN=$(date +"%Y-%m-%d %H:%M:00")
+    CUR_MIN=$(date -d "$CUR_MIN" +%s)
+    PREV_MIN_START=$(($CUR_MIN - 60))
 
-    obfi_range $(($MINUTE_START * 1000)) $(($MINUTE_END * 1000))
+    obfi_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
 }
 
 obfi_previous_hour() {
@@ -147,12 +146,12 @@ obfi_range() {
 
 obfi__file_range() {
     if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
-        echo "Usage: obfi__file_range <file> <start> <end>"
-        echo ""
-        echo "Prints the logs from the given file in the given range."
-        echo "Example: obfi__file_range access.log 1748502382753 1748503464280"
-        echo "Example: obfi__file_range access.log-20250201.gz 1748502382753 END"
-        echo "Timestamps eg from grafana URLs"
+        echo "Usage: obfi__file_range <file> <start> <end>" 1>&2
+        echo "" 1>&2
+        echo "Prints the logs from the given file in the given range." 1>&2
+        echo "Example: obfi__file_range access.log 1748502382753 1748503464280" 1>&2
+        echo "Example: obfi__file_range access.log-20250201.gz 1748502382753 END" 1>&2
+        echo "Timestamps eg from grafana URLs" 1>&2
         return 1
     fi
 
@@ -256,7 +255,7 @@ obfi_find_log() {
 
         # Check if in the range of the current log file
         if (( TS > START_TS * 1000 )); then
-            echo "$FILE" 1>&2
+            echo "$FILE"
             return 0
         fi
     done
