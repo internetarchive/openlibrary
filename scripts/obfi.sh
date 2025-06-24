@@ -89,32 +89,25 @@ obfi_walk_logs() {
 
 obfi_previous_minute() {
     # Iterate over the logs and print the logs from the previous minute
-    obfi tac | python3 -c '
-import sys
-from datetime import datetime, timedelta
+    # E.g. running the script at 11:20:36 will print logs from 11:19:00 to 11:19:59
+    CUR_MIN=$(date +"%Y-%m-%d %H:%M:00")
+    CUR_MIN=$(date -d "$CUR_MIN" +%s)
+    PREV_MIN_START=$(($CUR_MIN - 60))
 
-one_min_ago = datetime.now() - timedelta(minutes=1)
-# Format as "18/Mar/2025:11:20:36 +0000"
-formatted = one_min_ago.strftime("%d/%b/%Y:%H:%M:%S +0000")
-# Get prefix up-to the minute
-prefix = formatted[:17]
+    obfi_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
+}
 
-started = False
-buffer = 25
-try:
-    for line in sys.stdin:
-        matches = prefix in line
-        if matches:
-            started = True
-            buffer = 25
-            sys.stdout.write(line)
-        elif started:
-            buffer -= 1
-            if buffer == 0:
-                break
-except BrokenPipeError:
-    pass
-    '
+obfi_previous_hour() {
+    # Iterate over the logs and print the logs from the previous hour
+    # e.g. running the script at 11:20:36 will print logs from 10:00 to 10:59
+
+    # Need to zero out the minutes and seconds
+    NOW=$(date +"%Y-%m-%d %H:00:00")
+    NOW=$(date -d "$NOW" +%s)
+    HOUR_START=$(($NOW - 3600))
+    HOUR_END=$(($NOW - 1))
+
+    obfi_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
 }
 
 obfi_range() {
@@ -129,13 +122,67 @@ obfi_range() {
     START=$1
     END=$2
 
-    obfi tac | python3 -c "
+    START_FILE=$(obfi_find_log $START)
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Could not find log file for start timestamp $START." 1>&2
+        return 1
+    fi
+    END_FILE=$(obfi_find_log $END)
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Could not find log file for end timestamp $END." 1>&2
+        return 1
+    fi
+
+    if [[ "$START_FILE" != "$END_FILE" ]]; then
+        echo "Warning: Start and end timestamps in different files. Assuming consecutive." 1>&2
+        obfi__file_range "$START_FILE" "$START" "END"
+        obfi__file_range "$END_FILE" "START" "$END"
+    else
+        obfi__file_range "$START_FILE" "$START" "$END"
+    fi
+}
+
+obfi__file_range() {
+    if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
+        echo "Usage: obfi__file_range <file> <start> <end>" 1>&2
+        echo "" 1>&2
+        echo "Prints the logs from the given file in the given range." 1>&2
+        echo "Example: obfi__file_range access.log 1748502382753 1748503464280" 1>&2
+        echo "Example: obfi__file_range access.log-20250201.gz 1748502382753 END" 1>&2
+        echo "Timestamps eg from grafana URLs" 1>&2
+        return 1
+    fi
+
+    START=$2
+    END=$3
+
+    if [[ "$END" == "END" ]]; then
+        # Current time in ms
+        END=$(date +%s%3N)
+    fi
+
+    if [[ "$START" == "START" ]]; then
+        START=0
+    fi
+
+    echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S")" 1>&2
+
+    # Handle gzip and non-gzip files
+    if [[ "$1" == *.gz ]]; then
+        zcat "$1"
+    else
+        cat "$1"
+    fi | python3 -c "
 import sys
 from datetime import datetime, timezone
 start = datetime.fromtimestamp($START / 1000, tz=timezone.utc)
 end = datetime.fromtimestamp($END / 1000, tz=timezone.utc)
 
-print(f'Start: {start:%d/%b/%Y:%H:%M:%S %z}, End: {end:%d/%b/%Y:%H:%M:%S %z}', file=sys.stderr)
+# Format as nginx dates
+start = start.strftime('%d/%b/%Y:%H:%M:%S')
+end = end.strftime('%d/%b/%Y:%H:%M:%S')
+
+print(f'Start: {start}, End: {end}', file=sys.stderr)
 
 started = False
 buffer = 25  # Lines to read after mismatch
@@ -143,10 +190,9 @@ try:
     for line in sys.stdin:
         # Extract the date from the line
         # Get the date part, e.g. '18/Mar/2025:11:20:36 +0000'
-        date_str = ' '.join(line.split(' ', 5)[3:5])[1:-1]
-        log_date = datetime.strptime(date_str, '%d/%b/%Y:%H:%M:%S %z')
+        date_str = line.split(' ', 5)[3][1:]
 
-        if start <= log_date <= end:
+        if start <= date_str <= end:
             started = True
             buffer = 25
             sys.stdout.write(line)
@@ -158,6 +204,66 @@ except BrokenPipeError:
     pass
     "
 }
+
+obfi_find_log() {
+    if [[ -z "$1" || "$1" == "--help" ]]; then
+        echo "Usage: obfi_find_log <timestamp>"
+        echo "Finds the file for the given timestamp in ms since the epoch."
+        echo "Example: obfi_find_log 1748502382753"
+        return 1
+    fi
+
+    TS=$1
+    LOG_DIR="/1/var/log/nginx"
+
+    FILES_TO_CHECK=(
+        "$LOG_DIR/access.log"
+        "$LOG_DIR/access.log-$(date -d "@$((TS / 1000))" +"%Y%m%d").gz"
+        # Also check the preceding file, since our logs don't start at 00:00
+        "$LOG_DIR/access.log-$(date -d "@$((TS / 1000 - 86400))" +"%Y%m%d").gz"
+    )
+
+    for FILE in "${FILES_TO_CHECK[@]}"; do
+        # The files are consecutive, so if the first one is not found,
+        # we can stop checking further.
+        if [[ ! -f "$FILE" ]]; then
+            break
+        fi
+
+        # Check if in the future
+        if [[ "$FILE" == *"access.log" ]]; then
+            END=$(tail -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
+            END=$(obfi__nginx_date_to_iso_date "$END")
+            END_TS=$(date -d "$END" +%s)
+
+            if (( TS > END_TS * 1000 )); then
+                echo "Timestamp $TS is from the future of the current access.log." 1>&2
+                return 1
+            fi
+        fi
+
+        # Check if the TS is after the start of the log file, which is all that's needed
+        # since the logs are consecutively older.
+        if [[ "$FILE" == *.gz ]]; then
+            START=$(zcat "$FILE" | head -n 1 | awk '{print $4}' | sed 's/\[//')
+        else
+            START=$(head -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
+        fi
+
+        START=$(obfi__nginx_date_to_iso_date "$START")
+        START_TS=$(date -d "$START" +%s)
+
+        # Check if in the range of the current log file
+        if (( TS > START_TS * 1000 )); then
+            echo "$FILE"
+            return 0
+        fi
+    done
+
+    echo "No log file found for timestamp $TS." 1>&2
+    return 1
+}
+
 
 ###############################################################
 # Aggregation commands
@@ -227,7 +333,7 @@ obfi_top_bots() {
 
 obfi_grep_bots() {
     # FIXME: Should be in sync with openlibrary/plugins/openlibrary/code.py
-    grep $1 -iE 'ahrefsbot|amazonbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot' -
+    grep $1 -iE 'ahrefsbot|amazonbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot' -
 }
 
 obfi_grep_secondary_reqs() {
