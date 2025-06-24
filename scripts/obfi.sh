@@ -233,7 +233,7 @@ obfi_find_log() {
 
         # Check if in the future
         if [[ "$FILE" == *"access.log" ]]; then
-            END=$(sudo tail -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
+            END=$(tail -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
             END=$(obfi__nginx_date_to_iso_date "$END")
             END_TS=$(date -d "$END" +%s)
 
@@ -246,9 +246,9 @@ obfi_find_log() {
         # Check if the TS is after the start of the log file, which is all that's needed
         # since the logs are consecutively older.
         if [[ "$FILE" == *.gz ]]; then
-            START=$(sudo zcat "$FILE" | head -n 1 | awk '{print $4}' | sed 's/\[//')
+            START=$(zcat "$FILE" | head -n 1 | awk '{print $4}' | sed 's/\[//')
         else
-            START=$(sudo head -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
+            START=$(head -n 1 "$FILE" | awk '{print $4}' | sed 's/\[//')
         fi
 
         START=$(obfi__nginx_date_to_iso_date "$START")
