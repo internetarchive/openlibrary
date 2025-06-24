@@ -155,8 +155,8 @@ obfi__file_range() {
         return 1
     fi
 
-    START=$1
-    END=$2
+    START=$2
+    END=$3
 
     if [[ "$END" == "END" ]]; then
         # Current time in ms
