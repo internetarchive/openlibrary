@@ -146,7 +146,7 @@ obfi_range() {
 }
 
 obfi__file_range() {
-    if [[ -z "$1" || -z "$2" ]]; then
+    if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
         echo "Usage: obfi__file_range <file> <start> <end>"
         echo ""
         echo "Prints the logs from the given file in the given range."
