@@ -107,8 +107,6 @@ obfi_previous_hour() {
     HOUR_START=$(($NOW - 3600))
     HOUR_END=$(($NOW - 1))
 
-    echo "Reading logs from the previous hour: $(date -d "@$HOUR_START" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$HOUR_END" +"%Y-%m-%d %H:%M:%S")" 1>&2
-
     obfi_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
 }
 
@@ -166,6 +164,8 @@ obfi__file_range() {
     if [[ "$START" == "START" ]]; then
         START=0
     fi
+
+    echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S")" 1>&2
 
     # Handle gzip and non-gzip files
     if [[ "$1" == *.gz ]]; then

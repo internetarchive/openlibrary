@@ -59,6 +59,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     # - Exclude requests that don't have a referrer, which is likely a bot
     #
     # This yields ~4-6k requests per hour, which is a reasonable number to process
+    logger.info(f"Fetching logs for {dt.isoformat()} ({start_ts} to {end_ts})")
     with subprocess.Popen(
         [
             "bash",
