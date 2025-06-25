@@ -282,6 +282,7 @@ services:
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
+      - /www0_1:/1
     command: docker/ol-solr-updater-start.sh
     networks:
       - webnet
