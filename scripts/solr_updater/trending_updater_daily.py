@@ -30,7 +30,7 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
     return {"key": work_id, f'trending_score_daily_{current_day}': {"set": new_value}}
 
 
-def main(openlibrary_yml: str, timestamp: str | None = None):
+def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = False):
     load_config(openlibrary_yml)
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
@@ -45,8 +45,11 @@ def main(openlibrary_yml: str, timestamp: str | None = None):
     ]
 
     print(f"{len(request_body)} works to update with daily trending scores.")
-    resp = get_solr().update_in_place(request_body, commit=True)
-    print(resp)
+    if dry_run:
+        print("Dry run mode, not sending updates to Solr.")
+    else:
+        resp = get_solr().update_in_place(request_body, commit=True)
+        print(resp)
     print("Daily update completed.")
 
 
