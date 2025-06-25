@@ -148,7 +148,7 @@ def _get_count_docs(ndays):
     dates = [today - datetime.timedelta(days=i) for i in range(ndays)]
 
     # we want the dates in reverse order
-    dates = dates[::-1]
+    dates.reverse()
 
     docs = [web.ctx.site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
     return [d for d in docs if d]

@@ -8,8 +8,7 @@ import web
 
 with open(os.path.expanduser('~/.openlibrary_db_password')) as f:
     password = f.read()
-if password.endswith('\n'):
-    password = password[:-1]
+password = password.removesuffix('\n')
 db_error = web.database(
     dbn='postgres', db='ol_errors', host='localhost', user='openlibrary', pw=password
 )

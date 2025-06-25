@@ -76,6 +76,7 @@ select = [
   "F",       # Pyflakes
   "FA",      # flake8-future-annotations
   "FLY",     # flynt
+  "FURB",    # refurb
   "G010",    # flake8-logging-format
   "I",       # isort
   "ICN",     # flake8-import-conventions

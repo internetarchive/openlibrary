@@ -73,8 +73,7 @@ def get_from_archive_bulk(locator):
     :rtype: (str|None, int|None, int|None)
     :return: (Binary MARC data, Next record offset, Next record length)
     """
-    if locator.startswith('marc:'):
-        locator = locator[5:]
+    locator = locator.removeprefix('marc:')
     filename, offset, length = locator.split(":")
     offset = int(offset)
     length = int(length)

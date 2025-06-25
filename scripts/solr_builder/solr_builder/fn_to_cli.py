@@ -99,7 +99,7 @@ class FnToCLI:
     def type_to_argparse(typ: type) -> dict:
         if FnToCLI.is_optional(typ):
             return FnToCLI.type_to_argparse(
-                next(t for t in typing.get_args(typ) if not isinstance(t, type(None)))
+                next(t for t in typing.get_args(typ) if t is not None)
             )
         if typ is bool:
             return {'type': typ, 'action': BooleanOptionalAction}

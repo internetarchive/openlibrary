@@ -99,8 +99,7 @@ class SolrUpdateRequest:
         if self.commit:
             result += '"commit": {}' + sep
 
-        if result.endswith(sep):
-            result = result[: -len(sep)]
+        result = result.removesuffix(sep)
         result += '}'
         return result
 
