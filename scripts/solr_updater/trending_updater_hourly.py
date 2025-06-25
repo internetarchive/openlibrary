@@ -62,11 +62,6 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     # - Exclude requests that don't have a referrer, which is likely a bot
     #
     # This yields ~4-6k requests per hour, which is a reasonable number to process
-    print(
-        f"Fetching logs for {dt.isoformat()} ({start_ts} to {end_ts})",
-        file=sys.stderr,
-        flush=True,
-    )
     with subprocess.Popen(
         f"""
             set -euo pipefail
@@ -93,7 +88,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
             for err_line in stderr:
                 err_line = err_line.strip()
                 if err_line:
-                    print(f"[stderr] {err_line}", file=sys.stderr, flush=True)
+                    print(err_line, file=sys.stderr, flush=True)
 
         if proc.stderr:
             threading.Thread(
@@ -197,6 +192,7 @@ def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
 
 
 def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
+    docs = []
     solr_fields = (
         "key",
         "trending_score_hourly_sum",
@@ -205,7 +201,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     )
 
     # Docs with outdated values in the hour slot:
-    docs = []
+    logger.info(f"Fetching works with trending score for hour slot {hour_slot}")
     resp = execute_solr_query(
         '/export',
         {
