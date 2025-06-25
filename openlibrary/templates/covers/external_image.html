@@ -1,0 +1,14 @@
+$def with (action, img_url, source_name)
+
+<!-- TODO: If we like this approach we should rename of of the css to not have --ia and be --external -->
+<form class="ol-cover-form ol-cover-form--ia" method="post" enctype="multipart/form-data" action="$action">
+    <div class="label">
+        <label>$_("Or, use the the cover from %s") % source_name</label>
+    </div>
+    <div class="input">
+        <a href="$img_url" target="_blank">
+            <img class="ol-cover-form--ia_image" src="$img_url" style="height: 200px" />
+        </a>
+        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Upload Image")</button>
+    </div>
+</form>
