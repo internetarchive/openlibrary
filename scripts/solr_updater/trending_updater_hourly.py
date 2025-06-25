@@ -69,7 +69,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -F ' 200 ' \
                 | grep -F 'HTTP/2.' \
                 | grep -vF ' "-" ' \
-                | grep -vE '\\.(opds|json)' \
+                | grep -vE '\\.(opds|json|rdf)' \
                 {extra_grep if extra_grep else ''}
         """,
         stdout=subprocess.PIPE,
@@ -133,13 +133,14 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
                         'type': '/type/edition',
                         'key': batch,
                         'works': None,
+                        'limit': batch_size,
                     }
                 ),
             },
         )
         resp.raise_for_status()
         data = resp.json()
-        print(f"\rBatch {i + 1}/{batch_count} ... ✓", end='', flush=True)
+        print(f"\rBatch {i + 1}/{batch_count} ... ✓ ", end='', flush=True)
         for edition in data:
             if not edition.get('works'):
                 print(f"WARN: Edition {edition['key']} has no works, skipping")
