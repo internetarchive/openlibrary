@@ -148,8 +148,8 @@ obfi_range() {
 
     if [[ "$START_FILE" != "$END_FILE" ]]; then
         echo "Warning: Start and end timestamps in different files. Assuming consecutive." 1>&2
-        obfi__file_range "$START_FILE" "$START" "END"
-        obfi__file_range "$END_FILE" "START" "$END"
+        obfi__file_range "$START_FILE" "$START" "$END"
+        obfi__file_range "$END_FILE" "$START" "$END"
     else
         obfi__file_range "$START_FILE" "$START" "$END"
     fi
@@ -168,15 +168,6 @@ obfi__file_range() {
 
     START=$2
     END=$3
-
-    if [[ "$END" == "END" ]]; then
-        # Current time in ms
-        END=$(date +%s%3N)
-    fi
-
-    if [[ "$START" == "START" ]]; then
-        START=0
-    fi
 
     echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S") ($START to $END)" 1>&2
 
@@ -229,9 +220,9 @@ obfi_find_log() {
 
     FILES_TO_CHECK=(
         "$LOG_DIR/access.log"
+        # Also check the next file, since our logs don't start at 00:00
+        "$LOG_DIR/access.log-$(date -d "@$((TS / 1000 + 86400))" +"%Y%m%d").gz"
         "$LOG_DIR/access.log-$(date -d "@$((TS / 1000))" +"%Y%m%d").gz"
-        # Also check the preceding file, since our logs don't start at 00:00
-        "$LOG_DIR/access.log-$(date -d "@$((TS / 1000 - 86400))" +"%Y%m%d").gz"
     )
 
     for FILE in "${FILES_TO_CHECK[@]}"; do
