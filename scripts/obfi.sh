@@ -226,10 +226,8 @@ obfi_find_log() {
     )
 
     for FILE in "${FILES_TO_CHECK[@]}"; do
-        # The files are consecutive, so if the first one is not found,
-        # we can stop checking further.
         if [[ ! -f "$FILE" ]]; then
-            break
+            continue
         fi
 
         # Check if in the future
