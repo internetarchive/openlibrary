@@ -196,7 +196,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     )
 
     # Docs with outdated values in the hour slot:
-    print(f"Fetching works with trending score for hour slot {hour_slot}")
+    print(f"Fetching works with existing trending data for hour slot {hour_slot}")
     resp = execute_solr_query(
         '/export',
         {
@@ -212,7 +212,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     old_work_keys = {doc["key"] for doc in docs}
 
     if keys_to_fetch := work_keys - old_work_keys:
-        print(f"Fetching {len(keys_to_fetch)} new works from Solr")
+        print(f"Fetching {len(keys_to_fetch)} works without existing trending data")
         resp = execute_solr_query(
             '/export',
             {
