@@ -93,6 +93,7 @@ class SearchScheme:
                     # Also escape unexposed lucene features
                     .replace('?', '\\?')
                     .replace('~', '\\~')
+                    .replace('+', '\\+')
                 ),
                 self.is_search_field,
                 lower=True,
