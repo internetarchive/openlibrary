@@ -17,6 +17,7 @@ obfi() {
         echo "  obfi 'tail -f' | ...                  - the default command (same as above)"
         echo "  obfi 'tac' | ...                      - reads the logs in reverse"
         echo "  obfi_previous_minute | ...            - reads the logs from the previous minute"
+        echo "  obfi_previous_hour | ...              - reads the logs from the previous hour"
         echo "  obfi_walk_logs <days> | ...           - walks the gzip logs for the last <days> days"
         echo "  obfi_range <start> <end> | ...        - ALPHA: reads the logs from the given range."
         echo "                                          Only works for today's logs (access.log). Expects"
@@ -48,20 +49,29 @@ obfi() {
         echo "  obfi_stop_listening                   - stops listening for obfuscated IPs"
         echo "  obfi_decode <ip>                      - decodes the obfuscated IP address <ip>"
         echo "  ... | obfi_top_ips | obfi_decode_all  - decodes all obfuscated IPs in stdin"
+        echo ""
+        echo "Configuration variables:"
+        echo "  SEED_PATH=""                          - path to seed.txt, used for decoding IPs"
+        echo "  OBFI_LOG_DIR="/1/var/log/nginx"       - path to the nginx log directory. For "
+        echo "                                          containers, defaults to /var/log/nginx."
+        echo ""
         return 0
     fi
     CMD=${1:-"tail -f"}
+
 
     if [  -z "$CONTAINER" ]; then
         CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
     fi
 
     if [ ! -z "$CONTAINER" ]; then
-        FILE=${2:-"/var/log/nginx/access.log"}
+        LOG_DIR="${OBFI_LOG_DIR:-/var/log/nginx}"
+        FILE=${2:-"$LOG_DIR/access.log"}
         echo "Reading from $FILE in $CONTAINER" 1>&2
         docker exec -i "$CONTAINER" $CMD "$FILE"
     else
-        FILE=${2:-"/1/var/log/nginx/access.log"}
+        LOG_DIR="${OBFI_LOG_DIR:-/1/var/log/nginx}"
+        FILE=${2:-"$LOG_DIR/access.log"}
         echo "Reading from $FILE" 1>&2
         sudo -E $CMD $FILE
     fi
@@ -78,13 +88,15 @@ obfi_walk_logs() {
         return 1
     fi
 
+    LOG_DIR="${OBFI_LOG_DIR:-/1/var/log/nginx}"
+
     COUNT=$1
-    for file in $(ls -tr /1/var/log/nginx/access.log-*.gz | tail -n $COUNT); do
+    for file in $(ls -tr $LOG_DIR/access.log-*.gz | tail -n $COUNT); do
         echo $file 1>&2
         sudo zcat $file
     done
-    echo "/1/var/log/nginx/access.log" 1>&2
-    sudo cat /1/var/log/nginx/access.log
+    echo "$LOG_DIR/access.log" 1>&2
+    sudo cat "$LOG_DIR/access.log"
 }
 
 obfi_previous_minute() {
@@ -115,6 +127,7 @@ obfi_range() {
     if [[ -z "$1" || -z "$2" ]]; then
         echo "Usage: obfi_range <start> <end>"
         echo "Example: obfi_range 1748502382753 1748503464280"
+        echo "Example: obfi_range $(($(date +%s) * 1000 - 3600000)) END"
         echo "Timestamps eg from grafana URLs"
         return 1
     fi
@@ -214,7 +227,7 @@ obfi_find_log() {
     fi
 
     TS=$1
-    LOG_DIR="/1/var/log/nginx"
+    LOG_DIR="${OBFI_LOG_DIR:-/1/var/log/nginx}"
 
     FILES_TO_CHECK=(
         "$LOG_DIR/access.log"
