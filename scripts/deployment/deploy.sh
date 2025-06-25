@@ -316,6 +316,7 @@ deploy_openlibrary() {
 
     check_server_access
     check_crons
+    check_server_storage
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do
@@ -383,22 +384,48 @@ deploy_images() {
         echo "✓ ($OLBASE_DIGEST)"
     fi
 
+    local pids=()
+    local output_files=()
     for SERVER_NAME in $SERVER_NAMES; do
         echo -n "   $SERVER_NAME ... "
-        ssh -t "${SERVER_NAME}${SERVER_SUFFIX}" "
+        # Make a temporary file to house the output
+        OUTPUT_FILE=$(mktemp)
+        output_files+=("$OUTPUT_FILE")
+        ssh "${SERVER_NAME}${SERVER_SUFFIX}" "
             set -e;
             docker pull openlibrary/olbase@${OLBASE_DIGEST}
             echo 'FROM openlibrary/olbase@${OLBASE_DIGEST}' | docker build --tag openlibrary/olbase:latest -f - .
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} pull
             source /opt/olsystem/bin/build_env.sh;
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
-        " &> /dev/null &
-        echo "(started in background)"
+        " &> "$OUTPUT_FILE" &
+        pids+=($!)
+        echo "(started in background PID ${pids[-1]})"
     done
 
-    echo -n "Waiting for all servers to finish pulling images..."
-    wait
-    echo "✓"
+    # Convert SERVER_NAMES string to an array
+    local FAILED=0
+    IFS=' ' read -r -a SERVER_NAMES_ARRAY <<< "$SERVER_NAMES"
+    echo "Waiting for all servers to finish pulling images..."
+    for i in "${!pids[@]}"; do
+        pid="${pids[$i]}"
+        server="${SERVER_NAMES_ARRAY[$i]}"
+        echo -n "   $server ... "
+        if wait $pid; then
+            echo "✓"
+        else
+            echo "✗"
+            echo "Failed to pull images on $server"
+            echo "Output:"
+            cat "${output_files[$i]}"
+            FAILED=1
+        fi
+
+        # Clean up the output file
+        rm -f "${output_files[$i]}"
+    done
+
+    return $FAILED
 }
 
 
@@ -411,19 +438,30 @@ check_servers_in_sync() {
 
 check_server_storage() {
     echo "Checking server storage space..."
+    local FAILED=0
+    local SERVER_FAILED=0
     for SERVER in $SERVERS; do
         echo -n "   $SERVER ... "
+        SERVER_FAILED=0
         # Get available space (in bytes) for each relevant mount point
         AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
         for SIZE in $AVAILABLE_SIZES; do
             if [ "$SIZE" -lt 2147483648 ]; then
                 echo "✗ (Less than 2GB free!)"
                 ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
-                return 1
+                FAILED=1
+                SERVER_FAILED=1
             fi
         done
-        echo "✓"
+        if [ $SERVER_FAILED -eq 0 ]; then
+            echo "✓"
+        fi
     done
+
+    if [ $FAILED -eq 1 ]; then
+        echo "Some servers have less than 2GB of free space. Please free up space before proceeding."
+        return 1
+    fi
     return 0
 }
 
