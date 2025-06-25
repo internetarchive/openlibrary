@@ -1,7 +1,6 @@
 import datetime
 import itertools
 import json
-import logging
 import subprocess
 import sys
 import threading
@@ -16,9 +15,6 @@ from openlibrary.core import db
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("trending-updater")
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]
@@ -62,11 +58,6 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     # - Exclude requests that don't have a referrer, which is likely a bot
     #
     # This yields ~4-6k requests per hour, which is a reasonable number to process
-    print(
-        f"Fetching logs for {dt.isoformat()} ({start_ts} to {end_ts})",
-        file=sys.stderr,
-        flush=True,
-    )
     with subprocess.Popen(
         f"""
             set -euo pipefail
@@ -78,7 +69,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -F ' 200 ' \
                 | grep -F 'HTTP/2.' \
                 | grep -vF ' "-" ' \
-                | grep -vE '\\.(opds|json)' \
+                | grep -vE '\\.(opds|json|rdf)' \
                 {extra_grep if extra_grep else ''}
         """,
         stdout=subprocess.PIPE,
@@ -93,7 +84,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
             for err_line in stderr:
                 err_line = err_line.strip()
                 if err_line:
-                    print(f"[stderr] {err_line}", file=sys.stderr, flush=True)
+                    print(err_line, file=sys.stderr, flush=True)
 
         if proc.stderr:
             threading.Thread(
@@ -121,13 +112,13 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
         line.strip().split(' ')[1]
         for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')
     }
-    print(f"Found {len(book_keys)} /book pageviews in the hour", flush=True)
+    print(f"Found {len(book_keys)} /book pageviews in the hour")
 
     book_key_to_work_key: dict[str, str] = {}
 
     batch_size = 100
     batch_count = len(book_keys) // batch_size + 1
-    print(f"Fetching corresponding work keys in {batch_count} batches: ", flush=True)
+    print(f"Fetching corresponding work keys in {batch_count} batches: ")
     session = requests.Session()
     session.headers.update({'User-Agent': 'OpenLibrary Trending Updater'})
     # The API doesn't support POST requests, so need to use smaller batches
@@ -142,16 +133,17 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
                         'type': '/type/edition',
                         'key': batch,
                         'works': None,
+                        'limit': batch_size,
                     }
                 ),
             },
         )
         resp.raise_for_status()
         data = resp.json()
-        print(f"\rBatch {i + 1}/{batch_count} ... ✓", end='', flush=True)
+        print(f"\rBatch {i + 1}/{batch_count} ... ✓ ", end='', flush=True)
         for edition in data:
             if not edition.get('works'):
-                logger.warning(f"Edition {edition['key']} has no works, skipping")
+                print(f"WARN: Edition {edition['key']} has no works, skipping")
                 continue
             book_key_to_work_key[edition['key']] = edition['works'][0]['key']
     print("")
@@ -166,9 +158,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
         if page_key.startswith('/books/'):
             work_key = book_key_to_work_key.get(page_key, '')
             if not work_key:
-                logger.warning(
-                    f"Could not find work key for book page {page_key}, skipping"
-                )
+                print(f"WARN: Could not find work key for {page_key}, skipping")
                 continue
 
             req_set.add((line.ip, work_key))
@@ -192,11 +182,12 @@ def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
     result = {
         f'/works/OL{storage.work_id}W': storage.count for storage in ol_db.query(query)
     }
-    logger.info(f"{len(result)} works with bookshelf books in the last hour")
+    print(f"{len(result)} works with bookshelf books in the last hour")
     return result
 
 
 def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
+    docs = []
     solr_fields = (
         "key",
         "trending_score_hourly_sum",
@@ -205,7 +196,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     )
 
     # Docs with outdated values in the hour slot:
-    docs = []
+    print(f"Fetching works with trending score for hour slot {hour_slot}")
     resp = execute_solr_query(
         '/export',
         {
@@ -221,7 +212,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     old_work_keys = {doc["key"] for doc in docs}
 
     if keys_to_fetch := work_keys - old_work_keys:
-        logger.info(f"Fetching {len(keys_to_fetch)} new works from Solr")
+        print(f"Fetching {len(keys_to_fetch)} new works from Solr")
         resp = execute_solr_query(
             '/export',
             {
@@ -311,7 +302,7 @@ def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = Fal
     solr_docs = fetch_solr_trending_data(hour_slot, keys_to_fetch)
 
     if not solr_docs:
-        logger.info("No new trending data found for the current hour.")
+        print("No new trending data found for the current hour.")
         return
 
     request_body = [
@@ -325,13 +316,13 @@ def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = Fal
         )
         for doc in solr_docs
     ]
-    logger.info(f"{len(request_body)} works to update")
+    print(f"{len(request_body)} works to update")
     if dry_run:
-        logger.info("Dry run mode enabled, not sending updates to Solr.")
+        print("Dry run mode enabled, not sending updates to Solr.")
     else:
         resp = get_solr().update_in_place(request_body, commit=True)
-        logger.info(resp)
-    logger.info("Hourly update completed.")
+        print(resp)
+    print("Hourly update completed.")
 
 
 if __name__ == '__main__':

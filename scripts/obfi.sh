@@ -178,7 +178,7 @@ obfi__file_range() {
         START=0
     fi
 
-    echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S")" 1>&2
+    echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S") ($START to $END)" 1>&2
 
     # Handle gzip and non-gzip files
     if [[ "$1" == *.gz ]]; then
@@ -194,8 +194,6 @@ end = datetime.fromtimestamp($END / 1000, tz=timezone.utc)
 # Format as nginx dates
 start = start.strftime('%d/%b/%Y:%H:%M:%S')
 end = end.strftime('%d/%b/%Y:%H:%M:%S')
-
-print(f'Start: {start}, End: {end}', file=sys.stderr)
 
 started = False
 buffer = 25  # Lines to read after mismatch
