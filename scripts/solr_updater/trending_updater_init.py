@@ -5,7 +5,7 @@ from scripts.solr_updater.trending_updater_daily import main as daily_main
 from scripts.solr_updater.trending_updater_hourly import main as hourly_main
 
 
-def main(openlibrary_yml: str):
+def main(openlibrary_yml: str, dry_run: bool = False):
     now = datetime.datetime.now()
     start = now - datetime.timedelta(days=7)
     for day in range(8):
@@ -16,10 +16,10 @@ def main(openlibrary_yml: str):
                 print("Caught up to current time, stopping.")
                 return
             print(f"Running hourly trending for {ts.isoformat()}")
-            hourly_main(openlibrary_yml, timestamp=ts.isoformat())
+            hourly_main(openlibrary_yml, timestamp=ts.isoformat(), dry_run=dry_run)
         # After 24 hours, run daily trending for this day
         print(f"Running daily trending for {day_dt.isoformat()}")
-        daily_main(openlibrary_yml, timestamp=day_dt.isoformat())
+        daily_main(openlibrary_yml, timestamp=day_dt.isoformat(), dry_run=dry_run)
 
 
 if __name__ == '__main__':
