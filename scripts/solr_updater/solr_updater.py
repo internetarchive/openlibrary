@@ -283,6 +283,7 @@ async def main(
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
+    trending_updater: bool = False,
 ):
     """
     Useful environment variables:
@@ -322,7 +323,7 @@ async def main(
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
-    if solr_next:
+    if trending_updater:
         logger.info("Starting trending updater scheduler")
         # This will run forever in the background
         task = asyncio.create_task(start_trending_scheduler(ol_config))
