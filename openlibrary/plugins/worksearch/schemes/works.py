@@ -299,7 +299,7 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(  # noqa: C901, PLR0915
+    def q_to_solr_params(  # noqa: PLR0915
         self,
         q: str,
         solr_fields: set[str],
@@ -457,8 +457,7 @@ class WorkSearchScheme(SearchScheme):
                                             if isinstance(n, luqum.tree.Word)
                                             else n.value[1:-1]
                                         )
-                                        if val.startswith('/books/'):
-                                            val = val[7:]
+                                        val = val.removeprefix('/books/')
                                         n.value = f'"/books/{val}"'
                         elif callable(new_name):
                             # Replace this node with a new one
