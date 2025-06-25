@@ -108,7 +108,7 @@ LCC_PARTS_RE = re.compile(
     (?P<rest>\s.*)?
     $
 ''',
-    re.IGNORECASE | re.X,
+    re.IGNORECASE | re.VERBOSE,
 )
 
 
@@ -184,7 +184,7 @@ def normalize_lcc_prefix(prefix: str) -> str | None:
     >>> normalize_lcc_prefix('PN-')
     'PN-'
     """
-    if re.match(r'^[A-Z]+$', prefix, re.I):
+    if re.match(r'^[A-Z]+$', prefix, re.IGNORECASE):
         return prefix
     else:
         lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))

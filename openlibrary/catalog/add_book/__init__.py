@@ -65,7 +65,7 @@ from openlibrary.utils.lccn import normalize_lccn
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
 
-re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+re_normalize = re.compile('[^[:alphanum:] ]', re.UNICODE)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 SUSPECT_PUBLICATION_DATES: Final = [

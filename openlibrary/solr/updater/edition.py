@@ -19,7 +19,7 @@ logger = logging.getLogger("openlibrary.solr")
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_year = re.compile(r'\b(\d{4})\b')
-re_solr_field = re.compile(r'^[-\w]+$', re.U)
+re_solr_field = re.compile(r'^[-\w]+$', re.UNICODE)
 re_not_az = re.compile('[^a-zA-Z]')
 
 
