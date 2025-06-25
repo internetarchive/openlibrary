@@ -35,11 +35,9 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
   <div class="book-cover loading-gradient">
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
       $if cover_url:
-        <img class="bookcover" loading="lazy"
+        <img class="bookcover opacity-0" loading="lazy"
           title="$('%s%s'%(title,byline))"
           alt="$('%s%s'%(title,byline))"
-          style="opacity: 0; transition: opacity 0.5s ease-in-out;"
-          onload="this.closest('.loading-gradient')?.classList.remove('loading-gradient'); this.style.opacity = 1;"
         $if lazy and layout == 'carousel':
           data-lazy="$(cover_url)"
           src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>

@@ -184,6 +184,13 @@
     font-style: oblique;
   }
 }
+
+// bookcovers should have opacity to fade in
+.carousel__item .bookcover {
+  opacity: 1;
+  transition: opacity 0.5s ease-in-out;
+}
+
 @height-cover-compact: 125px;
 .carousel--compact {
   .book .book-cover {
