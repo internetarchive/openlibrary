@@ -3,10 +3,11 @@ import itertools
 import json
 import logging
 import subprocess
+import sys
+import threading
 from collections import Counter
 from dataclasses import dataclass
 from math import sqrt
-import sys
 
 import requests
 
@@ -16,11 +17,12 @@ from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("trending-updater")
+
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]
 # value, with each other value incrementing up by one.
-
-logger = logging.getLogger("trending-updater")
 
 # Trending_score_daily values are all fetched in order to calculate their mean and standard deviation.
 # The formula for the new z-score is [ z = sum(trending_score_hourly_*) - mean(trending_score_daily_*) /  (standard_deviation(trending_score_daily)] + 1).
@@ -66,34 +68,47 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
         flush=True,
     )
     with subprocess.Popen(
-        [
-            "bash",
-            "-c",
-            f"""
-                source scripts/obfi.sh && \
-                obfi_range {start_ts} {end_ts} \
-                    | obfi_grep_bots -v \
-                    | obfi_grep_secondary_reqs -v \
-                    | grep -E 'GET /(works|books)/OL' \
-                    | grep -F ' 200 ' \
-                    | grep -F 'HTTP/2.' \
-                    | grep -vF ' "-" ' \
-                    | grep -vE '\\.(opds|json)' \
-                    {extra_grep if extra_grep else ''}
-            """,
-        ],
+        f"""
+            set -euo pipefail
+            source scripts/obfi.sh
+            obfi_range {start_ts} {end_ts} \
+                | obfi_grep_bots -v \
+                | obfi_grep_secondary_reqs -v \
+                | grep -E 'GET /(works|books)/OL' \
+                | grep -F ' 200 ' \
+                | grep -F 'HTTP/2.' \
+                | grep -vF ' "-" ' \
+                | grep -vE '\\.(opds|json)' \
+                {extra_grep if extra_grep else ''}
+        """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
         text=True,
+        executable='/bin/bash',
     ) as proc:
         assert proc.stdout
+
+        def print_stderr(stderr):
+            for err_line in stderr:
+                err_line = err_line.strip()
+                if err_line:
+                    print(f"[stderr] {err_line}", file=sys.stderr, flush=True)
+
+        if proc.stderr:
+            threading.Thread(
+                target=print_stderr, args=(proc.stderr,), daemon=True
+            ).start()
         for line in proc.stdout:
             line = line.strip()
             if not line:
                 continue
 
             yield line
+
+        proc.wait()
+        if proc.returncode not in (0, 141):
+            raise subprocess.CalledProcessError(proc.returncode, proc.args)
 
 
 def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
@@ -102,17 +117,23 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     """
 
     # We will need to fetch the work keys for these
-    book_keys = set(get_logs_for_hour(dt, 'grep -oEF "GET /books/OL[0-9]+M"'))
-
-    logger.info(f"Found {len(book_keys)} /book pageviews in the last hour")
+    book_keys = {
+        line.strip().split(' ')[1]
+        for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')
+    }
+    print(f"Found {len(book_keys)} /book pageviews in the hour", flush=True)
 
     book_key_to_work_key: dict[str, str] = {}
 
+    batch_size = 100
+    batch_count = len(book_keys) // batch_size + 1
+    print(f"Fetching corresponding work keys in {batch_count} batches: ", flush=True)
     session = requests.Session()
     session.headers.update({'User-Agent': 'OpenLibrary Trending Updater'})
     # The API doesn't support POST requests, so need to use smaller batches
     # to avoid hitting the URL length limit.
-    for batch in itertools.batched(book_keys, 100):
+    for i, batch in enumerate(itertools.batched(book_keys, batch_size)):
+        print(f"\rBatch {i + 1}/{batch_count} ...", end='', flush=True)
         resp = session.get(
             'https://openlibrary.org/query.json',
             params={
@@ -127,8 +148,13 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
         )
         resp.raise_for_status()
         data = resp.json()
+        print(f"\rBatch {i + 1}/{batch_count} ... ✓", end='', flush=True)
         for edition in data:
+            if not edition.get('works'):
+                logger.warning(f"Edition {edition['key']} has no works, skipping")
+                continue
             book_key_to_work_key[edition['key']] = edition['works'][0]['key']
+    print("")
 
     # Will want to dedupe by IP and work key, so we can count unique pageviews per work.
     # Each tuple is (ip, work_key).
