@@ -178,18 +178,17 @@ jQuery(function () {
             // The image element can be nested inside the loading gradient, or it can be the loading gradient itself;
             const imgEl = el.querySelector('img') || el;
             imgEl.addEventListener('load', () => {
-                // don't remove the loading gradient if the image is still transparent
-                // The opacity-0 js can do it instead
                 if (imgEl.classList.contains('opacity-0')) {
                     const now = performance.now(); // more precise than Date.now()
                     const delay = Math.ceil(now / 500) * 500 - now; // so that images transition together every 500ms
                     // The idea of this is to make it so they don't all start jumping into existance in close succession
+                    // If this code is overcomplicated, we can remove it. In local testing it seems a worthwhile improvement
                     setTimeout(() => {
                         imgEl.classList.remove('opacity-0');
                         el.classList.remove('loading-gradient');
                     }, delay);
                 } else {
-                    // This is the case where we don't want them to fade in
+                    // This is the case where images don't fade in because there's no opacity-0 class
                     el.classList.remove('loading-gradient');
                 }
             });
