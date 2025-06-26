@@ -23,7 +23,6 @@ from openlibrary.utils.sentry import Sentry
 from openlibrary.utils.shutdown import setup_graceful_shutdown
 
 logger = logging.getLogger("openlibrary." + __file__)
-setup_graceful_shutdown()
 
 
 def setup_env():
@@ -68,6 +67,8 @@ def start(config_file, *args):
         else:
             return runfcgi(wsgifunc, None)
     else:
+        # Plain server does not correctly handle SIGTERM/SIGINT
+        setup_graceful_shutdown()
         server.run()
 
 
