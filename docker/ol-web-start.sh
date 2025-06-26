@@ -8,6 +8,5 @@ if [ -n "$BEFORE_START" ] ; then
 fi
 
 PYTHONPATH=. exec scripts/openlibrary-server "$OL_CONFIG" \
-  --gunicorn \
   $GUNICORN_OPTS \
   --bind :8080
