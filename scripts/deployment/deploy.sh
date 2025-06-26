@@ -316,7 +316,10 @@ deploy_openlibrary() {
 
     check_server_access
     check_crons
-    check_server_storage
+
+    while ! check_server_storage; do
+        read -p "Press Enter to retry..."
+    done
 
     echo "Checking for changes in the openlibrary repo on the servers..."
     for SERVER in $SERVERS; do
@@ -356,7 +359,7 @@ deploy_openlibrary() {
 
     echo ""
     echo "Pull the latest docker images..."
-    deploy_images "$SERVER_NAME"
+    deploy_images
 
     tag_deploy openlibrary
 
@@ -460,6 +463,13 @@ check_server_storage() {
 
     if [ $FAILED -eq 1 ]; then
         echo "Some servers have less than 2GB of free space. Please free up space before proceeding."
+        echo "Run the docker builder cache prune command on the failing servers to free up space."
+        echo "eg. ssh FOO docker builder prune -f"
+        echo ""
+        echo "This command takes a while to run; 10 - 50 minutes. Note you CANNOT run any other docker "
+        echo "commands while this is running. Also note that you CANNOT kill the prune command once it has "
+        echo "started. If you do it will continue to run in the background, and docker commands will still "
+        echo "not work until it finishes."
         return 1
     fi
     return 0
