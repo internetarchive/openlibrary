@@ -510,19 +510,10 @@ clone_booklending_utils() {
 }
 
 recreate_services() {
-    echo "[Now] Rebuilding & restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
+    echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/restart_servers.sh"
-}
-
-post_deploy() {
-    LATEST_TAG_NAME=$(git tag --sort=-creatordate | head -n 1)
-    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
-    read -p "Once announced, press Enter to continue..."
-
-    echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
-    echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
 }
 
 deploy_wizard() {
@@ -578,8 +569,14 @@ deploy_wizard() {
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time recreate_services
         echo ""
-        time post_deploy
-        echo ""
+        # FIXME: This might not work; I'm not sure if the /releases endpoint will also return a tag that hasn't
+        # been converted to a release yet.
+        LATEST_TAG_NAME=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | jq -r .tag_name)
+        echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+        read -p "Press Enter to continue..."
+
+        echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
+        echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
     fi
 }
 
