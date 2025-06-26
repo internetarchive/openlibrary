@@ -262,3 +262,46 @@ tbody {
 .edition-adder {
   text-align: right;
 }
+
+.edition-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 0;
+}
+
+.edition-spine {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    @beige 0%,
+    @dark-yellow 1px,
+    @beige 3px,
+    @dark-yellow 4px,
+    @beige 6px,
+    @dark-yellow 7px,
+    @beige 100%
+  );
+  background-size: 5px 100%;
+  z-index: @z-index-level-1;
+}
+
+.spine-width-10 {
+  width: 10px;
+}
+.spine-width-20 {
+  width: 20px;
+}
+.spine-width-30 {
+  width: 30px;
+}
+.spine-width-40 {
+  width: 40px;
+}
+.spine-width-50 {
+  width: 50px;
+}
