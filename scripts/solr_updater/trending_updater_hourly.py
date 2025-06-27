@@ -45,6 +45,15 @@ class LogLine:
         )
 
 
+class NoLogsFoundError(subprocess.CalledProcessError):
+    """
+    Custom error to indicate that no logs were found for the given hour.
+    This is used to differentiate between a real error and a case where no logs match the criteria.
+    """
+
+    pass
+
+
 def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     start_ts = int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
     end_ts = start_ts + 3600 * 1000 - 1
@@ -98,8 +107,15 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
             yield line
 
         proc.wait()
-        if proc.returncode not in (0, 141):
-            raise subprocess.CalledProcessError(proc.returncode, proc.args)
+        match proc.returncode:
+            case 0 | 141:
+                pass
+            case 1:
+                # Note this case is ambiguous; grep throws a 1 when it receives no input,
+                # but it could also be something else throwing a generic error
+                raise NoLogsFoundError(proc.returncode, proc.args)
+            case _:
+                raise subprocess.CalledProcessError(proc.returncode, proc.args)
 
 
 def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
@@ -146,7 +162,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
                 print(f"WARN: Edition {edition['key']} has no works, skipping")
                 continue
             book_key_to_work_key[edition['key']] = edition['works'][0]['key']
-    print("")
+    print()
 
     # Will want to dedupe by IP and work key, so we can count unique pageviews per work.
     # Each tuple is (ip, work_key).
@@ -182,7 +198,7 @@ def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
     result = {
         f'/works/OL{storage.work_id}W': storage.count for storage in ol_db.query(query)
     }
-    print(f"{len(result)} works with bookshelf books in the last hour")
+    print(f"{len(result)} works with bookshelf books in the given hour")
     return result
 
 
@@ -296,7 +312,15 @@ def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = Fal
     # The slot in solr that corresponds to the given hour
     hour_slot = ts.hour
 
-    work_pageview = fetch_work_hour_pageviews(ts)
+    try:
+        work_pageview = fetch_work_hour_pageviews(ts)
+    except NoLogsFoundError as e:
+        print(
+            f"WARN: No pageviews found for hour {ts.isoformat()}. Error: {e}",
+            file=sys.stderr,
+        )
+        work_pageview = Counter()
+
     work_book_events = fetch_work_hour_book_events(ts)
     keys_to_fetch = set(itertools.chain(work_pageview.keys(), work_book_events.keys()))
     solr_docs = fetch_solr_trending_data(hour_slot, keys_to_fetch)
