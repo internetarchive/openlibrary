@@ -29,17 +29,16 @@ def main(
     :param timestamp: Optional ISO format timestamp to start from. Default is 7 days ago.
     :param dry_run: If True, will not send updates to Solr, just runs the logic and print the number of updates.
     """
-    end = datetime.datetime.now()
     if timestamp:
         start = datetime.datetime.fromisoformat(timestamp)
         start = start.replace(minute=5, second=0, microsecond=0)
     else:
-        start = end - datetime.timedelta(days=7)
+        start = datetime.datetime.now() - datetime.timedelta(days=7)
         # Ensure we start at the beginning of the day
         start = start.replace(hour=0, minute=5, second=0, microsecond=0)
 
     cur_dt = start
-    while cur_dt < end:
+    while cur_dt < datetime.datetime.now():
         # After 24 hours, run daily trending for this day
         if cur_dt.hour == 0:
             day_dt = cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
