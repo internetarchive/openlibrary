@@ -71,7 +71,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
         f"""
             set -euo pipefail
             source scripts/obfi.sh
-            obfi_range {start_ts} {end_ts} \
+            obfi_range_files {start_ts} {end_ts} \
                 | obfi_grep_bots -v \
                 | obfi_grep_secondary_reqs -v \
                 | grep -E 'GET /(works|books)/OL' \
@@ -79,7 +79,8 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -F 'HTTP/2.' \
                 | grep -vF ' "-" ' \
                 | grep -vE '\\.(opds|json|rdf)' \
-                {extra_grep if extra_grep else ''}
+                {extra_grep if extra_grep else ''} \
+                | obfi_match_range {start_ts} {end_ts} \
         """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

@@ -19,18 +19,24 @@ obfi() {
         echo "  obfi_previous_minute | ...            - reads the logs from the previous minute"
         echo "  obfi_previous_hour | ...              - reads the logs from the previous hour"
         echo "  obfi_walk_logs <days> | ...           - walks the gzip logs for the last <days> days"
-        echo "  obfi_range <start> <end> | ...        - Reads the logs from the given range."
+        echo "  obfi_range <start> <end> | ...        - Outputs the log lines in the given range."
+        echo "                                          Expects timestamps in ms, eg from Grafana URLs."
+        echo "                                          Only works for ranges spanning at most 2 files."
+        echo "  obfi_range_files <start> <end> | ...  - Reads the files that contain the given range."
         echo "                                          Expects timestamps in ms, eg from Grafana URLs."
         echo "                                          Only works for ranges spanning at most 2 files."
         echo ""
-        echo "From here, you can filter the logs with grep as normal, or the obfi grep commands."
+        echo "From here, you can filter the logs with grep as normal, or by using obfi commands."
         echo "These commands use grep, so support grep options like -i, -v, etc. See grep --help."
         echo ""
-        echo "Grep commands:"
+        echo "Filter commands:"
         echo "  obfi | grep "pattern..." | ...        - grep the logs for a pattern normally"
         echo "  obfi | obfi_grep_bots | ...           - requests from known bots"
         echo "  obfi | obfi_grep_bots -v | ...        - requests NOT from known bots"
         echo "  obfi | obfi_grep_secondary_reqs | ... - eg /static, /images, etc"
+        echo "  obfi | obfi_match_range <start> <end> - match logs in the given range"
+        echo "                                          Expects timestamps in ms, eg from Grafana URLs."
+        echo "                                          Note does not use grep, so no grep options."
         echo ""
         echo "Once you've filtered to the logs you want, you can reduce them with the obfi aggregation commands."
         echo ""
@@ -109,7 +115,7 @@ obfi_previous_minute() {
     CUR_MIN=$(date -d "$CUR_MIN" +%s)
     PREV_MIN_START=$(($CUR_MIN - 60))
 
-    obfi tac | obfi__match_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
+    obfi tac | obfi_match_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
 }
 
 obfi_previous_hour() {
@@ -122,7 +128,7 @@ obfi_previous_hour() {
     HOUR_START=$(($NOW - 3600))
     HOUR_END=$(($NOW - 1))
 
-    obfi tac | obfi__match_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
+    obfi tac | obfi_match_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
 }
 
 obfi_range() {
@@ -132,6 +138,20 @@ obfi_range() {
         echo "Example: obfi_range 1748502382753 1748503464280"
         echo "Example: obfi_range $(($(date +%s) * 1000 - 3600000)) END"
         echo "Timestamps eg from grafana URLs"
+        return 1
+    fi
+
+    START=$1
+    END=$2
+
+    obfi_range_files $START $END | obfi_match_range $START $END
+}
+
+obfi_range_files() {
+    if [[ -z "$1" || -z "$2" || "$1" == "--help" ]]; then
+        echo "Usage: obfi_range_files <start> <end>"
+        echo "Iterate over the files that contain the given ranges. Only works for ranges spanning at most 2 files."
+        echo "Example: obfi_range_files 1748502382753 1748503464280"
         return 1
     fi
 
@@ -149,37 +169,23 @@ obfi_range() {
         return 1
     fi
 
+    local FILES=()
     if [[ "$START_FILE" != "$END_FILE" ]]; then
         echo "Warning: Start and end timestamps in different files. Assuming consecutive." 1>&2
-        obfi__file_range "$START_FILE" "$START" "$END"
-        obfi__file_range "$END_FILE" "$START" "$END"
+        FILES+=("$START_FILE")
+        FILES+=("$END_FILE")
     else
-        obfi__file_range "$START_FILE" "$START" "$END"
-    fi
-}
-
-obfi__file_range() {
-    if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
-        echo "Usage: obfi__file_range <file> <start> <end>" 1>&2
-        echo "" 1>&2
-        echo "Prints the logs from the given file in the given range." 1>&2
-        echo "Example: obfi__file_range access.log 1748502382753 1748503464280" 1>&2
-        echo "Example: obfi__file_range access.log-20250201.gz 1748502382753 END" 1>&2
-        echo "Timestamps eg from grafana URLs" 1>&2
-        return 1
+        FILES+=("$START_FILE")
     fi
 
-    START=$2
-    END=$3
-
-    echo "Reading logs from $1: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S") ($START to $END)" 1>&2
-
-    # Handle gzip and non-gzip files
-    if [[ "$1" == *.gz ]]; then
-        zcat "$1"
-    else
-        cat "$1"
-    fi | obfi__match_range "$START" "$END"
+    for FILE in "${FILES[@]}"; do
+        echo "Reading logs from $FILE" 1>&2
+        if [[ "$FILE" == *.gz ]]; then
+            zcat "$FILE"
+        else
+            cat "$FILE"
+        fi
+    done
 }
 
 obfi_find_log() {
@@ -320,13 +326,18 @@ obfi_grep_secondary_reqs() {
     grep $1 -E '/static|/images|/cdn|partials.json'
 }
 
-obfi__match_range() {
+obfi_match_range() {
     if [[ -z "$1" || -z "$2" ]]; then
         echo "Usage: obfi_match_range <start> <end>"
         echo "Example: obfi_match_range 1748502382753 1748503464280"
         echo "Timestamps eg from grafana URLs"
         return 1
     fi
+
+    START=$1
+    END=$2
+
+    echo "Reading from range: $(date -d "@$((START / 1000))" +"%Y-%m-%d %H:%M:%S") to $(date -d "@$((END / 1000))" +"%Y-%m-%d %H:%M:%S") ($START to $END)" 1>&2
 
     python3 -c "
 import sys
