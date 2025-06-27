@@ -17,24 +17,13 @@ export function initMessageEventListener(element) {
             if (e.data.height) element.style.height = `${e.data.height}px`;
         }
         else if (e.data.type === 's3-keys') {
-            fetch('/account/login.json', {
-                method: 'POST',
-                credentials: 'include',
-                body: JSON.stringify(e.data.s3)
-            })
-                .then((resp) => {
-                    if (resp.ok) {
-                        window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/books';
-                    }
-                    return resp.json()
-                })
-                .then((error) => {
-                    const loginForm = document.querySelector('#register')
-                    const errorDiv = document.createElement('div')
-                    errorDiv.classList.add('note')
-                    errorDiv.textContent = error.errorDisplayString
-                    loginForm.insertAdjacentElement('afterbegin', errorDiv)
-                })
+            const s3AccessInput = document.querySelector('#access')
+            const s3SecretInput = document.querySelector('#secret')
+            s3AccessInput.value = e.data.s3.access
+            s3SecretInput.value = e.data.s3.secret
+
+            const loginForm = document.querySelector('#register')
+            loginForm.submit()
         }
     }
 
