@@ -12,9 +12,11 @@ import web
 from lxml import etree
 from pydantic import ValidationError
 
+from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import add_hook
 from openlibrary import accounts, records
+from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_from_archive_bulk, get_marc_record_from_ia
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
@@ -178,8 +180,15 @@ class importapi:
 
     def POST(self):
         web.header('Content-Type', 'application/json')
+
         if not can_write():
-            raise web.HTTPError('403 Forbidden')
+            # Try S3 authentication as fallback
+            if ol_account := InternetArchiveAccount.s3auth():
+                # Log the user in with S3 credentials
+                web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+                web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+            else:
+                raise web.HTTPError('403 Forbidden')
 
         i = web.input()
         preview = i.get('preview') == 'true'
@@ -187,7 +196,6 @@ class importapi:
 
         try:
             edition, _ = parse_data(data)
-
         except (DataError, json.JSONDecodeError) as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
