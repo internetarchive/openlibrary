@@ -49,7 +49,9 @@ def valid_email(email):
     return validate_email(email)
 
 
-def extract_s3_credentials_from_header(auth_header: str) -> tuple[str | None, str | None]:
+def extract_s3_credentials_from_header(
+    auth_header: str,
+) -> tuple[str | None, str | None]:
     """Extract S3 credentials from LOW authorization header format: "LOW key:secret"."""
     if auth_header and auth_header.startswith('LOW '):
         try:
@@ -59,7 +61,7 @@ def extract_s3_credentials_from_header(auth_header: str) -> tuple[str | None, st
                 return credentials[0], credentials[1]
         except Exception:
             pass
-    
+
     return None, None
 
 
@@ -766,7 +768,7 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def s3auth(cls, access_key=None, secret_key=None, _raw_response=False):
         """Authenticates an Archive.org user based on s3 keys.
-        
+
         If no keys are provided, attempts to extract them from web.ctx authorization header.
         Returns OpenLibraryAccount by default, or raw response if _raw_response=True.
         """
@@ -774,7 +776,9 @@ class InternetArchiveAccount(web.storage):
 
         # If no keys provided, try to extract from web context header
         if not access_key or not secret_key:
-            auth_header = web.ctx.env.get('HTTP_AUTHORIZATION', '') if hasattr(web, 'ctx') else ''
+            auth_header = (
+                web.ctx.env.get('HTTP_AUTHORIZATION', '') if hasattr(web, 'ctx') else ''
+            )
             access_key, secret_key = extract_s3_credentials_from_header(auth_header)
 
         url = lending.config_ia_s3_auth_url
@@ -788,17 +792,17 @@ class InternetArchiveAccount(web.storage):
             )
             response.raise_for_status()
             result = response.json()
-            
+
             # Return raw response for backward compatibility if requested
             if _raw_response:
                 return result
-            
+
             # Otherwise return OpenLibraryAccount if authorized
             if result.get('authorized') and (email := result.get('username')):
                 return OpenLibraryAccount.get(email=email)
-            
+
             return None
-            
+
         except requests.HTTPError as e:
             if _raw_response:
                 return {'error': e.response.text, 'code': e.response.status_code}
@@ -863,7 +867,9 @@ def audit_accounts(
     """
 
     if s3_access_key and s3_secret_key:
-        r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key, _raw_response=True)
+        r = InternetArchiveAccount.s3auth(
+            s3_access_key, s3_secret_key, _raw_response=True
+        )
         if not r.get('authorized', False):
             return {'error': 'invalid_s3keys'}
         ia_login = {
