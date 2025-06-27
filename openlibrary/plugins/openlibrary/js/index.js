@@ -348,7 +348,7 @@ jQuery(function () {
             })
     }
 
-    // My Books Droppers:
+    // My Books Droppers (includes New List Form and Reading Check-Ins):
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
     if (myBooksDroppers.length) {
         const actionableListShowcases = document.querySelectorAll('.actionable-item')
@@ -372,27 +372,7 @@ jQuery(function () {
             .then(module => module.initDialogs(nativeDialogs))
     }
 
-    // START : Last read date functionality
-    const checkInForms = document.querySelectorAll('.check-in')
-    const checkInPrompts = document.querySelectorAll('.check-in-prompt')
-    const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
-    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
-        import(/* webpackChunkName: "check-ins" */ './check-ins')
-            .then((module) => {
-                if (checkInForms.length) {
-                    module.initCheckInForms(checkInForms)
-                }
-                if (checkInPrompts.length) {
-                    module.initCheckInPrompts(checkInPrompts)
-                }
-                if (checkInEditLinks.length) {
-                    module.initCheckInEdits(checkInEditLinks)
-                }
-            })
-    }
-    // END : Last read date functionality
-
-    // START : Yearly reading goal functionality
+    // Yearly reading goal functionality
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
@@ -414,8 +394,6 @@ jQuery(function () {
                 }
             })
     }
-    // END : Yearly reading goal functionality
-
 
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();

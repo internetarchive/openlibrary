@@ -88,6 +88,7 @@ export class MyBooksDropper extends Dropper {
 
         this.readingLogForms.initialize()
         this.readingLists.initialize()
+        this.readDateComponents.initialize()
 
         this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'))
     }
