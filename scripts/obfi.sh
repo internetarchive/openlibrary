@@ -106,7 +106,7 @@ obfi_previous_minute() {
     CUR_MIN=$(date -d "$CUR_MIN" +%s)
     PREV_MIN_START=$(($CUR_MIN - 60))
 
-    obfi_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
+    obfi tac | obfi__match_range $(($PREV_MIN_START * 1000)) $(($CUR_MIN * 1000 - 1))
 }
 
 obfi_previous_hour() {
@@ -119,7 +119,7 @@ obfi_previous_hour() {
     HOUR_START=$(($NOW - 3600))
     HOUR_END=$(($NOW - 1))
 
-    obfi_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
+    obfi tac | obfi__match_range $(($HOUR_START * 1000)) $(($HOUR_END * 1000))
 }
 
 obfi_range() {
@@ -176,74 +176,7 @@ obfi__file_range() {
         zcat "$1"
     else
         cat "$1"
-    fi | python3 -c "
-import sys
-from datetime import datetime, timezone
-start = datetime.fromtimestamp($START / 1000, tz=timezone.utc)
-end = datetime.fromtimestamp($END / 1000, tz=timezone.utc)
-
-# Format as nginx time only. Since we're going over a single file, we can assume
-# that the year/month/day are the same. This lets us avoid parsing the date
-# from the line, which has a significant performance hit -- 6min to 30s!
-start_time_str = start.strftime('%H:%M:%S')
-end_time_str = end.strftime('%H:%M:%S')
-
-
-MONTHS_MAP = {
-    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
-    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
-    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
-}
-
-def quick_parse_date(date_str: str, time_str) -> datetime:
-    # Parse the date in the format '18/Mar/2025:11:20:36 +0000'
-    # to a sortable tuple (day, month, year, time_str)
-    date_parts = date_str.split('/')
-
-    return datetime(
-        year=int(date_parts[2]),
-        month=MONTHS_MAP[date_parts[1]],
-        day=int(date_parts[0]),
-        hour=int(time_str[:2]),
-        minute=int(time_str[3:5]),
-        second=int(time_str[6:8]),
-        tzinfo=timezone.utc,
-    )
-
-last_dt = None
-last_dt_str = None
-started = False
-buffer = 25  # Lines to read after mismatch
-try:
-    for line in sys.stdin:
-        # Extract the date from the line
-        # Get the date part, e.g. '[18/Mar/2025:11:20:36 +0000'
-        line_parts = line.split(' [', 2)
-        if line_parts[1][0].isdigit():
-            # It should be the second part, but some weird traffic has it in the third part
-            dt_str = line_parts[1][:20]
-        else:
-            dt_str = line_parts[2][:20]  # Otherwise, it's the third part
-
-        # Avoid parsing the date every time, that's expensive, and it's often the same
-        if dt_str != last_dt_str:
-            date_str, time_str = dt_str.split(':', 1)
-            date = quick_parse_date(date_str, time_str)
-
-        last_dt_str = dt_str
-        last_dt = date
-
-        if start <= date <= end:
-            started = True
-            buffer = 25
-            sys.stdout.write(line)
-        elif started:
-            buffer -= 1
-            if buffer == 0:
-                break
-except BrokenPipeError:
-    pass
-    "
+    fi | obfi__match_range "$START" "$END"
 }
 
 obfi_find_log() {
@@ -370,7 +303,7 @@ obfi_top_bots() {
 }
 
 ###############################################################
-# Grep commands
+# Filter commands
 ###############################################################
 
 obfi_grep_bots() {
@@ -382,6 +315,84 @@ obfi_grep_secondary_reqs() {
     # Requests that are not very important and that tend to be noisy because they're
     # required by the loading of any normal OL page.
     grep $1 -E '/static|/images|/cdn|partials.json'
+}
+
+obfi__match_range() {
+    if [[ -z "$1" || -z "$2" ]]; then
+        echo "Usage: obfi_match_range <start> <end>"
+        echo "Example: obfi_match_range 1748502382753 1748503464280"
+        echo "Timestamps eg from grafana URLs"
+        return 1
+    fi
+
+    python3 -c "
+import sys
+from datetime import datetime, timezone
+start = datetime.fromtimestamp($START / 1000, tz=timezone.utc)
+end = datetime.fromtimestamp($END / 1000, tz=timezone.utc)
+
+# Format as nginx time only. Since we're going over a single file, we can assume
+# that the year/month/day are the same. This lets us avoid parsing the date
+# from the line, which has a significant performance hit -- 6min to 30s!
+start_time_str = start.strftime('%H:%M:%S')
+end_time_str = end.strftime('%H:%M:%S')
+
+
+MONTHS_MAP = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+}
+
+def quick_parse_date(date_str: str, time_str) -> datetime:
+    # Parse the date in the format '18/Mar/2025:11:20:36 +0000'
+    # to a sortable tuple (day, month, year, time_str)
+    date_parts = date_str.split('/')
+
+    return datetime(
+        year=int(date_parts[2]),
+        month=MONTHS_MAP[date_parts[1]],
+        day=int(date_parts[0]),
+        hour=int(time_str[:2]),
+        minute=int(time_str[3:5]),
+        second=int(time_str[6:8]),
+        tzinfo=timezone.utc,
+    )
+
+last_dt = None
+last_dt_str = None
+started = False
+buffer = 25  # Lines to read after mismatch
+try:
+    for line in sys.stdin:
+        # Extract the date from the line
+        # Get the date part, e.g. '[18/Mar/2025:11:20:36 +0000'
+        line_parts = line.split(' [', 2)
+        if line_parts[1][0].isdigit():
+            # It should be the second part, but some weird traffic has it in the third part
+            dt_str = line_parts[1][:20]
+        else:
+            dt_str = line_parts[2][:20]  # Otherwise, it's the third part
+
+        # Avoid parsing the date every time, that's expensive, and it's often the same
+        if dt_str != last_dt_str:
+            date_str, time_str = dt_str.split(':', 1)
+            date = quick_parse_date(date_str, time_str)
+
+        last_dt_str = dt_str
+        last_dt = date
+
+        if start <= date <= end:
+            started = True
+            buffer = 25
+            sys.stdout.write(line)
+        elif started:
+            buffer -= 1
+            if buffer == 0:
+                break
+except BrokenPipeError:
+    pass
+    "
 }
 
 ###############################################################
