@@ -59,9 +59,12 @@ obfi() {
     fi
     CMD=${1:-"tail -f"}
 
-
-    if [  -z "$CONTAINER" ]; then
-        CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
+    if command -v docker >/dev/null 2>&1; then
+        if [ -z "$CONTAINER" ]; then
+            CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
+        fi
+    else
+        CONTAINER=""
     fi
 
     if [ ! -z "$CONTAINER" ]; then
