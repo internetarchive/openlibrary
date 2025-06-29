@@ -1,26 +1,66 @@
 /*
  * Finds all elements with the 'loading-gradient' class and sets them up
  * to transition gracefully once their associated image has loaded.
+ * This can be run mltiple times, as is needed for carousels.
  */
 
 export function initLoadingGradient() {
-    document.querySelectorAll('.loading-gradient').forEach((el) => {
-        // The image element can be nested inside the loading gradient, or it can be the loading gradient itself;
-        const imgEl = el.querySelector('img') || el;
-        imgEl.addEventListener('load', () => {
-            if (imgEl.classList.contains('opacity-0')) {
-                const now = performance.now(); // more precise than Date.now()
-                const delay = Math.ceil(now / 500) * 500 - now; // so that images transition together every 500ms
-                // The idea of this is to make it so they don't all start jumping into existance in close succession
-                // If this code is overcomplicated, we can remove it. In local testing it seems a worthwhile improvement
-                setTimeout(() => {
-                    imgEl.classList.remove('opacity-0');
-                    el.classList.remove('loading-gradient');
-                }, delay);
-            } else {
-                // This is the case where images don't fade in because there's no opacity-0 class
-                el.classList.remove('loading-gradient');
-            }
-        }, { once: true });
-    });
+    const gradientElements = document.querySelectorAll('.loading-gradient');
+    gradientElements.forEach(setupGradientForElement);
+}
+
+/**
+ * Handles the loading logic for a single element.
+ * @param {HTMLElement} el - The element with the .loading-gradient class.
+ */
+function setupGradientForElement(el) {
+    // An image can be a child of the container, or it can BE the container.
+    // This finds the correct element to listen to the 'load' event on.
+    const imageEl = el.querySelector('img') || el;
+
+    // Wait for the image to fully load before we do anything.
+    imageEl.addEventListener('load', () => revealImage(el), { once: true });
+
+    // Handle the case where an image fails to load.
+    imageEl.addEventListener('error', () => revealImage(el), { once: true });
+}
+
+/**
+ * Reveals a loaded image and removes its loading placeholder.
+ * This function handles two scenarios:
+ * 1. The element passed is the <img> itself.
+ * 2. The element passed is a container that holds an <img>.
+ * In the second case, it uses a synchronized delay to make image reveals
+ * appear less jarring and more coordinated.
+ *
+ * @param {HTMLElement} el The image element or its container.
+ */
+function revealImage(el) {
+    // Case 1: The element is the <img> tag itself.
+    // We can simply remove its loading placeholder and finish.
+    if (el.tagName === 'IMG') {
+        el.classList.remove('loading-gradient');
+        return;
+    }
+
+    // Case 2: The element is a container holding the <img>.
+    // We need to find the image, then reveal it while removing the container's placeholder.
+    const imgEl = el.querySelector('img'); // The actual image, which is hidden (e.g., with opacity-0).
+
+    // --- Synchronized Reveal Logic ---
+    // To prevent a "popcorn effect" of images loading in rapid, random succession,
+    // we batch their reveal animations. All images that load within the same 500ms
+    // window will start their fade-in transition at the same time.
+
+    const now = performance.now();
+
+    // Calculate the time remaining until the next 500ms interval.
+    // Example: If `now` is 1234ms, the next interval is 1500ms. The delay will be 1500 - 1234 = 266ms.
+    const delay = Math.ceil(now / 500) * 500 - now;
+
+    setTimeout(() => {
+        // After the calculated delay, trigger the fade-in and remove the placeholder.
+        imgEl.classList.remove('opacity-0');
+        el.classList.remove('loading-gradient');
+    }, delay);
 }
