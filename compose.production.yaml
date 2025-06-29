@@ -256,8 +256,8 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - EXTRA_OPTS=--solr-url http://ol-solr0:8984/solr/openlibrary
-        --no-solr-next
+      - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
+      - EXTRA_OPTS=--no-solr-next
     volumes:
       - ../olsystem:/olsystem
     logging:
@@ -276,9 +276,9 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
+      - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
       - STATE_FILE=solr-next-update.offset
-      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary
-        --solr-next
+      - EXTRA_OPTS=--solr-next
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem

@@ -238,6 +238,14 @@ def get_user_lists(seed_info):
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
+@public
+def convert_list(list):
+    site = web.ctx.site
+    data = site._load(list)
+    newList = List(site, list, data)
+    return newList
+
+
 class lists_partials(delegate.page):
     path = "/lists/partials"
     encoding = "json"

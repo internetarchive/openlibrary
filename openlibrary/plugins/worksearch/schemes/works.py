@@ -1,12 +1,10 @@
-# ruff: noqa: RUF012
-# See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
-
 import logging
 import re
 import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
+from types import MappingProxyType
 from typing import Any, cast
 
 import luqum.tree
@@ -42,175 +40,194 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
-    universe = ['type:work']
-    all_fields = {
-        "key",
-        "redirects",
-        "title",
-        "subtitle",
-        "alternative_title",
-        "alternative_subtitle",
-        "cover_i",
-        "ebook_access",
-        "edition_count",
-        "edition_key",
-        "format",
-        "by_statement",
-        "publish_date",
-        "lccn",
-        "lexile",
-        "ia",
-        "oclc",
-        "isbn",
-        "contributor",
-        "publish_place",
-        "publisher",
-        "first_sentence",
-        "author_key",
-        "author_name",
-        "author_alternative_name",
-        "subject",
-        "person",
-        "place",
-        "time",
-        "has_fulltext",
-        "title_suggest",
-        "publish_year",
-        "language",
-        "number_of_pages_median",
-        "ia_count",
-        "publisher_facet",
-        "author_facet",
-        "first_publish_year",
-        "ratings_count",
-        "readinglog_count",
-        "want_to_read_count",
-        "currently_reading_count",
-        "already_read_count",
-        # Subjects
-        "subject_key",
-        "person_key",
-        "place_key",
-        "time_key",
-        # Classifications
-        "lcc",
-        "ddc",
-        "lcc_sort",
-        "ddc_sort",
-        "osp_count",
-    }
-    non_solr_fields = {
-        'description',
-        'providers',
-    }
-    facet_fields = {
-        "has_fulltext",
-        "author_facet",
-        "language",
-        "first_publish_year",
-        "publisher_facet",
-        "subject_facet",
-        "person_facet",
-        "place_facet",
-        "time_facet",
-        "public_scan_b",
-    }
-    field_name_map = {
-        'author': 'author_name',
-        'authors': 'author_name',
-        'by': 'author_name',
-        'number_of_pages': 'number_of_pages_median',
-        'publishers': 'publisher',
-        'subtitle': 'alternative_subtitle',
-        'title': 'alternative_title',
-        'work_subtitle': 'subtitle',
-        'work_title': 'title',
-        # "Private" fields
-        # This is private because we'll change it to a multi-valued field instead of a
-        # plain string at the next opportunity, which will make it much more usable.
-        '_ia_collection': 'ia_collection_s',
-    }
-    sorts = {
-        'editions': 'edition_count desc',
-        'old': 'def(first_publish_year, 9999) asc',
-        'new': 'first_publish_year desc',
-        'rating': 'ratings_sortable desc',
-        'rating asc': 'ratings_sortable asc',
-        'rating desc': 'ratings_sortable desc',
-        'readinglog': 'readinglog_count desc',
-        'want_to_read': 'want_to_read_count desc',
-        'currently_reading': 'currently_reading_count desc',
-        'already_read': 'already_read_count desc',
-        'title': 'title_sort asc',
-        'scans': 'ia_count desc',
-        # Classifications
-        'lcc_sort': 'lcc_sort asc',
-        'lcc_sort asc': 'lcc_sort asc',
-        'lcc_sort desc': 'lcc_sort desc',
-        'ddc_sort': 'ddc_sort asc',
-        'ddc_sort asc': 'ddc_sort asc',
-        'ddc_sort desc': 'ddc_sort desc',
-        # Ebook access
-        'ebook_access': 'ebook_access desc',
-        'ebook_access asc': 'ebook_access asc',
-        'ebook_access desc': 'ebook_access desc',
-        # Open Syllabus Project
-        'osp_count': 'osp_count desc',
-        'osp_count asc': 'osp_count asc',
-        'osp_count desc': 'osp_count desc',
-        # Key
-        'key': 'key asc',
-        'key asc': 'key asc',
-        'key desc': 'key desc',
-        # Random
-        'random': 'random_1 asc',
-        'random asc': 'random_1 asc',
-        'random desc': 'random_1 desc',
-        'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
-        'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
-    }
-    default_fetched_fields = {
-        'key',
-        'author_name',
-        'author_key',
-        'title',
-        'subtitle',
-        'edition_count',
-        'ebook_access',
-        'ia',
-        'has_fulltext',
-        'first_publish_year',
-        'cover_i',
-        'cover_edition_key',
-        'public_scan_b',
-        'lending_edition_s',
-        'lending_identifier_s',
-        'language',
-        'ia_collection_s',
-        # FIXME: These should be fetched from book_providers, but can't cause circular
-        # dep
-        'id_project_gutenberg',
-        'id_project_runeberg',
-        'id_librivox',
-        'id_standard_ebooks',
-        'id_openstax',
-        'id_cita_press',
-        'id_wikisource',
-    }
-    facet_rewrites = {
-        ('public_scan', 'true'): 'ebook_access:public',
-        ('public_scan', 'false'): '-ebook_access:public',
-        ('print_disabled', 'true'): 'ebook_access:printdisabled',
-        ('print_disabled', 'false'): '-ebook_access:printdisabled',
-        (
+    universe = frozenset(['type:work'])
+    all_fields = frozenset(
+        {
+            "key",
+            "redirects",
+            "title",
+            "subtitle",
+            "alternative_title",
+            "alternative_subtitle",
+            "cover_i",
+            "ebook_access",
+            "edition_count",
+            "edition_key",
+            "format",
+            "by_statement",
+            "publish_date",
+            "lccn",
+            "lexile",
+            "ia",
+            "oclc",
+            "isbn",
+            "contributor",
+            "publish_place",
+            "publisher",
+            "first_sentence",
+            "author_key",
+            "author_name",
+            "author_alternative_name",
+            "subject",
+            "person",
+            "place",
+            "time",
+            "has_fulltext",
+            "title_suggest",
+            "publish_year",
+            "language",
+            "number_of_pages_median",
+            "ia_count",
+            "publisher_facet",
+            "author_facet",
+            "first_publish_year",
+            "ratings_count",
+            "readinglog_count",
+            "want_to_read_count",
+            "currently_reading_count",
+            "already_read_count",
+            # Subjects
+            "subject_key",
+            "person_key",
+            "place_key",
+            "time_key",
+            # Classifications
+            "lcc",
+            "ddc",
+            "lcc_sort",
+            "ddc_sort",
+            "osp_count",
+            # Trending
+            "trending_score_hourly_sum",
+            "trending_z_score",
+        }
+    )
+    non_solr_fields = frozenset(
+        {
+            'description',
+            'providers',
+        }
+    )
+    facet_fields = frozenset(
+        {
+            "has_fulltext",
+            "author_facet",
+            "language",
+            "first_publish_year",
+            "publisher_facet",
+            "subject_facet",
+            "person_facet",
+            "place_facet",
+            "time_facet",
+            "public_scan_b",
+        }
+    )
+    field_name_map = MappingProxyType(
+        {
+            'author': 'author_name',
+            'authors': 'author_name',
+            'by': 'author_name',
+            'number_of_pages': 'number_of_pages_median',
+            'publishers': 'publisher',
+            'subtitle': 'alternative_subtitle',
+            'title': 'alternative_title',
+            'work_subtitle': 'subtitle',
+            'work_title': 'title',
+            # "Private" fields
+            # This is private because we'll change it to a multi-valued field instead of a
+            # plain string at the next opportunity, which will make it much more usable.
+            '_ia_collection': 'ia_collection_s',
+        }
+    )
+    sorts = MappingProxyType(
+        {
+            'editions': 'edition_count desc',
+            'old': 'def(first_publish_year, 9999) asc',
+            'new': 'first_publish_year desc',
+            'daily': 'trending_score_hourly_sum desc',
+            'trending': 'trending_z_score desc',
+            'rating': 'ratings_sortable desc',
+            'rating asc': 'ratings_sortable asc',
+            'rating desc': 'ratings_sortable desc',
+            'readinglog': 'readinglog_count desc',
+            'want_to_read': 'want_to_read_count desc',
+            'currently_reading': 'currently_reading_count desc',
+            'already_read': 'already_read_count desc',
+            'title': 'title_sort asc',
+            'scans': 'ia_count desc',
+            # Classifications
+            'lcc_sort': 'lcc_sort asc',
+            'lcc_sort asc': 'lcc_sort asc',
+            'lcc_sort desc': 'lcc_sort desc',
+            'ddc_sort': 'ddc_sort asc',
+            'ddc_sort asc': 'ddc_sort asc',
+            'ddc_sort desc': 'ddc_sort desc',
+            # Ebook access
+            'ebook_access': 'ebook_access desc',
+            'ebook_access asc': 'ebook_access asc',
+            'ebook_access desc': 'ebook_access desc',
+            # Open Syllabus Project
+            'osp_count': 'osp_count desc',
+            'osp_count asc': 'osp_count asc',
+            'osp_count desc': 'osp_count desc',
+            # Key
+            'key': 'key asc',
+            'key asc': 'key asc',
+            'key desc': 'key desc',
+            # Random
+            'random': 'random_1 asc',
+            'random asc': 'random_1 asc',
+            'random desc': 'random_1 desc',
+            'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
+            'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+        }
+    )
+    default_fetched_fields = frozenset(
+        {
+            'key',
+            'author_name',
+            'author_key',
+            'title',
+            'subtitle',
+            'edition_count',
+            'ebook_access',
+            'ia',
             'has_fulltext',
-            'true',
-        ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
-        (
-            'has_fulltext',
-            'false',
-        ): lambda: f'ebook_access:[* TO {get_fulltext_min()}}}',
-    }
+            'first_publish_year',
+            'cover_i',
+            'cover_edition_key',
+            'public_scan_b',
+            'lending_edition_s',
+            'lending_identifier_s',
+            'language',
+            'ia_collection_s',
+            # FIXME: These should be fetched from book_providers, but can't cause circular
+            # dep
+            'id_project_gutenberg',
+            'id_project_runeberg',
+            'id_librivox',
+            'id_standard_ebooks',
+            'id_openstax',
+            'id_cita_press',
+            'id_wikisource',
+        }
+    )
+    facet_rewrites = MappingProxyType(
+        {
+            ('public_scan', 'true'): 'ebook_access:public',
+            ('public_scan', 'false'): '-ebook_access:public',
+            ('print_disabled', 'true'): 'ebook_access:printdisabled',
+            ('print_disabled', 'false'): '-ebook_access:printdisabled',
+            (
+                'has_fulltext',
+                'true',
+            ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
+            (
+                'has_fulltext',
+                'false',
+            ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
+        }
+    )
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
@@ -282,7 +299,7 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(  # noqa: C901, PLR0915
+    def q_to_solr_params(  # noqa: PLR0915
         self,
         q: str,
         solr_fields: set[str],
@@ -440,8 +457,7 @@ class WorkSearchScheme(SearchScheme):
                                             if isinstance(n, luqum.tree.Word)
                                             else n.value[1:-1]
                                         )
-                                        if val.startswith('/books/'):
-                                            val = val[7:]
+                                        val = val.removeprefix('/books/')
                                         n.value = f'"/books/{val}"'
                         elif callable(new_name):
                             # Replace this node with a new one

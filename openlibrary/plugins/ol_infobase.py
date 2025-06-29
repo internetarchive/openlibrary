@@ -549,7 +549,7 @@ dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
-re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+re_normalize = re.compile('[^[:alphanum:] ]', re.UNICODE)
 
 
 class OLIndexer(_Indexer):  # type: ignore[misc,valid-type]

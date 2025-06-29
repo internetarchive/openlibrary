@@ -3,9 +3,9 @@ $def with(dashboard_data)
 $code:
   request_data = dashboard_data.get('data', [])
   totals = dashboard_data.get('totals')
-  requested_total = 0
-  emailed_total = 0
-  fulfilled_total = 0
+  requested_total = dashboard_data.get('totals').get('requested')
+  emailed_total = dashboard_data.get('totals').get('emailed')
+  fulfilled_total = dashboard_data.get('totals').get('fulfilled')
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -16,15 +16,15 @@ $code:
     <h2>$_("Summary")</h2>
     <div class="dashboard-summary">
         <div class="pd-access-stat">
-            Total number of patrons awaiting follow-up email: <span class="pd-access-total">$totals['requested']</span>
+            Total number of patrons awaiting follow-up email: <span class="pd-access-total">$requested_total</span>
         </div>
         <hr>
         <div class="pd-access-stat">
-            Total number of patrons emailed: <span class="pd-access-total">$totals['emailed']</span>
+            Total number of patrons emailed: <span class="pd-access-total">$emailed_total</span>
         </div>
         <hr>
         <div class="pd-access-stat">
-            Total number of patron requests fulfilled: <span class="pd-access-total">$totals['fulfilled']</span>
+            Total number of patron requests fulfilled: <span class="pd-access-total">$fulfilled_total</span>
         </div>
         <hr>
         <div class="pd-access-stat">
@@ -36,7 +36,6 @@ $code:
     <table class="pd-request-table">
         <thead>
             <th class="table-header" scope="col">PDA</th>
-            <th class="table-header" scope="col">Requested</th>
             <th class="table-header" scope="col">Emailed</th>
             <th class="table-header" scope="col">Fulfilled</th>
             <th class="table-header" scope="col">Total</th>
@@ -49,24 +48,19 @@ $code:
               $ emailed_count = d['emailed']
               $ fulfilled_count = d['fulfilled']
               $ total = requested_count + emailed_count + fulfilled_count
-              $ requested_total += requested_count
-              $ emailed_total += emailed_count
-              $ fulfilled_total += fulfilled_count
               <tr>
                   <td>
                       <a href="https://archive.org/details/$(pda)">$display_name</a>
                   </td>
-                  <td>$requested_count</td>
                   <td>$emailed_count</td>
                   <td>$fulfilled_count</td>
                   <td>$total</td>
               </tr>
           <tr class="totals">
               <td>Totals</td>
-              <td>$requested_total</td>
               <td>$emailed_total</td>
               <td>$fulfilled_total</td>
-              <td>$(requested_total + emailed_total + fulfilled_total)</td>
+              <td>$totals.get('total')</td>
           </tr>
         </tbody>
     </table>

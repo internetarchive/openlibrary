@@ -47,7 +47,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
-re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
+re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.IGNORECASE)
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
@@ -143,7 +143,9 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: dict | list[tuple[str, Any]]
+    solr_path: str,
+    params: dict | list[tuple[str, Any]],
+    _timeout: int | None = None,
 ) -> Response | None:
     url = solr_path
     if params:
@@ -152,7 +154,11 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(solr_path, urlencode(params))
+        response = get_solr().raw_request(
+            solr_path,
+            urlencode(params),
+            _timeout=_timeout,
+        )
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -222,7 +228,7 @@ def run_solr_query(  # noqa: PLR0912
                 # Should never get here
                 raise ValueError(f'Invalid facet type: {facet}')
 
-    facet_params = (allowed_filter_params or scheme.facet_fields) & set(param)
+    facet_params = (allowed_filter_params or set(scheme.facet_fields)) & set(param)
     for (field, value), rewrite in scheme.facet_rewrites.items():
         if param.get(field) == value:
             if field in facet_params:
