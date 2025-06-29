@@ -21,6 +21,6 @@ export function initLoadingGradient() {
                 // This is the case where images don't fade in because there's no opacity-0 class
                 el.classList.remove('loading-gradient');
             }
-        });
+        }, { once: true });
     });
 }
