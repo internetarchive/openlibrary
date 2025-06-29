@@ -82,10 +82,10 @@ $#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
     $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-    
+
     $ h = doc.get_history_preview()
     $ ia_upload = True
-    
+
     $for v in h.recent:
         $ action = v.action
         $if action == "add-cover":
@@ -93,7 +93,7 @@ $if doc.type.key == "/type/edition" and doc.ocaid:
             $if url == img_url:
                 $ ia_upload = False
             $break
-    
+
     $if ia_upload:
         <form class="ol-cover-form ol-cover-form--ia" method="post" enctype="multipart/form-data" action="$action">
             <div class="label">
