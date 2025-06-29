@@ -142,7 +142,7 @@ export class Carousel {
         }
     }
 
-    fetchPartials() {
+    async fetchPartials() {
         const loadMore = this.loadMore
         const url = buildPartialsUrl('/partials.json', {
             _component: 'CarouselLoadMore',
@@ -158,17 +158,17 @@ export class Carousel {
             key: loadMore.key
         });
         this.appendLoadingSlide();
-        $.ajax({url: url, type: 'GET'})
-            .then((results) => {
-                this.removeLoadingSlide();
-                const cards = results.partials || []
-                cards.forEach(card => this.slick.addSlide(card))
 
-                if (!cards.length) {
-                    loadMore.allDone = true;
-                }
-                loadMore.locked = false;
-            })
+        const results = await $.ajax({ url: url, type: 'GET' });
+
+        this.removeLoadingSlide();
+        const cards = results.partials || [];
+        cards.forEach(card => this.slick.addSlide(card));
+
+        if (!cards.length) {
+            loadMore.allDone = true;
+        }
+        loadMore.locked = false;
     }
 
     clearCarousel() {
