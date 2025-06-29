@@ -171,6 +171,12 @@ jQuery(function () {
             .then(module => module.initLoginForm());
     }
 
+    // this creates the loading gradient for all elements with this tag
+    if (document.querySelector('.loading-gradient')) {
+        import(/* webpackChunkName: "loading-gradient" */'./loading-gradient.js')
+            .then(module => module.initLoadingGradient());
+    }
+
     // conditionally load clamping components
     const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
