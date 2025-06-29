@@ -80,6 +80,8 @@ export class Carousel {
                 }))
         });
 
+        this._initHoverPreloading();
+
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
         this.$container.on('click', '.slick-next', (ev) => {
@@ -126,6 +128,10 @@ export class Carousel {
                     // This is needed for books that aren't in the dom on page load (3-4 pages into the carousel)
                     initLoadingGradient();
                 }
+
+                // Always preload the next page after a page is loaded so things move fast
+                // We don't do this on inital load to make it faster, instead the first time is handled by the mouseenter event
+                this._preloadNextPage();
             });
 
             document.addEventListener('filter', (ev) => {
@@ -144,6 +150,58 @@ export class Carousel {
             });
         }
     }
+
+    _initHoverPreloading() {
+        // Pre-load next page of slides on "Next" arrow hover
+        this.$container.on('mouseenter', '.slick-next', () => {
+            this._preloadNextPage();
+        });
+    }
+
+    /**
+     * Preloads all images on the next "page" of slides.
+     */
+    _preloadNextPage() {
+        const slick = this.slick;
+        if (!slick) return;
+
+        const current = slick.currentSlide;
+        const toScroll = slick.options.slidesToScroll;
+        const slideCount = slick.slideCount;
+        const nextPageIndex = current + toScroll;
+
+        for (let i = 0; i < toScroll; i++) {
+            const targetIndex = nextPageIndex + i;
+            if (targetIndex < slideCount) {
+                this._preloadImageForSlide(targetIndex);
+            }
+        }
+    }
+
+    /**
+     * Finds an image in a specific slide and triggers its load by moving
+     * the URL from 'data-lazy' to 'src'.
+     * @param {number} slideIndex The index of the slide to preload.
+     */
+    _preloadImageForSlide(slideIndex) {
+        // Find the slide using the data-slick-index attribute
+        const $slide = this.$container.find(`.slick-slide[data-slick-index="${slideIndex}"]`);
+        // Find an image inside that hasn't been loaded yet
+        const $img = $slide.find('img[data-lazy]');
+
+        // If a lazy image exists...
+        if ($img.length) {
+            const lazySrc = $img.attr('data-lazy');
+            if (lazySrc) {
+                // By setting the 'src', the browser starts downloading the image.
+                // Slick's lazy loader will see the 'src' is set and won't try to load it again.
+                $img.attr('src', lazySrc);
+                // We can optionally remove the data-lazy attribute now
+                $img.removeAttr('data-lazy');
+            }
+        }
+    }
+
 
     async fetchPartials() {
         const loadMore = this.loadMore
