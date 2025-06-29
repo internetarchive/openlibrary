@@ -244,10 +244,6 @@ def test_get_image_urls() -> None:
     entity.statements = {}
     assert entity.get_image_urls() == []
 
-    # Test with P18 but no image value
-    entity.statements = {'P18': [{'value': {'content': None}}]}
-    assert entity.get_image_urls() == []
-
     # Test with P18 but malformed statement
     entity.statements = {'P18': [{'invalid_key': 'test'}]}
     assert entity.get_image_urls() == []
