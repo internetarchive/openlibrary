@@ -14,7 +14,7 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/covers.*.js",
