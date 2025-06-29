@@ -2,6 +2,7 @@
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.less';
 import { buildPartialsUrl } from  '../utils.js';
+import { initLoadingGradient } from '../loading-gradient.js';
 
 /**
  * @typedef {Object} CarouselConfig
@@ -106,7 +107,7 @@ export class Carousel {
         const loadMore = this.loadMore;
         if (loadMore && loadMore.queryType) {
             // Bind an action listener to this carousel on resize or advance
-            this.$container.on('afterChange', (_ev, _slick, curSlide) => {
+            this.$container.on('afterChange', async (_ev, _slick, curSlide) => {
                 const totalSlides = this.slick.$slides.length;
                 const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
@@ -121,7 +122,9 @@ export class Carousel {
                         loadMore.page = totalSlides;
                     }
 
-                    this.fetchPartials();
+                    await this.fetchPartials();
+                    // This is needed for books that aren't in the dom on page load (3-4 pages into the carousel)
+                    initLoadingGradient();
                 }
             });
 
