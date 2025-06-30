@@ -11,6 +11,7 @@ curl -L --output $OSP_DUMP_LOCATION \
 ls -la /solr-updater-data/
 PYTHONPATH=. exec python scripts/solr_updater/solr_updater.py $OL_CONFIG \
     --state-file /solr-updater-data/$STATE_FILE \
+    --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE \
     --ol-url "$OL_URL" \
     --osp-dump "$OSP_DUMP_LOCATION" \
     --socket-timeout 1800 \
