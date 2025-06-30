@@ -9,9 +9,20 @@ curl -L --output $OSP_DUMP_LOCATION \
     https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db
 
 ls -la /solr-updater-data/
-PYTHONPATH=. exec python scripts/solr_updater/solr_updater.py $OL_CONFIG \
+
+# Run in background
+if [[ "$TRENDING_UPDATER" == "true" ]]; then
+    echo "Starting trending updater"
+    PYTHONPATH=. python scripts/solr_updater/trending_updater.py \
+        "$OL_CONFIG" \
+        --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
+else
+    echo "Trending updater is disabled"
+fi
+
+echo "Starting Solr updater"
+PYTHONPATH=. python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
     --state-file /solr-updater-data/$STATE_FILE \
-    --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE \
     --ol-url "$OL_URL" \
     --osp-dump "$OSP_DUMP_LOCATION" \
     --socket-timeout 1800 \

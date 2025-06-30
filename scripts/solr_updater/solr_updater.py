@@ -20,20 +20,12 @@ from pathlib import Path
 import aiofiles
 import requests
 import web
-from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 
 from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
-from openlibrary.solr.utils import get_solr_next
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 from openlibrary.utils.shutdown import setup_graceful_shutdown
-from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
-from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
-from scripts.solr_updater.trending_updater_init import (
-    main as trending_updater_init_main,
-)
-from scripts.utils.scheduler import OlAsyncIOScheduler
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -245,65 +237,6 @@ async def update_keys(keys):
     return count
 
 
-async def start_trending_scheduler(
-    ol_config: str,
-    trending_offset_file: Path | None = None,
-):
-    scheduler = OlAsyncIOScheduler("TRENDING-UPDATER", sentry_monitoring=True)
-
-    # At XX:05, check the counts of reading log events, and use them to
-    # update the trending count for 1) all works with a non-zero trending count
-    # and 2) all  works with reading-log events in the last hour.
-    scheduler.add_job(
-        trending_hourly_main,
-        'cron',
-        minute=5,
-        args=[ol_config],
-        id='trending_updater_hourly',
-    )
-
-    # At midnight each day, transfer the sum of the last 24 hours of trending
-    # scores to the appropriate 'daily' slot for each work. This once more
-    # affects: all works with a non-zero count for that day, or ones with a
-    # current sum of greater than zero for those 24 hours.
-    scheduler.add_job(
-        trending_daily_main,
-        'cron',
-        hour=0,
-        minute=0,
-        args=[ol_config],
-        id='trending_updater_daily',
-    )
-
-    if trending_offset_file:
-        # If an offset file is specified, add an event listener to the scheduler
-        # to update the offset file whenever a job is run.
-        def update_offset(event):
-            trending_offset_file.write_text(datetime.datetime.now().isoformat())
-
-        scheduler.add_listener(update_offset, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
-
-        # If an offset file is specified, read the ISO timestamp in it and if we're behind,
-        # run the trending_updater_init script to catch up.
-        offset = None
-        if trending_offset_file.exists() and (
-            contents := trending_offset_file.read_text().strip()
-        ):
-            offset = datetime.datetime.fromisoformat(contents)
-
-        logger.info(
-            "Starting trending updater init with offset %s",
-            offset.isoformat() if offset else "None",
-        )
-        trending_updater_init_main(
-            ol_config,
-            timestamp=offset.isoformat() if offset else None,
-            dry_run=False,
-        )
-
-    scheduler.start()
-
-
 async def main(
     ol_config: str,
     osp_dump: Path | None = None,
@@ -315,8 +248,6 @@ async def main(
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
-    trending_updater: bool = False,
-    trending_offset_file: Path | None = None,
 ):
     """
     Useful environment variables:
@@ -355,23 +286,6 @@ async def main(
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
-
-    if get_solr_next() and trending_updater:
-        logger.info("Starting trending updater scheduler")
-        # This will run forever in the background
-        task = asyncio.create_task(
-            start_trending_scheduler(ol_config, trending_offset_file)
-        )
-        task.add_done_callback(
-            lambda t: (
-                logger.error("Trending scheduler failed", exc_info=t.exception())
-                if t.exception()
-                else None
-            )
-        )
-        logger.info("Trending updater scheduler started")
-    else:
-        logger.info("Trending updater scheduler not started")
 
     offset = read_state_file(state_file, initial_state)
 

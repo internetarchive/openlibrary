@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_updater.trending_updater_daily import main as daily_main
@@ -9,6 +10,7 @@ def main(
     openlibrary_yml: str,
     timestamp: str | None = None,
     dry_run: bool = False,
+    trending_offset_file: Path | None = None,
 ):
     """
     Script to initialize the trending data in Solr.
@@ -44,9 +46,13 @@ def main(
             day_dt = cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
             print(f"Running daily trending for {day_dt.isoformat()}")
             daily_main(openlibrary_yml, timestamp=day_dt.isoformat(), dry_run=dry_run)
+            if not dry_run and trending_offset_file:
+                trending_offset_file.write_text(day_dt.isoformat() + '\n')
 
         print(f"Running hourly trending for {cur_dt.isoformat()}")
         hourly_main(openlibrary_yml, timestamp=cur_dt.isoformat(), dry_run=dry_run)
+        if not dry_run and trending_offset_file:
+            trending_offset_file.write_text(cur_dt.isoformat() + '\n')
 
         cur_dt += datetime.timedelta(hours=1)
 

@@ -273,12 +273,14 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    init: true
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
+      - TRENDING_UPDATER=true
       - EXTRA_OPTS=--solr-next
     volumes:
       - solr-updater-data:/solr-updater-data

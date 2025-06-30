@@ -35,6 +35,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     environment:
+      - TRENDING_UPDATER=true
       - EXTRA_OPTS=--solr-next
     volumes:
       # Persistent volume mount for installed git submodules
