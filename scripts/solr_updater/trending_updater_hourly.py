@@ -79,8 +79,8 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -F 'HTTP/2.' \
                 | grep -vF ' "-" ' \
                 | grep -vE '\\.(opds|json|rdf)' \
-                {extra_grep if extra_grep else ''} \
                 | obfi_match_range {start_ts} {end_ts} \
+                {extra_grep if extra_grep else ''} \
         """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -253,10 +253,6 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     return docs
 
 
-# A book must have at least this many events in the past week to be considered for trending.
-MIN_PAST_SUM = 50
-
-
 def compute_trending_value(pageviews_today: int, book_events_today: int) -> int:
     return pageviews_today + book_events_today * 10
 
@@ -268,7 +264,9 @@ def compute_trending_z_score(value_today: int, past_values: list[int]) -> float:
     of the past events.
     """
     past_sum = sum(past_values)
-    if (past_sum + value_today) < MIN_PAST_SUM:
+    # There are cases where clever bots/etc will hit a page hard causing it to go from 0
+    # page views to 50+ pageviews in a single hour, which will skew the z-score.
+    if (past_sum + value_today) < 30 or past_sum < 8:
         return 0.0
     N = len(past_values)
     past_mean = past_sum / N

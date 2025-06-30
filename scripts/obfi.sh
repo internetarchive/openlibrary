@@ -379,31 +379,35 @@ started = False
 buffer = 25  # Lines to read after mismatch
 try:
     for line in sys.stdin:
-        # Extract the date from the line
-        # Get the date part, e.g. '[18/Mar/2025:11:20:36 +0000'
-        line_parts = line.split(' [', 2)
-        if line_parts[1][0].isdigit():
-            # It should be the second part, but some weird traffic has it in the third part
-            dt_str = line_parts[1][:20]
-        else:
-            dt_str = line_parts[2][:20]  # Otherwise, it's the third part
+        try:
+            # Extract the date from the line
+            # Get the date part, e.g. '[18/Mar/2025:11:20:36 +0000'
+            line_parts = line.split(' [', 2)
+            if line_parts[1][0].isdigit():
+                # It should be the second part, but some weird traffic has it in the third part
+                dt_str = line_parts[1][:20]
+            else:
+                dt_str = line_parts[2][:20]  # Otherwise, it's the third part
 
-        # Avoid parsing the date every time, that's expensive, and it's often the same
-        if dt_str != last_dt_str:
-            date_str, time_str = dt_str.split(':', 1)
-            date = quick_parse_date(date_str, time_str)
+            # Avoid parsing the date every time, that's expensive, and it's often the same
+            if dt_str != last_dt_str:
+                date_str, time_str = dt_str.split(':', 1)
+                date = quick_parse_date(date_str, time_str)
 
-        last_dt_str = dt_str
-        last_dt = date
+            last_dt_str = dt_str
+            last_dt = date
 
-        if start <= date <= end:
-            started = True
-            buffer = 25
-            sys.stdout.write(line)
-        elif started:
-            buffer -= 1
-            if buffer == 0:
-                break
+            if start <= date <= end:
+                started = True
+                buffer = 25
+                sys.stdout.write(line)
+            elif started:
+                buffer -= 1
+                if buffer == 0:
+                    break
+        except:
+            print(f'Error processing line: {line.strip()}', file=sys.stderr)
+            raise
 except BrokenPipeError:
     pass
     "
