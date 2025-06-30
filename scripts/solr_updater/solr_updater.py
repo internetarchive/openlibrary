@@ -25,6 +25,7 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
+from openlibrary.solr.utils import get_solr_next
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 from openlibrary.utils.shutdown import setup_graceful_shutdown
 from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
@@ -290,6 +291,10 @@ async def start_trending_scheduler(
         ):
             offset = datetime.datetime.fromisoformat(contents)
 
+        logger.info(
+            "Starting trending updater init with offset %s",
+            offset.isoformat() if offset else "None",
+        )
         trending_updater_init_main(
             ol_config,
             timestamp=offset.isoformat() if offset else None,
@@ -351,7 +356,7 @@ async def main(
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
-    if trending_updater:
+    if get_solr_next() and trending_updater:
         logger.info("Starting trending updater scheduler")
         # This will run forever in the background
         task = asyncio.create_task(
@@ -365,6 +370,8 @@ async def main(
             )
         )
         logger.info("Trending updater scheduler started")
+    else:
+        logger.info("Trending updater scheduler not started")
 
     offset = read_state_file(state_file, initial_state)
 
