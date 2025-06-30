@@ -257,7 +257,7 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
-      - EXTRA_OPTS=--no-solr-next
+      - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
     logging:
@@ -278,10 +278,10 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
+      - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
       - TRENDING_UPDATER=true
-      - EXTRA_OPTS=--solr-next
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem

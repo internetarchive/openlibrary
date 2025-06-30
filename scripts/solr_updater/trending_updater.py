@@ -21,6 +21,11 @@ async def main(
     ol_config: str,
     trending_offset_file: Path | None = None,
 ):
+    """
+    Useful environment variables:
+    - OL_SOLR_BASE_URL: Override the Solr base URL
+    - OL_SOLR_NEXT: Set to true if running with next version of Solr/schema
+    """
     load_config(ol_config)
 
     scheduler = OlAsyncIOScheduler("TRENDING-UPDATER", sentry_monitoring=True)

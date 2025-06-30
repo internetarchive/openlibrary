@@ -244,7 +244,6 @@ async def main(
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,
     ol_url='http://openlibrary.org/',
-    solr_next: bool = False,
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
@@ -252,11 +251,11 @@ async def main(
     """
     Useful environment variables:
     - OL_SOLR_BASE_URL: Override the Solr base URL
+    - OL_SOLR_NEXT: Set to true if running with next version of Solr/schema
 
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
     :param solr_url: If wanting to override what's in the config file
-    :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -281,7 +280,6 @@ async def main(
         host = web.lstrips(ol_url, "http://").strip("/")
         update.set_query_host(host)
 
-    update.set_solr_next(solr_next)
     set_osp_dump_location(osp_dump)
 
     logger.info("loading config from %s", ol_config)
