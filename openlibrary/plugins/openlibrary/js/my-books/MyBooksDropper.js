@@ -3,7 +3,7 @@
  * @module my-books/MyBooksDropper
  */
 import myBooksStore from './store'
-import { CheckInComponents } from './MyBooksDropper/ReadDateComponents'
+import { CheckInComponents } from './MyBooksDropper/CheckInComponents'
 import { ReadingLists } from './MyBooksDropper/ReadingLists'
 import {ReadingLogForms, ReadingLogShelves} from './MyBooksDropper/ReadingLogForms'
 import { Dropper } from '../dropper/Dropper'
