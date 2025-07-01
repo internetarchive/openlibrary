@@ -517,7 +517,7 @@ class account_login(delegate.page):
         )
         if error := audit.get('error'):
             return self.render_error(error, i)
-        email = email or audit.get('ol_email')
+        email = email or audit.get('ia_email') or audit.get('ol_email')
 
         expires = 3600 * 24 * 365 if i.remember else ""
         web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
