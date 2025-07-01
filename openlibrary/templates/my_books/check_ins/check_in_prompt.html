@@ -13,7 +13,7 @@ $# event_id : str | None : ID of record for this event
 
 $code:
   work_olid = work_key.split('/')[-1]
-  modal_id = 'check-in-dialog-%s' % work_olid
+  modal_id = 'modal-content-%s' % work_olid
   prompt_id = 'prompt-%s' % work_olid
   config = {
     "workOlid": work_olid
@@ -29,7 +29,7 @@ $code:
     <div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
       <span class="date-display">
         $:_('Read <time class="check-in-date">%(date)s</time>', date=last_read_date)
-        <a class="prompt-edit-date check-in-trigger" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit")</a>
+        <a class="prompt-edit-date check-in-trigger dialog--open" href="javascript:;" aria-controls="$modal_id" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit")</a>
       </span>
     </div>
 
@@ -40,7 +40,7 @@ $code:
         $ year = current_year()
         <a class="prompt-current-year use-local-year" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCurrentYear" data-server-year="$year">$year</a>
         <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
-        <a class="prompt-custom check-in-trigger" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
+        <a class="prompt-custom check-in-trigger dialog--open" href="javascript:;" aria-controls="$modal_id" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
       </span>
     </div>
     $if render_once("check-in-form-template"):

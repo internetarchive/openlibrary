@@ -2,6 +2,7 @@
  * Defines functionality related to the Reading Check-Ins components.
  * @module my-books/MyBooksDropper/CheckInComponents
  */
+import { initDialogClosers } from "../../dialog";
 import { PersistentToast } from '../../Toast'
 
 /**
@@ -87,9 +88,6 @@ export class CheckInComponents {
 
     initialize() {
         this.checkInPrompt.initialize()
-        this.checkInPrompt.getRootElement().addEventListener('open-modal', () => {
-            this.openModal()
-        })
         this.checkInPrompt.getRootElement().addEventListener('submit-check-in', (event) => {
             const year = event.detail.year
             const month = event.detail.month
@@ -106,11 +104,6 @@ export class CheckInComponents {
                 .catch(() => {
                     new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
                 })
-        })
-
-        this.checkInDisplay.initialize()
-        this.checkInDisplay.getRootElement().addEventListener('open-modal', () => {
-            this.openModal()
         })
 
         let hiddenModalContentContainer = document.querySelector('#hidden-modal-content-container')
@@ -170,8 +163,8 @@ export class CheckInComponents {
                 })
         })
 
-        const closeModalElem = this.modalContent.querySelector('.dialog--close')
-        closeModalElem.addEventListener('click', () => this.closeModal())
+        const closeModalElements = this.modalContent.querySelectorAll('.dialog--close')
+        initDialogClosers(closeModalElements)
     }
 
     /**
@@ -331,20 +324,6 @@ export class CheckInComponents {
         this.checkInPrompt.hide()
     }
 
-
-    /**
-     * Opens a modal containing the form associated with these check-in components.
-     */
-    openModal() {
-        $.colorbox({
-            width: '100%',
-            maxWidth: '640px',
-            inline: true,
-            opacity: '0.5',
-            href: `#modal-content-${this.config.workOlid}`,
-        })
-    }
-
     /**
      * Closes the opened `colorbox` modal.
      */
@@ -384,11 +363,6 @@ class CheckInPrompt {
             const day =  now.getDate()
 
             this.dispatchCheckInSubmission(year, month, day)
-        })
-
-        const customDateLink = this.rootElem.querySelector('.prompt-custom')
-        customDateLink.addEventListener('click', () => {
-            this.rootElem.dispatchEvent(new CustomEvent('open-modal'))
         })
     }
 
@@ -445,13 +419,6 @@ class CheckInDisplay {
     constructor(checkInDisplay) {
         this.rootElem = checkInDisplay
         this.dateDisplayElem = this.rootElem.querySelector('.check-in-date')
-    }
-
-    initialize() {
-        const editDateButton = this.rootElem.querySelector('.prompt-edit-date')
-        editDateButton.addEventListener('click', () => {
-            this.rootElem.dispatchEvent(new CustomEvent("open-modal"))
-        })
     }
 
     /**
