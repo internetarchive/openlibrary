@@ -1,6 +1,6 @@
 /**
  * Defines functionality related to the Reading Check-Ins components.
- * @module my-books/MyBooksDropper/ReadDateComponents
+ * @module my-books/MyBooksDropper/CheckInComponents
  */
 import { PersistentToast } from '../../Toast'
 
