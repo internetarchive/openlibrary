@@ -24,77 +24,28 @@ function isLeapYear(year) {
 }
 
 /**
- * Class representing a dropper's Reading Check-Ins components.
+ * Represents a dropper's read date Check-In components.
  *
- * The read date prompt is displayed when a book is added to a patron's "Already
- * Read" shelf (only if no read date exists for the associated book).
+ * This class is responsible for the following:
+ * 1. Making API calls to the check-in handlers whenever a check-in event occurs.
+ * 2. Updating the view when a check-in event occurs.
  *
- * The date display is visible when a patron has previously submitted a read date
- * for the associated book.
- *
- * At any given time, no more than one of these components will be visible beneath
- * the dropper.
+ * @see `/templates/my_books/check_ins/check_in_prompt.html` for the base HTML
+ * template for these components
  *
  * @class
  */
-export class ReadDateComponents {
+export class CheckInComponents {
     /**
-     * Add functionality to the given dropper's read date components.
-     * @param {HTMLElement} dropper
+     * @param checkInContainer
      */
-    constructor(dropper) {
-        const workIdField = dropper.querySelector('input[name=work_id]')
-
-        // If there is no work ID field, there will be no check-ins for this document
-        if (!workIdField) {
+    constructor(checkInContainer) {
+        // HTML for the check-in components is not rendered if
+        // the patron is unauthenticated, or if the dropper
+        // is for an orphaned edition.
+        if (!checkInContainer) {
             return
         }
-
-        const dropperWorkKey = dropper.querySelector('input[name=work_id]').value
-        const dropperWorkOlid = dropperWorkKey.split('/').slice(-1).pop()
-
-        /**
-         * @type {HTMLElement}
-         */
-        const readDateContainer = document.querySelector(`#check-in-container-${dropperWorkOlid}`)
-
-        /**
-         * Reference to the component that prompts the patron for a read date.
-         *
-         * @param {HTMLElement}
-         */
-        this.datePrompt = readDateContainer.querySelector('.check-in-prompt')
-
-        /**
-         * Reference to the component that displays the last read date.
-         *
-         * @param {HTMLElement}
-         */
-        this.readDate = readDateContainer.querySelector('.last-read-date')
-
-        /**
-         * References element that will be displayed in last read date form modal.
-         * Set during form initialization.
-         *
-         * @type {HTMLElement|undefined}
-         */
-        this.modalContent = undefined
-
-        /**
-         * Reference form for last read dates.
-         * Set during form initialization.
-         *
-         * @type {HTMLFormElement|undefined}
-         */
-        this.form = undefined
-
-        /**
-         * Reference to hidden `event_id` form input.
-         * Set during form initialization.
-         *
-         * @type {HTMLInputElement|undefined}
-         */
-        this.eventIdInput = undefined
 
         /**
          * @typedef {object} ReadDateConfig
@@ -106,52 +57,52 @@ export class ReadDateComponents {
         /**
          * @param {ReadDateConfig}
          */
-        this.config = JSON.parse(readDateContainer.dataset.config)
+        this.config = JSON.parse(checkInContainer.dataset.config)
+
+        const checkInPromptElem = checkInContainer.querySelector('.check-in-prompt')
+        /**
+         * @type {CheckInPrompt}
+         */
+        this.checkInPrompt = new CheckInPrompt(checkInPromptElem)
+
+        const checkInDisplayElem = checkInContainer.querySelector('.last-read-date')
+        /**
+         * @type {CheckInDisplay}
+         */
+        this.checkInDisplay = new CheckInDisplay(checkInDisplayElem)
+
+        /**
+         * References element that will be displayed in last read date form modal.
+         * Set during form initialization.
+         *
+         * @type {HTMLElement|undefined}
+         */
+        this.modalContent = undefined
+
+        /**
+         * @type {CheckInForm|undefined}
+         */
+        this.checkInForm = undefined
     }
 
     initialize() {
-        this.initDatePrompt()
-        this.initCheckInEdits()
-        this.initCheckInForm()
-    }
+        this.checkInPrompt.initialize()
+        this.checkInPrompt.getRootElement().addEventListener('open-modal', () => {
+            this.openModal()
+        })
+        this.checkInPrompt.getRootElement().addEventListener('submit-check-in', (event) => {
+            const year = event.detail.year
+            const month = event.detail.month
+            const day = event.detail.day
 
-    // START : Component initialization methods
-    /**
-     * Adds click listeners to the read date prompt component.
-     */
-    initDatePrompt() {
-        const yearLink = this.datePrompt.querySelector('.prompt-current-year')
-        yearLink.addEventListener('click', () => this.onReadThisYearClick())
+            this.doSubmitThenUpdateView(year, month, day)
+        })
 
-        const todayLink = this.datePrompt.querySelector('.prompt-today')
-        todayLink.addEventListener('click', () => this.onReadTodayClick())
+        this.checkInDisplay.initialize()
+        this.checkInDisplay.getRootElement().addEventListener('open-modal', () => {
+            this.openModal()
+        })
 
-        const customDateLink = this.datePrompt.querySelector('.prompt-custom')
-        customDateLink.addEventListener('click', () => this.openModal())
-    }
-
-    /**
-     * Adds click listener to "Edit" affordance in read date display component.
-     */
-    initCheckInEdits() {
-        const editDateButton = this.readDate.querySelector('.prompt-edit-date')
-        editDateButton.addEventListener('click', () => this.openModal())
-    }
-
-    /**
-     * Creates, initializes, and hydrates the read date form, and the modal
-     * that displays it.
-     */
-    initCheckInForm() {
-        // Create form from template
-        const modalContent = this.createModalContentFromTemplate()
-
-        // Attach modal content to DOM
-        /*  XXX : This hidden container of modal content seems a bit odd...
-                 Alternatively, an HTML string can be passed to colorbox.
-                 If this is done, all form elements would need to be hydrated
-                 each time the modal is opened.
-        */
         let hiddenModalContentContainer = document.querySelector('#hidden-modal-content-container')
         if (!hiddenModalContentContainer) {
             hiddenModalContentContainer = document.createElement("div")
@@ -159,185 +110,88 @@ export class ReadDateComponents {
             hiddenModalContentContainer.id = 'hidden-modal-content-container'
             document.body.appendChild(hiddenModalContentContainer)
         }
+
+        const modalContent = this.createModalContentFromTemplate()
         hiddenModalContentContainer.appendChild(modalContent)
+
         this.modalContent = hiddenModalContentContainer.querySelector(`#modal-content-${this.config.workOlid}`)
 
-        this.form = this.modalContent.querySelector('form')
-        this.form.action = `/works/${this.config.workOlid}/check-ins.json`
-        this.eventIdInput = this.form.querySelector('input[name=event_id]')
-        if (this.config.eventId) {
-            this.updateEventId(this.config.eventId)
-            this.showDeleteButton()
-        }
+        const formElem = this.modalContent.querySelector('form')
+        this.checkInForm = new CheckInForm(formElem, this.config.workOlid, this.config.lastReadDate || '', this.config.eventId)
+        this.checkInForm.initialize()
+        this.checkInForm.getRootElement().addEventListener('delete-check-in', () => {
+            this.deleteCheckIn(this.checkInForm.getEventId())
 
-        // Update form with last read date
-        const readDate = this.config.lastReadDate
-        const [year, month, day] = readDate ? readDate.split('-') : [null, null, null]
-        this.updateReadDateForm(Number(year), Number(month), Number(day))
+            this.checkInForm.resetForm()
+            this.checkInDisplay.hide()
+            this.checkInPrompt.show()
+            this.closeModal()
+        })
+        this.checkInForm.getRootElement().addEventListener('submit-check-in', (event) => {
+            const year = event.detail.year
+            const month = event.detail.month
+            const day = event.detail.day
 
-        // Add listeners
-        const deleteButton = this.form.querySelector('.check-in__delete-btn')
-        deleteButton.addEventListener('click', (event) => this.onDeleteClick(event))
-
-        const submitButton = this.form.querySelector('.check-in__submit-btn')
-        submitButton.addEventListener('click', (event) => this.onSubmitClick(event))
-
-        const yearSelect = this.form.querySelector('select[name=year]')
-        const currentYear = new Date().getFullYear();
-        const hiddenYear = yearSelect.querySelector('.show-if-local-year')
-        // The year selector has a hidden option for next year.  This option is
-        // shown on 1 January if the client's local year is different from
-        // the server's local year.
-        if (Number(hiddenYear.value) === currentYear) {
-            hiddenYear.classList.remove('hidden')
-        }
-
-        yearSelect.addEventListener('change', () => this.onDateSelectionChange())
-
-        const monthSelect = this.form.querySelector('select[name=month]')
-        monthSelect.addEventListener('change', () => this.onDateSelectionChange())
-
-        const todayLink = this.form.querySelector('.check-in__today')
-        todayLink.addEventListener('click', () => this.onUseTodayClick())
+            this.doSubmitThenUpdateView(year, month, day)
+            this.closeModal()
+        })
 
         const closeModalElem = this.modalContent.querySelector('.dialog--close')
-        closeModalElem.addEventListener('click', () => {$.colorbox.close()})
-    }
-    // END : Component initialization methods
-
-    // START : Event listener callbacks
-
-    // Listeners on the read date components
-    /**
-     * Submits a read event with today's date.
-     */
-    onReadTodayClick() {
-        // Get today's date
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = now.getMonth() + 1
-        const day =  now.getDate()
-
-        this.doSubmitEventAndUpdateView(year, month, day)
+        closeModalElem.addEventListener('click', () => this.closeModal())
     }
 
     /**
-     * Submits a read event with the current year.
-     */
-    onReadThisYearClick() {
-        // Get the current year
-        const year = new Date().getFullYear()
-
-        this.doSubmitEventAndUpdateView(year)
-    }
-
-    // Listeners on the form
-    /**
-     * Updates form controls based on the currently selected date.
-     */
-    onDateSelectionChange() {
-        const yearSelect = this.form.querySelector('select[name=year]')
-        const monthSelect = this.form.querySelector('select[name=month]')
-        const daySelect = this.form.querySelector('select[name=day]')
-        const year = yearSelect.selectedIndex ? Number(yearSelect.value) : null
-        this.updateReadDateForm(year, monthSelect.selectedIndex, daySelect.selectedIndex)
-    }
-
-    /**
-     * Updates form to use the current date.
-     */
-    onUseTodayClick() {
-        // Get today's date
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = now.getMonth() + 1
-        const day =  now.getDate()
-
-        this.updateReadDateForm(year, month, day)
-    }
-
-    /**
-     * Sends request to delete a read event, then updates the UI.
+     * Creates a new element containing the check-in form and `colorbox` modal content.
      *
-     * @param {Event} event
+     * @returns {HTMLElement}
      */
-    onDeleteClick(event) {
-        event.preventDefault()
+    createModalContentFromTemplate() {
+        const templateElem = document.createElement('template')
+        const modalContentTemplate = document.querySelector('#check-in-form-modal')
+        templateElem.innerHTML = modalContentTemplate.outerHTML
+        const modalContent = templateElem.content.firstElementChild
+        modalContent.id = `modal-content-${this.config.workOlid}`
 
-        const eventId = this.eventIdInput.value
-
-        try {
-            this.deleteEvent(eventId)
-
-            // Show date prompt
-            this.hideReadDate()
-            this.showDatePrompt()
-
-            // Reset the form
-            this.resetForm()
-        } catch (e) {
-            new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
-        }
-
-        $.colorbox.close()
+        return modalContent
     }
 
     /**
-     * Submits a read event with the form's currently selected date, and updates the UI.
-     *
-     * @param {Event} event
-     */
-    onSubmitClick(event) {
-        event.preventDefault()
-
-        const dayField = this.form.querySelector('select[name=day]')
-        const day = dayField.value ? Number(dayField.value) : null
-        const monthField = this.form.querySelector('select[name=month]')
-        const month = monthField.value ? Number(monthField.value) : null
-        const yearField = this.form.querySelector('select[name=year]')
-        const year = Number(yearField.value)
-
-        this.doSubmitEventAndUpdateView(year, month, day)
-
-        // close the modal
-        $.colorbox.close()
-    }
-    // END : Event listener callbacks
-
-    // START : API calls and helpers
-    /**
-     * Submits a read date event request with the given information, and updates views.
-     *
-     * If the request was successful, the read date display will be made visible.
+     * Submits a check-in event and updates the UI.
      *
      * @param {number} year
      * @param {number|null} month
      * @param {number|null} day
      */
-    doSubmitEventAndUpdateView(year, month = null, day = null) {
+    doSubmitThenUpdateView(year, month = null, day = null) {
         const eventData = this.prepareEventRequest(year, month, day)
         try {
             // Submit the form
-            this.postEvent(eventData, this.form.action)
+            this.postCheckIn(eventData, this.checkInForm.getFormAction())
 
             // Update last read date display
-            this.updateReadDateDisplay(year, month, day)
+            let dateString = String(year)
+            if (month) {
+                dateString += `-${String(month).padStart(2, '0')}`
+                if (day) {
+                    dateString += `-${String(day).padStart(2, '0')}`
+                }
+            }
+            this.checkInDisplay.updateDateDisplay(dateString)
 
-            // Toggle components
-            this.hideDatePrompt()
-            this.showReadDate()
+            // Update component visibility
+            this.checkInPrompt.hide()
+            this.checkInDisplay.show()
 
             // Update submission form
-            this.updateReadDateForm(eventData.year, eventData.month, eventData.day)
-            // this.updateEventId(respEventId)
-            this.showDeleteButton()
+            this.checkInForm.updateDateSelectors(eventData.year, eventData.month, eventData.day)
+            this.checkInForm.showDeleteButton()
         } catch (e) {
             new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
         }
     }
 
     /**
-     * @typedef {object} ReadEventPostRequestData
+     * @typedef {object} CheckInEventPostRequestData
      * @property {number} event_type
      * @property {number} year
      * @property {number|null} month
@@ -348,11 +202,11 @@ export class ReadDateComponents {
     /**
      * Posts the given data to the backend check-in handler.
      *
-     * @param {ReadEventPostRequestData} eventData
+     * @param {CheckInEventPostRequestData} eventData
      * @param {string} url
      * @throws Will throw an error when form submission fails
      */
-    postEvent(eventData, url) {
+    postCheckIn(eventData, url) {
         $.ajax({
             type: 'POST',
             url: url,
@@ -366,7 +220,7 @@ export class ReadDateComponents {
             },
             // success: success,
             success: (resp) => {
-                this.updateEventId(resp.id)
+                this.checkInForm.setEventId(resp.id)
             },
             error: function() {
                 throw Error("Form submission failed")
@@ -375,20 +229,35 @@ export class ReadDateComponents {
     }
 
     /**
+     * Posts request to delete the read date record with the given ID.
+     *
+     * @param {string} eventId
+     * @throws Will throw an error when the delete request fails
+     */
+    deleteCheckIn(eventId) {
+        $.ajax({
+            type: 'DELETE',
+            url: `/check-ins/${eventId}`,
+            error: function() {
+                throw Error("Read date delete request failed")
+            }
+        })
+    }
+
+    /**
      * Prepares data for a `postEvent` call.
      *
      * @param {number} year
      * @param {number|null} month
      * @param {number|null} day
-     * @returns {ReadEventPostRequestData}
+     * @returns {CheckInEventPostRequestData}
      */
     prepareEventRequest(year, month = null, day = null) {
         //  Get event id
-        const eventId = this.eventIdInput.value
+        const eventId = this.checkInForm.getEventId()
 
         // Get event type
-        const eventTypeInput = this.form.querySelector('input[name=event_type]')
-        const eventType = eventTypeInput.value
+        const eventType = this.checkInForm.getEventType()
 
         const eventRequest = {
             event_id: eventId ? Number(eventId) : null,
@@ -398,8 +267,7 @@ export class ReadDateComponents {
             day: day
         }
 
-        const editionField = this.form.querySelector('input[name=edition_key]')
-        const editionKey = editionField ? editionField.value : null
+        const editionKey = this.checkInForm.getEditionKey() || null
         if (editionKey) {
             eventRequest.edition_key = editionKey
         }
@@ -408,25 +276,52 @@ export class ReadDateComponents {
     }
 
     /**
-     * Posts request to delete the read date record with the given ID.
+     * Returns `true` if the check-in display is visible on the screen.
      *
-     * @param {string} eventId
-     * @throws Will throw an error when the delete request fails
+     * @returns {boolean}
      */
-    deleteEvent(eventId) {
-        $.ajax({
-            type: 'DELETE',
-            url: `/check-ins/${eventId}`,
-            error: function() {
-                throw Error("Read date delete request failed")
-            }
-        })
+    hasReadDate() {
+        return !this.checkInDisplay.getRootElement().classList.contains('hidden')
     }
-    // END : API calls
 
-    // START : UI update functions
     /**
-     * Opens a modal containing the form associated with these read date components.
+     * Resets the check-in form.
+     */
+    resetForm() {
+        this.checkInForm.resetForm()
+    }
+
+    /**
+     * Show the check-in display.
+     */
+    showCheckInDisplay() {
+        this.checkInDisplay.show()
+    }
+
+    /**
+     * Hide the check-in display.
+     */
+    hideCheckInDisplay() {
+        this.checkInDisplay.hide()
+    }
+
+    /**
+     * Show the check-in prompt.
+     */
+    showCheckInPrompt() {
+        this.checkInPrompt.show()
+    }
+
+    /**
+     * Hide the check-in prompt.
+     */
+    hideCheckInPrompt() {
+        this.checkInPrompt.hide()
+    }
+
+
+    /**
+     * Opens a modal containing the form associated with these check-in components.
      */
     openModal() {
         $.colorbox({
@@ -439,93 +334,297 @@ export class ReadDateComponents {
     }
 
     /**
-     * Hides the date prompt component.
+     * Closes the opened `colorbox` modal.
      */
-    hideDatePrompt() {
-        this.datePrompt.classList.add('hidden')
+    closeModal() {
+        $.colorbox.close()
+    }
+}
+
+/**
+ * Represents a prompt for check-in events.
+ *
+ * @class
+ */
+class CheckInPrompt {
+    /**
+     * @param {HTMLElement} checkInPrompt
+     */
+    constructor(checkInPrompt) {
+        this.rootElem = checkInPrompt
+    }
+
+    initialize() {
+        const yearLink = this.rootElem.querySelector('.prompt-current-year')
+        yearLink.addEventListener('click', () => {
+            // Get the current year
+            const year = new Date().getFullYear()
+
+            this.dispatchCheckInSubmission(year)
+        })
+
+        const todayLink = this.rootElem.querySelector('.prompt-today')
+        todayLink.addEventListener('click', () => {
+            // Get today's date
+            const now = new Date()
+            const year = now.getFullYear()
+            const month = now.getMonth() + 1
+            const day =  now.getDate()
+
+            this.dispatchCheckInSubmission(year, month, day)
+        })
+
+        const customDateLink = this.rootElem.querySelector('.prompt-custom')
+        customDateLink.addEventListener('click', () => {
+            this.rootElem.dispatchEvent(new CustomEvent('open-modal'))
+        })
     }
 
     /**
-     * Shows date prompt if no read date exists.
-     */
-    showDatePrompt() {
-        if (!this.hasReadDate()) {
-            this.datePrompt.classList.remove('hidden')
-        }
-    }
-
-    /**
-     * Hides the read date display, and resets the date submission form.
-     */
-    hideReadDate() {
-        this.readDate.classList.add('hidden')
-    }
-
-    /**
-     * Shows the read date display.
-     */
-    showReadDate() {
-        this.readDate.classList.remove('hidden')
-    }
-
-    /**
-     * Updates the date in the read date display component.
+     * Dispatches a custom `submit-check-in` event with the given date.
      *
      * @param {number} year
      * @param {number|null} month
      * @param {number|null} day
      */
-    updateReadDateDisplay(year, month = null, day = null) {
-        let date = year
-        if (month) {
-            date += `-${String(month).padStart(2, '0')}`
-            if (day) {
-                date += `-${String(day).padStart(2, '0')}`
+    dispatchCheckInSubmission(year, month = null, day = null) {
+        const submitEvent = new CustomEvent("submit-check-in", {
+            detail: {
+                year: year,
+                month: month,
+                day: day
             }
+        })
+        this.rootElem.dispatchEvent(submitEvent)
+    }
+
+    /**
+     * Hides this check-in prompt.
+     */
+    hide() {
+        this.rootElem.classList.add('hidden')
+    }
+
+    /**
+     * Shows this check-in prompt.
+     */
+    show() {
+        this.rootElem.classList.remove('hidden')
+    }
+
+    /**
+     * Returns reference to the root element of this check-in prompt.
+     * @returns {HTMLElement}
+     */
+    getRootElement() {
+        return this.rootElem
+    }
+}
+
+/**
+ * Represents a component that displays the last check-in date.
+ *
+ * @class
+ */
+class CheckInDisplay {
+    /**
+     * @param {HTMLElement} checkInDisplay
+     */
+    constructor(checkInDisplay) {
+        this.rootElem = checkInDisplay
+        this.dateDisplayElem = this.rootElem.querySelector('.check-in-date')
+    }
+
+    initialize() {
+        const editDateButton = this.rootElem.querySelector('.prompt-edit-date')
+        editDateButton.addEventListener('click', () => {
+            this.rootElem.dispatchEvent(new CustomEvent("open-modal"))
+        })
+    }
+
+    /**
+     * Updates the date displayed to the given string.
+     *
+     * @param {string} date
+     */
+    updateDateDisplay(date) {
+        this.dateDisplayElem.textContent = date
+    }
+
+    /**
+     * Hides this date display.
+     */
+    hide() {
+        this.rootElem.classList.add('hidden')
+    }
+
+    /**
+     * Shows this date display.
+     */
+    show() {
+        this.rootElem.classList.remove('hidden')
+    }
+
+    /**
+     * @returns {HTMLElement}
+     */
+    getRootElement() {
+        return this.rootElem
+    }
+}
+
+/**
+ * Represents a form with which to submit or delete a check-in event.
+ *
+ * The actual `form` element is created from a template.
+ *
+ * @see `/templates/my_books/check_ins/check_in_form.html` for form's
+ * HTML template.
+ *
+ * @class
+ */
+class CheckInForm {
+    /**
+     * @param {HTMLFormElement} formElem
+     * @param {string} workOlid
+     * @param {string} lastReadDate
+     * @param {number|null} eventId
+     */
+    constructor(formElem, workOlid, lastReadDate, eventId = null) {
+        this.rootElem = formElem
+        this.workOlid = workOlid
+        this.lastReadDate = lastReadDate
+        this.eventId = eventId
+
+        /**
+         * Reference to hidden `event_type` form input.
+         *
+         * @type {HTMLInputElement|undefined}
+         */
+        this.eventTypeInput = this.rootElem.querySelector('input[name=event_type]')
+
+        /**
+         * Reference to hidden `event_id` form input.
+         *
+         * @type {HTMLInputElement|undefined}
+         */
+        this.eventIdInput = this.rootElem.querySelector('input[name=event_id]')
+
+        /**
+         * Reference to hidden `edition_key` form input.
+         *
+         * @type {HTMLInputElement}
+         */
+        this.editionKeyInput = this.rootElem.querySelector('input[name=edition_key]')
+
+        /**
+         * Reference to the form's year `select` element.
+         *
+         * @type {HTMLSelectElement}
+         */
+        this.yearSelect = this.rootElem.querySelector('select[name=year]')
+
+        /**
+         * Reference to the form's month `select` element.
+         *
+         * @type {HTMLSelectElement}
+         */
+        this.monthSelect = this.rootElem.querySelector('select[name=month]')
+
+        /**
+         * Reference to the form's day `select` element.
+         *
+         * @type {HTMLSelectElement}
+         */
+        this.daySelect = this.rootElem.querySelector('select[name=day]')
+
+        /**
+         * Reference to the form's submit button.
+         * @type {HTMLButtonElement}
+         */
+        this.submitButton = this.rootElem.querySelector('.check-in__submit-btn')
+
+        /**
+         * Reference to the form's delete button.
+         *
+         * @type {HTMLButtonElement}
+         */
+        this.deleteButton = this.rootElem.querySelector('.check-in__delete-btn')
+    }
+
+    initialize() {
+        // Set form's action
+        this.rootElem.action = `/works/${this.workOlid}/check-ins.json`
+        // Set form's event ID
+        if (this.eventId) {
+            this.setEventId(this.eventId)
+            this.showDeleteButton()
         }
-        const dateField = this.readDate.querySelector('.check-in-date')
-        dateField.textContent = date
-    }
-    // END : UI update functions
 
-    // START: Form operations
+        // Set date selectors to the last read date
+        const [yearString, monthString, dayString] = this.lastReadDate ? this.lastReadDate.split('-') : [null, null, null]
+        this.updateDateSelectors(Number(yearString), Number(monthString), Number(dayString))
+
+        // Update form for new years day
+        const currentYear = new Date().getFullYear();
+        const hiddenYear = this.yearSelect.querySelector('.show-if-local-year')
+        // The year selector has a hidden option for next year.  This option is
+        // shown on 1 January if the client's local year is different from
+        // the server's local year.
+        if (Number(hiddenYear.value) === currentYear) {
+            hiddenYear.classList.remove('hidden')
+        }
+
+        this.yearSelect.addEventListener('change', () => {
+            this.onDateSelectionChange()
+        })
+        this.monthSelect.addEventListener('change', () => {
+            this.onDateSelectionChange()
+        })
+        this.deleteButton.addEventListener('click', (event) => {
+            event.preventDefault()
+            const deleteEvent = new CustomEvent('delete-check-in')
+            this.rootElem.dispatchEvent(deleteEvent)
+        })
+        this.submitButton.addEventListener('click', (event) => {
+            event.preventDefault()
+            const submitEvent = new CustomEvent('submit-check-in', {
+                detail: {
+                    year: this.getSelectedYear(),
+                    month: this.getSelectedMonth(),
+                    day: this.getSelectedDay()
+                }
+            })
+            this.rootElem.dispatchEvent(submitEvent)
+        })
+        const todayLink = this.rootElem.querySelector('.check-in__today')
+        todayLink.addEventListener('click', () => {
+            // Get today's date
+            const now = new Date()
+            const year = now.getFullYear()
+            const month = now.getMonth() + 1
+            const day =  now.getDate()
+
+            this.updateDateSelectors(year, month, day)
+        })
+    }
+
     /**
-     *
-     * @returns {Element}
+     * Gets currently selected date, then updates the form.
      */
-    createModalContentFromTemplate() {
-        const templateElem = document.createElement('template')
-        const modalContentTemplate = document.querySelector('#check-in-form-modal')
-        templateElem.innerHTML = modalContentTemplate.outerHTML
-        const modalContent = templateElem.content.firstElementChild
-        modalContent.id = `modal-content-${this.config.workOlid}`
-
-        return modalContent
+    onDateSelectionChange() {
+        const year = this.yearSelect.selectedIndex ? Number(this.yearSelect.value) : null
+        this.updateDateSelectors(year, this.monthSelect.selectedIndex, this.daySelect.selectedIndex)
     }
 
     /**
-     * Unsets the read date form's event ID, and hides the form's delete button.
-     *
-     * Meant to be used when a read date has been deleted.
-     */
-    resetForm() {
-        this.eventIdInput.value = ''
-
-        // Reset dates and submit button
-        this.updateReadDateForm()
-
-        // Update buttons
-        this.hideDeleteButton()
-    }
-
-    /**
-     * Updates read date form elements based on the given year, month, and day.
+     * Updates date selectors based on the given year, month, and day.
      *
      * @param {number|null} year
      * @param {number|null} month
      * @param {number|null} day
      */
-    updateReadDateForm(year = null, month= null, day = null) {
+    updateDateSelectors(year = null, month = null, day = null) {
         if (!month) {
             day = null
         }
@@ -534,23 +633,18 @@ export class ReadDateComponents {
             day = null
         }
 
-        const yearSelect = this.form.querySelector('select[name=year]')
-        const monthSelect = this.form.querySelector('select[name=month]')
-        const daySelect = this.form.querySelector('select[name=day]')
-        const submitButton = this.form.querySelector('.check-in__submit-btn')
-
         if (year) {
-            yearSelect.value = year
-            monthSelect.disabled = false
-            submitButton.disabled = false
+            this.yearSelect.value = year || ''
+            this.monthSelect.disabled = false
+            this.submitButton.disabled = false
         } else {
-            yearSelect.selectedIndex = 0
-            monthSelect.disabled = true
-            submitButton.disabled = true
+            this.yearSelect.selectedIndex = 0
+            this.monthSelect.disabled = true
+            this.submitButton.disabled = true
         }
         if (month) {
-            monthSelect.value = month
-            daySelect.disabled = false
+            this.monthSelect.value = month || ''
+            this.daySelect.disabled = false
 
             // Update daySelect options for month/leap year
             let daysInMonth = DAYS_IN_MONTH[month - 1]
@@ -559,65 +653,136 @@ export class ReadDateComponents {
             }
             this.updateDayOptions(daysInMonth)
         } else {
-            monthSelect.selectedIndex = 0
-            daySelect.disabled = true
+            this.monthSelect.selectedIndex = 0
+            this.daySelect.disabled = true
         }
         if (day) {
-            const daysInMonth = DAYS_IN_MONTH[monthSelect.selectedIndex - 1]
-            daySelect.value = day > daysInMonth ? 1 : day
+            const daysInMonth = DAYS_IN_MONTH[this.monthSelect.selectedIndex - 1]
+            this.daySelect.selectedIndex = day > daysInMonth ? 0 : day
         } else {
-            daySelect.selectedIndex = 0
+            this.daySelect.selectedIndex = 0
         }
     }
 
     /**
      * Updates day selector options, hiding days greater than the given amount.
      *
-     * @param daysInMonth
+     * @param {number} daysInMonth
      */
     updateDayOptions(daysInMonth) {
-        const daySelect = this.form.querySelector('select[name=day]')
-        for (let i = 0; i < daySelect.options.length; ++i) {
+        for (let i = 0; i < this.daySelect.options.length; ++i) {
             if (i <= daysInMonth) {
-                daySelect.options[i].classList.remove('hidden')
+                this.daySelect.options[i].classList.remove('hidden')
             } else {
-                daySelect.options[i].classList.add('hidden')
+                this.daySelect.options[i].classList.add('hidden')
             }
         }
     }
 
     /**
-     * Sets the value of the form's `event_id` input element.
+     * Resets the form.
      *
-     * @param eventId
+     * Unsets the `event_id` input value, hides the delete button, and
+     * resets the date selectors to their default values.
      */
-    updateEventId(eventId) {
-        this.eventIdInput.value = eventId || ''
+    resetForm() {
+        this.setEventId('')
+        this.updateDateSelectors()
+        this.hideDeleteButton()
     }
 
     /**
-     * Shows the form's delete button.
+     * Shows this form's delete button.
      */
     showDeleteButton() {
-        const deleteButton = this.form.querySelector('.check-in__delete-btn')
-        deleteButton.classList.remove('invisible')
+        this.deleteButton.classList.remove('invisible')
     }
 
     /**
-     * Hides the form's delete button.
+     * Hides this form's delete button.
      */
     hideDeleteButton() {
-        const deleteButton = this.form.querySelector('.check-in__delete-btn')
-        deleteButton.classList.add('invisible')
+        this.deleteButton.classList.add('invisible')
     }
-    // END: Form operations
 
     /**
-     * Returns `true` if the associated work has a read date.
+     * Returns the numeric value of the selected year.
      *
-     * @returns {boolean}
+     * @returns {number|null} The selected year, or `null` if none selected
      */
-    hasReadDate() {
-        return !this.readDate.classList.contains('hidden')
+    getSelectedYear() {
+        return this.yearSelect.selectedIndex ? Number(this.yearSelect.value) : null
+    }
+
+    /**
+     * Returns the numeric value of the selected month.
+     *
+     * @returns {number|null} The selected month, or `null` if none selected
+     */
+    getSelectedMonth() {
+        return this.monthSelect.selectedIndex || null
+    }
+
+    /**
+     * Returns the numeric value of the selected day.
+     *
+     * @returns {number|null} The selected day, or `null` if none selected
+     */
+    getSelectedDay() {
+        return this.daySelect.selectedIndex || null
+    }
+
+    /**
+     * Returns the value of this form's `event_id` input.
+     *
+     * @returns {string}
+     */
+    getEventId() {
+        return this.eventIdInput.value
+    }
+
+    /**
+     * Updates the value of the form's `event_id` input.
+     *
+     * @param value
+     */
+    setEventId(value) {
+        this.eventIdInput.value = value
+    }
+
+    /**
+     * Returns the value of this form's `event_type` input.
+     *
+     * @returns {string}
+     */
+    getEventType() {
+        return this.eventTypeInput.value
+    }
+
+    /**
+     * Returns the value of the form's edition key input.
+     *
+     * @returns {string}
+     */
+    getEditionKey() {
+        return this.editionKeyInput.value
+    }
+
+    /**
+     * Returns this form's `action`
+     *
+     * @returns {string}
+     */
+    getFormAction() {
+        return this.rootElem.action
+    }
+
+    /**
+     * Returns a reference to this check-in form.
+     *
+     * @returns {HTMLFormElement}
+     */
+    getRootElement() {
+        return this.rootElem
     }
 }
