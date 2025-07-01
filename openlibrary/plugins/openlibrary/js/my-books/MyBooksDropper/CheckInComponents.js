@@ -95,7 +95,17 @@ export class CheckInComponents {
             const month = event.detail.month
             const day = event.detail.day
 
-            this.doSubmitThenUpdateView(year, month, day)
+            const eventData = this.prepareEventRequest(year, month, day)
+            this.postCheckIn(eventData, this.checkInForm.getFormAction())
+                .then((resp) => {
+                    if (!resp.ok) {
+                        throw Error(`Check-in request failed. Status: ${resp.status}`)
+                    }
+                    this.updateDateAndShowDisplay(year, month, day)
+                })
+                .catch(() => {
+                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
+                })
         })
 
         this.checkInDisplay.initialize()
@@ -121,19 +131,43 @@ export class CheckInComponents {
         this.checkInForm.initialize()
         this.checkInForm.getRootElement().addEventListener('delete-check-in', () => {
             this.deleteCheckIn(this.checkInForm.getEventId())
+                .then(resp => {
+                    if (!resp.ok) {
+                        throw Error(`Check-in delete request failed. Status: ${resp.status}`)
+                    }
 
-            this.checkInForm.resetForm()
-            this.checkInDisplay.hide()
-            this.checkInPrompt.show()
-            this.closeModal()
+                    this.checkInForm.resetForm()
+                    this.checkInDisplay.hide()
+                    this.checkInPrompt.show()
+                })
+                .catch(err => {
+                    // TODO : Use localized strings
+                    new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
+                })
+                .finally(() => {
+                    this.closeModal()
+                })
         })
         this.checkInForm.getRootElement().addEventListener('submit-check-in', (event) => {
             const year = event.detail.year
             const month = event.detail.month
             const day = event.detail.day
 
-            this.doSubmitThenUpdateView(year, month, day)
-            this.closeModal()
+            const eventData = this.prepareEventRequest(year, month, day)
+            this.postCheckIn(eventData, this.checkInForm.getFormAction())
+                .then((resp) => {
+                    if (!resp.ok) {
+                        throw Error(`Check-in request failed. Status: ${resp.status}`)
+                    }
+                    this.updateDateAndShowDisplay(year, month, day)
+                })
+                .catch(() => {
+                    // TODO : Use localized strings
+                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
+                })
+                .finally(() => {
+                    this.closeModal()
+                })
         })
 
         const closeModalElem = this.modalContent.querySelector('.dialog--close')
@@ -156,38 +190,31 @@ export class CheckInComponents {
     }
 
     /**
-     * Submits a check-in event and updates the UI.
+     * Updates the date display and form with the given date, and shows the display.
      *
      * @param {number} year
      * @param {number|null} month
      * @param {number|null} day
      */
-    doSubmitThenUpdateView(year, month = null, day = null) {
-        const eventData = this.prepareEventRequest(year, month, day)
-        try {
-            // Submit the form
-            this.postCheckIn(eventData, this.checkInForm.getFormAction())
-
-            // Update last read date display
-            let dateString = String(year)
-            if (month) {
-                dateString += `-${String(month).padStart(2, '0')}`
-                if (day) {
-                    dateString += `-${String(day).padStart(2, '0')}`
-                }
+    updateDateAndShowDisplay(year, month = null, day = null) {
+        // Update last read date display
+        let dateString = String(year)
+        if (month) {
+            dateString += `-${String(month).padStart(2, '0')}`
+            if (day) {
+                dateString += `-${String(day).padStart(2, '0')}`
             }
-            this.checkInDisplay.updateDateDisplay(dateString)
-
-            // Update component visibility
-            this.checkInPrompt.hide()
-            this.checkInDisplay.show()
-
-            // Update submission form
-            this.checkInForm.updateDateSelectors(eventData.year, eventData.month, eventData.day)
-            this.checkInForm.showDeleteButton()
-        } catch (e) {
-            new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
         }
+        this.checkInDisplay.updateDateDisplay(dateString)
+
+        // Update component visibility
+        this.checkInPrompt.hide()
+        this.checkInDisplay.show()
+
+        // Update submission form
+        this.checkInForm.updateDateSelectors(year, month, day)
+        this.checkInForm.showDeleteButton()
+
     }
 
     /**
@@ -204,43 +231,28 @@ export class CheckInComponents {
      *
      * @param {CheckInEventPostRequestData} eventData
      * @param {string} url
-     * @throws Will throw an error when form submission fails
+     * @returns {Promise<Response>}
      */
     postCheckIn(eventData, url) {
-        $.ajax({
-            type: 'POST',
-            url: url,
-            contentType: 'application/json',
-            data: JSON.stringify(eventData),
-            dataType: 'json',
-            async: false,
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.setRequestHeader('Accept', 'application/json');
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                'accept': 'application/json'
             },
-            // success: success,
-            success: (resp) => {
-                this.checkInForm.setEventId(resp.id)
-            },
-            error: function() {
-                throw Error("Form submission failed")
-            }
-        });
+            body: JSON.stringify(eventData)
+        })
     }
 
     /**
      * Posts request to delete the read date record with the given ID.
      *
      * @param {string} eventId
-     * @throws Will throw an error when the delete request fails
+     * @returns {Promise<Response>}
      */
-    deleteCheckIn(eventId) {
-        $.ajax({
-            type: 'DELETE',
-            url: `/check-ins/${eventId}`,
-            error: function() {
-                throw Error("Read date delete request failed")
-            }
+    async deleteCheckIn(eventId) {
+        return fetch(`/check-ins/${eventId}`, {
+            method: 'DELETE'
         })
     }
 
