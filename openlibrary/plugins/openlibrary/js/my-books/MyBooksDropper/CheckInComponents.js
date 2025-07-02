@@ -120,7 +120,7 @@ export class CheckInComponents {
         this.modalContent = hiddenModalContentContainer.querySelector(`#modal-content-${this.config.workOlid}`)
 
         const formElem = this.modalContent.querySelector('form')
-        this.checkInForm = new CheckInForm(formElem, this.config.workOlid, this.config.lastReadDate || '', this.config.eventId)
+        this.checkInForm = new CheckInForm(formElem, this.config.workOlid, this.config.editionKey || '', this.config.lastReadDate || '', this.config.eventId)
         this.checkInForm.initialize()
         this.checkInForm.getRootElement().addEventListener('delete-check-in', () => {
             this.deleteCheckIn(this.checkInForm.getEventId())
@@ -466,12 +466,14 @@ class CheckInForm {
     /**
      * @param {HTMLFormElement} formElem
      * @param {string} workOlid
-     * @param {string} lastReadDate
+     * @param {string|null} editionKey
+     * @param {string|null} lastReadDate
      * @param {number|null} eventId
      */
-    constructor(formElem, workOlid, lastReadDate, eventId = null) {
+    constructor(formElem, workOlid, editionKey = null, lastReadDate = null, eventId = null) {
         this.rootElem = formElem
         this.workOlid = workOlid
+        this.editionKey = editionKey
         this.lastReadDate = lastReadDate
         this.eventId = eventId
 
@@ -539,7 +541,10 @@ class CheckInForm {
             this.setEventId(this.eventId)
             this.showDeleteButton()
         }
-
+        // Set form's edition_key
+        if (this.editionKey) {
+            this.editionKeyInput.value = this.editionKey
+        }
         // Set date selectors to the last read date
         const [yearString, monthString, dayString] = this.lastReadDate ? this.lastReadDate.split('-') : [null, null, null]
         this.updateDateSelectors(Number(yearString), Number(monthString), Number(dayString))
