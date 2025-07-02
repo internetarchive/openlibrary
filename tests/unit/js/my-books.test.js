@@ -1,5 +1,9 @@
 import { listCreationForm } from './sample-html/lists-test-data'
+import { checkInForm } from './sample-html/checkIns-test-data'
 import { CreateListForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/CreateListForm'
+import { CheckInForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents'
+
+jest.mock('jquery-ui/ui/widgets/dialog', () => {});
 
 describe('CreateListForm.js class', () => {
     let form
@@ -39,5 +43,75 @@ describe('CreateListForm.js class', () => {
         form.resetForm()
         expect(nameInput.value.length).toBe(0)
         expect(descriptionInput.value.length).toBe(0)
+    })
+})
+
+describe('CheckInForm class', () => {
+    let formElem = undefined
+    let submitButton = undefined
+    let yearSelect = undefined
+    let monthSelect = undefined
+    let daySelect = undefined
+
+    const workOlid = 'OL123W'
+    const editionKey = '/books/OL456M'
+
+
+
+    beforeEach(() => {
+        document.body.innerHTML = checkInForm
+        formElem = document.querySelector('form')
+        submitButton = document.querySelector('.check-in__submit-btn')
+        yearSelect = document.querySelector('select[name=year]')
+        monthSelect = document.querySelector('select[name=month]')
+        daySelect = document.querySelector('select[name=day]')
+    })
+
+    test('Submit button, month select, and day select are initially disabled when read date is absent', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey)
+        form.initialize()
+        expect(submitButton.disabled).toBe(true)
+        expect(monthSelect.disabled).toBe(true)
+        expect(daySelect.disabled).toBe(true)
+
+        expect(yearSelect.disabled).toBe(false)
+        expect(yearSelect.value).toBe('')
+    })
+
+    it('Sets correct values and enables selects and submit button', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey)
+        form.initialize()
+        form.updateDateSelectors(2022, 1, 31)
+        expect(submitButton.disabled).toBe(false)
+        expect(monthSelect.disabled).toBe(false)
+        expect(daySelect.disabled).toBe(false)
+
+        expect(yearSelect.value).toBe('2022')
+        expect(monthSelect.value).toBe('1')
+        expect(daySelect.value).toBe('31')
+    })
+
+    it('Hides impossible day options', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey)
+        form.initialize()
+        form.updateDateSelectors(2022, 2, 20)
+
+        // The 28th day should be visible:
+        expect(daySelect.options[28].classList.contains('hidden')).toBe(false)
+
+        // Subsequent days should not be visible
+        expect(daySelect.options[29].classList.contains('hidden')).toBe(true)
+        expect(daySelect.options[30].classList.contains('hidden')).toBe(true)
+        expect(daySelect.options[31].classList.contains('hidden')).toBe(true)
+    })
+
+    it('Shows 29 days in February when there is a leap year', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey)
+        form.initialize()
+        form.updateDateSelectors(2020, 2, 1)
+
+        expect(daySelect.options[29].classList.contains('hidden')).toBe(false)
+        expect(daySelect.options[30].classList.contains('hidden')).toBe(true)
+        expect(daySelect.options[31].classList.contains('hidden')).toBe(true)
     })
 })
