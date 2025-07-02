@@ -5602,7 +5602,7 @@ msgstr ""
 
 #: covers/external_image.html
 #, python-format
-msgid "Or, use the the cover from %s"
+msgid "Or, use the cover from %s"
 msgstr ""
 
 #: covers/manage.html
