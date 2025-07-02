@@ -80,7 +80,7 @@ export class Carousel {
                 }))
         });
 
-        this._initHoverPreloading();
+        this._initPreloadNextImagesOnHover();
 
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
@@ -131,7 +131,7 @@ export class Carousel {
 
                 // Always preload the next page after a page is loaded so things move fast
                 // We don't do this on inital load to make it faster, instead the first time is handled by the mouseenter event
-                this._preloadNextPage();
+                this._preloadNextPageImages();
             });
 
             document.addEventListener('filter', (ev) => {
@@ -151,17 +151,17 @@ export class Carousel {
         }
     }
 
-    _initHoverPreloading() {
+    _initPreloadNextImagesOnHover() {
         // Pre-load next page of slides on "Next" arrow hover
         this.$container.on('mouseenter', '.slick-next', () => {
-            this._preloadNextPage();
+            this._preloadNextPageImages();
         });
     }
 
     /**
      * Preloads all images on the next "page" of slides.
      */
-    _preloadNextPage() {
+    _preloadNextPageImages() {
         const slick = this.slick;
         if (!slick) return;
 
