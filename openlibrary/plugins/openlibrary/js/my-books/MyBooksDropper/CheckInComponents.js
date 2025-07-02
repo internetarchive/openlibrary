@@ -205,7 +205,7 @@ export class CheckInComponents {
         this.checkInDisplay.show()
 
         // Update submission form
-        this.checkInForm.updateDateSelectors(year, month, day)
+        this.checkInForm.updateSelectedDate(year, month, day)
         this.checkInForm.showDeleteButton()
 
     }
@@ -545,16 +545,16 @@ export class CheckInForm {
         if (this.editionKey) {
             this.editionKeyInput.value = this.editionKey
         }
-        // Set date selectors to the last read date
+        // Set date select elements to the last read date
         const [yearString, monthString, dayString] = this.lastReadDate ? this.lastReadDate.split('-') : [null, null, null]
-        this.updateDateSelectors(Number(yearString), Number(monthString), Number(dayString))
+        this.updateSelectedDate(Number(yearString), Number(monthString), Number(dayString))
 
         // Update form for new years day
         const currentYear = new Date().getFullYear();
         const hiddenYear = this.yearSelect.querySelector('.show-if-local-year')
-        // The year selector has a hidden option for next year.  This option is
-        // shown on 1 January if the client's local year is different from
-        // the server's local year.
+        // The year select element has a hidden option for next year.  This
+        // option is shown on 1 January if the client's local year is different
+        // from the server's local year.
         if (Number(hiddenYear.value) === currentYear) {
             hiddenYear.classList.remove('hidden')
         }
@@ -606,7 +606,7 @@ export class CheckInForm {
             const month = now.getMonth() + 1
             const day =  now.getDate()
 
-            this.updateDateSelectors(year, month, day)
+            this.updateSelectedDate(year, month, day)
         })
     }
 
@@ -615,17 +615,17 @@ export class CheckInForm {
      */
     onDateSelectionChange() {
         const year = this.yearSelect.selectedIndex ? Number(this.yearSelect.value) : null
-        this.updateDateSelectors(year, this.monthSelect.selectedIndex, this.daySelect.selectedIndex)
+        this.updateSelectedDate(year, this.monthSelect.selectedIndex, this.daySelect.selectedIndex)
     }
 
     /**
-     * Updates date selectors based on the given year, month, and day.
+     * Updates date select elements based on the given year, month, and day.
      *
      * @param {number|null} year
      * @param {number|null} month
      * @param {number|null} day
      */
-    updateDateSelectors(year = null, month = null, day = null) {
+    updateSelectedDate(year = null, month = null, day = null) {
         if (!month) {
             day = null
         }
@@ -666,7 +666,7 @@ export class CheckInForm {
     }
 
     /**
-     * Updates day selector options, hiding days greater than the given amount.
+     * Updates day select options, hiding days greater than the given amount.
      *
      * @param {number} daysInMonth
      */
@@ -684,11 +684,11 @@ export class CheckInForm {
      * Resets the form.
      *
      * Unsets the `event_id` input value, hides the delete button, and
-     * resets the date selectors to their default values.
+     * resets the date select elements to their default values.
      */
     resetForm() {
         this.setEventId('')
-        this.updateDateSelectors()
+        this.updateSelectedDate()
         this.hideDeleteButton()
     }
 
