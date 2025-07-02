@@ -559,6 +559,23 @@ export class CheckInForm {
             hiddenYear.classList.remove('hidden')
         }
 
+        // Associate labels with select elements
+        const yearLabel = this.rootElem.querySelector('.check-in__year-label')
+        const yearSelectId = `year-select-${this.workOlid}`
+        this.yearSelect.id = yearSelectId
+        yearLabel.htmlFor = yearSelectId
+
+        const monthLabel = this.rootElem.querySelector('.check-in__month-label')
+        const monthSelectId = `month-select-${this.workOlid}`
+        this.monthSelect.id = monthSelectId
+        monthLabel.htmlFor = monthSelectId
+
+        const dayLabel = this.rootElem.querySelector('.check-in__day-label')
+        const daySelectId = `day-select-${this.workOlid}`
+        this.daySelect.id = daySelectId
+        dayLabel.htmlFor = daySelectId
+
+        // Add listeners to form elements:
         this.yearSelect.addEventListener('change', () => {
             this.onDateSelectionChange()
         })
