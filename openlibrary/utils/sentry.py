@@ -183,3 +183,25 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
             return result
 
         return find_route().to_sentry_name()
+
+
+_sentry: Sentry | None = None
+
+
+def init_sentry(config_dict: dict) -> Sentry:
+    global _sentry
+
+    if _sentry is not None:
+        if config_dict.get('dsn') != _sentry.config.get('dsn'):
+            raise ValueError(
+                f"Sentry initialized with different DSNs: "
+                f"{_sentry.config.get('dsn')} != {config_dict.get('dsn')}."
+            )
+        return _sentry
+
+    _sentry = Sentry(config_dict)
+
+    if _sentry.enabled:
+        _sentry.init()
+
+    return _sentry

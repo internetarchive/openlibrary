@@ -21,10 +21,12 @@ import aiofiles
 import requests
 import web
 
+import infogami
 from infogami import config
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+from openlibrary.utils.sentry import init_sentry
 from openlibrary.utils.shutdown import setup_graceful_shutdown
 
 logger = logging.getLogger("openlibrary.solr-updater")
@@ -284,6 +286,7 @@ async def main(
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
+    init_sentry(getattr(infogami.config, 'sentry', {}))
 
     offset = read_state_file(state_file, initial_state)
 

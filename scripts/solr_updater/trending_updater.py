@@ -5,7 +5,9 @@ from pathlib import Path
 
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 
+import infogami
 from openlibrary.config import load_config
+from openlibrary.utils.sentry import init_sentry
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
 from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
@@ -27,6 +29,7 @@ async def main(
     - OL_SOLR_NEXT: Set to true if running with next version of Solr/schema
     """
     load_config(ol_config)
+    init_sentry(getattr(infogami.config, 'sentry', {}))
 
     scheduler = OlAsyncIOScheduler("TRENDING-UPDATER", sentry_monitoring=True)
 
