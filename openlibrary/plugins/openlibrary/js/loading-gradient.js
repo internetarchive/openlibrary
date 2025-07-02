@@ -44,23 +44,16 @@ function revealImage(el) {
     }
 
     // Case 2: The element is a container holding the <img>.
-    // We need to find the image, then reveal it while removing the container's placeholder.
-    const imgEl = el.querySelector('img'); // The actual image, which is hidden (e.g., with opacity-0).
-
     // --- Synchronized Reveal Logic ---
     // To prevent a "popcorn effect" of images loading in rapid, random succession,
     // we batch their reveal animations. All images that load within the same 500ms
     // window will start their fade-in transition at the same time.
 
-    const now = performance.now();
-
     // Calculate the time remaining until the next 500ms interval.
     // Example: If `now` is 1234ms, the next interval is 1500ms. The delay will be 1500 - 1234 = 266ms.
+    const now = performance.now();
     const delay = Math.ceil(now / 500) * 500 - now;
 
-    setTimeout(() => {
-        // After the calculated delay, trigger the fade-in and remove the placeholder.
-        imgEl.classList.remove('opacity-0');
-        el.classList.remove('loading-gradient');
-    }, delay);
+    // After the calculated delay, trigger the fade-in and remove the placeholder.
+    setTimeout(() => { el.classList.remove('loading-gradient'); }, delay);
 }
