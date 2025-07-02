@@ -462,7 +462,7 @@ class CheckInDisplay {
  *
  * @class
  */
-class CheckInForm {
+export class CheckInForm {
     /**
      * @param {HTMLFormElement} formElem
      * @param {string} workOlid
