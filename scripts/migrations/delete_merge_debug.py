@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-Deletes all store entries that have the type `merge-authors-debug`.
+Deletes store entries that have the type `merge-authors-debug`.
+
+WARNING: This will delete all of the records if the `--batches` argument is excluded.
 """
 import argparse
 import web
@@ -20,15 +22,26 @@ def setup(config_path):
     infogami._setup()
 
 
-def delete_records():
-    while keys := web.ctx.site.store.keys(type=RECORD_TYPE):
+def delete_records(batches):
+    """
+    Deletes batches of `merge-authors-debug` records.
+
+    A batch will contain no more than 100 records.
+
+    If `batches` is negative, it will delete all records.
+
+    :param batches: The number of records to delete.
+    :return:
+    """
+    while (batches != 0) and (keys := web.ctx.site.store.keys(type=RECORD_TYPE)):
         for key in keys:
             web.ctx.site.store.delete(key)
+        batches -= 1
 
 
 def main(args):
     setup(args.config)
-    delete_records()
+    delete_records(args.batches)
 
 
 def _parse_args():
@@ -38,6 +51,13 @@ def _parse_args():
         "--config",
         default=DEFAULT_CONFIG_PATH,
         help="Path to the `openlibrary.yml` configuration file",
+    )
+    _parser.add_argument(
+        "-b",
+        "--batches",
+        type=int,
+        default=-1,
+        help="Number of batches to delete (a batch contains 100 records)",
     )
     _parser.set_defaults(func=main)
     return _parser.parse_args()
