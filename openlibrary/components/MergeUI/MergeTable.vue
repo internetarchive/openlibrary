@@ -159,7 +159,8 @@ export default {
 
             for (const record of enhanced_records) {
                 for (const entry of (record.authors || [])) {
-                    entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+                    // Sometimes author is undefined...?
+                    entry.name = author_names[entry.author?.key] || '';
                 }
             }
             return enhanced_records
