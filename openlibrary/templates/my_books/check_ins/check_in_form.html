@@ -28,7 +28,7 @@ $code:
     <div class="check-in__inputs">
       <label class="check-in__label">$_('End Date:')</label>
       <span>
-        <label>$_('Year:')</label>
+        <label class="check-in__year-label">$_('Year:')</label>
         <select class="check-in__select" name="year">
           <option value="">$_('Year')</option>
           <option class="hidden show-if-local-year" value="$(year + 1)">$(year + 1)</option>
@@ -37,7 +37,7 @@ $code:
         </select>
       </span>
       <span>
-        <label>$_('Month:')</label>
+        <label class="check-in__month-label">$_('Month:')</label>
         <select class="check-in__select" name="month" disabled>
           <option value="">$_('Month')</option>
           $for idx, month in enumerate(months):
@@ -45,7 +45,7 @@ $code:
         </select>
       </span>
       <span>
-        <label>$_('Day:')</label>
+        <label class="check-in__day-label">$_('Day:')</label>
         <select class="check-in__select" name="day" disabled>
           <option value="">$_('Day')</option>
           $for i in range(31):
