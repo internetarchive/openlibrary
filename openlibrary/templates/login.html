@@ -74,6 +74,8 @@ $if "dev" in ctx.features:
                     <label for="remember" class="small">$_("Remember me")</label>
             </div>
 
+            <input type="hidden" id="secret" value="" name="secret" />
+            <input type="hidden" id="access" value="" name="access" />
             <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
             <input type="hidden" id="action" value="$form.action.value" name="action" />
             <input type="hidden" id="debug_token" value="" name="debug_token"/>
