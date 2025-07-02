@@ -9,8 +9,8 @@ import infogami
 from openlibrary.config import load_config
 from openlibrary.utils.sentry import init_sentry
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-from scripts.solr_updater.trending_updater_daily import main as trending_daily_main
-from scripts.solr_updater.trending_updater_hourly import main as trending_hourly_main
+from scripts.solr_updater.trending_updater_daily import run_daily_update
+from scripts.solr_updater.trending_updater_hourly import run_hourly_update
 from scripts.solr_updater.trending_updater_init import (
     main as trending_updater_init_main,
 )
@@ -36,25 +36,14 @@ async def main(
     # At XX:05, check the counts of reading log events, and use them to
     # update the trending count for 1) all works with a non-zero trending count
     # and 2) all  works with reading-log events in the last hour.
-    scheduler.add_job(
-        trending_hourly_main,
-        'cron',
-        minute=5,
-        args=[ol_config],
-        id='trending_updater_hourly',
-    )
+    scheduler.add_job(run_hourly_update, 'cron', minute=5, id='trending_updater_hourly')
 
     # At midnight each day, transfer the sum of the last 24 hours of trending
     # scores to the appropriate 'daily' slot for each work. This once more
     # affects: all works with a non-zero count for that day, or ones with a
     # current sum of greater than zero for those 24 hours.
     scheduler.add_job(
-        trending_daily_main,
-        'cron',
-        hour=0,
-        minute=0,
-        args=[ol_config],
-        id='trending_updater_daily',
+        run_daily_update, 'cron', hour=0, minute=0, id='trending_updater_daily'
     )
 
     if trending_offset_file:

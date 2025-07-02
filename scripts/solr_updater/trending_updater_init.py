@@ -1,9 +1,10 @@
 import datetime
 from pathlib import Path
 
+from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-from scripts.solr_updater.trending_updater_daily import main as daily_main
-from scripts.solr_updater.trending_updater_hourly import main as hourly_main
+from scripts.solr_updater.trending_updater_daily import run_daily_update
+from scripts.solr_updater.trending_updater_hourly import run_hourly_update
 
 
 def main(
@@ -31,6 +32,8 @@ def main(
     :param timestamp: Optional ISO format timestamp to start from. Default is 7 days ago.
     :param dry_run: If True, will not send updates to Solr, just runs the logic and print the number of updates.
     """
+    load_config(openlibrary_yml)
+
     if timestamp:
         start = datetime.datetime.fromisoformat(timestamp)
         start = start.replace(minute=5, second=0, microsecond=0)
@@ -45,12 +48,12 @@ def main(
         if cur_dt.hour == 0:
             day_dt = cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
             print(f"Running daily trending for {day_dt.isoformat()}")
-            daily_main(openlibrary_yml, timestamp=day_dt.isoformat(), dry_run=dry_run)
+            run_daily_update(timestamp=day_dt.isoformat(), dry_run=dry_run)
             if not dry_run and trending_offset_file:
                 trending_offset_file.write_text(day_dt.isoformat() + '\n')
 
         print(f"Running hourly trending for {cur_dt.isoformat()}")
-        hourly_main(openlibrary_yml, timestamp=cur_dt.isoformat(), dry_run=dry_run)
+        run_hourly_update(timestamp=cur_dt.isoformat(), dry_run=dry_run)
         if not dry_run and trending_offset_file:
             trending_offset_file.write_text(cur_dt.isoformat() + '\n')
 

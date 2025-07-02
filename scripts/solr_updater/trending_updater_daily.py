@@ -1,9 +1,7 @@
 import datetime
 
-from openlibrary.config import load_config
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
-from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
 def fetch_works_trending_scores(current_day: int):
@@ -30,8 +28,7 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
     return {"key": work_id, f'trending_score_daily_{current_day}': {"set": new_value}}
 
 
-def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = False):
-    load_config(openlibrary_yml)
+def run_daily_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
     else:
@@ -51,7 +48,3 @@ def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = Fal
         resp = get_solr().update_in_place(request_body, commit=True)
         print(resp)
     print("Daily update completed.")
-
-
-if __name__ == '__main__':
-    FnToCLI(main).run()

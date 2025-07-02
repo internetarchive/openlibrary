@@ -9,10 +9,10 @@ class TestTrendingUpdaterInit:
     def _run_main(self, fake_now, main_kwargs):
         calls = []
 
-        def fake_daily(openlibrary_yml, timestamp, dry_run):
+        def fake_daily(timestamp, dry_run):
             calls.append(("daily", timestamp))
 
-        def fake_hourly(openlibrary_yml, timestamp, dry_run):
+        def fake_hourly(timestamp, dry_run):
             calls.append(("hourly", timestamp))
 
         class PatchedDateTime(datetime.datetime):
@@ -22,11 +22,11 @@ class TestTrendingUpdaterInit:
 
         with (
             patch(
-                'scripts.solr_updater.trending_updater_init.daily_main',
+                'scripts.solr_updater.trending_updater_init.run_daily_update',
                 side_effect=fake_daily,
             ),
             patch(
-                'scripts.solr_updater.trending_updater_init.hourly_main',
+                'scripts.solr_updater.trending_updater_init.run_hourly_update',
                 side_effect=fake_hourly,
             ),
             patch(
@@ -34,7 +34,7 @@ class TestTrendingUpdaterInit:
                 PatchedDateTime,
             ),
         ):
-            trending_updater_init.main('config.yml', **main_kwargs)
+            trending_updater_init.main('conf/openlibrary.yml', **main_kwargs)
 
         return calls
 

@@ -10,11 +10,9 @@ from math import sqrt
 
 import requests
 
-from openlibrary.config import load_config
 from openlibrary.core import db
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
-from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]
@@ -299,9 +297,7 @@ def form_inplace_trending_update(
     return request_body
 
 
-def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = False):
-    load_config(openlibrary_yml)
-
+def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
     else:
@@ -346,7 +342,3 @@ def main(openlibrary_yml: str, timestamp: str | None = None, dry_run: bool = Fal
         resp = get_solr().update_in_place(request_body, commit=True)
         print(resp)
     print("Hourly update completed.")
-
-
-if __name__ == '__main__':
-    FnToCLI(main).run()
