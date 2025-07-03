@@ -23,6 +23,7 @@ export function initMessageEventListener(element) {
             s3SecretInput.value = e.data.s3.secret
 
             const loginForm = document.querySelector('#register')
+            loginForm.action = '/account/login'
             loginForm.submit()
         }
     }
