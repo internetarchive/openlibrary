@@ -19,7 +19,7 @@ import sys
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import web
 
-from openlibrary.utils.sentry import Sentry
+from openlibrary.utils.sentry import init_sentry
 from openlibrary.utils.shutdown import setup_graceful_shutdown
 
 logger = logging.getLogger("openlibrary." + __file__)
@@ -46,9 +46,8 @@ def start(config_file, *args):
 
     server.load_config(config_file)
 
-    sentry = Sentry(getattr(server.config, 'sentry', {}))
+    sentry = init_sentry(getattr(server.config, 'sentry', {}))
     if sentry.enabled:
-        sentry.init()
         sentry.bind_to_webpy_app(server.app)
 
     # remove config from command line args
