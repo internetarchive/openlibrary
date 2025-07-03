@@ -114,4 +114,38 @@ describe('CheckInForm class', () => {
         expect(daySelect.options[30].classList.contains('hidden')).toBe(true)
         expect(daySelect.options[31].classList.contains('hidden')).toBe(true)
     })
+
+    it('Associates labels with select elements during initialization', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey)
+
+        // Get reference to each label:
+        const yearLabel = formElem.querySelector('.check-in__year-label')
+        const monthLabel = formElem.querySelector('.check-in__month-label')
+        const dayLabel = formElem.querySelector('.check-in__day-label')
+
+        // Verify labels have no `for` initially:
+        expect(yearLabel.htmlFor).toBe('')
+        expect(monthLabel.htmlFor).toBe('')
+        expect(dayLabel.htmlFor).toBe('')
+
+        // Verify select elements have no `id` initially:
+        expect(yearSelect.id).toBe('')
+        expect(monthSelect.id).toBe('')
+        expect(daySelect.id).toBe('')
+
+        // Verify labels associated with selects after initialization:
+        form.initialize()
+
+        const expectedYearId = `year-select-${workOlid}`
+        const expectedMonthId = `month-select-${workOlid}`
+        const expectedDayId = `day-select-${workOlid}`
+
+        expect(yearLabel.htmlFor).toBe(expectedYearId)
+        expect(monthLabel.htmlFor).toBe(expectedMonthId)
+        expect(dayLabel.htmlFor).toBe(expectedDayId)
+
+        expect(yearSelect.id).toBe(expectedYearId)
+        expect(monthSelect.id).toBe(expectedMonthId)
+        expect(daySelect.id).toBe(expectedDayId)
+    })
 })

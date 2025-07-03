@@ -7,7 +7,7 @@ export const checkInForm = `
     <div class="check-in__inputs">
       <label class="check-in__label">Start Date:</label>
       <span>
-        <label>Year:</label>
+        <label class="check-in__year-label">Year:</label>
         <select class="check-in__select" name="year">
           <option value="">Year</option>
           <option class="hidden show-if-local-year" value="$(year + 1)">$(year + 1)</option>
@@ -19,7 +19,7 @@ export const checkInForm = `
         </select>
       </span>
       <span>
-        <label>Month:</label>
+        <label class="check-in__month-label">Month:</label>
         <select class="check-in__select" name="month" disabled>
           <option value="">Month</option>
           <option value="1">January</option>
@@ -37,7 +37,7 @@ export const checkInForm = `
         </select>
       </span>
       <span>
-        <label>Day:</label>
+        <label class="check-in__day-label">Day:</label>
         <select class="check-in__select" name="day" disabled>
           <option value="">Day</option>
           <option value="1">1</option>
