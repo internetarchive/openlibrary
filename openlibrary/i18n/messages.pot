@@ -7737,6 +7737,10 @@ msgid "Edit List"
 msgstr ""
 
 #: type/list/edit.html
+msgid "Move..."
+msgstr ""
+
+#: type/list/edit.html
 msgid "Search for a book"
 msgstr ""
 
