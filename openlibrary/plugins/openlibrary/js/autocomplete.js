@@ -234,9 +234,7 @@ export function init() {
             const totalItems = $allItems.length;
 
             // Create a clear message showing current position
-            const message = `Current item position: ${currentPosition} of ${totalItems}
-
-        Enter the new position number (1-${totalItems}):`;
+            const message = `Enter the new position (1-${totalItems}):`;
 
             const userInput = prompt(message);
 
@@ -245,7 +243,7 @@ export function init() {
                 return;
             }
 
-            const newPosition = parseInt(userInput.trim());
+            const newPosition = parseFloat(userInput.trim());
 
             // Validate the input
             if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
@@ -262,19 +260,10 @@ export function init() {
             // Perform the move
             const newIndex = newPosition - 1; // Convert to 0-based index
 
-            if (newIndex === 0) {
-                // Move to top
-                $currentItem.insertBefore($allItems.first());
-            } else if (newIndex === totalItems - 1) {
-                // Move to bottom
-                $currentItem.insertAfter($allItems.last());
+            if (newIndex < currentIndex) {
+                $currentItem.insertBefore($allItems.eq(newIndex));
             } else {
-                // Move to specific position
-                if (newIndex < currentIndex) {
-                    $currentItem.insertBefore($allItems.eq(newIndex));
-                } else {
-                    $currentItem.insertAfter($allItems.eq(newIndex));
-                }
+                $currentItem.insertAfter($allItems.eq(newIndex));
             }
 
             // Update indices after move
