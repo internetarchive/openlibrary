@@ -11,14 +11,10 @@ curl -L --output $OSP_DUMP_LOCATION \
 ls -la /solr-updater-data/
 
 # Run in background
-if [[ "$TRENDING_UPDATER" == "true" ]]; then
-    echo "Starting trending updater"
-    PYTHONPATH=. python scripts/solr_updater/trending_updater.py \
-        "$OL_CONFIG" \
-        --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
-else
-    echo "Trending updater is disabled"
-fi
+echo "Starting trending updater"
+PYTHONPATH=. python scripts/solr_updater/trending_updater.py \
+    "$OL_CONFIG" \
+    --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
 
 echo "Starting Solr updater"
 PYTHONPATH=. python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
