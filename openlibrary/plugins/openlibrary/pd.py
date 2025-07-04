@@ -63,7 +63,8 @@ def make_pd_org_query() -> list:
     except requests.exceptions.JSONDecodeError:
         return []
 
-    return response.json().get("response", {}).get("docs", []) or []
+    org_list = response.json().get("response", {}).get("docs", []) or []
+    return sorted(org_list, key=lambda org: org.get("title", "").lower())
 
 
 def cached_pd_org_query() -> list:
