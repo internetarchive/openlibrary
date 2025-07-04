@@ -19,7 +19,7 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
@@ -107,11 +107,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     for iaid in iaids
                 }
 
-                trending_data = {}
-                if get_solr_next():
-                    trending_data = await self.data_provider.get_trending_data(
-                        work['key']
-                    )
+                trending_data = await self.data_provider.get_trending_data(work['key'])
 
                 solr_doc = WorkSolrBuilder(
                     work,
