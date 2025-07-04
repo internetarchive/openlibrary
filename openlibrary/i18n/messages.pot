@@ -2127,7 +2127,8 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -5516,7 +5517,7 @@ msgstr ""
 msgid "Upload image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/external_image.html
 msgid "Upload Image"
 msgstr ""
 
@@ -5525,7 +5526,7 @@ msgid "Uploading..."
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Wikidata"
 msgstr ""
 
 #: covers/author_photo.html
@@ -5597,6 +5598,11 @@ msgstr ""
 
 #: covers/change.html
 msgid "Manage"
+msgstr ""
+
+#: covers/external_image.html
+#, python-format
+msgid "Or, use the cover from %s"
 msgstr ""
 
 #: covers/manage.html
