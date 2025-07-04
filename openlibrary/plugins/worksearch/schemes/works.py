@@ -133,6 +133,8 @@ class WorkSearchScheme(SearchScheme):
             'title': 'alternative_title',
             'work_subtitle': 'subtitle',
             'work_title': 'title',
+            'trending': 'trending_z_score',
+            'trending_points_today': 'trending_score_hourly_sum',
             # "Private" fields
             # This is private because we'll change it to a multi-valued field instead of a
             # plain string at the next opportunity, which will make it much more usable.
@@ -144,8 +146,12 @@ class WorkSearchScheme(SearchScheme):
             'editions': 'edition_count desc',
             'old': 'def(first_publish_year, 9999) asc',
             'new': 'first_publish_year desc',
-            'daily': 'def(trending_score_hourly_sum, 0) desc',
+            'trending_points_today': 'def(trending_score_hourly_sum, 0) desc',
+            'trending_points_today asc': 'def(trending_score_hourly_sum, 0) asc',
+            'trending_points_today desc': 'def(trending_score_hourly_sum, 0) desc',
             'trending': 'def(trending_z_score, 0) desc',
+            'trending asc': 'def(trending_z_score, 0) asc',
+            'trending desc': 'def(trending_z_score, 0) desc',
             'rating': 'ratings_sortable desc',
             'rating asc': 'ratings_sortable asc',
             'rating desc': 'ratings_sortable desc',
