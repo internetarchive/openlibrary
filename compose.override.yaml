@@ -35,7 +35,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     environment:
-      - TRENDING_UPDATER=true
       - OL_SOLR_NEXT=true
     volumes:
       # Persistent volume mount for installed git submodules
