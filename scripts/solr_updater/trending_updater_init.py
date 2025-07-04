@@ -12,6 +12,7 @@ def main(
     timestamp: str | None = None,
     dry_run: bool = False,
     trending_offset_file: Path | None = None,
+    allow_old_timestamp: bool = False,
 ):
     """
     Script to initialize the trending data in Solr.
@@ -34,13 +35,20 @@ def main(
     """
     load_config(openlibrary_yml)
 
+    min_start = datetime.datetime.now() - datetime.timedelta(days=7)
+    # Ensure we start at the beginning of the day
+    min_start = min_start.replace(hour=0, minute=5, second=0, microsecond=0)
+
     if timestamp:
         start = datetime.datetime.fromisoformat(timestamp)
         start = start.replace(minute=5, second=0, microsecond=0)
+        if not allow_old_timestamp and start < min_start:
+            print(
+                f"Timestamp {start.isoformat()} older than 7 days ago, using {min_start.isoformat()} instead."
+            )
+            start = min_start
     else:
-        start = datetime.datetime.now() - datetime.timedelta(days=7)
-        # Ensure we start at the beginning of the day
-        start = start.replace(hour=0, minute=5, second=0, microsecond=0)
+        start = min_start
 
     cur_dt = start
     while cur_dt < datetime.datetime.now():
