@@ -636,7 +636,8 @@ def get_loan(identifier: str, user_key: str | None = None) -> 'Loan' | None:
     ):
         loan = Loan(d)
         if loan.is_expired():
-            return loan.delete()
+            loan.delete()
+            return None
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception:  # TODO: Narrow exception scope
@@ -655,7 +656,7 @@ def _get_ia_loan(identifier: str, userid: str | None) -> "Loan" | None:
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
 
-def get_loans_of_user(user_key: str):
+def get_loans_of_user(user_key: str) -> list['Loan']:
     """TODO: Remove inclusion of local data; should only come from IA"""
     if 'env' not in web.ctx:
         """For the get_cached_user_loans to call the API if no cache is present,
@@ -712,12 +713,14 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
 )
 
 
-def _get_ia_loans_of_user(userid: str):
+def _get_ia_loans_of_user(userid: str) -> list['Loan']:
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
 
-def create_loan(identifier, resource_type, user_key, book_key=None):
+def create_loan(
+    identifier: str, resource_type: str, user_key: str, book_key: str | None = None
+) -> 'Loan' | None:
     """Creates a loan and returns it."""
     ia_loan = ia_lending_api.create_loan(
         identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
@@ -728,6 +731,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
         eventer.trigger("loan-created", loan)
         sync_loan(identifier)
         return loan
+    return None
 
 
 NOT_INITIALIZED = object()
@@ -907,11 +911,11 @@ class Loan(dict):
         }
         return Loan(d)
 
-    def is_ol_loan(self):
+    def is_ol_loan(self) -> bool:
         # self['user'] will be None for IA loans
         return self['user'] is not None
 
-    def save(self):
+    def save(self) -> None:
         # loans stored at IA are not supposed to be saved at OL.
         # This call must have been made in mistake.
         if self.get("stored_at") == "ia":
@@ -922,12 +926,12 @@ class Loan(dict):
         # Inform listers that a loan is created/updated
         eventer.trigger("loan-created", self)
 
-    def is_expired(self):
+    def is_expired(self) -> bool:
         return (
             self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
         )
 
-    def is_yet_to_be_fulfilled(self):
+    def is_yet_to_be_fulfilled(self) -> bool:
         """Returns True if the loan is not yet fulfilled and fulfillment time
         is not expired.
         """
@@ -936,7 +940,7 @@ class Loan(dict):
             and (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
         )
 
-    def return_loan(self):
+    def return_loan(self) -> bool:
         logger.info("*** return_loan ***")
         if self['resource_type'] == 'bookreader':
             self.delete()
@@ -944,13 +948,13 @@ class Loan(dict):
         else:
             return False
 
-    def delete(self):
+    def delete(self) -> None:
         loan = dict(self, returned_at=time.time())
         user_key = self['user']
         account = OpenLibraryAccount.get(key=user_key)
         if self.get("stored_at") == 'ia':
             ia_lending_api.delete_loan(self['ocaid'], userkey2userid(user_key))
-            if account.itemname:
+            if account and account.itemname:
                 ia_lending_api.delete_loan(self['ocaid'], account.itemname)
         else:
             web.ctx.site.store.delete(self['_key'])
