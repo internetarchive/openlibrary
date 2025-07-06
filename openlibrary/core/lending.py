@@ -614,7 +614,7 @@ def is_loaned_out_on_ol(identifier: str) -> bool:
     return bool(loan)
 
 
-def get_loan(identifier, user_key=None):
+def get_loan(identifier: str, user_key: str | None = None) -> 'Loan' | None:
     """Returns the loan object for given identifier, if a loan exists.
 
     If user_key is specified, it returns the loan only if that user is
@@ -631,8 +631,8 @@ def get_loan(identifier, user_key=None):
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (
         user_key is None
-        or (d['user'] == account.username)
-        or (d['user'] == account.itemname)
+        or (account and d['user'] == account.username)
+        or (account and d['user'] == account.itemname)
     ):
         loan = Loan(d)
         if loan.is_expired():
@@ -960,7 +960,7 @@ class Loan(dict):
         eventer.trigger("loan-completed", loan)
 
 
-def resolve_identifier(identifier):
+def resolve_identifier(identifier: str) -> str | None:
     """Returns the OL book key for given IA identifier."""
     if keys := web.ctx.site.things({'type': '/type/edition', 'ocaid': identifier}):
         return keys[0]
@@ -973,7 +973,7 @@ def userkey2userid(user_key: str) -> str:
     return "ol:" + username
 
 
-def get_resource_id(identifier, resource_type):
+def get_resource_id(identifier: str, resource_type: str) -> str | None:
     """Returns the resource_id for an identifier for the specified resource_type.
 
     The resource_id is found by looking at external_identifiers field in the
@@ -995,6 +995,7 @@ def get_resource_id(identifier, resource_type):
         acs, rtype, resource_id = eid.split(":", 2)
         if rtype == resource_type:
             return resource_id
+    return None
 
 
 def update_loan_status(identifier):
