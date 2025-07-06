@@ -122,7 +122,7 @@ class Thing(client.Thing):
         return history
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "h"))
-    def _get_history_preview(self):
+    def _get_history_preview(self) -> dict[str, list[dict]]:
         h = {}
         if self.revision < 5:
             h['recent'] = self._get_versions(limit=5)
@@ -133,7 +133,7 @@ class Thing(client.Thing):
             h['recent'] = self._get_versions(limit=4)
         return h
 
-    def _get_versions(self, limit, offset=0):
+    def _get_versions(self, limit: int, offset: int = 0) -> list[dict]:
         q = {"key": self.key, "limit": limit, "offset": offset}
         versions = self._site.versions(q)
         for v in versions:
@@ -153,14 +153,16 @@ class Thing(client.Thing):
         else:
             return preview.initial[0]
 
-    def prefetch(self):
+    def prefetch(self) -> None:
         """Prefetch all the anticipated data."""
         preview = self.get_history_preview()
         authors = {v.author.key for v in preview.initial + preview.recent if v.author}
         # preload them
         self._site.get_many(list(authors))
 
-    def _make_url(self, label: str | None, suffix: str, relative=True, **params):
+    def _make_url(
+        self, label: str | None, suffix: str, relative: bool = True, **params
+    ) -> str:
         """Make url of the form $key/$label$suffix?$params."""
         if label is not None:
             u = self.key + "/" + urlsafe(label) + suffix
@@ -172,7 +174,7 @@ class Thing(client.Thing):
             u = _get_ol_base_url() + u
         return u
 
-    def get_url(self, suffix="", **params) -> str:
+    def get_url(self, suffix: str = "", **params) -> str:
         """Constructs a URL for this page with given suffix and query params.
 
         The suffix is added to the URL of the page and query params are appended after adding "?".
@@ -191,7 +193,7 @@ class Thing(client.Thing):
         """
         return None
 
-    def _get_lists(self, limit=50, offset=0, sort=True):
+    def _get_lists(self, limit: int = 50, offset: int = 0, sort: bool = True):
         # cache the default case
         if limit == 50 and offset == 0:
             keys = self._get_lists_cached()
@@ -207,7 +209,7 @@ class Thing(client.Thing):
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=50, offset=0)
 
-    def _get_lists_uncached(self, limit, offset):
+    def _get_lists_uncached(self, limit: int, offset: int) -> list[str]:
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
@@ -216,7 +218,7 @@ class Thing(client.Thing):
         }
         return self._site.things(q)
 
-    def _get_d(self):
+    def _get_d(self) -> dict:
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.
         """
@@ -241,7 +243,7 @@ class Edition(Thing):
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
-    def get_url_suffix(self):
+    def get_url_suffix(self) -> str:
         return self.title or "untitled"
 
     def __repr__(self):
@@ -253,12 +255,13 @@ class Edition(Thing):
         # retained for backward-compatibility. Is anybody using this really?
         return self.title
 
-    def get_publish_year(self):
+    def get_publish_year(self) -> int | None:
         if self.publish_date:
             m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
+        return None
 
-    def get_lists(self, limit=50, offset=0, sort=True):
+    def get_lists(self, limit: int = 50, offset: int = 0, sort: bool = True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
     def get_ebook_info(self):
@@ -309,33 +312,33 @@ class Edition(Thing):
     def get_ia_collections(self):
         return self.get_ia_meta_fields().get("collection", [])
 
-    def is_access_restricted(self):
+    def is_access_restricted(self) -> bool:
         collections = self.get_ia_collections()
         return bool(collections) and (
             'printdisabled' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
         )
 
-    def is_in_private_collection(self):
+    def is_in_private_collection(self) -> bool:
         """Private collections are lendable books that should not be
         linked/revealed from OL
         """
         return private_collection_in(self.get_ia_collections())
 
-    def in_borrowable_collection(self):
+    def in_borrowable_collection(self) -> bool:
         collections = self.get_ia_collections()
         return ('inlibrary' in collections) and not self.is_in_private_collection()
 
-    def get_waitinglist(self):
+    def get_waitinglist(self) -> list[WaitingLoan]:
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
     @property  # type: ignore[misc]
-    def ia_metadata(self):
+    def ia_metadata(self) -> dict:
         ocaid = self.get('ocaid')
         return get_metadata(ocaid) if ocaid else {}
 
-    def get_waitinglist_size(self, ia=False):
+    def get_waitinglist_size(self) -> int:
         """Returns the number of people on waiting list to borrow this book."""
         return waitinglist.get_waitinglist_size(self.key)
 
@@ -871,17 +874,13 @@ class Author(Thing):
 
 
 class User(Thing):
-    def get_default_preferences(self):
+    def get_default_preferences(self) -> dict[str, str]:
         return {'update': 'no', 'public_readlog': 'no', 'type': 'preferences'}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
         # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
-
-    def get_status(self):
-        account = self.get_account() or {}
-        return account.get("status")
 
     def get_usergroups(self):
         keys = self._site.things({'type': '/type/usergroup', 'members': self.key})
@@ -893,14 +892,14 @@ class User(Thing):
         username = self.get_username()
         return accounts.find(username=username)
 
-    def get_email(self):
+    def get_email(self) -> str | None:
         account = self.get_account() or {}
         return account.get("email")
 
-    def get_username(self):
+    def get_username(self) -> str:
         return self.key.split("/")[-1]
 
-    def preferences(self, use_store=False):
+    def preferences(self, use_store: bool = False):
         key = f"{self.key}/preferences"
         if use_store:
             prefs = web.ctx.site.store.get(key)
@@ -912,8 +911,8 @@ class User(Thing):
         ) or self.get_default_preferences()
 
     def save_preferences(
-        self, new_prefs, msg='updating user preferences', use_store=False
-    ):
+        self, new_prefs, msg='updating user preferences', use_store: bool = False
+    ) -> None:
         key = f'{self.key}/preferences'
         if use_store:
             old_prefs = self.preferences(use_store=use_store)
@@ -934,12 +933,12 @@ class User(Thing):
             # Save a copy of the patron's preferences to the store
             self.save_preferences(new_prefs, msg=msg, use_store=True)
 
-    def is_usergroup_member(self, usergroup):
+    def is_usergroup_member(self, usergroup: str) -> bool:
         if not usergroup.startswith('/usergroup/'):
             usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
 
-    def is_subscribed_user(self, username):
+    def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
         return (
             PubSub.is_subscribed(my_username, username)
@@ -953,19 +952,19 @@ class User(Thing):
     def is_printdisabled(self):
         return web.cookies().get('pd')
 
-    def is_admin(self):
+    def is_admin(self) -> bool:
         return self.is_usergroup_member('/usergroup/admin')
 
-    def is_librarian(self):
+    def is_librarian(self) -> bool:
         return self.is_usergroup_member('/usergroup/librarians')
 
-    def is_super_librarian(self):
+    def is_super_librarian(self) -> bool:
         return self.is_usergroup_member('/usergroup/super-librarians')
 
-    def is_beta_tester(self):
+    def is_beta_tester(self) -> bool:
         return self.is_usergroup_member('/usergroup/beta-testers')
 
-    def is_read_only(self):
+    def is_read_only(self) -> bool:
         return self.is_usergroup_member('/usergroup/read-only')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
@@ -989,7 +988,7 @@ class User(Thing):
 
     @classmethod
     # @cache.memoize(engine="memcache", key="user-avatar")
-    def get_avatar_url(cls, username):
+    def get_avatar_url(cls, username: str) -> str:
         username = username.split('/people/')[-1]
         user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
@@ -1014,7 +1013,7 @@ class User(Thing):
 
         return self._site.things(q)
 
-    def new_list(self, name, description, seeds, tags=None):
+    def new_list(self, name: str, description: str, seeds, tags=None):
         tags = tags or []
         """Creates a new list object with given name, description, and seeds.
 
@@ -1046,10 +1045,6 @@ class User(Thing):
             "tags": tags,
         }
         return self._site.new(key, doc)
-
-    def is_waiting_for(self, book):
-        """Returns True if this user is waiting to loan given book."""
-        return waitinglist.is_user_waiting_for(self.key, book.key)
 
     def get_waitinglist(self):
         """Returns list of records for all the books the user is currently waiting for."""
