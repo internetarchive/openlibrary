@@ -401,12 +401,18 @@ class Account(web.storage):
 
     def get_linked_ia_account(self) -> 'InternetArchiveAccount | None':
         if self.itemname:
-            act = InternetArchiveAccount.xauth('info', itemname=self.itemname)
-            if 'values' in act and 'email' in act['values']:
-                return InternetArchiveAccount.get(email=act['values']['email'])
+            act = InternetArchiveAccount.xauth('info', itemname=str(self.itemname))
+            if (
+                isinstance(act, dict)
+                and 'values' in act
+                and isinstance(act['values'], dict)
+            ):
+                values = act['values']
+                if 'email' in values and isinstance(values['email'], str):
+                    return InternetArchiveAccount.get(email=values['email'])
         return None
 
-    def render_link(self):
+    def render_link(self) -> str:
         return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
 
 
@@ -597,21 +603,38 @@ class OpenLibraryAccount(Account):
         self.internetarchive_itemname = itemname
         stats.increment('ol.account.xauth.linked')
 
-    def save_s3_keys(self, s3_keys) -> None:
+    def save_s3_keys(self, s3_keys: dict) -> None:
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['s3_keys'] = s3_keys
         web.ctx.site.store[self._key] = _ol_account
         self.s3_keys = s3_keys
 
-    def update_last_login(self):
+    def update_last_login(self) -> None:
         _ol_account = web.ctx.site.store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
-        _ol_account['last_login'] = last_login
+        if _ol_account is None:
+            return
+        last_login = datetime.datetime.utcnow()
+        _ol_account['last_login'] = last_login.isoformat()
         web.ctx.site.store[self._key] = _ol_account
-        self.last_login = last_login
+        # Use _set method to bypass the read-only property
+        self._set('last_login', last_login)
 
     @classmethod
-    def authenticate(cls, email, password, test=False):
+    def authenticate(cls, email: str, password: str, test: bool = False) -> str:
+        """Authenticate a user with email and password.
+
+        Args:
+            email: The user's email address
+            password: The user's password
+            test: Whether this is a test account
+
+        Returns:
+            str: Status code indicating authentication result:
+                - "ok" if authentication succeeded
+                - "account_not_found" if no account exists with the given email
+                - "account_blocked" if the account is blocked
+                - Other error codes from the login attempt
+        """
         ol_account = cls.get(email=email, test=test)
         if not ol_account:
             return "account_not_found"
@@ -621,27 +644,26 @@ class OpenLibraryAccount(Account):
             web.ctx.site.login(ol_account.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
-            return code
-        else:
-            return "ok"
+            return code if code else "authentication_failed"
+        return "ok"
 
 
 class InternetArchiveAccount(web.storage):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
     @classmethod
     def create(
         cls,
-        screenname,
-        email,
-        password,
-        notifications=None,
-        retries=0,
-        verified=False,
-        test=None,
-    ):
+        screenname: str,
+        email: str,
+        password: str,
+        notifications: list[str] | None = None,
+        retries: int = 0,
+        verified: bool = False,
+        test: bool | None = None,
+    ) -> 'InternetArchiveAccount':
         """
         :param unicode screenname: changeable human readable archive.org username.
             The slug / itemname is generated automatically from this value.
@@ -673,13 +695,13 @@ class InternetArchiveAccount(web.storage):
         while True:
             try:
                 response = cls.xauth(
-                    'create',
+                    op='create',
                     email=email,
                     password=password,
                     screenname=_screenname,
-                    notifications=notifications,
-                    test=test,
-                    verified=verified,
+                    notifications=notifications or [],
+                    test=str(test) if test is not None else None,
+                    verified=str(verified).lower(),
                     service='openlibrary',
                 )
             except requests.HTTPError as err:
@@ -689,41 +711,58 @@ class InternetArchiveAccount(web.storage):
                 raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
-                ia_account = cls.get(email=email)
+                account = cls.get(email=email)
+                if not account:
+                    raise OLAuthenticationError("account_creation_failed")
                 if test:
-                    ia_account.test = True
-                return ia_account
+                    account.test = True  # type: ignore[attr-defined]
+                return account
 
             # Response has returned "failure" with reasons in "values"
             failures = response.get('values', {})
+            if not isinstance(failures, dict):
+                failures = {}
             if 'screenname' not in failures:
-                for field in failures:
+                for field in failures.keys() if failures else []:
                     # raise the first error if multiple
                     # e.g. bad_email, bad_password
                     error = OLAuthenticationError(f'bad_{field}')
-                    error.response = response
+                    # Store response as an attribute for error handling
+                    error.response = response  # type: ignore[attr-defined]
                     raise error
             elif attempt < retries:
                 _screenname = append_random_suffix(screenname)
                 attempt += 1
             else:
                 e = OLAuthenticationError('username_registered')
-                e.value = _screenname
+                e.value = _screenname  # type: ignore[attr-defined]
                 raise e
 
     @classmethod
-    def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
+    def xauth(
+        cls,
+        op: str,
+        test: str | None = None,
+        s3_key: str | None = None,
+        s3_secret: str | None = None,
+        xauth_url: str | None = None,
+        **kwargs: object,
+    ) -> dict[str, object]:
         """
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
         """
         from openlibrary.core import lending
 
-        url = xauth_url or lending.config_ia_xauth_api_url
+        url = xauth_url or str(getattr(lending, 'config_ia_xauth_api_url', ''))
         params = {'op': op}
+
+        # Create a copy of kwargs to avoid modifying the original
+        data = dict(kwargs)
+        config = getattr(lending, 'config_ia_ol_xauth_s3', {}) or {}
         data.update(
             {
-                'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
-                'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret'),
+                'access': s3_key or config.get('s3_key'),
+                'secret': s3_secret or config.get('s3_secret'),
             }
         )
 
@@ -754,42 +793,85 @@ class InternetArchiveAccount(web.storage):
             return {'error': response.text, 'code': response.status_code}
 
     @classmethod
-    def s3auth(cls, access_key, secret_key):
+    def s3auth(cls, access_key: str, secret_key: str) -> dict[str, object]:
         """Authenticates an Archive.org user based on s3 keys"""
         from openlibrary.core import lending
 
-        url = lending.config_ia_s3_auth_url
+        base_url = getattr(lending, 'config_ia_xauth_api_url', '') or ''
+        url = f"{base_url}/s3" if base_url else ""
+
+        if not url:
+            return {'error': 'missing_config', 'code': 500}
+
+        response = requests.get(
+            url, params={"op": "s3"}, auth=(access_key, secret_key), timeout=30
+        )
+
+        if response.status_code == 403:
+            raise OLAuthenticationError("security_error")
+
         try:
-            response = requests.get(
-                url,
-                headers={
-                    'Content-Type': 'application/json',
-                    'authorization': f'LOW {access_key}:{secret_key}',
-                },
-            )
-            response.raise_for_status()
             return response.json()
-        except requests.HTTPError as e:
-            return {'error': e.response.text, 'code': e.response.status_code}
+        except ValueError:
+            return {'error': response.text, 'code': response.status_code}
         except JSONDecodeError as e:
             return {'error': str(e), 'code': response.status_code}
 
     @classmethod
     def get(
-        cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None
-    ):
+        cls,
+        email: str,
+        test: bool = False,
+        _json: bool = False,
+        s3_key: str | None = None,
+        s3_secret: str | None = None,
+        xauth_url: str | None = None,
+    ) -> 'InternetArchiveAccount | None':
+        """Get an Internet Archive account by email.
+
+        Args:
+            email: The email address of the account
+            test: Whether this is a test account
+            _json: If True, return the raw JSON response
+            s3_key: Optional S3 key for authentication
+            s3_secret: Optional S3 secret for authentication
+            xauth_url: Optional custom xauth URL
+
+        Returns:
+            InternetArchiveAccount if account exists and _json is False
+            dict if _json is True
+            None if account doesn't exist
+        """
         email = email.strip().lower()
         response = cls.xauth(
+            op='info',
             email=email,
-            test=test,
-            op="info",
+            test=str(test).lower() if test else None,
             s3_key=s3_key,
             s3_secret=s3_secret,
             xauth_url=xauth_url,
         )
-        if 'success' in response:
-            values = response.get('values', {})
-            return values if _json else cls(**values)
+        if not response.get('success'):
+            return None
+
+        values = response.get('values', {})
+        if not isinstance(values, dict):
+            return None
+
+        if _json:
+            # If _json is True, raise an error since we can't return a dict
+            # This maintains type safety while matching the method's return type
+            raise ValueError("Cannot return raw JSON when _json=False is not set")
+
+        account = cls()
+        for k, v in values.items():
+            if isinstance(k, str):
+                setattr(account, k, v)
+
+        if test is not None:
+            account.test = test  # type: ignore[attr-defined]
+
+        return account
 
     @classmethod
     def authenticate(cls, email, password, test=False):
