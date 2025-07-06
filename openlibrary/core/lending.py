@@ -614,7 +614,7 @@ def is_loaned_out_on_ol(identifier: str) -> bool:
     return bool(loan)
 
 
-def get_loan(identifier: str, user_key: str | None = None) -> 'Loan' | None:
+def get_loan(identifier: str, user_key: str | None = None):
     """Returns the loan object for given identifier, if a loan exists.
 
     If user_key is specified, it returns the loan only if that user is
@@ -651,7 +651,7 @@ def get_loan(identifier: str, user_key: str | None = None) -> 'Loan' | None:
     return _loan
 
 
-def _get_ia_loan(identifier: str, userid: str | None) -> "Loan" | None:
+def _get_ia_loan(identifier: str, userid: str | None = None):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
@@ -720,7 +720,7 @@ def _get_ia_loans_of_user(userid: str) -> list['Loan']:
 
 def create_loan(
     identifier: str, resource_type: str, user_key: str, book_key: str | None = None
-) -> 'Loan' | None:
+):
     """Creates a loan and returns it."""
     ia_loan = ia_lending_api.create_loan(
         identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
