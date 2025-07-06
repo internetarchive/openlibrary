@@ -63,7 +63,7 @@ get_metadata: Callable[[str], dict] = cache.memcache_memoize(
 )
 
 
-def extract_item_metadata(item_json):
+def extract_item_metadata(item_json: dict) -> dict:
     metadata = process_metadata_dict(item_json.get('metadata', {}))
     if metadata:
         # if any of the files is access restricted, consider it as
@@ -97,13 +97,13 @@ def process_metadata_dict(metadata):
     return dict(process_item(k, v) for k, v in metadata.items() if v)
 
 
-def locate_item(itemid):
+def locate_item(itemid: str) -> tuple[str | None, str | None]:
     """Returns (hostname, path) for the item."""
     d = get_metadata_direct(itemid, only_metadata=False)
     return d.get('server'), d.get('dir')
 
 
-def edition_from_item_metadata(itemid, metadata):
+def edition_from_item_metadata(itemid: str, metadata: dict):
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 
@@ -116,7 +116,7 @@ def edition_from_item_metadata(itemid, metadata):
         return e
 
 
-def get_cover_url(item_id):
+def get_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's cover page."""
     base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
     cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
@@ -125,7 +125,7 @@ def get_cover_url(item_id):
     return base_url + 'default.jpg'
 
 
-def get_fallback_cover_url(item_id):
+def get_fallback_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
@@ -134,13 +134,13 @@ def get_fallback_cover_url(item_id):
     return base_url + 'title.jpg'
 
 
-def get_item_manifest(item_id, item_server, item_path):
+def get_item_manifest(item_id: str, item_server: str, item_path: str) -> dict:
     url = f'https://{item_server}/BookReader/BookReaderJSON.php'
     url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
     return get_api_response(url)
 
 
-def get_item_status(itemid, metadata, **server):
+def get_item_status(itemid: str, metadata: dict, **server) -> str:
     item_server = server.pop('item_server', None)
     item_path = server.pop('item_path', None)
     return ItemEdition.get_item_status(
@@ -151,7 +151,7 @@ def get_item_status(itemid, metadata, **server):
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict."""
 
-    def __init__(self, itemid):
+    def __init__(self, itemid: str) -> None:
         dict.__init__(self)
         self.itemid = itemid
 
@@ -234,7 +234,7 @@ class ItemEdition(dict):
         """
         return cls.get_item_status(itemid, metadata) == 'ok'
 
-    def add_metadata(self, metadata):
+    def add_metadata(self, metadata: dict) -> None:
         self.metadata = metadata
         self.add('title')
         self.add('description', 'description')
@@ -243,7 +243,7 @@ class ItemEdition(dict):
         self.add('date', 'publish_date')
         self.add_isbns()
 
-    def add(self, key, key2=None):
+    def add(self, key: str, key2: str | None = None) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -261,7 +261,7 @@ class ItemEdition(dict):
 
             self[key2] = value
 
-    def add_list(self, key, key2):
+    def add_list(self, key: str, key2: str) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -270,7 +270,7 @@ class ItemEdition(dict):
                 value = [value]
             self[key2] = value
 
-    def add_isbns(self):
+    def add_isbns(self) -> None:
         isbn_10 = []
         isbn_13 = []
         if isbns := self.metadata.get('isbn'):
