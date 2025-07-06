@@ -632,14 +632,14 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def create(
         cls,
-        screenname: str,
-        email: str,
-        password: str,
-        notifications: list[str] | None = None,
-        retries: int = 0,
-        verified: bool = False,
-        test: bool | None = None,
-    ) -> 'InternetArchiveAccount':
+        screenname,
+        email,
+        password,
+        notifications=None,
+        retries=0,
+        verified=False,
+        test=None,
+    ):
         """
         :param unicode screenname: changeable human readable archive.org username.
             The slug / itemname is generated automatically from this value.
@@ -671,13 +671,13 @@ class InternetArchiveAccount(web.storage):
         while True:
             try:
                 response = cls.xauth(
-                    op='create',
+                    'create',
                     email=email,
                     password=password,
                     screenname=_screenname,
-                    notifications=notifications or [],
-                    test=str(test) if test is not None else None,
-                    verified=str(verified).lower(),
+                    notifications=notifications,
+                    test=test,
+                    verified=verified,
                     service='openlibrary',
                 )
             except requests.HTTPError as err:
@@ -687,58 +687,41 @@ class InternetArchiveAccount(web.storage):
                 raise OLAuthenticationError("undefined_error")
 
             if response.get('success'):
-                account = cls.get(email=email)
-                if not account:
-                    raise OLAuthenticationError("account_creation_failed")
+                ia_account = cls.get(email=email)
                 if test:
-                    account.test = True  # type: ignore[attr-defined]
-                return account
+                    ia_account.test = True
+                return ia_account
 
             # Response has returned "failure" with reasons in "values"
             failures = response.get('values', {})
-            if not isinstance(failures, dict):
-                failures = {}
             if 'screenname' not in failures:
-                for field in failures.keys() if failures else []:
+                for field in failures:
                     # raise the first error if multiple
                     # e.g. bad_email, bad_password
                     error = OLAuthenticationError(f'bad_{field}')
-                    # Store response as an attribute for error handling
-                    error.response = response  # type: ignore[attr-defined]
+                    error.response = response
                     raise error
             elif attempt < retries:
                 _screenname = append_random_suffix(screenname)
                 attempt += 1
             else:
                 e = OLAuthenticationError('username_registered')
-                e.value = _screenname  # type: ignore[attr-defined]
+                e.value = _screenname
                 raise e
 
     @classmethod
-    def xauth(
-        cls,
-        op: str,
-        test: str | None = None,
-        s3_key: str | None = None,
-        s3_secret: str | None = None,
-        xauth_url: str | None = None,
-        **kwargs: object,
-    ) -> dict[str, object]:
+    def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
         """
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
         """
         from openlibrary.core import lending
 
-        url = xauth_url or str(getattr(lending, 'config_ia_xauth_api_url', ''))
+        url = xauth_url or lending.config_ia_xauth_api_url
         params = {'op': op}
-
-        # Create a copy of kwargs to avoid modifying the original
-        data = dict(kwargs)
-        config = getattr(lending, 'config_ia_ol_xauth_s3', {}) or {}
         data.update(
             {
-                'access': s3_key or config.get('s3_key'),
-                'secret': s3_secret or config.get('s3_secret'),
+                'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
+                'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret'),
             }
         )
 
