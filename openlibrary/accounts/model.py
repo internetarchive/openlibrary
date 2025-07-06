@@ -302,12 +302,9 @@ class Account(web.storage):
 
     def get_links(self) -> list[Link]:
         """Returns all the verification links present in the database."""
-        return [
-            Link(doc)
-            for doc in web.ctx.site.store.values(
-                type="account-link", name="username", value=self.username
-            )
-        ]
+        return web.ctx.site.store.values(
+            type="account-link", name="username", value=self.username
+        )
 
     def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
