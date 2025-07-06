@@ -650,12 +650,12 @@ def get_loan(identifier, user_key=None):
     return _loan
 
 
-def _get_ia_loan(identifier: str, userid: str):
+def _get_ia_loan(identifier: str, userid: str | None) -> "Loan" | None:
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
 
-def get_loans_of_user(user_key):
+def get_loans_of_user(user_key: str):
     """TODO: Remove inclusion of local data; should only come from IA"""
     if 'env' not in web.ctx:
         """For the get_cached_user_loans to call the API if no cache is present,
@@ -666,7 +666,9 @@ def get_loans_of_user(user_key):
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
+    loans = [Loan(d) for d in loandata]
+    if account and account.itemname:
+        loans += _get_ia_loans_of_user(account.itemname)
     # Set patron's loans in cache w/ now timestamp
     get_cached_loans_of_user.memcache_set(
         [user_key], {}, loans or [], time.time()
@@ -681,7 +683,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
 )
 
 
-def get_user_waiting_loans(user_key):
+def get_user_waiting_loans(user_key: str):
     """Gets the waitingloans of the patron.
 
     Returns [] if user has no waitingloans.
@@ -693,7 +695,7 @@ def get_user_waiting_loans(user_key):
 
     try:
         account = OpenLibraryAccount.get(key=user_key)
-        itemname = account.itemname
+        itemname = account.itemname if account else None
         result = WaitingLoan.query(userid=itemname)
         get_cached_user_waiting_loans.memcache_set(
             [user_key], {}, result or {}, time.time()
@@ -710,7 +712,7 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
 )
 
 
-def _get_ia_loans_of_user(userid):
+def _get_ia_loans_of_user(userid: str):
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
@@ -726,10 +728,6 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
         eventer.trigger("loan-created", loan)
         sync_loan(identifier)
         return loan
-
-    # loan = Loan.new(identifier, resource_type, user_key, book_key)
-    # loan.save()
-    # return loan
 
 
 NOT_INITIALIZED = object()
@@ -869,7 +867,7 @@ class Loan(dict):
         )
 
     @staticmethod
-    def from_ia_loan(data):
+    def from_ia_loan(data) -> "Loan":
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:') :]
         elif data['userid'].startswith('@'):
@@ -970,7 +968,7 @@ def resolve_identifier(identifier):
         return "/books/ia:" + identifier
 
 
-def userkey2userid(user_key):
+def userkey2userid(user_key: str) -> str:
     username = user_key.split("/")[-1]
     return "ol:" + username
 
