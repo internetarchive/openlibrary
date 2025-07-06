@@ -801,7 +801,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
 class EBookRecord(dict):
     @staticmethod
-    def find(identifier):
+    def find(identifier: str) -> 'EBookRecord':
         key = "ebooks/" + identifier
         d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
@@ -822,7 +822,9 @@ class Loan(dict):
     """Model for loan."""
 
     @staticmethod
-    def new(identifier, resource_type, user_key, book_key=None):
+    def new(
+        identifier: str, resource_type: str, user_key: str, book_key: str | None = None
+    ) -> 'Loan':
         """Creates a new loan object.
 
         The caller is expected to call save method to save the loan.
@@ -871,7 +873,7 @@ class Loan(dict):
         )
 
     @staticmethod
-    def from_ia_loan(data) -> "Loan":
+    def from_ia_loan(data: dict) -> "Loan":
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:') :]
         elif data['userid'].startswith('@'):
