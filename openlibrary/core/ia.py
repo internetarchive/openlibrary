@@ -76,7 +76,7 @@ def extract_item_metadata(item_json: dict) -> dict:
     return metadata
 
 
-def process_metadata_dict(metadata: dict):
+def process_metadata_dict(metadata: dict) -> dict[str, str | list[str] | bool]:
     """Process metadata dict to make sure multi-valued fields like
     collection and external-identifier are always lists.
 
@@ -154,7 +154,8 @@ class ItemEdition(dict):
 
     def __init__(self, itemid: str) -> None:
         dict.__init__(self)
-        self.itemid = itemid
+        self.itemid: str = itemid
+        self.metadata: dict = {}
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
 
