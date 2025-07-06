@@ -793,85 +793,48 @@ class InternetArchiveAccount(web.storage):
             return {'error': response.text, 'code': response.status_code}
 
     @classmethod
-    def s3auth(cls, access_key: str, secret_key: str) -> dict[str, object]:
+    def s3auth(cls, access_key: str, secret_key: str):
         """Authenticates an Archive.org user based on s3 keys"""
         from openlibrary.core import lending
 
-        base_url = getattr(lending, 'config_ia_xauth_api_url', '') or ''
-        url = f"{base_url}/s3" if base_url else ""
+        url = lending.config_ia_s3_auth_url
 
-        if not url:
-            return {'error': 'missing_config', 'code': 500}
-
-        response = requests.get(
-            url, params={"op": "s3"}, auth=(access_key, secret_key), timeout=30
-        )
-
-        if response.status_code == 403:
-            raise OLAuthenticationError("security_error")
+        if not isinstance(url, str):
+            raise TypeError(
+                f"Expected 'url' to be a string, got {type(url).__name__} instead"
+            )
 
         try:
+            response = requests.get(
+                url,
+                headers={
+                    'Content-Type': 'application/json',
+                    'authorization': f'LOW {access_key}:{secret_key}',
+                },
+            )
+            response.raise_for_status()
             return response.json()
-        except ValueError:
-            return {'error': response.text, 'code': response.status_code}
+        except requests.HTTPError as e:
+            return {'error': e.response.text, 'code': e.response.status_code}
         except JSONDecodeError as e:
             return {'error': str(e), 'code': response.status_code}
 
     @classmethod
     def get(
-        cls,
-        email: str,
-        test: bool = False,
-        _json: bool = False,
-        s3_key: str | None = None,
-        s3_secret: str | None = None,
-        xauth_url: str | None = None,
-    ) -> 'InternetArchiveAccount | None':
-        """Get an Internet Archive account by email.
-
-        Args:
-            email: The email address of the account
-            test: Whether this is a test account
-            _json: If True, return the raw JSON response
-            s3_key: Optional S3 key for authentication
-            s3_secret: Optional S3 secret for authentication
-            xauth_url: Optional custom xauth URL
-
-        Returns:
-            InternetArchiveAccount if account exists and _json is False
-            dict if _json is True
-            None if account doesn't exist
-        """
+        cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None
+    ):
         email = email.strip().lower()
         response = cls.xauth(
-            op='info',
             email=email,
-            test=str(test).lower() if test else None,
+            test=test,
+            op="info",
             s3_key=s3_key,
             s3_secret=s3_secret,
             xauth_url=xauth_url,
         )
-        if not response.get('success'):
-            return None
-
-        values = response.get('values', {})
-        if not isinstance(values, dict):
-            return None
-
-        if _json:
-            # If _json is True, raise an error since we can't return a dict
-            # This maintains type safety while matching the method's return type
-            raise ValueError("Cannot return raw JSON when _json=False is not set")
-
-        account = cls()
-        for k, v in values.items():
-            if isinstance(k, str):
-                setattr(account, k, v)
-
-        if test is not None:
-            account.test = test  # type: ignore[attr-defined]
-
-        return account
+        if 'success' in response:
+            values = response.get('values', {})
+            return values if _json else cls(**values)
 
     @classmethod
     def authenticate(cls, email, password, test=False):
