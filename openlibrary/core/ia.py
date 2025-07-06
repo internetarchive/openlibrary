@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from collections.abc import Callable
 from urllib.parse import urlencode
 
 import requests
@@ -57,7 +58,7 @@ def get_metadata_direct(
     return extract_item_metadata(full_json) if only_metadata else full_json
 
 
-get_metadata = cache.memcache_memoize(
+get_metadata: Callable[[str], dict] = cache.memcache_memoize(
     get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS
 )
 
