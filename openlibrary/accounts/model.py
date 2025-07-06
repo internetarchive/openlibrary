@@ -281,30 +281,33 @@ class Account(web.storage):
         key = "/people/" + self.username
         return web.ctx.site.get(key)
 
-    def get_creation_info(self):
+    def get_creation_info(self) -> dict:
         key = "/people/" + self.username
         doc = web.ctx.site.get(key)
         return doc.get_creation_info()
 
-    def get_activation_link(self):
+    def get_activation_link(self) -> Link | bool:
         key = f"account/{self.username}/verify"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
-    def get_password_reset_link(self):
+    def get_password_reset_link(self) -> Link | bool:
         key = f"account/{self.username}/password"
         if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
-    def get_links(self):
+    def get_links(self) -> list[Link]:
         """Returns all the verification links present in the database."""
-        return web.ctx.site.store.values(
-            type="account-link", name="username", value=self.username
-        )
+        return [
+            Link(doc)
+            for doc in web.ctx.site.store.values(
+                type="account-link", name="username", value=self.username
+            )
+        ]
 
     def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
@@ -396,11 +399,12 @@ class Account(web.storage):
         """
         return getattr(self, 'internetarchive_itemname', None)
 
-    def get_linked_ia_account(self):
+    def get_linked_ia_account(self) -> 'InternetArchiveAccount | None':
         if self.itemname:
             act = InternetArchiveAccount.xauth('info', itemname=self.itemname)
             if 'values' in act and 'email' in act['values']:
                 return InternetArchiveAccount.get(email=act['values']['email'])
+        return None
 
     def render_link(self):
         return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
