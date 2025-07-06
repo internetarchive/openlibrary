@@ -2,7 +2,7 @@
 
 import datetime
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from urllib.parse import urlencode
 
 import requests
@@ -76,7 +76,7 @@ def extract_item_metadata(item_json: dict) -> dict:
     return metadata
 
 
-def process_metadata_dict(metadata):
+def process_metadata_dict(metadata: dict):
     """Process metadata dict to make sure multi-valued fields like
     collection and external-identifier are always lists.
 
@@ -103,7 +103,7 @@ def locate_item(itemid: str) -> tuple[str | None, str | None]:
     return d.get('server'), d.get('dir')
 
 
-def edition_from_item_metadata(itemid: str, metadata: dict):
+def edition_from_item_metadata(itemid: str, metadata: dict) -> 'ItemEdition | None':
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 
@@ -114,6 +114,7 @@ def edition_from_item_metadata(itemid: str, metadata: dict):
         e = ItemEdition(itemid)
         e.add_metadata(metadata)
         return e
+    return None
 
 
 def get_cover_url(item_id: str) -> str:
@@ -170,7 +171,13 @@ class ItemEdition(dict):
         )
 
     @classmethod
-    def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
+    def get_item_status(
+        cls,
+        itemid: str,
+        metadata: dict,
+        item_server: str | None = None,
+        item_path: str | None = None,
+    ) -> str:
         """Returns the status of the item related to importing it in OL.
 
         Possible return values are:
@@ -225,7 +232,7 @@ class ItemEdition(dict):
         return "ok"
 
     @classmethod
-    def is_valid_item(cls, itemid, metadata):
+    def is_valid_item(cls, itemid: str, metadata: dict) -> bool:
         """Returns True if the item with metadata can be usable as edition
         in Open Library.
 
@@ -335,7 +342,7 @@ def get_candidates_url(
 def get_candidate_ocaids(
     day: datetime.date,
     marcs: bool = True,
-):
+) -> Generator[str, None, None]:
     """
     Returns a list of identifiers that were finalized on the provided
     day, which may need to be imported into Open Library.
