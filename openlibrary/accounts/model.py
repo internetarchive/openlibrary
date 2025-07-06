@@ -399,18 +399,11 @@ class Account(web.storage):
         """
         return getattr(self, 'internetarchive_itemname', None)
 
-    def get_linked_ia_account(self) -> 'InternetArchiveAccount | None':
+    def get_linked_ia_account(self):
         if self.itemname:
-            act = InternetArchiveAccount.xauth('info', itemname=str(self.itemname))
-            if (
-                isinstance(act, dict)
-                and 'values' in act
-                and isinstance(act['values'], dict)
-            ):
-                values = act['values']
-                if 'email' in values and isinstance(values['email'], str):
-                    return InternetArchiveAccount.get(email=values['email'])
-        return None
+            act = InternetArchiveAccount.xauth('info', itemname=self.itemname)
+            if 'values' in act and 'email' in act['values']:
+                return InternetArchiveAccount.get(email=act['values']['email'])
 
     def render_link(self) -> str:
         return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
@@ -609,32 +602,15 @@ class OpenLibraryAccount(Account):
         web.ctx.site.store[self._key] = _ol_account
         self.s3_keys = s3_keys
 
-    def update_last_login(self) -> None:
+    def update_last_login(self):
         _ol_account = web.ctx.site.store.get(self._key)
-        if _ol_account is None:
-            return
-        last_login = datetime.datetime.utcnow()
-        _ol_account['last_login'] = last_login.isoformat()
+        last_login = datetime.datetime.utcnow().isoformat()
+        _ol_account['last_login'] = last_login
         web.ctx.site.store[self._key] = _ol_account
-        # Use _set method to bypass the read-only property
-        self._set('last_login', last_login)
+        self.last_login = last_login
 
     @classmethod
     def authenticate(cls, email: str, password: str, test: bool = False) -> str:
-        """Authenticate a user with email and password.
-
-        Args:
-            email: The user's email address
-            password: The user's password
-            test: Whether this is a test account
-
-        Returns:
-            str: Status code indicating authentication result:
-                - "ok" if authentication succeeded
-                - "account_not_found" if no account exists with the given email
-                - "account_blocked" if the account is blocked
-                - Other error codes from the login attempt
-        """
         ol_account = cls.get(email=email, test=test)
         if not ol_account:
             return "account_not_found"
@@ -644,7 +620,7 @@ class OpenLibraryAccount(Account):
             web.ctx.site.login(ol_account.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
-            return code if code else "authentication_failed"
+            return code
         return "ok"
 
 
