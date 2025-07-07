@@ -569,7 +569,7 @@ class Work(models.Work):
     def get_covers_from_solr(self) -> list[Image]:
         try:
             w = self._solr_data
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception(
                 'Unable to retrieve covers from solr'
             )
@@ -604,7 +604,7 @@ class Work(models.Work):
         stats.begin("solr", get=self.key, fields=fields)
         try:
             return solr.get(self.key, fields=fields)
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:
