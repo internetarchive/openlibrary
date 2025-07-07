@@ -227,17 +227,20 @@ em {
   font-style: italic;
 }
 
-#contentBody {
-  input[type="submit"] {
-    font-size: 1.125em;
+// Styles that should apply to markdown documents
+.markdown-content {
+  ol,
+  ul {
+    padding-left: 40px;
   }
-  &.map {
-    width: 958px !important;
-    padding: 0 !important;
-    position: relative;
-  }
+
   ol li {
     list-style: decimal;
+    color: @dark-grey;
+    line-height: 1.5em;
+  }
+  ul li {
+    list-style: disc;
     color: @dark-grey;
     line-height: 1.5em;
   }
