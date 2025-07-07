@@ -123,8 +123,6 @@ class ReadProcessor:
         if meta is None:
             return None
 
-        collections = meta.get("collection", [])
-
         if status == 'missing':
             return None
 
@@ -191,9 +189,9 @@ class ReadProcessor:
             wkey = doc_works[0]['key']
         else:
             wkey = None
-        work = None
         if wkey:
-            work = self.works.get(wkey)
+            # work is not used, just need to get iaids
+            _ = self.works.get(wkey)  # Not used
             iaids = self.wkey_to_iaids[wkey]
             # rearrange so any scan for this edition is first
             if orig_iaid and orig_iaid in iaids:
