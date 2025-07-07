@@ -118,11 +118,10 @@ def test_add_seeds(config):
 def test_lists(config):
     api = ListAPI(config)
     api.login()
-
-    count = api.get_lists()['list_count']
+    count = api.get_lists()['list_count']  # noqa: F841
 
     api.create_list({"name": "foo"})
 
-    new_count = api.get_lists()['list_count']
+    new_count = api.get_lists()['list_count']  # noqa: F841
     # counts are not accurate yet.
     # assert new_count == count + 1
