@@ -33,7 +33,7 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 # In general, we want to have typed definitions so we are slowly turning it on for a few files.
-module = ["openlibrary.core.wikidata"]
+module = ["openlibrary.core.wikidata", "openlibrary.core.yearly_reading_goals"]
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
