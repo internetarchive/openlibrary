@@ -401,7 +401,6 @@ class addbook(delegate.page):
                 ["/books/" + key for key in work.edition_key]
             )
             for e in editions:
-                d: dict = {}
                 if publisher and (not e.publishers or e.publishers[0] != publisher):
                     continue
                 if publish_year and (
@@ -1073,10 +1072,6 @@ class work_identifiers(delegate.view):
         else:
             add_flash_message("error", "The ISBN number you entered was not valid")
             raise web.redirect(web.ctx.path)
-        if edition.works:
-            work = edition.works[0]
-        else:
-            work = None
         edition.set_identifiers(data)
         saveutil.save(edition)
         saveutil.commit(comment="Added an %s identifier." % typ, action="edit-book")
