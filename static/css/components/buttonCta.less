@@ -196,45 +196,31 @@ a.cta-btn {
 
 .cta-button-group {
   display: flex;
-  align-items: center;
   position: relative;
 
-  .cta-btn--w-icon {
-    display: flex;
-  }
-
   .cta-btn {
-    padding: 8px 0;
+    padding: 8px;
+    margin: 0;
 
-    &:first-child {
-      flex: 1;
-      padding: 8px;
-      overflow: hidden;
-    }
-
-    &:not(:first-child) {
-      margin-left: 1px;
-      width: 40px;
-      transition: width 0.2s;
-      overflow: hidden;
-      border-radius: 2px 6px 6px 2px;
-    }
-
-    &:not(:last-child) {
-      border-radius: 6px 2px 2px 6px;
-    }
-    // stylelint-disable-next-line selector-max-specificity
-    &:not(:first-child):hover {
-      width: 100%;
-    }
+    // Avoid text wrapping
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
-  &.cta-dropper-button {
-    // only read dropper buttons
-    // Rule broken by .cta-btn:not(:first-child):hover
-    // stylelint-disable-next-line no-descending-specificity
-    .cta-btn {
-      margin: 0;
-    }
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:first-child:not(:last-child) {
+    border-radius: 6px 2px 2px 6px;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:not(:first-child):not(:last-child) {
+    margin-left: 1px;
+    border-radius: 2px;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:last-child:not(:first-child) {
+    margin-left: 1px;
+    border-radius: 2px 6px 6px 2px;
   }
 }

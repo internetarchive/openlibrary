@@ -25,6 +25,7 @@
   margin-top: 0;
 
   .cta-btn,
+  .cta-button-group,
   .cta-btn.cta-btn--no-pointer {
     margin-bottom: 10px;
   }
@@ -103,13 +104,7 @@
     display: block;
     font-weight: bold;
   }
-  ul {
-    margin-left: 8px;
-  }
-  li {
-    list-style: disc;
-    margin: 5px 10px 0;
-  }
+
   // stylelint-disable selector-max-specificity
   table {
     width: 100%;
@@ -119,6 +114,11 @@
     width: 49%;
   }
   // stylelint-enable selector-max-specificity
+}
+
+ul.book-locate-options li,
+ul.ebook-download-options li {
+  margin: 5px 0;
 }
 
 .buy-options-table {
