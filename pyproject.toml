@@ -31,6 +31,11 @@ module = [
 ]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+# In general, we want to have typed definitions so we are slowly turning it on for a few files.
+module = ["openlibrary.core.wikidata"]
+disallow_untyped_defs = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
 
