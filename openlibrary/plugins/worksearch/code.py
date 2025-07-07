@@ -177,8 +177,8 @@ def get_remembered_layout():
         return web.input(layout=None).get('layout')
 
     def read_cookie():
-        if "LIST_BOOKS_LAYOUT" in web.ctx.env.get("HTTP_COOKIE", ""):
-            return web.cookies().get('LIST_BOOKS_LAYOUT')
+        if "LBL" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get('LBL')
 
     if (qs_value := read_query_string()) is not None:
         return qs_value
