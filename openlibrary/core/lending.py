@@ -25,6 +25,8 @@ if TYPE_CHECKING:
     from openlibrary.book_providers import EbookAccess
     from openlibrary.plugins.upstream.models import Edition
 
+    from .waitinglist import WaitingLoan
+
 
 logger = logging.getLogger(__name__)
 
@@ -684,7 +686,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
 )
 
 
-def get_user_waiting_loans(user_key: str):
+def get_user_waiting_loans(user_key: str) -> list['WaitingLoan']:
     """Gets the waitingloans of the patron.
 
     Returns [] if user has no waitingloans.
@@ -720,7 +722,7 @@ def _get_ia_loans_of_user(userid: str) -> list['Loan']:
 
 def create_loan(
     identifier: str, resource_type: str, user_key: str, book_key: str | None = None
-):
+) -> 'Loan' | None:
     """Creates a loan and returns it."""
     ia_loan = ia_lending_api.create_loan(
         identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
