@@ -103,8 +103,16 @@
     flex-shrink: 0;
   }
   summary {
-    display: flex;
     height: 100%;
+    margin: auto;
+    width: 24px;
+    // style for animated arrow on dropdown button. Copied from "Want to Read" dropper above
+    content: "";
+    background: url(/static/images/icons/icon_dropit.png) no-repeat center;
+    background-position: 0;
+    background-size: 45px;
+    // whiten arrow png
+    filter: brightness(0) invert(1);
   }
 
   // hide extra arrow on iOS
@@ -116,21 +124,8 @@
     display: none;
   }
 
-  summary::after {
-    display: block;
-    margin: auto;
-    width: 24px;
-    height: 20px;
-    // style for animated arrow on dropdown button. Copied from "Want to Read" dropper above
-    content: "";
-    background: url(/images/icons/icon_dropit.png) no-repeat center;
-    background-position: 0;
-    background-size: 45px;
-    // whiten arrow png
-    filter: brightness(0) invert(1);
-  }
-  details[open] summary::after {
-    background-position: -22px -1px;
+  details[open] summary {
+    background-position: -22px 48%;
   }
 }
 // dropdown containing Listen/Search/Download/Locate buttons
@@ -159,6 +154,7 @@
   }
   .cta-btn .btn-label {
     padding: 0;
+    flex: 1;
   }
   .cta-btn:hover {
     background-color: @lighter-grey;
@@ -184,7 +180,7 @@
   .btn-icon {
     display: inline-block;
     filter: invert(1);
-    margin: 5px 2px -4px;
+    margin-right: 5px;
     width: 1.25em;
     height: 1.25em;
   }

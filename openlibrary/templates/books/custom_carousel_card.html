@@ -51,7 +51,5 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
         </div>
     </a>
   </div>
-  <div class="book-cta">
-    $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
-  </div>
+  $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
 </div>

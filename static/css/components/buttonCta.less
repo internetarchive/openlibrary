@@ -28,7 +28,8 @@ a.cta-btn {
   transition: background-color 0.2s;
 
   .btn-icon {
-    width: 40px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
   }
   // stylelint-disable-next-line selector-max-specificity
@@ -40,7 +41,8 @@ a.cta-btn {
   }
 
   .btn-label {
-    padding: 0 10px;
+    padding: 8px;
+    padding-right: 0;
   }
 
   &:link,
@@ -135,6 +137,12 @@ a.cta-btn {
     }
   }
 
+  &.cta-btn--w-icon {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+  }
+
   &--sponsor:link,
   &--sponsor:visited {
     color: @link-blue;
@@ -163,10 +171,6 @@ a.cta-btn {
 
   &.cta-btn--external {
     padding-right: 25px;
-    // stylelint-disable-next-line selector-max-specificity
-    .btn-label {
-      padding: 8px 10px;
-    }
   }
 }
 
