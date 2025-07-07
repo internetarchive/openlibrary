@@ -481,7 +481,7 @@ class DirectProvider(AbstractBookProvider):
         Note: This will only work for solr records if the provider field was fetched
         in the solr request. (Note: this field is populated from db)
         """
-        if providers := ed_or_solr.get('providers', []):
+        if ed_or_solr.get('providers'):
             identifiers = [
                 provider.url
                 for provider in map(Acquisition.from_json, ed_or_solr['providers'])
