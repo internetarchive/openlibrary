@@ -202,7 +202,7 @@ class account_migration(delegate.page):
                 ol_account = OpenLibraryAccount.get(username=i.username)
             elif i.email:
                 ol_account = OpenLibraryAccount.get(email=i.email)
-        except Exception as e:
+        except Exception:
             return delegate.RawText(
                 json.dumps({'error': 'bad-account'}), content_type="application/json"
             )

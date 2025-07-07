@@ -464,7 +464,7 @@ class OpenLibraryAccount(Account):
                 password=password,
                 displayname=displayname,
             )
-        except ClientException as e:
+        except ClientException:
             raise ValueError('something_went_wrong')
 
         if verified:
@@ -907,7 +907,7 @@ def audit_accounts(
                     retries=5,
                     test=test,
                 )
-            except ValueError as e:
+            except ValueError:
                 return {'error': 'max_retries_exceeded'}
 
             ol_account.link(ia_account.itemname)

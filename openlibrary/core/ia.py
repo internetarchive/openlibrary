@@ -35,7 +35,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
             api_response = r.json()
         else:
             logger.info(f'{r.status_code} response received from {url}')
-    except Exception as e:
+    except Exception:
         logger.exception(f'Exception occurred accessing {url}.')
     stats.end()
     return api_response

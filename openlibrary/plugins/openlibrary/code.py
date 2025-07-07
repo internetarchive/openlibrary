@@ -886,7 +886,7 @@ class _yaml_edit(_yaml):
 
         try:
             d = self.get_data(key)
-        except web.HTTPError as e:
+        except web.HTTPError:
             if web.ctx.status.lower() == '404 not found':
                 d = {'key': key}
             else:
