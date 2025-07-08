@@ -16,7 +16,6 @@
 
 .read-options,
 .btn-notice {
-  line-height: 1.5em;
   font-size: 1em;
   padding: 15px;
   margin-bottom: 10px;
@@ -26,6 +25,7 @@
   margin-top: 0;
 
   .cta-btn,
+  .cta-button-group,
   .cta-btn.cta-btn--no-pointer {
     margin-bottom: 10px;
   }
@@ -36,20 +36,18 @@
     color: @primary-blue;
     text-decoration: none;
     position: relative;
+    margin: 0 auto;
     margin-top: -15px; // offsets Illustration margin-bottom: 10px
-    margin-bottom: 5px;
-    padding: 5px 20px 10px; // Increasing click area for mobile text link
     background-color: transparent;
+    transition: background-color 0.2s;
 
     // When Preview button is a text link, have it take up only the width
     // of the content (not full 100% width)
-    flex-basis: content;
-    flex-grow: 0;
     width: auto;
 
     /* stylelint-disable selector-max-specificity */
     &:hover {
-      text-decoration: underline;
+      background-color: fade(@primary-blue, 10%);
     }
 
     &::before {
@@ -104,13 +102,7 @@
     display: block;
     font-weight: bold;
   }
-  ul {
-    margin-left: 8px;
-  }
-  li {
-    list-style: disc;
-    margin: 5px 10px 0;
-  }
+
   // stylelint-disable selector-max-specificity
   table {
     width: 100%;
@@ -122,14 +114,25 @@
   // stylelint-enable selector-max-specificity
 }
 
+ul.book-locate-options li,
+ul.ebook-download-options li {
+  margin: 5px 0;
+}
+
 .buy-options-table {
   .more {
     margin-left: 0;
     cursor: pointer;
+  }
 
-    &::marker {
-      content: "";
-    }
+  a,
+  summary {
+    padding: 8px 0;
+  }
+
+  + small {
+    display: block;
+    margin-top: 10px;
   }
 }
 

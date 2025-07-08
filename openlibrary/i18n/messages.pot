@@ -256,7 +256,7 @@ msgid_plural "View %(count)s Editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: EditionNavBar.html site/stats.html
+#: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
 msgstr ""
 
@@ -7046,6 +7046,14 @@ msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
+#: search/layout_options.html
+msgid "Grid"
+msgstr ""
+
+#: search/layout_options.html
+msgid "View as: "
+msgstr ""
+
 #: search/lists.html
 msgid "Search results for Lists"
 msgstr ""
@@ -7480,10 +7488,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
-
-#: type/author/view.html
-msgid "Sort by: "
 msgstr ""
 
 #: type/author/view.html

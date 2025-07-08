@@ -227,25 +227,13 @@ em {
   font-style: italic;
 }
 
-#contentBody {
-  ul,
-  ol {
-    margin-bottom: 20px;
-    margin-left: 0.5em;
-    margin-right: 0.5em;
+// Styles that should apply to markdown documents
+.markdown-content {
+  ol,
+  ul {
+    padding-left: 40px;
   }
-  li,
-  blockquote {
-    line-height: 1.5em;
-  }
-  input[type="submit"] {
-    font-size: 1.125em;
-  }
-  &.map {
-    width: 958px !important;
-    padding: 0 !important;
-    position: relative;
-  }
+
   ol li {
     list-style: decimal;
     color: @dark-grey;
@@ -494,10 +482,13 @@ input {
 
 // openlibrary/templates/search/inside.html
 .search-results-stats {
-  margin: 0;
-  margin-bottom: 10px;
-  color: @grey;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 10px;
   font-size: 0.9em;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
 /* Search v2 */
@@ -926,15 +917,11 @@ div.editThis {
 /* SEARCH RESULTS */
 
 div#searchResults,
-div#searchResults ul {
+div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
   margin-bottom: 0;
-  .dropper-menu {
-    width: 190px;
-    margin-right: 0;
-  }
 }
 
 // openlibrary/templates/books/check.html
@@ -1467,6 +1454,54 @@ ul.list-books {
   // openlibrary/templates/books/show.html
   span.resultType {
     font-size: 0.6875em;
+  }
+}
+
+.list-books--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-gap: 30px 5px;
+  padding: 10px;
+
+  .searchResultItem {
+    padding: 0 5px;
+    background: transparent;
+    border: 0;
+    position: relative;
+
+    &:not(.sri--w-main),
+    .sri__main {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .bookcover {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      margin: 0;
+    }
+
+    > .details,
+    .sri__main > .details {
+      display: none;
+    }
+
+    .searchResultItemCTA {
+      font-size: 0.85em;
+      padding: 0;
+      margin: 0;
+      min-width: unset;
+      width: 100%;
+    }
+
+    .check-in-prompt,
+    .star-rating-form {
+      display: none;
+    }
   }
 }
 

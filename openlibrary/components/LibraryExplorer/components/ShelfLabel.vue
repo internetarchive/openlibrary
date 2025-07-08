@@ -74,7 +74,7 @@ export default {
   padding: 10px;
 }
 
-.shelf-label--classes > summary::marker { display: none; }
+.shelf-label--classes > summary::marker { display: none; font-size: 0; }
 .shelf-label--classes > summary::-webkit-details-marker { display: none; }
 
 .shelf-label--classes .shelf-label--right-arrow {
