@@ -26,14 +26,13 @@ js:
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
 	for js in $(BUILD)/*.js; do \
 		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
-		echo "\n// @license-end"  >> $$js; \
+		echo "\n// @license-end" >> $$js; \
 	done
 
 components:
 	rm -rf $(BUILD)/components
 	mkdir -p $(BUILD)/components
 	npx vite build -c openlibrary/components/vite.config.mjs
-
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
@@ -56,7 +55,7 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-    # Keep link in sync with ol-solr-updater-start and Jenkinsfile
+	# Keep link in sync with ol-solr-updater-start and Jenkinsfile
 	curl -L "https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db" -o $(OSP_DUMP_LOCATION)
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
