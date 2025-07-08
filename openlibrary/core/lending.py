@@ -1,5 +1,7 @@
 """Module for providing core functionality of lending on Open Library."""
 
+from __future__ import annotations  # Needed for 'Loan' return types early on
+
 import datetime
 import logging
 import time
@@ -338,7 +340,7 @@ class AvailabilityStatusV2(AvailabilityStatus):
 
 
 def get_ebook_access_availability(
-    ocaid: str, ebook_access: 'EbookAccess'
+    ocaid: str, ebook_access: EbookAccess
 ) -> AvailabilityStatusV2:
     from openlibrary.book_providers import EbookAccess
 
@@ -568,7 +570,7 @@ def add_availability(
     return items
 
 
-def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
+def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
     """
     Get Editions from OCAIDs and attach their availabiliity.
 
@@ -658,7 +660,7 @@ def _get_ia_loan(identifier: str, userid: str | None = None):
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
 
-def get_loans_of_user(user_key: str) -> list['Loan']:
+def get_loans_of_user(user_key: str) -> list[Loan]:
     """TODO: Remove inclusion of local data; should only come from IA"""
     if 'env' not in web.ctx:
         """For the get_cached_user_loans to call the API if no cache is present,
@@ -686,7 +688,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
 )
 
 
-def get_user_waiting_loans(user_key: str) -> list['WaitingLoan']:
+def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
     """Gets the waitingloans of the patron.
 
     Returns [] if user has no waitingloans.
@@ -715,14 +717,14 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
 )
 
 
-def _get_ia_loans_of_user(userid: str) -> list['Loan']:
+def _get_ia_loans_of_user(userid: str) -> list[Loan]:
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
 
 def create_loan(
     identifier: str, resource_type: str, user_key: str, book_key: str | None = None
-) -> 'Loan' | None:
+) -> Loan | None:
     """Creates a loan and returns it."""
     ia_loan = ia_lending_api.create_loan(
         identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
@@ -803,7 +805,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
 class EBookRecord(dict):
     @staticmethod
-    def find(identifier: str) -> 'EBookRecord':
+    def find(identifier: str) -> EBookRecord:
         key = "ebooks/" + identifier
         d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
@@ -826,7 +828,7 @@ class Loan(dict):
     @staticmethod
     def new(
         identifier: str, resource_type: str, user_key: str, book_key: str | None = None
-    ) -> 'Loan':
+    ) -> Loan:
         """Creates a new loan object.
 
         The caller is expected to call save method to save the loan.
@@ -875,7 +877,7 @@ class Loan(dict):
         )
 
     @staticmethod
-    def from_ia_loan(data: dict) -> "Loan":
+    def from_ia_loan(data: dict) -> Loan:
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:') :]
         elif data['userid'].startswith('@'):
