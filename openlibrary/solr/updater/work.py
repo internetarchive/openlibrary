@@ -36,7 +36,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
     key_prefix = '/works/'
     thing_type = '/type/work'
 
-    async def preload_keys(self, keys: Iterable[str]):
+    async def preload_keys(self, keys: Iterable[str]) -> None:
         await super().preload_keys(keys)
         self.data_provider.preload_editions_of_works(keys)
 
@@ -268,7 +268,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
         trending_data: dict,
-    ):
+    ) -> None:
         self._work = work
         self._editions = editions
         self._authors = authors
@@ -297,7 +297,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return self._work['key']
 
     @property
-    def type(self):
+    def type(self) -> str:
         return 'work'
 
     @property

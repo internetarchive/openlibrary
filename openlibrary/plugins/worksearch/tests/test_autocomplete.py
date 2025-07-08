@@ -7,7 +7,7 @@ from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_auto
 from openlibrary.utils.solr import Solr
 
 
-def test_autocomplete():
+def test_autocomplete() -> None:
     ac = autocomplete()
     with (
         patch('web.input') as mock_web_input,
@@ -30,7 +30,7 @@ def test_autocomplete():
         assert mock_solr_select.call_args.kwargs['rows'] == 5
 
 
-def test_works_autocomplete():
+def test_works_autocomplete() -> None:
     ac = works_autocomplete()
     with (
         patch('web.input') as mock_web_input,

@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 
 
-def send_slack_message(message: str):
+def send_slack_message(message: str) -> None:
     response = requests.post(
         'https://slack.com/api/chat.postMessage',
         headers={

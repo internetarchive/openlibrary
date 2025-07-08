@@ -81,7 +81,7 @@ import_examples = [
 
 
 @pytest.mark.parametrize('data', import_examples)
-def test_import_edition_builder_JSON(data):
+def test_import_edition_builder_JSON(data) -> None:
     edition = import_edition_builder(init_dict=data)
     assert isinstance(edition, import_edition_builder)
     # JSON with the fields above is NOT altered by import_edition_builder

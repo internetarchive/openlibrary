@@ -3,7 +3,7 @@ import pytest
 from openlibrary.utils.lccn import normalize_lccn
 
 
-def test_normalize_lccn_prenormalized():
+def test_normalize_lccn_prenormalized() -> None:
     prenormalized = '94200274'
     assert normalize_lccn(prenormalized) == prenormalized
 
@@ -30,5 +30,5 @@ lccns += [
 
 
 @pytest.mark.parametrize(('raw', 'norm'), lccns)
-def test_normalize_lccn(raw, norm):
+def test_normalize_lccn(raw, norm) -> None:
     assert normalize_lccn(raw) == norm

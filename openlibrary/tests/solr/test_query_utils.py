@@ -22,7 +22,7 @@ REMOVE_TESTS = {
 @pytest.mark.parametrize(
     ('query', 'to_rem', 'expected'), REMOVE_TESTS.values(), ids=REMOVE_TESTS.keys()
 )
-def test_luqum_remove_child(query: str, to_rem: str, expected: str):
+def test_luqum_remove_child(query: str, to_rem: str, expected: str) -> None:
     def fn(query: str, remove: str) -> str:
         q_tree = luqum_parser(query)
         for node, parents in luqum_traverse(q_tree):
@@ -57,7 +57,9 @@ REPLACE_TESTS = {
     REPLACE_TESTS.values(),
     ids=REPLACE_TESTS.keys(),
 )
-def test_luqum_replace_child(query: str, to_rep: str, rep_with: str, expected: str):
+def test_luqum_replace_child(
+    query: str, to_rep: str, rep_with: str, expected: str
+) -> None:
     def fn(query: str, to_replace: str, replace_with: str) -> str:
         q_tree = luqum_parser(query)
         for node, parents in luqum_traverse(q_tree):
@@ -69,7 +71,7 @@ def test_luqum_replace_child(query: str, to_rep: str, rep_with: str, expected: s
     assert fn(query, to_rep, rep_with) == expected
 
 
-def test_luqum_parser():
+def test_luqum_parser() -> None:
     def fn(query: str) -> str:
         return str(luqum_parser(query))
 
@@ -92,7 +94,7 @@ def test_luqum_parser():
     assert fn('NOT title:foo bar') == 'NOT title:foo bar'
 
 
-def test_luqum_replace_field():
+def test_luqum_replace_field() -> None:
     def replace_work_prefix(string: str):
         return string.partition(".")[2] if string.startswith("work.") else string
 
@@ -107,7 +109,7 @@ def test_luqum_replace_field():
     assert fn('edition_key:Joe OR work.title:Bob') == 'edition_key:Joe OR title:Bob'
 
 
-def test_luqum_remove_field():
+def test_luqum_remove_field() -> None:
     def fn(query: str) -> str:
         q = luqum_parser(query)
         try:

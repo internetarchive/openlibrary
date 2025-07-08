@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 
 class Nagios:
-    def __init__(self, url):
+    def __init__(self, url) -> None:
         try:
             self.data = BeautifulSoup(requests.get(url).content, "lxml")
         except Exception as m:
@@ -46,14 +46,14 @@ class Service:
     manipulate it.
     """
 
-    def __init__(self, node, name, nagios, logs=False):
+    def __init__(self, node, name, nagios, logs=False) -> None:
         self.node = node
         self.name = name
         self.logs = logs
         self.status = "Service status(TBD)"
         self.nagios = nagios.get_service_status(name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Service(name = '{self.name}', node = '{self.node}', logs = '{self.logs}')"
         )

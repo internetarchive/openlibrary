@@ -243,7 +243,7 @@ class RawMarcMetadataProvider(AbstractMetadataProvider):
 
 
 class MetadataProviderFactory:
-    def __init__(self):
+    def __init__(self) -> None:
         providers = [
             AmazonMetadataProvider(),
             IaMetadataProvider(),
@@ -262,7 +262,7 @@ class MetadataProviderFactory:
 metadata_provider_factory = MetadataProviderFactory()
 
 
-def setup():
+def setup() -> None:
     pass
 
 

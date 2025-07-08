@@ -50,7 +50,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
                 return e.text
 
 
-def do_import(item, servername=None, require_marc=True):
+def do_import(item, servername=None, require_marc=True) -> None:
     import os
 
     logger.info(f"do_import START (pid:{os.getpid()})")
@@ -71,7 +71,7 @@ def do_import(item, servername=None, require_marc=True):
     logger.info(f"do_import END (pid:{os.getpid()})")
 
 
-def add_items(batch_name, filename):
+def add_items(batch_name, filename) -> None:
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
@@ -111,7 +111,7 @@ def import_ocaids(*ocaids, **kwargs):
             logger.error(f"{ocaid} is not found in the import queue")
 
 
-def add_new_scans(args):
+def add_new_scans(args) -> None:
     """Adds new scans from yesterday."""
     if args:
         datestr = args[0]
@@ -127,7 +127,7 @@ def add_new_scans(args):
     batch.add_items(items)
 
 
-def import_batch(args, **kwargs):
+def import_batch(args, **kwargs) -> None:
     servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     batch_name = args[0]
@@ -140,7 +140,7 @@ def import_batch(args, **kwargs):
         do_import(item, servername=servername, require_marc=require_marc)
 
 
-def import_item(args, **kwargs):
+def import_item(args, **kwargs) -> None:
     servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
@@ -150,7 +150,7 @@ def import_item(args, **kwargs):
         logger.error(f"{ia_id} is not found in the import queue")
 
 
-def import_all(args, **kwargs):
+def import_all(args, **kwargs) -> None:
     import multiprocessing
 
     servername = kwargs.get('servername')

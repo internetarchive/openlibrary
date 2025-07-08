@@ -24,7 +24,7 @@ scheduler = OlAsyncIOScheduler("OL-MONITOR")
 
 @limit_server(["ol-web*", "ol-covers0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
-def log_workers_cur_fn():
+def log_workers_cur_fn() -> None:
     """Logs the state of the gunicorn workers."""
     bash_run(f"log_workers_cur_fn stats.{SERVER}.workers.cur_fn", sources=["utils.sh"])
 
@@ -91,7 +91,7 @@ def log_top_ip_counts():
 
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
-async def monitor_haproxy():
+async def monitor_haproxy() -> None:
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.haproxy_monitor import main
@@ -109,7 +109,7 @@ async def monitor_haproxy():
     )
 
 
-async def main():
+async def main() -> None:
     scheduler.start()
 
     # Keep the main coroutine alive

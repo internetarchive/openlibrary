@@ -111,7 +111,7 @@ class HashIP:
             self.real_ips.close()
 
 
-def main():
+def main() -> None:
     hash_ip = HashIP()
     hash_ip.process_input()
 

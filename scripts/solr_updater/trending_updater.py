@@ -22,7 +22,7 @@ logger = logging.getLogger("openlibrary.trending-updater")
 async def main(
     ol_config: str,
     trending_offset_file: Path | None = None,
-):
+) -> None:
     """
     Useful environment variables:
     - OL_SOLR_BASE_URL: Override the Solr base URL
@@ -49,7 +49,7 @@ async def main(
     if trending_offset_file:
         # If an offset file is specified, add an event listener to the scheduler
         # to update the offset file whenever a job is run.
-        def update_offset(event):
+        def update_offset(event) -> None:
             new_offset = datetime.datetime.now().isoformat()
             print(f"Updating {trending_offset_file} to {new_offset}")
             trending_offset_file.write_text(new_offset + '\n')

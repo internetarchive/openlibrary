@@ -85,19 +85,19 @@ CREATE TABLE yearly_reading_goals (
 
 class TestUpdateWorkID:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(READING_LOG_DDL)
         db.query(BOOKNOTES_DDL)
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         db = get_db()
         db.query("delete from bookshelves_books;")
         db.query("delete from booknotes;")
 
-    def setup_method(self, method):
+    def setup_method(self, method) -> None:
         self.db = get_db()
         self.source_book = {
             "username": "@cdrini",
@@ -108,10 +108,10 @@ class TestUpdateWorkID:
         assert not list(self.db.select("bookshelves_books"))
         self.db.insert("bookshelves_books", **self.source_book)
 
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         self.db.query("delete from bookshelves_books;")
 
-    def test_update_collision(self):
+    def test_update_collision(self) -> None:
         existing_book = {
             "username": "@cdrini",
             "work_id": "2",
@@ -136,11 +136,11 @@ class TestUpdateWorkID:
             )
         ), "old work_id 1 present"
 
-    def test_update_simple(self):
+    def test_update_simple(self) -> None:
         assert len(list(self.db.select("bookshelves_books"))) == 1
         Bookshelves.update_work_id(self.source_book['work_id'], "2")
 
-    def test_no_allow_delete_on_conflict(self):
+    def test_no_allow_delete_on_conflict(self) -> None:
         rows = [
             {"username": "@mek", "work_id": 1, "edition_id": 1, "notes": "Jimmeny"},
             {"username": "@mek", "work_id": 2, "edition_id": 1, "notes": "Cricket"},
@@ -246,27 +246,27 @@ EDITS_QUEUE_SETUP_ROWS = [
 
 class TestUsernameUpdate:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(RATINGS_DDL)
         db.query(OBSERVATIONS_DDL)
         db.query(COMMUNITY_EDITS_QUEUE_DDL)
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.db = get_db()
         self.db.multiple_insert("bookshelves_books", READING_LOG_SETUP_ROWS)
         self.db.multiple_insert("booknotes", BOOKNOTES_SETUP_ROWS)
         self.db.multiple_insert("ratings", RATINGS_SETUP_ROWS)
         self.db.multiple_insert("observations", OBSERVATIONS_SETUP_ROWS)
 
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         self.db.query("delete from bookshelves_books;")
         self.db.query("delete from booknotes;")
         self.db.query("delete from ratings;")
         self.db.query("delete from observations;")
 
-    def test_delete_all_by_username(self):
+    def test_delete_all_by_username(self) -> None:
         assert len(list(self.db.select("bookshelves_books"))) == 3
         Bookshelves.delete_all_by_username("@kilgore_trout")
         assert len(list(self.db.select("bookshelves_books"))) == 1
@@ -283,7 +283,7 @@ class TestUsernameUpdate:
         Observations.delete_all_by_username("@kilgore_trout")
         assert len(list(self.db.select("observations"))) == 1
 
-    def test_update_username(self):
+    def test_update_username(self) -> None:
         self.db.multiple_insert("community_edits_queue", EDITS_QUEUE_SETUP_ROWS)
         before_where = {"username": "@kilgore_trout"}
         after_where = {"username": "@anonymous"}
@@ -381,19 +381,19 @@ BOOKSHELVES_EVENTS_SETUP_ROWS = [
 
 class TestCheckIns:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(BOOKSHELVES_EVENTS_DDL)
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.db = get_db()
         self.db.multiple_insert('bookshelves_events', BOOKSHELVES_EVENTS_SETUP_ROWS)
 
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         self.db.query("delete from bookshelves_events;")
 
-    def test_create_event(self):
+    def test_create_event(self) -> None:
         assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
@@ -418,7 +418,7 @@ class TestCheckIns:
             == 2
         )
 
-    def test_select_all_by_username(self):
+    def test_select_all_by_username(self) -> None:
         assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
@@ -445,7 +445,7 @@ class TestCheckIns:
             == 4
         )
 
-    def test_update_event_date(self):
+    def test_update_event_date(self) -> None:
         assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
         row = self.db.select('bookshelves_events', where={"id": 1})[0]
         assert row['event_date'] == "2022-04-17"
@@ -454,14 +454,14 @@ class TestCheckIns:
         row = self.db.select('bookshelves_events', where={"id": 1})[0]
         assert row['event_date'] == new_date
 
-    def test_delete_by_id(self):
+    def test_delete_by_id(self) -> None:
         assert len(list(self.db.select('bookshelves_events'))) == 6
         assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
         BookshelvesEvents.delete_by_id(1)
         assert len(list(self.db.select('bookshelves_events'))) == 5
         assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 0
 
-    def test_delete_by_username(self):
+    def test_delete_by_username(self) -> None:
         assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
@@ -486,7 +486,7 @@ class TestCheckIns:
             == 0
         )
 
-    def test_get_latest_event_date(self):
+    def test_get_latest_event_date(self) -> None:
         assert (
             BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 3)[
                 'event_date'
@@ -526,19 +526,19 @@ class TestYearlyReadingGoals:
     TABLENAME = YearlyReadingGoals.TABLENAME
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         web.config.db_parameters = {"dbn": 'sqlite', "db": ':memory:'}
         db = get_db()
         db.query(YEARLY_READING_GOALS_DDL)
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.db = get_db()
         self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
 
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         self.db.query('delete from yearly_reading_goals')
 
-    def test_create(self):
+    def test_create(self) -> None:
         assert len(list(self.db.select(self.TABLENAME))) == 3
         assert (
             len(
@@ -565,18 +565,18 @@ class TestYearlyReadingGoals:
         assert len(new_row) == 1
         assert new_row[0]['current'] == 0
 
-    def test_select_by_username_and_year(self):
+    def test_select_by_username_and_year(self) -> None:
         assert (
             len(YearlyReadingGoals.select_by_username_and_year('@billy_pilgrim', 2022))
             == 1
         )
 
-    def test_has_reached_goal(self):
+    def test_has_reached_goal(self) -> None:
         assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022)
         assert not YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023)
         assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022)
 
-    def test_update_current_count(self):
+    def test_update_current_count(self) -> None:
         assert (
             next(
                 iter(
@@ -601,7 +601,7 @@ class TestYearlyReadingGoals:
             == 10
         )
 
-    def test_update_target(self):
+    def test_update_target(self) -> None:
         assert (
             next(
                 iter(
@@ -626,7 +626,7 @@ class TestYearlyReadingGoals:
             == 14
         )
 
-    def test_delete_by_username(self):
+    def test_delete_by_username(self) -> None:
         assert (
             len(
                 list(

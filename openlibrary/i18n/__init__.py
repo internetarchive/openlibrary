@@ -165,7 +165,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
+def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool) -> None:
     # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
     # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
     fixed_creation_date = datetime.fromisoformat('2024-05-01 18:58-0400')
@@ -225,7 +225,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     print('Updated strings written to', path)
 
 
-def compile_translations(locales: list[str]):
+def compile_translations(locales: list[str]) -> None:
     locales_to_update = locales or get_locales()
 
     for locale in locales_to_update:
@@ -236,7 +236,7 @@ def compile_translations(locales: list[str]):
             _compile_translation(po_path, mo_path)
 
 
-def update_translations(locales: list[str]):
+def update_translations(locales: list[str]) -> None:
     locales_to_update = locales or get_locales()
     print(f"Updating {locales_to_update}")
 
@@ -261,7 +261,7 @@ def update_translations(locales: list[str]):
     compile_translations(locales_to_update)
 
 
-def check_status(locales: list[str]):
+def check_status(locales: list[str]) -> None:
     locales_to_update = locales or get_locales()
     pot_path = os.path.join(root, 'messages.pot')
 
@@ -323,7 +323,7 @@ def check_status(locales: list[str]):
             print(f"ERROR: {po_path} does not exist...")
 
 
-def generate_po(args):
+def generate_po(args) -> None:
     if args:
         po_dir = os.path.join(root, args[0])
         pot_src = os.path.join(root, 'messages.pot')
@@ -391,13 +391,13 @@ class LazyGetText:
 
 
 class LazyObject:
-    def __init__(self, creator):
+    def __init__(self, creator) -> None:
         self._creator = creator
 
-    def __str__(self):
+    def __str__(self) -> str:
         return web.safestr(self._creator())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self._creator())
 
     def __add__(self, other):

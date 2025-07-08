@@ -25,7 +25,7 @@ valid_values_strong_identifier = {
 validator = import_validator()
 
 
-def test_validate_both_complete_and_strong():
+def test_validate_both_complete_and_strong() -> None:
     """
     A record that is both complete and that has a strong identifier should
     validate.
@@ -37,7 +37,7 @@ def test_validate_both_complete_and_strong():
 @pytest.mark.parametrize(
     'field', ["title", "source_records", "authors", "publishers", "publish_date"]
 )
-def test_validate_record_with_missing_required_fields(field):
+def test_validate_record_with_missing_required_fields(field) -> None:
     """Ensure a record will not validate as complete without each required field."""
     invalid_values = complete_values.copy()
     del invalid_values[field]
@@ -46,7 +46,7 @@ def test_validate_record_with_missing_required_fields(field):
 
 
 @pytest.mark.parametrize('field', ['title', 'publish_date'])
-def test_cannot_validate_with_empty_string_values(field):
+def test_cannot_validate_with_empty_string_values(field) -> None:
     """Ensure the title and publish_date are not mere empty strings."""
     invalid_values = complete_values.copy()
     invalid_values[field] = ""
@@ -55,7 +55,7 @@ def test_cannot_validate_with_empty_string_values(field):
 
 
 @pytest.mark.parametrize('field', ['source_records', 'authors'])
-def test_cannot_validate_with_with_empty_lists(field):
+def test_cannot_validate_with_with_empty_lists(field) -> None:
     """Ensure list values will not validate if they are empty."""
     invalid_values = complete_values.copy()
     invalid_values[field] = []
@@ -64,7 +64,7 @@ def test_cannot_validate_with_with_empty_lists(field):
 
 
 @pytest.mark.parametrize('field', ['source_records'])
-def test_cannot_validate_list_with_an_empty_string(field):
+def test_cannot_validate_list_with_an_empty_string(field) -> None:
     """Ensure lists will not validate with empty string values."""
     invalid_values = complete_values.copy()
     invalid_values[field] = [""]
@@ -73,7 +73,7 @@ def test_cannot_validate_list_with_an_empty_string(field):
 
 
 @pytest.mark.parametrize('field', ['isbn_10', 'lccn'])
-def test_validate_multiple_strong_identifiers(field):
+def test_validate_multiple_strong_identifiers(field) -> None:
     """Records with more than one strong identifier should still validate."""
     multiple_valid_values = valid_values_strong_identifier.copy()
     multiple_valid_values[field] = ["non-empty"]
@@ -81,7 +81,7 @@ def test_validate_multiple_strong_identifiers(field):
 
 
 @pytest.mark.parametrize('field', ['isbn_13'])
-def test_validate_not_complete_no_strong_identifier(field):
+def test_validate_not_complete_no_strong_identifier(field) -> None:
     """
     Ensure a record cannot validate if it lacks both (1) complete and (2) a title
     and strong identifier, in addition to a source_records field.

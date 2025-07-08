@@ -147,7 +147,7 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
     stats.gauge(f"ol.imports.bwb.{timestamp}.incomplete_records", incomplete_records)
 
 
-def batch_import(promise_id, batch_size=1000, dry_run=False):
+def batch_import(promise_id, batch_size=1000, dry_run=False) -> None:
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
@@ -201,7 +201,7 @@ def get_promise_items_url(start_date: str, end_date: str):
     )
 
 
-def main(ol_config: str, dates: str, dry_run: bool = False):
+def main(ol_config: str, dates: str, dry_run: bool = False) -> None:
     """
     :param ol_config: Path to openlibrary.yml
     :param dates: Get all promise items for this date or date range.

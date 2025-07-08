@@ -11,7 +11,7 @@ from openlibrary.core import cache
 
 
 class Stats:
-    def __init__(self, docs, key, total_key):
+    def __init__(self, docs, key, total_key) -> None:
         self.key = key
         self.docs = docs
         try:

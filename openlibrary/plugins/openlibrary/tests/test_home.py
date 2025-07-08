@@ -9,18 +9,18 @@ from openlibrary.plugins.openlibrary import home
 
 
 class MockDoc(dict):
-    def __init__(self, _id, *largs, **kargs):
+    def __init__(self, _id, *largs, **kargs) -> None:
         self.id = _id
         kargs['_key'] = _id
         super().__init__(*largs, **kargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         o = super().__repr__()
         return f"<{self.id} - {o}>"
 
 
 class TestHomeTemplates:
-    def setup_monkeypatch(self, monkeypatch):
+    def setup_monkeypatch(self, monkeypatch) -> None:
         ctx = web.storage()
         monkeypatch.setattr(web, "ctx", ctx)
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
@@ -29,7 +29,7 @@ class TestHomeTemplates:
         web.ctx.lang = 'en'
         web.ctx.site = MockSite()
 
-    def _load_fake_context(self):
+    def _load_fake_context(self) -> None:
         self.app = web.application()
         self.env = {
             "PATH_INFO": "/",
@@ -37,7 +37,7 @@ class TestHomeTemplates:
         }
         self.app.load(self.env)
 
-    def test_about_template(self, monkeypatch, render_template):
+    def test_about_template(self, monkeypatch, render_template) -> None:
         self.setup_monkeypatch(monkeypatch)
         html = str(render_template("home/about"))
         assert "About the Project" in html
@@ -64,12 +64,12 @@ class TestHomeTemplates:
         assert blog is not None
         assert len(blog.findAll("li")) == 1
 
-    def test_stats_template(self, render_template):
+    def test_stats_template(self, render_template) -> None:
         # Make sure that it works fine without any input (skipping section)
         html = str(render_template("home/stats"))
         assert html == ""
 
-    def test_home_template(self, render_template, mock_site, monkeypatch):
+    def test_home_template(self, render_template, mock_site, monkeypatch) -> None:
         self.setup_monkeypatch(monkeypatch)
         docs = [
             MockDoc(
@@ -130,11 +130,11 @@ class TestHomeTemplates:
 
 
 class Test_format_book_data:
-    def test_all(self, mock_site, mock_ia):
+    def test_all(self, mock_site, mock_ia) -> None:
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
         work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
 
-    def test_authors(self, mock_site, mock_ia):
+    def test_authors(self, mock_site, mock_ia) -> None:
         a1 = mock_site.quicksave("/authors/OL1A", "/type/author", name="A1")
         a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
         work = mock_site.quicksave(

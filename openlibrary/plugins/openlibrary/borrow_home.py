@@ -34,7 +34,7 @@ class borrow_json(delegate.page):
 class read(delegate.page):
     path = "/read"
 
-    def GET(self):
+    def GET(self) -> None:
         web.seeother('/subjects/accessible_book#ebooks=true')
 
 
@@ -42,11 +42,11 @@ class read_json(delegate.page):
     path = "/read"
     encoding = "json"
 
-    def GET(self):
+    def GET(self) -> None:
         web.seeother('/subjects/accessible_book.json' + web.ctx.query)
 
 
-def on_loan_created_statsdb(loan):
+def on_loan_created_statsdb(loan) -> None:
     """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
@@ -62,7 +62,7 @@ def on_loan_created_statsdb(loan):
     statsdb.add_entry(key, d)
 
 
-def on_loan_completed_statsdb(loan):
+def on_loan_completed_statsdb(loan) -> None:
     """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
@@ -89,6 +89,6 @@ def _get_loan_key(loan):
     return "loans/" + loan.get("uuid") or loan["_key"]
 
 
-def setup():
+def setup() -> None:
     eventer.bind("loan-created", on_loan_created_statsdb)
     eventer.bind("loan-completed", on_loan_completed_statsdb)

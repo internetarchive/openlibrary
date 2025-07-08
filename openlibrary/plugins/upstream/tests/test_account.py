@@ -14,7 +14,7 @@ def open_test_data(filename):
     return open(fullpath, mode='rb')
 
 
-def test_create_list_doc(wildcard):
+def test_create_list_doc(wildcard) -> None:
     key = "account/foo/verify"
     username = "foo"
     email = "foo@example.com"
@@ -34,7 +34,7 @@ def test_create_list_doc(wildcard):
 
 
 class TestGoodReadsImport:
-    def setup_method(self, method):
+    def setup_method(self, method) -> None:
         with open_test_data('goodreads_library_export.csv') as reader:
             self.csv_data = reader.read()
 
@@ -146,14 +146,14 @@ class TestGoodReadsImport:
     @pytest.mark.skipif(
         sys.version_info < (3, 0), reason="Python2's csv module doesn't support Unicode"
     )
-    def test_process_goodreads_csv_with_utf8(self):
+    def test_process_goodreads_csv_with_utf8(self) -> None:
         books, books_wo_isbns = account.process_goodreads_csv(
             web.storage({'csv': self.csv_data.decode('utf-8')})
         )
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
 
-    def test_process_goodreads_csv_with_bytes(self):
+    def test_process_goodreads_csv_with_bytes(self) -> None:
         # Note: In Python2, reading data as bytes returns a string, which should
         # also be supported by account.process_goodreads_csv()
         books, books_wo_isbns = account.process_goodreads_csv(

@@ -117,7 +117,7 @@ def convert_pressbooks_to_ol(data):
     return book
 
 
-def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
+def main(ol_config: str, filename: str, batch_size=5000, dry_run=False) -> None:
     if not dry_run:
         load_config(ol_config)
         date = datetime.date.today()

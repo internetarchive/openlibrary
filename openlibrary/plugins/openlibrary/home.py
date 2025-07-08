@@ -84,7 +84,7 @@ def caching_prethread():
     lang = web.ctx.lang
     _is_bot = is_bot()
 
-    def main():
+    def main() -> None:
         # Leaving this in since this is a bit strange, but you can see it clearly
         # in action with this debug line:
         # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
@@ -242,5 +242,5 @@ def format_book_data(book, fetch_availability=True):
     return d
 
 
-def setup():
+def setup() -> None:
     pass

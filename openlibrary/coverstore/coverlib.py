@@ -47,7 +47,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     return d
 
 
-def make_path_prefix(olid, date=None):
+def make_path_prefix(olid, date=None) -> str:
     """Makes a file prefix for storing an image."""
     date = date or datetime.date.today()
     return "%04d/%02d/%02d/%s-%s" % (

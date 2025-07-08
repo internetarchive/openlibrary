@@ -27,7 +27,7 @@ def find_marc_url(d):
         return ""
 
 
-def main(oclc):
+def main(oclc) -> None:
     query = urllib.parse.urlencode(
         {'type': '/type/edition', 'oclc_numbers': oclc, '*': ''}
     )

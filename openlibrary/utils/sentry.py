@@ -63,7 +63,7 @@ class Sentry:
         self.logger = logging.getLogger("sentry")
         self.logger.info(f"Setting up sentry (enabled={self.enabled})")
 
-    def init(self):
+    def init(self) -> None:
         sentry_sdk.init(
             dsn=self.config['dsn'],
             environment=self.config['environment'],
@@ -82,12 +82,12 @@ class Sentry:
         app.internalerror = capture_exception
         app.add_processor(WebPySentryProcessor(app))
 
-    def capture_exception_webpy(self):
+    def capture_exception_webpy(self) -> None:
         with sentry_sdk.new_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
-    def capture_exception(self, ex, extras: dict | None = None):
+    def capture_exception(self, ex, extras: dict | None = None) -> None:
         with sentry_sdk.new_scope() as scope:
             if extras:
                 for key, value in extras.items():
@@ -111,7 +111,7 @@ class InfogamiRoute:
 
 
 class WebPySentryProcessor:
-    def __init__(self, app: web.application):
+    def __init__(self, app: web.application) -> None:
         self.app = app
 
     def find_route_name(self) -> str:

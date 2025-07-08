@@ -1,7 +1,7 @@
 from .. import archive
 
 
-def test_get_filename():
+def test_get_filename() -> None:
     # Basic usage
     assert archive.Batch.get_relpath("0008", "80") == "covers_0008/covers_0008_80"
 
@@ -32,9 +32,9 @@ def test_get_filename():
     )
 
 
-def test_get_batch_end_id():
+def test_get_batch_end_id() -> None:
     assert archive.CoverDB._get_batch_end_id(start_id=8820500) == 8830000
 
 
-def test_id_to_item_and_batch_id():
+def test_id_to_item_and_batch_id() -> None:
     assert archive.Cover.id_to_item_and_batch_id(987_654_321) == ('0987', '65')

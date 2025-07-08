@@ -1,3 +1,5 @@
+from types import TracebackType
+
 import httpx
 import pytest
 
@@ -6,7 +8,7 @@ from openlibrary.tests.solr.test_update import FakeDataProvider, make_author
 
 
 class MockResponse:
-    def __init__(self, json_data, status_code=200):
+    def __init__(self, json_data, status_code=200) -> None:
         self.json_data = json_data
         self.status_code = status_code
 
@@ -16,12 +18,17 @@ class MockResponse:
 
 class TestAuthorUpdater:
     @pytest.mark.asyncio
-    async def test_workless_author(self, monkeypatch):
+    async def test_workless_author(self, monkeypatch) -> None:
         class MockAsyncClient:
             async def __aenter__(self):
                 return self
 
-            async def __aexit__(self, exc_type, exc_val, exc_tb):
+            async def __aexit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> None:
                 pass
 
             async def post(self, *a, **kw):

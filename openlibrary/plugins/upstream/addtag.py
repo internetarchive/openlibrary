@@ -233,6 +233,6 @@ class tag_search(delegate.page):
         return render_template("notfound", f"/tags/-/{type}:{name}", create=False)
 
 
-def setup():
+def setup() -> None:
     """Do required setup."""
     pass

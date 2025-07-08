@@ -10,5 +10,5 @@ class bulk_search(delegate.page):
         return render['bulk_search/bulk_search']()
 
 
-def setup():
+def setup() -> None:
     pass

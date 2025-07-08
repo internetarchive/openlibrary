@@ -5,7 +5,7 @@ from openlibrary.solr.types_generator import generate
 root = os.path.dirname(__file__)
 
 
-def test_up_to_date():
+def test_up_to_date() -> None:
     types_path = os.path.join(root, '..', '..', 'solr', 'solr_types.py')
     with open(types_path) as file:
         assert (

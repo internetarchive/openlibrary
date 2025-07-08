@@ -124,13 +124,13 @@ def import_item_db_staged_and_pending(setup_item_db):
 
 
 class TestImportItem:
-    def test_delete(self, import_item_db):
+    def test_delete(self, import_item_db) -> None:
         assert len(list(import_item_db.select('import_item'))) == 3
 
         ImportItem.delete_items(['unique_id_1'])
         assert len(list(import_item_db.select('import_item'))) == 1
 
-    def test_delete_with_batch_id(self, import_item_db):
+    def test_delete_with_batch_id(self, import_item_db) -> None:
         assert len(list(import_item_db.select('import_item'))) == 3
 
         ImportItem.delete_items(['unique_id_1'], batch_id=1)
@@ -139,11 +139,13 @@ class TestImportItem:
         ImportItem.delete_items(['unique_id_1'], batch_id=2)
         assert len(list(import_item_db.select('import_item'))) == 1
 
-    def test_find_pending_returns_none_with_no_results(self, import_item_db_staged):
+    def test_find_pending_returns_none_with_no_results(
+        self, import_item_db_staged
+    ) -> None:
         """Try with only staged items in the DB."""
         assert ImportItem.find_pending() is None
 
-    def test_find_pending_returns_pending(self, import_item_db):
+    def test_find_pending_returns_pending(self, import_item_db) -> None:
         """Try with some pending items now."""
         items = ImportItem.find_pending()
         assert isinstance(items, map)
@@ -158,7 +160,7 @@ class TestImportItem:
     )
     def test_find_staged_or_pending(
         self, import_item_db_staged_and_pending, ia_id, expected
-    ):
+    ) -> None:
         """Get some staged and pending items by ia_id identifiers."""
         items = ImportItem.find_staged_or_pending([ia_id], sources=["idb"])
         assert [item['id'] for item in items] == expected
@@ -174,7 +176,7 @@ def setup_batch_db():
 
 
 class TestBatchItem:
-    def test_add_items_legacy(self, setup_batch_db):
+    def test_add_items_legacy(self, setup_batch_db) -> None:
         """This tests the legacy format of list[str] for items."""
         legacy_items = ["ocaid_1", "ocaid_2"]
         batch = Batch.new("test-legacy-batch")

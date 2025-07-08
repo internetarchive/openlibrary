@@ -18,7 +18,7 @@ from openlibrary.mocks.mock_memcache import (
 
 
 @pytest.fixture(autouse=True)
-def no_requests(monkeypatch):
+def no_requests(monkeypatch) -> None:
     def mock_request(*args, **kwargs):
         raise Warning('Network requests are blocked in the testing environment')
 
@@ -26,7 +26,7 @@ def no_requests(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def no_sleep(monkeypatch):
+def no_sleep(monkeypatch) -> None:
     def mock_sleep(*args, **kwargs):
         raise Warning(
             '''
@@ -47,13 +47,13 @@ def no_sleep(monkeypatch):
 
 
 @pytest.fixture
-def monkeytime(monkeypatch):
+def monkeytime(monkeypatch) -> None:
     cur_time = 1
 
     def time():
         return cur_time
 
-    def sleep(secs):
+    def sleep(secs) -> None:
         nonlocal cur_time
         cur_time += secs
 

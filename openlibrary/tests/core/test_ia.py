@@ -1,7 +1,7 @@
 from openlibrary.core import ia
 
 
-def test_get_metadata(monkeypatch, mock_memcache):
+def test_get_metadata(monkeypatch, mock_memcache) -> None:
     metadata = {
         "metadata": {
             "title": "Foo",
@@ -20,6 +20,6 @@ def test_get_metadata(monkeypatch, mock_memcache):
     }
 
 
-def test_get_metadata_empty(monkeypatch, mock_memcache):
+def test_get_metadata_empty(monkeypatch, mock_memcache) -> None:
     monkeypatch.setattr(ia, 'get_api_response', lambda *args: {})
     assert ia.get_metadata('foo02bar') == {}

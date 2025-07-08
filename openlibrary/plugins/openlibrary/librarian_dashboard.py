@@ -8,7 +8,7 @@ from openlibrary.i18n import gettext as _
 
 @public
 def get_quality_criteria():
-    def build_url(query_fragment, for_ui=True):
+    def build_url(query_fragment, for_ui=True) -> str:
         page_path = web.ctx.path
         on_author_page = page_path.startswith('/authors/OL')
         base_query = (

@@ -4,7 +4,7 @@ import web
 
 
 class TestMockSite:
-    def test_new_key(self, mock_site):
+    def test_new_key(self, mock_site) -> None:
         ekey = mock_site.new_key('/type/edition')
         assert ekey == '/books/OL1M'
         ekey = mock_site.new_key('/type/edition')
@@ -20,7 +20,7 @@ class TestMockSite:
         akey = mock_site.new_key('/type/author')
         assert akey == '/authors/OL2A'
 
-    def test_get(self, mock_site):
+    def test_get(self, mock_site) -> None:
         doc = {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
@@ -41,7 +41,7 @@ class TestMockSite:
         }
         assert mock_site.get("/books/OL1M").__class__.__name__ == "Edition"
 
-    def test_query(self, mock_site):
+    def test_query(self, mock_site) -> None:
         doc = {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
@@ -76,7 +76,7 @@ class TestMockSite:
         assert mock_site.things({"isbn_": "0123456789"}) == ["/books/OL1M"]
         assert mock_site.things({"isbn_": ["0123456789abc"]}) == ["/books/OL1M"]
 
-    def test_work_authors(self, mock_site):
+    def test_work_authors(self, mock_site) -> None:
         a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
         work = mock_site.quicksave(
             "/works/OL1W",

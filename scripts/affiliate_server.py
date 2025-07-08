@@ -178,7 +178,7 @@ class BaseLookupWorker(threading.Thread):
         self.logger = logger
         self.name = name
 
-    def run(self):
+    def run(self) -> None:
         while True:
             try:
                 item = self.queue.get(timeout=API_MAX_WAIT_SECONDS)
@@ -200,7 +200,7 @@ class AmazonLookupWorker(BaseLookupWorker):
     passes them to process_amazon_batch()
     """
 
-    def run(self):
+    def run(self) -> None:
         while True:
             start_time = time.time()
             asins: set[PrioritizedIdentifier] = set()  # no duplicates in the batch
@@ -706,7 +706,7 @@ def load_config(configfile):
         raise RuntimeError(f"{configfile} is missing required keys.")
 
 
-def setup_env():
+def setup_env() -> None:
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
 
@@ -714,7 +714,7 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
 
-def start_server():
+def start_server() -> None:
     sysargs = sys.argv[1:]
     configfile, args = sysargs[0], sysargs[1:]
     web.ol_configfile = configfile
@@ -740,14 +740,14 @@ def start_server():
     app.run()
 
 
-def start_gunicorn_server():
+def start_gunicorn_server() -> None:
     """Starts the affiliate server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
 
     class WSGIServer(Application):
-        def init(self, parser, opts, args):
+        def init(self, parser, opts, args) -> None:
             pass
 
         def load(self):

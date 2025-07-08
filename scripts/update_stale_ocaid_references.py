@@ -148,7 +148,7 @@ def main(
     until: str | None = None,
     statefile: str | None = None,
     test: bool = True,
-):
+) -> None:
     load_config(ol_config)
     infogami._setup()
     s3_keys = config.get('ia_ol_metadata_write_s3')  # XXX needs dark scope

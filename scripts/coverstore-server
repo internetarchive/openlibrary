@@ -26,7 +26,7 @@ import web
 web.config.debug = False
 
 
-def setup_env():
+def setup_env() -> None:
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
 
@@ -34,20 +34,20 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
 
-def start_server():
+def start_server() -> None:
     from openlibrary.coverstore import server
 
     server.main(*sys.argv[1:])
 
 
-def start_gunicorn_server():
+def start_gunicorn_server() -> None:
     """Starts the coverstore server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
 
     class WSGIServer(Application):
-        def init(self, parser, opts, args):
+        def init(self, parser, opts, args) -> None:
             pass
 
         def load(self):

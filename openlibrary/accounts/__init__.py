@@ -1,3 +1,4 @@
+from types import TracebackType
 from typing import TYPE_CHECKING
 
 import web
@@ -44,7 +45,12 @@ class RunAs:
         web.ctx.conn.set_auth_token(self.tmp_account.generate_login_code())
         return self.tmp_account
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         # Return auth token to original user or no-user
         web.ctx.conn.set_auth_token(self.calling_user_auth_token)
 
@@ -92,17 +98,17 @@ def find(
     return doc and Account(doc)
 
 
-def register(username, email, password, displayname):
+def register(username, email, password, displayname) -> None:
     web.ctx.site.register(
         username=username, email=email, password=password, displayname=displayname
     )
 
 
-def login(username, password):
+def login(username, password) -> None:
     web.ctx.site.login(username, password)
 
 
-def update_account(username, **kargs):
+def update_account(username, **kargs) -> None:
     web.ctx.site.update_account(username, **kargs)
 
 

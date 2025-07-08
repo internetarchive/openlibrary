@@ -70,7 +70,7 @@ async def fetch_seeds_facets(seeds: list[str]):
 
 
 class ListSolrBuilder(AbstractSolrBuilder):
-    def __init__(self, list: dict, solr_reply: dict | None = None):
+    def __init__(self, list: dict, solr_reply: dict | None = None) -> None:
         self._list = list
         self._solr_reply = solr_reply
 

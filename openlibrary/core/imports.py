@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 class Batch(web.storage):
 
-    def __init__(self, mapping, *requires, **defaults):
+    def __init__(self, mapping, *requires, **defaults) -> None:
         """
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
         """
@@ -52,7 +52,7 @@ class Batch(web.storage):
         db.insert("import_batch", name=name, submitter=submitter)
         return Batch.find(name=name)
 
-    def load_items(self, filename):
+    def load_items(self, filename) -> None:
         """Adds all the items specified in the filename to this batch."""
         with open(filename) as file:
             items = [line.strip() for line in file if line.strip()]
@@ -254,7 +254,7 @@ class ImportItem(web.storage):
     @staticmethod
     def bulk_mark_pending(
         identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
-    ):
+    ) -> None:
         """
         Given a list of ISBNs, creates list of `ia_ids` and queries the import_item
         table the `ia_ids`.
@@ -274,7 +274,7 @@ class ImportItem(web.storage):
         )
         db.query(query, vars={'ia_ids': ia_ids})
 
-    def set_status(self, status, error=None, ol_key=None):
+    def set_status(self, status, error=None, ol_key=None) -> None:
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
         d = {
@@ -288,16 +288,16 @@ class ImportItem(web.storage):
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
-    def mark_failed(self, error):
+    def mark_failed(self, error) -> None:
         self.set_status(status='failed', error=error)
 
-    def mark_found(self, ol_key):
+    def mark_found(self, ol_key) -> None:
         self.set_status(status='found', ol_key=ol_key)
 
-    def mark_created(self, ol_key):
+    def mark_created(self, ol_key) -> None:
         self.set_status(status='created', ol_key=ol_key)
 
-    def mark_modified(self, ol_key):
+    def mark_modified(self, ol_key) -> None:
         self.set_status(status='modified', ol_key=ol_key)
 
     @classmethod

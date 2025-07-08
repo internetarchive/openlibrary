@@ -4,7 +4,7 @@ from openlibrary.data.dump import pgdecode, print_dump
 
 
 class TestPrintDump:
-    def test_fixes_prefixes(self, capsys):
+    def test_fixes_prefixes(self, capsys) -> None:
         records = [
             {
                 "key": "/b/OL1M",
@@ -32,7 +32,7 @@ class TestPrintDump:
             ]
         )
 
-    def test_excludes_sensitive_pages(self, capsys):
+    def test_excludes_sensitive_pages(self, capsys) -> None:
         records = [
             {"key": "/people/foo"},
             {"key": "/user/foo"},
@@ -41,7 +41,7 @@ class TestPrintDump:
         print_dump(map(json.dumps, records))
         assert capsys.readouterr().out == ""
 
-    def test_excludes_obsolete_pages(self, capsys):
+    def test_excludes_obsolete_pages(self, capsys) -> None:
         records = [
             {"key": "/scan_record/foo"},
             {"key": "/old/what"},
@@ -52,10 +52,10 @@ class TestPrintDump:
 
 
 class TestPgDecode:
-    def test_pgdecode_substitute(self):
+    def test_pgdecode_substitute(self) -> None:
         assert pgdecode(r"\n\r\t\\") == "\n\r\t\\"
 
-    def test_pgdecode_ascii_printable(self):
+    def test_pgdecode_ascii_printable(self) -> None:
         import string
 
         assert pgdecode(string.printable) == string.printable

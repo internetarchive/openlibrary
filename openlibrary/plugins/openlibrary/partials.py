@@ -37,7 +37,7 @@ class CarouselCardPartial(PartialDataHandler):
 
     MAX_VISIBLE_CARDS = 5
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(params=None)
 
     def generate(self) -> dict:
@@ -159,7 +159,7 @@ class CarouselCardPartial(PartialDataHandler):
 class AffiliateLinksPartial(PartialDataHandler):
     """Handler for affiliate links"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(data=None)
 
     def generate(self) -> dict:
@@ -176,7 +176,7 @@ class AffiliateLinksPartial(PartialDataHandler):
 class SearchFacetsPartial(PartialDataHandler):
     """Handler for search facets sidebar and "selected facets" affordances."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(data=None)
 
     def generate(self) -> dict:
@@ -217,7 +217,7 @@ class SearchFacetsPartial(PartialDataHandler):
 class FullTextSuggestionsPartial(PartialDataHandler):
     """Handler for rendering full-text search suggestions."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(data=None)
 
     def generate(self) -> dict:
@@ -240,7 +240,7 @@ class FullTextSuggestionsPartial(PartialDataHandler):
 class BookPageListsPartial(PartialDataHandler):
     """Handler for rendering the book page "Lists" section"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(workId="", editionId="")
 
     def generate(self) -> dict:
@@ -280,7 +280,7 @@ class BookPageListsPartial(PartialDataHandler):
 class LazyCarouselPartial(PartialDataHandler):
     """Handler for lazily-loaded query carousels."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.i = web.input(
             query="",
             title=None,
@@ -351,5 +351,5 @@ class Partials(delegate.page):
         )
 
 
-def setup():
+def setup() -> None:
     pass

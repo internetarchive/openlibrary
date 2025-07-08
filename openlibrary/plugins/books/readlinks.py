@@ -102,7 +102,7 @@ def get_solr_edition_records(iaids):
 
 
 class ReadProcessor:
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         self.options = options
 
     def get_item_status(self, ekey, iaid, collections) -> str:

@@ -23,7 +23,7 @@ def setup(config_path):
     infogami._setup()
 
 
-def delete_records(batches):
+def delete_records(batches) -> None:
     """
     Deletes batches of `merge-authors-debug` records.
 
@@ -40,7 +40,7 @@ def delete_records(batches):
         batches -= 1
 
 
-def main(args):
+def main(args) -> None:
     setup(args.config)
     delete_records(args.batches)
 

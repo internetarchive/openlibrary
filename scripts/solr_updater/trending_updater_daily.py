@@ -28,7 +28,7 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
     return {"key": work_id, f'trending_score_daily_{current_day}': {"set": new_value}}
 
 
-def run_daily_update(timestamp: str | None = None, dry_run: bool = False):
+def run_daily_update(timestamp: str | None = None, dry_run: bool = False) -> None:
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
     else:

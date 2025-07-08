@@ -161,7 +161,7 @@ def admin_total__authors(**kargs):
     return _count_things(db, "/type/author")
 
 
-def admin_total__subjects(**kargs):
+def admin_total__subjects(**kargs) -> int:
     # Anand - Dec 2014 - TODO
     # Earlier implementation that uses couchdb is gone now
     return 0
@@ -235,13 +235,13 @@ def admin_total__members(**kargs):
     return _count_things(db, '/type/user')
 
 
-def admin_delta__ebooks(**kargs):
+def admin_delta__ebooks(**kargs) -> int:
     # Anand - Dec 2014 - TODO
     # Earlier implementation that uses couchdb is gone now
     return 0
 
 
-def admin_delta__subjects(**kargs):
+def admin_delta__subjects(**kargs) -> int:
     # Anand - Dec 2014 - TODO
     # Earlier implementation that uses couchdb is gone now
     return 0

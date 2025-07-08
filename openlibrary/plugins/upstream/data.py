@@ -25,7 +25,7 @@ get_ol_dumps = web.memoize(get_ol_dumps, 30 * 60, background=True)
 # public(get_ol_dumps)
 
 
-def download_url(item, filename):
+def download_url(item, filename) -> str:
     return f"{IA_BASE_URL}/download/{item}/{filename}"
 
 
@@ -95,5 +95,5 @@ class ol_cdumps(delegate.page):
             raise web.found(download_url(item, item + ".txt.gz"))
 
 
-def setup():
+def setup() -> None:
     pass

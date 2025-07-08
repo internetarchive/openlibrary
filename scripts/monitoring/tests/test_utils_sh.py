@@ -3,7 +3,7 @@ import tempfile
 from scripts.monitoring.utils import bash_run
 
 
-def test_bash_run():
+def test_bash_run() -> None:
     # Test without sources
     output = bash_run("echo 'Hello, World!'", capture_output=True)
     assert output.stdout.strip() == "Hello, World!"
@@ -26,7 +26,7 @@ def test_bash_run():
         assert output.stdout.strip() == "source1 source2"
 
 
-def test_log_recent_bot_traffic():
+def test_log_recent_bot_traffic() -> None:
     with (
         tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
@@ -67,7 +67,7 @@ stats.ol-covers0.bot_traffic.non_bot 6 1741054377
             assert f.read().strip() == expected_output
 
 
-def test_log_recent_http_statuses():
+def test_log_recent_http_statuses() -> None:
     with (
         tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,

@@ -11,7 +11,7 @@ class Client:
     Compatible with memcache Client API.
     """
 
-    def __init__(self, servers):
+    def __init__(self, servers) -> None:
         self._client = memcache.Client(servers)
         compressor = OLCompressor()
         self.compress = compressor.compress

@@ -20,7 +20,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 class languages(subjects.subjects):
     path = '(/languages/[^_][^/]*)'
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "languages" in web.ctx.features
 
 
@@ -28,7 +28,7 @@ class languages_json(subjects.subjects_json):
     path = '(/languages/[^_][^/]*)'
     encoding = "json"
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "languages" in web.ctx.features
 
     def normalize_key(self, key):
@@ -96,7 +96,7 @@ class index(delegate.page):
 
         return render_template("languages/index", get_top_languages(500, sort=sort))
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return True
 
 
@@ -158,7 +158,7 @@ class LanguageEngine(subjects.SubjectEngine):
         return counts.get('true')
 
 
-def setup():
+def setup() -> None:
     subjects.SUBJECTS.append(
         subjects.SubjectMeta(
             name="language",

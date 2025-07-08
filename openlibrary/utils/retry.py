@@ -4,7 +4,7 @@ import time
 class MaxRetriesExceeded(Exception):
     last_exception: Exception
 
-    def __init__(self, last_exception: Exception):
+    def __init__(self, last_exception: Exception) -> None:
         self.last_exception = last_exception
 
 
@@ -12,7 +12,9 @@ class RetryStrategy:
     retry_count = 0
     last_exception: Exception | None = None
 
-    def __init__(self, exceptions: list[type[Exception]], max_retries=3, delay=1):
+    def __init__(
+        self, exceptions: list[type[Exception]], max_retries=3, delay=1
+    ) -> None:
         self.exceptions = exceptions
         self.max_retries = max_retries
         self.delay = delay

@@ -18,7 +18,7 @@ INVALIDATING_ERRORS = [
 
 
 class Recaptcha(web.form.Input):
-    def __init__(self, public_key, private_key):
+    def __init__(self, public_key, private_key) -> None:
         self.public_key = public_key
         self._private_key = private_key
         validator = web.form.Validator('Recaptcha failed', self.validate)

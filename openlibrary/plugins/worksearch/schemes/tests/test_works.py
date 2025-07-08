@@ -117,7 +117,7 @@ QUERY_PARSER_TESTS = {
     QUERY_PARSER_TESTS.values(),
     ids=QUERY_PARSER_TESTS.keys(),
 )
-def test_process_user_query(query, parsed_query):
+def test_process_user_query(query, parsed_query) -> None:
     s = WorkSearchScheme()
     assert s.process_user_query(query) == parsed_query
 
@@ -132,7 +132,7 @@ EDITION_KEY_TESTS = {
 
 
 @pytest.mark.parametrize(('query', 'edQuery'), EDITION_KEY_TESTS.items())
-def test_q_to_solr_params_edition_key(query, edQuery):
+def test_q_to_solr_params_edition_key(query, edQuery) -> None:
     import web
 
     web.ctx.lang = 'en'

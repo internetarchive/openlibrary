@@ -4,7 +4,7 @@ from openlibrary.plugins.upstream.utils import convert_iso_to_marc, get_language
 
 
 @pytest.fixture
-def add_languages(mock_site):
+def add_languages(mock_site) -> None:
     # A lot of these are cached in the utils module with functools.cache,
     # so wipe that cache out first.
     get_languages.cache_clear()

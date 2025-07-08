@@ -60,7 +60,7 @@ class ISBNdb:
     )
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
-    def __init__(self, data: dict[str, Any]):
+    def __init__(self, data: dict[str, Any]) -> None:
         self.isbn_13 = [data.get('isbn13')]
         self.source_id = f'idb:{self.isbn_13[0]}'
         self.title = data.get('title')
@@ -200,7 +200,9 @@ def update_state(logfile: str, fname: str, line_num: int = 0) -> None:
 
 # TODO: It's possible `batch_import()` could be modified to take a parsing function
 # and a filter function instead of hardcoding in `csv_to_ol_json_item()` and some filters.
-def batch_import(path: str, batch: Batch, import_status: str, batch_size: int = 5000):
+def batch_import(
+    path: str, batch: Batch, import_status: str, batch_size: int = 5000
+) -> None:
     logfile = os.path.join(path, 'import.log')
     filenames, offset = load_state(path, logfile)
 

@@ -22,7 +22,7 @@ from .db import get_db
 logger = logging.getLogger("openlibrary.statsdb")
 
 
-def add_entry(key, data, timestamp=None):
+def add_entry(key, data, timestamp=None) -> None:
     """Adds a new entry to the stats table.
 
     If an entry is already present in the table, a warn message is logged
@@ -48,7 +48,7 @@ def get_entry(key):
         return result[0]
 
 
-def update_entry(key, data, timestamp=None):
+def update_entry(key, data, timestamp=None) -> None:
     """Updates an already existing entry in the stats table.
 
     If there is no entry with the given key, a new one will be added

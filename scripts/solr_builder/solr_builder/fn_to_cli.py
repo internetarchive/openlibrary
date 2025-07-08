@@ -33,7 +33,7 @@ class FnToCLI:
         FnToCLI(my_func).run()
     """
 
-    def __init__(self, fn: typing.Callable):
+    def __init__(self, fn: typing.Callable) -> None:
         self.fn = fn
         arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
         annotations = typing.get_type_hints(fn)
@@ -128,7 +128,7 @@ class FnToCLI:
 
 if __name__ == '__main__':
 
-    def fn(nums: list[int]):
+    def fn(nums: list[int]) -> None:
         print(sum(nums))
 
     cli = FnToCLI(fn)

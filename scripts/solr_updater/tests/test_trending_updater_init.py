@@ -9,10 +9,10 @@ class TestTrendingUpdaterInit:
     def _run_main(self, fake_now, main_kwargs):
         calls = []
 
-        def fake_daily(timestamp, dry_run):
+        def fake_daily(timestamp, dry_run) -> None:
             calls.append(("daily", timestamp))
 
-        def fake_hourly(timestamp, dry_run):
+        def fake_hourly(timestamp, dry_run) -> None:
             calls.append(("hourly", timestamp))
 
         class PatchedDateTime(datetime.datetime):
@@ -38,7 +38,7 @@ class TestTrendingUpdaterInit:
 
         return calls
 
-    def test_main_calls_hourly_and_daily_correctly(self):
+    def test_main_calls_hourly_and_daily_correctly(self) -> None:
         fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
         start = datetime.datetime(2025, 6, 26, 0, 5, 0)
         actual_calls = self._run_main(
@@ -50,7 +50,7 @@ class TestTrendingUpdaterInit:
         assert num_hourly == 27
         assert num_daily == 2
 
-    def test_main_default_7_days(self):
+    def test_main_default_7_days(self) -> None:
         fake_now = datetime.datetime(2025, 6, 27, 0, 0, 0)
         actual_calls = self._run_main(fake_now, {"dry_run": True})
         # There should be 168 hourly events (7 days * 24 hours) and 7 daily events
@@ -59,7 +59,7 @@ class TestTrendingUpdaterInit:
         assert num_hourly == 168
         assert num_daily == 7
 
-    def test_main_less_than_one_hour(self):
+    def test_main_less_than_one_hour(self) -> None:
         fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
         # Start is 2025-06-27 02:30:00, less than an hour before fake_now
         start = datetime.datetime(2025, 6, 27, 2, 30, 0)
@@ -72,7 +72,7 @@ class TestTrendingUpdaterInit:
         ]
         assert actual_calls == expected_calls
 
-    def test_main_three_hours(self):
+    def test_main_three_hours(self) -> None:
         fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
         start = datetime.datetime(2025, 6, 27, 0, 30, 0)
 

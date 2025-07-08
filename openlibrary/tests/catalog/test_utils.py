@@ -27,7 +27,7 @@ from openlibrary.catalog.utils import (
 )
 
 
-def test_author_dates_match():
+def test_author_dates_match() -> None:
     _atype = {'key': '/type/author'}
     basic = {
         'name': 'John Smith',
@@ -82,13 +82,13 @@ def test_author_dates_match():
     )  # this shows matches are only occurring on year, full dates are ignored!
 
 
-def test_flip_name():
+def test_flip_name() -> None:
     assert flip_name('Smith, John.') == 'John Smith'
     assert flip_name('Smith, J.') == 'J. Smith'
     assert flip_name('No comma.') == 'No comma'
 
 
-def test_pick_first_date():
+def test_pick_first_date() -> None:
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
     assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
     assert pick_first_date(["1900-1990.."]) == {
@@ -98,7 +98,7 @@ def test_pick_first_date():
     assert pick_first_date(["4th/5th cent."]) == {'date': '4th/5th cent.'}
 
 
-def test_pick_best_name():
+def test_pick_best_name() -> None:
     names = [
         'Andre\u0301 Joa\u0303o Antonil',
         'Andr\xe9 Jo\xe3o Antonil',
@@ -116,7 +116,7 @@ def test_pick_best_name():
     assert pick_best_name(names) == best
 
 
-def test_pick_best_author():
+def test_pick_best_author() -> None:
     a1 = {
         'name': 'Bretteville, Etienne Dubois abb\xe9 de',
         'death_date': '1688',
@@ -147,7 +147,7 @@ def combinations(items, n):
                 yield [items[i]] + cc
 
 
-def test_match_with_bad_chars():
+def test_match_with_bad_chars() -> None:
     samples = [
         ['Machiavelli, Niccolo, 1469-1527', 'Machiavelli, Niccol\xf2 1469-1527'],
         ['Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
@@ -177,7 +177,7 @@ def test_match_with_bad_chars():
             assert match_with_bad_chars(a, b)
 
 
-def test_strip_count():
+def test_strip_count() -> None:
     input = [
         ('Side by side', ['a', 'b', 'c', 'd']),
         ('Side by side.', ['e', 'f', 'g']),
@@ -190,7 +190,7 @@ def test_strip_count():
     assert strip_count(input) == expect
 
 
-def test_remove_trailing_dot():
+def test_remove_trailing_dot() -> None:
     data = [
         ('Test', 'Test'),
         ('Test.', 'Test'),

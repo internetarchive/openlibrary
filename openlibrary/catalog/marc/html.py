@@ -19,7 +19,7 @@ def subfields(line):
 
 
 class html_record:
-    def __init__(self, data):
+    def __init__(self, data) -> None:
         assert len(data) == int(data[:5])
         self.data = data
         self.record = Record(data)

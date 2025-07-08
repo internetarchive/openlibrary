@@ -9,14 +9,14 @@ from openlibrary.api import unmarshal
 class Text(str):
     __slots__ = ()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<text: %s>" % str.__repr__(self)
 
 
 class Reference(str):
     __slots__ = ()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<ref: %s>" % str.__repr__(self)
 
 

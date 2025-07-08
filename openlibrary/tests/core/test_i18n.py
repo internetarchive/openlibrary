@@ -20,12 +20,12 @@ class MockLoadTranslations(dict):
     def __call__(self, lang):
         return self.get(lang)
 
-    def init(self, lang, translations):
+    def init(self, lang, translations) -> None:
         self[lang] = MockTranslations(translations)
 
 
 class Test_ungettext:
-    def setup_monkeypatch(self, monkeypatch):
+    def setup_monkeypatch(self, monkeypatch) -> None:
         self.d = MockLoadTranslations()
         ctx = web.storage()
 
@@ -37,7 +37,7 @@ class Test_ungettext:
         web.ctx.lang = 'en'
         web.ctx.site = MockSite()
 
-    def _load_fake_context(self):
+    def _load_fake_context(self) -> None:
         self.app = web.application()
         self.env = {
             "PATH_INFO": "/",
@@ -45,7 +45,7 @@ class Test_ungettext:
         }
         self.app.load(self.env)
 
-    def test_ungettext(self, monkeypatch):
+    def test_ungettext(self, monkeypatch) -> None:
         self.setup_monkeypatch(monkeypatch)
 
         assert i18n.ungettext("book", "books", 1) == "book"
@@ -67,7 +67,7 @@ class Test_ungettext:
         assert i18n.ungettext("book", "books", 1) == "book"
         assert i18n.ungettext("book", "books", 2) == "books"
 
-    def test_ungettext_with_args(self, monkeypatch):
+    def test_ungettext_with_args(self, monkeypatch) -> None:
         self.setup_monkeypatch(monkeypatch)
 
         assert i18n.ungettext("one book", "%(n)d books", 1, n=1) == "one book"

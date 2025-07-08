@@ -146,7 +146,7 @@ class recentchanges_view(delegate.page):
     def is_enabled(self):
         return features.is_enabled("recentchanges_v2")
 
-    def get_change_url(self, change):
+    def get_change_url(self, change) -> str:
         t = change.timestamp
         return "/recentchanges/%04d/%02d/%02d/%s/%s" % (
             t.year,

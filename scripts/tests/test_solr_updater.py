@@ -8,7 +8,7 @@ from scripts.solr_updater.solr_updater import parse_log
 
 
 class TestParseLog:
-    def test_action_save(self):
+    def test_action_save(self) -> None:
         sample_record = {
             'action': 'save',
             'site': 'openlibrary.org',
@@ -86,7 +86,7 @@ class TestParseLog:
             '/authors/OL9352911A',
         ]
 
-    def test_move_edition(self):
+    def test_move_edition(self) -> None:
         sample_record = {
             'action': 'save_many',
             'site': 'openlibrary.org',
@@ -164,7 +164,7 @@ class TestParseLog:
             '/works/OL362427W',
         ]
 
-    def test_new_account(self):
+    def test_new_account(self) -> None:
         sample_record = {
             'action': 'save_many',
             'site': 'openlibrary.org',

@@ -25,7 +25,7 @@ from openlibrary.utils.shutdown import setup_graceful_shutdown
 logger = logging.getLogger("openlibrary." + __file__)
 
 
-def setup_env():
+def setup_env() -> None:
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
 
@@ -33,7 +33,7 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
 
-def main(args):
+def main(args) -> None:
     if len(args) < 1 or args[0] in ['-h', '--help']:
         print("USAGE: %s configfile [port]" % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
@@ -83,14 +83,14 @@ def runfcgi(func, addr=('localhost', 8000)):
     ).run()
 
 
-def start_gunicorn_server():
+def start_gunicorn_server() -> None:
     """Starts the infobase server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
 
     class WSGIServer(Application):
-        def init(self, parser, opts, args):
+        def init(self, parser, opts, args) -> None:
             pass
 
         def load(self):

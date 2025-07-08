@@ -277,7 +277,7 @@ class lists(delegate.page):
 
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "lists" in web.ctx.features
 
     def GET(self, path):
@@ -871,7 +871,7 @@ class feeds(delegate.page):
         return render_template("lists/feed_updates.xml", lst)
 
 
-def setup():
+def setup() -> None:
     pass
 
 
@@ -907,7 +907,7 @@ def get_cached_recently_modified_lists(limit, offset=0):
     return f(limit, offset=offset)
 
 
-def _preload_lists(lists):
+def _preload_lists(lists) -> None:
     """Preloads all referenced documents for each list.
     List can be either a dict of a model object.
     """

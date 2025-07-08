@@ -5,7 +5,7 @@ from openlibrary.utils.sentry import InfogamiSentryProcessor, Sentry, init_sentr
 sentry: Sentry | None = None
 
 
-def setup():
+def setup() -> None:
     global sentry
     if sentry is not None:
         # Avoid attaching exception hooks multiple times

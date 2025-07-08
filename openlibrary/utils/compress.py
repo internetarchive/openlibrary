@@ -34,7 +34,7 @@ some_record, and restored_record being identical to some_record.
 
 
 class Compressor:
-    def __init__(self, seed):
+    def __init__(self, seed) -> None:
         c = zlib.compressobj(9)
         d_seed = c.compress(seed.encode())
         d_seed += c.flush(zlib.Z_SYNC_FLUSH)
@@ -64,7 +64,7 @@ class Compressor:
         return t.decode()
 
 
-def test_compressor():
+def test_compressor() -> None:
     """
     >>> test_compressor()  # Self-doctest this code.
     """

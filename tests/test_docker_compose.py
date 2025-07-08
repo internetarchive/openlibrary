@@ -9,7 +9,7 @@ def p(*paths):
 
 
 class TestDockerCompose:
-    def test_all_root_services_must_be_in_prod(self):
+    def test_all_root_services_must_be_in_prod(self) -> None:
         """
         Each service in compose.yaml should also be in
         compose.production.yaml with a profile. Services without profiles will
@@ -24,7 +24,7 @@ class TestDockerCompose:
         missing = root_services - prod_services
         assert missing == set(), "compose.production.yaml missing services"
 
-    def test_all_prod_services_need_profile(self):
+    def test_all_prod_services_need_profile(self) -> None:
         """
         Without the profiles field, a service will get deployed to _every_ server. That
         is not likely what you want. If that is what you want, add all server names to
@@ -35,7 +35,7 @@ class TestDockerCompose:
         for serv, opts in prod_dc['services'].items():
             assert 'profiles' in opts, f"{serv} is missing 'profiles' field"
 
-    def test_shared_constants(self):
+    def test_shared_constants(self) -> None:
         # read the value in compose.yaml
         with open(p('..', 'compose.yaml')) as f:
             prod_dc: dict = yaml.safe_load(f)

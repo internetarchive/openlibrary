@@ -3,7 +3,7 @@ from typing import cast
 from openlibrary.core.lists.model import List, Seed, ThingReferenceDict
 
 
-def test_seed_with_string():
+def test_seed_with_string() -> None:
     lst = List(None, "/list/OL1L", None)
     seed = Seed(lst, "subject/Politics and government")
     assert seed._list == lst
@@ -12,7 +12,7 @@ def test_seed_with_string():
     assert seed.type == "subject"
 
 
-def test_seed_with_nonstring():
+def test_seed_with_nonstring() -> None:
     lst = List(None, "/list/OL1L", None)
     not_a_string = cast(ThingReferenceDict, {"key": "not_a_string.key"})
     seed = Seed.from_json(lst, not_a_string)

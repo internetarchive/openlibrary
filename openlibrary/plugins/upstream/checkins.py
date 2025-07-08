@@ -250,7 +250,7 @@ def get_reading_goals(year=None):
 
 
 class YearlyGoal:
-    def __init__(self, year, goal, books_read):
+    def __init__(self, year, goal, books_read) -> None:
         self.year = year
         self.goal = goal
         self.books_read = books_read
@@ -274,5 +274,5 @@ class ui_partials(delegate.page):
         return delegate.RawText(json.dumps(partials))
 
 
-def setup():
+def setup() -> None:
     pass

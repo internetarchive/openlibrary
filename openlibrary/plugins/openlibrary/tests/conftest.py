@@ -1,13 +1,13 @@
 collect_ignore = ['test_listapi.py', 'test_ratingsapi.py']
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser) -> None:
     parser.addoption("--server", default=None)
     parser.addoption("--username")
     parser.addoption("--password")
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     print("pytest_configure", config.getvalue("server"))
 
     if config.getvalue("server"):

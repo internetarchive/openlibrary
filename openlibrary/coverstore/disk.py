@@ -26,7 +26,7 @@ class Disk:
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     """
 
-    def __init__(self, root):
+    def __init__(self, root) -> None:
         self.root = root
         if not os.path.exists(root):
             os.makedirs(root)
@@ -61,7 +61,7 @@ class LayeredDisk:
     read happens on the first disk where the file is available.
     """
 
-    def __init__(self, disks):
+    def __init__(self, disks) -> None:
         self.disks = disks
 
     def read(self, filename):

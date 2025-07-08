@@ -18,7 +18,7 @@ solr_base_url = None
 solr_next: bool | None = None
 
 
-def load_config(c_config='conf/openlibrary.yml'):
+def load_config(c_config='conf/openlibrary.yml') -> None:
     if not config.runtime_config:
         config.load(c_config)
         config.load_config(c_config)
@@ -44,7 +44,7 @@ def get_solr_base_url():
     return solr_base_url
 
 
-def set_solr_base_url(solr_url: str):
+def set_solr_base_url(solr_url: str) -> None:
     global solr_base_url
     solr_base_url = solr_url
 
@@ -69,7 +69,7 @@ def get_solr_next() -> bool:
     return solr_next
 
 
-def set_solr_next(val: bool):
+def set_solr_next(val: bool) -> None:
     global solr_next
     solr_next = val
 
@@ -187,7 +187,7 @@ async def solr_insert_documents(
     documents: list[dict],
     solr_base_url: str | None = None,
     skip_id_check=False,
-):
+) -> None:
     """
     Note: This has only been tested with Solr 8, but might work with Solr 3 as well.
     """

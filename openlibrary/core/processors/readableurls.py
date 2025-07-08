@@ -15,7 +15,7 @@ try:
     from booklending_utils.openlibrary import is_exclusion
 except ImportError:
 
-    def is_exclusion(obj):
+    def is_exclusion(obj) -> bool:
         """Processor for determining whether records require exclusion"""
         return False
 

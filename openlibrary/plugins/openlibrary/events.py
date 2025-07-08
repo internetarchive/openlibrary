@@ -10,14 +10,14 @@ from infogami.infobase import client
 logger = logging.getLogger("openlibrary.events")
 
 
-def on_page_edit(page):
+def on_page_edit(page) -> None:
     pass
 
 
 class EditHook(client.hook):
     """Ugly Interface provided by Infobase to get event notifications."""
 
-    def on_new_version(self, page):
+    def on_new_version(self, page) -> None:
         """Fires page.edit event using msg broker."""
         # The argument passes by Infobase is not a thing object.
         # Create a thing object to pass to event listeners.
@@ -25,6 +25,6 @@ class EditHook(client.hook):
         eventer.trigger("page.edit", page)
 
 
-def setup():
+def setup() -> None:
     """Installs handlers for various events."""
     eventer.bind("page.edit", on_page_edit)

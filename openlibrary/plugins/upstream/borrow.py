@@ -385,7 +385,7 @@ class ia_borrow_notify(delegate.page):
 
     path = "/borrow/notify"
 
-    def POST(self):
+    def POST(self) -> None:
         payload = web.data()
         d = json.loads(payload)
         identifier = d and d.get('identifier')

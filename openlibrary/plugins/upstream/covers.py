@@ -21,12 +21,12 @@ from openlibrary.plugins.upstream.utils import (
 logger = getLogger("openlibrary.plugins.upstream.covers")
 
 
-def setup():
+def setup() -> None:
     pass
 
 
 class image_validator:
-    def __init__(self):
+    def __init__(self) -> None:
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
         self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png', '.webp'}
 
@@ -127,7 +127,7 @@ class add_cover(delegate.page):
             logger.exception("Covers upload failed")
             return web.storage({'error': str(e)})
 
-    def save(self, book, coverid, url=None):
+    def save(self, book, coverid, url=None) -> None:
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
         book._save(
             f'{get_coverstore_public_url()}/b/id/{coverid}-S.jpg',
@@ -160,7 +160,7 @@ class add_photo(add_cover):
             'covers/add', author, {'wikidata_images': wikidata_images}
         )
 
-    def save(self, author, photoid, url=None):
+    def save(self, author, photoid, url=None) -> None:
         author.photos = [photoid] + [photo.id for photo in author.get_photos()]
         author._save("Added new photo", action="add-photo", data={"url": url})
 
@@ -180,7 +180,7 @@ class manage_covers(delegate.page):
     def get_image(self, book):
         return book.get_cover()
 
-    def save_images(self, book, covers):
+    def save_images(self, book, covers) -> None:
         book.covers = covers
         book._save('Update covers')
 
@@ -212,6 +212,6 @@ class manage_photos(manage_covers):
     def get_image(self, author):
         return author.get_photo()
 
-    def save_images(self, author, photos):
+    def save_images(self, author, photos) -> None:
         author.photos = photos
         author._save('Update photos')

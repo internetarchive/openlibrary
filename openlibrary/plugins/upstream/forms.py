@@ -67,7 +67,7 @@ vemail = RegexpValidator(
 
 
 class EqualToValidator(Validator):
-    def __init__(self, fieldname, message):
+    def __init__(self, fieldname, message) -> None:
         Validator.__init__(self, message, None)
         self.fieldname = fieldname
         self.form = None
@@ -129,7 +129,7 @@ class RegisterForm(Form):
         ),
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         Form.__init__(self, *self.INPUTS)
 
     def validates(self, source):
@@ -145,7 +145,7 @@ Register = RegisterForm()
 forms.register = RegisterForm()
 
 
-def verify_password(password):
+def verify_password(password) -> bool:
     user = accounts.get_current_user()
     if user is None:
         return False

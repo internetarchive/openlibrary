@@ -242,7 +242,7 @@ TEST_DATA = Path(__file__).with_name('test_data')
 
 class TestSubjects:
     @pytest.mark.parametrize(('item', 'expected'), xml_samples)
-    def test_subjects_xml(self, item, expected):
+    def test_subjects_xml(self, item, expected) -> None:
         filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
         element = etree.parse(
             filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
@@ -253,17 +253,17 @@ class TestSubjects:
         assert read_subjects(rec) == expected
 
     @pytest.mark.parametrize(('item', 'expected'), bin_samples)
-    def test_subjects_bin(self, item, expected):
+    def test_subjects_bin(self, item, expected) -> None:
         filepath = TEST_DATA / 'bin_input' / item
         rec = MarcBinary(filepath.read_bytes())
         assert read_subjects(rec) == expected
 
-    def test_four_types_combine(self):
+    def test_four_types_combine(self) -> None:
         subjects = {'subject': {'Science': 2}, 'event': {'Party': 1}}
         expect = {'subject': {'Science': 2, 'Party': 1}}
         assert four_types(subjects) == expect
 
-    def test_four_types_event(self):
+    def test_four_types_event(self) -> None:
         subjects = {'event': {'Party': 1}}
         expect = {'subject': {'Party': 1}}
         assert four_types(subjects) == expect

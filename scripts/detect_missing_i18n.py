@@ -112,7 +112,7 @@ def print_analysis(
     spacing_base: int,
     line_number: int = 0,
     line_position: int = 0,
-):
+) -> None:
     linestr = (
         f":{line_number}:{line_position}"
         if line_number > 0 and line_position > 0
@@ -126,7 +126,7 @@ def print_analysis(
     )
 
 
-def main(files: list[Path], skip_excluded: bool = True):
+def main(files: list[Path], skip_excluded: bool = True) -> None:
     """
     :param files: The html files to check for missing i18n. Leave empty to run over all html files.
     :param skip_excluded: If --no-skip-excluded is supplied as an arg, files in the EXCLUDE_LIST slice will be processed

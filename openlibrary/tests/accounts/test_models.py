@@ -9,13 +9,13 @@ def get_username(account):
     return account and account.value
 
 
-def test_verify_hash():
+def test_verify_hash() -> None:
     secret_key = b"aqXwLJVOcV"
     hash = model.generate_hash(secret_key, b"foo")
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
-def test_xauth_http_error_without_json(monkeypatch):
+def test_xauth_http_error_without_json(monkeypatch) -> None:
     xauth = InternetArchiveAccount.xauth
     resp = Response()
     resp.status_code = 500
@@ -27,7 +27,7 @@ def test_xauth_http_error_without_json(monkeypatch):
     }
 
 
-def test_xauth_http_error_with_json(monkeypatch):
+def test_xauth_http_error_with_json(monkeypatch) -> None:
     xauth = InternetArchiveAccount.xauth
     resp = Response()
     resp.status_code = 400
@@ -39,7 +39,7 @@ def test_xauth_http_error_with_json(monkeypatch):
 
 
 @mock.patch("openlibrary.accounts.model.web")
-def test_get(mock_web):
+def test_get(mock_web) -> None:
     test = True
     email = "test@example.com"
     account = OpenLibraryAccount.get_by_email(email)

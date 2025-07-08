@@ -75,7 +75,7 @@ def cached_pd_org_query() -> list:
 
 
 def get_pd_dashboard_data() -> dict:
-    def enrich_data(_request_data):
+    def enrich_data(_request_data) -> None:
         for d in _request_data:
             pda = d['pda']
             d['display_name'] = (
@@ -98,5 +98,5 @@ def get_pd_dashboard_data() -> dict:
     }
 
 
-def setup():
+def setup() -> None:
     pass

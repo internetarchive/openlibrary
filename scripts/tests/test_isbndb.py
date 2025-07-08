@@ -73,7 +73,7 @@ def get_isbndb_data():
     }
 
 
-def test_isbndb_to_ol_item(tmp_path):
+def test_isbndb_to_ol_item(tmp_path) -> None:
     # Set up a three-line file to read.
     isbndb_file: Path = tmp_path / "isbndb.jsonl"
     data = '\n'.join(sample_lines)
@@ -114,7 +114,7 @@ def test_is_nonbook(binding, expected) -> None:
         (None, None),
     ],
 )
-def test_isbndb_get_languages(language, expected, get_isbndb_data):
+def test_isbndb_get_languages(language, expected, get_isbndb_data) -> None:
     isbndb_line = get_isbndb_data
     isbndb_line['language'] = language
     item = ISBNdb(isbndb_line)
@@ -132,7 +132,7 @@ def test_isbndb_get_languages(language, expected, get_isbndb_data):
         (None, None),
     ],
 )
-def test_isbndb_get_year(year, expected, get_isbndb_data):
+def test_isbndb_get_year(year, expected, get_isbndb_data) -> None:
     isbndb_line = get_isbndb_data
     item = ISBNdb(isbndb_line)
     # Do this 'out of order' to instantiate the class with a valid date; the

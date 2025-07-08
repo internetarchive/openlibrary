@@ -71,7 +71,7 @@ class BasicMergeEngine:
     Generic merge functionality useful for all types of merges.
     """
 
-    def __init__(self, redirect_engine):
+    def __init__(self, redirect_engine) -> None:
         """
         :param BasicRedirectEngine redirect_engine:
         """
@@ -366,5 +366,5 @@ class merge_authors_json(delegate.page):
         )
 
 
-def setup():
+def setup() -> None:
     pass

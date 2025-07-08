@@ -23,7 +23,7 @@ old_plugins = [
 ]
 
 
-def setup():
+def setup() -> None:
     setup_logging()
 
     logger = logging.getLogger("openlibrary")
@@ -62,7 +62,7 @@ def setup_logging():
         raise
 
 
-def load_views():
+def load_views() -> None:
     """Registers all views by loading all view modules."""
     from .views import showmarc  # noqa: F401 side effects may be needed
 

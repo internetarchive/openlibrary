@@ -29,7 +29,7 @@ from openlibrary.core.imports import ImportItem
 class DeleteImportItemJob:
     def __init__(
         self, in_file='', state_file='', error_file='', batch_size=1000, dry_run=False
-    ):
+    ) -> None:
         self.in_file = in_file
         self.state_file = state_file
         self.error_file = error_file
@@ -87,7 +87,7 @@ class DeleteImportItemJob:
         }
 
 
-def write_to(filepath, s, mode='w+'):
+def write_to(filepath, s, mode='w+') -> None:
     print(mode)
     path = Path(filepath)
     path.parent.mkdir(exist_ok=True, parents=True)
@@ -115,7 +115,7 @@ def read_args_from_config(config_path):
     }
 
 
-def init_and_start(args):
+def init_and_start(args) -> None:
     # Read arguments from config file:
     config_args = read_args_from_config(args.config_file)
 
