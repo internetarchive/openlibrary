@@ -96,7 +96,7 @@ async def index_all_subjects(
     instances=2,
     solr_base_url='http://solr:8983/solr/openlibrary',
     skip_id_check=False,
-):
+) -> None:
     done = False
     active_workers: set[Future] = set()
     offset = 0

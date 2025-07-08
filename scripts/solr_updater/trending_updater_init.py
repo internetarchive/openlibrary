@@ -12,7 +12,7 @@ def main(
     timestamp: str | None = None,
     dry_run: bool = False,
     trending_offset_file: Path | None = None,
-):
+) -> None:
     """
     Script to initialize the trending data in Solr.
 

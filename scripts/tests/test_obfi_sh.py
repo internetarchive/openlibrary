@@ -21,7 +21,7 @@ def bash_w_obfi(cmd: str):
 
 
 class TestObfiMatchRange:
-    def test_obfi_match_range_multi_day(self):
+    def test_obfi_match_range_multi_day(self) -> None:
         # All lines in the sample log are between 2025-06-27 00:28:46 and 2025-06-28 01:01:46
         start_iso = '2025-06-27T00:00:00Z'
         end_iso = '2025-06-28T23:59:59Z'
@@ -30,7 +30,7 @@ class TestObfiMatchRange:
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
         assert output.stdout == SAMPLE_LOG.read_text()
 
-    def test_obfi_match_range_first_hour(self):
+    def test_obfi_match_range_first_hour(self) -> None:
         # Only lines on 2025-06-27 between 00:00:00 and 00:59:59 should match (first line only)
         start_iso = '2025-06-27T00:00:00Z'
         end_iso = '2025-06-27T00:59:59Z'
@@ -40,7 +40,7 @@ class TestObfiMatchRange:
         expected = SAMPLE_LOG.read_text().splitlines()[0] + '\n'
         assert output.stdout == expected
 
-    def test_obfi_match_range_second_day_same_hour(self):
+    def test_obfi_match_range_second_day_same_hour(self) -> None:
         # Only lines on 2025-06-28 between 00:00:00 and 00:59:59 should match (third line only)
         start_iso = '2025-06-28T00:00:00Z'
         end_iso = '2025-06-28T00:59:59Z'
@@ -50,7 +50,7 @@ class TestObfiMatchRange:
         expected = SAMPLE_LOG.read_text().splitlines()[2] + '\n'
         assert output.stdout == expected
 
-    def test_obfi_match_range_no_lines(self):
+    def test_obfi_match_range_no_lines(self) -> None:
         start_iso = '2001-09-09T01:46:40Z'
         end_iso = '2001-09-09T01:46:41Z'
         start = iso_to_ms(start_iso)

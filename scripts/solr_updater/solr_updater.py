@@ -50,7 +50,7 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname: str, exclude: str | None = None):
+    def __init__(self, hostname: str, exclude: str | None = None) -> None:
         """
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
@@ -62,7 +62,7 @@ class InfobaseLog:
     def tell(self):
         return self.offset
 
-    def seek(self, offset):
+    def seek(self, offset) -> None:
         self.offset = offset.strip()
 
     def read_records(self, max_fetches=10):
@@ -249,7 +249,7 @@ async def main(
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
-):
+) -> None:
     """
     Useful environment variables:
     - OL_SOLR_BASE_URL: Override the Solr base URL

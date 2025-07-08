@@ -1,7 +1,7 @@
 from openlibrary.core.observations import _sort_values
 
 
-def test_sort_values():
+def test_sort_values() -> None:
     orders_list = [3, 4, 2, 1]
     values_list = [
         {'id': 1, 'name': 'order'},

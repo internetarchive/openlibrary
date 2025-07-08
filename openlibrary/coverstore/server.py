@@ -26,7 +26,7 @@ def runfcgi(func, addr=('localhost', 8000)):
 web.wsgi.runfcgi = runfcgi
 
 
-def load_config(configfile):
+def load_config(configfile) -> None:
     with open(configfile) as in_file:
         d = yaml.safe_load(in_file)
     for k, v in d.items():
@@ -44,7 +44,7 @@ def setup(configfile: str) -> None:
         sentry.bind_to_webpy_app(code.app)
 
 
-def main(configfile, *args):
+def main(configfile, *args) -> None:
     setup(configfile)
 
     if '--archive' in args:

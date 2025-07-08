@@ -100,7 +100,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         edition: dict,
         solr_work: 'WorkSolrBuilder | None' = None,
         ia_metadata: bp.IALiteMetadata | None = None,
-    ):
+    ) -> None:
         self._edition = edition
         self._solr_work = solr_work
         self._ia_metadata = ia_metadata

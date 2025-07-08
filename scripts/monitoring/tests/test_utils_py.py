@@ -4,7 +4,7 @@ from scripts.monitoring.utils import bash_run, limit_server
 from scripts.utils.scheduler import OlAsyncIOScheduler
 
 
-def test_bash_run():
+def test_bash_run() -> None:
     with patch("subprocess.run") as mock_subprocess_run:
         # Test without sources
         bash_run("echo 'Hello, World!'")
@@ -24,13 +24,13 @@ def test_bash_run():
         ]
 
 
-def test_limit_server():
+def test_limit_server() -> None:
     with patch("os.environ.get", return_value="allowed-server"):
         scheduler = OlAsyncIOScheduler("X")
 
         @limit_server(["allowed-server"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
-        def sample_job():
+        def sample_job() -> None:
             pass
 
         sample_job()
@@ -41,7 +41,7 @@ def test_limit_server():
 
         @limit_server(["allowed-server"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
-        def sample_job():
+        def sample_job() -> None:
             pass
 
         sample_job()
@@ -52,7 +52,7 @@ def test_limit_server():
 
         @limit_server(["allowed-server*"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
-        def sample_job():
+        def sample_job() -> None:
             pass
 
         sample_job()
@@ -63,7 +63,7 @@ def test_limit_server():
 
         @limit_server(["ol-web0"], scheduler)
         @scheduler.scheduled_job("interval", seconds=60)
-        def sample_job():
+        def sample_job() -> None:
             pass
 
         sample_job()

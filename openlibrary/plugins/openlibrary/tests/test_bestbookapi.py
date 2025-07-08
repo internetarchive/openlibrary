@@ -27,7 +27,7 @@ has_read_book = 'openlibrary.core.bookshelves.Bookshelves.get_users_read_status_
 
 
 class FakeUser:
-    def __init__(self, key):
+    def __init__(self, key) -> None:
         self.key = f'/users/{key}'
 
 
@@ -38,7 +38,7 @@ def mock_web_input_func(data):
     return _mock_web_input
 
 
-def test_bestbook_add_award():
+def test_bestbook_add_award() -> None:
     """Test adding a best book award."""
 
     with (
@@ -66,7 +66,7 @@ def test_bestbook_add_award():
         assert result["award"] == "Awarded the book"
 
 
-def test_bestbook_award_removal():
+def test_bestbook_award_removal() -> None:
     """Test removing a best book award."""
     with (
         patch('web.input') as mock_web_input,
@@ -90,7 +90,7 @@ def test_bestbook_award_removal():
         assert result["rows"] == 1
 
 
-def test_bestbook_award_limit():
+def test_bestbook_award_limit() -> None:
     """Test award limit - one award per book/topic."""
     with (
         patch('web.input') as mock_web_input,
@@ -125,7 +125,7 @@ def test_bestbook_award_limit():
             assert result["errors"] == "Award already exists"
 
 
-def test_bestbook_award_not_authenticated():
+def test_bestbook_award_not_authenticated() -> None:
     """Test awarding a book without authentication."""
     with (
         patch('web.input') as mock_web_input,
@@ -150,7 +150,7 @@ def test_bestbook_award_not_authenticated():
         assert "Authentication failed" in result.get("errors", [])
 
 
-def test_bestbook_add_unread_award():
+def test_bestbook_add_unread_award() -> None:
     """Test awarding a book that hasn't been read by reader."""
     with (
         patch('web.input') as mock_web_input,
@@ -183,7 +183,7 @@ def test_bestbook_add_unread_award():
         )
 
 
-def test_bestbook_count():
+def test_bestbook_count() -> None:
     """Test fetching best book award count."""
     with (
         patch('openlibrary.core.bestbook.Bestbook.get_count') as mock_get_count,

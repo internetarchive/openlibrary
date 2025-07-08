@@ -65,11 +65,11 @@ class OLMarkdown(markdown.Markdown):
     * generated HTML is sanitized
     """
 
-    def __init__(self, *a, **kw):
+    def __init__(self, *a, **kw) -> None:
         markdown.Markdown.__init__(self, *a, **kw)
         self._patch()
 
-    def _patch(self):
+    def _patch(self) -> None:
         patterns = self.inlinePatterns
         autolink = markdown.AutolinkPattern(
             markdown.AUTOLINK_RE.replace('http', 'https?')

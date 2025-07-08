@@ -25,7 +25,7 @@ class publishers(subjects.subjects):
 
         return render_template("publishers/view", page)
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "publishers" in web.ctx.features
 
 
@@ -33,7 +33,7 @@ class publishers_json(subjects.subjects_json):
     path = '(/publishers/[^/]+)'
     encoding = "json"
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "publishers" in web.ctx.features
 
     def normalize_key(self, key):
@@ -49,7 +49,7 @@ class index(delegate.page):
     def GET(self):
         return render_template("publishers/index")
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return "publishers" in web.ctx.features
 
 
@@ -101,7 +101,7 @@ class PublisherEngine(subjects.SubjectEngine):
         return counts.get('true')
 
 
-def setup():
+def setup() -> None:
     subjects.SUBJECTS.append(
         subjects.SubjectMeta(
             name="publisher",

@@ -20,7 +20,7 @@ def mock_ia(request, monkeypatch):
     metadata = {}
 
     class IA:
-        def set_metadata(self, itemid, meta):
+        def set_metadata(self, itemid, meta) -> None:
             metadata[itemid] = meta
 
         def get_metadata(self, itemid):

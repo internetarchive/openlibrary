@@ -29,7 +29,7 @@ class Task:
     Each task should extend this class and implement map and reduce functions.
     """
 
-    def __init__(self, tmpdir="/tmp/mapreduce", filecount=100, hashfunc=None):
+    def __init__(self, tmpdir="/tmp/mapreduce", filecount=100, hashfunc=None) -> None:
         self.tmpdir = tmpdir
         self.filecount = 100
         self.hashfunc = None
@@ -53,7 +53,7 @@ class Task:
             key, value = line.strip().split("\t", 1)
             yield key, value
 
-    def map_all(self, records, disk):
+    def map_all(self, records, disk) -> None:
         for key, value in records:
             for k, v in self.map(key, value):
                 disk.write(k, v)
@@ -83,7 +83,9 @@ class Disk:
     The data is stored over multiple files based on the key. All records with same key will fall in the same file.
     """
 
-    def __init__(self, dir, prefix="shard", filecount=100, hashfunc=None, mode="r"):
+    def __init__(
+        self, dir, prefix="shard", filecount=100, hashfunc=None, mode="r"
+    ) -> None:
         self.dir = dir
         self.prefix = prefix
         self.hashfunc = hashfunc or (lambda key: hash(key))
@@ -98,12 +100,12 @@ class Disk:
         path = os.path.join(self.dir, filename)
         return gzip.open(path, mode)
 
-    def write(self, key, value):
+    def write(self, key, value) -> None:
         index = self.hashfunc(key) % len(self.files)
         f = self.files[index]
         f.write(key + "\t" + value + "\n")
 
-    def close(self):
+    def close(self) -> None:
         for f in self.files:
             f.close()
 

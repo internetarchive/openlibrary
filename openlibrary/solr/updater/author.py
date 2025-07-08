@@ -59,7 +59,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
 
 
 class AuthorSolrBuilder(AbstractSolrBuilder):
-    def __init__(self, author: dict, solr_reply: dict):
+    def __init__(self, author: dict, solr_reply: dict) -> None:
         self._author = author
         self._solr_reply = solr_reply
 

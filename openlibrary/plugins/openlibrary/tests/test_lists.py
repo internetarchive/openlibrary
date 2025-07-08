@@ -7,7 +7,7 @@ from openlibrary.plugins.openlibrary.lists import ListRecord
 
 
 class TestListRecord:
-    def test_from_input_no_data(self):
+    def test_from_input_no_data(self) -> None:
         with (
             patch('web.input') as mock_web_input,
             patch('web.data') as mock_web_data,
@@ -26,7 +26,7 @@ class TestListRecord:
                 seeds=[],
             )
 
-    def test_from_input_with_data(self):
+    def test_from_input_with_data(self) -> None:
         with (
             patch('web.input') as mock_web_input,
             patch('web.data') as mock_web_data,
@@ -45,7 +45,7 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
-    def test_from_input_with_json_data(self):
+    def test_from_input_with_json_data(self) -> None:
         with (
             patch('web.input') as mock_web_input,
             patch('web.data') as mock_web_data,
@@ -80,7 +80,7 @@ class TestListRecord:
     )
 
     @pytest.mark.parametrize(('seeds', 'expected'), SEED_TESTS)
-    def test_from_input_seeds(self, seeds, expected):
+    def test_from_input_seeds(self, seeds, expected) -> None:
         with (
             patch('web.input') as mock_web_input,
             patch('web.data') as mock_web_data,
@@ -99,7 +99,7 @@ class TestListRecord:
                 seeds=expected,
             )
 
-    def test_normalize_input_seed(self):
+    def test_normalize_input_seed(self) -> None:
         f = ListRecord.normalize_input_seed
 
         assert f("/books/OL1M") == {"key": "/books/OL1M"}

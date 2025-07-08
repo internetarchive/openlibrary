@@ -2,7 +2,7 @@ from openlibrary.plugins.ol_infobase import OLIndexer
 
 
 class TestOLIndexer:
-    def test_expand_isbns(self):
+    def test_expand_isbns(self) -> None:
         indexer = OLIndexer()
         isbn_10 = ['123456789X']
         isbn_13 = ['9781234567897']

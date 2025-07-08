@@ -49,7 +49,7 @@ class CORSProcessor:
     Cross Origin Resource Sharing.
     """
 
-    def __init__(self, cors_prefixes=None):
+    def __init__(self, cors_prefixes=None) -> None:
         self.cors_prefixes = cors_prefixes
 
     def __call__(self, handler):
@@ -67,7 +67,7 @@ class CORSProcessor:
             web.ctx.path.startswith(path_segment) for path_segment in self.cors_prefixes
         )
 
-    def add_cors_headers(self):
+    def add_cors_headers(self) -> None:
         # Allow anyone to access GET and OPTIONS requests
         allowed = "GET, OPTIONS"
         # unless the path is /account/* or /admin/*
@@ -92,7 +92,7 @@ class CORSProcessor:
 class PreferenceProcessor:
     """Processor to handle unauthorized patron preference reads"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.pref_pattern = re.compile(r'^\/people\/([^/]+)\/preferences(.json|.yml)?$')
 
     def __call__(self, handler):

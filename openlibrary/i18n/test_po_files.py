@@ -9,7 +9,7 @@ from openlibrary.i18n import get_locales
 root = os.path.dirname(__file__)
 
 
-def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
+def trees_equal(el1: ET.Element, el2: ET.Element, error=True) -> bool:
     """
     Check if the tree data is the same
     >>> trees_equal(ET.fromstring('<root />'), ET.fromstring('<root />'))
@@ -75,7 +75,7 @@ def gen_html_entries():
 
 
 @pytest.mark.parametrize(('locale', 'msgid', 'msgstr'), gen_html_entries())
-def test_html_format(locale: str, msgid: str, msgstr: str):
+def test_html_format(locale: str, msgid: str, msgstr: str) -> None:
     # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?
     entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'

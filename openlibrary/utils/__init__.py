@@ -181,7 +181,7 @@ def extract_numeric_id_from_olid(olid):
     return olid
 
 
-def is_number(s):
+def is_number(s) -> bool:
     """
     >>> all(is_number(n) for n in (1234, "1234", -1234, "-1234", 123.4, -123.4))
     True

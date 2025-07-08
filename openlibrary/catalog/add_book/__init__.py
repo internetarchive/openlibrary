@@ -93,50 +93,50 @@ type_map = {
 
 
 class CoverNotSaved(Exception):
-    def __init__(self, f):
+    def __init__(self, f) -> None:
         self.f = f
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"coverstore responded with: '{self.f}'"
 
 
 class RequiredFields(Exception):
-    def __init__(self, fields: Iterable[str]):
+    def __init__(self, fields: Iterable[str]) -> None:
         self.fields = fields
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"missing required field(s): {self.fields}"
 
 
 class PublicationYearTooOld(Exception):
-    def __init__(self, year):
+    def __init__(self, year) -> None:
         self.year = year
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"publication year is too old (i.e. earlier than {EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS}): {self.year}"
 
 
 class PublishedInFutureYear(Exception):
-    def __init__(self, year):
+    def __init__(self, year) -> None:
         self.year = year
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"published in future year: {self.year}"
 
 
 class IndependentlyPublished(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "book is independently published"
 
 
 class SourceNeedsISBN(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "this source needs an ISBN"
 
 
@@ -354,7 +354,7 @@ def modify_ia_item(item, data):
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
 
 
-def create_ol_subjects_for_ocaid(ocaid, subjects):
+def create_ol_subjects_for_ocaid(ocaid, subjects) -> str:
     item = get_ia_item(ocaid)
     openlibrary_subjects = copy(item.metadata.get('openlibrary_subject')) or []
 
@@ -1093,7 +1093,7 @@ def load(
     return reply
 
 
-def setup():
+def setup() -> None:
     setup_requests()
 
 

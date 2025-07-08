@@ -8,10 +8,10 @@ from ..processors import RateLimitProcessor
 class TestRateLimitProcessor:
     """py.test testcase for testing RateLimitProcessor."""
 
-    def setup_method(self, method):
+    def setup_method(self, method) -> None:
         web.ctx.ip = "127.0.0.1"
 
-    def test_check_rate(self, monkeypatch):
+    def test_check_rate(self, monkeypatch) -> None:
         monkeypatch.setattr(time, "time", lambda: 123456)
         p = RateLimitProcessor(10)
 
@@ -19,7 +19,7 @@ class TestRateLimitProcessor:
             assert p.check_rate() is True
         assert p.check_rate() is False
 
-    def test_get_window(self, monkeypatch):
+    def test_get_window(self, monkeypatch) -> None:
         p = RateLimitProcessor(10, window_size=10)
 
         d = web.storage(time=1)

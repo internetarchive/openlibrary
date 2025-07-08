@@ -70,7 +70,7 @@ class InvalidationProcessor:
       process.
     """
 
-    def __init__(self, prefixes, timeout=60, cookie_name="lastupdate"):
+    def __init__(self, prefixes, timeout=60, cookie_name="lastupdate") -> None:
         self.prefixes = prefixes
         self.timeout = datetime.timedelta(0, timeout)
 
@@ -158,7 +158,7 @@ class _InvalidationHook:
     This sets a cookie when any of the documents under the given prefixes is modified.
     """
 
-    def __init__(self, prefixes, cookie_name, expire_time):
+    def __init__(self, prefixes, cookie_name, expire_time) -> None:
         self.prefixes = prefixes
         self.cookie_name = cookie_name
         self.expire_time = expire_time
@@ -166,7 +166,7 @@ class _InvalidationHook:
     def __call__(self):
         return self
 
-    def on_new_version(self, doc):
+    def on_new_version(self, doc) -> None:
         if web.ctx.get("_invalidation_inprogress"):
             # This event is triggered from invalidation. ignore it.
             return

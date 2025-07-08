@@ -489,7 +489,7 @@ class search(delegate.page):
         if need_redirect:
             raise web.seeother(web.changequery(**params))
 
-    def isbn_redirect(self, isbn_param):
+    def isbn_redirect(self, isbn_param) -> None:
         isbn = normalize_isbn(isbn_param)
         if not isbn:
             return
@@ -1000,7 +1000,7 @@ class search_json(delegate.page):
         return delegate.RawText(json.dumps(response, indent=4))
 
 
-def setup():
+def setup() -> None:
     from openlibrary.plugins.worksearch import (
         autocomplete,
         bulk_search,

@@ -102,7 +102,7 @@ TESTS = [
 @pytest.mark.parametrize(
     ("raw_ddc", "expected", "name"), TESTS, ids=[t[2] for t in TESTS]
 )
-def test_noramlize_ddc(raw_ddc, expected, name):
+def test_noramlize_ddc(raw_ddc, expected, name) -> None:
     assert normalize_ddc(raw_ddc) == expected
 
 
@@ -111,7 +111,7 @@ def test_noramlize_ddc(raw_ddc, expected, name):
     TESTS_FROM_OCLC,
     ids=[t[2] for t in TESTS_FROM_OCLC],
 )
-def test_normalize_ddc_with_oclc_spec(raw_ddc, expected, name):
+def test_normalize_ddc_with_oclc_spec(raw_ddc, expected, name) -> None:
     assert normalize_ddc(raw_ddc) == expected
 
 
@@ -130,7 +130,7 @@ PREFIX_TESTS = [
 @pytest.mark.parametrize(
     ("prefix", "normed", "name"), PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
 )
-def test_normalize_ddc_prefix(prefix, normed, name):
+def test_normalize_ddc_prefix(prefix, normed, name) -> None:
     assert normalize_ddc_prefix(prefix) == normed
 
 
@@ -144,7 +144,7 @@ RANGE_TESTS = [
 @pytest.mark.parametrize(
     ("raw", "normed", "name"), RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
 )
-def test_normalize_ddc_range(raw, normed, name):
+def test_normalize_ddc_range(raw, normed, name) -> None:
     assert normalize_ddc_range(*raw) == normed
 
 
@@ -159,5 +159,5 @@ SORTING_DDC_TEST = [
 @pytest.mark.parametrize(
     ("ddcs", "outpt", "name"), SORTING_DDC_TEST, ids=[t[-1] for t in SORTING_DDC_TEST]
 )
-def test_choose_sorting_ddc(ddcs, outpt, name):
+def test_choose_sorting_ddc(ddcs, outpt, name) -> None:
     assert choose_sorting_ddc(ddcs) == outpt

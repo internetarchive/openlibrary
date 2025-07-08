@@ -9,14 +9,14 @@ from openlibrary.mocks.mock_infobase import MockSite
 from .. import utils
 
 
-def test_url_quote():
+def test_url_quote() -> None:
     assert utils.url_quote('https://foo bar') == 'https%3A%2F%2Ffoo+bar'
     assert utils.url_quote('abc') == 'abc'
     assert utils.url_quote('Kabitā') == 'Kabit%C4%81'
     assert utils.url_quote('Kabit\u0101') == 'Kabit%C4%81'
 
 
-def test_urlencode():
+def test_urlencode() -> None:
     f = utils.urlencode
     assert f({}) == '', 'empty dict'
     assert f([]) == '', 'empty list'
@@ -36,14 +36,14 @@ def test_urlencode():
     assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
 
 
-def test_entity_decode():
+def test_entity_decode() -> None:
     assert utils.entity_decode('&gt;foo') == '>foo'
     assert utils.entity_decode('<h1>') == '<h1>'
 
 
-def test_set_share_links():
+def test_set_share_links() -> None:
     class TestContext:
-        def __init__(self):
+        def __init__(self) -> None:
             self.share_links = None
 
     test_context = TestContext()
@@ -64,10 +64,10 @@ def test_set_share_links():
     ]
 
 
-def test_set_share_links_unicode():
+def test_set_share_links_unicode() -> None:
     # example work that has a unicode title: https://openlibrary.org/works/OL14930766W/Kabit%C4%81
     class TestContext:
-        def __init__(self):
+        def __init__(self) -> None:
             self.share_links = None
 
     test_context = TestContext()
@@ -90,13 +90,13 @@ def test_set_share_links_unicode():
     ]
 
 
-def test_item_image():
+def test_item_image() -> None:
     assert utils.item_image('//foo') == 'https://foo'
     assert utils.item_image(None, 'bar') == 'bar'
     assert utils.item_image(None) is None
 
 
-def test_canonical_url():
+def test_canonical_url() -> None:
     web.ctx.path = '/authors/Ayn_Rand'
     web.ctx.query = ''
     web.ctx.host = 'www.openlibrary.org'
@@ -134,7 +134,7 @@ def test_canonical_url():
     assert request.canonical_url == url
 
 
-def test_get_coverstore_url(monkeypatch):
+def test_get_coverstore_url(monkeypatch) -> None:
     from infogami import config
 
     monkeypatch.delattr(config, "coverstore_url", raising=False)
@@ -148,7 +148,7 @@ def test_get_coverstore_url(monkeypatch):
     assert utils.get_coverstore_url() == "https://0.0.0.0:80"
 
 
-def test_reformat_html():
+def test_reformat_html() -> None:
     f = utils.reformat_html
 
     input_string = '<p>This sentence has 32 characters.</p>'
@@ -168,7 +168,7 @@ def test_reformat_html():
     assert f("&lt;script&gt;") == "&lt;script&gt;"
 
 
-def test_strip_accents():
+def test_strip_accents() -> None:
     f = utils.strip_accents
     assert f('Plain ASCII text') == 'Plain ASCII text'
     assert f('Des idées napoléoniennes') == 'Des idees napoleoniennes'

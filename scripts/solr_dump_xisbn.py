@@ -144,7 +144,7 @@ async def main(
     # which we can use to make multiple queries in parallel
 
     # Now create an async worker pool to fetch the actual data
-    async def fetch_bounds(bounds):
+    async def fetch_bounds(bounds) -> None:
         print(f'[ ] FETCH {bounds=}', file=sys.stderr)
         start, end = bounds
         result = ''

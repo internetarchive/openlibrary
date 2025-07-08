@@ -1,7 +1,7 @@
 from ..solr import Solr
 
 
-def test_prepare_select():
+def test_prepare_select() -> None:
     solr = Solr("http://localhost:8983/solr")
     assert solr._prepare_select("foo") == "foo"
 

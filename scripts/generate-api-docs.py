@@ -40,7 +40,7 @@ def modname(path):
     return path.replace(".py", "").replace("/__init__", "").replace("/", ".")
 
 
-def write(path, text):
+def write(path, text) -> None:
     dirname = os.path.dirname(path)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
@@ -71,7 +71,7 @@ def find_python_sources(dir):
                 yield os.path.join(dirpath, f)
 
 
-def generate_docs(dir):
+def generate_docs(dir) -> None:
     shutil.rmtree(docpath(dir), ignore_errors=True)
 
     paths = list(find_python_sources(dir))
@@ -106,7 +106,7 @@ def generate_docs(dir):
         os.utime(docpath(path), (mtime, mtime))
 
 
-def generate_index():
+def generate_index() -> None:
     filenames = sorted(os.listdir("docs/api"))
 
     with open("docs/api/index.rst", "w") as f:
@@ -119,7 +119,7 @@ def generate_index():
         f.write("\n".join("   " + filename for filename in filenames))
 
 
-def main():
+def main() -> None:
     generate_docs("openlibrary")
     generate_docs("infogami")
     # generate_index()

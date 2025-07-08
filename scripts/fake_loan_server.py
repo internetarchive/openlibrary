@@ -9,7 +9,7 @@ app = web.application(urls, globals())
 
 
 class is_loaned_out:
-    def GET(self, resource_id):
+    def GET(self, resource_id) -> str:
         web.header("Content-type", "application/json")
         return "[]"
 

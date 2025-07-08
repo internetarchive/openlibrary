@@ -13,7 +13,7 @@ root = getattr(config, 'booklogroot', 'booklog')
 _logger = Logger(root)
 
 
-def hook(object):
+def hook(object) -> None:
     """
     Add this hook to infobase.hooks to log all book modifications.
     """

@@ -41,7 +41,7 @@ def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
 
-def fix_toc(e):
+def fix_toc(e) -> None:
     toc = e.get('table_of_contents', None)
     if not toc:
         return
@@ -53,13 +53,13 @@ def fix_toc(e):
     e['table_of_contents'] = new_toc
 
 
-def fix_subject(e):
+def fix_subject(e) -> None:
     if e.get('subjects', None) and any(has_dot(s) for s in e['subjects']):
         subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
         e['subjects'] = subjects
 
 
-def undelete_author(a, ol):
+def undelete_author(a, ol) -> None:
     key = a['key']
     assert a['type'] == '/type/delete'
     url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
@@ -68,7 +68,7 @@ def undelete_author(a, ol):
     ol.save(key, prev, 'undelete author')
 
 
-def undelete_authors(authors, ol):
+def undelete_authors(authors, ol) -> None:
     for a in authors:
         if a['type'] == '/type/delete':
             undelete_author(a, ol)
@@ -76,7 +76,7 @@ def undelete_authors(authors, ol):
             assert a['type'] == '/type/author'
 
 
-def fix_authors(e, ol):
+def fix_authors(e, ol) -> None:
     if 'authors' not in e:
         return
     authors = [get_with_retry(ol, akey) for akey in e['authors']]

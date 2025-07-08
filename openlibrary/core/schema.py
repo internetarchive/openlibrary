@@ -109,7 +109,7 @@ def get_schema():
     return schema
 
 
-def register_schema():
+def register_schema() -> None:
     """Register the schema defined in this module as the default schema."""
     dbstore.default_schema = get_schema()
 

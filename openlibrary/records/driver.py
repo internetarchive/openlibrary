@@ -83,7 +83,7 @@ def run_filter(matched_keys, params):
      equivalent).
     """
 
-    def compare(i1, i2):
+    def compare(i1, i2) -> bool:
         """Compares `i1` to see if it matches `i2`
         according to the rules stated above.
 

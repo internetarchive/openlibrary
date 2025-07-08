@@ -447,10 +447,10 @@ def get_missing_fields(rec: dict) -> list[str]:
 
 
 class InvalidLanguage(Exception):
-    def __init__(self, code):
+    def __init__(self, code) -> None:
         self.code = code
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"invalid language code: '{self.code}'"
 
 

@@ -41,7 +41,7 @@ AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
-def setup(config):
+def setup(config) -> None:
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
 

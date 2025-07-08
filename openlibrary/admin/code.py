@@ -26,7 +26,7 @@ class static(app.page):  # type: ignore[name-defined]
         raise web.seeother("/static/upstream" + path)
 
 
-def setup():
+def setup() -> None:
     # load templates from this package so that they are available via render_template
     from infogami.utils import template
 

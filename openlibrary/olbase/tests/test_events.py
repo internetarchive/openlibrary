@@ -2,7 +2,7 @@ from .. import events
 
 
 class TestMemcacheInvalidater:
-    def test_seed_to_key(self):
+    def test_seed_to_key(self) -> None:
         m = events.MemcacheInvalidater()
         assert m.seed_to_key({"key": "/books/OL1M"}) == "/books/OL1M"
         assert m.seed_to_key("subject:love") == "/subjects/love"
@@ -10,7 +10,7 @@ class TestMemcacheInvalidater:
         assert m.seed_to_key("person:mark_twain") == "/subjects/person:mark_twain"
         assert m.seed_to_key("time:2000") == "/subjects/time:2000"
 
-    def test_find_lists(self):
+    def test_find_lists(self) -> None:
         changeset = {
             "changes": [{"key": "/people/anand/lists/OL1L", "revision": 1}],
             "old_docs": [None],
@@ -30,7 +30,7 @@ class TestMemcacheInvalidater:
             "d/subjects/love",
         ]
 
-    def test_find_lists2(self):
+    def test_find_lists2(self) -> None:
         changeset = {
             "changes": [{"key": "/people/anand/lists/OL1L", "revision": 2}],
             "old_docs": [
@@ -65,7 +65,7 @@ class TestMemcacheInvalidater:
             "d/subjects/place:san_francisco",
         ]
 
-    def test_edition_count_for_doc(self):
+    def test_edition_count_for_doc(self) -> None:
         m = events.MemcacheInvalidater()
 
         assert m.find_edition_counts_for_doc(None) == []
@@ -77,7 +77,7 @@ class TestMemcacheInvalidater:
         }
         assert m.find_edition_counts_for_doc(doc) == ["d/works/OL1W"]
 
-    def test_find_keys(self):
+    def test_find_keys(self) -> None:
         m = events.MemcacheInvalidater()
 
         changeset = {

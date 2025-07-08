@@ -29,6 +29,6 @@ def try_parse_template(
 
 
 @pytest.mark.parametrize('filename', get_template_filenames(), ids=str)
-def test_valid_template(filename: Path):
+def test_valid_template(filename: Path) -> None:
     parsed, err = try_parse_template(filename.read_text(encoding='utf-8'), filename)
     assert parsed, err

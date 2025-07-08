@@ -12,13 +12,13 @@ class AbstractSolrUpdater:
     thing_type: str
     data_provider: DataProvider
 
-    def __init__(self, data_provider: DataProvider):
+    def __init__(self, data_provider: DataProvider) -> None:
         self.data_provider = data_provider
 
     def key_test(self, key: str) -> bool:
         return key.startswith(self.key_prefix)
 
-    async def preload_keys(self, keys: Iterable[str]):
+    async def preload_keys(self, keys: Iterable[str]) -> None:
         await self.data_provider.preload_documents(keys)
 
     async def update_key(self, thing: dict) -> tuple[SolrUpdateRequest, list[str]]:

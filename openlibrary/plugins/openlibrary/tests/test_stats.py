@@ -11,17 +11,17 @@ from .. import stats
 
 
 class MockDoc(dict):
-    def __init__(self, _id, *largs, **kargs):
+    def __init__(self, _id, *largs, **kargs) -> None:
         self.id = _id
         kargs['_key'] = _id
         super().__init__(*largs, **kargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         o = super().__repr__()
         return f"<{self.id} - {o}>"
 
 
-def test_format_stats_entry():
+def test_format_stats_entry() -> None:
     "Tests the stats performance entries"
     ps = stats.process_stats
     assert ps({"total": {"time": 0.1}}) == [("TT", 0, 0.1)]
@@ -35,13 +35,13 @@ def test_format_stats_entry():
     assert ps({"something-else": {"count": 2, "time": 0.1}}) == [("OT", 2, 0.100)]
 
 
-def test_format_stats():
+def test_format_stats() -> None:
     "Tests whether the performance status are output properly in the the X-OL-Stats header"
     performance_stats = {"total": {"time": 0.2}, "infobase": {"count": 2, "time": 0.13}}
     assert stats.format_stats(performance_stats) == '"IB 2 0.130 TT 0 0.200"'
 
 
-def test_stats_container():
+def test_stats_container() -> None:
     "Tests the Stats container used in the templates"
     # Test basic API and null total count
     ipdata = [{"foo": 1}] * 100
@@ -52,7 +52,7 @@ def test_stats_container():
     assert s.total == ""
 
 
-def test_status_total():
+def test_status_total() -> None:
     "Tests the total attribute of the stats container used in the templates"
     ipdata = [{"foo": 1, "total": x * 2} for x in range(1, 100)]
     s = Stats(ipdata, "foo", "total")
@@ -66,7 +66,7 @@ def test_status_total():
     assert s.total == 2
 
 
-def test_status_timerange():
+def test_status_timerange() -> None:
     "Tests the stats container with a time X-axis"
     d = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     ipdata = []

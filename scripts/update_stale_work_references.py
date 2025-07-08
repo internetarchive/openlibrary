@@ -10,7 +10,7 @@ from openlibrary.core.models import Work
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
-def main(ol_config: str, days=1, skip=7):
+def main(ol_config: str, days=1, skip=7) -> None:
     load_config(ol_config)
     infogami._setup()
     Work.resolve_redirects_bulk(

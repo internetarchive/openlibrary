@@ -195,7 +195,7 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     return ids
 
 
-def import_ocaids(ocaids: list[str], batch_size=5_000):
+def import_ocaids(ocaids: list[str], batch_size=5_000) -> None:
     # get the month for yesterday
     date = datetime.date.today() - datetime.timedelta(days=1)
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
@@ -209,7 +209,7 @@ def main(
     ol_config: str,
     idfile: str | None = None,
     test: bool = True,
-):
+) -> None:
     load_config(ol_config)
     infogami._setup()
     s3_keys = config.get('ia_ol_metadata_write_s3')

@@ -395,7 +395,7 @@ def process_result_for_viewapi(result):
     return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
-def get_ia_availability(itemid):
+def get_ia_availability(itemid) -> str:
     collections = ia.get_metadata(itemid).get('collection', [])
 
     if 'inlibrary' in collections:

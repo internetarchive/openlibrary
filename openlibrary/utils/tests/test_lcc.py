@@ -31,14 +31,14 @@ TESTS = [
 @pytest.mark.parametrize(
     ('sortable_lcc', 'raw_lcc', 'short_lcc', 'name'), TESTS, ids=[t[-1] for t in TESTS]
 )
-def test_to_sortable(sortable_lcc, raw_lcc, short_lcc, name):
+def test_to_sortable(sortable_lcc, raw_lcc, short_lcc, name) -> None:
     assert short_lcc_to_sortable_lcc(raw_lcc) == sortable_lcc
 
 
 @pytest.mark.parametrize(
     ('sortable_lcc', 'raw_lcc', 'short_lcc', 'name'), TESTS, ids=[t[-1] for t in TESTS]
 )
-def test_to_short_lcc(sortable_lcc, raw_lcc, short_lcc, name):
+def test_to_short_lcc(sortable_lcc, raw_lcc, short_lcc, name) -> None:
     assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc
 
 
@@ -64,7 +64,7 @@ INVALID_TESTS = [
 @pytest.mark.parametrize(
     ('text', 'name'), INVALID_TESTS, ids=[t[-1] for t in INVALID_TESTS]
 )
-def test_invalid_lccs(text, name):
+def test_invalid_lccs(text, name) -> None:
     assert short_lcc_to_sortable_lcc(text) is None
 
 
@@ -90,7 +90,7 @@ WAGNER_2019_EXAMPLES = [
     WAGNER_2019_EXAMPLES,
     ids=[t[-1] for t in WAGNER_2019_EXAMPLES],
 )
-def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
+def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name) -> None:
     assert short_lcc_to_sortable_lcc(short_lcc) == sortable_lcc
 
 
@@ -99,7 +99,7 @@ def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
     WAGNER_2019_EXAMPLES,
     ids=[t[-1] for t in WAGNER_2019_EXAMPLES],
 )
-def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name):
+def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name) -> None:
     assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip()
 
 
@@ -121,7 +121,7 @@ PREFIX_TESTS = [
 @pytest.mark.parametrize(
     ('prefix', 'normed', 'name'), PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
 )
-def test_normalize_lcc_prefix(prefix, normed, name):
+def test_normalize_lcc_prefix(prefix, normed, name) -> None:
     assert normalize_lcc_prefix(prefix) == normed
 
 
@@ -138,7 +138,7 @@ RANGE_TESTS = [
 @pytest.mark.parametrize(
     ('raw', 'normed', 'name'), RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
 )
-def test_normalize_lcc_range(raw, normed, name):
+def test_normalize_lcc_range(raw, normed, name) -> None:
     assert normalize_lcc_range(*raw) == normed
 
 
@@ -151,5 +151,5 @@ SORTING_TESTS = [
 @pytest.mark.parametrize(
     ('lccs', 'result', 'name'), SORTING_TESTS, ids=[t[-1] for t in SORTING_TESTS]
 )
-def test_choose_sorting_lcc(lccs, result, name):
+def test_choose_sorting_lcc(lccs, result, name) -> None:
     assert choose_sorting_lcc(lccs) == lccs[result]

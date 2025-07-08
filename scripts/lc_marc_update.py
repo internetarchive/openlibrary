@@ -79,12 +79,12 @@ host = 'rs7.loc.gov'
 to_upload = set()
 
 
-def print_line(f):
+def print_line(f) -> None:
     if 'books.test' not in f and f not in existing:
         to_upload.add(f)
 
 
-def read_block(block):
+def read_block(block) -> None:
     global data
     data += block
 

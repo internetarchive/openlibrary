@@ -10,7 +10,7 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 from openlibrary import i18n
 
 
-def help():
+def help() -> None:
     print("utility to manage i18n messages")
     print()
     print("USAGE: %s [extract|compile|update|validate]" % sys.argv[0])
@@ -26,7 +26,7 @@ def help():
     print("  help     - display this help message")
 
 
-def main(cmd, args):
+def main(cmd, args) -> None:
     if cmd == 'extract':
         # Using shell=True, because otherwise the *.py seems to cause trouble
         # on some systems, resulting in no python files being extracted.

@@ -36,12 +36,12 @@ def open_test_data(filename):
 
 
 @pytest.fixture
-def ia_writeback(monkeypatch):
+def ia_writeback(monkeypatch) -> None:
     """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
 
 
-def test_isbns_from_record():
+def test_isbns_from_record() -> None:
     rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
     result = isbns_from_record(rec)
     assert isinstance(result, list)
@@ -96,11 +96,11 @@ bookseller_titles = [
 
 
 @pytest.mark.parametrize(('full_title', 'title', 'subtitle'), bookseller_titles)
-def test_split_subtitle(full_title, title, subtitle):
+def test_split_subtitle(full_title, title, subtitle) -> None:
     assert split_subtitle(full_title) == (title, subtitle)
 
 
-def test_editions_matched_no_results(mock_site):
+def test_editions_matched_no_results(mock_site) -> None:
     rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
     isbns = isbns_from_record(rec)
     result = editions_matched(rec, 'isbn_', isbns)
@@ -108,7 +108,7 @@ def test_editions_matched_no_results(mock_site):
     assert result == []
 
 
-def test_editions_matched(mock_site, add_languages, ia_writeback):
+def test_editions_matched(mock_site, add_languages, ia_writeback) -> None:
     rec = {
         'title': 'test',
         'isbn_13': ['9780190906764'],
@@ -129,7 +129,7 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     assert result == ['/books/OL1M']
 
 
-def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):
+def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback) -> None:
     rec = {
         'title': 'test an import that is not from wikisource',
         'isbn_10': ['0190906767'],
@@ -150,7 +150,7 @@ def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):
     assert pool == {}
 
 
-def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
+def test_match_wikisource_edition(mock_site, add_languages, ia_writeback) -> None:
     rec = {
         'title': 'test an import that already has a wikisource identifier',
         'isbn_10': ['0190906768'],
@@ -171,12 +171,12 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
     assert result == ['/books/OL1M']
 
 
-def test_load_without_required_field():
+def test_load_without_required_field() -> None:
     rec = {'ocaid': 'test item'}
     pytest.raises(RequiredFields, load, {'ocaid': 'test_item'})
 
 
-def test_load_test_item(mock_site, add_languages, ia_writeback):
+def test_load_test_item(mock_site, add_languages, ia_writeback) -> None:
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
@@ -201,7 +201,7 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
     assert w.type.key == '/type/work'
 
 
-def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback):
+def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback) -> None:
     """
     Testings that authors are deduplicated before being added
     This will only work if all the author dicts are identical
@@ -220,7 +220,7 @@ def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback):
     assert len(reply['authors']) == 1
 
 
-def test_load_with_subjects(mock_site, ia_writeback):
+def test_load_with_subjects(mock_site, ia_writeback) -> None:
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
@@ -234,7 +234,7 @@ def test_load_with_subjects(mock_site, ia_writeback):
     assert w.subjects == ['Protected DAISY', 'In library']
 
 
-def test_load_with_new_author(mock_site, ia_writeback):
+def test_load_with_new_author(mock_site, ia_writeback) -> None:
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
@@ -296,7 +296,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert len(e.authors) == 1
 
 
-def test_load_with_redirected_author(mock_site, add_languages):
+def test_load_with_redirected_author(mock_site, add_languages) -> None:
     """Test importing existing editions without works
     which have author redirects. A work should be created with
     the final author.
@@ -341,7 +341,7 @@ def test_load_with_redirected_author(mock_site, add_languages):
     assert w.authors[0].author.key == '/authors/OL10A'
 
 
-def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
+def test_duplicate_ia_book(mock_site, add_languages, ia_writeback) -> None:
     """
     Here all fields that are 'used' (i.e. read and contribute to the edition)
     are the same.
@@ -373,7 +373,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
 
 def test_matched_edition_with_new_language_in_rec_adds_language(
     mock_site, add_languages, ia_writeback
-):
+) -> None:
     """
     When records match, but the record has a new language, the new language
     should be added to the existing edition, but existing languages should
@@ -409,7 +409,7 @@ def test_matched_edition_with_new_language_in_rec_adds_language(
 
 def test_matched_edition_with_new_language_is_added_even_if_no_existing_language(
     mock_site, add_languages, ia_writeback
-):
+) -> None:
     """
     Ensure a new language is added even if the existing edition has no language
     field.
@@ -443,7 +443,7 @@ def test_matched_edition_with_new_language_is_added_even_if_no_existing_language
 
 def test_matched_edition_properly_updates_non_language_fields(
     mock_site, add_languages, ia_writeback
-):
+) -> None:
     """
     Ensure a new language is added even if the existing edition has no language
     field.
@@ -479,7 +479,7 @@ def test_matched_edition_properly_updates_non_language_fields(
 
 
 class Test_From_MARC:
-    def test_from_marc_author(self, mock_site, add_languages):
+    def test_from_marc_author(self, mock_site, add_languages) -> None:
         ia = 'flatlandromanceo00abbouoft'
         marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
 
@@ -505,7 +505,7 @@ class Test_From_MARC:
             'treatiseonhistor00dixo',
         ),
     )
-    def test_from_marc(self, ia, mock_site, add_languages):
+    def test_from_marc(self, ia, mock_site, add_languages) -> None:
         data = open_test_data(ia + '_meta.mrc').read()
         assert len(data) == int(data[:5])
         rec = read_edition(MarcBinary(data))
@@ -519,7 +519,7 @@ class Test_From_MARC:
         assert reply['success'] is True
         assert reply['edition']['status'] == 'matched'
 
-    def test_author_from_700(self, mock_site, add_languages):
+    def test_author_from_700(self, mock_site, add_languages) -> None:
         ia = 'sexuallytransmit00egen'
         data = open_test_data(ia + '_meta.mrc').read()
         rec = read_edition(MarcBinary(data))
@@ -533,7 +533,7 @@ class Test_From_MARC:
         assert a.name == 'Laura K. Egendorf'
         assert a.birth_date == '1973'
 
-    def test_editior_role_from_700(self, mock_site, add_languages):
+    def test_editior_role_from_700(self, mock_site, add_languages) -> None:
         marc = '../../../marc/tests/test_data/bin_input/ithaca_college_75002321.mrc'
         data = open_test_data(marc).read()
         rec = read_edition(MarcBinary(data))
@@ -559,7 +559,7 @@ class Test_From_MARC:
         # Last has no role specified, general "author"
         assert isinstance(roles[2], Nothing)
 
-    def test_from_marc_reimport_modifications(self, mock_site, add_languages):
+    def test_from_marc_reimport_modifications(self, mock_site, add_languages) -> None:
         src = 'v38.i37.records.utf8--16478504-1254'
         marc = MarcBinary(open_test_data(src).read())
         rec = read_edition(marc)
@@ -578,7 +578,7 @@ class Test_From_MARC:
         assert reply['success'] is True
         assert reply['edition']['status'] == 'modified'
 
-    def test_missing_ocaid(self, mock_site, add_languages, ia_writeback):
+    def test_missing_ocaid(self, mock_site, add_languages, ia_writeback) -> None:
         ia = 'descendantsofhug00cham'
         src = ia + '_meta.mrc'
         marc = MarcBinary(open_test_data(src).read())
@@ -594,7 +594,7 @@ class Test_From_MARC:
         assert e.ocaid == ia
         assert 'ia:' + ia in e.source_records
 
-    def test_from_marc_fields(self, mock_site, add_languages):
+    def test_from_marc_fields(self, mock_site, add_languages) -> None:
         ia = 'isbn_9781419594069'
         data = open_test_data(ia + '_meta.mrc').read()
         rec = read_edition(MarcBinary(data))
@@ -639,7 +639,7 @@ class Test_From_MARC:
         assert work['description'] == desc
 
 
-def test_build_pool(mock_site):
+def test_build_pool(mock_site) -> None:
     assert build_pool({'title': 'test'}) == {}
     etype = '/type/edition'
     ekey = mock_site.new_key(etype)
@@ -676,7 +676,7 @@ def test_build_pool(mock_site):
     }
 
 
-def test_load_multiple(mock_site):
+def test_load_multiple(mock_site) -> None:
     rec = {
         'title': 'Test item',
         'lccn': ['123'],
@@ -706,7 +706,7 @@ def test_load_multiple(mock_site):
     assert ekey1 == ekey2 == ekey4
 
 
-def test_extra_author(mock_site, add_languages):
+def test_extra_author(mock_site, add_languages) -> None:
     mock_site.save(
         {
             "name": "Hubert Howe Bancroft",
@@ -863,7 +863,7 @@ def test_extra_author(mock_site, add_languages):
     assert len(w['authors']) == 1
 
 
-def test_missing_source_records(mock_site, add_languages):
+def test_missing_source_records(mock_site, add_languages) -> None:
     mock_site.save(
         {
             'key': '/authors/OL592898A',
@@ -938,7 +938,7 @@ def test_missing_source_records(mock_site, add_languages):
     assert 'source_records' in e
 
 
-def test_no_extra_author(mock_site, add_languages):
+def test_no_extra_author(mock_site, add_languages) -> None:
     author = {
         "name": "Paul Michael Boothe",
         "key": "/authors/OL1A",
@@ -1009,7 +1009,7 @@ def test_no_extra_author(mock_site, add_languages):
     assert len(w['authors']) == 1
 
 
-def test_same_twice(mock_site, add_languages):
+def test_same_twice(mock_site, add_languages) -> None:
     rec = {
         'source_records': ['ia:test_item'],
         "publishers": ["Ten Speed Press"],
@@ -1043,7 +1043,7 @@ def test_same_twice(mock_site, add_languages):
     assert reply['work']['status'] == 'matched'
 
 
-def test_existing_work(mock_site, add_languages):
+def test_existing_work(mock_site, add_languages) -> None:
     author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
@@ -1076,7 +1076,7 @@ def test_existing_work(mock_site, add_languages):
     assert e.works[0]['key'] == '/works/OL16W'
 
 
-def test_existing_work_with_subtitle(mock_site, add_languages):
+def test_existing_work_with_subtitle(mock_site, add_languages) -> None:
     author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
@@ -1803,7 +1803,7 @@ class TestNormalizeImportRecord:
             ("9999-01-01", False),
         ],
     )
-    def test_future_publication_dates_are_deleted(self, year, expected):
+    def test_future_publication_dates_are_deleted(self, year, expected) -> None:
         """It should be impossible to import books publish_date in a future year."""
         rec = {
             'title': 'test book',
@@ -1850,7 +1850,7 @@ class TestNormalizeImportRecord:
             ),
         ],
     )
-    def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
+    def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected) -> None:
         normalize_import_record(rec=rec)
         assert rec == expected
 
@@ -1973,7 +1973,9 @@ class TestNormalizeImportRecord:
             ),
         ],
     )
-    def test_year_1900_removed_from_amz_and_bwb_promise_items(self, rec, expected):
+    def test_year_1900_removed_from_amz_and_bwb_promise_items(
+        self, rec, expected
+    ) -> None:
         """
         A few import sources (e.g. promise items, BWB, and Amazon) have `publish_date`
         values that are known to be inaccurate, so those `publish_date` values are
@@ -1983,7 +1985,7 @@ class TestNormalizeImportRecord:
         assert rec == expected
 
 
-def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
+def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site) -> None:
     # An existing light title + ISBN only record should not match an
     # incoming pre-ISBN record.
     existing_edition = {

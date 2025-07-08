@@ -26,7 +26,7 @@ class TestEdition:
         data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
         return edition_class(MockSite(), "/books/OL1M", data=data)
 
-    def test_url(self):
+    def test_url(self) -> None:
         e = self.mock_edition(models.Edition)
         assert e.url() == "/books/OL1M/foo"
         assert e.url(v=1) == "/books/OL1M/foo?v=1"
@@ -39,23 +39,23 @@ class TestEdition:
         e = models.Edition(MockSite(), "/books/OL1M", data=data)
         assert e.url() == "/books/OL1M/untitled"
 
-    def test_get_ebook_info(self):
+    def test_get_ebook_info(self) -> None:
         e = self.mock_edition(models.Edition)
         assert e.get_ebook_info() == {}
 
-    def test_is_not_in_private_collection(self):
+    def test_is_not_in_private_collection(self) -> None:
         e = self.mock_edition(MockLendableEdition)
         assert not e.is_in_private_collection()
 
-    def test_in_borrowable_collection_cuz_not_in_private_collection(self):
+    def test_in_borrowable_collection_cuz_not_in_private_collection(self) -> None:
         e = self.mock_edition(MockLendableEdition)
         assert e.in_borrowable_collection()
 
-    def test_is_in_private_collection(self):
+    def test_is_in_private_collection(self) -> None:
         e = self.mock_edition(MockPrivateEdition)
         assert e.is_in_private_collection()
 
-    def test_not_in_borrowable_collection_cuz_in_private_collection(self):
+    def test_not_in_borrowable_collection_cuz_in_private_collection(self) -> None:
         e = self.mock_edition(MockPrivateEdition)
         assert not e.in_borrowable_collection()
 
@@ -113,7 +113,7 @@ class TestEdition:
 
 
 class TestAuthor:
-    def test_url(self):
+    def test_url(self) -> None:
         data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
 
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
@@ -131,14 +131,14 @@ class TestAuthor:
 
 
 class TestSubject:
-    def test_url(self):
+    def test_url(self) -> None:
         subject = models.Subject({"key": "/subjects/love"})
         assert subject.url() == "/subjects/love"
         assert subject.url("/lists") == "/subjects/love/lists"
 
 
 class TestWork:
-    def test_resolve_redirect_chain(self, monkeypatch):
+    def test_resolve_redirect_chain(self, monkeypatch) -> None:
         # e.g. https://openlibrary.org/works/OL2163721W.json
 
         # Chain:

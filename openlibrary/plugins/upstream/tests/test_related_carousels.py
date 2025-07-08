@@ -1,7 +1,7 @@
 from .. import models
 
 
-def test_related_subjects():
+def test_related_subjects() -> None:
     subjects = {
         "In library",
         "Conduct of life",

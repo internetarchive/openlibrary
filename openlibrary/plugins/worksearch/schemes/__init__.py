@@ -32,7 +32,7 @@ class SearchScheme:
     # Fields that should be rewritten
     facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
 
-    def is_search_field(self, field: str):
+    def is_search_field(self, field: str) -> bool:
         return field in self.all_fields or field in self.field_name_map
 
     def process_user_sort(self, user_sort: str) -> str:

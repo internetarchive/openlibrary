@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 import web
 
 
-def delete_old_links():
+def delete_old_links() -> None:
     for doc in web.ctx.site.store.values(type="account-link"):
         expiry_date = datetime.strptime(doc["expires_on"], "%Y-%m-%dT%H:%M:%S.%f")
         # Make expiry_date timezone-aware:
@@ -18,7 +18,7 @@ def delete_old_links():
             print("Retaining link %s" % (key))
 
 
-def main():
+def main() -> int:
     delete_old_links()
     return 0
 

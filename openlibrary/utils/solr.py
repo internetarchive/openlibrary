@@ -16,7 +16,7 @@ T = TypeVar('T')
 
 
 class Solr:
-    def __init__(self, base_url):
+    def __init__(self, base_url) -> None:
         """
         :param base_url: The base url of the solr server/collection. E.g. http://localhost:8983/solr/openlibrary
         """
@@ -204,7 +204,7 @@ class Solr:
             # TODO: improve this
             return v.replace('"', r'\"').replace("(", "\\(").replace(")", "\\)")
 
-        def escape_value(v):
+        def escape_value(v) -> str:
             if isinstance(v, tuple):  # hack for supporting range
                 return f"[{escape(v[0])} TO {escape(v[1])}]"
             elif isinstance(v, list):  # one of

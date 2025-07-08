@@ -4,8 +4,8 @@ import signal
 import sys
 
 
-def setup_graceful_shutdown():
-    def shutdown_handler(signum, frame):
+def setup_graceful_shutdown() -> None:
+    def shutdown_handler(signum, frame) -> None:
         print("Shutting down")
         sys.exit(0)
 

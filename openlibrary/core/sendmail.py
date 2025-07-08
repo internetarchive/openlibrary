@@ -4,12 +4,12 @@ from infogami import config
 from infogami.utils.view import render_template
 
 
-def sendmail_with_template(template, to, cc=None, frm=None, **kwargs):
+def sendmail_with_template(template, to, cc=None, frm=None, **kwargs) -> None:
     msg = render_template(template, **kwargs)
     _sendmail(to, msg, cc=cc, frm=frm)
 
 
-def _sendmail(to, msg, cc=None, frm=None):
+def _sendmail(to, msg, cc=None, frm=None) -> None:
     cc = cc or []
     frm = frm or config.from_address
     if config.get('dummy_sendmail'):

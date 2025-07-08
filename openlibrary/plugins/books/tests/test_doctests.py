@@ -11,7 +11,7 @@ def find_doctests(modules):
 
 
 @pytest.mark.parametrize('test', find_doctests(["openlibrary.plugins.books.dynlinks"]))
-def test_doctest(test):
+def test_doctest(test) -> None:
     runner = doctest.DocTestRunner(verbose=True)
     failures, tries = runner.run(test)
     if failures:

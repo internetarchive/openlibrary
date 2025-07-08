@@ -12,7 +12,7 @@ def render_template(name, *a, **kw):
 
 
 class Object:
-    def __init__(self, obj, name=None):
+    def __init__(self, obj, name=None) -> None:
         self.obj = obj
         self.name = name
 

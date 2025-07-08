@@ -1,3 +1,3 @@
 class TestRating:
-    def test_rate(self):
+    def test_rate(self) -> None:
         pass

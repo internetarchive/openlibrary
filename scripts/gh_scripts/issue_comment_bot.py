@@ -107,7 +107,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
     GitHub's REST API.
     """
 
-    def log_api_failure(_resp):
+    def log_api_failure(_resp) -> None:
         print(f'Failed to fetch comments for issue #{i["number"]}')
         print(f'URL: {i["html_url"]}')
         _d = _resp.json()
@@ -211,7 +211,7 @@ def publish_digest(
     hours_passed: int,
     leads: list[dict[str, str]],
     all_issues_labeled: bool,
-):
+) -> None:
     """
     Creates a threaded Slack messaged containing a digest of recently commented GitHub issues.
 
@@ -342,7 +342,7 @@ def add_label_to_issues(issues) -> bool:
     return all_issues_labeled
 
 
-def verbose_output(issues):
+def verbose_output(issues) -> None:
     """
     Prints detailed information about the given issues.
     """

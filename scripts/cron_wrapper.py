@@ -16,7 +16,7 @@ DEFAULT_CONFIG_PATH = "/olsystem/etc/cron-wrapper.ini"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_cfg):
+    def __init__(self, command, sentry_cfg, statsd_cfg) -> None:
         self.command = command
         self.statsd_client = (
             self._setup_statsd(statsd_cfg.get("host", ""), statsd_cfg.get("port", ""))
@@ -27,7 +27,7 @@ class MonitoredJob:
         self.job_name = self._get_job_name()
         self.job_failed = False
 
-    def run(self):
+    def run(self) -> None:
         self._before_run()
         try:
             self._run_script()
@@ -41,13 +41,13 @@ class MonitoredJob:
             self._after_run()
             sentry_sdk.flush()
 
-    def _before_run(self):
+    def _before_run(self) -> None:
         if self.statsd_client:
             self.statsd_client.incr(f'cron.{self.job_name}.start')
             self.job_timer = self.statsd_client.timer(f'cron.{self.job_name}.duration')
             self.job_timer.start()
 
-    def _after_run(self):
+    def _after_run(self) -> None:
         if self.statsd_client:
             self.job_timer.stop()
             status = "failure" if self.job_failed else "stop"
@@ -62,7 +62,7 @@ class MonitoredJob:
             check=True,
         )
 
-    def _setup_sentry(self, dsn):
+    def _setup_sentry(self, dsn) -> None:
         sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0)  # Configure?
 
     def _setup_statsd(self, host, port):
@@ -78,7 +78,7 @@ class MonitoredJob:
         return job_name
 
 
-def main(args):
+def main(args) -> None:
     config = _read_config(args.config)
     sentry_cfg = dict(config["sentry"]) if config.has_section("sentry") else None
     statsd_cfg = dict(config["statsd"]) if config.has_section("statsd") else None

@@ -210,6 +210,6 @@ from ..import_open_textbook_library import map_data
         ),
     ],
 )
-def test_map_data(input_data, expected_output):
+def test_map_data(input_data, expected_output) -> None:
     result = map_data(input_data)
     assert result == expected_output

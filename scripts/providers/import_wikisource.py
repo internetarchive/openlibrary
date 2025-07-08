@@ -415,7 +415,7 @@ def fetch_until_successful(url: str) -> dict:
 
 def update_record_with_wikisource_metadata(
     book: BookRecord, book_id: str, new_data: dict, author_map: dict[str, list[str]]
-):
+) -> None:
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
@@ -499,7 +499,7 @@ def update_record_with_wikisource_metadata(
         pass
 
 
-def print_records(records: list[BookRecord]):
+def print_records(records: list[BookRecord]) -> None:
     for rec in records:
         # Don't know why a few records are turning out like this yet
         if rec.title is None or rec.publish_date is None or len(rec.authors) == 0:
@@ -512,7 +512,7 @@ def scrape_wikisource_api(
     url: str,
     imports: dict[str, BookRecord],
     author_map: dict[str, list[str]],
-):
+) -> None:
     cont_url = url
 
     # Continue until you've reached the end of paginated results
@@ -554,7 +554,7 @@ def scrape_wikisource_api(
 
 def update_import_with_wikidata_api_response(
     impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]
-):
+) -> None:
 
     # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
     if "author" in obj and "value" in obj["author"]:
@@ -630,7 +630,7 @@ def scrape_wikidata_api(
     cfg: LangConfig,
     imports: dict[str, BookRecord],
     author_map: dict[str, list[str]],
-):
+) -> None:
     # Unsure if this is supposed to be paginated. Validated Texts only returns one page of JSON results.
     # The "while true" here is simply to retry requests that fail due to API limits.
     data = fetch_until_successful(url)
@@ -811,7 +811,7 @@ WHERE {
 
 def fix_contributor_data(
     imports: dict[str, BookRecord], map: dict[str, list[str]], cfg: LangConfig
-):
+) -> None:
     contributor_ids = list(map.keys())
     for batch in itertools.batched(contributor_ids, 50):
         query = (
@@ -926,7 +926,7 @@ WHERE {
 
 
 # If we want to process all Wikisource pages in more than one category, we have to do one API call per category per language.
-def process_all_books(cfg: LangConfig):
+def process_all_books(cfg: LangConfig) -> None:
     imports: dict[str, BookRecord] = {}
     author_map: dict[str, list[str]] = {}
 
@@ -948,7 +948,7 @@ def process_all_books(cfg: LangConfig):
         print_records(batch)
 
 
-def main(ol_config: str):
+def main(ol_config: str) -> None:
     """
     :param str ol_config: Path to openlibrary.yml file
     """

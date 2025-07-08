@@ -88,10 +88,10 @@ class community_edits_queue(delegate.page):
         comment: str | None = None,
         primary: str | None = None,
     ):
-        def is_valid_action(action):
+        def is_valid_action(action) -> bool:
             return action in ('create-pending', 'create-merged')
 
-        def needs_unique_url(mr_type):
+        def needs_unique_url(mr_type) -> bool:
             return mr_type in (
                 CommunityEditsQueue.TYPE['WORK_MERGE'],
                 CommunityEditsQueue.TYPE['AUTHOR_MERGE'],
@@ -204,5 +204,5 @@ class community_edits_queue(delegate.page):
         return 'Unknown record'
 
 
-def setup():
+def setup() -> None:
     pass

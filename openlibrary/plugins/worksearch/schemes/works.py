@@ -608,7 +608,7 @@ class WorkSearchScheme(SearchScheme):
                         ed_doc[field] = val if isinstance(val, str) else val.value
 
 
-def lcc_transform(sf: luqum.tree.SearchField):
+def lcc_transform(sf: luqum.tree.SearchField) -> None:
     # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
     # for proper range search
     val = sf.children[0]
@@ -662,7 +662,7 @@ def ddc_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected ddc SearchField value type: {type(val)}")
 
 
-def isbn_transform(sf: luqum.tree.SearchField):
+def isbn_transform(sf: luqum.tree.SearchField) -> None:
     field_val = sf.children[0]
     if isinstance(field_val, luqum.tree.Word) and '*' not in field_val.value:
         isbn = normalize_isbn(field_val.value)
@@ -672,7 +672,7 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
-def ia_collection_s_transform(sf: luqum.tree.SearchField):
+def ia_collection_s_transform(sf: luqum.tree.SearchField) -> None:
     """
     Because this field is not a multi-valued field in solr, but a simple ;-separate
     string, we have to do searches like this for now.

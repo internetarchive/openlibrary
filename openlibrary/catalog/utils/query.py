@@ -25,7 +25,7 @@ def urlread(url):
     return urlopen(url).content
 
 
-def set_query_host(host):
+def set_query_host(host) -> None:
     global query_host
     query_host = host
 

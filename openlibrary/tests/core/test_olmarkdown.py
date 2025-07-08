@@ -1,11 +1,11 @@
 from openlibrary.core.olmarkdown import OLMarkdown
 
 
-def test_olmarkdown():
+def test_olmarkdown() -> None:
     def md(text):
         return OLMarkdown(text).convert().strip()
 
-    def p(html):
+    def p(html) -> str:
         # markdown always wraps the result in <p>.
         return "<p>%s\n</p>" % html
 

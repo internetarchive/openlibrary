@@ -12,7 +12,7 @@ def pytest_funcarg__config(request):
 
 
 class RatingsAPI:
-    def __init__(self, config):
+    def __init__(self, config) -> None:
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
@@ -29,7 +29,7 @@ class RatingsAPI:
         req = requests.Request(method, self.server + path, data=data, headers=headers)
         return self.session.send(req)
 
-    def login(self):
+    def login(self) -> None:
         data = {'username': self.username, 'password': self.password}
         self.urlopen("/account/login", data=data, method="POST")
 
@@ -40,7 +40,7 @@ class RatingsAPI:
         return json.loads(r.read())
 
 
-def test_rating(config, monkeypatch):
+def test_rating(config, monkeypatch) -> None:
     api = RatingsAPI(config)
     api.login()
 
@@ -48,7 +48,7 @@ def test_rating(config, monkeypatch):
     data = {"rating": "5"}
 
     class FakeUser:
-        def __init__(self, key):
+        def __init__(self, key) -> None:
             self.key = '/users/%s' % key
 
     monkeypatch.setattr(accounts, "get_current_user", FakeUser('test'))

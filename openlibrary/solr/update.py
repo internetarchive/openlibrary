@@ -131,7 +131,7 @@ async def update_keys(
     return net_update
 
 
-async def do_updates(keys):
+async def do_updates(keys) -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
@@ -172,7 +172,7 @@ async def main(
     solr_base: str | None = None,
     solr_next=False,
     update: Literal['update', 'print', 'pprint'] = 'update',
-):
+) -> None:
     """
     Insert the documents with the given keys into Solr.
 

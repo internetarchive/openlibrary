@@ -79,7 +79,7 @@ $for path, title in docs:
 )
 
 
-def gzwrite(path, data):
+def gzwrite(path, data) -> None:
     with gzopen(path, 'w') as file:
         file.write(data)
 
@@ -99,7 +99,7 @@ def write_sitemaps(data, outdir, prefix):
         yield filename, timestamp
 
 
-def write_siteindex(data, outdir, prefix):
+def write_siteindex(data, outdir, prefix) -> None:
     rows = write_sitemaps(data, outdir, prefix)
     base_url = "http://openlibrary.org/static/sitemaps/"
 
@@ -119,17 +119,17 @@ def parse_index_file(index_file):
     return data
 
 
-def generate_sitemaps(index_file, outdir, prefix):
+def generate_sitemaps(index_file, outdir, prefix) -> None:
     data = parse_index_file(index_file)
     write_siteindex(data, outdir, prefix)
 
 
-def mkdir_p(dir):
+def mkdir_p(dir) -> None:
     if not os.path.exists(dir):
         os.makedirs(dir)
 
 
-def write(path, data):
+def write(path, data) -> None:
     print("writing", path)
     mkdir_p(os.path.dirname(path))
 
@@ -137,7 +137,7 @@ def write(path, data):
         file.write(data)
 
 
-def dirindex(dir, back=".."):
+def dirindex(dir, back="..") -> None:
     data = [(f, f) for f in sorted(os.listdir(dir))]
     index = t_html_layout(t_html_sitemap(back, data))
 
@@ -145,7 +145,7 @@ def dirindex(dir, back=".."):
     write(path, web.safestr(index))
 
 
-def generate_html_index(index_file, outdir):
+def generate_html_index(index_file, outdir) -> None:
     data = parse_index_file(index_file)
     data = ((d[0], d[1]) for d in data)
 

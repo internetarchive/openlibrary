@@ -150,7 +150,7 @@ def get_item_status(itemid, metadata, **server):
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict."""
 
-    def __init__(self, itemid):
+    def __init__(self, itemid) -> None:
         dict.__init__(self)
         self.itemid = itemid
 
@@ -169,7 +169,7 @@ class ItemEdition(dict):
         )
 
     @classmethod
-    def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
+    def get_item_status(cls, itemid, metadata, item_server=None, item_path=None) -> str:
         """Returns the status of the item related to importing it in OL.
 
         Possible return values are:
@@ -233,7 +233,7 @@ class ItemEdition(dict):
         """
         return cls.get_item_status(itemid, metadata) == 'ok'
 
-    def add_metadata(self, metadata):
+    def add_metadata(self, metadata) -> None:
         self.metadata = metadata
         self.add('title')
         self.add('description', 'description')
@@ -242,7 +242,7 @@ class ItemEdition(dict):
         self.add('date', 'publish_date')
         self.add_isbns()
 
-    def add(self, key, key2=None):
+    def add(self, key, key2=None) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -260,7 +260,7 @@ class ItemEdition(dict):
 
             self[key2] = value
 
-    def add_list(self, key, key2):
+    def add_list(self, key, key2) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -269,7 +269,7 @@ class ItemEdition(dict):
                 value = [value]
             self[key2] = value
 
-    def add_isbns(self):
+    def add_isbns(self) -> None:
         isbn_10 = []
         isbn_13 = []
         if isbns := self.metadata.get('isbn'):

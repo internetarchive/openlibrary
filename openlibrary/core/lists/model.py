@@ -103,7 +103,7 @@ class List(Thing):
 
     def add_seed(
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
-    ):
+    ) -> bool:
         """Adds a new seed to this list."""
         seed_object = Seed.from_json(self, seed)
 
@@ -116,7 +116,7 @@ class List(Thing):
 
     def remove_seed(
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
-    ):
+    ) -> bool:
         """Removes a seed for the list."""
         seed_key = Seed.from_json(self, seed).key
         if (index := self._index_of_seed(seed_key)) >= 0:
@@ -131,7 +131,7 @@ class List(Thing):
                 return i
         return -1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<List: {self.key} ({self.name!r})>"
 
     def _get_seed_strings(self) -> list[SeedSubjectString | ThingKey]:
@@ -223,7 +223,7 @@ class List(Thing):
             a.author.key for w in works for a in w.get("authors", []) if "author" in a
         )
 
-    def load_changesets(self, editions):
+    def load_changesets(self, editions) -> None:
         """Adds "recent_changeset" to each edition.
 
         The recent_changeset will be of the form:
@@ -295,7 +295,7 @@ class List(Thing):
         return sorted(process_all(), reverse=True, key=lambda s: s["count"])
 
     def get_subjects(self, limit=20):
-        def get_subject_type(s):
+        def get_subject_type(s) -> str:
             if s.url.startswith("/subjects/place:"):
                 return "places"
             elif s.url.startswith("/subjects/person:"):
@@ -404,7 +404,7 @@ class Seed:
         self,
         list: List,
         value: Thing | SeedSubjectString | AnnotatedSeed,
-    ):
+    ) -> None:
         self._list = list
         self._type = None
 
@@ -592,7 +592,7 @@ class Seed:
             d['picture'] = {"url": cover.url("S")}
         return d
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<seed: {self.type} {self.key}>"
 
     __str__ = __repr__
@@ -619,6 +619,6 @@ class ListChangeset(Changeset):
         return Seed.from_db(self.get_list(), seed)
 
 
-def register_models():
+def register_models() -> None:
     client.register_thing_class('/type/list', List)
     client.register_changeset_class('lists', ListChangeset)

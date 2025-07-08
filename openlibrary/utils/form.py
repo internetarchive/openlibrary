@@ -22,15 +22,15 @@ class AttributeList(dict):
     def copy(self):
         return AttributeList(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return " ".join(f'{k}="{web.websafe(v)}"' for k, v in self.items())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<attrs: %s>' % repr(str(self))
 
 
 class Input:
-    def __init__(self, name, description=None, value=None, **kw):
+    def __init__(self, name, description=None, value=None, **kw) -> None:
         self.name = name
         self.description = description or ""
         self.value = value
@@ -50,7 +50,7 @@ class Input:
     def get_type(self):
         raise NotImplementedError
 
-    def is_hidden(self):
+    def is_hidden(self) -> bool:
         return False
 
     def render(self):
@@ -62,7 +62,7 @@ class Input:
 
         return '<input ' + str(attrs) + ' />'
 
-    def validate(self, value):
+    def validate(self, value) -> bool:
         self.value = value
         for v in self.validators:
             if not v.valid(value):
@@ -83,7 +83,7 @@ class Textbox(Input):
     '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
     """
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "text"
 
 
@@ -94,7 +94,7 @@ class Password(Input):
     '<input type="password" id="password" value="secret" name="password" />'
     """
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "password"
 
 
@@ -105,7 +105,7 @@ class Email(Input):
     '<input type="email" id="email" value="joe@archive.org" name="email" />'
     """
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "email"
 
 
@@ -113,10 +113,10 @@ class Checkbox(Input):
     """Checkbox input."""
 
     @property
-    def checked(self):
+    def checked(self) -> bool:
         return self.value is not None
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "checkbox"
 
     def render(self):
@@ -129,15 +129,15 @@ class Checkbox(Input):
 class Hidden(Input):
     """Hidden input."""
 
-    def is_hidden(self):
+    def is_hidden(self) -> bool:
         return True
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "hidden"
 
 
 class Form:
-    def __init__(self, *inputs, **kw):
+    def __init__(self, *inputs, **kw) -> None:
         self.inputs = inputs
         self.validators = kw.pop('validators', [])
         self.note = None
@@ -145,7 +145,7 @@ class Form:
     def __call__(self):
         return copy.deepcopy(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return web.safestr(self.render())
 
     def __getitem__(self, key):
@@ -178,7 +178,7 @@ class Form:
 
     fill = validates
 
-    def _validate(self, value):
+    def _validate(self, value) -> bool:
         for v in self.validators:
             if not v.valid(value):
                 self.note = v.msg
@@ -187,7 +187,7 @@ class Form:
 
 
 class Validator:
-    def __init__(self, msg, test):
+    def __init__(self, msg, test) -> None:
         self.msg = msg
         self.test = test
 
@@ -201,7 +201,7 @@ class Validator:
             raise
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<validator: %r >" % self.msg
 
 
@@ -209,7 +209,7 @@ notnull = Validator("Required", bool)
 
 
 class RegexpValidator(Validator):
-    def __init__(self, rexp, msg):
+    def __init__(self, rexp, msg) -> None:
         self.rexp = re.compile(rexp)
         self.msg = msg
 

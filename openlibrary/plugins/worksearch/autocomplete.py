@@ -34,7 +34,7 @@ class autocomplete(delegate.page):
         else:
             return None
 
-    def doc_wrap(self, doc: dict):
+    def doc_wrap(self, doc: dict) -> None:
         """Modify the returned solr document in place."""
         if 'name' not in doc:
             doc['name'] = doc.get('title')
@@ -116,7 +116,7 @@ class works_autocomplete(autocomplete):
         # reasons.
         return doc['key'][-1] == 'W'
 
-    def doc_wrap(self, doc: dict):
+    def doc_wrap(self, doc: dict) -> None:
         doc['full_title'] = doc['title']
         if 'subtitle' in doc:
             doc['full_title'] += ": " + doc['subtitle']
@@ -130,7 +130,7 @@ class authors_autocomplete(autocomplete):
     olid_suffix = 'A'
     query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
 
-    def doc_wrap(self, doc: dict):
+    def doc_wrap(self, doc: dict) -> None:
         if 'top_work' in doc:
             doc['works'] = [doc.pop('top_work')]
         else:
@@ -155,6 +155,6 @@ class subjects_autocomplete(autocomplete):
         return super().direct_get(fq=fq)
 
 
-def setup():
+def setup() -> None:
     """Do required setup."""
     pass

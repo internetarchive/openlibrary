@@ -25,7 +25,7 @@ def mock_get(*args, **kwargs):
         def __enter__(self):
             return self
 
-        def __exit__(self, *args):
+        def __exit__(self, *args) -> None:
             pass
 
     return MockResponse()

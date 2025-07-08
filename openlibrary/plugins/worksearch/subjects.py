@@ -467,7 +467,7 @@ SUBJECTS = [
 ]
 
 
-def setup():
+def setup() -> None:
     """Placeholder for doing any setup required.
 
     This function is called from code.py.

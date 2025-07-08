@@ -12,7 +12,7 @@ import time
 class IPRevealer:
     """A class to reveal obscured IP addresses obscured by hide.py."""
 
-    def __init__(self, real_ips, replace: bool):
+    def __init__(self, real_ips, replace: bool) -> None:
         self.real_ips = real_ips
         self.replace = replace
 

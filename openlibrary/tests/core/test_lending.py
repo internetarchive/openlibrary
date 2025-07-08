@@ -4,7 +4,7 @@ from openlibrary.core import lending
 
 
 class TestAddAvailability:
-    def test_reads_ocaids(self, monkeypatch):
+    def test_reads_ocaids(self, monkeypatch) -> None:
         def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'available'}}
 
@@ -24,11 +24,11 @@ class TestAddAvailability:
             {'ia': ['foo'], 'availability': {'status': 'available'}}
         ]
 
-    def test_handles_ocaid_none(self):
+    def test_handles_ocaid_none(self) -> None:
         f = lending.add_availability
         assert f([{}]) == [{}]
 
-    def test_handles_availability_none(self, monkeypatch):
+    def test_handles_availability_none(self, monkeypatch) -> None:
         def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'error'}}
 
@@ -41,7 +41,7 @@ class TestAddAvailability:
 
 
 class TestGetAvailability:
-    def test_cache(self):
+    def test_cache(self) -> None:
         with patch("openlibrary.core.ia.session.get") as mock_get:
             mock_get.return_value = Mock()
             mock_get.return_value.json.return_value = {

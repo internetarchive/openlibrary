@@ -72,5 +72,5 @@ class bulk_tag_works(delegate.page):
         return response('Tagged works successfully')
 
 
-def setup():
+def setup() -> None:
     pass

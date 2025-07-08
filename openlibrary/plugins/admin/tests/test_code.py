@@ -47,12 +47,12 @@ def make_thing(key: str, title: str = '', thing_type: str | None = None) -> dict
 
 
 class TestRevertAllUserEdits:
-    def test_no_edits(self, mock_site):
+    def test_no_edits(self, mock_site) -> None:
         alice = make_test_account("alice")
 
         revert_all_user_edits(alice)
 
-    def test_deletes_spam_works(self, mock_site):
+    def test_deletes_spam_works(self, mock_site) -> None:
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
@@ -91,7 +91,7 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL345W").revision == 2
         assert web.ctx.site.get("/works/OL345W").type.key == "/type/delete"
 
-    def test_reverts_spam_edits(self, mock_site):
+    def test_reverts_spam_edits(self, mock_site) -> None:
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
@@ -113,7 +113,7 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL123W").title == "Good Book Title"
         assert web.ctx.site.get("/works/OL123W").type.key == "/type/work"
 
-    def test_does_not_undelete(self, mock_site):
+    def test_does_not_undelete(self, mock_site) -> None:
         spam_alice = make_test_account("spam_alice")
 
         web.ctx.site.save(
@@ -137,7 +137,7 @@ class TestRevertAllUserEdits:
             == "/type/delete"
         )
 
-    def test_two_spammy_editors(self, mock_site):
+    def test_two_spammy_editors(self, mock_site) -> None:
         spam_alice = make_test_account("spam_alice")
         spam_bob = make_test_account("spam_bob")
 

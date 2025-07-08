@@ -42,7 +42,7 @@ db = None
 mc = None
 
 
-def setup_database(**db_params):
+def setup_database(**db_params) -> None:
     """Setup the database. This must be called before using any other functions in this module."""
     global db, db_parameters
     db_params.setdefault('dbn', 'postgres')
@@ -51,7 +51,7 @@ def setup_database(**db_params):
     db_parameters = db_params
 
 
-def setup_memcache(servers):
+def setup_memcache(servers) -> None:
     """Setup the memcached servers.
     This must be called along with setup_database, if memcached servers are used in the system.
     """
@@ -220,7 +220,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         debug("MC SET")
 
 
-def debug(*a):
+def debug(*a) -> None:
     print(time.asctime(), a, file=sys.stderr)
 
 

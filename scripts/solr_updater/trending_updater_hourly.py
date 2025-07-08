@@ -88,7 +88,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     ) as proc:
         assert proc.stdout
 
-        def print_stderr(stderr):
+        def print_stderr(stderr) -> None:
             for err_line in stderr:
                 err_line = err_line.strip()
                 if err_line:
@@ -297,7 +297,7 @@ def form_inplace_trending_update(
     return request_body
 
 
-def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
+def run_hourly_update(timestamp: str | None = None, dry_run: bool = False) -> None:
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
     else:

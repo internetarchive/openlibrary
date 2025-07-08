@@ -12,7 +12,7 @@ modules = [
 
 
 @pytest.mark.parametrize('module', modules)
-def test_doctest(module):
+def test_doctest(module) -> None:
     mod = __import__(module, None, None, ['x'])
     finder = doctest.DocTestFinder()
     tests = finder.find(mod, mod.__name__)
