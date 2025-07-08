@@ -29,7 +29,7 @@ logger = logging.getLogger("openlibrary.waitinglist")
 _wl_api = lending.ia_lending_api
 
 
-def _get_book(identifier:  str):
+def _get_book(identifier: str):
     if keys := web.ctx.site.things({"type": '/type/edition', "ocaid": identifier}):
         return web.ctx.site.get(keys[0])
     else:
