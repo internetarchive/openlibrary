@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
+from os import getenv
 
 import sentry_sdk
 import web
@@ -66,7 +67,7 @@ class Sentry:
     def init(self):
         sentry_sdk.init(
             dsn=self.config['dsn'],
-            environment=self.config['environment'],
+            environment=getenv('OL_SENTRY_ENVIRONMENT', self.config['environment']),
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),

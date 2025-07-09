@@ -42,7 +42,12 @@ class TestTrendingUpdaterInit:
         fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
         start = datetime.datetime(2025, 6, 26, 0, 5, 0)
         actual_calls = self._run_main(
-            fake_now, {"timestamp": start.isoformat(), "dry_run": True}
+            fake_now,
+            {
+                "timestamp": start.isoformat(),
+                "dry_run": True,
+                "allow_old_timestamp": True,
+            },
         )
         # There should be 27 hourly events (from 2025-06-26 00:05 to 2025-06-27 02:05) and 2 daily events (at 2025-06-26 and 2025-06-27)
         num_hourly = sum(1 for call in actual_calls if call[0] == "hourly")
@@ -64,7 +69,12 @@ class TestTrendingUpdaterInit:
         # Start is 2025-06-27 02:30:00, less than an hour before fake_now
         start = datetime.datetime(2025, 6, 27, 2, 30, 0)
         actual_calls = self._run_main(
-            fake_now, {"timestamp": start.isoformat(), "dry_run": True}
+            fake_now,
+            {
+                "timestamp": start.isoformat(),
+                "dry_run": True,
+                "allow_old_timestamp": True,
+            },
         )
 
         expected_calls = [
@@ -77,7 +87,12 @@ class TestTrendingUpdaterInit:
         start = datetime.datetime(2025, 6, 27, 0, 30, 0)
 
         actual_calls = self._run_main(
-            fake_now, {"timestamp": start.isoformat(), "dry_run": True}
+            fake_now,
+            {
+                "timestamp": start.isoformat(),
+                "dry_run": True,
+                "allow_old_timestamp": True,
+            },
         )
         expected_calls = [
             ("daily", datetime.datetime(2025, 6, 27, 0, 0, 0).isoformat()),
