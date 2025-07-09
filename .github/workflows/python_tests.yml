@@ -22,9 +22,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: pyproject.toml
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version-file: pyproject.toml
       - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
@@ -36,6 +36,8 @@ jobs:
           sudo apt-get install -y libxml2 libxslt-dev
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        run: uv python install
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
