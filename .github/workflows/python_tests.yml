@@ -34,6 +34,8 @@ jobs:
           sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Install dependencies
         run: |
           # Try to upgrade pip, setuptools, and wheel
@@ -44,8 +46,8 @@ jobs:
             rm -f get-pip.py
             python -m pip install --upgrade pip setuptools wheel
           }
-          pip install -r requirements_test.txt
-          pip list --outdated
+          uv pip install -r requirements_test.txt
+          uv pip list --outdated
       - run: make git
       - name: Run make i18n
         run: |
