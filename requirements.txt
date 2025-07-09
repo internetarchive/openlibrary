@@ -27,5 +27,6 @@ qrcode==7.4.2
 requests==2.32.2
 sentry-sdk==2.19.2
 simplejson==3.19.1
+sqlfluff==3.4.1
 statsd==4.0.1
 validate_email==1.3

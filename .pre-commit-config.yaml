@@ -123,3 +123,13 @@ repos:
       language: python
       verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 2.3.5  # Or latest stable version
+    hooks:
+      - id: sqlfluff-lint
+        name: SQLFluff Linter
+        entry: sqlfluff lint
+        language: python
+        types: [sql]
+        args: [--dialect=postgres]
