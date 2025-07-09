@@ -18,6 +18,11 @@ function setupGradientForElement(el) {
     // This finds the correct element to listen to the 'load' event on.
     const imageEl = el.querySelector('img') || el;
 
+    if (imageEl.complete) {
+        revealImage(el);
+        return;
+    }
+
     // Wait for the image to fully load before we do anything.
     imageEl.addEventListener('load', () => revealImage(el), { once: true });
 
