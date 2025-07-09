@@ -283,6 +283,7 @@ services:
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
+      - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
