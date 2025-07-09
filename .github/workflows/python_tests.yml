@@ -30,6 +30,8 @@ jobs:
       #     python-version-file: pyproject.toml
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
       - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
