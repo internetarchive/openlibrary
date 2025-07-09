@@ -1,5 +1,5 @@
 # Open Library
-🌍 Read this in other languages: [简体中文](README.zh.md) | [Español](README_es.md)
+🌍 Read this in other languages: [简体中文](Readme_chinese.md) | [Español](Readme_es.md) | [Tiếng Việt](Readme_vn.md)
 
 
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
@@ -100,7 +100,7 @@ There are many ways volunteers can contribute to the Open Library project, from 
 
 ### Community Engagement
 - **Join our Community Calls:** Open Library hosts weekly community and design calls. Check the [community call schedule](https://github.com/internetarchive/openlibrary/wiki/Community-Call) for times and details.
-- **Ask Questions:** If you have any questions, join our [gitter chat](https://gitter.im/theopenlibrary/Lobby) or request an invitation to our Slack channel on our [volunteers page](https://openlibrary.org/volunteer).
+- **Ask Questions:** If you have any questions, request an invitation to our Slack channel on our [volunteers page](https://openlibrary.org/volunteer).
 
 For more detailed information, refer to the [Contributing Guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md).
 

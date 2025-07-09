@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.2
+    rev: v0.11.13
     hooks:
       - id: ruff
         args: [ --fix ]
@@ -56,7 +56,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.16.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -72,7 +72,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.23.0
+    rev: v9.29.0
     hooks:
       - id: eslint
         types: [file]
@@ -92,9 +92,10 @@ repos:
     - id: stylelint
       files: \.(css|less)$
       additional_dependencies:
-        - stylelint@15.10.1
-        - stylelint-declaration-strict-value@1.9.2
-        - postcss-less@3.1.4
+        - stylelint@16.19.1
+        - stylelint-declaration-strict-value@1.10.11
+        - postcss-less@6.0.0
+        - stylelint-prettier@5.0.3
       args: [--fix]
 
   - repo: local

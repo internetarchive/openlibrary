@@ -7,20 +7,19 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    ALLOWED_COVER_HOSTS,
     IndependentlyPublished,
     PublicationYearTooOld,
     PublishedInFutureYear,
-    RequiredField,
+    RequiredFields,
     SourceNeedsISBN,
     build_pool,
+    check_cover_url_host,
     editions_matched,
     find_match,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
-    process_cover_url,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -130,9 +129,51 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     assert result == ['/books/OL1M']
 
 
+def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):
+    rec = {
+        'title': 'test an import that is not from wikisource',
+        'isbn_10': ['0190906767'],
+        'source_records': ['test:002'],
+    }
+    load(rec)
+
+    ws_rec = {
+        'title': 'test an import that is not from wikisource',
+        'isbn_10': ['0190906767'],
+        'source_records': ['wikisource:en:wikisourceidentifier'],
+        'identifiers': {'wikisource': ['en:wikisourceidentifier']},
+    }
+
+    # empty pool because the existing record is not from wikisource
+
+    pool = build_pool(ws_rec)
+    assert pool == {}
+
+
+def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
+    rec = {
+        'title': 'test an import that already has a wikisource identifier',
+        'isbn_10': ['0190906768'],
+        'source_records': ['test:003'],
+        'identifiers': {'wikisource': ['en:wikisourceidentifier2']},
+    }
+    load(rec)
+
+    ws_rec = {
+        'title': 'test a wikisource record against editions that have wikisource identifiers',
+        'isbn_10': ['0190906768'],
+        'source_records': ['wikisource:en:wikisourceidentifier2'],
+    }
+
+    # existing edition already has a wikisource identifier, so an incoming wikisource source record should match it
+
+    result = editions_matched(ws_rec, 'isbn_10', '0190906768')
+    assert result == ['/books/OL1M']
+
+
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
-    pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
+    pytest.raises(RequiredFields, load, {'ocaid': 'test_item'})
 
 
 def test_load_test_item(mock_site, add_languages, ia_writeback):
@@ -491,6 +532,32 @@ class Test_From_MARC:
         assert a.type.key == '/type/author'
         assert a.name == 'Laura K. Egendorf'
         assert a.birth_date == '1973'
+
+    def test_editior_role_from_700(self, mock_site, add_languages):
+        marc = '../../../marc/tests/test_data/bin_input/ithaca_college_75002321.mrc'
+        data = open_test_data(marc).read()
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:test_editior_role_from_700']
+        reply = load(rec)
+        assert reply['success'] is True
+        # authors from 700
+        akeys = [a['key'] for a in reply['authors']]
+        wkey = reply['work']['key']
+        a = [mock_site.get(akey) for akey in akeys]
+        w = mock_site.get(wkey)
+        assert a[0].type.key == '/type/author'
+        assert a[0].name == 'Joseph A. Pechman'
+        assert a[0].birth_date == '1918'
+        assert a[1].name == 'P. Michael Timpane'
+        assert (
+            a[2].name
+            == 'Brookings Institution, Washington, D.C. Panel on Social Experimentation'
+        )
+        roles = [a.role for a in w.authors]
+        # First two "authors" have Editor roles
+        assert roles[0] == roles[1] == 'Editor'
+        # Last has no role specified, general "author"
+        assert isinstance(roles[2], Nothing)
 
     def test_from_marc_reimport_modifications(self, mock_site, add_languages):
         src = 'v38.i37.records.utf8--16478504-1254'
@@ -1943,40 +2010,17 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
 
 
 @pytest.mark.parametrize(
-    ("edition", "expected_cover_url", "expected_edition"),
+    ("cover_url", "is_valid"),
     [
-        ({}, None, {}),
-        ({'cover': 'https://not-supported.org/image/123.jpg'}, None, {}),
-        (
-            {'cover': 'https://m.media-amazon.com/image/123.jpg'},
-            'https://m.media-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'cover': 'http://m.media-amazon.com/image/123.jpg'},
-            'http://m.media-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'cover': 'https://m.MEDIA-amazon.com/image/123.jpg'},
-            'https://m.MEDIA-amazon.com/image/123.jpg',
-            {},
-        ),
-        (
-            {'title': 'a book without a cover'},
-            None,
-            {'title': 'a book without a cover'},
-        ),
+        (None, False),
+        ('https://not-supported.org/image/123.jpg', False),
+        ('https://m.media-amazon.com/image/123.jpg', True),
+        ('http://m.media-amazon.com/image/123.jpg', True),
+        ('https://m.MEDIA-amazon.com/image/123.jpg', True),
     ],
 )
-def test_process_cover_url(
-    edition: dict, expected_cover_url: str, expected_edition: dict
-) -> None:
+def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
     """
     Only cover URLs available via the HTTP Proxy are allowed.
     """
-    cover_url, edition = process_cover_url(
-        edition=edition, allowed_cover_hosts=ALLOWED_COVER_HOSTS
-    )
-    assert cover_url == expected_cover_url
-    assert edition == expected_edition
+    assert check_cover_url_host(cover_url) == is_valid

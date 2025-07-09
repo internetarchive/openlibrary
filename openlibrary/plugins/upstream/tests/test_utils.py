@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 import pytest
 import web
 
@@ -221,11 +223,24 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
+    web.ctx.site.save(
+        {
+            "code": "por",
+            "key": "/languages/por",
+            "name": "Portuguese",
+            "type": {"key": "/type/language"},
+            "name_translated": {
+                "en": ["Portuguese", "Portuguese Brazilian"],
+            },
+        }
+    )
+
     assert utils.get_abbrev_from_full_lang_name("EnGlish") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Dorerin Ingerand") == "eng"
     assert utils.get_abbrev_from_full_lang_name("ингилисӣ") == "eng"
     assert utils.get_abbrev_from_full_lang_name("ингилиси") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Anglais") == "fre"
+    assert utils.get_abbrev_from_full_lang_name("Portuguese Brazilian") == "por"
 
     # See openlibrary/catalog/add_book/tests/conftest.py for imported languages.
     with pytest.raises(utils.LanguageMultipleMatchError):
@@ -303,3 +318,24 @@ def test_get_location_and_publisher() -> None:
     # Separating a not identified place with a comma
     loc_pub = "[Place of publication not identified], BARBOUR PUB INC"
     assert utils.get_location_and_publisher(loc_pub) == ([], ["BARBOUR PUB INC"])
+
+
+@pytest.mark.parametrize(
+    ("name", "seq", "locale", "expected"),
+    [
+        ("English", ["apples", "oranges", "pears"], "en", "apples, oranges, and pears"),
+        ("Chinese", ["apples", "oranges", "pears"], "zh", "apples、oranges和pears"),
+        (
+            "non existent locale",
+            ["apples", "oranges", "pears"],
+            "nope",
+            "apples, oranges, and pears",
+        ),
+    ],
+)
+def test_commify_list(
+    name: str, seq: Sequence[str], locale: str, expected: str
+) -> None:
+    web.ctx.lang = locale
+    got = utils.commify_list(seq)
+    assert got == expected

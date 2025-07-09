@@ -1,5 +1,6 @@
 import datetime
 import functools
+import itertools
 import json
 import logging
 import os
@@ -230,15 +231,19 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
+    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
         lang = web.ctx.lang
         key_prefix = f'{name}.{lang}'
-        if web.cookies().get('pd', False):
+        cookies = web.cookies()
+        if cookies.get('pd', False):
             key_prefix += '.pd'
-        if web.cookies().get('sfw', ''):
+        if cookies.get('sfw', ''):
             key_prefix += '.sfw'
+        if is_bot():
+            key_prefix += '.bot'
         return key_prefix
 
     five_minutes = 5 * 60
@@ -254,7 +259,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
     try:
         page = mc(name, args, **kwargs)
         return web.template.TemplateResult(page)
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
 
 
@@ -307,7 +312,13 @@ def commify_list(items: Iterable[Any]) -> str:
     lang = web.ctx.lang or 'en'
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
-    return format_list([str(x).strip() for x in items], locale=lang)
+    try:
+        commified_list = format_list([str(x).strip() for x in items], locale=lang)
+    except babel.UnknownLocaleError as e:
+        logger.warning(f"unknown language for commify_list: {lang}. {e}")
+        commified_list = format_list([str(x).strip() for x in items], locale="en")
+
+    return commified_list
 
 
 @public
@@ -627,18 +638,19 @@ def url_quote(text: str | bytes) -> str:
 
 
 @public
-def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
+def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
+    from urllib.parse import quote, quote_plus
     from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
         tuples = list(dict_or_list_of_tuples.items())
     params = [(k, v.encode('utf-8') if isinstance(v, str) else v) for (k, v) in tuples]
-    return og_urlencode(params)
+    return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
 @public
@@ -777,17 +789,17 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
         return strip_accents(s).lower()
 
     for language in languages:
-        if normalize(language.name) == normalize(input_lang_name):
-            if target_abbrev:
-                raise LanguageMultipleMatchError(input_lang_name)
+        language_names = itertools.chain(
+            (language.name,),
+            (
+                name
+                for key in language.name_translated
+                for name in language.name_translated[key]
+            ),
+        )
 
-            target_abbrev = language.code
-            continue
-
-        for key in language.name_translated:
-            if normalize(language.name_translated[key][0]) == normalize(
-                input_lang_name
-            ):
+        for name in language_names:
+            if normalize(name) == normalize(input_lang_name):
                 if target_abbrev:
                     raise LanguageMultipleMatchError(input_lang_name)
                 target_abbrev = language.code
@@ -1021,7 +1033,9 @@ def get_marc21_language(language: str) -> str | None:
         'ms': 'msa',
         'mt': 'mlt',
         'mul': 'mul',
-        'my': 'mya',
+        'my': 'bur',
+        'mya': 'bur',
+        'burmese': 'bur',
         'myn': 'myn',
         'nai': 'nai',
         'nav': 'nav',
@@ -1170,6 +1184,17 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
+@public
+def get_populated_languages() -> set[str]:
+    """
+    Get the languages for which we have many available ebooks, in MARC21 format
+    See https://openlibrary.org/languages
+    """
+    # Hard-coded for now to languages with more than 15k borrowable ebooks
+    return {'eng', 'fre', 'ger', 'spa', 'chi', 'ita', 'lat', 'dut', 'rus', 'jpn'}
+
+
+@public
 @functools.cache
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
@@ -1525,6 +1550,12 @@ class HTMLTagRemover(HTMLParser):
 
     def handle_endtag(self, tag):
         self.data.append('\n' if tag in ('p', 'li') else ' ')
+
+
+@public
+def get_user_object(username):
+    user = web.ctx.site.get(f'/people/{username}')
+    return user
 
 
 @public

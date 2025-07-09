@@ -26,10 +26,33 @@ re_date = re.compile(r'^[0-9]+u*$')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
-re_ocolc = re.compile('^ocolc *$', re.I)
+re_ocolc = re.compile('^ocolc *$', re.IGNORECASE)
 re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
 re_int = re.compile(r'\d{2,}')
 re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
+
+
+ROLES = {
+    # MARC 21 relator codes
+    # https://www.loc.gov/marc/relators/relacode.html
+    'art': 'Artist',
+    'aui': 'Author of introduction',
+    'aut': 'Author',
+    'clr': 'Colorist',
+    'com': 'Compiler',
+    'edc': 'Editor of compilation',
+    'edt': 'Editor',
+    'ill': 'Illustrator',
+    'ltr': 'Letterer',
+    'trl': 'Translator',
+    'win': 'Writer of introduction',
+    'wpr': 'Writer of preface',
+    # Non-standard terms from $e
+    'comp.': 'Compiler',
+    'ed.': 'Editor',
+    'ill.': 'Illustrator',
+    'tr.': 'Translator',
+}
 
 
 def strip_foc(s: str) -> str:
@@ -86,12 +109,24 @@ FIELDS_WANTED = (
 
 
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 016: National Bibliographic Agency Control Number
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or ['']
         (control_number,) = f.get_subfield_values('a') or ['']
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
+    return None
+
+
+def read_doi(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 024: Other Standard Identifier
+    fields = rec.get_fields('024')
+    for f in fields:
+        (source,) = f.get_subfield_values('2') or ['']
+        (control_number,) = f.get_subfield_values('a') or ['']
+        if source == 'doi' and control_number:
+            return {'doi': [control_number]}
     return None
 
 
@@ -378,6 +413,8 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
 
     def publish_place(s: str) -> str:
         place = s.strip(' /.,;:')
+        if place == '':
+            return ''
         # remove encompassing []
         if (place[0], place[-1]) == ('[', ']'):
             place = place[1:-1]
@@ -427,7 +464,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     and returns an author import dict.
     """
     author: dict[str, Any] = {}
-    contents = field.get_contents('abcde6')
+    contents = field.get_contents('abcde46')
     if 'a' not in contents and 'c' not in contents:
         # Should have at least a name or title.
         return author
@@ -440,6 +477,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
         ('b', 'numeration'),
         ('c', 'title'),
         ('e', 'role'),
+        ('4', 'role'),
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
@@ -455,6 +493,8 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
         ):
             author['alternate_names'] = [author['name']]
             author['name'] = name_from_list(name)
+    if author.get('role') in ROLES:
+        author['role'] = ROLES[author['role']]
     return author
 
 
@@ -545,7 +585,7 @@ def read_series(rec: MarcBase) -> list[str]:
 def read_notes(rec: MarcBase) -> str:
     found = []
     for tag in range(500, 590):
-        if tag in (505, 520):
+        if tag in (505, 520, 583):
             continue
         fields = rec.get_fields(str(tag))
         for f in fields:
@@ -686,6 +726,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_dnb, 'identifiers')
+    update_edition(rec, edition, read_doi, 'identifiers')
     update_edition(rec, edition, read_issn, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')

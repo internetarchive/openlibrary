@@ -1,0 +1,53 @@
+{
+  "packageId": "org.openlibrary.testing.twa",
+  "host": "openlibrary.org",
+  "name": "Open Library: A page for every book published",
+  "launcherName": "Open Library",
+  "display": "standalone",
+  "themeColor": "#E2DCC5",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#E2DCC5",
+  "enableNotifications": true,
+  "startUrl": "/?source=pwa",
+  "iconUrl": "https://openlibrary.org/static/images/openlibrary-512x512.png",
+  "maskableIconUrl": "https://openlibrary.org/static/images/openlibrary-512x512-mask.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/tmp/olsystem/etc/pwa/openlibrary-upload-key.jks",
+    "alias": "upload"
+  },
+  "appVersionName": "7",
+  "appVersionCode": 7,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://openlibrary.org/static/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://openlibrary.org/",
+  "minSdkVersion": 21,
+  "shareTarget": {
+    "action": "https://openlibrary.org/search",
+    "method": "GET",
+    "params": {
+      "text": "q"
+    }
+  },
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "appVersion": "7"
+}

@@ -82,6 +82,11 @@ class Edition(models.Edition):
         elif self.ocaid:
             return self.get_ia_cover(self.ocaid, size)
 
+    def get_cover_aspect_ratio(self) -> float | None:
+        if cover := self.get_cover():
+            return cover.get_aspect_ratio()
+        return None
+
     def get_ia_cover(self, itemid, size):
         image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
         w, h = image_sizes[size.upper()]
@@ -500,6 +505,11 @@ class Author(models.Author):
         photo = self.get_photo()
         return photo and photo.url(size)
 
+    def get_photo_aspect_ratio(self) -> float | None:
+        if photo := self.get_photo():
+            return photo.get_aspect_ratio()
+        return None
+
     def get_olid(self):
         return self.key.split('/')[-1]
 
@@ -559,7 +569,7 @@ class Work(models.Work):
     def get_covers_from_solr(self) -> list[Image]:
         try:
             w = self._solr_data
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception(
                 'Unable to retrieve covers from solr'
             )
@@ -594,7 +604,7 @@ class Work(models.Work):
         stats.begin("solr", get=self.key, fields=fields)
         try:
             return solr.get(self.key, fields=fields)
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:

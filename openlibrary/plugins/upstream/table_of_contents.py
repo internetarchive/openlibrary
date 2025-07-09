@@ -82,7 +82,7 @@ class TocEntry:
     @cached_property
     def extra_fields(self) -> dict:
         required_fields = ('level', 'label', 'title', 'pagenum')
-        extra_fields = self.__annotations__.keys() - required_fields
+        extra_fields = type(self).__annotations__.keys() - required_fields
         return {
             field: getattr(self, field)
             for field in extra_fields
@@ -171,7 +171,7 @@ class TocEntry:
     def is_empty(self) -> bool:
         return all(
             getattr(self, field) is None
-            for field in self.__annotations__
+            for field in type(self).__annotations__
             if field != 'level'
         )
 

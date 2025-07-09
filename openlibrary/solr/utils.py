@@ -1,6 +1,8 @@
 import json
 import logging
+import os
 from dataclasses import dataclass, field
+from typing import cast
 
 import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
@@ -30,9 +32,13 @@ def get_solr_base_url():
     """
     global solr_base_url
 
-    load_config()
+    if solr_base_url is not None:
+        return solr_base_url
 
-    if not solr_base_url:
+    if os.environ.get('OL_SOLR_BASE_URL'):
+        solr_base_url = os.environ['OL_SOLR_BASE_URL']
+    else:
+        load_config()
         solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
 
     return solr_base_url
@@ -50,8 +56,15 @@ def get_solr_next() -> bool:
     global solr_next
 
     if solr_next is None:
-        load_config()
-        solr_next = config.runtime_config['plugin_worksearch'].get('solr_next', False)
+        if env_val := os.environ.get('OL_SOLR_NEXT'):
+            if env_val not in ('true', 'false', ''):
+                raise ValueError(f'Invalid OL_SOLR_NEXT, got {env_val}')
+            solr_next = env_val == 'true'
+        else:
+            load_config()
+            solr_next = cast(
+                bool, config.runtime_config['plugin_worksearch'].get('solr_next', False)
+            )
 
     return solr_next
 
@@ -94,8 +107,7 @@ class SolrUpdateRequest:
         if self.commit:
             result += '"commit": {}' + sep
 
-        if result.endswith(sep):
-            result = result[: -len(sep)]
+        result = result.removesuffix(sep)
         result += '}'
         return result
 

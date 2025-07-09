@@ -58,14 +58,14 @@ $if doc.type.key == "/type/work":
     <div class="label">
         <label for="coverClipboard">$_("Or, paste an image from your clipboard")</label>
     </div>
+    <div class="input">
+        <div class="button-container">
+            <button type="button" id="pasteButton" class="cta-btn cta-btn--vanilla paste-button" aria-label="$_('Paste image from clipboard')">$_("Paste Image")</button>
+            <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla upload-button hidden" aria-label="$_('Upload image')">$_("Upload Image")</button>
+        </div>
+        <div class="image-container"></div>
 
-    <div class="image-container"></div>
-
-    <input type="file" name="file" id="hiddenFileInput" aria-label="Hidden file input" />
-
-    <div class="button-container">
-        <button type="button" id="pasteButton" class="cta-btn cta-btn--vanilla paste-button" aria-label="$_('Paste image from clipboard')">$_("No Image Pasted")</button>
-        <button id="uploadButtonPaste" type="submit" class="cta-btn cta-btn--vanilla upload-button hidden" aria-label="$_('Upload image')">$_("Upload Image")</button>
+        <input type="file" name="file" id="hiddenFileInput" aria-label="Hidden file input" />
     </div>
 </form>
 
@@ -82,14 +82,8 @@ $#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
     $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-    <form class="ol-cover-form ol-cover-form--ia" method="post" enctype="multipart/form-data" action="$action">
-        <div class="label">
-            <label>$_("Or, use the the cover from Internet Archive")</label>
-        </div>
-        <div class="input">
-            <a href="$img_url" target="_blank">
-                <img class="ol-cover-form--ia_image" src="$img_url" style="height: 200px" />
-            </a>
-            <button type="submit" id="coverIA" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Use this image")</button>
-        </div>
-    </form>
+    $:render_template("covers/external_image", action, img_url, _("Internet Archive"))
+
+$if doc.type.key == "/type/author" and data.get('wikidata_images'):
+    $ img_url = data.get('wikidata_images')[0]
+    $:render_template("covers/external_image", action, img_url, _("Wikidata"))

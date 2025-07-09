@@ -19,6 +19,7 @@ from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
 from openlibrary.core import helpers, stats
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
@@ -360,6 +361,9 @@ class Account(web.storage):
         results['merge_request_count'] = CommunityEditsQueue.update_submitter_name(
             self.username, new_username, _test=test
         )
+        results['bestbooks_count'] = Bestbook.update_username(
+            self.username, new_username, _test=test
+        )
 
         if not test:
             patron = self.get_user()
@@ -460,7 +464,7 @@ class OpenLibraryAccount(Account):
                 password=password,
                 displayname=displayname,
             )
-        except ClientException as e:
+        except ClientException:
             raise ValueError('something_went_wrong')
 
         if verified:
@@ -903,7 +907,7 @@ def audit_accounts(
                     retries=5,
                     test=test,
                 )
-            except ValueError as e:
+            except ValueError:
                 return {'error': 'max_retries_exceeded'}
 
             ol_account.link(ia_account.itemname)

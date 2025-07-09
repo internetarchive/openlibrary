@@ -237,7 +237,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $else:
           $ overview_desc = work.description
         <div class="book-description read-more">
-            <div class="read-more__content" style="max-height:81px">
+            <div class="read-more__content markdown-content" style="max-height:81px">
                 $:sanitize(format(overview_desc))
             </div>
             $:macros.ReadMore()
@@ -393,7 +393,15 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <div class="section">
                 <h3>$_("Classifications")</h3>
                 <dl class="meta">
+                    $ explorer_prefix = None
                     $for name, values in classifications:
+                        $if name == 'lc_classifications':
+                            $ explorer_prefix = 'lcc'
+                        $elif name == 'dewey_decimal_class':
+                            $ explorer_prefix = 'ddc'
+                        $if explorer_prefix:
+                            $for v in values:
+                                $ v['url'] = '/explore?' + urlencode({ 'jumpTo': explorer_prefix + ':' + v['value'] }, plus=False)
                         $:display_identifiers(values[0].label, values)
                 </dl>
             </div>
@@ -536,7 +544,6 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         <div class="workFooter tab-section lists-section" data-ids="$json_encode(data_ids)">
           <div class="lists-heading">
             <h2 class="lists-title">$_('Lists')</h2>
-            <a class="hidden" href="$page.url()/lists">$_('See All')</a>
           </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
@@ -552,7 +559,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
   $ component_times['RelatedWorksCarousel'] = time()
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    $:macros.LoadingIndicator(_("Loading Related Books"), "carousel-loading")
+    $:render_template("books/RelatedWorksCarousel", work)
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 

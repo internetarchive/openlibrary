@@ -2,12 +2,14 @@
 
 import json
 import logging
+from typing import Literal
 
 import web
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
 
 from . import search, subjects
@@ -36,19 +38,51 @@ class languages_json(subjects.subjects_json):
         return key.replace("_", " ")
 
 
-def get_top_languages(limit):
+def get_top_languages(
+    limit: int,
+    sort: Literal["count", "name", "ebook_edition_count"] = "count",
+) -> list[web.storage]:
+    available_edition_counts = dict(
+        get_all_language_counts('edition', ebook_access="borrowable")
+    )
+    results = [
+        web.storage(
+            name=get_language_name(lang_key),
+            key=lang_key,
+            marc_code=lang_key.split('/')[-1],
+            count=count,
+            ebook_edition_count=available_edition_counts.get(lang_key, 0),
+        )
+        for (lang_key, count) in get_all_language_counts('work')
+    ]
+    results.sort(
+        key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count")
+    )
+    return results[:limit]
+
+
+@cache.memoize("memcache", key='get_all_language_counts', expires=60 * 60)
+def get_all_language_counts(
+    solr_type: Literal['work', 'edition'],
+    ebook_access: str | None = None,
+) -> list[tuple[str, int]]:
     from . import search
 
+    ebook_access_query = ''
+    if ebook_access:
+        ebook_access_query = f' AND ebook_access:[{ebook_access} TO *]'
+
     result = search.get_solr().select(
-        'type:work', rows=0, facets=['language'], facet_limit=limit
+        f'type:{solr_type} {ebook_access_query}',
+        rows=0,
+        facets=['language'],
+        # There should be <500
+        # See https://openlibrary.org/query.json?type=/type/language&limit=1000
+        facet_limit=1_000,
+        _timeout=30,  # This query can be rather slow
     )
     return [
-        web.storage(
-            name=get_language_name(f'/languages/{row.value}'),
-            key=f'/languages/{row.value}',
-            count=row.count,
-        )
-        for row in result['facets']['language']
+        (f'/languages/{row.value}', row.count) for row in result['facets']['language']
     ]
 
 
@@ -56,7 +90,11 @@ class index(delegate.page):
     path = "/languages"
 
     def GET(self):
-        return render_template("languages/index", get_top_languages(500))
+        sort = web.input(sort="count").sort
+        if sort not in ("count", "name", "ebook_edition_count"):
+            raise web.badrequest("Invalid sort parameter")
+
+        return render_template("languages/index", get_top_languages(500, sort=sort))
 
     def is_enabled(self):
         return True
@@ -68,8 +106,11 @@ class index_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(limit=15)
-        return json.dumps(get_top_languages(safeint(i.limit, 15)))
+        i = web.input(limit=15, sort="count")
+        limit = safeint(i.limit, 15)
+        if i.sort not in ("count", "name", "ebook_edition_count"):
+            raise web.badrequest("Invalid sort parameter")
+        return json.dumps(get_top_languages(limit, sort=i.sort))
 
 
 class language_search(delegate.page):

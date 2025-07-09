@@ -1,4 +1,4 @@
-$def with (form)
+$def with (form, pd_options=[])
 
 $putctx("cssfile", "signup")
 
@@ -7,6 +7,7 @@ $ i18n_strings = {
     $ "username_length_err": _("Must be between 3 and 20 characters"),
     $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
     $ "password_length_err": _("Must be between 3 and 20 characters"),
+    $ "missing_pda_err": _("A qualifying program must be selected"),
     $ "loading_text": _("Loading...")
     $ }
 
@@ -77,9 +78,25 @@ $var title: $_("Sign Up to Open Library")
             <div class="ol-signup-form__checkbox">
                 $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
             </div>
-
+            <div id="rpd-checkbox" class="ol-signup-form__checkbox">
+                $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
+            </div>
+            <div id="pda-selector" class="ol-signup-form__select hidden">
+                <div class="ol-signup-form__error" id="pd_programMessage"></div>
+                <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')">
+                    <option value="" disabled selected>$_("Select qualifying program")</option>
+                    $for option in pd_options:
+                        <option value="$option.value" label="$option.label"></option>
+                </select>
+                <span class="email-advisory">$_("* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps.")</span>
+            </div>
+            <input type="hidden" id="secret" value="" name="secret" />
+            <input type="hidden" id="access" value="" name="access" />
             <div class="formElement bottom">
                 <br/>
+                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
+                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
+                <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
                 $ sitekey = classes = callback = ''
                 $if form.has_recaptcha:
                     $ callback = "data-callback=submitCreateAccountForm"
@@ -87,9 +104,6 @@ $var title: $_("Sign Up to Open Library")
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
                     <div class="$classes" $sitekey $callback data-size="invisible"></div>
-                <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
-                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
-                <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
             </div>
         </form>
     </div>

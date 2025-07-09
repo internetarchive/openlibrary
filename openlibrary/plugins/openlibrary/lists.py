@@ -117,7 +117,11 @@ class ListRecord:
 
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
-            for seed_list in i['seeds']
+            # Seeds can be a list of seeds or a CSV string of seeds.
+            for seed_list in (
+                i['seeds'] if isinstance(i['seeds'], list) else [i['seeds']]
+            )
+            # Each element of seeds can be a CSV string of seeds
             for seed in (
                 seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
             )
@@ -232,6 +236,14 @@ def get_user_lists(seed_info):
     user_lists = user.get_lists(sort=True)
     seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
+
+
+@public
+def convert_list(list):
+    site = web.ctx.site
+    data = site._load(list)
+    newList = List(site, list, data)
+    return newList
 
 
 class lists_partials(delegate.page):
@@ -359,6 +371,16 @@ class lists_add_account(delegate.page):
     @require_login
     def GET(self):
         return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
+
+    @require_login
+    def POST(self):
+        list_record = ListRecord.from_input()
+        return render_template(
+            "type/list/edit",
+            list_record,
+            new=True,
+            action=f'{get_current_user().key}/lists/add',
+        )
 
 
 class lists_add(delegate.page):

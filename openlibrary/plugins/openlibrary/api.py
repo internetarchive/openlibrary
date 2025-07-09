@@ -15,7 +15,6 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
-    add_flash_message,  # noqa: F401 side effects may be needed
     render_template,  # noqa: F401 used for its side effects
 )
 from openlibrary import accounts
@@ -24,10 +23,14 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
-from openlibrary.core.models import Booknotes, Work
+from openlibrary.core.models import (
+    Booknotes,
+    Work,
+)
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
@@ -465,7 +468,9 @@ class work_editions(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/work":
-            raise web.notfound('')
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit) or 50
@@ -509,7 +514,9 @@ class author_works(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/author":
-            raise web.notfound('')
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit, 50)
@@ -812,3 +819,72 @@ class create_qrcode(delegate.page):
             img.save(buf, format='PNG')
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
+
+
+class bestbook_award(delegate.page):
+    path = r"/works/OL(\d+)W/awards"
+    encoding = "json"
+
+    @jsonapi
+    def POST(self, work_id):
+        """Store Bestbook award
+
+        Args:
+            work_id (int): unique id for each book
+        """
+        OPS = ["add", "remove", "update"]
+        i = web.input(op="add", edition_key=None, topic=None, comment="")
+
+        edition_id = i.edition_key and int(extract_numeric_id_from_olid(i.edition_key))
+        errors = []
+
+        if user := accounts.get_current_user():
+            try:
+                username = user.key.split('/')[2]
+                if i.op in ["add", "update"]:
+                    # Make sure the topic is free
+                    if i.op == "update":
+                        Bestbook.remove(username, topic=i.topic)
+                        Bestbook.remove(username, work_id=work_id)
+                    return json.dumps(
+                        {
+                            "success": True,
+                            "award": Bestbook.add(
+                                username=username,
+                                work_id=work_id,
+                                edition_id=edition_id or None,
+                                comment=i.comment,
+                                topic=i.topic,
+                            ),
+                        }
+                    )
+                elif i.op in ["remove"]:
+                    # Remove any award this patron has given this work_id
+                    return json.dumps(
+                        {
+                            "success": True,
+                            "rows": Bestbook.remove(username, work_id=work_id),
+                        }
+                    )
+                else:
+                    errors.append(f"Invalid op {i.op}: valid ops are {OPS}")
+            except Bestbook.AwardConditionsError as e:
+                errors.append(str(e))
+        else:
+            errors.append("Authentication failed")
+        return json.dumps({"errors": ', '.join(errors)})
+
+
+class bestbook_count(delegate.page):
+    """API for award count"""
+
+    path = "/awards/count"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        filt = web.input(work_id=None, username=None, topic=None)
+        result = Bestbook.get_count(
+            work_id=filt.work_id, username=filt.username, topic=filt.topic
+        )
+        return json.dumps({'count': result})

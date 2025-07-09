@@ -3,7 +3,7 @@ $def with(book, lazy, layout, key="", secondary_action=False)
 $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
 $ cover_host = '//covers.openlibrary.org'
 $ url = book.get('key') or book.url
-$ title = book.title
+$ title = book.get("title", "")
 
 $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
 $if book.get('cover_url'):
@@ -51,7 +51,5 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
         </div>
     </a>
   </div>
-  <div class="book-cta">
-    $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
-  </div>
+  $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
 </div>

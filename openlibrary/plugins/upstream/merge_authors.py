@@ -147,49 +147,12 @@ class AuthorMergeEngine(BasicMergeEngine):
         return master
 
     def save(self, docs, master, duplicates):
-        # There is a bug (#89) due to which old revisions of the docs are being sent to
-        # save. Collecting all the possible information to detect the problem and
-        # saving it in datastore. See that data here:
-        # https://openlibrary.org/admin/inspect/store?type=merge-authors-debug&name=bad_merge&value=true
-        mc = self._get_memcache()
-        debug_doc = {
-            'type': 'merge-authors-debug',
-            'memcache': mc
-            and {
-                k: json.loads(v)
-                for k, v in mc.get_multi([doc['key'] for doc in docs]).items()
-            },
-            'docs': docs,
-        }
-
-        result = web.ctx.site.save_many(
+        return web.ctx.site.save_many(
             docs,
             comment='merge authors',
             action="merge-authors",
             data={"master": master, "duplicates": list(duplicates)},
         )
-        before_revs = {doc['key']: doc.get('revision') for doc in docs}
-        after_revs = {row['key']: row['revision'] for row in result}
-
-        # Bad merges are happening when we are getting non-recent docs. That can be
-        # identified by checking difference in the revision numbers before/after save
-        bad_merge = any(
-            after_revs[key] > before_revs[key] + 1
-            for key in after_revs
-            if before_revs[key] is not None
-        )
-
-        debug_doc['bad_merge'] = str(bad_merge).lower()
-        debug_doc['result'] = result
-        key = 'merge_authors/%d' % web.ctx.site.seq.next_value('merge-authors-debug')
-        web.ctx.site.store[key] = debug_doc
-
-        return result
-
-    def _get_memcache(self):
-        from openlibrary.plugins.openlibrary import connection
-
-        return connection._memcache
 
 
 re_whitespace = re.compile(r'\s+')

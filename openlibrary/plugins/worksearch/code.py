@@ -15,6 +15,7 @@ import web
 from requests import Response
 
 from infogami import config
+from infogami.infobase.client import storify
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
@@ -46,7 +47,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
-re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
+re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.IGNORECASE)
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
@@ -76,15 +77,31 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
-def get_solr_works(work_key: Iterable[str]) -> dict[str, dict]:
+def get_solr_works(work_keys: set[str], editions=False) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
-    return {
-        doc['key']: doc
-        for doc in get_solr().get_many(
-            set(work_key), fields=WorkSearchScheme.default_fetched_fields
+    if editions:
+        # To get the top matching edition, need to do a proper query
+        resp = run_solr_query(
+            WorkSearchScheme(),
+            {'q': 'key:(%s)' % ' OR '.join(work_keys)},
+            rows=len(work_keys),
+            fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+            facet=False,
         )
-    }
+        return {
+            # storify isn't typed properly, but basically recursively call web.storage
+            doc['key']: cast(web.storage, storify(doc))
+            for doc in resp.docs
+        }
+    else:
+        return {
+            doc['key']: doc
+            for doc in get_solr().get_many(
+                work_keys,
+                fields=WorkSearchScheme.default_fetched_fields,
+            )
+        }
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -126,7 +143,9 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: dict | list[tuple[str, Any]]
+    solr_path: str,
+    params: dict | list[tuple[str, Any]],
+    _timeout: int | None = None,
 ) -> Response | None:
     url = solr_path
     if params:
@@ -135,7 +154,11 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(solr_path, urlencode(params))
+        response = get_solr().raw_request(
+            solr_path,
+            urlencode(params),
+            _timeout=_timeout,
+        )
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -146,6 +169,24 @@ def execute_solr_query(
 
 # Expose this publicly
 public(has_solr_editions_enabled)
+
+
+@public
+def get_remembered_layout():
+    def read_query_string():
+        return web.input(layout=None).get('layout')
+
+    def read_cookie():
+        if "LBL" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get('LBL')
+
+    if (qs_value := read_query_string()) is not None:
+        return qs_value
+
+    if (cookie_value := read_cookie()) is not None:
+        return cookie_value
+
+    return 'details'
 
 
 def run_solr_query(  # noqa: PLR0912
@@ -205,7 +246,7 @@ def run_solr_query(  # noqa: PLR0912
                 # Should never get here
                 raise ValueError(f'Invalid facet type: {facet}')
 
-    facet_params = (allowed_filter_params or scheme.facet_fields) & set(param)
+    facet_params = (allowed_filter_params or set(scheme.facet_fields)) & set(param)
     for (field, value), rewrite in scheme.facet_rewrites.items():
         if param.get(field) == value:
             if field in facet_params:
@@ -365,9 +406,7 @@ def get_doc(doc: SolrDocument):
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
         collections=(
-            set(doc['ia_collection_s'].split(';'))
-            if doc.get('ia_collection_s')
-            else set()
+            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
         ),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
@@ -884,7 +923,11 @@ def work_search(
     if fields == '*' or 'availability' in fields:
         add_availability(
             [
-                work.get('editions', {}).get('docs', [None])[0] or work
+                (
+                    work['editions']['docs'][0]
+                    if work.get('editions', {}).get('docs')
+                    else work
+                )
                 for work in response['docs']
             ]
         )

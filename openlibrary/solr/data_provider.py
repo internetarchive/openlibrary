@@ -10,6 +10,7 @@ import asyncio
 import itertools
 import logging
 import re
+import typing
 from collections.abc import Iterable, Sized
 from typing import TypedDict, cast
 
@@ -23,6 +24,7 @@ from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
+from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
@@ -288,6 +290,13 @@ class DataProvider:
         """
         raise NotImplementedError
 
+    async def get_trending_data(self, work_key: str) -> dict:
+        """
+        Fetches the record's information from Solr.
+        :param work_key: type-prefixed key, eg /works/OL1W
+        """
+        return {}
+
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         raise NotImplementedError
 
@@ -339,6 +348,39 @@ class LegacyDataProvider(DataProvider):
     def clear_cache(self):
         # Nothing's cached, so nothing to clear!
         return
+
+    @typing.override
+    async def get_trending_data(self, work_key: str) -> dict:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                get_solr_base_url() + '/get',
+                params={
+                    'id': work_key,
+                    "fl": ','.join(  # noqa: FLY002
+                        (
+                            "trending_score_hourly_sum",
+                            'trending_score_hourly_*',
+                            "trending_score_daily_*",
+                            "trending_z_score",
+                        )
+                    ),
+                },
+            )
+            response.raise_for_status()
+            solr_doc = response.json()['doc'] or {}
+
+            return {
+                field: solr_doc.get(field, 0) for field in get_all_trending_fields()
+            }
+
+
+def get_all_trending_fields():
+    for index in range(24):
+        yield f'trending_score_hourly_{index}'
+    for index in range(7):
+        yield f'trending_score_daily_{index}'
+    yield 'trending_score_hourly_sum'
+    yield 'trending_z_score'
 
 
 class ExternalDataProvider(DataProvider):

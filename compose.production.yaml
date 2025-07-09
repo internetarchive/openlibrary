@@ -25,6 +25,8 @@ services:
     environment:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+      # This might overwrite the above?
+      - SOLR_HEAP=8g
     restart: unless-stopped
 
   solr_haproxy:
@@ -44,7 +46,12 @@ services:
 
   solr_restarter:
     profiles: ["ol-solr0"]
-    build: scripts/solr_restarter
+    build:
+      context: scripts/solr_restarter
+      args:
+        - APT_MIRROR=${APT_MIRROR:-}
+        - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
+        - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
     restart: unless-stopped
     environment:
       - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
@@ -249,10 +256,12 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - EXTRA_OPTS=--solr-url http://ol-solr0:8984/solr/openlibrary
-        --no-solr-next
+      - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
+      - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
+      - /www0_1:/1
     logging:
       options:
         max-size: "512m"
@@ -266,15 +275,20 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    init: true
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
+      - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
+      - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
-      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary
-        --solr-next
+      - TRENDING_OFFSET_FILE=trending-next-update.offset
+      - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
+      - /www0_1:/1
     command: docker/ol-solr-updater-start.sh
     networks:
       - webnet
@@ -310,9 +324,10 @@ services:
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped
-    cap_add:
-      # Needed for py-spy
-      - SYS_PTRACE
+    # Needed to access other containers' networks
+    network_mode: host
+    # Needed for py-spy
+    cap_add: [SYS_PTRACE]
     # Needed for ps aux access across containers (py-spy)
     pid: host
     volumes:

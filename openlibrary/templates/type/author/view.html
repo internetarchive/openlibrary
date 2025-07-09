@@ -40,6 +40,7 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$ layout = get_remembered_layout()
 $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
@@ -99,7 +100,9 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         </div>
 
     <div class="contentTwothird" style="margin-bottom:0;">
-
+        $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+        $if show_dashboard:
+          $:render_template("librarian_dashboard/data_quality_table", books_count)
         <div itemprop="description">
             $:format(page.get('bio', ''))
         </div>
@@ -118,32 +121,37 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
-                $if books_count > 1:
-                  <div id="books">
-                    $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-                  </div>
-                <p>
-                  $if input(mode="everything").mode == "everything":
-                    $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))
-                  $else:
-                    $:_('Showing ebooks only. Would you like to see <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))
-                </p>
 
                 <form method="GET" class="olform pagesearchbox">
-                  <input type="hidden" name="has_fulltext" value="true"/>
-                  $if (query_param('sort')):
-                    <input type="hidden" name="sort" value="$query_param('sort')"/>
-                  $if (query_param('mode')):
-                    <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
-                </form>
+                    <input type="hidden" name="has_fulltext" value="true"/>
+                    $if (query_param('sort')):
+                      <input type="hidden" name="sort" value="$query_param('sort')"/>
+                    $if (query_param('mode')):
+                      <input type="hidden" name="mode" value="$query_param('mode')"/>
+                    $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
+                  </form>
+        <div class="clearfix"></div>
+
+                <div class="search-results-stats">
+                    $if books_count > 1:
+                        $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+
+                    $if books_count > 0:
+                        $:render_template("search/layout_options.html", selected_layout=layout)
+
+                    $if books_count > 1:
+                        $if input(mode="everything").mode == "everything":
+                            <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
+                        $else:
+                            <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
+                </div>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
                 <div id="searchResults">
-                    <ul class="list-books">
+                    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
                     </ul>
                 </div>
 

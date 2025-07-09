@@ -1,8 +1,11 @@
 from types import MappingProxyType
+from typing import cast
 
 import pytest
 
+from openlibrary.book_providers import IALiteMetadata
 from openlibrary.solr.updater.work import (
+    DataProvider,
     WorkSolrBuilder,
     WorkSolrUpdater,
 )
@@ -69,11 +72,30 @@ class TestWorkSolrUpdater:
         assert req.adds[0]['edition_count'] == 2
 
 
+def make_work_solr_builder(
+    work: dict | None = None,
+    editions: list[dict] | None = None,
+    authors: list[dict] | None = None,
+    data_provider: DataProvider | None = None,
+    ia_metadata: dict[str, dict | None] | None = None,
+    trending_data: dict | None = None,
+):
+    return WorkSolrBuilder(
+        work=work or {},
+        editions=editions or [],
+        authors=authors or [],
+        data_provider=data_provider or FakeDataProvider(),
+        # FIXME: Fix the type
+        ia_metadata=cast(dict[str, IALiteMetadata | None], ia_metadata) or {},
+        trending_data=trending_data or {},
+    )
+
+
 class TestWorkSolrBuilder:
     def test_simple_work(self):
         work = {"key": "/works/OL1M", "type": {"key": "/type/work"}, "title": "Foo"}
 
-        wsb = WorkSolrBuilder(work, [], [], FakeDataProvider(), {})
+        wsb = make_work_solr_builder(work)
         assert wsb.key == "/works/OL1M"
         assert wsb.title == "Foo"
         assert wsb.has_fulltext is False
@@ -82,28 +104,23 @@ class TestWorkSolrBuilder:
     def test_edition_count_when_editions_on_work(self):
         work = make_work()
 
-        wsb = WorkSolrBuilder(work, [], [], FakeDataProvider(), {})
+        wsb = make_work_solr_builder(work)
         assert wsb.edition_count == 0
 
-        wsb = WorkSolrBuilder(work, [make_edition()], [], FakeDataProvider(), {})
+        wsb = make_work_solr_builder(work, [make_edition()])
         assert wsb.edition_count == 1
 
-        wsb = WorkSolrBuilder(
-            work, [make_edition(), make_edition()], [], FakeDataProvider(), {}
-        )
+        wsb = make_work_solr_builder(work, [make_edition(), make_edition()])
         assert wsb.edition_count == 2
 
     def test_edition_key(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work={},
             editions=[
                 {'key': '/books/OL1M'},
                 {'key': '/books/OL2M'},
                 {'key': '/books/OL3M'},
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
         )
         assert wsb.edition_key == ["OL1M", "OL2M", "OL3M"]
 
@@ -119,85 +136,62 @@ class TestWorkSolrBuilder:
             "Bad date 123412314",
         ]
         work = make_work()
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work=work,
             editions=[make_edition(work, publish_date=date) for date in test_dates],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
         )
         assert wsb.publish_year == {2000, 2001, 2002, 2003, 2004}
         assert wsb.first_publish_year == 2000
 
     def test_isbns(self):
         work = make_work()
-        wsb = WorkSolrBuilder(
-            work,
-            [make_edition(work, isbn_10=["123456789X"])],
-            [],
-            FakeDataProvider(),
-            {},
-        )
+        wsb = make_work_solr_builder(work, [make_edition(work, isbn_10=["123456789X"])])
         assert wsb.isbn == {'123456789X', '9781234567897'}
 
-        wsb = WorkSolrBuilder(
-            work,
-            [make_edition(work, isbn_10=["9781234567897"])],
-            [],
-            FakeDataProvider(),
-            {},
+        wsb = make_work_solr_builder(
+            work, [make_edition(work, isbn_10=["9781234567897"])]
         )
         assert wsb.isbn == {'123456789X', '9781234567897'}
 
     def test_other_identifiers(self):
         work = make_work()
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work,
             editions=[
                 make_edition(work, oclc_numbers=["123"], lccn=["lccn-1", "lccn-2"]),
                 make_edition(work, oclc_numbers=["234"], lccn=["lccn-2", "lccn-3"]),
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
         )
         assert wsb.oclc == {'123', '234'}
         assert wsb.lccn == {'lccn-1', 'lccn-2', 'lccn-3'}
 
     def test_identifiers(self):
         work = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=work,
             editions=[
                 make_edition(work, identifiers={"librarything": ["lt-1"]}),
                 make_edition(work, identifiers={"librarything": ["lt-2"]}),
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
         ).build_identifiers()
         assert sorted(d.get('id_librarything', [])) == ['lt-1', 'lt-2']
 
     def test_ia_boxid(self):
         w = make_work()
-        d = WorkSolrBuilder(
-            w, [make_edition(w)], [], FakeDataProvider(), {}
-        ).build_legacy_ia_fields()
+        d = make_work_solr_builder(w, [make_edition(w)]).build_legacy_ia_fields()
         assert 'ia_box_id' not in d
 
         w = make_work()
-        d = WorkSolrBuilder(
-            w, [make_edition(w, ia_box_id='foo')], [], FakeDataProvider(), {}
+        d = make_work_solr_builder(
+            w, [make_edition(w, ia_box_id='foo')]
         ).build_legacy_ia_fields()
         assert d['ia_box_id'] == ['foo']
 
     def test_with_one_lending_edition(self):
         w = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=w,
             editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['inlibrary', 'americana']}},
         )
 
@@ -212,14 +206,12 @@ class TestWorkSolrBuilder:
 
     def test_with_two_lending_editions(self):
         w = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=w,
             editions=[
                 make_edition(w, key="/books/OL1M", ocaid='foo01bar'),
                 make_edition(w, key="/books/OL2M", ocaid='foo02bar'),
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={
                 "foo01bar": {"collection": ['inlibrary', 'americana']},
                 "foo02bar": {"collection": ['inlibrary', 'internetarchivebooks']},
@@ -236,11 +228,9 @@ class TestWorkSolrBuilder:
 
     def test_with_one_inlibrary_edition(self):
         w = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=w,
             editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['printdisabled', 'inlibrary']}},
         )
         assert d.has_fulltext is True
@@ -254,11 +244,9 @@ class TestWorkSolrBuilder:
 
     def test_with_one_printdisabled_edition(self):
         w = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=w,
             editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['printdisabled', 'americana']}},
         )
         assert d.has_fulltext is True
@@ -272,8 +260,8 @@ class TestWorkSolrBuilder:
 
     def test_alternative_title(self):
         def f(editions):
-            return WorkSolrBuilder(
-                {'key': '/works/OL1W'}, editions, [], FakeDataProvider(), {}
+            return make_work_solr_builder(
+                {'key': '/works/OL1W'}, editions
             ).alternative_title
 
         no_title = make_work()
@@ -288,7 +276,7 @@ class TestWorkSolrBuilder:
 
     def test_with_multiple_editions(self):
         w = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work=w,
             editions=[
                 make_edition(w, key="/books/OL1M"),
@@ -296,8 +284,6 @@ class TestWorkSolrBuilder:
                 make_edition(w, key="/books/OL3M", ocaid='foo01bar'),
                 make_edition(w, key="/books/OL4M", ocaid='foo02bar'),
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={
                 "foo00bar": {"collection": ['americana']},
                 "foo01bar": {"collection": ['inlibrary', 'americana']},
@@ -316,7 +302,7 @@ class TestWorkSolrBuilder:
 
     def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build_subjects()
+        d = make_work_solr_builder(w).build_subjects()
 
         assert d['subject'] == ['a', "b c"]
         assert d['subject_facet'] == ['a', "b c"]
@@ -332,7 +318,7 @@ class TestWorkSolrBuilder:
             subject_people=["a", "b c"],
             subject_times=["a", "b c"],
         )
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build_subjects()
+        d = make_work_solr_builder(w).build_subjects()
 
         for k in ['subject', 'person', 'place', 'time']:
             assert d[k] == ['a', "b c"]
@@ -352,7 +338,7 @@ class TestWorkSolrBuilder:
         w = make_work(
             authors=[make_author(key='/authors/OL1A'), make_author(key='/authors/OL2A')]
         )
-        d = WorkSolrBuilder(w, [], authors, FakeDataProvider(), {})
+        d = make_work_solr_builder(w, authors=authors)
         assert d.author_name == ["Author One", "Author Two"]
         assert d.author_key == ['OL1A', 'OL2A']
         assert d.author_facet == ['OL1A Author One', 'OL2A Author Two']
@@ -395,12 +381,8 @@ class TestWorkSolrBuilder:
     )
     def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
         work = make_work()
-        d = WorkSolrBuilder(
-            work,
-            editions=[make_edition(work, lc_classifications=doc_lccs)],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
+        d = make_work_solr_builder(
+            work, editions=[make_edition(work, lc_classifications=doc_lccs)]
         )
         if solr_lccs:
             assert d.lcc == set(solr_lccs)
@@ -445,12 +427,8 @@ class TestWorkSolrBuilder:
     )
     async def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
         work = make_work()
-        d = WorkSolrBuilder(
-            work,
-            [make_edition(work, dewey_decimal_class=doc_ddcs)],
-            [],
-            FakeDataProvider(),
-            {},
+        d = make_work_solr_builder(
+            work, [make_edition(work, dewey_decimal_class=doc_ddcs)]
         )
         if solr_ddcs:
             assert d.ddc == set(solr_ddcs)
@@ -461,12 +439,9 @@ class TestWorkSolrBuilder:
 
     def test_contributor(self):
         work = make_work()
-        d = WorkSolrBuilder(
+        d = make_work_solr_builder(
             work,
             [make_edition(work, contributors=[{'role': 'Illustrator', 'name': 'Foo'}])],
-            [],
-            FakeDataProvider(),
-            {},
         )
 
         # For now it should ignore it and not error
@@ -475,56 +450,40 @@ class TestWorkSolrBuilder:
 
 class Test_number_of_pages_median:
     def test_no_editions(self):
-        wsb = WorkSolrBuilder(
-            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
-            [],
-            [],
-            FakeDataProvider(),
-            {},
+        wsb = make_work_solr_builder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}}
         )
         assert wsb.number_of_pages_median is None
 
     def test_invalid_type(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
             [make_edition(number_of_pages='spam')],
-            [],
-            FakeDataProvider(),
-            {},
         )
         assert wsb.number_of_pages_median is None
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
             [make_edition(number_of_pages=n) for n in [123, 122, 'spam']],
-            [],
-            FakeDataProvider(),
-            {},
         )
         assert wsb.number_of_pages_median == 123
 
     def test_normal_case(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
             [make_edition(number_of_pages=n) for n in [123, 122, 1]],
-            [],
-            FakeDataProvider(),
-            {},
         )
         assert wsb.number_of_pages_median == 122
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
             [make_edition(), make_edition()]
             + [make_edition(number_of_pages=n) for n in [123, 122, 1]],
-            [],
-            FakeDataProvider(),
-            {},
         )
         assert wsb.number_of_pages_median == 122
 
 
 class Test_Sort_Editions_Ocaids:
     def test_sort(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work={},
             editions=[
                 {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
@@ -532,8 +491,6 @@ class Test_Sort_Editions_Ocaids:
                 {"key": "/books/OL234M", "ocaid": "ocaid_borrowable"},
                 {"key": "/books/OL123M", "ocaid": "ocaid_open"},
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={
                 "ocaid_restricted": {
                     "access_restricted_item": "true",
@@ -562,15 +519,12 @@ class Test_Sort_Editions_Ocaids:
         ]
 
     def test_goog_deprioritized(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work={},
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
-            ia_metadata={},
         )
         assert wsb.ia == [
             "foobarblah",
@@ -578,14 +532,12 @@ class Test_Sort_Editions_Ocaids:
         ]
 
     def test_excludes_fav_ia_collections(self):
-        wsb = WorkSolrBuilder(
+        wsb = make_work_solr_builder(
             work={},
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},
             ],
-            authors=[],
-            data_provider=FakeDataProvider(),
             ia_metadata={
                 "foobargoog": {"collection": ['americanlibraries', 'fav-foobar']},
                 "foobarblah": {"collection": ['fav-bluebar', 'blah']},

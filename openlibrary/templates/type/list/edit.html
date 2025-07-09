@@ -1,4 +1,4 @@
-$def with (lst, new=False)
+$def with (lst, new=False, action=None)
 $putctx('cssfile', 'list-edit')
 $var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
 
@@ -26,6 +26,7 @@ $jsdef render_seed_field(i, seed):
         <div class="seed--controls">
             $# detect-missing-i18n-skip-line
             <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
+            <button class="mia__move" type="button">$_("Move...")</button>
             <button class="mia__remove" type="button">$_("Remove")</button>
         </div>
         <main>
@@ -91,7 +92,12 @@ $jsdef lazy_thing_preview(key, render_fn_name):
     </div>
 
 <div id="contentBody">
-    <form method="post" id="list-edit" class="olform">
+    <form
+        method="post"
+        id="list-edit"
+        class="olform"
+        $:cond(action, 'action="%s"' % action)
+    >
         $if not new:
             <input
                 required

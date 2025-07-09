@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable
+from types import MappingProxyType
 
 import luqum.tree
 from luqum.exceptions import ParseError
@@ -15,21 +16,21 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 class SearchScheme:
     # Set of queries that define the universe of this scheme
-    universe: list[str]
+    universe: frozenset[str]
     # All actual solr fields that can be in a user query
-    all_fields: set[str]
+    all_fields: frozenset[str]
     # Fields that can be read, but which aren't stored in solr
-    non_solr_fields: set[str]
+    non_solr_fields: frozenset[str]
     # These fields are fetched for facets and can also be url params
-    facet_fields: set[str]
+    facet_fields: frozenset[str]
     # Mapping of user-only fields to solr fields
-    field_name_map: dict[str, str]
+    field_name_map: MappingProxyType[str, str]
     # Mapping of user sort to solr sort
-    sorts: dict[str, str | Callable[[], str]]
+    sorts: MappingProxyType[str, str | Callable[[], str]]
     # Default
-    default_fetched_fields: set[str]
+    default_fetched_fields: frozenset[str]
     # Fields that should be rewritten
-    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]]
+    facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map

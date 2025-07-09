@@ -1,3 +1,5 @@
+@import "../less/font-families.less";
+
 .generic-dropper-wrapper {
   position: relative;
   z-index: @z-index-level-3;
@@ -38,7 +40,7 @@
       button {
         border: none;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: @font-size-label-large;
         height: 100%;
         width: 100%;
       }
@@ -48,7 +50,7 @@
       border-left: 1px solid @lighter-grey;
       text-decoration: none;
       height: inherit;
-      width: 40px;
+      width: 32px;
 
       .display-flex();
       justify-content: center;
@@ -82,6 +84,7 @@
     width: 100%;
     border-top: 1px solid @lighter-grey;
     position: absolute;
+    font-size: @font-size-label-medium;
   }
 }
 .book-progress-btn {
@@ -92,59 +95,55 @@
 /* Unified Read Button Styling */
 .cta-dropper {
   display: flex;
-  margin-bottom: 10px;
-  // main cta button
-  .cta-dropper-button {
-    .cta-btn {
-      border-radius: 5px 2px 2px 5px;
-    }
-    border-right: 1px solid transparent;
-    flex-grow: 1;
-  }
+
   // dropdown button
-  details {
-    position: relative;
-    background-color: @primary-blue;
-    border-radius: 2px 5px 5px 2px;
+  details.cta-btn {
+    padding: 0;
+    width: 32px;
+    flex-shrink: 0;
   }
   summary {
-    display: flex;
-    align-items: center;
     height: 100%;
-    cursor: pointer;
-    list-style-type: none;
-    &:hover { background-color: darken(@primary-blue, 20%); }
-    border-radius: 2px 5px 5px 2px;
-  }
-  // hide extra arrow on iOS
-  summary::marker {
-    content: "";
-  }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
-  summary::after {
-    margin: 0 8px;
+    margin: auto;
     width: 24px;
-    height: 24px;
     // style for animated arrow on dropdown button. Copied from "Want to Read" dropper above
     content: "";
-    background: url(/images/icons/icon_dropit.png) no-repeat center;
+    background: url(/static/images/icons/icon_dropit.png) no-repeat center;
     background-position: 0;
     background-size: 45px;
     // whiten arrow png
     filter: brightness(0) invert(1);
   }
-  details[open] summary::after {
+
+  // hide extra arrow on iOS
+  summary::marker {
     content: "";
-    background-position: -22px 50%;
+    font-size: 0;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] summary {
+    background-position: -22px 48%;
   }
 }
 // dropdown containing Listen/Search/Download/Locate buttons
 .dropper-menu {
   z-index: @z-index-level-4;
-  .cta-btn.cta-btn--w-icon, .cta-btn:link, .cta-btn:visited {
+  border: 1px solid @lighter-grey;
+  border-radius: 5px;
+  background-color: @white;
+  position: absolute;
+  // align dropper menu with buttons
+  right: 0;
+  margin-top: 6px;
+  width: 100%;
+  max-width: 200px;
+
+  .cta-btn.cta-btn--w-icon,
+  .cta-btn:link,
+  .cta-btn:visited {
     background: @white;
     color: @black;
     text-align: left;
@@ -153,43 +152,49 @@
     border-radius: 0;
     margin: 0;
   }
-  .cta-btn .btn-label { padding: 0; }
-  .cta-btn:hover { background-color: @lighter-grey; }
+  .cta-btn .btn-label {
+    padding: 0;
+    flex: 1;
+  }
+  .cta-btn:hover {
+    background-color: @lighter-grey;
+  }
   li {
-    &+li { border-top: 1px solid @lighter-grey; }
-    &:first-child, &:last-child { overflow: clip; }
-    &:first-child { border-radius: 5px 5px 0 0; }
-    &:last-child { border-radius: 0 0 5px 5px; }
+    list-style: none;
+    margin: 0;
+
+    & + li {
+      border-top: 1px solid @lighter-grey;
+    }
+    &:first-child,
+    &:last-child {
+      overflow: clip;
+    }
+    &:first-child {
+      border-radius: 5px 5px 0 0;
+    }
+    &:last-child {
+      border-radius: 0 0 5px 5px;
+    }
   }
   .btn-icon {
     display: inline-block;
     filter: invert(1);
-    margin: 5px 2px -4px;
-    // width uses higher specificity below
+    margin-right: 5px;
+    width: 1.25em;
     height: 1.25em;
   }
   // icons
-  .listen { background-image: url(/static/images/icons/icon_listen.png); }
-  .map { background-image: url(/static/images/icons/icon_map.png); }
-  .listen, .map {
+  .listen {
+    background-image: url(/static/images/icons/icon_listen.png);
+  }
+  .map {
+    background-image: url(/static/images/icons/icon_map.png);
+  }
+  .listen,
+  .map {
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
   }
-}
-// extra specificity needed for style overrides
-.cta-dropper .dropper-menu {
-  margin: 5px 0 0;
-  border: 1px solid @lighter-grey;
-  border-radius: 5px;
-  background-color: @white;
-  position: absolute;
-  // align dropper menu with buttons
-  right: 0;
-  width: 194px;
-  li {
-    list-style: none;
-    margin: 0;
-  }
-  .btn-icon { width: 1.25em; }
 }

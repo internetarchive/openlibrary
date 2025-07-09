@@ -1,8 +1,7 @@
 # from py.test import config
 import json
-import urllib
 
-import cookielib
+import requests
 
 
 def pytest_funcarg__config(request):
@@ -14,11 +13,7 @@ class ListAPI:
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
-
-        self.cookiejar = cookielib.CookieJar()
-
-        self.opener = urllib.request.build_opener()
-        self.opener.add_handler(urllib.request.HTTPCookieProcessor(self.cookiejar))
+        self.session = requests.Session()
 
     def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
@@ -29,13 +24,12 @@ class ListAPI:
             else:
                 method = "GET"
 
-        req = urllib.request.Request(self.server + path, data=data, headers=headers)
-        req.get_method = lambda: method
-        return self.opener.open(req)
+        req = requests.Request(method, self.server + path, data=data, headers=headers)
+        return self.session.send(req)
 
     def login(self):
         data = {'username': self.username, 'password': self.password}
-        self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
+        self.urlopen("/account/login", data=data, method="POST")
         print(self.cookiejar)
 
     def create_list(self, data):

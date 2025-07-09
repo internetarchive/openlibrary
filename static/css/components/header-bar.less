@@ -76,7 +76,7 @@
         text-decoration: none;
         color: @dark-grey;
         white-space: nowrap;
-        font-size: .9em;
+        font-size: 0.9em;
         padding: 15px 10px;
         display: block;
       }
@@ -111,7 +111,7 @@
     .app-drawer__badge {
       color: @white;
       background-color: @primary-blue;
-      font-size: .9em;
+      font-size: 0.9em;
       padding: 2px 6px 1px;
       border-radius: 4px;
       float: right;
@@ -121,7 +121,7 @@
     // stylelint-disable max-nesting-depth, selector-max-specificity
     .subsection {
       font-weight: bold;
-      border-bottom: 2px solid hsl(32.7,14.7%,70.6%);
+      border-bottom: 2px solid hsl(32.7, 14.7%, 70.6%);
       padding: 16px 16px 3px;
       &:hover {
         background-color: transparent;
@@ -129,14 +129,16 @@
     }
 
     li {
-      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, .25);
+      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, 0.25);
     }
 
     li:not(.subsection) {
       margin: 0 8px;
     }
 
-    li a, li button, .login-links {
+    li a,
+    li button,
+    .login-links {
       padding: 10px 8px;
     }
 
@@ -168,7 +170,7 @@
       align-items: center;
       border-radius: 6px;
       padding: 6px;
-      transition: .3s;
+      transition: 0.3s;
     }
 
     .login-links .login-links__primary {
@@ -197,13 +199,13 @@
 
     // stylelint-disable max-nesting-depth, selector-max-specificity
     details[open] {
-      .mask-menu{
+      .mask-menu {
         visibility: visible;
-        opacity: .6;
-        animation: fadeIn .2s ease-in-out;
+        opacity: 0.6;
+        animation: fadeIn 0.2s ease-in-out;
       }
       summary ~ * {
-        animation: sweep .2s ease-in-out;
+        animation: sweep 0.2s ease-in-out;
       }
       .hamburger__icon {
         background-color: @account-icon-background;
@@ -218,18 +220,29 @@
     }
 
     @keyframes sweep {
-      0%    {opacity: 0; transform: translateX(50px)}
-      100%  {opacity: 1; transform: translateX(0)}
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     @keyframes fadeIn {
-      0% {opacity: 0;}
-      100% {opacity: .6;}
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 0.6;
+      }
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
 
     summary::marker {
       content: "";
+      font-size: 0;
     }
 
     summary::-webkit-details-marker {
@@ -265,7 +278,7 @@
     opacity: 0;
     bottom: 0;
     // stylelint-enable declaration-block-no-redundant-longhand-properties
-    background: rgba(0, 0, 0, .5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: @z-index-level-1;
     visibility: hidden;
   }
@@ -416,7 +429,7 @@
         }
       }
 
-      .search-bar-input input[type=text] {
+      .search-bar-input input[type="text"] {
         display: block;
         width: 100%;
       }
@@ -450,14 +463,14 @@
       background: url(/static/images/search-icon.svg) center no-repeat;
       width: 35px;
       height: 45px;
-      border-top-left-radius: .3em;
-      border-bottom-left-radius: .3em;
+      border-top-left-radius: 0.3em;
+      border-bottom-left-radius: 0.3em;
     }
 
     .vertical-separator {
       border-left: 1px solid @light-grey;
       height: 34px;
-      margin: auto 5px auto 0
+      margin: auto 5px auto 0;
     }
 
     .search-by-barcode-submit {
@@ -469,7 +482,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: .3em;
+      border-radius: 0.3em;
       position: relative;
     }
 
@@ -478,7 +491,7 @@
     }
 
     .search-bar-input {
-      input[type=text] {
+      input[type="text"] {
         max-width: 100%;
       }
     }
@@ -490,14 +503,14 @@
       /* stylelint-disable selector-max-specificity */
       .search-results {
         background: @white;
-        border-top-left-radius: .3em;
-        border-top-right-radius: .3em;
+        border-top-left-radius: 0.3em;
+        border-top-right-radius: 0.3em;
 
         li {
           text-align: left;
           padding: 7px;
           border-top: 1px solid @lighter-grey;
-          font-size: .9rem;
+          font-size: 0.9rem;
           &:hover {
             background-color: @white;
           }
@@ -615,6 +628,7 @@ div.search-facet:focus-within {
 
   summary::marker {
     content: "";
+    font-size: 0;
   }
 
   summary::-webkit-details-marker {
@@ -641,7 +655,7 @@ div.search-facet:focus-within {
   .logo-org {
     text-align: left;
     font-weight: 300;
-    font-size: .9em;
+    font-size: 0.9em;
     color: @grey;
     margin: 3px;
     padding: 0;
@@ -661,10 +675,10 @@ div.search-facet:focus-within {
   .search-bar {
     max-width: none;
     min-width: none;
-    -webkit-transition: all .2s;
-    -o-transition: all .2s;
-    transition: all .2s;
-    border-radius: .3em;
+    -webkit-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
+    border-radius: 0.3em;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
     flex: 1;
@@ -676,7 +690,7 @@ div.search-facet:focus-within {
     .display-flex();
 
     /* stylelint-disable selector-max-specificity */
-    input[type=text] {
+    input[type="text"] {
       min-width: 0;
       margin: 3px;
       -webkit-box-flex: 1;
@@ -689,12 +703,12 @@ div.search-facet:focus-within {
       outline: none;
       background: @grey-fafafa;
       color: @grey;
-      -webkit-transition: all .5s;
-      -o-transition: all .5s;
-      transition: all .5s;
+      -webkit-transition: all 0.5s;
+      -o-transition: all 0.5s;
+      transition: all 0.5s;
       display: none;
     }
-    input[type=submit] {
+    input[type="submit"] {
       border: none;
       cursor: pointer;
       -webkit-appearance: none;
@@ -703,7 +717,7 @@ div.search-facet:focus-within {
     }
 
     .vertical-separator {
-      display: none
+      display: none;
     }
 
     .search-by-barcode-submit {
@@ -714,7 +728,7 @@ div.search-facet:focus-within {
 }
 
 @media only screen and (max-width: 25em) {
-  .search-bar-component{
+  .search-bar-component {
     margin-right: 15px;
   }
 }
@@ -722,7 +736,7 @@ div.search-facet:focus-within {
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   .header-bar {
-    .search-bar-component{
+    .search-bar-component {
       margin-right: 15px;
     }
     .navigation-component {
@@ -827,7 +841,7 @@ div.search-facet:focus-within {
         .display-flex();
 
         /* stylelint-disable selector-max-specificity */
-        input[type=text] {
+        input[type="text"] {
           display: block;
         }
 
@@ -855,7 +869,11 @@ div.search-facet:focus-within {
   #header-bar {
     position: sticky;
     top: 0;
-    background: linear-gradient(to bottom, @header-bar-gradient-start, @header-bar-gradient-end);
+    background: linear-gradient(
+      to bottom,
+      @header-bar-gradient-start,
+      @header-bar-gradient-end
+    );
     padding: 3px 0;
     box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
     z-index: @z-index-level-3;

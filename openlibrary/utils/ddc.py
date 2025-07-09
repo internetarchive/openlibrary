@@ -35,7 +35,7 @@ DDC_RE = re.compile(
     |
     (\[?(?P<fic>Fic|E)\.?\]?)
 ''',
-    re.IGNORECASE | re.X,
+    re.IGNORECASE | re.VERBOSE,
 )
 
 

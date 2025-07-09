@@ -2,8 +2,13 @@
   <table class="main">
     <thead>
       <tr>
-        <th></th>
-        <th v-for="field in fields" :key="field">{{field.replace(/\_/g, ' ').replace(/\|/g, ', ')}}</th>
+        <th />
+        <th
+          v-for="field in fields"
+          :key="field"
+        >
+          {{ field.replace(/\_/g, ' ').replace(/\|/g, ', ') }}
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -17,26 +22,49 @@
         :bookshelves="bookshelves"
         :ratings="ratings"
         :class="{ selected: selected[record.key]}"
-        :cellSelected="isCellUsed"
+        :cell-selected="isCellUsed"
         :merged="merge ? merge.record : null"
         :show_diffs="show_diffs"
       >
         <template #pre>
-          <td class="col-controls" v-if="['/type/edition','/type/work'].includes(record.type.key)">
-            <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.key" />
-            <input type="checkbox" title="Include in Merge" v-model="selected[record.key]" />
+          <td
+            v-if="['/type/edition','/type/work'].includes(record.type.key)"
+            class="col-controls"
+          >
+            <input
+              v-model="master_key"
+              type="radio"
+              name="master_key"
+              title="Primary Record"
+              :value="record.key"
+            >
+            <input
+              v-model="selected[record.key]"
+              type="checkbox"
+              title="Include in Merge"
+            >
           </td>
           <td v-else />
         </template>
       </MergeRow>
     </tbody>
     <tfoot>
-      <MergeRow v-if="merge" :record="merge.record" :selected="selected" :fields="fields" :merged="merge">
+      <MergeRow
+        v-if="merge"
+        :record="enhancedMergeRecord.record"
+        :selected="selected"
+        :fields="fields"
+        :merged="enhancedMergeRecord"
+      >
         <template #pre>
           <td />
         </template>
       </MergeRow>
-      <tr v-else><td :colspan="fields ? fields.length+1 : 1"><div>⏳</div></td></tr>
+      <tr v-else>
+        <td :colspan="fields ? fields.length+1 : 1">
+          <div>⏳</div>
+        </td>
+      </tr>
     </tfoot>
   </table>
 </template>
@@ -49,32 +77,39 @@ import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_autho
 import CONFIGS from '../configs.js';
 
 
-/**
- * @param {string} olid
- */
-function fetchRecord(olid) {
+function olidToKey(olid) {
     const type = {
         W: 'works',
         M: 'books',
         A: 'authors'
     }[olid[olid.length - 1]];
-    let base = '';
-    if (CONFIGS.OL_BASE_BOOKS) {
-        base = CONFIGS.OL_BASE_BOOKS;
-    } else {
-        // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-        base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
+    return `/${type}/${olid}`;
+}
+
+async function fetchRecords(olids) {
+    if (olids.length > 1000) {
+        throw new Error('Cannot fetch more than 1000 records at a time');
     }
-    const record_key = `/${type}/${olid}`;
-    return fetch(`${base}${record_key}.json`).then(r => {
-        return (r.ok) ? r.json() : {key: record_key, type: {key: '/type/none'}, error: r.statusText};
-    });
+
+    const query = {
+        key: olids.map(olidToKey),
+        limit: olids.length,
+        '*': null,
+    };
+    const params = new URLSearchParams({query: JSON.stringify(query)});
+
+    return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
 }
 
 export default {
     name: 'MergeTable',
     components: {
         MergeRow
+    },
+    props: {
+        olids: Array,
+        show_diffs: Boolean,
+        primary: String
     },
     data() {
         return {
@@ -83,20 +118,18 @@ export default {
             selected: []
         };
     },
-    props: {
-        olids: Array,
-        show_diffs: Boolean,
-        primary: String
-    },
     asyncComputed: {
         async records() {
-            const olids_sorted = _.sortBy(this.olids, olid =>
-                parseFloat(olid.match(/\d+/)[0])
-            );
-            // Ensure orphaned editions are at the bottom of the list
             const records = _.orderBy(
-                await Promise.all(olids_sorted.map(fetchRecord)),
-                record => record.type.key, 'desc');
+                await fetchRecords(this.olids),
+                [
+                    // Ensure orphaned editions are at the bottom of the list
+                    record => record.type.key,
+                    // Sort by key, so oldest records are at the top
+                    record => parseFloat(record.key.match(/\d+/)[0]),
+                ],
+                ['desc', 'asc'],
+            );
 
             let masterIndex = 0
             if (this.primary) {
@@ -186,46 +219,6 @@ export default {
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
-
-        async merge() {
-            if (!this.master_key || !this.records || !this.editions)
-                return undefined;
-
-            const master = this.records.find(r => r.key === this.master_key);
-            const all_dupes = this.records
-                .filter(r => this.selected[r.key])
-                .filter(r => r.key !== this.master_key);
-            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
-            const records = [master, ...all_dupes];
-            const editions_to_move = _.flatMap(
-                all_dupes,
-                work => this.editions[work.key].entries
-            );
-
-            const [record, sources] = merge(master, dupes);
-
-            const extras = {
-                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
-            };
-
-            const unmergeable_works = this.records
-                .filter(work => work.type.key === '/type/work' &&
-                this.selected[work.key] &&
-                work.key !== this.master_key &&
-                this.editions[work.key].entries.length < this.editions[work.key].size)
-                .map(r => r.key);
-
-            return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
-        }
-    },
-    methods: {
-        isCellUsed(record, field) {
-            if (!this.merge) return false;
-            return field in this.merge.sources
-                ? this.merge.sources[field].includes(record.key)
-                : record.key === this.master_key;
-        }
     },
     computed: {
         fields() {
@@ -282,6 +275,50 @@ export default {
                 ...usedTextData,
                 ...otherFields
             ];
+        },
+        merge() {
+            if (!this.records || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.records);
+        },
+        enhancedMergeRecord() {
+            if (!this.enhancedRecords || !this.editions || !this.master_key) return undefined;
+            return this.build_merge(this.enhancedRecords);
+        }
+    },
+    methods: {
+        isCellUsed(record, field) {
+            if (!this.merge) return false;
+            return field in this.merge.sources
+                ? this.merge.sources[field].includes(record.key)
+                : record.key === this.master_key;
+        },
+
+        build_merge(records) {
+            const master = records.find(r => r.key === this.master_key);
+            const all_dupes = records
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key !== this.master_key);
+            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            const editions_to_move = _.flatMap(
+                all_dupes,
+                work => this.editions[work.key].entries
+            );
+
+            const [record, sources] = merge(master, dupes);
+
+            const extras = {
+                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
+            };
+
+            const unmergeable_works = records
+                .filter(work => work.type.key === '/type/work' &&
+        this.selected[work.key] &&
+        work.key !== this.master_key &&
+        this.editions[work.key].entries.length < this.editions[work.key].size)
+                .map(r => r.key);
+
+            return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
         }
     }
 };

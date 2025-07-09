@@ -617,10 +617,7 @@ class SaveBookHelper:
                     },
                 )
 
-                if (
-                    new_work_options.get('copy_authors') == 'yes'
-                    and 'authors' in self.work
-                ):
+                if new_work_options.get('copy_authors') == 'yes' and self.work.authors:
                     new_work.authors = self.work.authors
                 if new_work_options.get('copy_subjects') == 'yes':
                     for field in (
@@ -629,8 +626,8 @@ class SaveBookHelper:
                         'subject_times',
                         'subject_people',
                     ):
-                        if field in self.work:
-                            new_work[field] = self.work[field]
+                        if val := getattr(self.work, field, None):
+                            new_work[field] = val
 
                 self.work = new_work
                 saveutil.save(self.work)
@@ -1060,7 +1057,7 @@ class daisy(delegate.page):
 class work_identifiers(delegate.view):
     # TODO: (cclauss) Fix typing in infogami.utils.delegate and remove type: ignore
     suffix = "identifiers"  # type: ignore[assignment]
-    types = ["/type/edition"]  # type: ignore[assignment]
+    types = ["/type/edition"]  # type: ignore[assignment] # noqa: RUF012
 
     def POST(self, edition):
         saveutil = DocSaveHelper()

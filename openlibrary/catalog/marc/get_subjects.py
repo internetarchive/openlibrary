@@ -7,7 +7,7 @@ re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 
 # 'Rhodes, Dan (Fictitious character)'
 re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
-re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
+re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.IGNORECASE)
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
 re_place_comma = re.compile('^(.+), (.+)$')

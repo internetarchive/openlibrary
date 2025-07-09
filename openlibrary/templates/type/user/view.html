@@ -45,8 +45,9 @@ $else:
             <a href="$url" rel="nofollow">$url</a><br/>
         </p>
 
-    $:sanitize(format(page.description))
-
+    <div class="markdown-content">
+        $:sanitize(format(page.description))
+    </div>
 
     <h2>$_('Reading Log')</h2>
     $if owners_page:

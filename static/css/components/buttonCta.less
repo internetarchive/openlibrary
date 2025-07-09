@@ -3,11 +3,12 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  */
 @import "../less/index.less";
+@import "../less/font-families.less";
 
 // `a` specificity is needed to override default anchor styles
 .cta-btn,
 a.cta-btn {
-  font-size: 16px;
+  font-size: @font-size-label-large;
   color: @white;
   width: 100%;
   display: block;
@@ -24,10 +25,11 @@ a.cta-btn {
   line-height: 1.5em;
   text-decoration: none;
 
-  transition: background-color .2s;
+  transition: background-color 0.2s;
 
   .btn-icon {
-    width: 40px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
   }
   // stylelint-disable-next-line selector-max-specificity
@@ -38,9 +40,13 @@ a.cta-btn {
     background-position: center;
   }
 
-  .btn-label { padding: 0 10px; }
+  .btn-label {
+    padding: 8px;
+    padding-right: 0;
+  }
 
-  &:link, &:visited {
+  &:link,
+  &:visited {
     color: @white;
     text-decoration: none;
   }
@@ -49,13 +55,19 @@ a.cta-btn {
     cursor: default;
   }
 
-  &--available, &--preview, &--primary {
+  &--available,
+  &--preview,
+  &--primary {
     background-color: @primary-blue;
     color: @white;
-    &:hover { background-color: darken(@primary-blue, 20%); }
+    &:hover {
+      background-color: darken(@primary-blue, 20%);
+    }
   }
 
-  &--available:disabled, &--preview:disabled, &--primary:disabled {
+  &--available:disabled,
+  &--preview:disabled,
+  &--primary:disabled {
     background-color: @grey;
     cursor: default;
   }
@@ -71,14 +83,18 @@ a.cta-btn {
   &--unavailable {
     background-color: @primary-blue;
     color: @white;
-    &:hover { background-color: darken(@primary-blue, 20%); }
+    &:hover {
+      background-color: darken(@primary-blue, 20%);
+    }
   }
 
   &--shell&--external {
     background-blend-mode: difference;
   }
 
-  &--shell, &--shell:link, &--shell:visited {
+  &--shell,
+  &--shell:link,
+  &--shell:visited {
     .shell-btn--active();
   }
   &--shell:disabled {
@@ -90,7 +106,9 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
-  &--vanilla, &--vanilla:visited, &--vanilla:link {
+  &--vanilla,
+  &--vanilla:visited,
+  &--vanilla:link {
     padding: 5px;
     border: 2px solid @light-grey;
     background: @white;
@@ -98,14 +116,17 @@ a.cta-btn {
     border-radius: 6px;
   }
 
-  &--unstyled, &--unstyled:visited, &--unstyled:link {
+  &--unstyled,
+  &--unstyled:visited,
+  &--unstyled:link {
     padding: 7px;
     background: @white;
     color: @grey;
     border-radius: 6px;
   }
 
-  &--delete, &--cancel {
+  &--delete,
+  &--cancel {
     background-color: @red;
 
     &:visited {
@@ -116,7 +137,14 @@ a.cta-btn {
     }
   }
 
-  &--sponsor:link, &--sponsor:visited {
+  &.cta-btn--w-icon {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+  }
+
+  &--sponsor:link,
+  &--sponsor:visited {
     color: @link-blue;
   }
 
@@ -130,7 +158,7 @@ a.cta-btn {
     background-color: darken(@burnt-sienna, 20%);
     padding: 4px 7px;
     border-radius: 5px;
-    font-size: .7em;
+    font-size: 0.7em;
   }
 }
 
@@ -143,15 +171,12 @@ a.cta-btn {
 
   &.cta-btn--external {
     padding-right: 25px;
-    // stylelint-disable-next-line selector-max-specificity
-    .btn-label {
-      padding: 8px 10px;
-    }
   }
 }
 
 // Top margin to button coming after another button
-.cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
+.cta-btn + form input.cta-btn,
+.cta-btn + .cta-btn {
   margin-top: 5px;
 }
 
@@ -175,38 +200,31 @@ a.cta-btn {
 
 .cta-button-group {
   display: flex;
-  align-items: center;
   position: relative;
 
-  .cta-btn--w-icon {
-    display: flex;
-  }
-
   .cta-btn {
-    padding: 8px 0;
+    padding: 8px;
+    margin: 0;
 
-    &:first-child {
-      flex: 1;
-      padding: 8px;
-      overflow: hidden;
-    }
-
-    &:not(:first-child) {
-      margin-left: 1px;
-      width: 40px;
-      transition: width .2s;
-      overflow: hidden;
-      border-radius: 2px 6px 6px 2px;
-    }
-
-    &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
-    // stylelint-disable-next-line selector-max-specificity
-    &:not(:first-child):hover { width: 100%; }
+    // Avoid text wrapping
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
-  &.cta-dropper-button { // only read dropper buttons
-    // Rule broken by .cta-btn:not(:first-child):hover
-    // stylelint-disable-next-line no-descending-specificity
-    .cta-btn { margin: 0; }
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:first-child:not(:last-child) {
+    border-radius: 6px 2px 2px 6px;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:not(:first-child):not(:last-child) {
+    margin-left: 1px;
+    border-radius: 2px;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  > .cta-btn:last-child:not(:first-child) {
+    margin-left: 1px;
+    border-radius: 2px 6px 6px 2px;
   }
 }

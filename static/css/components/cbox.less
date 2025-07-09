@@ -41,7 +41,7 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    opacity: .5;
+    opacity: 0.5;
     filter: alpha(opacity=50);
     background-color: @black;
   }
@@ -115,7 +115,9 @@
   z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
-  &:visited, &:link, &:hover {
+  &:visited,
+  &:link,
+  &:hover {
     text-decoration: none;
   }
 }
@@ -176,10 +178,11 @@ div.floater {
   }
 }
 
-.floatform, .ol-cover-form {
+.floatform,
+.ol-cover-form {
   font-family: @lucida_sans_serif-2;
 
-  button[type=submit] {
+  button[type="submit"] {
     font-size: 1em;
     width: auto;
     cursor: pointer;
@@ -190,7 +193,7 @@ div.floater {
     padding-bottom: 5px;
 
     label {
-      font-size: 1.0em;
+      font-size: 1em;
       font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
@@ -199,15 +202,15 @@ div.floater {
     }
   }
 
-  input[type=text],
-  input[type=url],
-  input[type=file] {
+  input[type="text"],
+  input[type="url"],
+  input[type="file"] {
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
   }
 
-  input::file-selector-button{
+  input::file-selector-button {
     cursor: pointer;
   }
 
@@ -232,7 +235,7 @@ div.floater {
     flex: 1;
   }
 
-  button[type=submit] {
+  button[type="submit"] {
     margin-top: 0;
   }
 
@@ -264,12 +267,12 @@ div.floater {
   }
 }
 
-.ol-cover-form--ia {
+.ol-cover-form--external {
   a {
     text-decoration: none;
   }
 
-  .ol-cover-form--ia_image {
+  .ol-cover-form--external_image {
     display: block;
   }
 
@@ -278,7 +281,7 @@ div.floater {
     align-items: flex-start;
   }
 
-  button[type=submit] {
+  button[type="submit"] {
     width: 135px;
   }
 }
@@ -307,7 +310,7 @@ div#covers.input {
   }
 }
 
-div.imageIntro{
+div.imageIntro {
   margin: 0 0 10px;
 }
 
@@ -328,12 +331,12 @@ div.floaterAdd {
       padding-top: 20px;
       // stylelint-disable-next-line max-nesting-depth
       label {
-        font-size: 1.0em;
+        font-size: 1em;
         font-family: @lucida_sans_serif-5;
         font-weight: 700;
       }
     }
-    input[type=text],
+    input[type="text"],
     textarea {
       margin-left: 0;
     }
@@ -358,14 +361,14 @@ div.floaterAdd {
       text-align: left;
     }
 
-    input[type=text],
-    input[type=url],
-    input[type=file] {
+    input[type="text"],
+    input[type="url"],
+    input[type="file"] {
       width: 350px;
     }
   }
 
-  div.imageIntro{
+  div.imageIntro {
     margin: 10px;
   }
 
@@ -375,8 +378,8 @@ div.floaterAdd {
   div.floaterAdd {
     .input,
     .label,
-    input[type=text],
-    input[type=url],
+    input[type="text"],
+    input[type="url"],
     textarea {
       width: 560px;
       resize: none;

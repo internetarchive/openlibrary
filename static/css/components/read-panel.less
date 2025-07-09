@@ -16,7 +16,6 @@
 
 .read-options,
 .btn-notice {
-  line-height: 1.5em;
   font-size: 1em;
   padding: 15px;
   margin-bottom: 10px;
@@ -25,7 +24,9 @@
   border: 1px solid @lighter-grey;
   margin-top: 0;
 
-  .cta-btn, .cta-btn.cta-btn--no-pointer {
+  .cta-btn,
+  .cta-button-group,
+  .cta-btn.cta-btn--no-pointer {
     margin-bottom: 10px;
   }
 
@@ -35,20 +36,18 @@
     color: @primary-blue;
     text-decoration: none;
     position: relative;
+    margin: 0 auto;
     margin-top: -15px; // offsets Illustration margin-bottom: 10px
-    margin-bottom: 5px;
-    padding: 5px 20px 10px; // Increasing click area for mobile text link
     background-color: transparent;
+    transition: background-color 0.2s;
 
     // When Preview button is a text link, have it take up only the width
     // of the content (not full 100% width)
-    flex-basis: content;
-    flex-grow: 0;
     width: auto;
 
     /* stylelint-disable selector-max-specificity */
     &:hover {
-      text-decoration: underline;
+      background-color: fade(@primary-blue, 10%);
     }
 
     &::before {
@@ -76,7 +75,7 @@
     text-wrap: auto;
   }
   .cta-section {
-    font-size: .78em;
+    font-size: 0.78em;
   }
 
   .check-availability {
@@ -103,13 +102,7 @@
     display: block;
     font-weight: bold;
   }
-  ul {
-    margin-left: 8px;
-  }
-  li {
-    list-style: disc;
-    margin: 5px 10px 0;
-  }
+
   // stylelint-disable selector-max-specificity
   table {
     width: 100%;
@@ -121,18 +114,26 @@
   // stylelint-enable selector-max-specificity
 }
 
+ul.book-locate-options li,
+ul.ebook-download-options li {
+  margin: 5px 0;
+}
+
 .buy-options-table {
+  line-height: 2em;
+
   .more {
     margin-left: 0;
     cursor: pointer;
+  }
 
-    &::marker {
-      content: "";
-    }
+  + small {
+    display: block;
+    margin-top: 10px;
   }
 }
 
-.cta-section-title.world-cat-link{
+.cta-section-title.world-cat-link {
   margin-top: 0;
 }
 
@@ -141,7 +142,7 @@
   padding: 10px;
   border: 2px solid fade(@link-blue, 20%);
   background: fade(lighten(desaturate(@link-blue, 56%), 67%), 50%);
-  font-size: .8em;
+  font-size: 0.8em;
   text-align: center;
 
   q {
@@ -150,8 +151,12 @@
     text-align: center;
   }
 
-  hr { background: fade(@link-blue, 35%); }
-  a.learn-more { font-size: .9em; }
+  hr {
+    background: fade(@link-blue, 35%);
+  }
+  a.learn-more {
+    font-size: 0.9em;
+  }
 }
 
 .Tools .booklinks li {
@@ -160,7 +165,7 @@
 }
 
 // desktop
-@media only screen and (min-width: @width-breakpoint-desktop){
+@media only screen and (min-width: @width-breakpoint-desktop) {
   /* stylelint-disable selector-max-specificity */
   .mobile-vendor,
   .cta-button-group.mobile,
@@ -177,7 +182,7 @@
 }
 
 // mobile
-@media only screen and (max-width: @width-breakpoint-desktop){
+@media only screen and (max-width: @width-breakpoint-desktop) {
   .desktop-vendor,
   .cta-button-group.desktop {
     display: none;
@@ -190,13 +195,14 @@
     border: none;
     // Hide border for desktop version of modal links and ratings form on mobile
     /* stylelint-disable no-descending-specificity */
-    &> hr {
+    & > hr {
       display: none;
     }
     /* stylelint-enable no-descending-specificity */
   }
 
-  .star-rating-form.desktop, .modal-links.desktop {
+  .star-rating-form.desktop,
+  .modal-links.desktop {
     display: none;
   }
 
@@ -213,7 +219,7 @@
       display: none;
     }
 
-    &> hr {
+    & > hr {
       margin: 0 20px;
     }
 
@@ -234,7 +240,7 @@
         text-align: center;
 
         .readers-stats__label {
-          font-size: .85em;
+          font-size: 0.85em;
         }
 
         & + li {
@@ -251,7 +257,8 @@
         }
       }
 
-      li.avg-ratings, li.readers-stats__review-count {
+      li.avg-ratings,
+      li.readers-stats__review-count {
         display: none;
       }
       /* stylelint-enable selector-max-specificity */

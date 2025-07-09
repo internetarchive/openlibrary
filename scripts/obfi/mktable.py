@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-# matches ip#'s from input, builds reverse table to unhide hidden ips
+# matches ip's from input, builds reverse table to unhide hidden ips
 # use:
-#  sudo tcpdump -n (dst port 80 or dst port 443) | ./mktable
-# leave running .. reveal uses the table
-# or netstat -n | ./mktable
+#    sudo tcpdump -i eth0 -n '(dst port 80 or dst port 443) and tcp[tcpflags] & tcp-syn != 0' | sudo ./mktable
 #
-# or
-# sudo tcpdump -n dst port 80 and 'tcp[tcpflags] & tcp-syn != 0' | ./mktable
+# leave running; ./reveal uses the file.
+# Stop listening with Ctrl-C.
 #
-# Exit with control+c.
+# You can also do:
+# - netstat -n | sudo ./mktable
+# - tcpdump -n '(dst port 80 or dst port 443)' | sudo ./mktable
+# - tcpdump -n dst port 80 and 'tcp[tcpflags] & tcp-syn != 0' | sudo ./mktable
 
 import dbm.ndbm
 import hashlib
@@ -18,8 +19,9 @@ import re
 import struct
 import sys
 import time
-import urllib.request
 from typing import Final
+
+import requests
 
 SEED_PATH: Final = os.getenv("SEED_PATH", "")
 if not SEED_PATH:
@@ -57,8 +59,9 @@ class HashIP:
     def get_seed(self) -> None:
         """Get the day's seed."""
         try:
-            with urllib.request.urlopen(SEED_PATH) as handle:
-                content = handle.read()
+            r = requests.get(SEED_PATH)
+            r.raise_for_status()
+            content = r.content
         except Exception as e:  # noqa: BLE001
             print("Error retrieving seed:", e)
             sys.exit(1)

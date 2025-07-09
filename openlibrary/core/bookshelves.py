@@ -165,19 +165,22 @@ class Bookshelves(db.CommonExtras):
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
         """
-        from openlibrary.core.lending import get_availabilities
+        from openlibrary.core.lending import add_availability
         from openlibrary.plugins.worksearch.code import get_solr_works
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
-            f"/works/OL{i['work_id']}W" for i in readinglog_items
+            {f"/works/OL{i['work_id']}W" for i in readinglog_items},
+            editions=True,
         )
 
-        # Loop over each work in the index and inject its availability
-        availability_index = get_availabilities(work_index.values())
-        for work_key in availability_index:
-            work_index[work_key]['availability'] = availability_index[work_key]
+        add_availability(
+            [
+                ((w.get('editions') or {}).get('docs') or [None])[0] or w
+                for w in work_index.values()
+            ]
+        )
 
         # Return items from the work_index in the order
         # they are represented by the trending logged books
@@ -644,6 +647,11 @@ class Bookshelves(db.CommonExtras):
         )
         result = list(oldb.query(query, vars=data))
         return result[0].bookshelf_id if result else None
+
+    @classmethod
+    def user_has_read_work(cls, username: str, work_id: str) -> bool:
+        user_read_status = cls.get_users_read_status_of_work(username, work_id)
+        return user_read_status == cls.PRESET_BOOKSHELVES['Already Read']
 
     @classmethod
     def get_users_read_status_of_works(cls, username: str, work_ids: list[str]) -> list:

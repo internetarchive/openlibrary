@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
 
 $code:
   max_rendered_authors = 9
@@ -9,9 +9,15 @@ $code:
     'solr_edition'
   )
 
+  # Depending on where we come from, editions is either a dict with docs,
+  # or a list of editions directly.
+  editions = doc.get('editions') or []
+  if isinstance(editions, dict):
+    editions = editions.get('docs') or []
+
   selected_ed = doc
-  if doc_type == 'solr_edition':
-    selected_ed = doc.get('editions')[0]
+  if doc_type == 'solr_edition' and editions:
+    selected_ed = editions[0]
 
   selected_ed['availability'] = selected_ed.get('availability', {}) or doc.get('availability', {}) or availability or {}
   ocaid = (selected_ed.get('ia') and selected_ed['ia'][0]) or selected_ed.get('ocaid')
@@ -65,6 +71,7 @@ $code:
           src="$cover"
           alt="$_('Cover of: %(title)s', title=full_title)"
           title="$_('Cover of: %(title)s', title=full_title)"
+          $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
 	  /></a>
       $if ocaid:
         $:macros.BookPreview(ocaid, show_only=False)

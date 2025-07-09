@@ -116,34 +116,6 @@ $def empty_mobile_carousel(data):
           $# Render carousel
           $:(mobile_carousel(already_read) or empty_mobile_carousel(already_read))
         </li>
-<!--
-        <div class="list-overflow">
-          $ placeholder_name = _('Untitled list')
-          $ i = 0
-          $for lst in lists:
-          $# e.g. OL1L from /people/mekBot/lists/OL1L
-            $if i >= 3:
-              $ break
-            $ list_id = lst.key.split('/')[-1]
-            $ class_list = ''
-            $ i += 1
-            $if key == 'list':
-              $# e.g. /people/openlibrary/lists/OL1L/MyList
-              $ path_id = ctx.path.split('/')[4]
-              $if list_id == path_id:
-                $ class_list = class_list + 'selected'
-            <li></li>
-            <li>
-              <div class="carousel-section-header">
-                <a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id">
-                  $(lst['name'] if lst['name'] else '[%s]' % placeholder_name)
-                  ($(len(lst.seeds)))
-                  <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
-                </a>
-              </div>
-            </li>
-        </div>
-         -->
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">

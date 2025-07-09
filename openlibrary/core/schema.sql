@@ -52,7 +52,7 @@ CREATE TABLE bookshelves_books (
     primary key (username, work_id, bookshelf_id)
 );
 CREATE INDEX bookshelves_books_work_id_idx ON bookshelves_books (work_id);
-
+CREATE INDEX bookshelves_books_updated_idx ON bookshelves_books (updated);
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
@@ -110,4 +110,21 @@ CREATE TABLE wikidata (
     id text not null primary key,
     data json,
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
-)
+);
+
+CREATE TABLE bestbooks (
+    award_id serial not null primary key,
+    username text not null,
+    work_id integer not null,
+    edition_id integer default null,
+    topic text not null,
+    comment text not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (username, work_id),
+    UNIQUE (username, topic)
+);
+
+CREATE INDEX bestbooks_username ON bestbooks (username);
+CREATE INDEX bestbooks_work ON bestbooks (work_id);
+CREATE INDEX bestbooks_topic ON bestbooks (topic);

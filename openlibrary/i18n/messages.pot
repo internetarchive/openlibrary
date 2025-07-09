@@ -256,7 +256,7 @@ msgid_plural "View %(count)s Editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: EditionNavBar.html site/stats.html
+#: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
 msgstr ""
 
@@ -522,8 +522,8 @@ msgid "See more books by, and learn about, this author"
 msgstr ""
 
 #: ProlificAuthors.html account/loans.html authors/index.html
-#: lists/showcase.html publishers/view.html search/authors.html
-#: search/publishers.html search/subjects.html
+#: lists/list_follow.html lists/showcase.html publishers/view.html
+#: search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -564,6 +564,18 @@ msgstr ""
 
 #: PublishingHistory.html publishers/view.html
 msgid "Year of Publication"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Loading carousel"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry?"
 msgstr ""
 
 #: RawQueryCarousel.html
@@ -969,10 +981,6 @@ msgid "Check nearby libraries"
 msgstr ""
 
 #: WorldcatLink.html
-msgid "Library.link"
-msgstr ""
-
-#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
 msgstr ""
 
@@ -1154,6 +1162,54 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 subject"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 author"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 edition"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has work (orphaned)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publication year"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has cover"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has language"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 2 editions"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has dewey decimal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has LoC classification"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has number of pages"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
@@ -1167,6 +1223,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/pd.py
+msgid "I don't have one yet"
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -1250,18 +1310,11 @@ msgstr ""
 msgid "Request failed with error code: %(error_code)s"
 msgstr ""
 
-#: account/password/reset_success.html account/verify.html
-#: account/verify/activated.html account/verify/success.html
 #: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid "Hi, %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-#, python-format
 msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
+"Thank you for registering an Open Library account and requesting special "
+"print disability access. You should receive an email detailing next steps"
+" in the process."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -1305,10 +1358,6 @@ msgstr ""
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Password reset failed."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -1389,6 +1438,13 @@ msgid ""
 "I want to receive news, announcements, and resources from the <a "
 "href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
 "runs Open Library."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid ""
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\">special print disability access</a> through"
+" a qualifying program."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
@@ -1548,7 +1604,7 @@ msgstr ""
 msgid "Or copy/paste JSONL text:"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html import_preview.html
 msgid "Import"
 msgstr ""
 
@@ -1614,7 +1670,8 @@ msgstr ""
 
 #: account/import.html account/loans.html admin/imports.html
 #: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: batch_import_pending_view.html batch_import_view.html status.html
+#: batch_import_pending_view.html batch_import_view.html
+#: librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr ""
 
@@ -1660,7 +1717,7 @@ msgid "Import Time"
 msgstr ""
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
-#: batch_import_view.html
+#: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
 msgstr ""
 
@@ -1825,6 +1882,14 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
+#: import_preview.html
+msgid "Import Preview"
+msgstr ""
+
+#: import_preview.html
+msgid "Preview Import"
+msgstr ""
+
 #: internalerror.html
 msgid "Internal Error"
 msgstr ""
@@ -1874,7 +1939,8 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: account/create.html books/custom_carousel.html login.html
+#: account/create.html books/custom_carousel.html
+#: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
@@ -2061,7 +2127,8 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -2163,8 +2230,7 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-#: account/view.html admin/index.html books/year_breadcrumb_select.html
-#: trending.html
+#: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
 msgstr ""
 
@@ -2363,6 +2429,10 @@ msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
+msgid "A qualifying program must be selected"
+msgstr ""
+
+#: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
 
@@ -2386,6 +2456,16 @@ msgstr ""
 
 #: account/create.html
 msgid "screenname"
+msgstr ""
+
+#: account/create.html
+msgid "Select qualifying program"
+msgstr ""
+
+#: account/create.html
+msgid ""
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
 msgstr ""
 
 #: account/create.html
@@ -2613,10 +2693,6 @@ msgstr ""
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html
-msgid "Untitled list"
 msgstr ""
 
 #: account/mybooks.html
@@ -2974,13 +3050,16 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: account/sidebar.html type/edition/view.html type/user/view.html
-#: type/work/view.html
+#: account/sidebar.html type/user/view.html
 msgid "See All"
 msgstr ""
 
 #: account/sidebar.html type/list/edit.html
 msgid "Create a list"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Untitled list"
 msgstr ""
 
 #: account/topmenu.html
@@ -2994,6 +3073,12 @@ msgstr ""
 
 #: account/verify.html
 msgid "Verification email sent"
+msgstr ""
+
+#: account/password/reset_success.html account/verify.html
+#: account/verify/activated.html account/verify/success.html
+#, python-format
+msgid "Hi, %(user)s"
 msgstr ""
 
 #: account/verify.html
@@ -3251,7 +3336,8 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
+#: site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -3503,6 +3589,10 @@ msgid "Admin Center"
 msgstr ""
 
 #: admin/menu.html
+msgid "PD Access Requests"
+msgstr ""
+
+#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -3524,6 +3614,10 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Print Disability Access Requests"
 msgstr ""
 
 #: admin/permissions.html
@@ -3560,8 +3654,8 @@ msgstr ""
 
 #: admin/permissions.html
 msgid ""
-"This updates  and  fields of /, /works, /books and /authors records in "
-"the database."
+"This updates \"permission\" and \"child_permission\" fields of /, /works,"
+" /books and /authors records in the database."
 msgstr ""
 
 #: admin/solr.html
@@ -4297,6 +4391,10 @@ msgid "Invalid LC Control Number format"
 msgstr ""
 
 #: books/add.html
+msgid "Invalid OCLC/WorldCat Control Number format"
+msgstr ""
+
+#: books/add.html
 msgid "Please enter a value for the selected identifier"
 msgstr ""
 
@@ -4387,6 +4485,10 @@ msgstr ""
 
 #: books/add.html
 msgid "LibriVox"
+msgstr ""
+
+#: books/add.html
+msgid "OCLC/WorldCat"
 msgstr ""
 
 #: books/add.html
@@ -5408,14 +5510,14 @@ msgid "Paste image from clipboard"
 msgstr ""
 
 #: covers/add.html
-msgid "No Image Pasted"
+msgid "Paste Image"
 msgstr ""
 
 #: covers/add.html
 msgid "Upload image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/external_image.html
 msgid "Upload Image"
 msgstr ""
 
@@ -5424,7 +5526,7 @@ msgid "Uploading..."
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Wikidata"
 msgstr ""
 
 #: covers/author_photo.html
@@ -5498,6 +5600,11 @@ msgstr ""
 msgid "Manage"
 msgstr ""
 
+#: covers/external_image.html
+#, python-format
+msgid "Or, use the cover from %s"
+msgstr ""
+
 #: covers/manage.html
 msgid ""
 "You can drag and drop thumbnails to reorder, or into the trash to delete "
@@ -5537,6 +5644,10 @@ msgid ""
 "It might take us a little while to read it because we receive lots of "
 "messages, but rest assured we will, and we'll get back to you if "
 "required."
+msgstr ""
+
+#: email/account/pd_request.html
+msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
 #: history/comment.html
@@ -5611,6 +5722,10 @@ msgstr ""
 
 #: home/index.html
 msgid "Thrillers"
+msgstr ""
+
+#: home/index.html
+msgid "Authors Alliance & MIT Press"
 msgstr ""
 
 #: home/loans.html
@@ -5770,8 +5885,15 @@ msgstr ""
 
 #: languages/index.html
 #, python-format
-msgid "%s book"
-msgid_plural "%s books"
+msgid "%s work"
+msgid_plural "%s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: languages/index.html
+#, python-format
+msgid "%s ebook edition"
+msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -6175,6 +6297,22 @@ msgid ""
 "keep track of all your edits and additions."
 msgstr ""
 
+#: librarian_dashboard/data_quality_table.html
+msgid "Reload"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "failing"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Data quality table"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Quality Criteria"
+msgstr ""
+
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
@@ -6289,8 +6427,12 @@ msgstr ""
 msgid "No description."
 msgstr ""
 
-#: lists/home.html lists/showcase.html
+#: lists/home.html lists/showcase.html lists/widget.html
 msgid "See all"
+msgstr ""
+
+#: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
+msgid "You"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
@@ -6384,10 +6526,6 @@ msgstr[1] ""
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
-
-#: lists/widget.html my_books/dropdown_content.html
-msgid "You"
 msgstr ""
 
 #: lists/widget.html
@@ -6908,6 +7046,14 @@ msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
+#: search/layout_options.html
+msgid "Grid"
+msgstr ""
+
+#: search/layout_options.html
+msgid "View as: "
+msgstr ""
+
 #: search/lists.html
 msgid "Search results for Lists"
 msgstr ""
@@ -6934,6 +7080,10 @@ msgid "Relevance"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -6943,6 +7093,14 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Last Modified"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Language Name"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -6962,15 +7120,11 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Any"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
@@ -7333,21 +7487,17 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid ""
-"Showing all works by author. Would you like to see <a "
-"href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"Showing ebooks only. Would you like to see <a "
-"href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "Search %(author)s books"
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
+msgstr ""
+
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: type/author/view.html
@@ -7399,7 +7549,7 @@ msgid "See the page's history"
 msgstr ""
 
 #: type/edition/admin_bar.html
-msgid "Add to Staff Picks"
+msgid "Add IA Book to Staff Picks"
 msgstr ""
 
 #: type/edition/admin_bar.html
@@ -7565,10 +7715,6 @@ msgstr ""
 msgid "Loading Lists"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
-msgid "Loading Related Books"
-msgstr ""
-
 #: type/language/view.html
 msgid "deprecated"
 msgstr ""
@@ -7597,6 +7743,10 @@ msgstr ""
 
 #: type/list/edit.html
 msgid "Edit List"
+msgstr ""
+
+#: type/list/edit.html
+msgid "Move..."
 msgstr ""
 
 #: type/list/edit.html
@@ -7830,6 +7980,10 @@ msgstr ""
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag Deputy"
 msgstr ""
 
 #: type/tag/view.html

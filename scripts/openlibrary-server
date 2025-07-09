@@ -3,17 +3,10 @@
 
 USAGE:
 
-* Run openlibrary http server at port 8080.
-
-    $ ./scripts/openlibrary-server infogami.yml startserver 8080
-
-* Run openlibrary as fastcgi server at port 7070
-
-    $ ./scripts/openlibrary-server infogami.yml startserver fastcgi 8080
-
 * Run openlibrary as gunicorn server at port 8080
 
-    $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
+    $ PYTHONPATH=. scripts/openlibrary-server conf/openlibrary.yml $GUNICORN_OPTS --bind :8080
+
 """
 import os
 import sys
@@ -31,26 +24,6 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
     sys.path.append('conf')
-
-
-def start_server():
-    import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-
-    args = sys.argv[1:]
-
-    if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
-        print(
-            "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0]),
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    configfile, args = args[0], args[1:]
-    load_infogami(configfile)
-
-    import infogami
-
-    infogami.run(args)
 
 
 def load_infogami(config_file):
@@ -79,17 +52,15 @@ def setup_infobase_config(config_file):
             config.infobase = yaml.safe_load(f)
 
 
-class BaseWSGIServer(Application):
+class OLWSGIServer(Application):
     def __init__(self, config_file):
         self.config_file = config_file
-        Application.__init__(self)
+        super().__init__()
 
     def init(self, parser, opts, args):
         pass
 
     def load(self):
-        import _init_path  # noqa: F401  Imported for side effect of setting PYTHONPATH
-
         load_infogami(self.config_file)
 
         import infogami
@@ -100,11 +71,6 @@ class BaseWSGIServer(Application):
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
         return wsgi_app
 
-    def get_wsgi_app(self):
-        raise NotImplementedError
-
-
-class OLWSGIServer(BaseWSGIServer):
     def get_wsgi_app(self):
         from infogami import config
         from infogami.utils import delegate
@@ -135,14 +101,9 @@ def https_middleware(app):
 
 def main():
     setup_env()
-
-    if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))
-        configfile = sys.argv.pop(1)
-        server = OLWSGIServer(configfile)
-        server.run()
-    else:
-        start_server()
+    configfile = sys.argv.pop(1)
+    server = OLWSGIServer(configfile)
+    server.run()
 
 
 if __name__ == "__main__":

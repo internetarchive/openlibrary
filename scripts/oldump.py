@@ -7,6 +7,8 @@ from datetime import datetime
 
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
+from openlibrary.utils.sentry import init_sentry
+
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
@@ -24,7 +26,6 @@ if __name__ == "__main__":
     from infogami import config
     from openlibrary.config import load_config
     from openlibrary.data import dump
-    from openlibrary.utils.sentry import Sentry
 
     log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
 
@@ -35,9 +36,7 @@ if __name__ == "__main__":
         # So it doesn't end up in our data dumps body
         with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
             load_config(ol_config)
-        sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
-        if sentry.enabled:
-            sentry.init()
+        sentry = init_sentry(getattr(config, "sentry_cron_jobs", {}))
     log(f"sentry.enabled = {bool(ol_config and sentry.enabled)}")
 
     dump.main(sys.argv[1], sys.argv[2:])

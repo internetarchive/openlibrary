@@ -26,7 +26,12 @@ $code:
         $# End : Status dot indicator
 
         <div class="mr-details">
-        <span class="mr-details__request-title">$request_title</span>
+        $if is_open:
+            <span class="mr-details__request-title">$request_title</span>
+        $else:
+            <a href="$review_url" class="mr-title-link">
+                <span class="mr-details__request-title">$request_title</span>
+            </a>
 
         $# Start : Most recent comment preview
         <div class="mr-details__comment-preview">

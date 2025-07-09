@@ -40,7 +40,7 @@ def test_get_doc():
             'url': '/works/OL1820355W/The_computer_glossary',
             'edition_count': 14,
             'ia': ['computerglossary00free'],
-            'collections': set(),
+            'collections': [],
             'has_fulltext': True,
             'public_scan': False,
             'lending_edition': 'OL1111795M',

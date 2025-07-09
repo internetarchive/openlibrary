@@ -1,0 +1,36 @@
+$def with (md_provider_factory, req, result=None)
+
+<div id="contentHead">
+    <h1>$_("Import Preview")</h1>
+</div>
+
+<div id="contentBody">
+    <form method="POST" action="/import/preview">
+        <select aria-label="select provider" name="provider" required>
+            $for prefix, provider in md_provider_factory.metadata_providers.items():
+                <option
+                    value="$prefix"
+                    $:cond(req and req.metadata_provider == provider, 'selected')
+                >$provider.full_name</option>
+        </select>
+        <input
+            aria-label="input provider identifier"
+            type="text"
+            name="identifier"
+            required
+            value="$(req.identifier if req else '')"
+        >
+        <button type="submit">$_("Preview Import")</button>
+    </form>
+
+
+    $if result:
+        <textarea readonly aria-label="json preview of import record" style="width: 100%; height: 300px;">$json_encode(result, indent=2)</textarea>
+
+        <form method="POST" action="/import/preview">
+            <input type="hidden" name="provider" value="$req.metadata_provider.id_name">
+            <input type="hidden" name="identifier" value="$req.identifier">
+            <input type="hidden" name="save" value="true">
+            <button type="submit">$_("Import")</button>
+        </form>
+</div>

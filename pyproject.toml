@@ -41,22 +41,29 @@ extend-exclude = [
   "vendor",
 ]
 ignore = [
-  "B007",
-  "B023",
-  "B904",
-  "B905",
-  "E402",
-  "F841",
-  "PERF401",
-  "PIE790",
-  "PLW0603",
-  "PLW2901",
-  "RUF005",
-  "RUF012",
-  "SIM108",
-  "SLF001",
-  "UP031",
-  "UP038",
+  "B007",    # unused-loop-control-variable - not a big deal for us
+  "B023",    # function-uses-loop-variable - doesn't matter for our lambdas but it's a good rule
+  "B904",    # raise-without-from-inside-except - not sure but it seems fine for now
+  "PERF401", # manual-list-comprehension - we prefer readability
+  "PIE790",  # unnecessary-placeholder - could be removed but not much gain
+  "PLW0603", # global-statement - we use it a lot...
+  "PLW2901", # redefined-loop-name - would be a lot of work to fix
+  "RUF005",  # collection-literal-concatenation - this works for us as is
+  "SIM108",  # if-else-block-instead-of-if-exp - we prefer the readability instead of ternaries
+  "SLF001",  # private-member-access - unfortunately we use these quite often for infogami
+  "UP031",   # printf-string-formatting - a ton of work to fix to 224 errors
+  # TODO: these could be fixed one day
+  "F841",    # unused-variable - currently has 60 errors. Would be good to fix
+  "B905",    # zip-without-explicit-strict - TODO: seems like we should fix this one
+  "UP038",   # non-pep604-isinstance - This rule is deprecated and will be removed in a future ruff release.
+  "E402",    # module-import-not-at-top-of-file - TODO: we should probably enable this and and add exceptions
+    # openlibrary/plugins/admin/code.py - maybe it can be fixed
+    # openlibrary/plugins/openlibrary/code.py - unclear but has many
+    # openlibrary/plugins/openlibrary/filters.py - can fix
+    # openlibrary/plugins/upstream/jsdef.py - can remove
+    # openlibrary/plugins/upstream/utils.py - unclear but it's huge
+    # scripts/tests/test_affiliate_server.py - probably needed for side effects
+    # scripts/tests/test_solr_updater.p - probably needed for side effects
 ]
 line-length = 162
 select = [
@@ -69,6 +76,7 @@ select = [
   "F",       # Pyflakes
   "FA",      # flake8-future-annotations
   "FLY",     # flynt
+  "FURB",    # refurb
   "G010",    # flake8-logging-format
   "I",       # isort
   "ICN",     # flake8-import-conventions
