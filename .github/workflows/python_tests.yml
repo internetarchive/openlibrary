@@ -15,6 +15,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_SYSTEM_PYTHON: 1 #install packages into system python instead of venv
+
 jobs:
   python_tests:
     runs-on: ubuntu-latest
@@ -39,8 +42,6 @@ jobs:
       - name: Set up Python
         run: uv python install
       - name: Install dependencies
-        env:
-          UV_SYSTEM_PYTHON: 1
         run: |
           # Try to upgrade pip, setuptools, and wheel
           uv pip install --upgrade pip setuptools wheel || {
