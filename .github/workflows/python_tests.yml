@@ -46,13 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Try to upgrade pip, setuptools, and wheel
-          uv pip install --upgrade setuptools wheel || {
-            echo "pip is broken or missing, reinstalling..."
-            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            python get-pip.py
-            rm -f get-pip.py
-            uv pip install --upgrade setuptools wheel
-          }
+          uv pip install --upgrade setuptools wheel
           uv pip install -r requirements_test.txt
           uv pip list --outdated
       - run: make git
