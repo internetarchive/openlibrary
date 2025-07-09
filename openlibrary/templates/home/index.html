@@ -25,9 +25,11 @@ $add_metatag(property="og:site_name", content="Open Library")
   $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=True)
 
   $if not test:
-    $:macros.QueryCarousel(title=_('Romance'), key="romance", query="subject:romance ebook_access:[borrowable TO *]", sort='trending', use_cache=False, lazy=False, user_lang_only=True)
-    $:macros.QueryCarousel(title=_('Kids'), key="children", query="subject:juvenile ebook_access:[borrowable TO *]", sort='trending', use_cache=False, lazy=False, user_lang_only=True)
-    $:macros.QueryCarousel(title=_('Thrillers'), key="thrillers", query="subject:thrillers ebook_access:[borrowable TO *]", url="/subjects/thrillers", sort='trending', use_cache=False, lazy=False, user_lang_only=True)
+    $# TODO: See if we can remove the first_publish_year restriction. But the label "romance" seems to be applied unexpectedly to books before 1930.
+    $:macros.QueryCarousel(title=_('Romance'), key="romance", query="subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *]", sort='trending,trending_score_hourly_sum', use_cache=False, lazy=False, user_lang_only=True)
+    $# This is pulling in a mess of books, sorting by random is less likely to catch popular books that are not actually for kids.
+    $:macros.QueryCarousel(title=_('Kids'), key="children", query="subject:juvenile ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *]", sort='random.hourly', use_cache=False, lazy=False, user_lang_only=True)
+    $:macros.QueryCarousel(title=_('Thrillers'), key="thrillers", query="subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *]", url="/subjects/thrillers", sort='trending,trending_score_hourly_sum', use_cache=False, lazy=False, user_lang_only=True)
     $:macros.QueryCarousel(title=_('Textbooks'), key="textbooks", query="subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]", url="/subjects/textbooks", sort='trending', use_cache=False, lazy=False, user_lang_only=True)
     $:macros.QueryCarousel(title=_("Authors Alliance & MIT Press"), key="authorsalliance_mit_press", query='(subject:authorsalliance OR publisher:"MIT Press" OR subject:mitpress) ebook_access:[borrowable TO *]', sort='trending', use_cache=False, lazy=False, user_lang_only=True)
 
