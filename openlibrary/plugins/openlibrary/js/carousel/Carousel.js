@@ -81,6 +81,8 @@ export class Carousel {
         });
 
         this._initPreloadNextImagesOnHover();
+        // we need to init once the carousel is loaded not just when page loads
+        initLoadingGradient();
 
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead

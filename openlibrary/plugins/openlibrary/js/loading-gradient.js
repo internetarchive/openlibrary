@@ -17,9 +17,8 @@ function setupGradientForElement(el) {
     // An image can be a child of the container, or it can BE the container.
     // This finds the correct element to listen to the 'load' event on.
     const imageEl = el.querySelector('img') || el;
-
     if (imageEl.complete) {
-        revealImage(el);
+        revealImage(imageEl)
         return;
     }
 
