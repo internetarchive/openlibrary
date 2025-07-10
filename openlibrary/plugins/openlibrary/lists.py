@@ -246,31 +246,6 @@ def convert_list(list):
     return newList
 
 
-class lists_partials(delegate.page):
-    path = "/lists/partials"
-    encoding = "json"
-
-    def GET(self):
-        partials = self.get_partials()
-        return delegate.RawText(json.dumps(partials))
-
-    def get_partials(self):
-        user_lists = get_user_lists(None)
-
-        dropper = render_template('lists/dropper_lists', user_lists)
-        list_data = {
-            list_data['key']: {
-                'members': list_data['list_items'],
-                'listName': list_data['name'],
-            }
-            for list_data in user_lists
-        }
-
-        return {
-            'dropper': str(dropper),
-            'listData': list_data,
-        }
-
 
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
