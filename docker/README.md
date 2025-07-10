@@ -160,7 +160,7 @@ docker container prune --filter label="com.docker.compose.project=openlibrary" -
 docker image prune --filter label="com.docker.compose.project=openlibrary" --force
 
 # Remove volumes that might have outdated dependencies/code
-docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
+docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-postgres openlibrary_ol-vendor openlibrary_solr-data openlibrary_solr-updater-data
 
 # Bring it back up again
 docker compose up  # or docker compose up -d
