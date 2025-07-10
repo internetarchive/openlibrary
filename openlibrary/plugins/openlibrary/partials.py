@@ -10,13 +10,13 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
+
+# partials.py
+from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.views.loanstats import get_trending_books
 
-# partials.py
-from infogami.utils.view import render_template
-from openlibrary.plugins.openlibrary.lists import get_user_lists
 
 class PartialResolutionError(Exception):
     pass
@@ -33,15 +33,13 @@ class PartialDataHandler(ABC):
     @abstractmethod
     def generate(self) -> dict:
         pass
-    
-    
 
 
 class MyBooksDropperListsPartial(PartialDataHandler):
     """Handler for the MyBooks dropper list component."""
 
     def __init__(self):
-        self.i = web.input()  
+        self.i = web.input()
 
     def generate(self) -> dict:
         print("Generating MyBooks dropper lists partial")
@@ -60,9 +58,6 @@ class MyBooksDropperListsPartial(PartialDataHandler):
             'dropper': str(dropper),
             'listData': list_data,
         }
-
-        
-    
 
 
 class CarouselCardPartial(PartialDataHandler):

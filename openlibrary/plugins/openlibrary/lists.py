@@ -246,7 +246,6 @@ def convert_list(list):
     return newList
 
 
-
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
