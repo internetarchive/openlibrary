@@ -62,8 +62,19 @@ export async function removeItem(listKey, seed) {
 }
 
 // XXX : jsdoc
+// export async function getListPartials() {
+//     return await fetch(buildPartialsUrl('/lists/partials.json'), {
+//         method: 'GET',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             Accept: 'application/json',
+//         },
+//     });
+// }
 export async function getListPartials() {
-    return await fetch(buildPartialsUrl('/lists/partials.json'), {
+    return await fetch(buildPartialsUrl('/partials.json', {
+        _component: 'MyBooksDropperLists'
+    }), {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -71,3 +82,4 @@ export async function getListPartials() {
         },
     });
 }
+
