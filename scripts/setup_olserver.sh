@@ -57,6 +57,10 @@ docker compose version  # v2.25.0
 sudo systemctl start docker
 sudo systemctl enable docker
 
+# See nexus documentation for what to put in here
+sudo vim /etc/docker/daemon.json
+sudo service docker restart
+
 # Give certain users access to docker commands
 DOCKER_USERS="nagios $DOCKER_USERS"
 for user in $DOCKER_USERS; do
@@ -99,3 +103,5 @@ if [[ $PUBLIC_FACING != 'true' ]]; then
 fi
 
 ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
+
+# TODO: For ol-www0 and ol-home0, follow instructions in https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing#setting-up-trending-nginx-log-access
