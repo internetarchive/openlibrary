@@ -260,6 +260,8 @@ services:
       - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
+      - /www0_1:/1
     logging:
       options:
         max-size: "512m"
@@ -281,10 +283,11 @@ services:
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
-      - TRENDING_UPDATER=true
+      - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
       - /www0_1:/1
     command: docker/ol-solr-updater-start.sh
     networks:
