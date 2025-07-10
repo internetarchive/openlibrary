@@ -8,8 +8,6 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
-# Use python from local env if it exists or else default to python in the path.
-PYTHON=$(if $(wildcard env),env/bin/python,python)
 
 .PHONY: all clean distclean git css js components i18n lint
 
@@ -36,7 +34,7 @@ components:
 
 
 i18n:
-	$(PYTHON) ./scripts/i18n-messages compile
+	python ./scripts/i18n-messages compile
 
 git:
 	git submodule init
@@ -50,10 +48,6 @@ distclean:
 	git clean -fdx
 	git submodule foreach git clean -fdx
 
-load_sample_data:
-	@echo "loading sample docs from openlibrary.org website"
-	$(PYTHON) scripts/copydocs.py --list /people/anand/lists/OL1815L
-	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
@@ -67,14 +61,14 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	$(PYTHON) -m ruff --no-cache .
+	python -m ruff check .
 
 test-py:
 	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
-	$(PYTHON) ./scripts/i18n-messages validate de es fr hr it ja zh
+	python ./scripts/i18n-messages validate de es fr hr it ja zh
 
 test:
 	make test-py && npm run test && make test-i18n

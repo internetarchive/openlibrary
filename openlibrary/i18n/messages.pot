@@ -256,7 +256,7 @@ msgid_plural "View %(count)s Editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: EditionNavBar.html site/stats.html
+#: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
 msgstr ""
 
@@ -2127,7 +2127,8 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -2694,10 +2695,6 @@ msgstr ""
 msgid "%(year_span)s reading goal"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
-msgid "Untitled list"
-msgstr ""
-
 #: account/mybooks.html
 msgid "View All Lists"
 msgstr ""
@@ -3059,6 +3056,10 @@ msgstr ""
 
 #: account/sidebar.html type/list/edit.html
 msgid "Create a list"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Untitled list"
 msgstr ""
 
 #: account/topmenu.html
@@ -5516,7 +5517,7 @@ msgstr ""
 msgid "Upload image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/external_image.html
 msgid "Upload Image"
 msgstr ""
 
@@ -5525,7 +5526,7 @@ msgid "Uploading..."
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Wikidata"
 msgstr ""
 
 #: covers/author_photo.html
@@ -5597,6 +5598,11 @@ msgstr ""
 
 #: covers/change.html
 msgid "Manage"
+msgstr ""
+
+#: covers/external_image.html
+#, python-format
+msgid "Or, use the cover from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -7040,6 +7046,14 @@ msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
+#: search/layout_options.html
+msgid "Grid"
+msgstr ""
+
+#: search/layout_options.html
+msgid "View as: "
+msgstr ""
+
 #: search/lists.html
 msgid "Search results for Lists"
 msgstr ""
@@ -7477,10 +7491,6 @@ msgid "Search %(author)s books"
 msgstr ""
 
 #: type/author/view.html
-msgid "Sort by: "
-msgstr ""
-
-#: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
@@ -7733,6 +7743,10 @@ msgstr ""
 
 #: type/list/edit.html
 msgid "Edit List"
+msgstr ""
+
+#: type/list/edit.html
+msgid "Move..."
 msgstr ""
 
 #: type/list/edit.html

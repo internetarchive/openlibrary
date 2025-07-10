@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Final, TypeVar
 
 from annotated_types import MinLen
-from pydantic import BaseModel, ValidationError, model_validator, root_validator
+from pydantic import BaseModel, ValidationError, model_validator
 
 from openlibrary.catalog.add_book import (
     SUSPECT_AUTHOR_NAMES,
@@ -35,7 +35,8 @@ class CompleteBook(BaseModel):
     publishers: NonEmptyList[NonEmptyStr]
     publish_date: NonEmptyStr
 
-    @root_validator(pre=True)
+    @model_validator(mode='before')
+    @classmethod
     def remove_invalid_dates(cls, values):
         """Remove known bad dates prior to validation."""
         is_exempt = any(
@@ -50,7 +51,8 @@ class CompleteBook(BaseModel):
 
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode='before')
+    @classmethod
     def remove_invalid_authors(cls, values):
         """Remove known bad authors (e.g. an author of "N/A") prior to validation."""
         authors = values.get("authors", [])

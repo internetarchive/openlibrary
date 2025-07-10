@@ -539,4 +539,6 @@ CREATE TABLE import_item (
 CREATE INDEX import_item_batch_id ON import_item(batch_id);
 CREATE INDEX import_item_import_time ON import_item(import_time);
 CREATE INDEX import_item_status ON import_item(status);
+CREATE INDEX import_item_status_id ON import_item(status, id);
+CREATE INDEX import_item_submitter ON import_item(submitter);
 CREATE INDEX import_item_ia_id ON import_item(ia_id);

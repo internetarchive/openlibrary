@@ -259,7 +259,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
     try:
         page = mc(name, args, **kwargs)
         return web.template.TemplateResult(page)
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
 
 

@@ -328,6 +328,7 @@ export default {
 
       &::marker {
         content: none;
+        font-size: 0;
       }
 
       &::-webkit-details-marker {

@@ -151,6 +151,15 @@ class add_photo(add_cover):
     path = r"(/authors/OL\d+A)/add-photo"
     cover_category = "a"
 
+    def GET(self, key):
+        author = web.ctx.site.get(key)
+        wikidata_images = (
+            author.wikidata().get_image_urls() if author and author.wikidata() else []
+        )
+        return render_template(
+            'covers/add', author, {'wikidata_images': wikidata_images}
+        )
+
     def save(self, author, photoid, url=None):
         author.photos = [photoid] + [photo.id for photo in author.get_photos()]
         author._save("Added new photo", action="add-photo", data={"url": url})

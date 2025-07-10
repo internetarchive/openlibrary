@@ -120,13 +120,16 @@ export default {
     },
     asyncComputed: {
         async records() {
-            const olids_sorted = _.sortBy(this.olids, olid =>
-                parseFloat(olid.match(/\d+/)[0])
-            );
-            // Ensure orphaned editions are at the bottom of the list
             const records = _.orderBy(
-                await fetchRecords(olids_sorted),
-                record => record.type.key, 'desc');
+                await fetchRecords(this.olids),
+                [
+                    // Ensure orphaned editions are at the bottom of the list
+                    record => record.type.key,
+                    // Sort by key, so oldest records are at the top
+                    record => parseFloat(record.key.match(/\d+/)[0]),
+                ],
+                ['desc', 'asc'],
+            );
 
             let masterIndex = 0
             if (this.primary) {

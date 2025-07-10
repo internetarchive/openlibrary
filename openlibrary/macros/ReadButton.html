@@ -21,17 +21,14 @@ $else:
 $ menu_items = [listen, edition_key]
 $ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
 $if any(menu_items) and not is_carousel:
-  <div class="cta-dropper">
-    <div class="cta-button-group cta-dropper-button">
-      <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
-          $:analytics_attr(analytics_action)
-          $if loan:
-            data-userid="$(loan['userid'])"
-          >$label</a>
-    </div>
-    <details>
-      <summary>
-      </summary>
+  <div class="cta-dropper cta-button-group">
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+        $:analytics_attr(analytics_action)
+        $if loan:
+          data-userid="$(loan['userid'])"
+        >$label</a>
+    <details class="cta-btn cta-btn--available">
+      <summary></summary>
       <ul class="dropper-menu">
         $if listen:
           <li>

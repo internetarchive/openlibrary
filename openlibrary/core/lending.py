@@ -202,7 +202,7 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
         pass  # TODO: Handle unexpected responses from the availability server.
     try:
         data = response.json().get('lending_status', {})
-    except JSONDecodeError as e:
+    except JSONDecodeError:
         data = {}
     # For debugging
     data['__src__'] = 'core.models.lending.get_groundtruth_availability'
@@ -699,7 +699,7 @@ def get_user_waiting_loans(user_key):
             [user_key], {}, result or {}, time.time()
         )  # rehydrate cache
         return result or []
-    except JSONDecodeError as e:
+    except JSONDecodeError:
         return []
 
 
@@ -1026,7 +1026,7 @@ class IA_Lending_API:
     def find_loans(self, **kw):
         try:
             return self._post(method="loan.query", **kw).get('result', [])
-        except JSONDecodeError as e:
+        except JSONDecodeError:
             return []
 
     def create_loan(self, identifier, userid, format, ol_key):

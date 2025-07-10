@@ -217,3 +217,33 @@ def test_get_external_profiles_multiple_social() -> None:
         'https://scholar.google.com/citations?user=scholar123',
         'https://scholar.google.com/citations?user=scholar456',
     }
+
+
+def test_get_image_urls() -> None:
+    entity = createWikidataEntity()
+
+    # Test with a single image
+    entity.statements = {'P18': [{'value': {'content': 'Image1.jpg'}}]}
+    assert entity.get_image_urls() == [
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Image1.jpg'
+    ]
+
+    # Test with multiple images
+    entity.statements = {
+        'P18': [
+            {'value': {'content': 'Image2.png'}},
+            {'value': {'content': 'Image3 with spaces.gif'}},
+        ]
+    }
+    assert entity.get_image_urls() == [
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Image2.png',
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Image3_with_spaces.gif',
+    ]
+
+    # Test with no images
+    entity.statements = {}
+    assert entity.get_image_urls() == []
+
+    # Test with P18 but malformed statement
+    entity.statements = {'P18': [{'invalid_key': 'test'}]}
+    assert entity.get_image_urls() == []

@@ -49,10 +49,12 @@ services:
     image: "${OLIMAGE:-oldev:latest}"
     command: docker/ol-solr-updater-start.sh
     hostname: "$HOSTNAME"
+    init: true
     environment:
       - OL_CONFIG=conf/openlibrary.yml
       - OL_URL=http://web:8080/
       - STATE_FILE=solr-update.offset
+      - TRENDING_OFFSET_FILE=trending-update.offset
     volumes:
       - solr-updater-data:/solr-updater-data
     networks:
