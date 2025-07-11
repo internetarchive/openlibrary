@@ -23,7 +23,7 @@ Book URL: ${url}
 
 âœ… Your final output must be a single, clean, parsable JSONL object in a code block all on a single line in jsonl format (matching the schema and rules below) with no markdown, no commentary, and no prose outside the JSON code block.
 âœ… Safety & Quality Check:
-If the provided URL appears fundamentally unsound, spammy / phishy, malicious / malicious, deceptive, highly self-promotional, overtly pirated (DMCA-violating), poses an imminent risk of harm, or is extremely low quality, you must abort and respond with a reasonable JSON object like: \`{"error": "suspected spam"}\`
+If the provided URL appears fundamentally unsound, spammy / phishy, malicious, deceptive, highly self-promotional, overtly pirated (DMCA-violating), poses an imminent risk of harm, or is extremely low quality, you must abort and respond with a reasonable JSON object like: \`{"error": "suspected spam"}\`
 âœ… Required JSON Schema:
 \`\`\`
 {
