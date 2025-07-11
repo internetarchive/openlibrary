@@ -16,8 +16,7 @@ from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.views.loanstats import get_trending_books
-from infogami.utils.view import render_template
-from openlibrary.plugins.openlibrary.lists import get_user_lists
+
 
 class PartialResolutionError(Exception):
     pass
@@ -37,7 +36,7 @@ class PartialDataHandler(ABC):
 
 
 class MyBooksDropperListsPartial(PartialDataHandler):
-    """Handler for the MyBooks dropper list component."""  
+    """Handler for the MyBooks dropper list component."""
 
     def generate(self) -> dict:
         user_lists = get_user_lists(None)
