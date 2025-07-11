@@ -47,6 +47,11 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
     $:macros.databarView(page)
 
     <h1 itemprop="name">$title</h1>
+    $if page.type.key in ["/type/redirect"]:
+        <div class="pageRedirect">
+            $if page.location:
+                <p>Redirected from <a href="$page.url()" rel="nofollow" title="$page.title">$page.title</a></p>
+        </div>
     $if show_librarian_extras:
         <h2 class="author collapse">
             $if page.birth_date or page.death_date:
@@ -55,7 +60,6 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $if page.date:
                     $page.date
         </h2>
-
 </div>
 
 <div id="contentBody">
