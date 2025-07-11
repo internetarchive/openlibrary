@@ -198,10 +198,18 @@ def render_component(
     attrs = attrs or {}
     attrs_str = ''
     for key, val in attrs.items():
-        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
-            val = json.dumps(val)
-            # On the Vue side use decodeURIComponent to decode
-            val = urllib.parse.quote(val)
+        if json_encode:
+            if isinstance(val, dict):
+                val = json.dumps(val)
+                # On the Vue side use decodeURIComponent to decode
+                val = urllib.parse.quote(val)
+            elif isinstance(val, list):
+                if val and isinstance(val[0], Thing):
+                    val = [dict(v) for v in val]
+
+                val = json.dumps(val)
+                # On the Vue side use decodeURIComponent to decode
+                val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ''
     included = web.ctx.setdefault("included-components", [])

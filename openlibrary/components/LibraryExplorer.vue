@@ -67,9 +67,15 @@ export default {
         BookRoom,
         LibraryToolbar,
     },
+    props: {
+        childrenJson: {
+            type: String,
+            default: null
+        },
+    },
     data() {
         /** @type {import('./LibraryExplorer/utils').ClassificationTree[]} */
-        const classifications = [
+        let classifications = [
             {
                 name: 'DDC',
                 longName: 'Dewey Decimal Classification',
@@ -100,6 +106,28 @@ export default {
                 })
             }
         ];
+
+        if (this.childrenJson) {
+            const children = JSON.parse(decodeURIComponent(this.childrenJson));
+            classifications = [
+                {
+                    name: 'Subject',
+                    longName: 'Subject',
+                    field: 'lcc',
+                    fieldTransform: sortable_lcc_to_short_lcc,
+                    toQueryFormat: lcc => {
+                        const normalized = short_lcc_to_sortable_lcc(lcc);
+                        return normalized ? normalized.split(' ')[0] : lcc;
+                    },
+                    chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
+                    root: recurForEach({ children, query: '*' }, n => {
+                        n.position = 'root';
+                        n.offset = 0;
+                        n.requests = {};
+                    })
+                }
+            ]
+        }
 
         const urlParams = new URLSearchParams(location.search);
         let selectedClassification = classifications[0];

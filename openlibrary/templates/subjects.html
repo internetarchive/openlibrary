@@ -62,6 +62,11 @@ $ q = query_param('q')
         "limit": len(page.works)
       }
     $:render_template("books/custom_carousel", books=page.works, load_more=load_more)
+    
+    $if has_tag and page.tag.children:
+      $# $:render_component('LibraryExplorer', {'jumpTo': 'subject:' + page.tag.key})
+      $:render_component('LibraryExplorer', {'children-json': page.tag.children})
+
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
