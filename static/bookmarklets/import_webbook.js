@@ -1,7 +1,7 @@
 javascript:(async()=> {
-  const url = prompt("ðŸ“š Enter the book URL you want to import:");
-  if (!url) return;
-  const promptText = `You are an expert book metadata librarian and research assistant.
+    const url = prompt('ðŸ“š Enter the book URL you want to import:');
+    if (!url) return;
+    const promptText = `You are an expert book metadata librarian and research assistant.
 Your role is to search the web and collect accurate data to produce the most useful, factual, complete, and patron-oriented book page possible for the URL:
 
 Book URL: ${url}
@@ -119,46 +119,46 @@ Field-Specific Instructions:
   - Otherwise, omit the field entirely.
 `;
 
-  // Step 1: Open ChatGPT with pre-filled prompt
-  const chatUrl = "https://chatgpt.com/?q=" + encodeURIComponent(promptText);
-  window.open(chatUrl, "_blank", "width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes");
+    // Step 1: Open ChatGPT with pre-filled prompt
+    const chatUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
+    window.open(chatUrl, '_blank', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes');
 
-  //window.location.href = "/api/import/batch/new";
-    
-  // Step 2: Prompt user to paste ChatGPT's JSON response
-  const jsonText = prompt("âœ… After running the ChatGPT prompt and getting the JSON, paste the full JSON output here:");
+    //window.location.href = "/api/import/batch/new";
 
-  if (!jsonText) return alert("âŒ No JSON pasted. Import cancelled.");
+    // Step 2: Prompt user to paste ChatGPT's JSON response
+    const jsonText = prompt('âœ… After running the ChatGPT prompt and getting the JSON, paste the full JSON output here:');
 
-  let payload;
-  try {
-    payload = JSON.parse(jsonText);
-  } catch (e) {
-    console.error("Invalid JSON:", e);
-    return alert("âŒ Invalid JSON. Check the console for details.");
-  }
+    if (!jsonText) return alert('âŒ No JSON pasted. Import cancelled.');
 
-  try {
-    const resp = await fetch("https://openlibrary.org/api/import", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await resp.json();
-    console.log("âœ… Open Library API Response:", data);
-
-    if (data && data.url) {
-      alert(`âœ… Import successful! View your new book at:\n\n${data.url}`);
-      window.open(data.url, "_blank");
-    } else {
-      alert("âœ… Import complete! Check console for details.");
+    let payload;
+    try {
+        payload = JSON.parse(jsonText);
+    } catch (e) {
+        console.error('Invalid JSON:', e);
+        return alert('âŒ Invalid JSON. Check the console for details.');
     }
 
-  } catch (e) {
-    console.error("âŒ Import failed:", e);
-    alert("âŒ Error posting to Open Library. Check console.");
-  }
+    try {
+        const resp = await fetch('https://openlibrary.org/api/import', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        console.log('âœ… Open Library API Response:', data);
+
+        if (data && data.url) {
+            alert(`âœ… Import successful! View your new book at:\n\n${data.url}`);
+            window.open(data.url, '_blank');
+        } else {
+            alert('âœ… Import complete! Check console for details.');
+        }
+
+    } catch (e) {
+        console.error('âŒ Import failed:', e);
+        alert('âŒ Error posting to Open Library. Check console.');
+    }
 })();
