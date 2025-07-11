@@ -54,6 +54,13 @@ Field-Specific Instructions:
 
 - "authors": A list/array of author objects {"name": "..."} with each author's full name.
 
+- "subjects": A flat array of concise tags that help patrons search or filter books.
+  - Include subject matter (topics, genres, fields of study). e.g. ["mathematics", "linear algebra", "determinants", "vector spaces"]
+  - Also include any distinctive book qualities, prefixed as follows (but only if they help a patron search or filter):
+    - "is:nonfiction", "is:textbook", etc. (only when truly appropriate)
+    - "has:illustrations", "has:table-of-contents", "has:exercises", etc. for content features
+  - Overall, include only tags that provide real patron value.
+
 - "prior_knowledge": a list/array of topics that may be useful prerequisites for this book, if any (otherwise drop field)
 
 - "trigger_warnings": a list/array of trigger warnings as strings, if any (otherwise drop field)
@@ -76,25 +83,18 @@ Field-Specific Instructions:
       - What criticisms are made about this book? Bias? Relevance / Outdated?
     - "## Cultural or Societal Significance" (if relevant)
     - "## Key Takeaways, Insights & Learnings"
-    - "## Questions and Answers" (a few representative Q&As posed and answed by this book's content)
+    - "## Select Questions and Answers" (a few representative Q&As posed and answed by this book's content)
     - "## Notable Quotes & Excerpts"
-    - "## Notable Citations" -- notable public citations (in books, academic papers or the web)
+    - "## Mentions & Notable Citations"
+      - notable, verifiable public citation urls (from books, academic papers or prominent references from the live web)
     - "## Spoilers"
     - "## Edition Notes" -- anything new, improved, or specific about this specific edition?
-
-- "subjects":
-  - A flat array of concise tags that help patrons search or filter books.
-  - Include subject matter (topics, genres, fields of study).
-  - Also include any distinctive book qualities, prefixed as follows (but only if they help a patron search or filter):
-    - "is:nonfiction", "is:textbook", etc. (only when truly appropriate)
-    - "has:illustrations", "has:tableofcontents", "has:exercises", etc. for content features
-  - Overall, include only tags that provide real patron value.
 
 - "cover":
   - Direct URL to a verifiable cover image for the book from the web page (make sure the url loads in a browser).
   - Do not guess or infer image URLs — extract from the actual DOM (og, img, etc).
   - If multiple images exist, choose the most prominent book cover.
-  - If unknown, do NOT make up a cover url; this is anti-helpful
+  - If unknown, do NOT fabricate a cover url; this is anti-helpful
   - If no cover is found or the url fails verification, leave this field as an empty string ("").
 
 - "source_records": Always include: ["ChatGPT:\${url}"] but without scheme (i.e. no http:// or https://) and no trailing slash
