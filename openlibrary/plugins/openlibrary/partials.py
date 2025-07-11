@@ -10,6 +10,7 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.views.loanstats import get_trending_books
@@ -30,6 +31,27 @@ class PartialDataHandler(ABC):
     @abstractmethod
     def generate(self) -> dict:
         pass
+
+
+class MyBooksDropperListsPartial(PartialDataHandler):
+    """Handler for the MyBooks dropper list component."""
+
+    def generate(self) -> dict:
+        user_lists = get_user_lists(None)
+
+        dropper = render_template("lists/dropper_lists", user_lists)
+        list_data = {
+            list_data['key']: {
+                'members': list_data['list_items'],
+                'listName': list_data['name'],
+            }
+            for list_data in user_lists
+        }
+
+        return {
+            'dropper': str(dropper),
+            'listData': list_data,
+        }
 
 
 class CarouselCardPartial(PartialDataHandler):
@@ -321,6 +343,7 @@ class PartialRequestResolver:
         "FulltextSearchSuggestion": FullTextSuggestionsPartial,
         "BPListsSection": BookPageListsPartial,
         "LazyCarousel": LazyCarouselPartial,
+        "MyBooksDropperLists": MyBooksDropperListsPartial,
     }
 
     @staticmethod
