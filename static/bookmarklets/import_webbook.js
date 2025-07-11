@@ -8,12 +8,10 @@ Book URL: ${url}
 ---
 
 Overall Behavior Guidelines:
-- Use both your training knowledge AND search the web for this book url.
-- Prefer the web page content over assumptions.
+- Use "search the web" for the url and thoroughly analyze the result for book cover image, author info, publication details, and file format clues
+- Use your training knowledge if available and reliable.
 - Prioritize accuracy, depth, and patron usefulness.
-- Take time and thoroughly analyze the web page, looking for a book cover image, author info, publication details, and file format clues.
-- When uncertain, leave fields empty (or use specified defaults). Do not hallucinate.
-- If something is not explicitly available or verifiable, leave it out or follow the specified missing-value rule.
+- Do not hallucinate: If something is not uncertain or not explicitly available or verifiable, leave it out or follow the specified missing-value rule.
 
 ---
 
@@ -55,7 +53,7 @@ Field-Specific Instructions:
 - "authors": A list/array of author objects {"name": "..."} with each author's full name.
 
 - "subjects": A flat array of concise tags that help patrons search or filter books.
-  - Include subject matter (topics, genres, fields of study). e.g. ["mathematics", "linear algebra", "determinants", "vector spaces"]
+  - Include subject matter (topics, genres, fields of study). e.g. ["mathematics", "linear algebra", "determinants"]
   - Also include any distinctive book qualities, prefixed as follows (but only if they help a patron search or filter):
     - "is:nonfiction", "is:textbook", etc. (only when truly appropriate)
     - "has:illustrations", "has:table-of-contents", "has:exercises", etc. for content features
@@ -67,35 +65,28 @@ Field-Specific Instructions:
 
 - "description": This is one of the most important fields; a long-form markdown description that is better and more helpful than Wikipedia or Goodreads. Aim for an encyclopedia-style, patron-focused tone. Avoid hype or marketing copy. Imagine you're an experienced research librarian helping someone decide whether to check out this book.
   - Start with a concise, patron-facing, plain-language summary of what the book is about.
-  - You are encouraged to use clear section headings like 'About the Book', 'Key Themes', etc., to improve clarity.
   - Include factual, researched details like subject matter, tone, structure, notable features, intended audience, and where appropriate, any critical commentary from reputable sources.
-  - Try to keep spoilers under a # Spoilers header
   - Follow with additional long-form sections (as applicable, as you're able, and if they add value) using headings like:
     - "## About the Book"
     - "## Topics & Themes"
     - "## Audience"
-      - Who is it for
-      - What is the level / difficulty
-      - What prior knowledge does it assume
+      - Who is it for, what is the level / difficulty, what prior knowledge does is assumed
     - "## Critical Reception"
-      - What makes it great or unique v. similar books?
-      - Anything notable about the writing style or format?
-      - What criticisms are made about this book? Bias? Relevance / Outdated?
-    - "## Cultural or Societal Significance" (if relevant)
-    - "## Key Takeaways, Insights & Learnings"
+      - What makes it great or unique, esp v. similar books?
+      - What criticisms are made about the book? Bias? Relevance / Outdated?
+    - "## Cultural or Societal Significance" (if relevant, like wikipedia)
+    - "## Key Takeaways, Learnings & Insights"
     - "## Select Questions and Answers" (a few representative Q&As posed and answed by this book's content)
     - "## Notable Quotes & Excerpts"
-    - "## Mentions & Notable Citations"
-      - notable, verifiable public citation urls (from books, academic papers or prominent references from the live web)
+    - "## Notable Mentions"
+      - verifiable books, academic papers, or live web pages citing this book
     - "## Spoilers"
     - "## Edition Notes" -- anything new, improved, or specific about this specific edition?
 
 - "cover":
-  - Direct URL to a verifiable cover image for the book from the web page (make sure the url loads in a browser).
+  - Verifiable URL to book cover image (make sure the cover url is valid and loads in a browser).
   - Do not guess or infer image URLs — extract from the actual DOM (og, img, etc).
-  - If multiple images exist, choose the most prominent book cover.
-  - If unknown, do NOT fabricate a cover url; this is anti-helpful
-  - If no cover is found or the url fails verification, leave this field as an empty string ("").
+  - If no cover, default to empty string ("").
 
 - "source_records": Always include: ["ChatGPT:\${url}"] but without scheme (i.e. no http:// or https://) and no trailing slash
 
@@ -105,11 +96,11 @@ Field-Specific Instructions:
   - "????" if unknown.
 
 - "publish_date":
-  - Use a real ISO date ("YYYY-MM-DD") if available.
-  - If unknown, use "20XX" (this field must never be blank).
+  - Use a real ISO date ("YYYY-MM-DD") if known
+  - Else use "20XX" (field must never be blank).
 
 - "languages":
-  - Default to ["eng"] unless you are certain it's another language.
+  - ["eng"] unless you are certain it's another language.
 
 - "isbn_13":
   - Only include this field if a valid ISBN-13 is found.
@@ -119,11 +110,7 @@ Field-Specific Instructions:
 - "providers":
   - Must reflect the actual format of the book as inferred from the web page:
     - "pdf", "epub", "html", "web", etc.
-  - Always set "access": "read" and "provider_name": "Open Library Community Librarians".
-
-- "mentions":
-  - Only include this field if you have 1 or more reputable external review links (from respected sources like journals, newspapers, blogs).
-  - Otherwise, omit the field entirely.`;
+  - Always set "access": "read" and "provider_name": "Open Library Community Librarians".`;
 
     const chatUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
     window.open(chatUrl, '_blank', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes');
