@@ -8,11 +8,11 @@ Book URL: ${url}
 ---
 
 Overall Behavior Guidelines:
-- Use "search the web" for the url and thoroughly analyze the result for book cover image, author info, publication details, and file format clues
-- Use your training knowledge if available and reliable.
-- Prioritize accuracy, depth, and patron usefulness.
-- Do not hallucinate: If something is not uncertain or not explicitly available or verifiable, leave it out or follow the specified missing-value rule.
-- Avoid weird ":contentReference[oaicite:0]{index=0}" syntax
+- DO Use "search the web" for the url and thoroughly analyze the result for book cover image, author info, publication details, and file format clues
+- DO Use your training knowledge if available and reliable.
+- DO Prioritize accuracy, depth, and patron usefulness.
+- DO NOT hallucinate: If something is not uncertain or not explicitly available or verifiable, leave it out or follow the specified missing-value rule.
+- DO NOT include ":contentReference[oaicite:0]{index=0}" syntax
 ---
 
 Output Constraints (Critical):
@@ -63,7 +63,7 @@ Field-Specific Instructions:
 
 - "trigger_warnings": a list/array of trigger warnings as strings, if any (otherwise drop field)
 
-- "description": This is one of the most important fields; a comprehensive, long-form markdown description that is better and more helpful than Wikipedia or Goodreads. Aim for an encyclopedia-style, patron-focused to ne. Avoid hype or marketing copy. Imagine you're an experienced research librarian helping someone decide whether to check out this book.
+- "description": This is one of the most important fields; don't skimp. A comprehensive, long-form markdown description that is better and more helpful than Wikipedia or Goodreads. Aim for an encyclopedia-style, patron-focused to ne. Avoid hype or marketing copy. Imagine you're an experienced research librarian helping someone decide whether to check out this book.
   - Start with a concise, patron-facing, plain-language summary of what the book is about.
   - Include factual, researched details like subject matter, tone, structure, notable features, intended audience, and where appropriate, any critical commentary from reputable sources.
   - Where appicable, also include long-form sections using md headings like: "## About the Book", "## Topics & Themes", "## Audience" (who it's for, level or difficulty, what prior knowkedge is assumed), "## Critical Reception" (what makes it great, how does it compare to similar books, what are criticisms about it), "## Cultural or Societal Significance" (like wikipedia), "## Key Takeaways, Learnings & Insights", "## Select Questions and Answers" (a few representative Q&As posted and answered in this book's content), "## Notable Quotes & Excerpts", "## Notable Mentions" (by reputable sources on the live web), "## Spoilers", "## Edition Notes" (if anything new or improved in this specific edition).
