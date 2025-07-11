@@ -123,8 +123,7 @@ Field-Specific Instructions:
 
 - "mentions":
   - Only include this field if you have 1 or more reputable external review links (from respected sources like journals, newspapers, blogs).
-  - Otherwise, omit the field entirely.
-`;
+  - Otherwise, omit the field entirely.`;
 
     const chatUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
     window.open(chatUrl, '_blank', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes');
