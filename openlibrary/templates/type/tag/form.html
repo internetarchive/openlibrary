@@ -15,12 +15,48 @@ $ heading = _("Edit tag") if is_editing else _("Add a tag to Open Library")
         <p class="instruct">$_("We require a minimum set of fields to create a new collection tag.")</p>
 </div>
 
+$# Render the ith tag query input field
+$jsdef render_child_field(i, child):
+    <li class="mia__input ac-input">
+        <div class="child--controls">
+            <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
+            <button class="mia__move" type="button">$_("Move...")</button>
+            <button class="mia__remove" type="button">$_("Remove")</button>
+        </div>
+        <main>
+            <input
+                class="ac-input__value"
+                name="children--$i--name"
+                placeholder="$_('Tag Name')"
+                value="$(child.get('name', ''))"
+                required
+            />
+            <input
+                class="ac-input__value"
+                name="children--$i--query"
+                placeholder="$_('Query')"
+                value="$(child.get('query', ''))"
+                required
+            />
+        </main>
+    </li>
+
 <div id="contentBody">
     <form name="edit" method="post" class="olform">
         $if redirect:
             <input type="hidden" name="redir" value="$redirect">
         $:render_template("type/tag/tag_form_inputs", page)
         <div class="clearfix"></div>
+
+        <ol class="multi-input-autocomplete multi-input-autocomplete--tag-queries">
+            $ children = page.get('children', []) if page else []
+            $if children:
+                $for i, child in enumerate(children):
+                    $:render_child_field(i, child)
+            $else:
+                $:render_child_field(0, {'name': '', 'query': ''})
+            <a href="javascript:;" class="mia__add">$_('Add another tag query')</a>
+        </ol>
 
         <div class="formElement bottom">
             $if is_editing:
