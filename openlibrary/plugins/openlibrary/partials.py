@@ -10,8 +10,6 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
-
-# partials.py
 from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
