@@ -128,6 +128,4 @@ Field-Specific Instructions:
 
     const chatUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
     window.open(chatUrl, '_blank', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes');
-
-    window.location.href = '/api/import/batch/new';
 })();
