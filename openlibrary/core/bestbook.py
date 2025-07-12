@@ -135,7 +135,10 @@ class Bestbook(db.CommonExtras):
     @classmethod
     def get_leaderboard(cls) -> list[dict]:
         """Get the leaderboard of best books"""
-        result = db.select(
+
+        oldb = db.get_db()
+
+        result = oldb.select(
             cls.TABLENAME,
             what='work_id, COUNT(*) AS count',
             group='work_id',
