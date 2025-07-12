@@ -272,8 +272,6 @@ class booknotes(delegate.page):
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.
-
-
 class work_bookshelves(delegate.page):
     path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
@@ -351,6 +349,116 @@ class work_bookshelves(delegate.page):
             json.dumps({'bookshelves_affected': work_bookshelf}),
             content_type="application/json",
         )
+
+
+class work_bookshelves_batch(delegate.page):
+    """
+    Batch API for bookshelves
+    Add a batch of works to bookshelves
+
+    :return a list of bookshelves_affected, total woks added successfully and total works unsuccessful
+    :rtype: json
+    """
+
+    path = "/works/batch/bookshelves"
+    encoding = "json"
+
+    @jsonapi
+    def POST(self):
+        from openlibrary.core.models import Bookshelves
+
+        data = json.loads(web.data())
+        reading_list = data.get("reading_list", [])
+        username = accounts.get_current_user().key.split('/')[2]
+
+        isSanitised = self.sanitise(reading_list, username)
+
+        if isSanitised:
+            report = Bookshelves.add_batch(username=username, reading_list=reading_list)
+
+        return self.report(report, reading_list)
+
+    def sanitise(self, reading_list, user):
+        """
+        Sanitise request data
+        The work_id should be something like 54120
+        The key should be a bookshelf number i.e. 1, 2, 3
+        """
+        if not reading_list:
+            return json.dumps({"error": "reading_list is required"})
+
+        if not isinstance(reading_list, dict):
+            return json.dumps({"error": "reading_list must be a dict"})
+
+        """
+        This is annoying but it checks that the reading_list provided matches this format:
+        {
+            "1": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                },
+                {
+                    "workId": 1123456,
+                    "editionId": 123456
+                }
+            ],
+            "2": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                }
+            ],
+            "3": [
+                {
+                    "workId": 123456,
+                    "editionId": 123456
+                }
+            ]
+        1, 2, 3 are the bookshelf IDs
+        }
+        """
+        for shelves in reading_list.values():
+            if not isinstance(shelves, list):
+                return json.dumps({"error": "reading_list values must be a list"})
+            for shelf in shelves:
+                for key, id in shelf.items():
+                    if key not in {"workId", "editionId"}:
+                        return json.dumps(
+                            {"error": f"{key} must be an workId or editionId"}
+                        )
+                    if not isinstance(id, int):
+                        return json.dumps({"error": f"{id} must be an int"})
+
+        user = accounts.get_current_user()
+        if not user:
+            return json.dumps({"error": "User not logged in"})
+        return True
+
+    def report(self, report, reading_list):
+        """
+        Report the result of the database write
+        """
+        if report["success"]:
+            return json.dumps(
+                {
+                    "success": report["success"],
+                    "received_work_ids": reading_list,
+                    "message": report["message"],
+                    "unsuccessfully_added": report["unsuccessfully_added"],
+                    "successfully_added": report["successfully_added"],
+                }
+            )
+        else:
+            return json.dumps(
+                {
+                    "success": report["success"],
+                    "received_work_ids": reading_list,
+                    "message": report["message"],
+                    "unsuccessfully_added": report["unsuccessfully_added"],
+                    "successfully_added": report["successfully_added"],
+                }
+            )
 
 
 class work_editions(delegate.page):
