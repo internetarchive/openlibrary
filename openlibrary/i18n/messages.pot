@@ -1974,11 +1974,7 @@ msgid "Added new book."
 msgstr ""
 
 #: messages.html
-msgid "Thank you very much for adding that new book!"
-msgstr ""
-
-#: messages.html
-msgid "Thank you very much for improving that record!"
+msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
 #: notfound.html
