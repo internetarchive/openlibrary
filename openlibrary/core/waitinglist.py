@@ -156,7 +156,7 @@ class WaitingLoan(dict):
         dict.update(self, kw)
 
 
-def get_waitinglist_for_book(book_key):
+def get_waitinglist_for_book(book_key) -> list[WaitingLoan]:
     """Returns the list of records for the users waiting for the given book.
 
     This is an admin-only feature. It works only if the current user is an admin.
