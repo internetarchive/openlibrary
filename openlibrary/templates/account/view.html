@@ -8,7 +8,7 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $ reading_goal_form = render_template('check_ins/reading_goal_form', year=current_year())
+    $ reading_goal_form = render_template('reading_goals/reading_goal_form', year=current_year())
     $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
   $:mb.render_sidebar()
 

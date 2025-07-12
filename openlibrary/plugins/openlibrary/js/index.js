@@ -348,7 +348,7 @@ jQuery(function () {
             })
     }
 
-    // My Books Droppers:
+    // My Books Droppers (includes New List Form and Reading Check-Ins):
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
     if (myBooksDroppers.length) {
         const actionableListShowcases = document.querySelectorAll('.actionable-item')
@@ -372,15 +372,13 @@ jQuery(function () {
             .then(module => module.initDialogs(nativeDialogs))
     }
 
+    // Yearly reading goal functionality
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
-    const checkInForms = document.querySelectorAll('.check-in')
-    const checkInPrompts = document.querySelectorAll('.check-in-prompt')
-    const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
     const yearElements = document.querySelectorAll('.use-local-year')
-    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
-        import(/* webpackChunkName: "check-ins" */ './check-ins')
+    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
+        import(/* webpackChunkName: "reading-goals" */ './reading-goals')
             .then((module) => {
                 if (setGoalLinks.length) {
                     module.initYearlyGoalPrompt(setGoalLinks)
@@ -390,15 +388,6 @@ jQuery(function () {
                 }
                 if (goalSubmitButtons.length) {
                     module.initGoalSubmitButtons(goalSubmitButtons)
-                }
-                if (checkInForms.length) {
-                    module.initCheckInForms(checkInForms)
-                }
-                if (checkInPrompts.length) {
-                    module.initCheckInPrompts(checkInPrompts)
-                }
-                if (checkInEditLinks.length) {
-                    module.initCheckInEdits(checkInEditLinks)
                 }
                 if (yearElements.length) {
                     module.displayLocalYear(yearElements)
