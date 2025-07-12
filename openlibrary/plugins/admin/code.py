@@ -246,7 +246,7 @@ class _reload(delegate.page):
 
 class any:
     def GET(self):
-        path = web.ctx.path
+        pass
 
 
 class people:

@@ -246,7 +246,6 @@ def update_translations(locales: list[str]):
 
     for locale in locales_to_update:
         po_path = os.path.join(root, locale, 'messages.po')
-        mo_path = os.path.join(root, locale, 'messages.mo')
 
         if os.path.exists(po_path):
             with open(po_path, 'rb') as po_file:
@@ -348,7 +347,6 @@ def generate_po(args):
 
 @web.memoize
 def load_translations(lang):
-    po = os.path.join(root, lang, 'messages.po')
     mo_path = os.path.join(root, lang, 'messages.mo')
 
     if os.path.exists(mo_path):

@@ -358,7 +358,6 @@ def read_original_languages(rec: MarcBase) -> list[str]:
     found = []
     fields = rec.get_fields('041')
     for f in fields:
-        is_translation = f.ind1() == '1'
         found += [v.lower() for v in f.get_subfield_values('h') if len(v) == 3]
     return [lang_map.get(v, v) for v in found if v != 'zxx']
 

@@ -389,7 +389,7 @@ class lists_delete(delegate.page):
 
         doc = {"key": key, "type": {"key": "/type/delete"}}
         try:
-            result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
+            web.ctx.site.save(doc, action="lists", comment="Deleted list.")
         except client.ClientException as e:
             web.ctx.status = e.status
             web.header("Content-Type", "application/json")

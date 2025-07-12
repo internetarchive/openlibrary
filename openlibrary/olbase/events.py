@@ -26,7 +26,6 @@ def setup():
 def setup_event_listener():
     logger.info("setting up infobase events for Open Library")
 
-    ol = server.get_site('openlibrary.org')
     ib = server._infobase
 
     # Convert infobase event into generic eventer event

@@ -458,7 +458,7 @@ class OpenLibraryAccount(Account):
                 test=True,
             )
         try:
-            account = web.ctx.site.register(
+            web.ctx.site.register(
                 username=username,
                 email=email,
                 password=password,

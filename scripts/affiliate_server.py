@@ -368,7 +368,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
     """
     needed_book_fields = []  # book fields that should be copied to the edition
     for book_field, edition_field in AZ_OL_MAP.items():
-        if field_value := book.get(book_field) and not edition.get(edition_field):
+        if book.get(book_field) and not edition.get(edition_field):
             needed_book_fields.append(book_field)
 
     if needed_book_fields == ["authors"]:  # noqa: SIM102

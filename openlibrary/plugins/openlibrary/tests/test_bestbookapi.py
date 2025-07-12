@@ -97,7 +97,7 @@ def test_bestbook_award_limit():
         patch(has_read_book) as mock_get_users_read_status_of_work,
         patch('openlibrary.accounts.get_current_user') as mock_get_current_user,
         patch('openlibrary.core.bestbook.Bestbook.get_awards') as mock_get_awards,
-        patch('openlibrary.core.bestbook.Bestbook.add') as mock_bestbook_add,
+        patch('openlibrary.core.bestbook.Bestbook.add'),
     ):
         mock_web_input.side_effect = mock_web_input_func(
             {
@@ -119,7 +119,7 @@ def test_bestbook_award_limit():
                     {"success": False, "errors": "Award already exists"}
                 )
             },
-        ) as mock_post:
+        ):
             result = json.loads(bestbook_award().POST(WORK_ID)['rawtext'])
             assert not result["success"]
             assert result["errors"] == "Award already exists"
@@ -131,7 +131,7 @@ def test_bestbook_award_not_authenticated():
         patch('web.input') as mock_web_input,
         patch('openlibrary.accounts.get_current_user') as mock_get_current_user,
         patch(has_read_book) as mock_get_users_read_status_of_work,
-        patch('openlibrary.core.bestbook.Bestbook.add') as mock_bestbook_add,
+        patch('openlibrary.core.bestbook.Bestbook.add'),
     ):
         mock_web_input.side_effect = mock_web_input_func(
             {

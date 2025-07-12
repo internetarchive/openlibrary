@@ -66,15 +66,6 @@ class ReadableUrlProcessor:
         web.ctx.path = real_path
         web.ctx.fullpath = web.ctx.path + web.ctx.query
         out = handler()
-        V2_TYPES = [
-            'works',
-            'books',
-            'people',
-            'authors',
-            'publishers',
-            'languages',
-            'account',
-        ]
 
         # Exclude noindex items
         if web.ctx.get('exclude'):

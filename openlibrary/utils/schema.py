@@ -340,7 +340,6 @@ class Index:
 
     def sql(self, engine):
         adapter = get_adapter(engine)
-        name = self.name or adapter.index_name(self.table, self.columns)
 
         if self.unique:
             s = 'create unique index '

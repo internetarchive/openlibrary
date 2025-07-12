@@ -102,8 +102,6 @@ class _memory_type:
         i = web.input(page=1, diff="false")
 
         page = safeint(i.page, 1)
-        end = page * 50
-        begin = end - 50
 
         objects = [Object(obj) for obj in memory.get_objects_by_type(type)]
 

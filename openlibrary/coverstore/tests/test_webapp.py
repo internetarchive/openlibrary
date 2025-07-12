@@ -125,8 +125,6 @@ class TestWebappWithDB(WebTestCase):
             assert b.open('/b/olid/OL1M.jpg').read() == file.read()
 
     def test_delete(self, setup_db):
-        b = self.browser
-
         id1 = self.upload('OL1M', 'logos/logo-en.png')
         data = self.delete(id1)
 

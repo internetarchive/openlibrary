@@ -131,13 +131,13 @@ class TestHomeTemplates:
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):
-        book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
+        mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
+        mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
 
     def test_authors(self, mock_site, mock_ia):
-        a1 = mock_site.quicksave("/authors/OL1A", "/type/author", name="A1")
-        a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
-        work = mock_site.quicksave(
+        mock_site.quicksave("/authors/OL1A", "/type/author", name="A1")
+        mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
+        mock_site.quicksave(
             "/works/OL1W",
             "/type/work",
             title="Foo",
