@@ -55,6 +55,15 @@ $def with (page)
             top: 0 !important;
           }
         }
+
+        .carousel__item .loading-gradient {
+          /* Show the image when JS is disabled */
+          img.bookcover {
+            opacity: 1;
+          }
+          /* No loading gradient when JS is disabled */
+          background: none;
+        }
       </style>
     </noscript>
  <script>
