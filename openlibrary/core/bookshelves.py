@@ -8,6 +8,7 @@ from typing import Any, Final, Literal, TypedDict, cast
 import web
 
 from infogami.infobase.utils import flatten
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -126,6 +127,7 @@ class Bookshelves(db.CommonExtras):
         fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
+        fields=None,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -135,6 +137,11 @@ class Bookshelves(db.CommonExtras):
         page = int(page or 1)
         offset = (page - 1) * limit
         oldb = db.get_db()
+        if fields is None:
+            fields = list(
+                WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}
+            )
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
             where += ' AND created >= $since'
@@ -157,10 +164,10 @@ class Bookshelves(db.CommonExtras):
         }
 
         logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return cls.fetch(logged_books, fields) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def fetch(cls, readinglog_items, fields: Iterable[str] | None = None):
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
@@ -172,6 +179,7 @@ class Bookshelves(db.CommonExtras):
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
             {f"/works/OL{i['work_id']}W" for i in readinglog_items},
+            fields,
             editions=True,
         )
 
