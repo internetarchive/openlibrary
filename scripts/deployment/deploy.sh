@@ -23,6 +23,7 @@ set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OL_REPO="$(cd "$SCRIPT_DIR/../../" && pwd)"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
@@ -256,7 +257,6 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    OL_REPO="$1"
     # Check if tag does NOT exist
     if ! git -C "$OL_REPO" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
@@ -361,7 +361,7 @@ deploy_openlibrary() {
     echo "Pull the latest docker images..."
     deploy_images
 
-    tag_deploy openlibrary
+    tag_deploy
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -403,7 +403,7 @@ deploy_images() {
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
         " &> "$OUTPUT_FILE" &
         pids+=($!)
-        echo "(started in background PID ${pids[-1]})"
+        echo "(started in background)"
     done
 
     # Convert SERVER_NAMES string to an array
@@ -565,13 +565,20 @@ deploy_wizard() {
     read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
-    read -p "[Now] Run openlibrary deploy & audit now? [N/y]..." answer
+    read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time deploy_openlibrary
         echo ""
         time check_servers_in_sync
         echo ""
+    else
+        read -p "[Now] Check if servers in sync? [Y/n]..." answer
+        answer=${answer:-Y}
+        if [[ "$answer" =~ ^[Yy]$ ]]; then
+            time check_servers_in_sync
+            echo ""
+        fi
     fi
 
     read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
@@ -581,7 +588,7 @@ deploy_wizard() {
         echo ""
         # FIXME: This might not work; I'm not sure if the /releases endpoint will also return a tag that hasn't
         # been converted to a release yet.
-        LATEST_TAG_NAME=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | jq -r .tag_name)
+        LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
         echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
         read -p "Press Enter to continue..."
 
@@ -601,10 +608,20 @@ elif [ "$1" == "openlibrary" ]; then
     fi
 elif [ "$1" == "images" ]; then
     deploy_images $2
+elif [ "$1" == "tag" ]; then
+    tag_deploy
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
     recreate_services
+elif [ "$1" == "release" ]; then
+    LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
+    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+    read -p "Press Enter to continue..."
+
+    echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
+    echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_\
+NAME. Please let us know @here if anything seems broken or delightful!"
 elif [ "$1" == "prune" ]; then
     if [ "$2" == "--all" ]; then
         prune_docker image builder
