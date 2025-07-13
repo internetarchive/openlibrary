@@ -1,4 +1,3 @@
-
 create table category (
     id serial primary key,
     name text
@@ -23,24 +22,23 @@ create table cover (
     archived boolean,
     uploaded boolean,
     deleted boolean default false,
-    created timestamp default(current_timestamp at time zone 'utc'),
-    last_modified timestamp default(current_timestamp at time zone 'utc')
+    created timestamp default (current_timestamp at time zone 'utc'),
+    last_modified timestamp default (current_timestamp at time zone 'utc')
 );
 
-create index cover_olid_idx ON cover (olid);
-create index cover_last_modified_idx ON cover (last_modified);
-create index cover_created_idx ON cover (created);
-create index cover_deleted_idx ON cover(deleted);
-create index cover_uploaded_idx ON cover(uploaded);
-create index cover_failed_idx ON cover(failed);
-create index cover_archived_idx ON cover(archived);
+create index cover_olid_idx on cover (olid);
+create index cover_last_modified_idx on cover (last_modified);
+create index cover_created_idx on cover (created);
+create index cover_deleted_idx on cover (deleted);
+create index cover_uploaded_idx on cover (uploaded);
+create index cover_failed_idx on cover (failed);
+create index cover_archived_idx on cover (archived);
 
 create table log (
     id serial primary key,
-    cover_id int references cover(id),
+    cover_id int references cover (id),
     action text,
     timestamp timestamp
 );
 
-create index log_timestamp_idx on log(timestamp);
-
+create index log_timestamp_idx on log (timestamp);

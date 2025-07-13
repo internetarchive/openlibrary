@@ -1,22 +1,21 @@
-
 CREATE TABLE ratings (
     username text NOT NULL,
     work_id integer NOT NULL,
     rating integer,
-    edition_id integer default null,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (username, work_id)
+    edition_id integer DEFAULT null,
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (username, work_id)
 );
 CREATE INDEX ratings_work_id_idx ON ratings (work_id);
 
 CREATE TABLE follows (
     subscriber text NOT NULL,
     publisher text NOT NULL,
-    disabled BOOLEAN DEFAULT FALSE,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (subscriber, publisher)
+    disabled boolean DEFAULT false,
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (subscriber, publisher)
 );
 CREATE INDEX subscriber_idx ON follows (subscriber);
 CREATE INDEX publisher_idx ON follows (publisher);
@@ -24,32 +23,32 @@ CREATE INDEX publisher_idx ON follows (publisher);
 CREATE TABLE booknotes (
     username text NOT NULL,
     work_id integer NOT NULL,
-    edition_id integer NOT NULL default -1,
+    edition_id integer NOT NULL DEFAULT -1,
     notes text NOT NULL,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (username, work_id, edition_id)
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (username, work_id, edition_id)
 );
 CREATE INDEX booknotes_work_id_idx ON booknotes (work_id);
 
 CREATE TABLE bookshelves (
-    id serial not null primary key,
+    id serial NOT NULL PRIMARY KEY,
     name text,
-    description text default null,
-    archived BOOLEAN DEFAULT FALSE,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc')
+    description text DEFAULT null,
+    archived boolean DEFAULT false,
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc')
 );
 
 CREATE TABLE bookshelves_books (
     username text NOT NULL,
     work_id integer NOT NULL,
-    bookshelf_id INTEGER references bookshelves(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    edition_id integer default null,
-    private BOOLEAN,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (username, work_id, bookshelf_id)
+    bookshelf_id integer REFERENCES bookshelves (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    edition_id integer DEFAULT null,
+    private boolean,
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (username, work_id, bookshelf_id)
 );
 CREATE INDEX bookshelves_books_work_id_idx ON bookshelves_books (work_id);
 CREATE INDEX bookshelves_books_updated_idx ON bookshelves_books (updated);
@@ -58,69 +57,69 @@ INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
 
 CREATE TABLE bookshelves_events (
-    id serial primary key,
-    username text not null,
-    work_id integer not null,
-    edition_id integer not null,
-    event_type integer not null,
-    event_date text not null,
+    id serial PRIMARY KEY,
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer NOT NULL,
+    event_type integer NOT NULL,
+    event_date text NOT NULL,
     data json,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc')
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc')
 );
 
 -- Multi-index optimized to fetch a specific user's check-ins
 CREATE INDEX bookshelves_events_user_checkins_idx
-    ON bookshelves_events (username, work_id, event_type DESC, event_date DESC);
+ON bookshelves_events (username, work_id, event_type DESC, event_date DESC);
 
 CREATE TABLE observations (
-    work_id INTEGER not null,
-    edition_id INTEGER default -1,
-    username text not null,
-    observation_type INTEGER not null,
-    observation_value INTEGER not null,
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (work_id, edition_id, username, observation_value, observation_type)
+    work_id integer NOT NULL,
+    edition_id integer DEFAULT -1,
+    username text NOT NULL,
+    observation_type integer NOT NULL,
+    observation_value integer NOT NULL,
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (work_id, edition_id, username, observation_value, observation_type)
 );
 CREATE INDEX observations_username_idx ON observations (username);
 
 CREATE TABLE community_edits_queue (
-    id serial not null primary key,
+    id serial NOT NULL PRIMARY KEY,
     title text,
-    submitter text not null,
-    reviewer text default null,
-    url text not null,
-    mr_type int not null default 1,
-    status int not null default 1,
+    submitter text NOT NULL,
+    reviewer text DEFAULT null,
+    url text NOT NULL,
+    mr_type int NOT NULL DEFAULT 1,
+    status int NOT NULL DEFAULT 1,
     comments json,
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc')
 );
 
 CREATE TABLE yearly_reading_goals (
-    username text not null,
-    year integer not null,
-    target integer not null,
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (username, year)
+    username text NOT NULL,
+    year integer NOT NULL,
+    target integer NOT NULL,
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    PRIMARY KEY (username, year)
 );
 
 CREATE TABLE wikidata (
-    id text not null primary key,
+    id text NOT NULL PRIMARY KEY,
     data json,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc')
 );
 
 CREATE TABLE bestbooks (
-    award_id serial not null primary key,
-    username text not null,
-    work_id integer not null,
-    edition_id integer default null,
-    topic text not null,
-    comment text not null,
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    award_id serial NOT NULL PRIMARY KEY,
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer DEFAULT null,
+    topic text NOT NULL,
+    comment text NOT NULL,
+    created timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+    updated timestamp without time zone DEFAULT (current_timestamp AT TIME ZONE 'utc'),
     UNIQUE (username, work_id),
     UNIQUE (username, topic)
 );
