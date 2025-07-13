@@ -588,7 +588,12 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
-    fetch('/partials.json', {
+    const url = buildPartialsUrl('/partials.json', {
+        _component: 'ReadingGoalProgress',
+        year: goalYear
+    });
+
+    fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -600,35 +605,36 @@ function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
     })
     .then((response) => {
         if (!response.ok) {
-            throw new Error('Failed to fetch progress element')
+            throw new Error('Failed to fetch progress element');
         }
-        return response.json()
+        return response.json();
     })
     .then(function(data) {
-        const html = data['partials']
+        const html = data['partials'];
         yearlyGoalElems.forEach((yearlyGoalElem) => {
-            const progress = document.createElement('SPAN')
-            progress.id = 'reading-goal-container'
-            progress.innerHTML = html
-            yearlyGoalElem.appendChild(progress)
+            const progress = document.createElement('SPAN');
+            progress.id = 'reading-goal-container';
+            progress.innerHTML = html;
+            yearlyGoalElem.appendChild(progress);
 
             const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
             if (link) {
                 if (link.classList.contains('li-title-desktop')) {
                     // Remove click listener in mobile views
-                    link.removeEventListener('click', onYearlyGoalClick)
+                    link.removeEventListener('click', onYearlyGoalClick);
                 } else {
                     // Hide desktop "set 20XX reading goal" link
                     link.classList.add('hidden');
                 }
             }
 
-            const progressEditLink = progress.querySelector('.edit-reading-goal-link')
-            const updateModal = progress.querySelector('dialog')
-            initDialogs([updateModal])
-            addGoalEditClickListener(progressEditLink, updateModal)
-            const submitButton = updateModal.querySelector('.reading-goal-submit-button')
-            addGoalSubmissionListener(submitButton)
-        })
-    })
+            const progressEditLink = progress.querySelector('.edit-reading-goal-link');
+            const updateModal = progress.querySelector('dialog');
+            initDialogs([updateModal]);
+            addGoalEditClickListener(progressEditLink, updateModal);
+            const submitButton = updateModal.querySelector('.reading-goal-submit-button');
+            addGoalSubmissionListener(submitButton);
+        });
+    });
 }
+
