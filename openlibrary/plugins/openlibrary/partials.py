@@ -4,6 +4,7 @@ from typing import cast
 from urllib.parse import parse_qs
 
 import web
+import datetime
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -14,6 +15,7 @@ from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.views.loanstats import get_trending_books
+from openlibrary.plugins.upstream.checkins import get_reading_goals
 
 
 class PartialResolutionError(Exception):
@@ -32,6 +34,21 @@ class PartialDataHandler(ABC):
     def generate(self) -> dict:
         pass
 
+
+class ReadingGoalProgressPartial(PartialDataHandler):
+    """Handler for reading goal progress component."""
+
+    def __init__(self):
+        self.i = web.input(year=None)
+
+    def generate(self) -> dict:
+        i = web.input(year=None)
+        year = i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component = render_template('check_ins/reading_goal_progress', [goal])
+        partials = {"partials": str(component)}
+        return delegate.RawText(json.dumps(partials))
+        
 
 class MyBooksDropperListsPartial(PartialDataHandler):
     """Handler for the MyBooks dropper list component."""
@@ -344,6 +361,7 @@ class PartialRequestResolver:
         "BPListsSection": BookPageListsPartial,
         "LazyCarousel": LazyCarouselPartial,
         "MyBooksDropperLists": MyBooksDropperListsPartial,
+        "ReadingGoalProgress": ReadingGoalProgressPartial,
     }
 
     @staticmethod
