@@ -1,10 +1,8 @@
 [sqlfluff]
-dialect = postgres  # Open Library uses Postgres
-exclude_rules = L031  # Optional: ignore rules that conflict with our style
-templater = jinja  # If needed for templating support
-
-[sqlfluff:rules]
+dialect = postgres
+exclude_rules = L031
+templater = jinja
 max_line_length = 120
 
-[sqlfluff:rules:L010]  # Capitalisation policy
+[sqlfluff:rules:L010]
 capitalisation_policy = consistent
