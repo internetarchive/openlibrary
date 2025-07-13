@@ -124,6 +124,12 @@ repos:
       verbose: true
       require_serial: true
 
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2  # or latest stable version
+    hooks:
+      - id: sqlfluff-fix
+        name: SQLFluff Auto-Fix
+        types: [sql]
 
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.4.2
