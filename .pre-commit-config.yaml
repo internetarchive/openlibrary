@@ -124,6 +124,7 @@ repos:
       verbose: true
       require_serial: true
 
+
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.4.2
     hooks:
@@ -132,4 +133,3 @@ repos:
         entry: sqlfluff lint
         language: python
         types: [sql]
-        args: [--dialect=postgres]
