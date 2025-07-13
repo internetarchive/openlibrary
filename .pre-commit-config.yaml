@@ -125,7 +125,7 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 2.3.5  # Or latest stable version
+    rev: 3.4.2
     hooks:
       - id: sqlfluff-lint
         name: SQLFluff Linter
