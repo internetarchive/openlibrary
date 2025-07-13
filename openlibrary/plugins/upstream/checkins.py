@@ -9,7 +9,6 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
-from openlibrary.app import render_template
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -259,7 +258,6 @@ class YearlyGoal:
     @classmethod
     def calc_progress(cls, books_read, goal):
         return floor((books_read / goal) * 100)
-
 
 
 def setup():

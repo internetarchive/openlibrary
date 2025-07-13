@@ -598,37 +598,37 @@ function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
             year: goalYear
         })
     })
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch progress element')
-        }
-        return response.json()
-    })
-    .then(function(data) {
-        const html = data['partials']
-        yearlyGoalElems.forEach((yearlyGoalElem) => {
-            const progress = document.createElement('SPAN')
-            progress.id = 'reading-goal-container'
-            progress.innerHTML = html
-            yearlyGoalElem.appendChild(progress)
-
-            const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
-            if (link) {
-                if (link.classList.contains('li-title-desktop')) {
-                    // Remove click listener in mobile views
-                    link.removeEventListener('click', onYearlyGoalClick)
-                } else {
-                    // Hide desktop "set 20XX reading goal" link
-                    link.classList.add('hidden');
-                }
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch progress element')
             }
-
-            const progressEditLink = progress.querySelector('.edit-reading-goal-link')
-            const updateModal = progress.querySelector('dialog')
-            initDialogs([updateModal])
-            addGoalEditClickListener(progressEditLink, updateModal)
-            const submitButton = updateModal.querySelector('.reading-goal-submit-button')
-            addGoalSubmissionListener(submitButton)
+            return response.json()
         })
-    })
+        .then(function(data) {
+            const html = data['partials']
+            yearlyGoalElems.forEach((yearlyGoalElem) => {
+                const progress = document.createElement('SPAN')
+                progress.id = 'reading-goal-container'
+                progress.innerHTML = html
+                yearlyGoalElem.appendChild(progress)
+
+                const link = yearlyGoalElem.querySelector('.set-reading-goal-link');
+                if (link) {
+                    if (link.classList.contains('li-title-desktop')) {
+                    // Remove click listener in mobile views
+                        link.removeEventListener('click', onYearlyGoalClick)
+                    } else {
+                    // Hide desktop "set 20XX reading goal" link
+                        link.classList.add('hidden');
+                    }
+                }
+
+                const progressEditLink = progress.querySelector('.edit-reading-goal-link')
+                const updateModal = progress.querySelector('dialog')
+                initDialogs([updateModal])
+                addGoalEditClickListener(progressEditLink, updateModal)
+                const submitButton = updateModal.querySelector('.reading-goal-submit-button')
+                addGoalSubmissionListener(submitButton)
+            })
+        })
 }
