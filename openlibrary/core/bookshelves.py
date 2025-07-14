@@ -120,14 +120,12 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def most_logged_books(
         cls,
-        shelf_id: str = '',
+        shelf_id: int | None = None,
         limit: int = 10,
         since: date | None = None,
         page: int = 1,
-        fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
-        fields=None,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -137,24 +135,18 @@ class Bookshelves(db.CommonExtras):
         page = int(page or 1)
         offset = (page - 1) * limit
         oldb = db.get_db()
-        if fields is None:
-            fields = list(
-                WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}
-            )
-        where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
-        if since:
-            where += ' AND created >= $since'
-        group_by = 'group by work_id'
-        if minimum:
-            group_by += " HAVING COUNT(*) > $minimum"
-        order_by = 'order by cnt desc' if sort_by_count else ''
+
         query = f"""
-            select work_id, count(*) as cnt
-            from bookshelves_books
-            {where} {group_by} {order_by}
-            limit $limit offset $offset"""
-        logger.info("Query: %s", query)
+            SELECT work_id, count(*) AS cnt
+            FROM bookshelves_books
+            WHERE
+                bookshelf_id {'=$shelf_id' if shelf_id else 'IS NOT NULL'}
+                {'AND created >= $since' if since else ''}
+            GROUP BY work_id {'HAVING COUNT(*) > $minimum' if minimum else ''}
+            {'ORDER BY cnt DESC' if sort_by_count else ''}
+            LIMIT $limit
+            OFFSET $offset
+        """
         data = {
             'shelf_id': shelf_id,
             'limit': limit,
@@ -163,8 +155,7 @@ class Bookshelves(db.CommonExtras):
             'minimum': minimum,
         }
 
-        logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books, fields) if fetch else logged_books
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def fetch(cls, readinglog_items, fields: Iterable[str] | None = None):
@@ -298,7 +289,6 @@ class Bookshelves(db.CommonExtras):
         """
 
         from openlibrary.plugins.worksearch.code import run_solr_query
-        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         fetched_keys = {doc["key"] for doc in solr_docs}
         missing_keys = {work for (work, _) in reading_log_keys} - fetched_keys
@@ -382,7 +372,6 @@ class Bookshelves(db.CommonExtras):
         """
         from openlibrary.core.models import LoggedBooksData
         from openlibrary.plugins.worksearch.code import run_solr_query
-        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
@@ -621,7 +610,6 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: str | None = None,
         limit: int = 50,
         page: int = 1,
-        fetch: bool = False,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
@@ -635,8 +623,7 @@ class Bookshelves(db.CommonExtras):
             f"SELECT * from bookshelves_books {where} "
             "ORDER BY created DESC LIMIT $limit OFFSET $offset"
         )
-        logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:

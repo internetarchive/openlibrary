@@ -82,13 +82,16 @@ def get_solr_works(
 ) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
+    if not fields:
+        fields = WorkSearchScheme.default_fetched_fields
+
     if editions:
         # To get the top matching edition, need to do a proper query
         resp = run_solr_query(
             WorkSearchScheme(),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
-            fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+            fields=list(set(fields) | {'editions'}),
             facet=False,
         )
         return {
@@ -97,13 +100,7 @@ def get_solr_works(
             for doc in resp.docs
         }
     else:
-        return {
-            doc['key']: doc
-            for doc in get_solr().get_many(
-                work_keys,
-                fields or WorkSearchScheme.default_fetched_fields,
-            )
-        }
+        return {doc['key']: doc for doc in get_solr().get_many(work_keys, fields)}
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:

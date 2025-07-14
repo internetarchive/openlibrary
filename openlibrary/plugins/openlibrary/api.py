@@ -77,7 +77,6 @@ class trending_books_api(delegate.page):
     encoding = "json"
 
     def GET(self, period="/daily"):
-        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
         from openlibrary.views.loanstats import SINCE_DAYS
 
         period = period[1:]  # remove slash
@@ -90,23 +89,16 @@ class trending_books_api(delegate.page):
             minimum=0,
             fields='',
         )
+        fields = i.fields.split(',') if i.fields else None
         days = SINCE_DAYS.get(period, int(i.days))
-        if i.fields == '':
-            i.fields = list(
-                WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}
-            )
-        else:
-            i.fields = i.fields.split(',')
         works = get_trending_books(
             since_days=days,
             since_hours=int(i.hours),
             limit=int(i.limit),
             page=int(i.page),
-            books_only=True,
             sort_by_count=i.sort_by_count != "false",
             minimum=i.minimum,
-            fields=i.fields,
+            fields=fields,
         )
         result = {
             'query': f"/trending/{period}",
