@@ -186,7 +186,6 @@ class activity_stream(app.view):
                 get_activity_stream(limit=limit, page=page)
             )
         else:
-            shelf_id = None  # optional; get from web.input()?
             logged_books = Bookshelves.fetch(
                 cached_get_most_logged_books(
                     since_days=SINCE_DAYS[mode], limit=limit, page=page
@@ -201,7 +200,7 @@ class readinglog_stats(app.view):
     def GET(self):
         MAX_LEADERBOARD_SIZE = 50
         i = web.input(limit="10", mode="all")
-        limit = min(int(i.limit), 50)
+        limit = min(int(i.limit), MAX_LEADERBOARD_SIZE)
 
         stats = get_cached_reading_log_stats(limit=limit)
 

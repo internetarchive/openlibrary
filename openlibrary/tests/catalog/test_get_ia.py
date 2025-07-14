@@ -121,8 +121,8 @@ class TestGetIA:
             ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
         )
         with pytest.raises(BadLength):
-            result = get_ia.get_marc_record_from_ia(bad_marc)
+            get_ia.get_marc_record_from_ia(bad_marc)
 
     def test_bad_binary_data(self):
         with pytest.raises(BadMARC):
-            result = MarcBinary('nonMARCdata')
+            MarcBinary('nonMARCdata')

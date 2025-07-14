@@ -315,7 +315,7 @@ class Cover(web.Storage):
     @classmethod
     def get_cover_url(cls, cover_id, size="", ext="zip", protocol="https"):
         pcid = "%010d" % int(cover_id)
-        img_filename = item_file = f"{pcid}{'-' + size.upper() if size else ''}.jpg"
+        img_filename = f"{pcid}{'-' + size.upper() if size else ''}.jpg"
         item_id, batch_id = cls.id_to_item_and_batch_id(cover_id)
         relpath = Batch.get_relpath(item_id, batch_id, size=size, ext=ext)
         path = os.path.join(relpath, img_filename)
@@ -490,9 +490,8 @@ class ZipManager:
         zipper = self.get_zipfile(name)
 
         if name not in zipper.namelist():
-            with open(filepath, 'rb') as fileobj:
-                # Set compression to ZIP_STORED to avoid compression
-                zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
+            # Set compression to ZIP_STORED to avoid compression
+            zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
 
         return os.path.basename(zipper.filename)
 

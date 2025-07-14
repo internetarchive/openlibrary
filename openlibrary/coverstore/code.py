@@ -132,10 +132,8 @@ class upload:
                 data = download(i.source_url)
             except:
                 error(ERROR_INVALID_URL)
-            source_url = i.source_url
         elif i.file is not None and i.file != {}:
             data = i.file.value
-            source_url = None
         else:
             error(ERROR_EMPTY)
 
