@@ -1,5 +1,7 @@
 """Loan Stats"""
 
+from collections.abc import Iterable
+
 import web
 
 from infogami.utils import delegate
@@ -31,6 +33,7 @@ SINCE_DAYS = {
 }
 
 
+@cache.memoize('memcache', 'stats.reading_log_summary', expires=dateutil.HOUR_SECS)
 def reading_log_summary():
     # enable to work w/ cached
     if 'env' not in web.ctx:
@@ -45,62 +48,48 @@ def reading_log_summary():
     return stats
 
 
-cached_reading_log_summary = cache.memcache_memoize(
-    reading_log_summary, 'stats.readling_log_summary', timeout=dateutil.HOUR_SECS
-)
-
-
 @public
 def get_trending_books(
     since_days=1,
     since_hours=0,
     limit=18,
     page=1,
-    books_only=False,
     sort_by_count=True,
-    minimum=None,
+    minimum=0,
+    fields: Iterable[str] | None = None,
 ):
     logged_books = (
-        Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
+        Bookshelves.get_recently_logged_books(limit=limit, page=page)
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
-            fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
         )
     )
-    return (
-        [book['work'] for book in logged_books if book.get('work')]
-        if books_only
-        else logged_books
+    Bookshelves.add_solr_works(logged_books, fields=fields)
+
+    return [book['work'] for book in logged_books if book.get('work')]
+
+
+@cache.memoize('memcache', 'stats.trending', expires=dateutil.HOUR_SECS)
+def cached_get_most_logged_books(
+    shelf_id: int | None = None,
+    since_days=1,
+    limit=20,
+    page=1,
+):
+    return Bookshelves.most_logged_books(
+        shelf_id=shelf_id,
+        since=dateutil.date_n_days_ago(since_days),
+        limit=limit,
+        page=page,
     )
 
 
-def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20, page=1):
-    def get_cachable_trending_books(shelf_id=None, since_days=1, limit=20, page=1):
-        # enable to work w/ cached
-        if 'env' not in web.ctx:
-            delegate.fakeload()
-        # Return as dict to enable cache serialization
-        return [
-            dict(book)
-            for book in Bookshelves.most_logged_books(
-                shelf_id=shelf_id,
-                since=dateutil.date_n_days_ago(since_days),
-                limit=limit,
-                page=page,
-            )
-        ]
-
-    return cache.memcache_memoize(
-        get_cachable_trending_books, 'stats.trending', timeout=dateutil.HOUR_SECS
-    )(shelf_id=shelf_id, since_days=since_days, limit=limit, page=page)
-
-
-def reading_log_leaderboard(limit=None):
+def reading_log_leaderboard(limit: int):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -126,16 +115,14 @@ def reading_log_leaderboard(limit=None):
     }
 
 
-def cached_reading_log_leaderboard(limit=None):
-    return cache.memcache_memoize(
-        reading_log_leaderboard,
-        'stats.readling_log_leaderboard',
-        timeout=dateutil.HOUR_SECS,
-    )(limit)
+def get_cached_reading_log_stats(limit: int):
+    @cache.memoize(
+        'memcache', 'stats.readling_log_leaderboard', expires=dateutil.HOUR_SECS
+    )
+    def cached_reading_log_leaderboard(limit: int):
+        return reading_log_leaderboard(limit)
 
-
-def get_cached_reading_log_stats(limit):
-    stats = cached_reading_log_summary()
+    stats = reading_log_summary()
     stats.update(cached_reading_log_leaderboard(limit))
     return stats
 
@@ -145,7 +132,7 @@ class stats(app.view):
 
     def GET(self):
         counts = get_counts()
-        counts.reading_log = cached_reading_log_summary()
+        counts.reading_log = reading_log_summary()
         return app.render_template("admin/index", counts)
 
 
@@ -154,21 +141,6 @@ class lending_stats(app.view):
 
     def GET(self, key, value):
         raise web.seeother("/")
-
-
-def get_activity_stream(limit=None, page=1):
-    # enable to work w/ cached
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-    return Bookshelves.get_recently_logged_books(limit=limit, page=page)
-
-
-def get_cached_activity_stream(limit):
-    return cache.memcache_memoize(
-        get_activity_stream,
-        'stats.activity_stream',
-        timeout=dateutil.HOUR_SECS,
-    )(limit)
 
 
 class activity_stream(app.view):
@@ -182,15 +154,13 @@ class activity_stream(app.view):
         mode = mode[1:]  # remove slash
         limit = 20
         if mode == "now":
-            logged_books = Bookshelves.fetch(
-                get_activity_stream(limit=limit, page=page)
-            )
+            logged_books = Bookshelves.get_recently_logged_books(limit=limit, page=page)
+
         else:
-            logged_books = Bookshelves.fetch(
-                cached_get_most_logged_books(
-                    since_days=SINCE_DAYS[mode], limit=limit, page=page
-                )
+            logged_books = cached_get_most_logged_books(
+                since_days=SINCE_DAYS[mode], limit=limit, page=page
             )
+        Bookshelves.add_solr_works(logged_books)
         return app.render_template("trending", logged_books=logged_books, mode=mode)
 
 
@@ -202,7 +172,7 @@ class readinglog_stats(app.view):
         i = web.input(limit="10", mode="all")
         limit = min(int(i.limit), MAX_LEADERBOARD_SIZE)
 
-        stats = get_cached_reading_log_stats(limit=limit)
+        stats = get_cached_reading_log_stats(limit)
 
         solr_docs = get_solr_works(
             {
