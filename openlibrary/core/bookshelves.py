@@ -158,10 +158,13 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def fetch(cls, readinglog_items, fields: Iterable[str] | None = None):
+    def add_solr_works(
+        cls, readinglog_items, fields: Iterable[str] | None = None
+    ) -> None:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
-        book records from solr with availability
+        book records from solr with availability. This will add a 'work' key
+        to each item in readinglog_items.
         """
         from openlibrary.core.lending import add_availability
         from openlibrary.plugins.worksearch.code import get_solr_works
@@ -181,13 +184,12 @@ class Bookshelves(db.CommonExtras):
             ]
         )
 
-        # Return items from the work_index in the order
+        # Attach items from the work_index in the order
         # they are represented by the trending logged books
         for i, item in enumerate(readinglog_items):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
                 readinglog_items[i]['work'] = work_index[key]
-        return readinglog_items
 
     @classmethod
     def count_total_books_logged_by_user(

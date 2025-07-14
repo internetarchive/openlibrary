@@ -69,7 +69,7 @@ def get_trending_books(
             minimum=minimum,
         )
     )
-    Bookshelves.fetch(logged_books, fields=fields)
+    Bookshelves.add_solr_works(logged_books, fields=fields)
 
     return [book['work'] for book in logged_books if book.get('work')]
 
@@ -160,7 +160,7 @@ class activity_stream(app.view):
             logged_books = cached_get_most_logged_books(
                 since_days=SINCE_DAYS[mode], limit=limit, page=page
             )
-        Bookshelves.fetch(logged_books)
+        Bookshelves.add_solr_works(logged_books)
         return app.render_template("trending", logged_books=logged_books, mode=mode)
 
 
