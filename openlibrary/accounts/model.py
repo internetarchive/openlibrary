@@ -386,6 +386,7 @@ class Account(web.storage):
             del web.ctx.site.store[f'account/{username}/verify']
             del web.ctx.site.store[f'account/{username}/password']
             del web.ctx.site.store[f'account-email/{email}']
+            del web.ctx.site.store[f'account-email/{email.lower()}']
 
         return results
 
