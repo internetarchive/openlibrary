@@ -484,7 +484,7 @@ class DirectProvider(AbstractBookProvider):
         if providers := ed_or_solr.get('providers', []):
             identifiers = [
                 provider.url
-                for provider in map(Acquisition.from_json, ed_or_solr['providers'])
+                for provider in map(Acquisition.from_json, providers)
                 if provider.ebook_access >= EbookAccess.PRINTDISABLED
             ]
             to_remove = set()

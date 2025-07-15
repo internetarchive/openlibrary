@@ -401,7 +401,6 @@ class addbook(delegate.page):
                 ["/books/" + key for key in work.edition_key]
             )
             for e in editions:
-                d: dict = {}
                 if publisher and (not e.publishers or e.publishers[0] != publisher):
                     continue
                 if publish_year and (
@@ -915,9 +914,9 @@ class book_edit(delegate.page):
             helper.save(web.input())
 
             if add:
-                add_flash_message("info", utils.get_message("flash_book_added"))
+                add_flash_message("info", utils.get_message("flash_catalog_updated"))
             else:
-                add_flash_message("info", utils.get_message("flash_book_updated"))
+                add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
             if i.work_key and i.work_key.startswith('/works/'):
                 url = i.work_key
@@ -978,7 +977,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_work_updated"))
+            add_flash_message("info", utils.get_message("flash_catalog_updated"))
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
@@ -1073,10 +1072,6 @@ class work_identifiers(delegate.view):
         else:
             add_flash_message("error", "The ISBN number you entered was not valid")
             raise web.redirect(web.ctx.path)
-        if edition.works:
-            work = edition.works[0]
-        else:
-            work = None
         edition.set_identifiers(data)
         saveutil.save(edition)
         saveutil.commit(comment="Added an %s identifier." % typ, action="edit-book")

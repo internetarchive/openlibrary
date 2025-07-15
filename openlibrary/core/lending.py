@@ -93,7 +93,6 @@ def setup(config):
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
-    config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')

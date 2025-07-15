@@ -407,8 +407,6 @@ def get_ia_availability(itemid):
 
 
 def process_doc_for_viewapi(bib_key, page):
-    key = page['key']
-
     url = get_url(page)
 
     if 'ocaid' in page:

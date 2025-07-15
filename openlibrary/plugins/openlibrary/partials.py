@@ -183,7 +183,7 @@ class CarouselCardPartial(PartialDataHandler):
         page = int(params.get("page", 1))
         limit = int(params.get("limit", 18))
         return get_trending_books(
-            minimum=3, limit=limit, page=page, books_only=True, sort_by_count=False
+            minimum=3, limit=limit, page=page, sort_by_count=False
         )
 
     def _do_subjects_query(self, params: dict) -> list:
