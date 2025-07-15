@@ -579,6 +579,14 @@ msgid "Retry?"
 msgstr ""
 
 #: RawQueryCarousel.html
+msgid "No books match the current filters."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry without filters?"
+msgstr ""
+
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 

@@ -56,7 +56,7 @@ $ q = query_param('q')
     $if has_tag:
       $:format(sanitize(page.tag.body))
 
-    $:macros.QueryCarousel(query="subject_key:%s" % page.key.split('/')[-1], sort='trending,trending_score_hourly_sum', user_lang_only=True)
+    $:macros.QueryCarousel(query="subject_key:%s" % page.key.split('/')[-1], sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
