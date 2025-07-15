@@ -197,6 +197,26 @@
   }
 }
 
+.trending-badge {
+  display: inline-block;
+  background-color: fade(@olive, 12%);
+  border-radius: 50px;
+  padding: 0 13px;
+
+  .trending-badge__chart {
+    display: inline-block;
+    margin-left: 4px;
+    letter-spacing: -2px;
+  }
+
+  // stylelint-disable-next-line no-descending-specificity
+  .trending-badge__chart > span {
+    display: inline-block;
+    width: 4px;
+    background: @green;
+  }
+}
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .list-books {
     .searchResultItem {

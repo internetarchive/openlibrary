@@ -805,7 +805,7 @@ msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages<
 msgstr[0] ""
 msgstr[1] ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
 msgstr ""
 
@@ -947,6 +947,11 @@ msgstr ""
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
+msgstr ""
+
+#: TrendingBadge.html
+#, python-format
+msgid "Trending: %(score).2f"
 msgstr ""
 
 #: TypeChanger.html

@@ -375,6 +375,8 @@ def do_search(
         'ratings_count',
         'want_to_read_count',
     }
+    if sort and 'trending' in sort:
+        extra_fields.add('trending_*')
     fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
     if web.cookies(sfw="").sfw == 'yes':
@@ -398,7 +400,7 @@ def get_doc(doc: SolrDocument):
 
     called from work_search template
     """
-    return web.storage(
+    result = web.storage(
         key=doc['key'],
         title=doc['title'],
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
@@ -447,6 +449,11 @@ def get_doc(doc: SolrDocument):
         ratings_count=doc.get('ratings_count', None),
         want_to_read_count=doc.get('want_to_read_count', None),
     )
+    for field in doc:
+        if field.startswith('trending_'):
+            result[field] = doc[field]
+
+    return result
 
 
 class scan(delegate.page):

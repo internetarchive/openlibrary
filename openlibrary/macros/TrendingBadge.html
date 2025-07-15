@@ -1,0 +1,32 @@
+$def with (doc)
+
+$ weekday = today().weekday()
+$ scores = [doc.get('trending_score_daily_%d' % (i % 7), 0) for i in range(weekday, weekday - 7, -1)]
+$ scores.reverse()
+$ scores.append(doc.get('trending_score_hourly_sum', 0))
+$ max_score = max(scores) if scores else 1
+$ max_score = max(max_score, 40)
+<div class="trending-badge" title="$_('This is only visible to librarians.')">
+    $if doc.trending_z_score >= 4:
+        🡽
+    $elif doc.trending_z_score >= 2:
+        ⇗
+    $elif doc.trending_z_score >= 0.5:
+        ↗
+    $elif doc.trending_z_score >= -0.5:
+        ↔
+    $elif doc.trending_z_score >= -2:
+        ↘
+    $elif doc.trending_z_score >= -4:
+        ⇘
+    $else:
+        🡾
+
+    $_('Trending: %(score).2f', score=doc.trending_z_score)
+    <span class="trending-badge__chart">
+        $for score in scores:
+            $ height = int((score / max_score) * 16) if max_score else 1
+            $ height = max(height, 2)
+            <span title="$score" style="height:$(height)px;"></span>
+    </span>
+</div>
