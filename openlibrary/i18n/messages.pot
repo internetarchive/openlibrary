@@ -6227,7 +6227,7 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html
+#: lib/nav_head.html search/sort_options.html
 msgid "Trending"
 msgstr ""
 
