@@ -13,14 +13,14 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 all: git css js components i18n
 
-css: static/css/page-*.less
+css:
 	mkdir -p $(BUILD)
-	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
+	NODE_ENV=production npx webpack --config webpack.config.css.js
 
 js:
 	mkdir -p $(BUILD)
 	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
-	npm run build-assets:webpack
+	NODE_ENV=production npx webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
 	for js in $(BUILD)/*.js; do \
 		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
