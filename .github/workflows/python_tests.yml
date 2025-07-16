@@ -15,9 +15,6 @@ on:
 permissions:
   contents: read
 
-env:
-  UV_SYSTEM_PYTHON: 1 #install packages into system python instead of venv
-
 jobs:
   python_tests:
     runs-on: ubuntu-latest
@@ -25,28 +22,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      # - uses: actions/setup-python@v5
-      #   with:
-      #     python-version-file: pyproject.toml
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
         with:
-          enable-cache: true
-      # - uses: actions/cache@v4
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
+          python-version-file: pyproject.toml
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - if: "contains(matrix.python-version, '-dev')"
         run: |
           sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
-      - name: Set up Python
-        run: uv python install
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Install dependencies
+        env:
+          UV_SYSTEM_PYTHON: 1
         run: |
           # Try to upgrade pip, setuptools, and wheel
-          uv pip install --upgrade setuptools wheel
+          uv pip install --upgrade pip setuptools wheel || {
+            echo "pip is broken or missing, reinstalling..."
+            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            python get-pip.py
+            rm -f get-pip.py
+            uv pip install --upgrade pip setuptools wheel
+          }
           uv pip install -r requirements_test.txt
           uv pip list --outdated
       - run: make git
