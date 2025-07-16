@@ -29,7 +29,7 @@ $def with (page)
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
     <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
-    $ style = 'build/page-%s.css'%ctx.get('cssfile', 'user')
+    $ style = 'build/css/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
     <noscript>
@@ -81,7 +81,7 @@ $def with (page)
 
   </script>
     $if "dev" in ctx.features:
-        <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
+        <link href="$static_url('build/css/page-dev.css')" rel="stylesheet" type="text/css"/>
 
     <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
     <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
