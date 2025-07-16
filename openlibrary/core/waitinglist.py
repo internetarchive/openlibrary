@@ -29,7 +29,7 @@ logger = logging.getLogger("openlibrary.waitinglist")
 _wl_api = lending.ia_lending_api
 
 
-def _get_book(identifier):
+def _get_book(identifier: str):
     if keys := web.ctx.site.things({"type": '/type/edition', "ocaid": identifier}):
         return web.ctx.site.get(keys[0])
     else:
@@ -41,16 +41,16 @@ class WaitingLoan(dict):
     def get_book(self):
         return _get_book(self['identifier'])
 
-    def get_user_key(self):
+    def get_user_key(self) -> str:
         if user_key := self.get("user_key"):
             return user_key
 
         userid = self.get("userid")
         username = ""
-        if userid.startswith('@'):
+        if userid and userid.startswith('@'):
             account = OpenLibraryAccount.get(link=userid)
-            username = account.username
-        elif userid.startswith('ol:'):
+            username = account.username if account else ""
+        elif userid and userid.startswith('ol:'):
             username = userid[len("ol:") :]
         return f"/people/{username}"
 
@@ -58,33 +58,33 @@ class WaitingLoan(dict):
         user_key = self.get_user_key()
         return user_key and web.ctx.site.get(user_key)
 
-    def get_position(self):
+    def get_position(self) -> int:
         return self['position']
 
-    def get_waitinglist_size(self):
+    def get_waitinglist_size(self) -> int:
         return self['wl_size']
 
-    def get_waiting_in_days(self):
+    def get_waiting_in_days(self) -> int:
         since = h.parse_datetime(self['since'])
         delta = datetime.datetime.utcnow() - since
         # Adding 1 to round off the the extra seconds in the delta
         return delta.days + 1
 
-    def get_expiry_in_hours(self):
+    def get_expiry_in_hours(self) -> float:
         if "expiry" in self:
             delta = h.parse_datetime(self['expiry']) - datetime.datetime.utcnow()
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
-            return max(0, delta_hours)
-        return 0
+            return max(0.0, delta_hours)
+        return 0.0
 
-    def is_expired(self):
+    def is_expired(self) -> bool:
         return (
             self['status'] == 'available'
             and self['expiry'] < datetime.datetime.utcnow().isoformat()
         )
 
-    def dict(self):
+    def dict(self) -> dict:
         """Converts this object into JSON-able dict.
 
         Converts all datetime objects into strings.
@@ -98,7 +98,7 @@ class WaitingLoan(dict):
         return {k: process_value(v) for k, v in self.items()}
 
     @classmethod
-    def query(cls, **kw):
+    def query(cls, **kw) -> list['WaitingLoan']:
         # kw.setdefault('order', 'since')
         # # as of web.py 0.33, the version used by OL,
         # # db.where doesn't work with no conditions
@@ -111,30 +111,37 @@ class WaitingLoan(dict):
         return [cls(row) for row in rows]
 
     @classmethod
-    def new(cls, **kw):
+    def new(cls, **kw) -> 'WaitingLoan | None':
         user_key = kw['user_key']
         itemname = kw.get('itemname', '')
         if not itemname:
             account = OpenLibraryAccount.get(key=user_key)
+            if account is None:
+                return None
             itemname = account.itemname
         _wl_api.join_waitinglist(kw['identifier'], itemname)
         return cls.find(user_key, kw['identifier'], itemname=itemname)
 
     @classmethod
-    def find(cls, user_key, identifier, itemname=None):
+    def find(
+        cls, user_key: str, identifier: str, itemname: str | None = None
+    ) -> 'WaitingLoan | None':
         """Returns the waitingloan for given book_key and user_key.
 
         Returns None if there is no such waiting loan.
         """
         if not itemname:
             account = OpenLibraryAccount.get(key=user_key)
+            if account is None:
+                return None
             itemname = account.itemname
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
+        return None
 
     @classmethod
-    def prune_expired(cls, identifier=None):
+    def prune_expired(cls, identifier: str | None = None) -> None:
         """Deletes the expired loans from database and returns WaitingLoan objects
         for each deleted row.
 
@@ -142,7 +149,7 @@ class WaitingLoan(dict):
         """
         return
 
-    def delete(self):
+    def delete(self) -> None:
         """Delete this waiting loan from database."""
         # db.delete("waitingloan", where="id=$id", vars=self)
         _wl_api.leave_waitinglist(self['identifier'], self['userid'])
@@ -156,7 +163,7 @@ class WaitingLoan(dict):
         dict.update(self, kw)
 
 
-def get_waitinglist_for_book(book_key):
+def get_waitinglist_for_book(book_key: str) -> list[WaitingLoan]:
     """Returns the list of records for the users waiting for the given book.
 
     This is an admin-only feature. It works only if the current user is an admin.
@@ -168,29 +175,30 @@ def get_waitinglist_for_book(book_key):
         return []
 
 
-def get_waitinglist_size(book_key):
+def get_waitinglist_size(book_key: str) -> int:
     """Returns size of the waiting list for given book."""
     return len(get_waitinglist_for_book(book_key))
 
 
-def get_waitinglist_for_user(user_key):
+def get_waitinglist_for_user(user_key: str) -> list[WaitingLoan]:
     """Returns the list of records for all the books that a user is waiting for."""
     waitlist = []
     account = OpenLibraryAccount.get(key=user_key)
-    if account.itemname:
+    if account and account.itemname:
         waitlist.extend(WaitingLoan.query(userid=account.itemname))
     waitlist.extend(WaitingLoan.query(userid=lending.userkey2userid(user_key)))
     return waitlist
 
 
-def is_user_waiting_for(user_key, book_key):
+def is_user_waiting_for(user_key: str, book_key: str) -> bool:
     """Returns True if the user is waiting for specified book."""
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
         return WaitingLoan.find(user_key, book.ocaid) is not None
+    return False
 
 
-def join_waitinglist(user_key, book_key, itemname=None):
+def join_waitinglist(user_key: str, book_key: str, itemname: str | None = None) -> None:
     """Adds a user to the waiting list of given book.
 
     It is done by creating a new record in the store.
@@ -200,7 +208,9 @@ def join_waitinglist(user_key, book_key, itemname=None):
         WaitingLoan.new(user_key=user_key, identifier=book.ocaid, itemname=itemname)
 
 
-def leave_waitinglist(user_key, book_key, itemname=None):
+def leave_waitinglist(
+    user_key: str, book_key: str, itemname: str | None = None
+) -> None:
     """Removes the given user from the waiting list of the given book."""
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
@@ -209,7 +219,7 @@ def leave_waitinglist(user_key, book_key, itemname=None):
             w.delete()
 
 
-def on_waitinglist_update(identifier):
+def on_waitinglist_update(identifier: str) -> None:
     """Triggered when a waiting list is updated."""
     waitinglist = WaitingLoan.query(identifier=identifier)
     if waitinglist:
@@ -224,7 +234,7 @@ def on_waitinglist_update(identifier):
             sendmail_book_available(book)
 
 
-def update_ebook(ebook_key, **data):
+def update_ebook(ebook_key: str, **data) -> None:
     ebook = web.ctx.site.store.get(ebook_key) or {}
     # update ebook document.
     ebook2 = dict(ebook, _key=ebook_key, type="ebook")
@@ -233,7 +243,7 @@ def update_ebook(ebook_key, **data):
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
 
 
-def sendmail_book_available(book):
+def sendmail_book_available(book) -> None:  # type: ignore[no-untyped-def]
     """Informs the first person in the waiting list that the book is available.
 
     Safe to call multiple times. This'll make sure the email is sent only once.
@@ -260,21 +270,7 @@ def sendmail_book_available(book):
         )
 
 
-def _get_expiry_in_days(loan):
-    if loan.get("expiry"):
-        delta = h.parse_datetime(loan['expiry']) - datetime.datetime.utcnow()
-        # +1 to count the partial day
-        return delta.days + 1
-
-
-# Unreferenced
-def _get_loan_timestamp_in_days(loan):
-    t = datetime.datetime.fromtimestamp(loan['loaned_at'])
-    delta = datetime.datetime.utcnow() - t
-    return delta.days
-
-
-def update_all_ebooks():
+def update_all_ebooks() -> None:
     rows = WaitingLoan.query(limit=10000)
     identifiers = {row['identifier'] for row in rows}
 

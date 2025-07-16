@@ -9,7 +9,7 @@ class YearlyReadingGoals:
     TABLENAME = 'yearly_reading_goals'
 
     @classmethod
-    def summary(cls):
+    def summary(cls) -> dict[str, dict[str, int]]:
         return {
             'total_yearly_reading_goals': {
                 'total': YearlyReadingGoals.total_yearly_reading_goals(),
@@ -24,14 +24,13 @@ class YearlyReadingGoals:
 
     # Create methods:
     @classmethod
-    def create(cls, username: str, year: int, target: int):
+    def create(cls, username: str, year: int, target: int) -> None:
         oldb = db.get_db()
-
-        return oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
+        oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
 
     # Read methods:
     @classmethod
-    def select_by_username(cls, username: str, order='year ASC'):
+    def select_by_username(cls, username: str, order: str = 'year ASC') -> list[dict]:
         oldb = db.get_db()
 
         where = 'username=$username'
@@ -42,7 +41,7 @@ class YearlyReadingGoals:
         return list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
 
     @classmethod
-    def select_by_username_and_year(cls, username: str, year: int):
+    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
         oldb = db.get_db()
 
         where = 'username=$username AND year=$year'
@@ -87,7 +86,7 @@ class YearlyReadingGoals:
 
     # Update methods:
     @classmethod
-    def update_current_count(cls, username: str, year: int, current_count: int):
+    def update_current_count(cls, username: str, year: int, current_count: int) -> None:
         oldb = db.get_db()
 
         where = 'username=$username AND year=$year'
@@ -96,7 +95,7 @@ class YearlyReadingGoals:
             'year': year,
         }
 
-        return oldb.update(
+        oldb.update(
             cls.TABLENAME,
             where=where,
             vars=data,
@@ -105,7 +104,7 @@ class YearlyReadingGoals:
         )
 
     @classmethod
-    def update_target(cls, username: str, year: int, new_target: int):
+    def update_target(cls, username: str, year: int, new_target: int) -> None:
         oldb = db.get_db()
 
         where = 'username=$username AND year=$year'
@@ -114,7 +113,7 @@ class YearlyReadingGoals:
             'year': year,
         }
 
-        return oldb.update(
+        oldb.update(
             cls.TABLENAME,
             where=where,
             vars=data,
@@ -124,16 +123,16 @@ class YearlyReadingGoals:
 
     # Delete methods:
     @classmethod
-    def delete_by_username(cls, username):
+    def delete_by_username(cls, username: str) -> None:
         oldb = db.get_db()
 
         where = 'username=$username'
         data = {'username': username}
 
-        return oldb.delete(cls.TABLENAME, where=where, vars=data)
+        oldb.delete(cls.TABLENAME, where=where, vars=data)
 
     @classmethod
-    def delete_by_username_and_year(cls, username, year):
+    def delete_by_username_and_year(cls, username: str, year: int) -> None:
         oldb = db.get_db()
 
         data = {
@@ -142,4 +141,4 @@ class YearlyReadingGoals:
         }
         where = 'username=$username AND year=$year'
 
-        return oldb.delete(cls.TABLENAME, where=where, vars=data)
+        oldb.delete(cls.TABLENAME, where=where, vars=data)
