@@ -1,8 +1,8 @@
 #!/bin/bash
 
 clean_exit() {
-    if [ -n "$TMP_DIR" ]; then
-        cleanup "$TMP_DIR"
+    if [ -n "$DEPLOY_DIR" ]; then
+        cleanup "$DEPLOY_DIR"
     fi
     exit 1
 }
@@ -23,7 +23,8 @@ set -e
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OL_REPO="$(cd "$SCRIPT_DIR/../../" && pwd)"
+DEPLOY_DIR="/tmp/openlibrary_deploy"
+OL_REPO="${DEPLOY_DIR}/openlibrary"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
@@ -31,6 +32,8 @@ KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
 DEPLOY_TAG="deploy-$(date +%Y-%m-%d-at-%H-%M)"
+
+mkdir -p $DEPLOY_DIR
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -177,8 +180,7 @@ deploy_olsystem() {
     check_server_access
     check_crons
 
-    TMP_DIR=${TMP_DIR:-$(mktemp -d)}
-    cd $TMP_DIR
+    cd $DEPLOY_DIR
 
     CLEANUP=${CLEANUP:-1}
     CLONE_URL=${CLONE_URL:-"git@github.com:internetarchive/olsystem.git"}
@@ -201,8 +203,8 @@ deploy_olsystem() {
     tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
 
-    if ! copy_to_servers "$TMP_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
-        cleanup "$TMP_DIR"
+    if ! copy_to_servers "$DEPLOY_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
+        cleanup "$DEPLOY_DIR"
         exit 1
     fi
 
@@ -224,7 +226,7 @@ deploy_olsystem() {
         else
             echo "⚠"
             echo "$OUTPUT"
-            cleanup "$TMP_DIR"
+            cleanup "$DEPLOY_DIR"
             exit 1
         fi
     done
@@ -232,7 +234,7 @@ deploy_olsystem() {
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
     if [ $CLEANUP -eq 1 ]; then
-        cleanup "$TMP_DIR"
+        cleanup "$DEPLOY_DIR"
     fi
 
     # Present follow-up options
@@ -300,9 +302,7 @@ check_olbase_image_up_to_date() {
 
 deploy_openlibrary() {
     echo "[Now] Deploying openlibrary"
-    TMP_DIR=$(mktemp -d)
-
-    cd $TMP_DIR
+    cd $DEPLOY_DIR
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
@@ -310,7 +310,7 @@ deploy_openlibrary() {
     echo ""
 
     if ! check_olbase_image_up_to_date; then
-       cleanup $TMP_DIR
+       cleanup $DEPLOY_DIR
        exit 1
     fi
 
@@ -333,8 +333,8 @@ deploy_openlibrary() {
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
-    if ! copy_to_servers "$TMP_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-        cleanup "$TMP_DIR"
+    if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+        cleanup "$DEPLOY_DIR"
         exit 1
     fi
     echo ""
@@ -353,7 +353,7 @@ deploy_openlibrary() {
     done
 
     if ! prune_docker image; then
-        cleanup "$TMP_DIR"
+        cleanup "$DEPLOY_DIR"
         exit 1
     fi
 
@@ -366,7 +366,7 @@ deploy_openlibrary() {
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
 
-    cleanup $TMP_DIR
+    cleanup $DEPLOY_DIR
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
