@@ -558,8 +558,7 @@ class Bookshelves(db.CommonExtras):
             solr_docs = cls.link_editions_to_works(solr_docs)
 
             if len(solr_docs) < len(reading_log_keys):
-                missing = set(w for w, e in reading_log_keys) - set(
-                    [doc['key'] for doc in solr_docs]
+                missing = set(w for w, e in reading_log_keys) - {doc['key'] for doc in solr_docs}
                 )
                 logger.warning(f"Missing items in Solr: {missing}")
 
