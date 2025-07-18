@@ -273,6 +273,11 @@ tag_deploy() {
     git -C "$OL_REPO" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
+tag_release() {
+    LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
+    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+}
+
 check_olbase_image_up_to_date() {
     echo "[Now] Checking if Docker image is up-to-date"
 
@@ -538,6 +543,7 @@ deploy_wizard() {
 
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
+    echo ""
     echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
     read -p "Once announced, press Enter to continue..."
     echo ""
@@ -581,22 +587,25 @@ deploy_wizard() {
         fi
     fi
 
-    read -p "[Now] Restart services and finalize deploy now? [N/y]..." answer
+    read -p "[Now] Restart services? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time recreate_services
         echo ""
-        # FIXME: This might not work; I'm not sure if the /releases endpoint will also return a tag that hasn't
-        # been converted to a release yet.
-        LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
-        echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+    fi
+
+    read -p "[Now] Tag and announce release? [N/y]..." answer
+    answer=${answer:-N}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        time tag_release
         read -p "Press Enter to continue..."
 
+        LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
+        echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
     fi
 }
-
 
 # See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
 if [ "$1" == "olsystem" ]; then
@@ -614,14 +623,6 @@ elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
     recreate_services
-elif [ "$1" == "release" ]; then
-    LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
-    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
-    read -p "Press Enter to continue..."
-
-    echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
-    echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_\
-NAME. Please let us know @here if anything seems broken or delightful!"
 elif [ "$1" == "prune" ]; then
     if [ "$2" == "--all" ]; then
         prune_docker image builder
