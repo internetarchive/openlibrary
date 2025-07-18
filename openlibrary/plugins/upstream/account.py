@@ -915,10 +915,9 @@ class export_books(delegate.page):
         if work.type.key == '/type/redirect':
             # Resolve the redirect before exporting:
             from openlibrary.core.models import Work
+
             work = web.ctx.site.get(
-                Work.resolve_redirect_chain(
-                    work_key
-                ).get('resolved_key')
+                Work.resolve_redirect_chain(work_key).get('resolved_key')
             )
         return work
 
