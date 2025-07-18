@@ -908,14 +908,14 @@ class export_books(delegate.page):
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
+        # Can't put at top due to cyclical imports
+        from openlibrary.plugins.upstream.models import Work
+
         work_key = f"/works/{work_id}"
         work: Work = web.ctx.site.get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':
-            # Can't put at top due to cyclical imports
-            from openlibrary.core.models import Work
-
             # Resolve the redirect before exporting
             work = web.ctx.site.get(
                 Work.resolve_redirect_chain(work_key).get('resolved_key')
