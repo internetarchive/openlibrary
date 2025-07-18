@@ -25,9 +25,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
 OL_REPO="${DEPLOY_DIR}/openlibrary"
+
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
-SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
-SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
@@ -115,7 +117,9 @@ check_for_local_changes() {
 check_server_access() {
     echo ""
     echo "Checking server access..."
-    for SERVER in $SERVERS; do
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+
+    for SERVER in $HOSTNAMES; do
         echo -n "   $SERVER ... "
         DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
         if [ "$DOCKER_ACCESS" == "✓" ]; then
@@ -136,8 +140,10 @@ copy_to_servers() {
 
     TAR_FILE=$(basename $TAR_PATH)
 
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+
     echo "Copying to the servers..."
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         echo -n "   $SERVER: Copying ... "
         ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
 
@@ -173,9 +179,36 @@ copy_to_servers() {
     done
 }
 
+ssh_docker_compose() {
+    local COMPOSE_FILE="compose.yaml:compose.production.yaml"
+    local REPO_DIR="/opt/openlibrary"
+    local SERVER="$1"
+    shift
+    local COMPOSE_COMMAND="$*"
+
+    echo -n "[Now] Running \`docker compose $COMPOSE_COMMAND\` on $SERVER:"
+    ssh "$SERVER" "
+        set -e
+        cd $REPO_DIR
+        COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile '$(echo $SERVER | cut -f1 -d .)' $COMPOSE_COMMAND
+    "
+    echo ""
+}
+
+reset_hard() {
+    HOSTNAMES=${SERVERS:-$WEB_HOSTNAMES}
+    echo "[Now] Performing clean docker reset of $HOSTNAMES containers"
+    for SERVER in $HOSTNAMES; do
+        echo "Resetting $SERVER container (docker down up)..."
+        ssh_docker_compose $SERVER down
+        ssh_docker_compose $SERVER up --no-deps -d
+    done
+}
+
 deploy_olsystem() {
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     echo "[Now] Starting $REPO deployment at $(date)"
-    echo "Deploying to: $SERVERS"
+    echo "Deploying to: $HOSTNAMES"
 
     check_server_access
     check_crons
@@ -190,7 +223,7 @@ deploy_olsystem() {
 
     echo ""
     echo "Checking for changes in the $REPO repo on the servers..."
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         check_for_local_changes $SERVER "/opt/$REPO"
     done
     echo -e "No changes found in the $REPO repo on the servers.\n"
@@ -210,7 +243,7 @@ deploy_olsystem() {
 
     echo ""
     echo "Final swap..."
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         echo -n "   $SERVER ... "
 
         if OUTPUT=$(ssh $SERVER "
@@ -306,7 +339,10 @@ check_olbase_image_up_to_date() {
 }
 
 deploy_openlibrary() {
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+
     echo "[Now] Deploying openlibrary"
+    
     cd $DEPLOY_DIR
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
@@ -327,7 +363,7 @@ deploy_openlibrary() {
     done
 
     echo "Checking for changes in the openlibrary repo on the servers..."
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         check_for_local_changes $SERVER "/opt/openlibrary"
     done
     echo -e "No changes found in the openlibrary repo on the servers.\n"
@@ -345,7 +381,7 @@ deploy_openlibrary() {
     echo ""
 
     # Fix file ownership + Make into a git repo so can easily track local mods
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         ssh $SERVER "
             set -e
             sudo chown -R root:staff /opt/openlibrary
@@ -375,10 +411,13 @@ deploy_openlibrary() {
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
-    echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh review"
+    echo "time ./scripts/deployment/deploy.sh review"
 }
 
 deploy_images() {
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+
     local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
 
     # Lazy-fetch OLBASE_DIGEST if not set
@@ -394,7 +433,7 @@ deploy_images() {
 
     local pids=()
     local output_files=()
-    for SERVER_NAME in $SERVER_NAMES; do
+    for SERVER_NAME in $FQDNS; do
         echo -n "   $SERVER_NAME ... "
         # Make a temporary file to house the output
         OUTPUT_FILE=$(mktemp)
@@ -411,9 +450,9 @@ deploy_images() {
         echo "(started in background)"
     done
 
-    # Convert SERVER_NAMES string to an array
+    # Convert server domain names string to an array
     local FAILED=0
-    IFS=' ' read -r -a SERVER_NAMES_ARRAY <<< "$SERVER_NAMES"
+    IFS=' ' read -r -a SERVER_NAMES_ARRAY <<< "$FQDNS"
     echo "Waiting for all servers to finish pulling images..."
     for i in "${!pids[@]}"; do
         pid="${pids[$i]}"
@@ -436,7 +475,6 @@ deploy_images() {
     return $FAILED
 }
 
-
 check_servers_in_sync() {
     echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
@@ -445,10 +483,12 @@ check_servers_in_sync() {
 }
 
 check_server_storage() {
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    
     echo "Checking server storage space..."
     local FAILED=0
     local SERVER_FAILED=0
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         echo -n "   $SERVER ... "
         SERVER_FAILED=0
         # Get available space (in bytes) for each relevant mount point
@@ -481,6 +521,7 @@ check_server_storage() {
 }
 
 prune_docker () {
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     echo "[Now] Prune docker images/cache..."
 
     PRUNE_CMD=""
@@ -499,7 +540,7 @@ prune_docker () {
         fi
     done
 
-    for SERVER in $SERVERS; do
+    for SERVER in $HOSTNAMES; do
         echo -n "   $SERVER ... "
 
         if [[ -z "$PRUNE_CMD" ]]; then
@@ -521,7 +562,8 @@ prune_docker () {
 
 clone_booklending_utils() {
     :
-    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
+    #HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $HOSTNAMES ::: /opt/booklending_utils
 }
 
 recreate_services() {
@@ -631,6 +673,8 @@ elif [ "$1" == "prune" ]; then
     fi
 elif [ "$1" == "check_server_storage" ]; then
     check_server_storage
+elif [ "$1" == "reset" ]; then
+    reset_hard
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
