@@ -913,9 +913,13 @@ class export_books(delegate.page):
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':
-            # Fetch actual work and resolve redirects before exporting:
-            work = web.ctx.site.get(work.location)
-            work.resolve_redirect_chain(work_key)
+            # Resolve the redirect before exporting:
+            from openlibrary.core.models import Work
+            work = web.ctx.site.get(
+                Work.resolve_redirect_chain(
+                    work_key
+                ).get('resolved_key')
+            )
         return work
 
     def generate_reading_log(self, username: str) -> str:
