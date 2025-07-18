@@ -342,7 +342,7 @@ deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
 
     echo "[Now] Deploying openlibrary"
-    
+
     cd $DEPLOY_DIR
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
@@ -484,7 +484,7 @@ check_servers_in_sync() {
 
 check_server_storage() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    
+
     echo "Checking server storage space..."
     local FAILED=0
     local SERVER_FAILED=0
