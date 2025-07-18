@@ -1,0 +1,62 @@
+/* Styles for the yearly reading goal form */
+.goal-form {
+  font-size: 16px;
+
+  button {
+    display: inline-block;
+    width: fit-content;
+    margin-left: 10px;
+  }
+
+  input {
+    width: 5em;
+    padding: 10px;
+    font-size: 16px;
+  }
+}
+
+/* Styles for the yearly reading goal progress component */
+.reading-goal-progress {
+  color: @dark-grey;
+  padding: 5px 0;
+
+  &__body {
+    justify-content: center;
+  }
+
+  &__progress-bar {
+    background-color: @light-grey;
+    border-radius: 5px;
+    height: 20px;
+    margin: auto;
+    width: 85%;
+    margin-bottom: 10px;
+  }
+
+  &__completed {
+    display: inline-block;
+    background-color: @primary-blue;
+    height: inherit;
+    border-radius: inherit;
+  }
+
+  &__details {
+    display: flex;
+    justify-content: space-between;
+    width: 97%;
+    margin: auto;
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  .reading-goal-progress {
+    padding: 15px 0 0;
+
+    &__details {
+      display: flex;
+      justify-content: space-between;
+      width: 85%;
+      margin: auto;
+    }
+  }
+}
