@@ -1,0 +1,19 @@
+$def with (page)
+
+$var title: $page.key
+
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.key</h1>
+</div>
+
+<div id="contentBody">
+
+    <div>$:format(page.description)</div>
+
+    <table>
+      $for member in page.members:
+        <tr><td>$member</td></tr>
+    </table>
+
+</div>
