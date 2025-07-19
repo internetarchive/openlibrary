@@ -96,6 +96,6 @@ Field-Specific Instructions:
     - "pdf", "epub", "html", "web", etc.
   - Always set "access": "read" and "provider_name": "Open Library Community Librarians".`;
 
-    const chatUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
+    const chatUrl = `https://chatgpt.com/?hints=search&q=${encodeURIComponent(promptText)}`;
     window.open(chatUrl, '_blank', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes');
 })();
