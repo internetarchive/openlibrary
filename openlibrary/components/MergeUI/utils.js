@@ -236,14 +236,15 @@ function save_many(items, comment, action, data) {
  * @returns {Promise<Record<string,object>} A response to the request
  */
 export async function get_author_names(works) {
-    const authorIds = _.uniq(works).flatMap(record =>
-        (record.authors || []).map(authorEntry => authorEntry.author.key)
-    )
+    const authorKeys = _.uniq(works)
+        // Sometimes author is undefined...?
+        .flatMap(record => (record.authors || []).map(authorEntry => authorEntry.author?.key))
+        .filter(Boolean);
 
-    if (!authorIds.length) return {};
+    if (!authorKeys.length) return {};
 
     const queryParams = new URLSearchParams({
-        q: `key:(${authorIds.join(' OR ')})`,
+        q: `key:(${authorKeys.join(' OR ')})`,
         mode: 'everything',
         fields: 'key,name',
     })
@@ -256,13 +257,9 @@ export async function get_author_names(works) {
 
     const results = await response.json()
 
-    const authorDirectory = {}
-
-    for (const doc of results.docs) {
-        authorDirectory[doc.key] = doc.name;
-    }
-
-    return authorDirectory
+    return Object.fromEntries(
+        results.docs.map(doc => [`/authors/${doc.key}`, doc.name])
+    );
 }
 
 
