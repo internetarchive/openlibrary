@@ -82,7 +82,19 @@ $#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
     $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-    $:render_template("covers/external_image", action, img_url, _("Internet Archive"))
+    $ h = doc.get_history_preview()
+    $ ia_upload = True
+
+    $for v in h.recent:
+        $ action = v.action
+        $if action == "add-cover":
+            $ url = v.data.url
+            $if url == img_url:
+                $ ia_upload = False
+            $break
+
+    $if ia_upload:
+      $:render_template("covers/external_image", action, img_url, _("Internet Archive"))
 
 $if doc.type.key == "/type/author" and data.get('wikidata_images'):
     $ img_url = data.get('wikidata_images')[0]
