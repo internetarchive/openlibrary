@@ -56,7 +56,7 @@ export function initListsSection(elem) {
 }
 
 async function fetchPartials(workId, editionId) {
-    const params = { _component: 'BPListsSection' }
+    const params = {}
     if (workId) {
         params.workId = workId
     }
@@ -64,5 +64,5 @@ async function fetchPartials(workId, editionId) {
         params.editionId = editionId
     }
 
-    return fetch(buildPartialsUrl('/partials.json', params));
+    return fetch(buildPartialsUrl('BPListsSection', params));
 }

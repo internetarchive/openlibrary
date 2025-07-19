@@ -132,10 +132,7 @@ function fetchPartials(param) {
         query: location.search
     }
 
-    return fetch(buildPartialsUrl('/partials.json', {
-        _component: 'SearchFacets',
-        data: JSON.stringify(data),
-    }))
+    return fetch(buildPartialsUrl('SearchFacets', {data: JSON.stringify(data)}))
         .then((resp) => {
             if (!resp.ok) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
