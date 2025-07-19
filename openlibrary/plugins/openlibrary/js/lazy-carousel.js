@@ -19,17 +19,16 @@ export function initLazyCarousel(elems) {
         // Observe element for intersections
         intersectionObserver.observe(elem)
 
-        // Add retry listener
-        const retryElem = elem.querySelector('.retry-btn')
-        retryElem.addEventListener('click', (e) => {
+        // Add retry listeners
+        $('.retry-btn').on('click', (e) => {
             e.preventDefault()
-            handleRetry(elem)
+            handleRetry(elem);
         })
     })
 }
 
 /**
- * Prepares and makes a request for carousel HTML>
+ * Prepares and makes a request for carousel HTML
  *
  * @param data {object}
  * @returns {Promise<Response>}
@@ -51,6 +50,8 @@ async function fetchPartials(data) {
  */
 function doFetchAndUpdate(target) {
     const config = JSON.parse(target.dataset.config)
+    const loadingIndicator = target.querySelector('.loadingIndicator')
+
     fetchPartials(config)
         .then(resp => {
             if (!resp.ok) {
@@ -61,14 +62,26 @@ function doFetchAndUpdate(target) {
         .then(data => {
             const newElem = document.createElement('div')
             newElem.innerHTML = data.partials.trim()
-            target.parentNode.insertBefore(newElem, target)
-            target.remove()
             const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced')
-            initialzeCarousels(carouselElements)
+            loadingIndicator.classList.add('hidden')
+
+            if (carouselElements.length === 0 && config.fallback) {
+                // No results, disable filters
+                if (typeof config.fallback === 'string') {
+                    config.query = config.fallback;
+                }
+                config.has_fulltext_only = false;
+                config.fallback = false; // Prevents infinite retries
+                target.dataset.config = JSON.stringify(config);
+
+                target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
+            } else {
+                target.parentNode.insertBefore(newElem, target)
+                target.remove()
+                initialzeCarousels(carouselElements)
+            }
         })
         .catch(() => {
-            const loadingIndicator = target.querySelector('.loadingIndicator')
-            loadingIndicator.classList.add('hidden')
             const retryElem = target.querySelector('.lazy-carousel-retry')
             retryElem.classList.remove('hidden')
         })
@@ -81,12 +94,10 @@ function doFetchAndUpdate(target) {
  * @param target {Element}
  */
 function handleRetry(target) {
-    const loadingIndicator = target.querySelector('.loadingIndicator')
-    const retryElem = target.querySelector('.lazy-carousel-retry')
-    loadingIndicator.classList.remove('hidden')
-    retryElem.classList.add('hidden')
+    target.querySelector('.loadingIndicator').classList.remove('hidden')
+    target.querySelector('.lazy-carousel-retry').classList.add('hidden')
+    target.querySelector('.lazy-carousel-fallback').classList.add('hidden')
     doFetchAndUpdate(target)
-
 }
 
 /**

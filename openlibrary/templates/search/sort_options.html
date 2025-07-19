@@ -51,6 +51,7 @@ $code:
               { 'sort': 'already_read', 'name': _("Already Read"), 'ga_key': 'ReadingLogAlreadyRead' },
             ]
           },
+         { 'sort': 'trending', 'name': _("Trending"), 'ga_key': 'Trending' },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
        if selected_sort == 'title' or (ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())):

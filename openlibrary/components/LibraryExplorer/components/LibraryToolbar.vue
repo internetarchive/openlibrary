@@ -267,13 +267,6 @@
                   value="trending"
                 >Trending Score
               </label>
-              <label>
-                <input
-                  v-model="sortState.order"
-                  type="radio"
-                  value="trending_points_today"
-                >Trending Points Today
-              </label>
               <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
                 <input
                   v-model="sortState.order"

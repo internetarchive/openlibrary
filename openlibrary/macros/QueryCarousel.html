@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False, fallback=False)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -8,13 +8,23 @@ $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
 $# * search (bool) -- whether to include search within collection
 $# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
+$# * lazy (bool) -- When True, lazy-load this carousel
+$# * use_cache (bool) -- Whether to cache this macro
+$# * user_lang_only (bool) -- Whether to filter results by the user's language
+$# * fallback (bool) -- Whether to show a fallback message if no results are found
 
+$ fallback_query = None
 $if user_lang_only:
   $ web_lang = get_lang() or 'en'
   $ user_lang= convert_iso_to_marc(web_lang)
   $if user_lang and user_lang in get_populated_languages():
+        $ fallback_query = query
         $ query = query + ' language:' + user_lang
+
+$ fallback = fallback and fallback_query
+
 $if use_cache and not lazy:
-    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout)
+    $# Note this won't work with fallback; the JS that handles retries is in lazy-carousel.js
+    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback)
 $else:
-    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy)
+    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback)
