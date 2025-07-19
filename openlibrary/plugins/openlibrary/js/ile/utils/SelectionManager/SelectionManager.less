@@ -7,18 +7,22 @@
 
 #ile-toolbar {
   display: flex;
+  flex-wrap: wrap;
   position: sticky;
   bottom: 12px;
-  padding: 7px;
   margin: 0 15px;
   border-radius: 5px;
   background: @ile-toolbar-background;
   color: @ile-toolbar-text-color;
   z-index: @ile-toolbar-z-index;
   font-size: 0.9em;
+  white-space: nowrap;
+}
+#ile-drag-actions {
+  overflow-x: auto;
 }
 #ile-toolbar a {
-  padding: 4px 16px;
+  padding: 10px 16px;
   display: inline-block;
   color: @ile-toolbar-text-color;
   text-decoration: none;
