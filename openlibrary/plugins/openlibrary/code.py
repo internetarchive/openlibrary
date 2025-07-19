@@ -1161,16 +1161,18 @@ def internalerror():
     # TODO: move this to plugins\openlibrary\sentry.py
     from openlibrary.plugins.openlibrary.sentry import sentry
 
+    event_id: str | None = None
     if sentry.enabled:
-        sentry.capture_exception_webpy()
+        event_id = sentry.capture_exception_webpy()
 
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
+        name = event_id if event_id else name
         msg = render.site(
             render.internalerror(name, etype=exception_type, evalue=exception_value)
         )
-        raise web.internalerror(web.safestr(msg))
+        raise web.internalerror(msg)
 
 
 delegate.app.internalerror = internalerror
