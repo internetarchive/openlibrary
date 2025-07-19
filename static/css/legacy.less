@@ -493,17 +493,6 @@ input {
 
 /* Search v2 */
 .serp {
-  // openlibrary/templates/work_search.html
-  &-ctx {
-    line-height: 1.5em;
-    margin-bottom: 5px;
-    font-size: 1em;
-
-    .show-similar {
-      margin-top: 15px;
-      font-size: 0.9em;
-    }
-  }
   // openlibrary/macros/SearchResultsWork.html
   &-extras {
     border: 1px solid @lighter-grey;
@@ -718,15 +707,6 @@ div.siteSearch {
   }
 }
 
-// openlibrary/templates/search/advancedsearch.html
-#qtop {
-  input {
-    border-radius: 5px;
-    padding: 7px;
-    border: none;
-  }
-}
-
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
@@ -866,11 +846,6 @@ div.verify {
     min-height: 100px;
     margin-bottom: 20px;
   }
-  &ThreeQuarter {
-    min-height: 100px;
-    margin-bottom: 20px;
-  }
-
   &Spacer {
     width: 19px;
     height: 2px;
@@ -893,10 +868,6 @@ div.verify {
     }
     /* stylelint-enable selector-max-specificity */
   }
-}
-
-div.editThis {
-  margin-left: 20px;
 }
 
 /* HOME PAGE */
@@ -962,10 +933,6 @@ div#searchResults {
     margin-right: 4px;
     position: relative;
   }
-}
-
-.print-disabled-only {
-  background-color: @purple;
 }
 
 // openlibrary/macros/AvailabilityButton.html
@@ -1175,13 +1142,6 @@ div.books {
   }
 }
 
-#tabsAdd {
-  // openlibrary/templates/books/edit.html
-  &book {
-    margin-bottom: 5px;
-  }
-}
-
 // `input.addweb` is used in openlibrary/templates/type/author/edit.html
 // `select#select-id` is used in openlibrary/templates/books/edit/edition.html
 input.addweb,
@@ -1191,12 +1151,6 @@ select#select-id {
 
 // openlibrary/templates/books/edition-sort.html
 .links {
-  .print-disabled-download {
-    white-space: nowrap;
-    font-size: 0.8em;
-    text-align: center;
-    margin-top: 5px;
-  }
   ul li.read-option a {
     display: block;
     text-align: center;
