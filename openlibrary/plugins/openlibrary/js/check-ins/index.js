@@ -588,10 +588,7 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
-    fetch(buildPartialsUrl('/partials.json', {
-        _component: 'ReadingGoalProgress',
-        year: goalYear
-    }))
+    fetch(buildPartialsUrl('ReadingGoalProgress', {year: goalYear}))
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element')

@@ -52,7 +52,7 @@ function showLoadingIndicators(linkSections) {
 async function getPartials(data, affiliateLinksSections) {
     const dataString = JSON.stringify(data)
 
-    return fetch(buildPartialsUrl('/partials.json', {_component: 'AffiliateLinks', data: dataString}))
+    return fetch(buildPartialsUrl('AffiliateLinks', {data: dataString}))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)

@@ -35,7 +35,7 @@ export function initLazyCarousel(elems) {
  * @returns {Promise<Response>}
  */
 async function fetchPartials(data) {
-    return fetch(buildPartialsUrl('/partials.json', {...data, _component: 'LazyCarousel'}))
+    return fetch(buildPartialsUrl('LazyCarousel', {...data}))
 }
 
 /**

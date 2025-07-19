@@ -144,8 +144,7 @@ export class Carousel {
 
     fetchPartials() {
         const loadMore = this.loadMore
-        const url = buildPartialsUrl('/partials.json', {
-            _component: 'CarouselLoadMore',
+        const url = buildPartialsUrl('CarouselLoadMore', {
             queryType: loadMore.queryType,
             q: loadMore.q,
             limit: loadMore.limit,

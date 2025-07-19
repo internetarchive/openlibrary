@@ -63,10 +63,7 @@ export async function removeItem(listKey, seed) {
 
 // XXX : jsdoc
 export async function getListPartials() {
-    return await fetch(buildPartialsUrl('/partials.json', {
-        _component: 'MyBooksDropperLists'
-    }), {
-        method: 'GET',
+    return await fetch(buildPartialsUrl('MyBooksDropperLists'), {
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
