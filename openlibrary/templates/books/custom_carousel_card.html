@@ -2,7 +2,7 @@ $def with(book, lazy, layout, key="", secondary_action=False)
 
 $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
 $ cover_host = '//covers.openlibrary.org'
-$ url = book.get('key') or book.url
+$ url = book.get('url') or book.get('key')
 $ title = book.get("title", "")
 
 $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]

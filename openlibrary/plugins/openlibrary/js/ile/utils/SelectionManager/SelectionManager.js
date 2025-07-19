@@ -21,7 +21,10 @@ export default class SelectionManager {
         this.ile = ile;
         this.curpath = curpath;
         this.inited = false;
-        this.selectedItems = {};
+        /** @type {Record<string, string[]>} */
+        this.selectedItems = Object.fromEntries(
+            SelectionManager.TYPES.map(type => [type.singular, []])
+        );
         this.lastClicked = null;
 
         this.processClick = this.processClick.bind(this);
@@ -37,34 +40,11 @@ export default class SelectionManager {
     }
 
     init() {
+        if (this.inited) return;
+
         this.inited = true;
-        this.getSelectedItems();
-
-        // Label each selectable element with a class, and bind the click event
-        const providers = this.getPossibleProviders();
-        const providerSelectors = providers.map(p => p.selector);
-        $(providerSelectors.join(', '))
-            .addClass('ile-selectable')
-            .on('click', this.processClick);
-
-        for (const provider of providers) {
-            for (const el of $(provider.selector).toArray()) {
-                // Some providers need a "handle" to allow dragging.
-                if (provider.addHandle) {
-                    const handle = $('<span class="ile-select-handle">&bull;</span>');
-                    handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
-                    $(el).prepend(handle);
-                }
-                // Restore any stored selections on this page
-                for (const type of provider.type) {
-                    if (this.selectedItems[type].length) {
-                        if (this.selectedItems[type].indexOf(provider.data(el)) !== -1) {
-                            this.setElementSelectionAttributes(el, true);
-                        }
-                    }
-                }
-            }
-        }
+        this.loadFromSessionStorage();
+        this.labelSelectableElements();
 
         // Populate the status bar images for stored selections
         for (const type of SelectionManager.TYPES) {
@@ -78,6 +58,39 @@ export default class SelectionManager {
         // Add the drag/drop handlers to the main white part of the page
         document.getElementById('test-body-mobile').addEventListener('drop', this.onDrop);
         document.getElementById('test-body-mobile').addEventListener('dragover', this.allowDrop);
+    }
+
+    labelSelectableElements(container = document.body) {
+        for (const provider of this.getPossibleProviders()) {
+            for (const el of $(container).find(provider.selector).toArray()) {
+                if (el.classList.contains('ile-selectable')) {
+                    // If the element is already labeled, skip it
+                    continue;
+                }
+
+                // Label each selectable element with a class, and bind the click event
+                $(el)
+                    .addClass('ile-selectable')
+                    .on('click', this.processClick);
+
+                // Some providers need a "handle" to allow dragging.
+                if (provider.handle) {
+                    $(el).toggleClass('ile-selectable--inline', provider.handle === 'inline');
+                    const handle = $('<input type="checkbox" class="ile-select-handle" title="Select this item"/>');
+                    handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
+                    $(el).prepend(handle);
+                }
+
+                // Restore any stored selections on this page
+                for (const type of provider.type) {
+                    if (this.selectedItems[type].length) {
+                        const data = provider.data(el);
+                        const selected = this.selectedItems[type].indexOf(data) !== -1;
+                        this.setElementSelectionAttributes(el, selected, data);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -160,7 +173,7 @@ export default class SelectionManager {
         const img_src = this.getType(olid)?.image(olid);
 
         if (isCurSelected === forceSelected) return;
-        this.setElementSelectionAttributes(el, !isCurSelected);
+        this.setElementSelectionAttributes(el, !isCurSelected, olid);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
@@ -172,13 +185,27 @@ export default class SelectionManager {
 
     }
 
-    setElementSelectionAttributes(el, selected) {
+    /**
+     * @param {HTMLElement} el
+     * @param {boolean} selected
+     * @param {string} ile_data
+     */
+    setElementSelectionAttributes(el, selected, ile_data) {
         el.classList.toggle('ile-selected', selected);
         el.draggable = selected;
+        const checkbox = $(el).find('input[type="checkbox"].ile-select-handle');
+        if (checkbox.length > 0) {
+            // Need to delay this otherwise we conflict with its normal click behaviour
+            setTimeout(() => checkbox.prop('checked', selected), 0);
+        }
         if (selected) {
+            el.setAttribute('aria-selected', 'true');
+            el.setAttribute('data-ile-selection-key', ile_data);
             el.addEventListener('dragstart', this.dragStart);
             el.addEventListener('dragend', this.dragEnd);
         } else {
+            el.setAttribute('aria-selected', 'false');
+            el.removeAttribute('data-ile-selection-key');
             el.removeEventListener('dragstart', this.dragStart);
             el.removeEventListener('dragend', this.dragEnd);
         }
@@ -217,7 +244,7 @@ export default class SelectionManager {
 
     addSelectedItem(item) {
         this.selectedItems[this.getType(item).singular].push(item);
-        sessionStorage.setItem('ile-items', JSON.stringify(this.selectedItems));
+        this.commitToSessionStorage();
     }
 
     removeSelectedItem(item) {
@@ -225,27 +252,36 @@ export default class SelectionManager {
         const index = this.selectedItems[type.singular].indexOf(item);
         if (index > -1) {
             this.selectedItems[type.singular].splice(index, 1);
-            sessionStorage.setItem('ile-items', JSON.stringify(this.selectedItems));
+            this.commitToSessionStorage();
         }
+    }
+
+    loadFromSessionStorage() {
+        const savedItems = sessionStorage.getItem('ile-items');
+        if (savedItems) {
+            this.selectedItems = JSON.parse(savedItems);
+        }
+    }
+
+    commitToSessionStorage() {
+        sessionStorage.setItem('ile-items', JSON.stringify(this.selectedItems));
     }
 
     getSelectedItems() {
-        if (Object.keys(this.selectedItems).length === 0) {
-            if (sessionStorage.getItem('ile-items')) {
-                this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
-            } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = []});
-            }
-        }
-
-        const items = [];
-        for (const type in this.selectedItems) items.push(...this.selectedItems[type]);
-        return items;
+        return Object.values(this.selectedItems).flat();
     }
 
     clearSelectedItems() {
-        for (const type in this.selectedItems) this.selectedItems[type] = [];
-        sessionStorage.setItem('ile-items', JSON.stringify(this.selectedItems));
+        for (const type in this.selectedItems) {
+            for (const data of this.selectedItems[type]) {
+                const el = document.querySelector(`[data-ile-selection-key="${data}"]`);
+                if (el) this.setElementSelectionAttributes(el, false, data);
+            }
+            // Clear the selected items for this type
+            this.selectedItems[type] = [];
+        }
+
+        this.commitToSessionStorage();
         this.ile.reset();
     }
 
@@ -413,7 +449,8 @@ SelectionManager.SELECTION_PROVIDERS = [
     {
         path: /(\/authors\/OL\d+A.*|\/search)$/,
         selector: '.searchResultItem',
-        type: ['work','edition'],
+        handle: 'checkbox',
+        type: ['work', 'edition'],
         /**
          * @param {HTMLElement} el
          * @return {import('../ol.js').WorkOLID}
@@ -423,12 +460,27 @@ SelectionManager.SELECTION_PROVIDERS = [
             return (parts.length > 1 && parts[0] !== parts[1]) ? parts.join(':') : parts[0];
         },
     },
+    {
+        path: /.*/,
+        selector: '.carousel__item .book-cover',
+        handle: 'checkbox',
+        type: ['work', 'edition'],
+        /**
+         * @param {HTMLElement} el
+         * @return {import('../ol.js').WorkOLID}
+         **/
+        data: el => {
+            const parts = $(el).find('a[href^="/works/OL"], a[href^="/books/OL"]')[0].href.match(/OL\d+[WM]/g);
+            return (parts.length > 1 && parts[0] !== parts[1]) ? parts.join(':') : parts[0];
+        },
+    },
     /**
      * This selection provider makes editions in the editions table selectable.
      */
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         selector: '.book',
+        handle: 'checkbox',
         type: ['edition'],
         /**
          * @param {HTMLElement} el
@@ -442,7 +494,7 @@ SelectionManager.SELECTION_PROVIDERS = [
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         selector: 'a[href^="/authors/OL"]',
-        addHandle: true,
+        handle: 'inline',
         type: ['author'],
         /**
          * @param {HTMLAnchorElement} el

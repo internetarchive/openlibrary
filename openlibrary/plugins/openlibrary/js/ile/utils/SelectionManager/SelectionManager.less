@@ -1,23 +1,10 @@
-@selection-outline: #009fff;
-@selection-background: #c2e8ff;
+@selection-blue: #009fff;
 @ile-toolbar-background: #0067d5;
 @ile-toolbar-text-color: white;
 // Not sure where to put this...
 @ile-toolbar-z-index: 10;
+@z-index-1: 1;
 
-.ile-drag-over {
-  box-shadow: 0 0 10px 2px inset @selection-outline;
-}
-.ile-selectable {
-  box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
-  transition-duration: 0.2s;
-  transition-property: background-color, box-shadow;
-  border-radius: 4px;
-}
-.ile-selected {
-  box-shadow: 0 0 0 2px inset @selection-outline;
-  background: @selection-background;
-}
 #ile-toolbar {
   display: flex;
   position: sticky;
@@ -77,21 +64,80 @@
   background: rgba(0, 0, 0, 0.15);
 }
 
+.ile-drag-over {
+  box-shadow: 0 0 10px 2px inset @selection-blue;
+}
+.ile-selectable {
+  position: relative;
+  transition-duration: 0.2s;
+  transition-property: background-color, box-shadow;
+  border-radius: 4px;
+
+  & .bookcover {
+    transition: scale 0.2s;
+  }
+
+  &.ile-selected .bookcover {
+    scale: 0.9;
+  }
+}
+
+.ile-selectable:not(.ile-selected) {
+  box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
+}
+
+.ile-selected {
+  box-shadow:
+    0 0 12px 2px inset fade(@selection-blue, 15%),
+    0 0 0 2px inset fade(@selection-blue, 66%);
+  background: fade(@selection-blue, 10%);
+}
+
+.carousel {
+  // can only click checkbox in carousel
+  .ile-selectable:not(.ile-selected) {
+    box-shadow: none;
+  }
+
+  // Can't drag in carousel because that just moves the carousel
+  .ile-selected {
+    cursor: default;
+  }
+}
+
 a.ile-selectable[href^="/authors/OL"] {
   padding-right: 4px;
   text-decoration: none;
 }
 
 .ile-select-handle {
-  padding: 0 5px;
-  text-decoration: none;
-  opacity: 0.2;
+  opacity: 0;
+
   cursor: default;
   transition: opacity 0.2s;
-  color: @selection-outline;
+  color: @selection-blue;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 12px;
+  z-index: @z-index-1;
+  scale: 1.4;
+
+  .carousel &,
+  .layout-books--grid & {
+    opacity: 0.4;
+  }
+}
+
+.ile-selectable--inline .ile-select-handle {
+  position: static;
+  scale: 1;
+  margin: 0 1ch;
 }
 
 .ile-selected .ile-select-handle,
-.ile-select-handle:hover {
+.ile-select-handle:hover,
+body:has(.ile-selected) .ile-select-handle {
   opacity: 1;
 }
