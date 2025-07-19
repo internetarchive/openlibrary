@@ -75,7 +75,7 @@ export function trimInputValues(param) {
 
 export function buildPartialsUrl(component, params = {}) {
     const curUrl = new URL(window.location.href);
-    const url = new URL(location.origin + '/partials.json');
+    const url = new URL(`${location.origin}/partials.json`);
 
     url.searchParams.set('_component', component)
 
