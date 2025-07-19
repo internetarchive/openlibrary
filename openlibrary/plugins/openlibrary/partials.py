@@ -38,9 +38,11 @@ class PartialDataHandler(ABC):
 class ReadingGoalProgressPartial(PartialDataHandler):
     """Handler for reading goal progress."""
 
+    def __init__(self):
+        self.i = web.input(year=None)
+
     def generate(self) -> dict:
-        i = web.input(year=None)
-        year = i.year or datetime.now().year
+        year = self.i.year or datetime.now().year
         goal = get_reading_goals(year=year)
         component = render_template('check_ins/reading_goal_progress', [goal])
 

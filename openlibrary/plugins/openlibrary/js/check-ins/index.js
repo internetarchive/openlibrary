@@ -590,7 +590,7 @@ function updateProgressComponent(elem, goal) {
 function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
     fetch(buildPartialsUrl('/partials.json', {
         _component: 'ReadingGoalProgress',
-        data: JSON.stringify({ year: goalYear}),
+        year: goalYear
     }))
         .then((response) => {
             if (!response.ok) {
