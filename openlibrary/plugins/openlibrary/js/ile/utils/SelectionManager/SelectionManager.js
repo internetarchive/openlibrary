@@ -34,9 +34,6 @@ export default class SelectionManager {
         this.dragEnd = this.dragEnd.bind(this);
         this.onDrop = this.onDrop.bind(this);
         this.allowDrop = this.allowDrop.bind(this);
-
-        // Collator used to naturally order OLIDs before constructing URL
-        this.collator = new Intl.Collator('en-US', {numeric: true});
     }
 
     init() {
@@ -222,22 +219,43 @@ export default class SelectionManager {
         });
 
         if (statusParts.length) {
-            this.ile.setStatusText(`${statusParts.join(', ')} selected`);
+            const selectedItems = this.getSelectedItems();
+            let text = `${statusParts.join(', ')} selected`;
+            if (selectedItems.length === 1) {
+                text += ` (${selectedItems[0]})`;
+            }
+            this.ile.setStatusText(text);
             this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
         } else {
             this.ile.setStatusText('');
         }
 
+        const explodedItems = this.getSelectedItems().flatMap(olid => olid.split(':'));
+        const explodedItemsByType = Object.fromEntries(
+            SelectionManager.TYPES.map(type => [type.singular, explodedItems.filter(olid => type.regex.test(olid))])
+        );
         for (const action of SelectionManager.ACTIONS) {
-            const items = [];
-            if (action.requires_type.every(type => this.selectedItems[type].length > 0)) {
-                action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
-                if (action.multiple_only ? items.length > 1 : items.length > 0)
+            const shouldExplode = 'explode_work_edition_olids' in action ? action.explode_work_edition_olids : false;
+            const selectedItems = shouldExplode ? explodedItemsByType : this.selectedItems;
+            const items  = action.applies_to_type.map(type => selectedItems[type]).flat();
+            if (!action.requires_type || action.requires_type.every(type => this.selectedItems[type].length > 0)) {
+                if (action.count === 'single') {
+                    if (items.length !== 1) continue; // Skip if not exactly one item selected
+
                     if (action.href) {
-                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
-                    } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(items[0])}">${action.name}</a>`));
                     }
+                }
+
+                if (action.count === 'multiple') {
+                    if (!action.applies || action.applies(items)) {
+                        if (action.href) {
+                            this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
+                        } else if (action.onclick && action.name === 'Tag Works') {
+                            this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
+                        }
+                    }
+                }
             }
         }
     }
@@ -532,23 +550,52 @@ SelectionManager.SELECTION_PROVIDERS = [
  */
 SelectionManager.ACTIONS = [
     {
+        applies_to_type: ['work', 'edition'],
+        count: 'single',
+        name: 'Edit book',
+        href: olid => olid.includes(':') ? `/books/${olid.split(':')[1]}/-/edit` :
+            olid.endsWith('M') ? `/books/${olid}/-/edit` : `/works/${olid}/-/edit`,
+    },
+    {
+        applies_to_type: ['author'],
+        count: 'single',
+        name: 'Edit author',
+        href: olid => `/authors/${olid}/-/edit`,
+    },
+    ...['work', 'edition'].map(type => ({
+        count: 'single',
+        explode_work_edition_olids: true,
+        applies_to_type: [type],
+        name: `Add ${type} cover`,
+        href: olid => olid.endsWith('M') ? `/books/${olid}/-/add-cover` : `/works/${olid}/-/add-cover`,
+    })),
+    ...['work', 'edition'].map(type => ({
+        count: 'single',
+        explode_work_edition_olids: true,
+        applies_to_type: [type],
+        name: `Manage ${type} covers`,
+        href: olid => olid.endsWith('M') ? `/books/${olid}/-/manage-covers` : `/works/${olid}/-/manage-covers`,
+    })),
+    {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
-        multiple_only: false,
+        count: 'multiple',
         name: 'Tag Works',
         onclick: true,
     },
     {
         applies_to_type: ['work', 'edition', 'author'],
         requires_type: [],
-        multiple_only: false,
+        count: 'multiple',
+        applies: olids => olids.length > 1,
         name: 'Create list...',
         href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
     },
     {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
-        multiple_only: true,
+        count: 'multiple',
+        applies: olids => olids.length > 1,
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
     },
@@ -556,7 +603,8 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['edition'],
         requires_type: ['edition'],
-        multiple_only: true,
+        count: 'multiple',
+        applies: olids => olids.length > 1,
         name: 'Merge Editions...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
     },
@@ -564,7 +612,8 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['author'],
         requires_type: ['author'],
-        multiple_only: true,
+        count: 'multiple',
+        applies: olids => olids.length > 1,
         name: 'Merge Authors...',
         href: olids => `/authors/merge?records=${olids.join(',')}`,
     },
