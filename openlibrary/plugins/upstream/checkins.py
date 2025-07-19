@@ -9,7 +9,6 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
-from openlibrary.app import render_template
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -259,19 +258,6 @@ class YearlyGoal:
     @classmethod
     def calc_progress(cls, books_read, goal):
         return floor((books_read / goal) * 100)
-
-
-class ui_partials(delegate.page):
-    path = '/reading-goal/partials'
-    encoding = 'json'
-
-    def GET(self):
-        i = web.input(year=None)
-        year = i.year or datetime.now().year
-        goal = get_reading_goals(year=year)
-        component = render_template('check_ins/reading_goal_progress', [goal])
-        partials = {"partials": str(component)}
-        return delegate.RawText(json.dumps(partials))
 
 
 def setup():

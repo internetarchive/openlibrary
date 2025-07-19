@@ -1,5 +1,6 @@
 import json
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import cast
 from urllib.parse import parse_qs
 
@@ -11,6 +12,7 @@ from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_user_lists
+from openlibrary.plugins.upstream.checkins import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.views.loanstats import get_trending_books
@@ -31,6 +33,20 @@ class PartialDataHandler(ABC):
     @abstractmethod
     def generate(self) -> dict:
         pass
+
+
+class ReadingGoalProgressPartial(PartialDataHandler):
+    """Handler for reading goal progress."""
+
+    def __init__(self):
+        self.i = web.input(year=None)
+
+    def generate(self) -> dict:
+        year = self.i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component = render_template('check_ins/reading_goal_progress', [goal])
+
+        return {"partials": str(component)}
 
 
 class MyBooksDropperListsPartial(PartialDataHandler):
@@ -344,6 +360,7 @@ class PartialRequestResolver:
         "BPListsSection": BookPageListsPartial,
         "LazyCarousel": LazyCarouselPartial,
         "MyBooksDropperLists": MyBooksDropperListsPartial,
+        "ReadingGoalProgress": ReadingGoalProgressPartial,
     }
 
     @staticmethod
