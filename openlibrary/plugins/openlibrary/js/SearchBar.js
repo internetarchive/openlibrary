@@ -29,9 +29,14 @@ const RENDER_AUTOCOMPLETE_RESULT = {
     ['/search'](work) {
         const book = work.editions?.docs?.[0] || work;
         const author_name = work.author_name ? work.author_name[0] : '';
+        // See _get_safepath_re in openlibrary/core/helpers.py
+        let link = `${work.key}/${encodeURIComponent(work.title.replace(/[;/?:@&=+$,\s<>#%"{}|\\^[\]`]+/g, '_'))}`;
+        if (book !== work) {
+            link += `?edition=key:${book.key}`;
+        }
         return `
             <li tabindex=0>
-                <a href="${work.key}">
+                <a href="${link}">
                     <img
                         src="//covers.openlibrary.org/b/id/${book.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png"
                         srcset="//covers.openlibrary.org/b/id/${book.cover_i}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png 2x"
