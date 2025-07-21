@@ -32,7 +32,11 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li tabindex=0>
                 <a href="${work.key}">
-                    <img src="//covers.openlibrary.org/b/id/${book.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
+                    <img
+                        src="//covers.openlibrary.org/b/id/${book.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png"
+                        srcset="//covers.openlibrary.org/b/id/${book.cover_i}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png 2x"
+                        alt=""
+                    />
                     <span class="book-desc">
                         <div class="book-title">${websafe(book.title)}</div>
                         <div class="book-subtitle">${websafe(book.subtitle)}</div>
@@ -45,7 +49,11 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <img
+                        src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png"
+                        srcset="//covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png 2x"
+                        alt=""
+                    />
                     <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;

@@ -482,7 +482,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: 0.3em;
+      border-radius: 6px;
       position: relative;
     }
 
@@ -501,46 +501,47 @@
       position: relative;
 
       /* stylelint-disable selector-max-specificity */
-      .search-results {
-        background: @white;
-        border-top-left-radius: 0.3em;
-        border-top-right-radius: 0.3em;
+      .search-results li {
+        text-align: left;
+        padding: 7px;
+        border-top: 1px solid @lighter-grey;
+        font-size: @font-size-label-large;
+        transition: background-color 0.2s;
 
-        li {
-          text-align: left;
-          padding: 7px;
-          border-top: 1px solid @lighter-grey;
-          font-size: 0.9rem;
-          &:hover {
-            background-color: @white;
+        &:last-child {
+          border-radius: 0 0 6px 6px;
+        }
+
+        &:hover {
+          background-color: @white;
+        }
+
+        a {
+          .display-flex();
+          text-decoration: none;
+          color: @dark-grey;
+
+          img {
+            width: 40px;
+            min-width: 40px;
+            height: 60px;
+            min-height: 60px;
+            background-color: @lightest-grey;
+            margin-right: 10px;
+            object-fit: cover;
+            border-radius: 4px;
           }
 
-          a {
-            .display-flex();
+          .book-desc {
+            font-weight: 300;
             text-decoration: none;
-            color: @dark-grey;
 
-            img {
-              width: 40px;
-              min-width: 40px;
-              height: 60px;
-              min-height: 60px;
-              background-color: @lightest-grey;
-              margin-right: 10px;
-              object-fit: cover;
+            .book-title {
+              font-weight: bold;
             }
 
-            .book-desc {
-              font-weight: 300;
-              text-decoration: none;
-
-              .book-title {
-                font-weight: bold;
-              }
-
-              .book-author {
-                color: @dark-blue;
-              }
+            .book-author {
+              color: @dark-blue;
             }
           }
         }
