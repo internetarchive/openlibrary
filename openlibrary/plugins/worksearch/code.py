@@ -83,7 +83,7 @@ def get_solr_works(
     from openlibrary.plugins.worksearch.search import get_solr
 
     if not fields:
-        fields = WorkSearchScheme.default_fetched_fields
+        fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
 
     if editions:
         # To get the top matching edition, need to do a proper query
@@ -91,7 +91,7 @@ def get_solr_works(
             WorkSearchScheme(),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
-            fields=list(set(fields) | {'editions'}),
+            fields=list(fields),
             facet=False,
         )
         return {
@@ -622,7 +622,9 @@ def works_by_author(
                 "time_facet",
             ]
         ),
-        fields=WorkSearchScheme.default_fetched_fields | {'editions'},
+        fields=list(
+            WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
+        ),
         extra_params=[
             ('fq', f'author_key:{akey}'),
             ('facet.limit', 25),
