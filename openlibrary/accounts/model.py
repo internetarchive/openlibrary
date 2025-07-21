@@ -9,8 +9,8 @@ import secrets
 import string
 import time
 import uuid
-from typing import TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import requests
 import web
@@ -831,16 +831,16 @@ class InternetArchiveAccount(web.storage):
 
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn#activate
         """
-        payload = {
-            'token': token,
-            'welcome-email': welcome_email
-        }
+        payload = {'token': token, 'welcome-email': welcome_email}
 
         response = cls.xauth(op='activate', test=test, **payload)
 
         if not response.get('success'):
             reason = response.get('values', {}).get('reason') or response.get('error')
-            return {'error': reason or 'activation_failed', 'code': response.get('code', 409)}
+            return {
+                'error': reason or 'activation_failed',
+                'code': response.get('code', 409),
+            }
 
         return response.get('values', response)
 

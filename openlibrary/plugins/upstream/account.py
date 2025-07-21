@@ -456,7 +456,7 @@ class account_login(delegate.page):
         for k in kwargs:
             web.setcookie(k, v, expires=expires if kwargs[k] else 1)
 
-    def login(self, 
+    def login(self,
             username="",
             connect=None,
             password="",
@@ -466,7 +466,7 @@ class account_login(delegate.page):
             access=None,
             secret=None,
             action="",
-        ):    
+        ):
         email = '' if (access and secret) else username
         audit = audit_accounts(
             email,
