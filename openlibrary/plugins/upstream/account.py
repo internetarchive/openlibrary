@@ -2,7 +2,6 @@ import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
 from datetime import datetime
-from enum import Enum
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
@@ -347,61 +346,6 @@ class account_create(delegate.page):
 del delegate.pages['/account/register']
 
 
-def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> None:
-    if ol_account.get_user().get_safe_mode() == 'yes':
-        web.setcookie('sfw', 'yes', expires=expires)
-    if 'yrg_banner_pref' in ol_account.get_user().preferences():
-        web.setcookie(
-            ol_account.get_user().preferences()['yrg_banner_pref'],
-            '1',
-            expires=(3600 * 24 * 365),
-        )
-
-
-class PDRequestStatus(Enum):
-    REQUESTED = 0
-    EMAILED = 1
-    FULFILLED = 2
-
-
-def _update_account_on_pd_request(ol_account: OpenLibraryAccount) -> None:
-    pda = web.cookies().get("pda")
-    ol_account.get_user().save_preferences(
-        {
-            "rpd": PDRequestStatus.REQUESTED.value,
-            "pda": pda,
-        }
-    )
-
-
-def _notify_on_rpd_verification(ol_account, org):
-    if org:
-        org = "vtmas_disabilityresources" if org == "unqualified" else org
-        displayname = web.safestr(ol_account.displayname)
-        msg = render_template(
-            "email/account/pd_request", displayname=displayname, org=org
-        )
-        web.sendmail(
-            config.from_address,
-            ol_account.email,
-            subject=msg.subject.strip(),
-            message=msg,
-        )
-        ol_account.get_user().save_preferences(
-            {
-                "rpd": PDRequestStatus.EMAILED.value,
-            }
-        )
-
-
-def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount) -> None:
-    ol_account.get_user().save_preferences({"rpd": PDRequestStatus.FULFILLED.value})
-
-
-def _expire_pd_cookies():
-    web.setcookie("pda", "", expires=1)
-
-
 class account_login_json(delegate.page):
     encoding = "json"
     path = "/account/login"
@@ -495,7 +439,7 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(
+        self.login(web.input(
             username="",
             connect=None,
             password="",
@@ -505,35 +449,51 @@ class account_login(delegate.page):
             access=None,
             secret=None,
             action="",
-        )
-        email = '' if (i.access and i.secret) else i.username
+        ))
+
+    def set_cookies(self, remember=None, **kwargs):
+        expires = 3600 * 24 * 365 if remember else ""
+        for k in kwargs:
+            web.setcookie(k, v, expires=expires if kwargs[k] else 1)
+
+    def login(self, 
+            username="",
+            connect=None,
+            password="",
+            remember=False,
+            redirect='/',
+            test=False,
+            access=None,
+            secret=None,
+            action="",
+        ):    
+        email = '' if (access and secret) else username
         audit = audit_accounts(
             email,
-            i.password,
+            password,
             require_link=True,
-            s3_access_key=i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
-            s3_secret_key=i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
-            test=i.test,
+            s3_access_key=access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
+            s3_secret_key=secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
+            test=test,
         )
         if error := audit.get('error'):
+            # Hack since login no longer has `i`, e.g. in ther verify case
+            i = {k: v for k, v in locals().items() if k != 'self'}
             return self.render_error(error, i)
         email = email or audit.get('ia_email') or audit.get('ol_email')
 
-        expires = 3600 * 24 * 365 if i.remember else ""
-        web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
-        web.setcookie(
-            config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
-        )
-
         if ol_account := OpenLibraryAccount.get(email=email):
-            _set_account_cookies(ol_account, expires)
+            cookies = {
+                config.login_cookie_name: web.ctx.conn.get_auth_token(),
+                'pd': audit.get('special_access', ''),
+                'sfw': 'yes' if ol_user.get_safe_mode() == 'yes' else '',
+                'yrg_banner_pref': '1' if  else '',
+            }
+            if 'yrg_banner_pref' in ol_account.get_user().preferences():
+                cookies[ol_account.get_user().preferences()['yrg_banner_pref']] = '1'
+            self.set_cookies(**cookies)
 
-            if web.cookies().get("pda"):
-                _update_account_on_pd_request(ol_account)
-                _notify_on_rpd_verification(
-                    ol_account, get_pd_org(web.cookies().get("pda"))
-                )
-                _expire_pd_cookies()
+            if web.cookies().get("pda", ''):
                 add_flash_message(
                     "info",
                     _(
@@ -542,14 +502,7 @@ class account_login(delegate.page):
                         "an email detailing next steps in the process."
                     ),
                 )
-
-            has_special_access = audit.get('special_access')
-            if (
-                has_special_access
-                and ol_account.get_user().preferences().get('rpd')
-                != PDRequestStatus.FULFILLED.value
-            ):
-                _update_account_on_pd_fulfillment(ol_account)
+                self.set_cookies(pda='')
 
         blacklist = [
             "/account/login",
@@ -560,10 +513,10 @@ class account_login(delegate.page):
         if flash_message := self.perform_post_login_action(i, ol_account):
             add_flash_message('note', _(flash_message))
 
-        if i.redirect == "" or any(path in i.redirect for path in blacklist):
-            i.redirect = "/account/books"
+        if redirect == "" or any(path in redirect for path in blacklist):
+            redirect = "/account/books"
         stats.increment('ol.account.xauth.login')
-        raise web.seeother(i.redirect)
+        raise web.seeother(redirect)
 
 
 class account_logout(delegate.page):
@@ -625,16 +578,18 @@ class account_validation(delegate.page):
 
 
 class account_email_verify(delegate.page):
-    path = "/account/email/verify/([0-9a-f]*)"
+    path = "/account/verify"
 
-    def GET(self, code):
-        if link := accounts.get_link(code):
-            username = link['username']
-            email = link['email']
-            link.delete()
-            return self.update_email(username, email)
-        else:
-            return self.bad_link()
+    def GET(self):
+        i = web.input(t=None)
+        r = InternetArchiveAccount.verify(token=i.t)
+        if not 'error' in r:
+            return account_login.login(
+                email=r.get('email')
+                s3_access_key=r['s3'].get('access'),
+                s3_secret_key=r['s3'].get('secret')
+            )
+        raise # XXX
 
     def update_email(self, username, email):
         if accounts.find(email=email):
