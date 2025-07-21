@@ -3,6 +3,7 @@ import signal
 # Global flag indicating whether a shutdown signal has been received.
 _shutdown_requested = False
 
+
 def _shutdown_handler(signum, frame):
     """
     Signal handler that sets the global `_stop_requested` flag to True
@@ -14,7 +15,8 @@ def _shutdown_handler(signum, frame):
     """
     global _shutdown_requested
     _shutdown_requested = True
-    print(f"\n[graceful_shutdown] Received shutdown signal, stopping...")
+    print("\n[graceful_shutdown] Received shutdown signal, stopping...")
+
 
 def was_shutdown_requested() -> bool:
     """
@@ -25,6 +27,7 @@ def was_shutdown_requested() -> bool:
               False otherwise.
     """
     return _shutdown_requested
+
 
 def init_signal_handler():
     """
