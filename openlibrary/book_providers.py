@@ -207,7 +207,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         acq_sorted = sorted(
             (
                 p
-                for p in map(Acquisition.from_json, ed_or_solr.get('providers', []))
+                for p in self.get_acquisitions(ed_or_solr)
                 if p.ebook_access >= EbookAccess.PRINTDISABLED
             ),
             key=lambda p: p.ebook_access,
@@ -259,10 +259,10 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
 
     def get_acquisitions(
         self,
-        edition: Edition | web.Storage,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
-        if edition.providers:
-            return [Acquisition.from_json(dict(p)) for p in edition.providers]
+        if providers := ed_or_solr.get('providers', []):
+            return [Acquisition.from_json(dict(p)) for p in providers]
         else:
             return []
 
@@ -342,14 +342,14 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(edition)}',
+                url=f'https://archive.org/details/{self.get_best_identifier(ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
@@ -367,16 +367,13 @@ class LibriVoxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
-    def get_acquisitions(
-        self,
-        edition: Edition,
-    ) -> list[Acquisition]:
+    def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='audio',
                 price=None,
-                url=f'https://librivox.org/{self.get_best_identifier(edition)}',
+                url=f'https://librivox.org/{self.get_best_identifier(ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
@@ -392,14 +389,14 @@ class ProjectGutenbergProvider(AbstractBookProvider):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(edition)}',
+                url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
@@ -416,14 +413,14 @@ class ProjectRunebergProvider(AbstractBookProvider):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://runeberg.org/{self.get_best_identifier(edition)}/',
+                url=f'https://runeberg.org/{self.get_best_identifier(ed_or_solr)}/',
                 provider_name=self.short_name,
             )
         ]
@@ -440,9 +437,9 @@ class StandardEbooksProvider(AbstractBookProvider):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
-        standard_ebooks_id = self.get_best_identifier(edition)
+        standard_ebooks_id = self.get_best_identifier(ed_or_solr)
         base_url = 'https://standardebooks.org/ebooks/' + standard_ebooks_id
         flat_id = standard_ebooks_id.replace('/', '_')
         return [
@@ -473,14 +470,14 @@ class OpenStaxProvider(AbstractBookProvider):
 
     def get_acquisitions(
         self,
-        edition: Edition,
+        ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://openstax.org/details/books/{self.get_best_identifier(edition)}',
+                url=f'https://openstax.org/details/books/{self.get_best_identifier(ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
@@ -493,6 +490,20 @@ class CitaPressProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
+
+    def get_acquisitions(
+        self,
+        ed_or_solr: Edition | dict,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://citapress.org/{self.get_best_identifier(ed_or_solr)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class DirectProvider(AbstractBookProvider):
@@ -561,13 +572,13 @@ class WikisourceProvider(AbstractBookProvider):
     identifier_key = 'wikisource'
 
     @override
-    def get_acquisitions(self, edition: Edition) -> list[Acquisition]:
+    def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://wikisource.org/wiki/{self.get_best_identifier(edition)}',
+                url=f'https://wikisource.org/wiki/{self.get_best_identifier(ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
