@@ -574,7 +574,7 @@ class search(delegate.page):
             param = {}
 
         page = int(param.get('page', 1))
-        sort = param.get('sort', None)
+        sort = param.get('sort')
         rows = 20
         if param:
             search_response = do_search(
