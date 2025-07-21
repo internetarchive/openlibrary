@@ -10,6 +10,7 @@ from pathlib import Path
 import web
 
 import infogami
+from infogami.infobase.client import ClientException
 from openlibrary.config import load_config
 
 DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
@@ -36,7 +37,11 @@ def delete_records(batches):
     """
     while (batches != 0) and (keys := web.ctx.site.store.keys(type=RECORD_TYPE)):
         for key in keys:
-            web.ctx.site.store.delete(key)
+            try:
+                web.ctx.site.store.delete(key)
+            except ClientException:
+                print(f'Failed to delete record with key {key}\nContinuing...')
+                continue
         batches -= 1
 
 
