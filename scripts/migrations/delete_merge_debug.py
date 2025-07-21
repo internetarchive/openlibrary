@@ -12,12 +12,14 @@ import web
 import infogami
 from infogami.infobase.client import ClientException
 from openlibrary.config import load_config
+from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
 RECORD_TYPE = "merge-authors-debug"
 
 
 def setup(config_path):
+    init_signal_handler()
     if not Path(config_path).exists():
         raise FileNotFoundError(f'no config file at {config_path}')
     load_config(config_path)
@@ -35,7 +37,11 @@ def delete_records(batches):
     :param batches: The number of records to delete.
     :return:
     """
-    while (batches != 0) and (keys := web.ctx.site.store.keys(type=RECORD_TYPE)):
+    while (
+        not was_shutdown_requested()
+        and (batches != 0)
+        and (keys := web.ctx.site.store.keys(type=RECORD_TYPE))
+    ):
         for key in keys:
             try:
                 web.ctx.site.store.delete(key)
