@@ -102,8 +102,8 @@ msgstr ""
 msgid "Preview Only"
 msgstr ""
 
-#: BookPreview.html book_providers/direct_read_button.html
-#: books/edit/edition.html editpage.html
+#: BookPreview.html book_providers/read_button.html books/edit/edition.html
+#: editpage.html
 msgid "Preview"
 msgstr ""
 
@@ -356,15 +356,8 @@ msgid "Loading indicator"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html books/edit/edition.html
-#: books/show.html books/works-show.html trending.html type/list/embed.html
-#: widget.html
+#: book_providers/read_button.html books/edit/edition.html books/show.html
+#: books/works-show.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -4129,14 +4122,6 @@ msgstr ""
 msgid "More at Cita Press"
 msgstr ""
 
-#: book_providers/cita_press_read_button.html
-msgid "Read eBook from Cita Press"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-msgid "Read free online"
-msgstr ""
-
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
 msgstr ""
@@ -4170,10 +4155,6 @@ msgstr ""
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid "Read eBook from Project Gutenberg"
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -4224,14 +4205,6 @@ msgstr ""
 msgid "More at LibriVox"
 msgstr ""
 
-#: book_providers/librivox_read_button.html
-msgid "Listen to a reading from LibriVox"
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid "Audiobook"
-msgstr ""
-
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
 msgstr ""
@@ -4240,8 +4213,18 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
-#: book_providers/openstax_read_button.html
-msgid "Read eBook from OpenStax"
+#: book_providers/read_button.html
+#, python-format
+msgid "Listen to a reading from %s"
+msgstr ""
+
+#: book_providers/read_button.html
+msgid "Audiobook"
+msgstr ""
+
+#: book_providers/read_button.html
+#, python-format
+msgid "Read free online from %s"
 msgstr ""
 
 #: book_providers/runeberg_download_options.html
@@ -4284,10 +4267,6 @@ msgstr ""
 msgid "More at Project Runeberg"
 msgstr ""
 
-#: book_providers/runeberg_read_button.html
-msgid "Read eBook from Project Runeberg"
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
 msgstr ""
@@ -4320,10 +4299,6 @@ msgstr ""
 msgid "More at Standard Ebooks"
 msgstr ""
 
-#: book_providers/standard_ebooks_read_button.html
-msgid "Read eBook from Standard eBooks"
-msgstr ""
-
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
 msgstr ""
@@ -4346,10 +4321,6 @@ msgstr ""
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_read_button.html
-msgid "Read eBook on Wikisource"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html

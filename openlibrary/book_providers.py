@@ -148,6 +148,9 @@ TProviderMetadata = TypeVar('TProviderMetadata')
 class AbstractBookProvider(Generic[TProviderMetadata]):
     short_name: str
 
+    """Human-readable name of the provider, used in the UI."""
+    long_name: str | None = None
+
     """
     The key in the identifiers field on editions;
     see https://openlibrary.org/config/edition
@@ -200,11 +203,33 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         edition_key: str,
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
-    ) -> TemplateResult:
+    ) -> TemplateResult | str:
+        acq_sorted = sorted(
+            (
+                p
+                for p in map(Acquisition.from_json, ed_or_solr.get('providers', []))
+                if p.ebook_access >= EbookAccess.PRINTDISABLED
+            ),
+            key=lambda p: p.ebook_access,
+            reverse=True,
+        )
+        if not acq_sorted:
+            return ''
+
+        acquisition = acq_sorted[0]
+        # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
+        url = (
+            "https://" + acquisition.url
+            if not acquisition.url.startswith("http")
+            else acquisition.url
+        )
+        parsed_url = parse.urlparse(url)
+        domain = parsed_url.netloc
         return render_template(
-            self.get_template_path('read_button'),
+            "book_providers/read_button.html",
             edition_key,
-            self.get_best_identifier(ed_or_solr),
+            acquisition,
+            self.long_name or domain,
             analytics_attr,
         )
 
@@ -244,6 +269,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
 
 class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     short_name = 'ia'
+    long_name = 'Internet Archive'
     identifier_key = 'ocaid'
 
     @property
@@ -331,6 +357,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
 class LibriVoxProvider(AbstractBookProvider):
     short_name = 'librivox'
+    long_name = 'LibriVox'
     identifier_key = 'librivox'
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
@@ -357,6 +384,7 @@ class LibriVoxProvider(AbstractBookProvider):
 
 class ProjectGutenbergProvider(AbstractBookProvider):
     short_name = 'gutenberg'
+    long_name = 'Project Gutenberg'
     identifier_key = 'project_gutenberg'
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -379,6 +407,7 @@ class ProjectGutenbergProvider(AbstractBookProvider):
 
 class ProjectRunebergProvider(AbstractBookProvider):
     short_name = 'runeberg'
+    long_name = 'Project Runeberg'
     identifier_key = 'project_runeberg'
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -402,6 +431,7 @@ class ProjectRunebergProvider(AbstractBookProvider):
 
 class StandardEbooksProvider(AbstractBookProvider):
     short_name = 'standard_ebooks'
+    long_name = 'Standard Ebooks'
     identifier_key = 'standard_ebooks'
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -435,6 +465,7 @@ class StandardEbooksProvider(AbstractBookProvider):
 
 class OpenStaxProvider(AbstractBookProvider):
     short_name = 'openstax'
+    long_name = 'OpenStax'
     identifier_key = 'openstax'
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -457,6 +488,7 @@ class OpenStaxProvider(AbstractBookProvider):
 
 class CitaPressProvider(AbstractBookProvider):
     short_name = 'cita_press'
+    long_name = 'Cita Press'
     identifier_key = 'cita_press'
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -465,6 +497,7 @@ class CitaPressProvider(AbstractBookProvider):
 
 class DirectProvider(AbstractBookProvider):
     short_name = 'direct'
+    long_name = None
     identifier_key = None
 
     @property
@@ -504,37 +537,6 @@ class DirectProvider(AbstractBookProvider):
         else:
             # TODO: Not implemented for search/solr yet
             return []
-
-    def render_read_button(
-        self,
-        edition_key: str,
-        ed_or_solr: Edition | dict,
-        analytics_attr: Callable[[str], str],
-    ) -> TemplateResult | str:
-        acq_sorted = sorted(
-            (
-                p
-                for p in map(Acquisition.from_json, ed_or_solr.get('providers', []))
-                if p.ebook_access >= EbookAccess.PRINTDISABLED
-            ),
-            key=lambda p: p.ebook_access,
-            reverse=True,
-        )
-        if not acq_sorted:
-            return ''
-
-        acquisition = acq_sorted[0]
-        # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
-        url = (
-            "https://" + acquisition.url
-            if not acquisition.url.startswith("http")
-            else acquisition.url
-        )
-        parsed_url = parse.urlparse(url)
-        domain = parsed_url.netloc
-        return render_template(
-            self.get_template_path('read_button'), edition_key, acquisition, domain
-        )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
         # Return an empty string until #9581 is addressed.
