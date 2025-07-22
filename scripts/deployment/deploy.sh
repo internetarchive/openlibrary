@@ -118,7 +118,7 @@ check_server_access() {
     echo "Checking server access..."
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-    
+
     for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
         DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
@@ -142,7 +142,7 @@ copy_to_servers() {
 
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-    
+
     echo "Copying to the servers..."
     for SERVER in $FQDNS; do
         echo -n "   $SERVER: Copying ... "
@@ -199,7 +199,7 @@ ssh_docker_compose() {
 reset_hard() {
     HOSTNAMES=${SERVERS:-$WEB_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-    
+
     echo "[Now] Performing clean docker reset of $HOSTNAMES containers"
     for SERVER in $FQDNS; do
         echo "Resetting $SERVER container (docker down up)..."
@@ -211,7 +211,7 @@ reset_hard() {
 deploy_olsystem() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-    
+
     echo "[Now] Starting $REPO deployment at $(date)"
     echo "Deploying to: $HOSTNAMES"
 
@@ -347,7 +347,7 @@ check_olbase_image_up_to_date() {
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
-    
+
     echo "[Now] Deploying openlibrary"
 
     cd $DEPLOY_DIR
