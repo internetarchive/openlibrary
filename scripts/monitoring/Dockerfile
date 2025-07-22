@@ -45,4 +45,4 @@ RUN if [ -n "$APT_MIRROR" ]; \
 
 # Install requirements.txt
 COPY --chown=openlibrary:openlibrary scripts/monitoring/requirements.txt scripts/monitoring/requirements.txt
-RUN python -m pip install -r scripts/monitoring/requirements.txt
+RUN uv pip install -r scripts/monitoring/requirements.txt

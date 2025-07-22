@@ -14,7 +14,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      - BEFORE_START=pip install -e /booklending_utils
+      - BEFORE_START=uv pip install -e /booklending_utils
     volumes:
       - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
