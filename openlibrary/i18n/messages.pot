@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
+#: openlibrary/core/bookshelves.py
+msgid "[Record deleted]"
+msgstr ""
+
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
 msgstr ""
@@ -7537,11 +7541,11 @@ msgid "View the previous version"
 msgstr ""
 
 #: type/delete/view.html
-msgid "Recreate it"
+msgid "See the page's history"
 msgstr ""
 
 #: type/delete/view.html
-msgid "See the page's history"
+msgid "Recreate it"
 msgstr ""
 
 #: type/edition/admin_bar.html
