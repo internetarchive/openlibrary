@@ -18,7 +18,7 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     return isLoading
 }
 async function getPartials(fulltextSearchSuggestion, query) {
-    return fetch(buildPartialsUrl('/partials.json', {_component: 'FulltextSearchSuggestion', data: query}))
+    return fetch(buildPartialsUrl('FulltextSearchSuggestion', {data: query}))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
