@@ -24,18 +24,17 @@ set -e
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
-OL_REPO="${DEPLOY_DIR}/openlibrary"
 
-SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
+mkdir -p $DEPLOY_DIR
+
 WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
 ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
 DEPLOY_TAG="deploy-$(date -u +%Y-%m-%d-at-%H-%M)"
-
-mkdir -p $DEPLOY_DIR
 
 # Install GNU parallel if not there
 # Check is GNU-specific because some hosts had something else called parallel installed
@@ -118,8 +117,9 @@ check_server_access() {
     echo ""
     echo "Checking server access..."
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-
-    for SERVER in $HOSTNAMES; do
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    
+    for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
         DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
         if [ "$DOCKER_ACCESS" == "✓" ]; then
@@ -141,9 +141,10 @@ copy_to_servers() {
     TAR_FILE=$(basename $TAR_PATH)
 
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    
     echo "Copying to the servers..."
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         echo -n "   $SERVER: Copying ... "
         ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
 
@@ -197,8 +198,10 @@ ssh_docker_compose() {
 
 reset_hard() {
     HOSTNAMES=${SERVERS:-$WEB_HOSTNAMES}
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    
     echo "[Now] Performing clean docker reset of $HOSTNAMES containers"
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         echo "Resetting $SERVER container (docker down up)..."
         ssh_docker_compose $SERVER down
         ssh_docker_compose $SERVER up --no-deps -d
@@ -207,6 +210,8 @@ reset_hard() {
 
 deploy_olsystem() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    
     echo "[Now] Starting $REPO deployment at $(date)"
     echo "Deploying to: $HOSTNAMES"
 
@@ -223,7 +228,7 @@ deploy_olsystem() {
 
     echo ""
     echo "Checking for changes in the $REPO repo on the servers..."
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         check_for_local_changes $SERVER "/opt/$REPO"
     done
     echo -e "No changes found in the $REPO repo on the servers.\n"
@@ -237,13 +242,13 @@ deploy_olsystem() {
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
 
     if ! copy_to_servers "$DEPLOY_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
-        cleanup "$DEPLOY_DIR"
+        cleanup "${DEPLOY_DIR}/olsystem"
         exit 1
     fi
 
     echo ""
     echo "Final swap..."
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
 
         if OUTPUT=$(ssh $SERVER "
@@ -259,7 +264,7 @@ deploy_olsystem() {
         else
             echo "⚠"
             echo "$OUTPUT"
-            cleanup "$DEPLOY_DIR"
+            cleanup "${DEPLOY_DIR}/olsystem"
             exit 1
         fi
     done
@@ -267,7 +272,7 @@ deploy_olsystem() {
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
     if [ $CLEANUP -eq 1 ]; then
-        cleanup "$DEPLOY_DIR"
+	cleanup "${DEPLOY_DIR}/olsystem"
     fi
 
     # Present follow-up options
@@ -293,21 +298,22 @@ date_to_timestamp() {
 
 tag_deploy() {
     # Check if tag does NOT exist
-    if ! git -C "$OL_REPO" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+    echo "${DEPLOY_DIR}/openlibrary"
+    if ! git -C "${DEPLOY_DIR}/openlibrary" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
-        git -C "$OL_REPO" tag "$DEPLOY_TAG"
-        git -C "$OL_REPO" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        git -C "${DEPLOY_DIR}/openlibrary" tag "$DEPLOY_TAG"
+        git -C "${DEPLOY_DIR}/openlibrary" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
         echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
-    git -C "$OL_REPO" tag -f production
-    git -C "$OL_REPO" push -f git@github.com:internetarchive/openlibrary.git production
+    git -C "${DEPLOY_DIR}/openlibrary" tag -f production
+    git -C "${DEPLOY_DIR}/openlibrary" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 tag_release() {
-    LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
+    LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
     echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
 }
 
@@ -340,7 +346,8 @@ check_olbase_image_up_to_date() {
 
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    
     echo "[Now] Deploying openlibrary"
 
     cd $DEPLOY_DIR
@@ -351,7 +358,7 @@ deploy_openlibrary() {
     echo ""
 
     if ! check_olbase_image_up_to_date; then
-       cleanup $DEPLOY_DIR
+	cleanup "${DEPLOY_DIR}/openlibrary"
        exit 1
     fi
 
@@ -363,7 +370,7 @@ deploy_openlibrary() {
     done
 
     echo "Checking for changes in the openlibrary repo on the servers..."
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         check_for_local_changes $SERVER "/opt/openlibrary"
     done
     echo -e "No changes found in the openlibrary repo on the servers.\n"
@@ -375,13 +382,13 @@ deploy_openlibrary() {
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
     if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-        cleanup "$DEPLOY_DIR"
+	cleanup "${DEPLOY_DIR}/openlibrary"
         exit 1
     fi
     echo ""
 
     # Fix file ownership + Make into a git repo so can easily track local mods
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         ssh $SERVER "
             set -e
             sudo chown -R root:staff /opt/openlibrary
@@ -394,7 +401,7 @@ deploy_openlibrary() {
     done
 
     if ! prune_docker image; then
-        cleanup "$DEPLOY_DIR"
+	cleanup "${DEPLOY_DIR}/openlibrary"
         exit 1
     fi
 
@@ -407,7 +414,7 @@ deploy_openlibrary() {
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
 
-    cleanup $DEPLOY_DIR
+    cleanup "${DEPLOY_DIR}/openlibrary"
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
@@ -416,7 +423,6 @@ deploy_openlibrary() {
 
 deploy_images() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
     local COMPOSE_FILE="/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml"
 
@@ -433,7 +439,7 @@ deploy_images() {
 
     local pids=()
     local output_files=()
-    for SERVER_NAME in $FQDNS; do
+    for SERVER_NAME in $HOSTNAMES; do
         echo -n "   $SERVER_NAME ... "
         # Make a temporary file to house the output
         OUTPUT_FILE=$(mktemp)
@@ -484,11 +490,12 @@ check_servers_in_sync() {
 
 check_server_storage() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
     echo "Checking server storage space..."
     local FAILED=0
     local SERVER_FAILED=0
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
         SERVER_FAILED=0
         # Get available space (in bytes) for each relevant mount point
@@ -522,6 +529,8 @@ check_server_storage() {
 
 prune_docker () {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+
     echo "[Now] Prune docker images/cache..."
 
     PRUNE_CMD=""
@@ -540,7 +549,7 @@ prune_docker () {
         fi
     done
 
-    for SERVER in $HOSTNAMES; do
+    for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
 
         if [[ -z "$PRUNE_CMD" ]]; then
@@ -642,11 +651,13 @@ deploy_wizard() {
         time tag_release
         read -p "Press Enter to continue..."
 
-        LATEST_TAG_NAME=$(git -C "$OL_REPO" describe --tags --abbrev=0)
+        LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
         echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
     fi
+
+    cleanup "$DEPLOY_DIR"
 }
 
 # See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
