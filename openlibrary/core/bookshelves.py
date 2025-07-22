@@ -557,10 +557,11 @@ class Bookshelves(db.CommonExtras):
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             solr_docs = cls.link_editions_to_works(solr_docs)
 
-            assert len(solr_docs) == len(reading_log_keys), (
-                "solr_docs is missing an item/items from reading_log_keys; "
-                "see add_storage_items_for_redirects()"
-            )
+            if len(solr_docs) < len(reading_log_keys):
+                missing = {w for w, e in reading_log_keys} - {
+                    doc['key'] for doc in solr_docs
+                }
+                logger.warning(f"Missing items in Solr: {missing}")
 
             return LoggedBooksData(
                 username=username,
