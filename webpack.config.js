@@ -91,11 +91,6 @@ module.exports = {
 
         // This option determines the name of **non-entry** chunk files.
         chunkFilename: '[name].[contenthash].js',
-
-        // Expose the module.exports of each module entry chunk through the global
-        // ol (open library)
-        library: ['ol'],
-        libraryTarget: 'this'
     },
 
     // Accurate source maps at the expense of build time.
