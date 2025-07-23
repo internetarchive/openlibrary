@@ -21,7 +21,7 @@ def setup(config_path):
     load_config(config_path)
     infogami._setup()
 
-def remediate():
+def remediate(test=False):
     def fetch_usernames():
         oldb = db.get_db()
 
@@ -72,14 +72,16 @@ def remediate():
 
     for record in usernames:
         if not is_account_active(f"account/{record['username']}") and (key := fetch_store_key(record['username'])):
-            web.ctx.site.store.delete(key)
+            print(f"Found affected record with key: {key}")
+            if not test:
+                web.ctx.site.store.delete(key)
             deleted_entries += 1
 
     print(f"Remediated {deleted_entries} `account-email` store entries.")
 
 def main(args):
     setup(args.config)
-    remediate()
+    remediate(args.test)
 
 def _parse_args():
     _parser = argparse.ArgumentParser(description=__doc__)
@@ -88,6 +90,12 @@ def _parse_args():
         "--config",
         default=DEFAULT_CONFIG_PATH,
         help="Path to the `openlibrary.yml` configuration file",
+    )
+    _parser.add_argument(
+        "-t",
+        "--test",
+        action="store_true",
+        help="Runs the script without deleting any entries",
     )
     _parser.set_defaults(func=main)
     return _parser.parse_args()
