@@ -14,12 +14,14 @@ from openlibrary.config import load_config
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
+
 def setup(config_path):
     if not Path(config_path).exists():
         raise FileNotFoundError(f'no config file at {config_path}')
 
     load_config(config_path)
     infogami._setup()
+
 
 def remediate(test=False):
     def fetch_usernames():
@@ -71,7 +73,9 @@ def remediate(test=False):
     usernames = fetch_usernames()
 
     for record in usernames:
-        if not is_account_active(f"account/{record['username']}") and (key := fetch_store_key(record['username'])):
+        if not is_account_active(f"account/{record['username']}") and (
+            key := fetch_store_key(record['username'])
+        ):
             print(f"Found affected record with key: {key}")
             if not test:
                 web.ctx.site.store.delete(key)
@@ -79,9 +83,11 @@ def remediate(test=False):
 
     print(f"Remediated {deleted_entries} `account-email` store entries.")
 
+
 def main(args):
     setup(args.config)
     remediate(args.test)
+
 
 def _parse_args():
     _parser = argparse.ArgumentParser(description=__doc__)
@@ -99,6 +105,7 @@ def _parse_args():
     )
     _parser.set_defaults(func=main)
     return _parser.parse_args()
+
 
 if __name__ == '__main__':
     _args = _parse_args()
