@@ -8,6 +8,7 @@ from typing import Any, Final, Literal, TypedDict, cast
 import web
 
 from infogami.infobase.utils import flatten
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
@@ -278,7 +279,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def add_storage_items_for_redirects(
         cls, reading_log_keys, solr_docs: list[web.Storage]
-    ) -> list[web.storage]:
+    ):
         """
         Use reading_log_keys to fill in missing redirected items in the
         the solr_docs query results.
@@ -319,7 +320,8 @@ class Bookshelves(db.CommonExtras):
         ]
         fq = f'edition_key:({" OR ".join(edition_keys_to_query)})'
         if not edition_keys_to_query:
-            return solr_docs
+            return
+
         solr_resp = run_solr_query(
             scheme=WorkSearchScheme(),
             param={'q': '*:*'},
@@ -346,7 +348,36 @@ class Bookshelves(db.CommonExtras):
                     solr_docs.append(web.storage(doc))
                     break
 
-        return solr_docs
+    @classmethod
+    def add_storage_items_for_deletes(
+        cls, reading_log_keys, solr_docs: list[web.Storage]
+    ):
+        missing = {w for w, e in reading_log_keys} - {doc['key'] for doc in solr_docs}
+        # Get them from the DB
+        missing_docs = web.ctx.site.get_many(list(missing))
+
+        # Push some dummy books
+        for doc in missing_docs:
+            if doc.type.key == '/type/delete':
+                solr_docs.append(
+                    web.storage(
+                        {
+                            'key': doc.key,
+                            'title': _('[Record deleted]'),
+                        }
+                    )
+                )
+            else:
+                # Should never happen?
+                logger.warning(f"Missing item in Solr: {doc.key}")
+                solr_docs.append(
+                    web.storage(
+                        {
+                            'key': doc.key,
+                            'title': doc.key,
+                        }
+                    )
+                )
 
     @classmethod
     def get_users_logged_books(
@@ -552,16 +583,13 @@ class Bookshelves(db.CommonExtras):
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
 
-            solr_docs = cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            if len(solr_docs) < len(reading_log_keys):
+                cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
+
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             solr_docs = cls.link_editions_to_works(solr_docs)
-
-            if len(solr_docs) < len(reading_log_keys):
-                missing = {w for w, e in reading_log_keys} - {
-                    doc['key'] for doc in solr_docs
-                }
-                logger.warning(f"Missing items in Solr: {missing}")
 
             return LoggedBooksData(
                 username=username,

@@ -13,9 +13,11 @@ $var title: $page.key
 
     <ul>
       <li><a href="javascript:;" class="go-back-link">$_("Go back where I came from")</a></li>
-      $if ctx.user and ctx.user.is_admin():
+      $if ctx.user:
+        $# Prevent crawling; only show to logged-in users
         <li><a href="$url(v=page.revision - 1)">$_("View the previous version")</a></li>
-        <li><a href="$url(m='edit', v=page.revision - 1)">$_("Recreate it")</a></li>
         <li><a href="$url(m='history')">$_("See the page's history")</a></li>
+        $if (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin()):
+            <li><a href="$url(m='edit', v=page.revision - 1)">$_("Recreate it")</a></li>
     </ul>
 </div>
