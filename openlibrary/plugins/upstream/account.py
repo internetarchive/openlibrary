@@ -1170,6 +1170,48 @@ class account_waitlist(delegate.page):
 #         return render.notfound(path, create=False)
 
 
+class account_anonymization_json(delegate.page):
+    path = "/account/anonymize"
+    encoding = "json"
+
+    def POST(self):
+        # Validate request origin
+        if not self._validate_headers():
+            raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
+
+        # Get S3 keys from request header
+        s3_access = web.ctx.env.get("HTTP_X_S3_ACCESS", "")
+        s3_secret = web.ctx.env.get("HTTP_X_S3_SECRET", "")
+
+        if not (s3_access and s3_secret):
+            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"})
+
+        # Fetch and anonymize account
+        xauthn_response = InternetArchiveAccount.s3auth(s3_access, s3_secret)
+        if 'error' in xauthn_response:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        ol_account = OpenLibraryAccount.get(link=xauthn_response.get('itemname', ''))
+        if not ol_account:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        try:
+            ol_account.anonymize()
+        except Exception as e:
+            raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"})
+
+        raise web.HTTPError("200 OK", {"Content-Type": "application/json"})
+
+    def _validate_headers(self):
+        origin = web.ctx.env.get('HTTP_ORIGIN') or web.ctx.env.get('HTTP_REFERER')
+        if not origin:
+            return False
+
+        parsed_origin = urlparse(origin)
+        host = parsed_origin.hostname
+        return host == "archive.org" or host.endswith(".archive.org")
+
+
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
 
