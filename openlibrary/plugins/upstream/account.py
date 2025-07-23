@@ -1175,6 +1175,9 @@ class account_anonymization_json(delegate.page):
     encoding = "json"
 
     def POST(self):
+        i = web.input(test='false')
+        test = i.test == "true"
+
         # Validate request origin
         if not self._validate_headers():
             raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
@@ -1196,11 +1199,11 @@ class account_anonymization_json(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         try:
-            ol_account.anonymize()
+            result = ol_account.anonymize(test=test)
         except Exception as e:
             raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"})
 
-        raise web.HTTPError("200 OK", {"Content-Type": "application/json"})
+        raise web.HTTPError("200 OK", {"Content-Type": "application/json"}, data=json.dumps(result))
 
     def _validate_headers(self):
         origin = web.ctx.env.get('HTTP_ORIGIN') or web.ctx.env.get('HTTP_REFERER')
