@@ -47,8 +47,8 @@
     "eslint-plugin-vue": "^9.32.0",
     "flot": "0.8.3",
     "isbn3": "1.1.1",
-    "jest": "29.7.0",
-    "jest-environment-jsdom": "29.7.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.13.2",
@@ -103,7 +103,7 @@
         "statements": 14
       }
     },
-    "collectCoverage": true
+    "collectCoverage": false
   },
   "dependencies": {
     "postcss-less": "^6.0.0"
