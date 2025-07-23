@@ -3,7 +3,7 @@ FROM openlibrary/olbase:latest
 # Allow for nexus overrides (used in testing/staging builds)
 ARG NPM_CONFIG_REGISTRY
 ARG PIP_INDEX_URL
-ARG PIP_TRUSTED_HOST
+ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
 ARG HTTPS_PROXY
 
 WORKDIR /openlibrary
