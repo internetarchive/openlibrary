@@ -107,5 +107,10 @@
   },
   "dependencies": {
     "postcss-less": "^6.0.0"
+  },
+  "overrides": {
+    "@ericblade/quagga2": {
+      "form-data": "4.0.4"
+    }
   }
 }
