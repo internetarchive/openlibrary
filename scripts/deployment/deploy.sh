@@ -272,7 +272,7 @@ deploy_olsystem() {
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
     if [ $CLEANUP -eq 1 ]; then
-	cleanup "${DEPLOY_DIR}/olsystem"
+        cleanup "${DEPLOY_DIR}/olsystem"
     fi
 
     # Present follow-up options
@@ -298,7 +298,6 @@ date_to_timestamp() {
 
 tag_deploy() {
     # Check if tag does NOT exist
-    echo "${DEPLOY_DIR}/openlibrary"
     if ! git -C "${DEPLOY_DIR}/openlibrary" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
         git -C "${DEPLOY_DIR}/openlibrary" tag "$DEPLOY_TAG"
@@ -358,8 +357,8 @@ deploy_openlibrary() {
     echo ""
 
     if ! check_olbase_image_up_to_date; then
-	cleanup "${DEPLOY_DIR}/openlibrary"
-       exit 1
+        cleanup "${DEPLOY_DIR}/openlibrary"
+        exit 1
     fi
 
     check_server_access
@@ -382,7 +381,7 @@ deploy_openlibrary() {
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
     if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-	cleanup "${DEPLOY_DIR}/openlibrary"
+        cleanup "${DEPLOY_DIR}/openlibrary"
         exit 1
     fi
     echo ""
@@ -401,7 +400,7 @@ deploy_openlibrary() {
     done
 
     if ! prune_docker image; then
-	cleanup "${DEPLOY_DIR}/openlibrary"
+        cleanup "${DEPLOY_DIR}/openlibrary"
         exit 1
     fi
 
