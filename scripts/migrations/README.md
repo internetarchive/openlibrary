@@ -1,6 +1,10 @@
 # Migration Scripts
 
-Scripts found in this directory are meant to support a one-time task (such as a data migration), and __do not__ require long-term maintenance.
+Scripts found in this directory are meant to support a one-time task (such as a data migration), and likely __do not__ require long-term maintenance.
+
+## `ananymous_store_remediation.py`
+
+Created as a follow-up to [issue #11024](https://github.com/internetarchive/openlibrary/pull/11024), this script identifies and removes any remaining `account-email` store entries that are associated with anonymized accounts.
 
 ## `delete_merge_debug.py`
 
