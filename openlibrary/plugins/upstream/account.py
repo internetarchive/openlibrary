@@ -1183,10 +1183,9 @@ class account_anonymization_json(delegate.page):
             raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
 
         # Get S3 keys from request header
-        s3_access = web.ctx.env.get("HTTP_X_S3_ACCESS", "")
-        s3_secret = web.ctx.env.get("HTTP_X_S3_SECRET", "")
-
-        if not (s3_access and s3_secret):
+        try:
+            s3_access, s3_secret = self._parse_auth_header()
+        except ValueError:
             raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"})
 
         # Fetch and anonymize account
@@ -1213,6 +1212,15 @@ class account_anonymization_json(delegate.page):
         parsed_origin = urlparse(origin)
         host = parsed_origin.hostname
         return host == "archive.org" or host.endswith(".archive.org")
+
+    def _parse_auth_header(self):
+        header_value = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+        try:
+            _, keys = header_value.split('LOW ', 1)
+            s3_access, s3_secret = keys.split(':', 1)
+            return s3_access.strip(), s3_secret.strip()
+        except ValueError:
+            raise ValueError("Malformed Authorization Header")
 
 
 def as_admin(f):
