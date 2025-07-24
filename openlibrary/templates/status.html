@@ -57,7 +57,15 @@ $var title: $_("Open Library server status")
       <h2> $_("Staged") </h2>
       <pre>$dev_merged_status.git_status</pre>
 
+      <br>
 
+      <a
+        href="$dev_merged_status.get_github_search_link()"
+      >$_("View PRs on GitHub")</a>
+
+      &bull;
+
+      $# Note the checkbox works entirely via CSS and needs to be adjacent to the table
       <input type="checkbox" id="show_changed"> <label for="show_changed">$_("Show changed files")</label>
       <table>
         <thead>

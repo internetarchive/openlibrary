@@ -55,6 +55,16 @@ class DevMergedStatus:
             return DevMergedStatus.from_output(contents)
         return None
 
+    def get_github_search_link(self) -> str:
+        """Constructs a GitHub search URL for all PRs in pr_statuses."""
+        from urllib.parse import urlencode
+
+        pull_ids = [pr.pull_id for pr in self.pr_statuses if pr.pull_id]
+
+        return f"https://github.com/internetarchive/openlibrary/pulls?{urlencode({
+            "q": "is:pr is:open " + " ".join([f"#{num}" for num in pull_ids])
+        })}"
+
 
 @dataclass
 class PRStatus:
