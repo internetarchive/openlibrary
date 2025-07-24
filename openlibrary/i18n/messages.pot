@@ -583,6 +583,14 @@ msgid "Retry?"
 msgstr ""
 
 #: RawQueryCarousel.html
+msgid "No books match the current filters."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry without filters?"
+msgstr ""
+
+#: RawQueryCarousel.html
 msgid "Search collection"
 msgstr ""
 
@@ -801,7 +809,7 @@ msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages<
 msgstr[0] ""
 msgstr[1] ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
 msgstr ""
 
@@ -943,6 +951,11 @@ msgstr ""
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
+msgstr ""
+
+#: TrendingBadge.html
+#, python-format
+msgid "Trending: %(score).2f"
 msgstr ""
 
 #: TypeChanger.html
@@ -6227,7 +6240,7 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html
+#: lib/nav_head.html search/sort_options.html
 msgid "Trending"
 msgstr ""
 

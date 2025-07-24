@@ -202,7 +202,8 @@
 
 /* Styles for lazy-loading carousel placeholder element */
 .lazy-carousel {
-  height: 200px;
+  // Same height as the loaded carousel to avoid layout shift
+  height: 278.6px;
   background: @book-cover-carousel-background;
   display: flex;
   flex-direction: column;
@@ -214,7 +215,8 @@
     margin: 0 auto;
   }
 
-  &-retry {
+  &-retry,
+  &-fallback {
     border: 1px @grey solid;
     background: @lightest-grey;
     margin: 0 auto;

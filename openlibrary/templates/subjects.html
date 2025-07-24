@@ -55,13 +55,8 @@ $ q = query_param('q')
 <div class="contentBody">
     $if has_tag:
       $:format(sanitize(page.tag.body))
-    $code:
-      load_more = {
-        "q": page.key,
-        "queryType": "SUBJECTS",
-        "limit": len(page.works)
-      }
-    $:render_template("books/custom_carousel", books=page.works, load_more=load_more)
+
+    $:macros.QueryCarousel(query="subject_key:%s" % page.key.split('/')[-1], sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
