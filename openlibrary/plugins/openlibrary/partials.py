@@ -14,7 +14,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.upstream.checkins import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
-from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.plugins.worksearch.subjects import date_range_to_publish_year_filter, get_subject
 from openlibrary.views.loanstats import get_trending_books
 
 
@@ -189,8 +189,10 @@ class CarouselCardPartial(PartialDataHandler):
         pseudoKey = params.get("q", "")
         offset = int(params.get("page", 1))
         limit = int(params.get("limit", 18))
+        published_in = params.get("published_in", "")
+        publish_year = date_range_to_publish_year_filter(published_in)
 
-        subject = get_subject(pseudoKey, offset=offset, limit=limit)
+        subject = get_subject(pseudoKey, offset=offset, limit=limit, publish_year=publish_year)
         return subject.get("works", [])
 
 
