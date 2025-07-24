@@ -2173,6 +2173,10 @@ msgid "Staged"
 msgstr ""
 
 #: status.html
+msgid "View PRs on GitHub"
+msgstr ""
+
+#: status.html
 msgid "Show changed files"
 msgstr ""
 
