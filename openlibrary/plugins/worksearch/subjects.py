@@ -112,7 +112,9 @@ class subjects_json(delegate.page):
         if i.get('has_fulltext') == 'true':
             filters['has_fulltext'] = 'true'
 
-        if publish_year_filter := date_range_to_publish_year_filter(i.get('published_in')):
+        if publish_year_filter := date_range_to_publish_year_filter(
+            i.get('published_in')
+        ):
             filters['publish_year'] = publish_year_filter
 
         subject_results = get_subject(
