@@ -1,0 +1,35 @@
+$def with(edition_key, acquisition, provider_name, analytics_attr)
+$# :param edition_key str:
+$# :param Acquisition acquisition:
+$# :param provider_name str:
+$# :param analytics_attr Callable[[str], str]:
+
+$if acquisition.access == 'open-access':
+  <div class="cta-button-group">
+    $if acquisition.format == 'audio':
+      <a href="/books/${edition_key}/-/borrow?action=read"
+          title="$_('Listen to a reading from %s', provider_name)"
+          class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--w-icon"
+          target="_blank"
+          $:analytics_attr('Listen')
+      >
+        <span class="btn-icon read-aloud"></span>
+        <span class="btn-label">$_("Audiobook")</span>
+      </a>
+    $else:
+      <a href="/books/${edition_key}/-/borrow?action=read"
+          title="$_('Read free online from %s', provider_name)"
+          class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
+          target="_blank"
+          $:analytics_attr('Read')
+      >$_('Read')</a>
+  </div>
+$elif acquisition.access == 'sample':
+  <div class="cta-button-group">
+    <a href="/books/${edition_key}/-/borrow?action=read"
+      class="cta-btn cta-btn--shell cta-btn--external"
+      data-ol-link-track="CTAClick|Preview"
+      target="_blank"
+      $:analytics_attr('Preview')
+    >$_('Preview')</a>
+  </div>
