@@ -28,9 +28,14 @@ $code:
         names["SanFranPL%02d" % i] = "San Francisco Public Library"
 
     def get_source_record(record_id):
-        if '/' not in record_id and '_meta.mrc:' in record_id:
-            record_id = 'ia:' + record_id.split('_')[0]
-        item = record_id.split("/")[0]
+        if ':' in record_id:
+            source, record = record_id.split(':', 1)
+        else:
+            source, record = record_id, ''
+
+        if '/' not in record and '_meta.mrc:' in record:
+            record = 'ia:' + record.split('_')[0]
+        item = record.split("/")[0]
         url = "/show-records/" + record_id
 
         if item.startswith("ia:"):
