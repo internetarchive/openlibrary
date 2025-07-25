@@ -6,22 +6,30 @@ import CONFIGS from '../configs.js';
 const collator = new Intl.Collator('en-US', {numeric: true})
 export const DEFAULT_EDITION_LIMIT = 200
 
+let LAST_429 = Date.now() - 1000;
 /**
  * @param {string | URL | Request} input
  * @param {RequestInit?} init
  * @returns {Promise<Response>}
  */
-export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 5000) {
+export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 2000) {
     for (let attempt = 0; attempt < maxRetries; attempt++){
         try {
+            // If we saw a 429 in the last second then skip this request
+            if (Date.now() - LAST_429 < 1000) continue;
+
             const response = await fetch(input, init);
-            if (response.status === 429) continue;
+
+            if (response.status === 429){
+                LAST_429 = Date.now();
+                continue;
+            }
             return response;
         } catch (error) {
             // This block catches network errors (e.g., DNS, connection refused) and the server errors we threw above.
         }
         const backoff = Math.pow(2, attempt) * initialDelay;
-        const jitter = Math.random() * backoff;
+        const jitter = Math.random() * 2000;
         const delay = backoff + jitter;
         console.log('delaying', delay)
         await new Promise(resolve => setTimeout(resolve, delay));
