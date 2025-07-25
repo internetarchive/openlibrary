@@ -499,7 +499,7 @@ SelectionManager.SELECTION_PROVIDERS = [
      */
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
-        selector: '.book',
+        selector: '.editions-table .book',
         handle: 'checkbox',
         type: ['edition'],
         /**
