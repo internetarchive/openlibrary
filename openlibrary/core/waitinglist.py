@@ -19,6 +19,7 @@ import logging
 import web
 
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.plugins.upstream.models import Edition
 
 from . import helpers as h
 from . import lending
@@ -242,7 +243,7 @@ def update_ebook(ebook_key: str, **data) -> None:
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
 
 
-def sendmail_book_available(book) -> None:  # type: ignore[no-untyped-def]
+def sendmail_book_available(book: Edition) -> None:
     """Informs the first person in the waiting list that the book is available.
 
     Safe to call multiple times. This'll make sure the email is sent only once.
