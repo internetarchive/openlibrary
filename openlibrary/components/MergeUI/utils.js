@@ -8,11 +8,15 @@ export const DEFAULT_EDITION_LIMIT = 200
 
 // TODO: this line is just for testing locally, remove before merging
 CONFIGS.OL_BASE_BOOKS = 'https://openlibrary.org'
-
-export async function fetchWithRetry(resource, options = {}, maxRetries = 5, initialDelay = 5000) {
+/**
+ * @param {string | URL | Request} input
+ * @param {RequestInit?} init
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 5000) {
     for (let attempt = 0; attempt < maxRetries; attempt++){
         try {
-            const response = await fetch(resource, options);
+            const response = await fetch(input, init);
             if (response.status === 429) { throw new Error('Rate limit exceeded'); }
             return response;
         } catch (error) {
