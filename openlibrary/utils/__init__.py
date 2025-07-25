@@ -24,7 +24,7 @@ def str_to_key(s: str) -> str:
 T = TypeVar('T')
 
 
-def uniq(values: Iterable[T], key=None) -> list[T]:
+def uniq[T](values: Iterable[T], key=None) -> list[T]:
     """Returns the unique entries from the given values in the original order.
 
     The value of the optional `key` parameter should be a function that takes

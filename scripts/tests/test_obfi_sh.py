@@ -8,7 +8,7 @@ OBFI_SH = Path('./scripts/obfi.sh')
 
 
 def iso_to_ms(iso_str):
-    dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+    dt = datetime.fromisoformat(iso_str)
     return int(dt.timestamp() * 1000)
 
 

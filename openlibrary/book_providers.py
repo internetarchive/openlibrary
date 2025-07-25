@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Generic, Literal, TypedDict, TypeVar, cast, override
+from typing import Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -145,7 +145,7 @@ class IALiteMetadata(TypedDict):
 TProviderMetadata = TypeVar('TProviderMetadata')
 
 
-class AbstractBookProvider(Generic[TProviderMetadata]):
+class AbstractBookProvider[TProviderMetadata]:
     short_name: str
 
     """Human-readable name of the provider, used in the UI."""
