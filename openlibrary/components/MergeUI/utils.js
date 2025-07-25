@@ -6,8 +6,6 @@ import CONFIGS from '../configs.js';
 const collator = new Intl.Collator('en-US', {numeric: true})
 export const DEFAULT_EDITION_LIMIT = 200
 
-// TODO: this line is just for testing locally, remove before merging
-CONFIGS.OL_BASE_BOOKS = 'https://openlibrary.org'
 /**
  * @param {string | URL | Request} input
  * @param {RequestInit?} init
