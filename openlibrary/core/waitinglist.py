@@ -117,7 +117,7 @@ class WaitingLoan(dict):
         if not itemname:
             account = OpenLibraryAccount.get(key=user_key)
             if account is None:
-                return None
+                raise ValueError('Unable to get Open Library account itemname')
             itemname = account.itemname
         _wl_api.join_waitinglist(kw['identifier'], itemname)
         return cls.find(user_key, kw['identifier'], itemname=itemname)
