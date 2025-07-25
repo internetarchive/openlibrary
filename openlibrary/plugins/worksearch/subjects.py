@@ -112,16 +112,10 @@ class subjects_json(delegate.page):
         if i.get('has_fulltext') == 'true':
             filters['has_fulltext'] = 'true'
 
-        if i.get('published_in'):
-            if '-' in i.published_in:
-                begin, end = i.published_in.split('-', 1)
-
-                if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters['publish_year'] = f'[{begin} TO {end}]'
-            else:
-                y = safeint(i.published_in, None)
-                if y is not None:
-                    filters['publish_year'] = i.published_in
+        if publish_year_filter := date_range_to_publish_year_filter(
+            i.get('published_in')
+        ):
+            filters['publish_year'] = publish_year_filter
 
         subject_results = get_subject(
             key,
@@ -140,6 +134,19 @@ class subjects_json(delegate.page):
 
     def process_key(self, key):
         return key
+
+
+def date_range_to_publish_year_filter(published_in: str) -> str:
+    if published_in:
+        if '-' in published_in:
+            begin, end = published_in.split('-', 1)
+            if safeint(begin, None) is not None and safeint(end, None) is not None:
+                return f'[{begin} TO {end}]'
+        else:
+            year = safeint(published_in, None)
+            if year is not None:
+                return published_in
+    return ''
 
 
 SubjectType = Literal["subject", "place", "person", "time"]
