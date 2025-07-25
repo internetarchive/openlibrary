@@ -109,11 +109,6 @@
   }
 }
 
-a.ile-selectable[href^="/authors/OL"] {
-  padding-right: 4px;
-  text-decoration: none;
-}
-
 .ile-select-handle {
   opacity: 0;
 
@@ -132,16 +127,53 @@ a.ile-selectable[href^="/authors/OL"] {
   .layout-books--grid & {
     opacity: 0.4;
   }
+
+  .ile-selected &,
+  &:hover {
+    opacity: 1;
+  }
 }
 
-.ile-selectable--inline .ile-select-handle {
-  position: static;
-  scale: 1;
-  margin: 0 1ch;
+.ile-selectable--inline {
+  padding-right: 12px;
+  border-radius: 8px;
+
+  a& {
+    // Can't seem to disable this just for the handle
+    text-decoration: none;
+  }
+
+  .ile-select-handle {
+    position: static;
+    opacity: 0.5;
+    cursor: pointer;
+    scale: 1;
+    margin: 0;
+    padding: 0 6px 0 10px;
+    color: rgba(0, 0, 0, 0.4);
+    transition:
+      color 0.2s,
+      opacity 0.2s;
+    text-decoration: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    &:hover {
+      color: @selection-blue;
+      opacity: 0.8;
+    }
+  }
+
+  &.ile-selected .ile-select-handle {
+    opacity: 1;
+    color: @selection-blue;
+  }
 }
 
-.ile-selected .ile-select-handle,
-.ile-select-handle:hover,
-body:has(.ile-selected) .ile-select-handle {
+body:has(.ile-selected)
+  .ile-selectable:not(.ile-selectable--inline)
+  .ile-select-handle {
   opacity: 1;
 }

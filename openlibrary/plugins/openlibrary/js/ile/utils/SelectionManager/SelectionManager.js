@@ -73,7 +73,9 @@ export default class SelectionManager {
                 // Some providers need a "handle" to allow dragging.
                 if (provider.handle) {
                     $(el).toggleClass('ile-selectable--inline', provider.handle === 'inline');
-                    const handle = $('<input type="checkbox" class="ile-select-handle" title="Select this item"/>');
+                    const handle = provider.handle === 'inline' ?
+                        $('<span class="ile-select-handle" title="Select this item">&bull;</span>') :
+                        $('<input type="checkbox" class="ile-select-handle" title="Select this item"/>');
                     handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
                     $(el).prepend(handle);
                 }
@@ -526,7 +528,7 @@ SelectionManager.SELECTION_PROVIDERS = [
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         selector: '.work-line a[href^="/works/OL"]',
-        addHandle: true,
+        handle: 'inline',
         type: ['work'],
         /**
          * @param {HTMLAnchorElement} el
