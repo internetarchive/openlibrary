@@ -107,6 +107,8 @@ export class Carousel {
         if (loadMore && loadMore.queryType) {
             // Bind an action listener to this carousel on resize or advance
             this.$container.on('afterChange', (_ev, _slick, curSlide) => {
+                window.ILE?.handleNewDom(this.$container[0]);
+
                 const totalSlides = this.slick.$slides.length;
                 const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
