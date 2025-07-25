@@ -133,8 +133,7 @@ class WaitingLoan(dict):
         if not itemname:
             account = OpenLibraryAccount.get(key=user_key)
             if account is None:
-                return None
-            itemname = account.itemname
+                raise ValueError('Unable to get Open Library account itemname.')
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
