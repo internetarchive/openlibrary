@@ -693,7 +693,7 @@ def set_share_links(
 T = TypeVar('T')
 
 
-def safeget(func: Callable[[], T], default=None) -> T:
+def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy
     >>> safeget(lambda: {}['foo'])
