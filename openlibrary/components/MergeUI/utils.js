@@ -17,7 +17,7 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
     for (let attempt = 0; attempt < maxRetries; attempt++){
         try {
             const response = await fetch(input, init);
-            if (response.status === 429) { throw new Error('Rate limit exceeded'); }
+            if (response.status === 429) continue;
             return response;
         } catch (error) {
             // This block catches network errors (e.g., DNS, connection refused) and the server errors we threw above.
