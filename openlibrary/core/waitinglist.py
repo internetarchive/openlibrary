@@ -15,15 +15,18 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
+from typing import TYPE_CHECKING
 
 import web
 
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.plugins.upstream.models import Edition
 
 from . import helpers as h
 from . import lending
 from .sendmail import sendmail_with_template
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -243,7 +246,7 @@ def update_ebook(ebook_key: str, **data) -> None:
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
 
 
-def sendmail_book_available(book: Edition) -> None:
+def sendmail_book_available(book: 'Edition') -> None:
     """Informs the first person in the waiting list that the book is available.
 
     Safe to call multiple times. This'll make sure the email is sent only once.
