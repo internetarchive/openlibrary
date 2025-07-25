@@ -564,20 +564,6 @@ SelectionManager.ACTIONS = [
         name: 'Edit author',
         href: olid => `/authors/${olid}/-/edit`,
     },
-    ...['work', 'edition'].map(type => ({
-        count: 'single',
-        explode_work_edition_olids: true,
-        applies_to_type: [type],
-        name: `Add ${type} cover`,
-        href: olid => olid.endsWith('M') ? `/books/${olid}/-/add-cover` : `/works/${olid}/-/add-cover`,
-    })),
-    ...['work', 'edition'].map(type => ({
-        count: 'single',
-        explode_work_edition_olids: true,
-        applies_to_type: [type],
-        name: `Manage ${type} covers`,
-        href: olid => olid.endsWith('M') ? `/books/${olid}/-/manage-covers` : `/works/${olid}/-/manage-covers`,
-    })),
     {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
