@@ -3,6 +3,7 @@ User-agent: *
 Disallow: /api
 Disallow: /edit
 Disallow: /account
+Disallow: /merges
 Disallow: /search
 Disallow: /search/publishers
 Disallow: /search/authors
