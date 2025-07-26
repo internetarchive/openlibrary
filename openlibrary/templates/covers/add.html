@@ -81,9 +81,11 @@ $#    </div>
 $#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
-    $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-    $:render_template("covers/external_image", action, img_url, _("Internet Archive"))
+    $ img_url_cover = "https://archive.org/download/%s/page/cover" % doc.ocaid
+    $ img_url_title = "https://archive.org/download/%s/page/title" % doc.ocaid
+    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Internet Archive"))
 
 $if doc.type.key == "/type/author" and data.get('wikidata_images'):
-    $ img_url = data.get('wikidata_images')[0]
-    $:render_template("covers/external_image", action, img_url, _("Wikidata"))
+    $ img_url_cover = data.get('wikidata_images')[0]
+    $ img_url_title = None
+    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Wikidata"))
