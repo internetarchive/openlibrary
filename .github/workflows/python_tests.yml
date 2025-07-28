@@ -34,18 +34,22 @@ jobs:
           sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Install dependencies
+        env:
+          UV_SYSTEM_PYTHON: 1
         run: |
           # Try to upgrade pip, setuptools, and wheel
-          python -m pip install --upgrade pip setuptools wheel || {
+          uv pip install --upgrade pip setuptools wheel || {
             echo "pip is broken or missing, reinstalling..."
             curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
             python get-pip.py
             rm -f get-pip.py
-            python -m pip install --upgrade pip setuptools wheel
+            uv pip install --upgrade pip setuptools wheel
           }
-          pip install -r requirements_test.txt
-          pip list --outdated
+          uv pip install -r requirements_test.txt
+          uv pip list --outdated
       - run: make git
       - name: Run make i18n
         run: |
