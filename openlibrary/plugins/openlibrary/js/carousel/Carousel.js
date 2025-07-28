@@ -154,7 +154,8 @@ export class Carousel {
             pageMode: loadMore.pageMode,
             hasFulltextOnly: loadMore.hasFulltextOnly,
             secondaryAction: loadMore.secondaryAction,
-            key: loadMore.key
+            key: loadMore.key,
+            ...loadMore.extraParams
         });
         this.appendLoadingSlide();
         $.ajax({url: url, type: 'GET'})
