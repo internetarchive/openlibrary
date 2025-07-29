@@ -372,15 +372,33 @@ jQuery(function () {
             .then(module => module.initDialogs(nativeDialogs))
     }
 
-    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
-    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
-    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
+    // START : Last read date functionality
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
-    const yearElements = document.querySelectorAll('.use-local-year')
-    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
+    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
+            .then((module) => {
+                if (checkInForms.length) {
+                    module.initCheckInForms(checkInForms)
+                }
+                if (checkInPrompts.length) {
+                    module.initCheckInPrompts(checkInPrompts)
+                }
+                if (checkInEditLinks.length) {
+                    module.initCheckInEdits(checkInEditLinks)
+                }
+            })
+    }
+    // END : Last read date functionality
+
+    // START : Yearly reading goal functionality
+    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
+    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
+    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
+    const yearElements = document.querySelectorAll('.use-local-year')
+    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
+        import(/* webpackChunkName: "reading-goals" */ "./reading-goals")
             .then((module) => {
                 if (setGoalLinks.length) {
                     module.initYearlyGoalPrompt(setGoalLinks)
@@ -391,20 +409,13 @@ jQuery(function () {
                 if (goalSubmitButtons.length) {
                     module.initGoalSubmitButtons(goalSubmitButtons)
                 }
-                if (checkInForms.length) {
-                    module.initCheckInForms(checkInForms)
-                }
-                if (checkInPrompts.length) {
-                    module.initCheckInPrompts(checkInPrompts)
-                }
-                if (checkInEditLinks.length) {
-                    module.initCheckInEdits(checkInEditLinks)
-                }
                 if (yearElements.length) {
                     module.displayLocalYear(yearElements)
                 }
             })
     }
+    // END : Yearly reading goal functionality
+
 
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
