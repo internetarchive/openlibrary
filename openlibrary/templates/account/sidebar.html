@@ -35,7 +35,7 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
             </div>
             $if current_goal:
             <span id="reading-goal-container">
-              $:render_template('check_ins/reading_goal_progress', [current_goal])
+              $:render_template('reading_goals/reading_goal_progress', [current_goal])
             </span>
           </div>
         </li>
