@@ -119,7 +119,8 @@ msgstr ""
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
-#: my_books/dropdown_content.html native_dialog.html
+#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
+#: native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -1032,9 +1033,9 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
-#: account.html check_ins/check_in_prompt.html
-#: check_ins/reading_goal_progress.html databarHistory.html
-#: databarTemplate.html databarView.html subjects.html
+#: account.html databarHistory.html databarTemplate.html databarView.html
+#: my_books/check_ins/check_in_prompt.html
+#: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
@@ -2223,8 +2224,8 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html check_ins/check_in_form.html
-#: check_ins/check_in_prompt.html trending.html
+#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
+#: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
 msgstr ""
 
@@ -2305,7 +2306,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: check_ins/reading_goal_form.html widget.html
+#: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -3337,8 +3338,8 @@ msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html
+#: admin/people/edits.html admin/permissions.html
+#: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -5318,130 +5319,6 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: check_ins/check_in_form.html
-msgid "January"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "February"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "March"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "April"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "May"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "June"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "July"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "August"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "September"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "October"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "November"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "December"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid ""
-"Add an optional check-in date. Check-in dates are used to track yearly "
-"reading goals."
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "End Date:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Delete Event"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-#, python-format
-msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "When did you finish this book?"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Other"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Check-In"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "How many books would you like to read this year?"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid ""
-"<span class=\"reading-goal-progress__books-"
-"read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> Books"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid "Edit %(year)d Reading Goal"
-msgstr ""
-
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
@@ -6768,6 +6645,109 @@ msgstr ""
 msgid "Add to List"
 msgstr ""
 
+#: my_books/check_ins/check_in_form.html
+msgid "January"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "February"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "March"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "April"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "May"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "June"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "July"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "August"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "September"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "October"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "November"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "December"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid ""
+"Add an optional check-in date. Check-in dates are used to track yearly "
+"reading goals."
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "End Date:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "When did you finish this book?"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Other"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Check-In"
+msgstr ""
+
 #: observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
@@ -6849,6 +6829,27 @@ msgstr ""
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "How many books would you like to read this year?"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Books"
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html

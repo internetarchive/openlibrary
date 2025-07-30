@@ -2,7 +2,7 @@
  * Defines functionality related to the Reading Check-Ins components.
  * @module my-books/MyBooksDropper/CheckInComponents
  */
-import { initDialogClosers } from "../../dialog";
+import { initDialogClosers } from '../../dialog';
 import { PersistentToast } from '../../Toast'
 
 /**
@@ -108,7 +108,7 @@ export class CheckInComponents {
 
         let hiddenModalContentContainer = document.querySelector('#hidden-modal-content-container')
         if (!hiddenModalContentContainer) {
-            hiddenModalContentContainer = document.createElement("div")
+            hiddenModalContentContainer = document.createElement('div')
             hiddenModalContentContainer.classList.add('hidden')
             hiddenModalContentContainer.id = 'hidden-modal-content-container'
             document.body.appendChild(hiddenModalContentContainer)
@@ -231,7 +231,7 @@ export class CheckInComponents {
             method: 'POST',
             headers: {
                 'content-type': 'application/x-www-form-urlencoded',
-                'accept': 'application/json'
+                accept: 'application/json'
             },
             body: JSON.stringify(eventData)
         })
@@ -375,7 +375,7 @@ class CheckInPrompt {
      * @param {number|null} day
      */
     dispatchCheckInSubmission(year, month = null, day = null) {
-        const submitEvent = new CustomEvent("submit-check-in", {
+        const submitEvent = new CustomEvent('submit-check-in', {
             detail: {
                 year: year,
                 month: month,

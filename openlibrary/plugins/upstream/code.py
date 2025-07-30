@@ -31,10 +31,10 @@ from openlibrary.plugins.upstream import (
     edits,
     merge_authors,
     models,
-    yearly_reading_goals,
     recentchanges,  # noqa: F401 side effects may be needed
     spamcheck,
     utils,
+    yearly_reading_goals,
 )  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 

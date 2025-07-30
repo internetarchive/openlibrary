@@ -10,8 +10,8 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
-
 MAX_READING_GOAL = 10_000
+
 
 class yearly_reading_goal_json(delegate.page):
     path = '/reading-goal'

@@ -378,7 +378,7 @@ jQuery(function () {
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
     const yearElements = document.querySelectorAll('.use-local-year')
     if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
-        import(/* webpackChunkName: "reading-goals" */ "./reading-goals")
+        import(/* webpackChunkName: "reading-goals" */ './reading-goals')
             .then((module) => {
                 if (setGoalLinks.length) {
                     module.initYearlyGoalPrompt(setGoalLinks)

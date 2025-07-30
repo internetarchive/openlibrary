@@ -74,11 +74,15 @@ class patron_check_ins(delegate.page):
         """
         user = get_current_user()
         if not user:
-            raise web.HTTPError("401 Unauthorized", headers={"Content-Type": "application/json"})
+            raise web.HTTPError(
+                "401 Unauthorized", headers={"Content-Type": "application/json"}
+            )
 
         data = json.loads(web.data())
         if not self.validate_data(data):
-            raise web.HTTPError("400 Bad Request", headers={"Content-Type": "application/json"})
+            raise web.HTTPError(
+                "400 Bad Request", headers={"Content-Type": "application/json"}
+            )
 
         username = user['key'].split('/')[-1]
 
@@ -99,11 +103,15 @@ class patron_check_ins(delegate.page):
             # update existing event
             events = BookshelvesEvents.select_by_id(event_id)
             if not events:
-                raise web.HTTPError("404 Not Found", headers={"Content-Type": "application/json"})
+                raise web.HTTPError(
+                    "404 Not Found", headers={"Content-Type": "application/json"}
+                )
 
             event = events[0]
             if username != event['username']:
-                raise web.HTTPError("403 Forbidden", headers={"Content-Type": "application/json"})
+                raise web.HTTPError(
+                    "403 Forbidden", headers={"Content-Type": "application/json"}
+                )
 
             BookshelvesEvents.update_event(
                 event_id, event_date=date_str, edition_id=edition_id
