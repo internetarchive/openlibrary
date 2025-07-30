@@ -78,7 +78,7 @@ class patron_check_ins(delegate.page):
 
         data = json.loads(web.data())
         if not self.validate_data(data):
-            raise web.HTTPError("404 Bad Request", headers={"Content-Type": "application/json"})
+            raise web.HTTPError("400 Bad Request", headers={"Content-Type": "application/json"})
 
         username = user['key'].split('/')[-1]
 

@@ -56,7 +56,7 @@ export class CheckInComponents {
          * @property {number} [eventId]
          */
         /**
-         * @param {ReadDateConfig}
+         * @type {ReadDateConfig}
          */
         this.config = JSON.parse(checkInContainer.dataset.config)
 
@@ -133,7 +133,7 @@ export class CheckInComponents {
                     this.checkInDisplay.hide()
                     this.checkInPrompt.show()
                 })
-                .catch(err => {
+                .catch(() => {
                     // TODO : Use localized strings
                     new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
                 })
@@ -333,7 +333,8 @@ export class CheckInComponents {
 }
 
 /**
- * Represents a prompt for check-in events.
+ * Adds functionality to the component containing the "When did you finish this book?"
+ * prompt.
  *
  * @class
  */
