@@ -6,11 +6,11 @@ with anonymized accounts.
 import argparse
 from pathlib import Path
 
-import db
 import web
 
 import infogami
 from openlibrary.config import load_config
+from openlibrary.core import db
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
