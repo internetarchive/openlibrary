@@ -53,14 +53,13 @@ WORKDIR /openlibrary
 
 USER openlibrary
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
-RUN python -m pip install --upgrade pip wheel \
- && python -m pip install --default-timeout=100 -r requirements.txt
-
-# Link the ia CLI binary into /usr/local/bin so that it shows up
-# on the PATH. Do this instead of trying to modify the PATH, because
-# that causes headaches with su, cron, etc.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# This is needed so we install packages into the system python instead of needing venv
+ENV UV_SYSTEM_PYTHON=1
 USER root
-RUN ln -s /home/openlibrary/.local/bin/ia /usr/local/bin/ia
+RUN uv pip install --upgrade wheel
+RUN uv pip install -r requirements.txt
+
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./
@@ -70,4 +69,4 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make \
- && python -m pip list --outdated
+ && uv pip list --outdated

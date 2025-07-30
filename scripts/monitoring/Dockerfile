@@ -4,6 +4,7 @@ ARG APT_MIRROR
 ARG DOCKER_KEY_URL=https://download.docker.com/linux/debian/gpg
 ARG DOCKER_REPOSITORY_URL=https://download.docker.com/linux/debian
 ARG PIP_INDEX_URL
+ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
 
 USER root
 
@@ -45,4 +46,4 @@ RUN if [ -n "$APT_MIRROR" ]; \
 
 # Install requirements.txt
 COPY --chown=openlibrary:openlibrary scripts/monitoring/requirements.txt scripts/monitoring/requirements.txt
-RUN python -m pip install -r scripts/monitoring/requirements.txt
+RUN uv pip install -r scripts/monitoring/requirements.txt

@@ -1,5 +1,6 @@
 FROM openlibrary/olbase:latest
 ARG PIP_INDEX_URL
+ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
@@ -7,11 +8,11 @@ ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
 USER root
 COPY requirements*.txt ./
-RUN pip install -r requirements_test.txt
+RUN uv pip install -r requirements_test.txt
 
 WORKDIR /openlibrary/scripts/solr_builder
 
-RUN pip install \
+RUN uv pip install \
     # For real-time profiling
     cprofilev \
     # Faster python
