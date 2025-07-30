@@ -31,7 +31,7 @@ from openlibrary.plugins.upstream import (
     edits,
     merge_authors,
     models,
-    readinggoals,
+    yearly_reading_goals,
     recentchanges,  # noqa: F401 side effects may be needed
     spamcheck,
     utils,
@@ -384,7 +384,7 @@ def setup():
     # merge_works.setup() # ILE code
     edits.setup()
     checkins.setup()
-    readinggoals.setup()
+    yearly_reading_goals.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
 
