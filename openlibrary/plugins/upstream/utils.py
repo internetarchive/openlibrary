@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
     urlparse,
@@ -688,9 +688,6 @@ def set_share_links(
     ]
     if view_context is not None:
         view_context.share_links = links
-
-
-T = TypeVar('T')
 
 
 def safeget[T](func: Callable[[], T], default=None) -> T:
