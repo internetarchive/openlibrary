@@ -69,7 +69,11 @@ export class MyBooksDropper extends Dropper {
 
         const splitKey = this.workKey ? this.workKey.split('/') : ['']
         const workOlid = splitKey[splitKey.length - 1]
-        this.checkInComponents = new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`))
+
+        /**
+         * @type {CheckInComponents|null}
+         */
+        this.checkInComponents = workOlid ? new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`)) : null
 
         /**
          * References this dropper's reading log buttons.
@@ -86,7 +90,9 @@ export class MyBooksDropper extends Dropper {
 
         this.readingLogForms.initialize()
         this.readingLists.initialize()
-        this.checkInComponents.initialize()
+        if (this.checkInComponents) {
+            this.checkInComponents.initialize()
+        }
 
         this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'))
     }
