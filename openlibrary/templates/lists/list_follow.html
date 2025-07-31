@@ -10,7 +10,7 @@ $def list_card(list, owner, own_list):
     $ count = cached_info["count"]
     <div class="list-follow-card">
         <a class="list-follow-card__header" href="$list.get_url()">
-             <div class="list-follow-card__title">$cached_info["title"]</div>
+                <div class="list-follow-card__title" title="${cached_info['title']}">$cached_info['title']</div>
              <div class="list-follow-card__num-books">
                  $ungettext("%(count)d book", "%(count)d books", count, count=count)
              </div>
