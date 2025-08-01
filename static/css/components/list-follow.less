@@ -60,12 +60,16 @@
     justify-content: space-between;
     padding-bottom: 5px;
     padding-top: 5px;
+    gap: 0.5em;
+    width: 100%;
   }
   &__user {
     display: flex;
     align-items: center;
     font-size: @font-size-label-medium;
     padding-left: 5px;
+    flex: 1;
+    min-width: 0;
 
     img {
       border-radius: 8px;
@@ -76,6 +80,7 @@
       position: relative;
       z-index: @z-index-level-3;
       border: 2px solid @white;
+      flex-shrink: 0;
     }
   }
 
@@ -85,12 +90,21 @@
     text-overflow: ellipsis;
     text-decoration: none;
     padding-bottom: 5px;
+    flex: 1;
+    min-width: 0;
   }
   &__username-link {
     a& {
       text-decoration: none;
       color: @dark-grey-two;
       padding-bottom: 5px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 100%;
+      display: inline-block;
+      position: relative;
+      top: 0.2rem;
     }
   }
   &__text {
