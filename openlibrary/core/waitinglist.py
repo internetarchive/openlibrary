@@ -49,12 +49,12 @@ class WaitingLoan(dict):
         if user_key := self.get("user_key"):
             return user_key
 
-        userid = self.get("userid")
+        userid = self["userid"]
         username = ""
-        if userid and userid.startswith('@'):
-            account = OpenLibraryAccount.get(link=userid)
-            username = account.username if account else ""
-        elif userid and userid.startswith('ol:'):
+        if userid.startswith('@'):
+            account = OpenLibraryAccount.get_or_raise(link=userid)
+            username = account.username
+        elif userid.startswith('ol:'):
             username = userid[len("ol:") :]
         return f"/people/{username}"
 
@@ -119,9 +119,7 @@ class WaitingLoan(dict):
         user_key = kw['user_key']
         itemname = kw.get('itemname', '')
         if not itemname:
-            account = OpenLibraryAccount.get(key=user_key)
-            if account is None:
-                raise ValueError('Unable to get Open Library account itemname')
+            account = OpenLibraryAccount.get_or_raise(key=user_key)
             itemname = account.itemname
         _wl_api.join_waitinglist(kw['identifier'], itemname)
         return cls.find(user_key, kw['identifier'], itemname=itemname)
@@ -135,9 +133,8 @@ class WaitingLoan(dict):
         Returns None if there is no such waiting loan.
         """
         if not itemname:
-            account = OpenLibraryAccount.get(key=user_key)
-            if account is None:
-                raise ValueError('Unable to get Open Library account itemname.')
+            account = OpenLibraryAccount.get_or_raise(key=user_key)
+            itemname = account.itemname
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
@@ -186,8 +183,8 @@ def get_waitinglist_size(book_key: str) -> int:
 def get_waitinglist_for_user(user_key: str) -> list[WaitingLoan]:
     """Returns the list of records for all the books that a user is waiting for."""
     waitlist = []
-    account = OpenLibraryAccount.get(key=user_key)
-    if account and account.itemname:
+    account = OpenLibraryAccount.get_or_raise(key=user_key)
+    if account.itemname:
         waitlist.extend(WaitingLoan.query(userid=account.itemname))
     waitlist.extend(WaitingLoan.query(userid=lending.userkey2userid(user_key)))
     return waitlist
