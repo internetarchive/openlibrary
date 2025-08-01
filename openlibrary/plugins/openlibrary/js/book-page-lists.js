@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-
+import { PersistentToast } from './Toast'
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -35,7 +35,6 @@ export function initListsSection(elem) {
                         }
 
                         listSection.replaceChildren(fragment)
-                        // console.log(listSection)
                         // Show "See All" link
                         if (data.hasLists) {
                             const showAllLink = elem.querySelector('.lists-heading a')
@@ -44,12 +43,9 @@ export function initListsSection(elem) {
                             }
                         }
                         const followButtons = listSection.querySelectorAll('.follow-form');
-                        // console.log(followButtons)
                         followButtons.forEach(form => {
                             form.addEventListener('submit', async e => {
                                 e.preventDefault()
-                                // console.log('submit clicked')
-                                // const formData = new FormData(form)
                                 const stateField = elem.querySelector('input[name=state]');
                                 const state = stateField.value
                                 const publisherField = elem.querySelector('input[name=publisher]');
@@ -57,12 +53,6 @@ export function initListsSection(elem) {
                                 const redir_urlField = elem.querySelector('input[name=redir_url]');
                                 const redir_url = redir_urlField.value
                                 const url = elem.querySelector('form').action
-
-                                // console.log(publisher)
-                                // console.log(state)
-                                // console.log(redir_url)
-                                // console.log(url)
-
                                 const data = {
                                     state: state,
                                     publisher: publisher,
@@ -71,37 +61,40 @@ export function initListsSection(elem) {
                                 $.ajax({
                                     type: 'POST',
                                     url: url,
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(data),
-                                    dataType: 'json',
-                                    beforeSend: function (xhr) {
-                                        xhr.setRequestHeader('Content-Type', 'application/json');
-                                        xhr.setRequestHeader('Accept', 'application/json');
-                                    },
-                                    success: function () {
-                                        // console.log('successs!!!!')
+                                    contentType: 'application/x-www-form-urlencoded',
+                                    data: data,
+                                    success: function() {
+                                        followButtons.forEach(form => {
+                                            const publisherField = form.querySelector('input[name=publisher]');
+                                            const publisher = publisherField.value
+                                            if (data.publisher === publisher){
+                                                const button = form.querySelector('button')
+                                                if (button.classList[1] === 'cta-btn--delete'){
+                                                    button.classList.remove('cta-btn--delete')
+                                                    button.classList.add('cta-btn--primary')
+                                                    button.innerText = 'Follow'
+                                                    const state =  elem.querySelector('input[name=state]')
+                                                    state.value = 0
+                                                }
+                                                else {
+                                                    button.classList.remove('cta-btn--primary');
+                                                    button.classList.add('cta-btn--delete');
+                                                    button.innerText = 'Unfollow';
+                                                    const state =  elem.querySelector('input[name=state]')
+                                                    state.value = 1
+                                                }
+                                            }
+                                        })
                                     },
                                     error: function () {
-                                        // console.log('failed')
+                                        new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
                                     },
                                     complete: function () {
-                                        // console.log('completed')
+                                        data.complete
                                     }
-                                });
-
+                                })
                             })
                         })
-                        // followButtons.forEach(button => {
-                        //     button.addEventListener('click', () => {
-                        //         console.log(button.classList)
-                        //         if (button.classList[2].includes('cta-btn--delete')){
-                        //             console.log('contains delete')
-                        //             button.classList.remove('cta-btn--delete')
-                        //             button.classList.add('cta-btn--primary')
-                        //         }
-                        //     });
-                        // });
-
                     })
             }
         })
