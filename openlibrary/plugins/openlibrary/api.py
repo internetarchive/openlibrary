@@ -10,13 +10,13 @@ from collections import defaultdict
 
 import qrcode
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
     render_template,  # noqa: F401 used for its side effects
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
@@ -518,7 +518,7 @@ class patrons_follows_json(delegate.page):
 
         username = user.key.split('/')[2]
         return delegate.RawText(
-            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            json.dumps(PubSub.get_following(username), cls=NothingEncoder),
             content_type="application/json",
         )
 
