@@ -49,7 +49,6 @@ jobs:
             uv pip install --upgrade pip setuptools wheel
           }
           uv pip install -r requirements_test.txt
-          uv pip list --outdated
       - run: make git
       - name: Run make i18n
         run: |
