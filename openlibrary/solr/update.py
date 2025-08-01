@@ -135,9 +135,6 @@ async def update_keys(
                         },
                     )
                     update_state.adds.append(doc)
-                    # Does not seem to work.
-                    # Data is in the solr update request which responds with code 200, but not found in solr.
-                    # Noticing that books I import from copydocs are also not in solr.
                     continue
 
                 thing = await data_provider.get_document(key)
