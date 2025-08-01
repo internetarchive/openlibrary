@@ -1,6 +1,7 @@
 import functools
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Literal, cast
 
@@ -13,6 +14,7 @@ from openlibrary.solr.data_provider import (
     ExternalDataProvider,
     get_data_provider,
 )
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
@@ -49,6 +51,13 @@ def get_solr_updaters() -> list[AbstractSolrUpdater]:
 
 def can_update_key(key: str) -> bool:
     return any(updater.key_test(key) for updater in get_solr_updaters())
+
+
+def extract_year(date_string: str | None) -> str | None:
+    if date_string:
+        match = re.match(r'(\d{4})', date_string)
+        return match.group(1) if match else None
+    return None
 
 
 async def update_keys(
@@ -92,8 +101,46 @@ async def update_keys(
         for key in updater_keys:
             logger.debug(f"processing {key}")
             try:
-                thing = await data_provider.get_document(key)
+                fake_work = re.fullmatch(r'^/works/(OL\d+M)$', key)
+                if fake_work:
+                    # This is a "fake" work key made from processing an orphaned edition. We know this doesn't exist, don't try to fetch it.
+                    root_key = fake_work.group(1)
+                    edition = await data_provider.get_document(f"/books/{root_key}")
+                    if not edition:
+                        logger.warning(
+                            "No edition found for fake work %r, somehow", key
+                        )
+                        continue
+                    year = extract_year(edition.get('publish_date'))
+                    doc = cast(
+                        SolrDocument,
+                        {
+                            "key": key,
+                            "type": "work",
+                            "publisher": edition.get('publishers'),
+                            "title": edition.get('title'),
+                            "number_of_pages_median": edition.get('number_of_pages'),
+                            "isbn": edition.get('isbn_10', [])
+                            + edition.get('isbn_13', []),
+                            "format": (
+                                [edition.get('physical_format')]
+                                if edition.get('physical_format')
+                                else None
+                            ),
+                            "publish_date": edition.get('publish_date'),
+                            "publish_year": [year] if year else None,
+                            "first_publish_year": year,
+                            "oclc": edition.get('oclc_numbers'),
+                            "edition_key": [fake_work.group(1)],
+                        },
+                    )
+                    update_state.adds.append(doc)
+                    # Does not seem to work.
+                    # Data is in the solr update request which responds with code 200, but not found in solr.
+                    # Noticing that books I import from copydocs are also not in solr.
+                    continue
 
+                thing = await data_provider.get_document(key)
                 if thing and thing['type']['key'] == '/type/redirect':
                     logger.warning("Found redirect to %r", thing['location'])
                     # When the given key is not found or redirects to another thing,
