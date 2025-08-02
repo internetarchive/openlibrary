@@ -107,11 +107,6 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $:format(page.get('bio', ''))
         </div>
 
-        $if page.location:
-            <div class="section hidden">
-                <h6 class="collapse black uppercase">$_("Location")</h6>
-                $page.location
-            </div>
         <span class="mobile-only">
             $:render_template("authors/infobox", page, imagesId="mobile")
         </span>

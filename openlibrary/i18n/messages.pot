@@ -7467,10 +7467,6 @@ msgid "That merge didn't work. It's our fault, and we've made a note of it."
 msgstr ""
 
 #: type/author/view.html
-msgid "Location"
-msgstr ""
-
-#: type/author/view.html
 msgid "Add another?"
 msgstr ""
 
