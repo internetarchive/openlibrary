@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
 import web
+from pydantic import TypeAdapter
 
 from openlibrary.catalog.utils import (
     author_dates_match,
@@ -296,7 +297,7 @@ def author_import_record_to_author(
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
-    assert isinstance(author_import_record_dict, dict)
+    TypeAdapter(AuthorImportDict).validate_python(author_import_record_dict)
     author_import_record = cast(AuthorImportDict, author_import_record_dict)
     if author_import_record.get('entity_type') != 'org' and not eastern:
         do_flip(author_import_record)
