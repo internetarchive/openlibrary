@@ -8,7 +8,7 @@ import string
 import threading
 import time
 from collections.abc import Callable
-from typing import Any, Literal, cast
+from typing import Any, Literal, ParamSpec, TypeVar, cast
 
 import memcache
 import web
@@ -33,8 +33,11 @@ __all__ = [
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
+P = ParamSpec('P')
+T = TypeVar('T')
 
-class memcache_memoize:
+
+class memcache_memoize[**P, T]:
     """Memoizes a function, caching its return values in memcached for each input.
 
     After the timeout, a new thread is spawned to update the value and the old
@@ -53,26 +56,26 @@ class memcache_memoize:
 
     def __init__(
         self,
-        f: Callable,
+        f: Callable[P, T],
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
-        prethread: Callable | None = None,
+        prethread: Callable[[], None] | None = None,
         hash_args: bool = False,
     ):
         """Creates a new memoized function for ``f``."""
-        self.f = f
+        self.f: Callable[P, T] = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
         self.timeout = timeout
 
-        self._memcache = None
+        self._memcache: memcache.Client | None = None
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
-        self.active_threads: dict = {}
+        self.active_threads: dict[str, threading.Thread] = {}
         self.prethread = prethread
         self.hash_args = hash_args
 
     @property
-    def memcache(self):
+    def memcache(self) -> memcache.Client:
         if self._memcache is None:
             servers = config.get("memcache_servers")
             if servers:
@@ -87,7 +90,7 @@ class memcache_memoize:
 
         return self._memcache
 
-    def _generate_key_prefix(self):
+    def _generate_key_prefix(self) -> str:
         try:
             prefix = self.f.__name__ + "_"
         except (AttributeError, TypeError):
@@ -95,20 +98,16 @@ class memcache_memoize:
 
         return prefix + self._random_string(10)
 
-    def _random_string(self, n):
+    def _random_string(self, n: int) -> str:
         chars = string.ascii_letters + string.digits
         return "".join(random.choice(chars) for i in range(n))
 
-    def __call__(self, *args, **kw):
+    def __call__(self, *args: P.args, **kw: P.kwargs) -> T:
         """Memoized function call.
 
         Returns the cached value when available. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
-        _cache = kw.pop("_cache", None)
-        if _cache == "delete":
-            self.memcache_delete(args, kw)
-            return None
 
         self.stats.calls += 1
 
@@ -127,13 +126,13 @@ class memcache_memoize:
 
         return value
 
-    def update_async(self, *args, **kw):
+    def update_async(self, *args: P.args, **kw: P.kwargs) -> None:
         """Starts the update process asynchronously."""
         t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
         self.active_threads[t.name] = t
         t.start()
 
-    def _update_async_worker(self, *args, **kw):
+    def _update_async_worker(self, *args: P.args, **kw: P.kwargs) -> None:
         key = self.compute_key(args, kw) + "/flag"
 
         if not self.memcache.add(key, "true"):
@@ -151,7 +150,7 @@ class memcache_memoize:
             # remove the flag
             self.memcache.delete(key)
 
-    def update(self, *args, **kw):
+    def update(self, *args: P.args, **kw: P.kwargs) -> tuple[T, float]:
         """Computes the value and adds it to memcache.
 
         Returns the computed value.
@@ -162,7 +161,7 @@ class memcache_memoize:
         self.memcache_set(args, kw, value, t)
         return value, t
 
-    def join_threads(self):
+    def join_threads(self) -> None:
         """Waits for all active threads to finish.
 
         Used only in testing.
@@ -170,7 +169,7 @@ class memcache_memoize:
         for name, thread in list(self.active_threads.items()):
             thread.join()
 
-    def encode_args(self, args, kw=None):
+    def encode_args(self, args: tuple, kw: dict) -> str:
         """Encodes arguments to construct the memcache key."""
         kw = kw or {}
 
@@ -183,14 +182,14 @@ class memcache_memoize:
             return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
         return a
 
-    def compute_key(self, args, kw):
+    def compute_key(self, args: tuple, kw: dict) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "$" + self.encode_args(args, kw)
         return key.replace(
             " ", "_"
         )  # XXX: temporary fix to handle spaces in the arguments
 
-    def json_encode(self, value):
+    def json_encode(self, value: Any) -> str:
         """json.dumps without extra spaces.
 
         memcache doesn't like spaces in the key.
@@ -201,7 +200,7 @@ class memcache_memoize:
             cls=NothingEncoder,
         )
 
-    def memcache_set(self, args, kw, value, time):
+    def memcache_set(self, args: tuple, kw: dict, value: T, time: float) -> None:
         """Adds value and time to memcache. Key is computed from the arguments."""
         key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
@@ -210,13 +209,17 @@ class memcache_memoize:
         self.memcache.set(key, json_data)
         stats.end()
 
-    def memcache_delete(self, args, kw):
+    def memcache_delete(self, args: tuple, kw: dict) -> None:
         key = self.compute_key(args, kw)
         stats.begin("memcache.delete", key=key)
         self.memcache.delete(key)
         stats.end()
 
-    def memcache_get(self, args, kw):
+    def memcache_delete_by_args(self, *args, **kw):
+        "A helper method to let you pass in arguments normally instead of as a tuple and dict"
+        self.memcache_delete(args, kw)
+
+    def memcache_get(self, args: tuple, kw: dict) -> tuple[T, float] | None:
         """Reads the value from memcache. Key is computed from the arguments.
 
         Returns (value, time) when the value is available, None otherwise.
@@ -227,7 +230,10 @@ class memcache_memoize:
         stats.end(hit=bool(json_str))
 
         if json_str:
-            return cast(tuple[Any, float], json.loads(json_str))
+            # 5. We must `cast` here. JSON serialization erases types,
+            # so we are telling the type checker to trust us that the
+            # deserialized object matches our generic type T.
+            return cast(tuple[T, float], json.loads(json_str))
         else:
             return None
 
