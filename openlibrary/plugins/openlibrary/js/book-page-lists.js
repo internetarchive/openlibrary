@@ -88,11 +88,8 @@ export function initListsSection(elem) {
                                         })
                                     },
                                     error: function () {
-                                        new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
+                                        new PersistentToast('Failed to follow user.  Please try again in a few moments.').show()
                                     },
-                                    complete: function () {
-                                        data.complete
-                                    }
                                 })
                             })
                         })
