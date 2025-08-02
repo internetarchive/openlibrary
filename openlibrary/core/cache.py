@@ -169,7 +169,7 @@ class memcache_memoize[**P, T]:
         for name, thread in list(self.active_threads.items()):
             thread.join()
 
-    def encode_args(self, args: tuple, kw: dict) -> str:
+    def encode_args(self, args: tuple, kw: dict | None = None) -> str:
         """Encodes arguments to construct the memcache key."""
         kw = kw or {}
 
