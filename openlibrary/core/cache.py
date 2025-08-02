@@ -216,7 +216,7 @@ class memcache_memoize[**P, T]:
         stats.end()
 
     def memcache_delete_by_args(self, *args, **kw):
-        "A helper method to let you pass in arguments normally instead of as a tuple and dict"
+        """A helper method to let you pass in arguments normally instead of as a tuple and dict"""
         self.memcache_delete(args, kw)
 
     def memcache_get(self, args: tuple, kw: dict) -> tuple[T, float] | None:
