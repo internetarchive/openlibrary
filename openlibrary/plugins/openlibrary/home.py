@@ -67,7 +67,8 @@ def get_cached_homepage():
     page = mc(devmode=("dev" in web.ctx.features))
 
     if not page:
-        mc(_cache='delete')
+        mc.memcache_delete_by_args()
+        mc()
 
     return page
 

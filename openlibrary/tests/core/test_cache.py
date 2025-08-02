@@ -83,7 +83,8 @@ class Test_memcache_memoize:
         assert m.stats.updates == 1
 
         # this should clear the cache and the next call should update the cache.
-        m(10, _cache="delete")
+        m.memcache_delete_by_args(10)
+        m(10)
 
         m(10)
         assert m.stats.updates == 2
