@@ -39,18 +39,18 @@
   border: 1px solid @lighter-grey;
   text-align: center;
   color: @light-grey;
-  font-size: 14px;
+  font-size: @font-size-label-large;
 }
 
 .dataTables_length {
-  font-size: 12px;
+  font-size: @font-size-label-medium;
   color: @grey;
   display: inline-block;
 }
 
 .dataTables_info {
   width: 100%;
-  font-size: 12px;
+  font-size: @font-size-label-medium;
   color: @grey;
   margin-top: 20px;
 }
@@ -61,7 +61,7 @@
   *width: 50px;
   // stylelint-enable declaration-block-no-duplicate-properties
   text-align: right;
-  font-size: 12px;
+  font-size: @font-size-label-medium;
   color: @grey;
 }
 
@@ -203,7 +203,7 @@ div.box {
 
 .dataTables_empty {
   text-align: center;
-  font-size: 14px;
+  font-size: @font-size-label-large;
   font-weight: normal;
   padding: 15px 0;
   color: @red;
@@ -233,7 +233,7 @@ td.details {
 div.dataTables_filter {
   float: right;
   text-align: right;
-  font-size: 12px;
+  font-size: @font-size-label-medium;
   margin: 0;
   color: @grey;
 }
@@ -258,7 +258,7 @@ div.dataTables_filter {
 .paging_full_numbers .paginate_button,
 .paging_full_numbers .paginate_active {
   font-family: @lucida_sans_serif-1;
-  font-size: 11px;
+  font-size: @font-size-label-small;
   padding: 7px;
   margin: 0 5px;
   color: @link-blue;
