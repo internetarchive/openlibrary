@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-
+import { PersistentToast } from './Toast'
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -35,7 +35,6 @@ export function initListsSection(elem) {
                         }
 
                         listSection.replaceChildren(fragment)
-
                         // Show "See All" link
                         if (data.hasLists) {
                             const showAllLink = elem.querySelector('.lists-heading a')
@@ -43,6 +42,57 @@ export function initListsSection(elem) {
                                 showAllLink.classList.remove('hidden')
                             }
                         }
+                        const followButtons = listSection.querySelectorAll('.follow-form');
+                        followButtons.forEach(form => {
+                            form.addEventListener('submit', async e => {
+                                e.preventDefault()
+                                const stateField = form.querySelector('input[name=state]');
+                                const state = stateField.value
+                                const publisherField = form.querySelector('input[name=publisher]');
+                                const publisher = publisherField.value
+                                const redir_urlField = form.querySelector('input[name=redir_url]');
+                                const redir_url = redir_urlField.value
+                                const url = elem.querySelector('form').action
+                                const data = {
+                                    state: state,
+                                    publisher: publisher,
+                                    redir_url: redir_url,
+                                }
+
+                                $.ajax({
+                                    type: 'POST',
+                                    url: url,
+                                    contentType: 'application/x-www-form-urlencoded',
+                                    data: data,
+                                    success: function() {
+                                        followButtons.forEach(form => {
+                                            const publisherField = form.querySelector('input[name=publisher]');
+                                            const publisher = publisherField.value
+                                            if (data.publisher === publisher){
+                                                const button = form.querySelector('button')
+                                                if (button.classList[1] === 'cta-btn--delete'){
+                                                    button.classList.remove('cta-btn--delete')
+                                                    button.classList.add('cta-btn--primary')
+                                                    button.innerText = 'Follow'
+                                                    const state =  form.querySelector('input[name=state]')
+                                                    state.value = 0
+                                                }
+                                                else {
+                                                    button.classList.remove('cta-btn--primary');
+                                                    button.classList.add('cta-btn--delete');
+                                                    button.innerText = 'Unfollow';
+                                                    const state =  form.querySelector('input[name=state]')
+                                                    state.value = 1
+                                                }
+                                            }
+                                        })
+                                    },
+                                    error: function () {
+                                        new PersistentToast('Failed to follow user.  Please try again in a few moments.').show()
+                                    },
+                                })
+                            })
+                        })
                     })
             }
         })
