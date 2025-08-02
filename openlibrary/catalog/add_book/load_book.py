@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
 import web
 
@@ -92,7 +92,20 @@ def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
     return rec['by_statement'].find(name) != -1
 
 
-def do_flip(author: dict[str, Any]) -> None:
+class AuthorImportDict(TypedDict):
+    """Keys expected in the author import dict."""
+
+    name: str
+    personal_name: NotRequired[str]
+    entity_type: NotRequired[str]
+    remote_ids: NotRequired[dict]
+    birth_date: NotRequired[str]
+    death_date: NotRequired[str]
+    date: NotRequired[str]
+    title: NotRequired[str]
+
+
+def do_flip(author: AuthorImportDict) -> None:
     """
     Given an author import dict, flip its name in place
     i.e. Smith, John => John Smith
@@ -116,7 +129,7 @@ def do_flip(author: dict[str, Any]) -> None:
         author['personal_name'] = name
 
 
-def pick_from_matches(author: dict[str, Any], match: list["Author"]) -> "Author":
+def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Author":
     """
     Finds the best match for author from a list of OL authors records, match.
 
@@ -137,7 +150,7 @@ def pick_from_matches(author: dict[str, Any], match: list["Author"]) -> "Author"
     return min(maybe, key=key_int)
 
 
-def find_author(author: dict[str, Any]) -> list["Author"]:
+def find_author(author: AuthorImportDict) -> list["Author"]:
     """
     Searches OL for an author by a range of queries.
     """
@@ -232,7 +245,7 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     return [pick_from_matches(author, match)]
 
 
-def find_entity(author: dict[str, Any]) -> "Author | None":
+def find_entity(author: AuthorImportDict) -> "Author | None":
     """
     Looks for an existing Author record in OL
     and returns it if found.
@@ -271,7 +284,7 @@ def remove_author_honorifics(name: str) -> str:
 
 
 def author_import_record_to_author(
-    author_import_record: dict[str, Any], eastern=False
+    author_import_record_dict: dict, eastern=False
 ) -> "Author | dict[str, Any]":
     """
     Converts an import style new-author dictionary into an
@@ -283,7 +296,8 @@ def author_import_record_to_author(
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
-    assert isinstance(author_import_record, dict)
+    assert isinstance(author_import_record_dict, dict)
+    author_import_record = cast(AuthorImportDict, author_import_record_dict)
     if author_import_record.get('entity_type') != 'org' and not eastern:
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
@@ -295,7 +309,7 @@ def author_import_record_to_author(
         if 'death_date' in author_import_record and 'death_date' not in existing:
             new['death_date'] = author_import_record['death_date']
         return new
-    a = {'type': {'key': '/type/author'}}
+    a: dict[str, Any] = {'type': {'key': '/type/author'}}
     for f in (
         'name',
         'title',
