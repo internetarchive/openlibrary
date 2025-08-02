@@ -21,34 +21,41 @@ $def list_card(list, owner, own_list):
                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
                $else:
                    $ img_url = '/images/icons/avatar_book-sm.png'
-               <img alt="$_('Cover of book in list')" src="$img_url" loading="lazy" width="80"/>
+               <img src="$img_url" alt="$_('Cover of book in list')" loading="lazy" width="80"/>
         </a>
-        <div class="list-follow-card__bottom">
-            <div class="list-follow-card__user">
-                 <a href="$owner.key">
-                  <img alt="$_('List owner profile picture')" src="$(owner.key)/avatar" />
-                 </a>
-                <div class="list-follow-card__username">
-                    <a class="list-follow-card__username-link" href="$owner.key">
-                      $if not own_list:
-                        $ owner_username = owner.key.split('/')[-1]
-                        $('@' + owner_username)
-                      $else:
-                        $_('You')
+
+        <!-- Bottom section: owner info or community label -->
+        $if owner:
+            <div class="list-follow-card__bottom">
+                <div class="list-follow-card__user">
+                    <a href="$owner.key">
+                        <img src="$(owner.key)/avatar" alt="$_('Profile picture')" />
                     </a>
+                    <div class="list-follow-card__username">
+                        <a class="list-follow-card__username-link" href="$owner.key">
+                            $if not own_list:
+                                $('@' + owner_username)
+                            $else:
+                                $_('You')
+                        </a>
+                    </div>
+                </div>
+                <div class="list-follow-card__follow-button">
+                    $if not own_list:
+                        $ owner_account = get_user_object(owner_username)
+                        $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
+                        $ settings = owner_account.get_users_settings()
+                        $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+                        $if is_public:
+                            $:render_follow_button(owner_username, is_subscribed)
                 </div>
             </div>
-            <div class="list-follow-card__follow-button">
-               $if not own_list:
-                 $ owner_username = owner.key.split('/')[-1]
-                 $ owner_account = get_user_object(owner_username)
-                 $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
-                 $ settings = owner_account.get_users_settings()
-                 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
-                 $if is_public:
-                    $:render_follow_button(owner_username, is_subscribed)
+        $else:
+            <div class="list-follow-card__bottom">
+                <div class="list-follow-card__community-label">
+                    <i>Community List</i>
+                </div>
             </div>
-        </div>
     </div>
 
 $ count = 0
@@ -58,4 +65,3 @@ $for i, list in enumerate(lists):
       $ converted = convert_list(list.key)
       $:list_card(converted, list.owner, own_list)
       $ count = count + 1
-

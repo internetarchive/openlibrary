@@ -46,11 +46,11 @@ export function initListsSection(elem) {
                         followButtons.forEach(form => {
                             form.addEventListener('submit', async e => {
                                 e.preventDefault()
-                                const stateField = elem.querySelector('input[name=state]');
+                                const stateField = form.querySelector('input[name=state]');
                                 const state = stateField.value
-                                const publisherField = elem.querySelector('input[name=publisher]');
+                                const publisherField = form.querySelector('input[name=publisher]');
                                 const publisher = publisherField.value
-                                const redir_urlField = elem.querySelector('input[name=redir_url]');
+                                const redir_urlField = form.querySelector('input[name=redir_url]');
                                 const redir_url = redir_urlField.value
                                 const url = elem.querySelector('form').action
                                 const data = {
@@ -58,6 +58,7 @@ export function initListsSection(elem) {
                                     publisher: publisher,
                                     redir_url: redir_url,
                                 }
+
                                 $.ajax({
                                     type: 'POST',
                                     url: url,
@@ -73,14 +74,14 @@ export function initListsSection(elem) {
                                                     button.classList.remove('cta-btn--delete')
                                                     button.classList.add('cta-btn--primary')
                                                     button.innerText = 'Follow'
-                                                    const state =  elem.querySelector('input[name=state]')
+                                                    const state =  form.querySelector('input[name=state]')
                                                     state.value = 0
                                                 }
                                                 else {
                                                     button.classList.remove('cta-btn--primary');
                                                     button.classList.add('cta-btn--delete');
                                                     button.innerText = 'Unfollow';
-                                                    const state =  elem.querySelector('input[name=state]')
+                                                    const state =  form.querySelector('input[name=state]')
                                                     state.value = 1
                                                 }
                                             }
