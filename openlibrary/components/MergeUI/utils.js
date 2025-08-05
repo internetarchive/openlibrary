@@ -7,6 +7,29 @@ const collator = new Intl.Collator('en-US', {numeric: true})
 export const DEFAULT_EDITION_LIMIT = 200
 
 /**
+ * @param {string | URL | Request} input
+ * @param {RequestInit?} init
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 2000) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await fetch(input, init);
+        } catch (error) {
+            // This block catches network errors (e.g., DNS, connection refused) and the server errors we threw above.
+            // 429s come here if there is a cors issue (like on localhost)
+            if (attempt === maxRetries - 1) {
+                throw error;
+            }
+        }
+        const backoff = Math.pow(2, attempt) * initialDelay;
+        const jitter = Math.random() * 2000;
+        const delay = backoff + jitter;
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+}
+
+/**
  *
  * @param {string} field field from a work object
  * @param {*} value
@@ -133,28 +156,28 @@ export function get_editions(work_key) {
         // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
         base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
     }
-    return fetch(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
+    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
 }
 
 export function get_lists(key, limit=10) {
-    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
+    return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
 }
 
 export function get_bookshelves(key) {
-    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/bookshelves.json`).then(r => {
+    return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/bookshelves.json`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
 }
 
 export function get_ratings(key) {
-    return fetch(`${CONFIGS.OL_BASE_BOOKS}${key}/ratings.json`).then(r => {
+    return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/ratings.json`).then(r => {
         if (r.ok) return r.json();
         return {error: true};
     });
@@ -248,7 +271,7 @@ export async function get_author_names(works) {
         fields: 'key,name',
     })
 
-    const response = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
+    const response = await fetchWithRetry(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
 
     if (!response.ok) {
         throw new Error('Failed to fetch author data');

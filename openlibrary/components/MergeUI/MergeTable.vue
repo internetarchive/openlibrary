@@ -73,7 +73,7 @@
 /* eslint no-console: 0 */
 import _ from 'lodash';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry } from './utils.js';
 import CONFIGS from '../configs.js';
 
 
@@ -98,7 +98,7 @@ async function fetchRecords(olids) {
     };
     const params = new URLSearchParams({query: JSON.stringify(query)});
 
-    return (await fetch(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
+    return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
 }
 
 export default {
