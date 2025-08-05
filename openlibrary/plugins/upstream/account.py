@@ -49,6 +49,7 @@ from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Work
+    from openlibrary.plugins.worksearch.subjects import SubjectType
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -925,7 +926,10 @@ class export_books(delegate.page):
     def generate_reading_log(self, username: str) -> str:
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
-        def get_subjects(work: "Work", subject_type: str) -> str:
+        def get_subjects(
+            work: "Work",
+            subject_type: SubjectType = "subject",
+        ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
         def format_reading_log(book: dict) -> dict:
