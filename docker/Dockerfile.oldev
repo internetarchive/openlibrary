@@ -10,8 +10,7 @@ WORKDIR /openlibrary
 
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
 USER root
-RUN uv pip install -r requirements_test.txt \
- && uv pip list --outdated
+RUN uv pip install -r requirements_test.txt
 
 # For i18n scripts, which run as root (to modify the host filesystem) and need these packages.
 RUN uv pip install $(grep -E 'webpy\.git|web\.py==|multipart==|Babel==' requirements.txt)
