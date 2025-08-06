@@ -24,6 +24,7 @@ A record is loaded by calling the load function.
 """
 
 import itertools
+import logging
 import re
 import uuid
 from collections import defaultdict
@@ -64,6 +65,8 @@ from openlibrary.utils.lccn import normalize_lccn
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
+
+logger = logging.getLogger("add_book")
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.UNICODE)
 re_lang = re.compile('^/languages/([a-z]{3})$')
@@ -577,9 +580,15 @@ def check_cover_url_host(
 
     parsed_url = urlparse(url=cover_url)
 
-    return parsed_url.netloc.casefold() in (
+    host_is_allowed = parsed_url.netloc.casefold() in (
         host.casefold() for host in allowed_cover_hosts
     )
+
+    if not host_is_allowed:
+        logger.info(f"disallowed cover url: {cover_url}")
+        return False
+
+    return True
 
 
 def load_data(  # noqa: PLR0912, PLR0915
