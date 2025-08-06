@@ -4,7 +4,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict
 from urllib.parse import urlencode
 
 import requests
@@ -40,6 +40,8 @@ from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_u
 from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
+
+SubjectType = Literal["subject", "place", "person", "time"]
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -607,7 +609,7 @@ class Work(Thing):
         key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
-    def get_subject_links(self, type="subject"):
+    def get_subject_links(self, type: SubjectType = "subject"):
         """Returns all the subjects as link objects.
         Each link is a web.storage object with title and key fields.
 

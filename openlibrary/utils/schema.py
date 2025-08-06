@@ -3,6 +3,7 @@
 """
 
 from types import MappingProxyType
+from typing import Literal
 
 __all__ = [
     "Column",
@@ -61,7 +62,12 @@ class AbstractAdapter:
         # foreign key constraints are not supported by default
         return None
 
-    def column_option_to_sql(self, column, option, value):
+    def column_option_to_sql(
+        self,
+        column: str,
+        option: Literal["primary_key", "unique", "default", "null", "references"],
+        value,
+    ) -> str | None:
         if option == 'primary_key' and value is True:
             return 'primary key'
         elif option == 'unique' and value is True:
@@ -76,6 +82,7 @@ class AbstractAdapter:
             return {True: 'null', False: 'not null'}[value]
         elif option == 'references':
             return self.references_to_sql(column, value)
+        return None
 
     def get_constant(self, name):
         return self.constants[name]

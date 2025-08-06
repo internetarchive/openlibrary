@@ -1,6 +1,7 @@
 """Module for handling patron observation functionality"""
 
 from collections import defaultdict, namedtuple
+from typing import Literal
 
 from infogami import config
 from infogami.utils.view import public
@@ -998,7 +999,12 @@ class Observations(db.CommonExtras):
 
     @classmethod
     def persist_observation(
-        cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE
+        cls,
+        username,
+        work_id,
+        observation,
+        action: Literal["add", "delete"],
+        edition_id=NULL_EDITION_VALUE,
     ):
         """Inserts or deletes a single observation, depending on the given action.
 
