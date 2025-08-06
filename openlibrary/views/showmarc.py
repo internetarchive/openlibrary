@@ -96,25 +96,14 @@ class show_google_books(app.view):
 
 
 re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
-re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 
 
 class show_marc(app.view):
     path = r"/show-records/(.*):(\d+):(\d+)"
 
     def GET(self, filename, offset, length):
-        m = re_bad_meta_mrc.match(filename)
-        if m:
+        if m := re_bad_meta_mrc.match(filename):
             raise web.seeother('/show-records/ia:' + m.group(1))
-        m = re_lc_sanfranpl.match(filename)
-        if m:  # archive.org is case-sensitive
-            mixed_case = (
-                f'SanFranPL{m.group(1)}/SanFranPL{m.group(2)}.out:{offset}:{length}'
-            )
-            raise web.seeother('/show-records/' + mixed_case)
-        if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
-            loc = f'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:{offset}:{length}'
-            raise web.seeother('/show-records/' + loc)
 
         loc = f"marc:{filename}:{offset}:{length}"
 
