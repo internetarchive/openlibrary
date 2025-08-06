@@ -1,13 +1,14 @@
 @import (less) "../less/breakpoints.less";
 @import (reference) "../less/colors.less";
 @import (reference) "./buttonBtn.less";
+@import (reference) "../less/font-families.less";
 
 .book-notes-form {
   margin: 1em auto;
   padding: 0 20px;
 
   p {
-    font-size: 16px;
+    font-size: @font-size-title-medium;
   }
 
   div {
@@ -17,7 +18,7 @@
     textarea {
       width: 100%;
       padding: 0.25em;
-      font-size: 16px;
+      font-size: @font-size-title-medium;
       resize: none;
     }
   }
