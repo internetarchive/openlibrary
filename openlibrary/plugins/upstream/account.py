@@ -1178,10 +1178,6 @@ class account_anonymization_json(delegate.page):
         i = web.input(test='false')
         test = i.test == "true"
 
-        # Validate request origin
-        if not self._validate_headers():
-            raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
-
         # Get S3 keys from request header
         try:
             s3_access, s3_secret = self._parse_auth_header()
@@ -1207,15 +1203,6 @@ class account_anonymization_json(delegate.page):
         raise web.HTTPError(
             "200 OK", {"Content-Type": "application/json"}, data=json.dumps(result)
         )
-
-    def _validate_headers(self):
-        origin = web.ctx.env.get('HTTP_ORIGIN') or web.ctx.env.get('HTTP_REFERER')
-        if not origin:
-            return False
-
-        parsed_origin = urlparse(origin)
-        host = parsed_origin.hostname
-        return host == "archive.org" or host.endswith(".archive.org")
 
     def _parse_auth_header(self):
         header_value = web.ctx.env.get("HTTP_AUTHORIZATION", "")
