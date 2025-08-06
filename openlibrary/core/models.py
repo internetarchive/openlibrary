@@ -4,7 +4,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import Any, Literal, TypedDict
 from urllib.parse import urlencode
 
 import requests
@@ -41,8 +41,7 @@ from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
 
-if TYPE_CHECKING:
-    from openlibrary.plugins.worksearch.subjects import SubjectType
+SubjectType = Literal["subject", "place", "person", "time"]
 
 logger = logging.getLogger("openlibrary.core")
 
