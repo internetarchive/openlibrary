@@ -6302,6 +6302,12 @@ msgstr ""
 
 #: lists/list_follow.html
 msgid "Private"
+=======
+msgid "OpenLibrary Logo"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Community List"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
