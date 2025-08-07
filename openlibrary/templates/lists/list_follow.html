@@ -52,6 +52,10 @@ $def list_card(list, owner, own_list):
                         $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
                         $if is_public:
                             $:render_follow_button(owner_username, is_subscribed)
+                        $else:
+                            <button class="list-follow-card__private-button" disabled>
+                                <span class="pvt-text">$_('Private')</span>
+                            </button>
                 </div>
             </div>
         $else:
