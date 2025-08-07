@@ -6302,7 +6302,9 @@ msgstr ""
 
 #: lists/list_follow.html
 msgid "Private"
-=======
+msgstr ""
+
+#: lists/list_follow.html
 msgid "OpenLibrary Logo"
 msgstr ""
 
