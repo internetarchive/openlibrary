@@ -97,7 +97,7 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.get("/_fast/authors/coauthors{olid}")
+    @app.get("/_fast/author/{olid}")
     def author_coauthors(olid: str):
         """Return author basic info and co-authors via Solr aggregation.
 
@@ -112,6 +112,11 @@ def create_app() -> FastAPI:
         except Exception as e:
             logger.exception("error in author network endpoint for %s", olid)
             raise HTTPException(status_code=500, detail=str(e))
+
+    # Mount authors router
+    from openlibrary.fastapi.authors import router as authors_router  # type: ignore
+
+    app.include_router(authors_router)
 
     # Finally, mount the legacy app at "/" so all existing routes keep working.
     # Ordering matters: Fast routes are declared BEFORE the catch-all mount.
