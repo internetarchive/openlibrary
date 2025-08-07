@@ -97,7 +97,7 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.get("/_fast/authors/{olid}")
+    @app.get("/_fast/authors/coauthors{olid}")
     def author_coauthors(olid: str):
         """Return author basic info and co-authors via Solr aggregation.
 
