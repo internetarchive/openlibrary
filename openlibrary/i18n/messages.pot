@@ -6300,6 +6300,10 @@ msgstr ""
 msgid "You"
 msgstr ""
 
+#: lists/list_follow.html
+msgid "Private"
+msgstr ""
+
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "See this list"
 msgstr ""
