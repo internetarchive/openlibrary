@@ -6296,8 +6296,12 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
-msgid "You"
+#: lists/list_follow.html
+msgid "Cover of book in list"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Profile picture"
 msgstr ""
 
 #: lists/list_follow.html
@@ -6403,6 +6407,10 @@ msgstr[1] ""
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
+msgstr ""
+
+#: lists/widget.html my_books/dropdown_content.html
+msgid "You"
 msgstr ""
 
 #: lists/widget.html
