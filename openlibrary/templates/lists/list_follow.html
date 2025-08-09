@@ -49,9 +49,13 @@ $def list_card(list, owner, own_list):
                         $ owner_account = get_user_object(owner_username)
                         $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
                         $ settings = owner_account.get_users_settings()
-                        $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+                        $ is_public = bool(settings and settings.get('public_readlog', 'no') == "yes")
                         $if is_public:
                             $:render_follow_button(owner_username, is_subscribed)
+                        $else:
+                            <button class="list-follow-card__private-button" disabled>
+                                <span class="pvt-text">$_("Private")</span>
+                            </button>
                 </div>
             </div>
         $else:

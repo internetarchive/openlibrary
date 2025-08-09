@@ -127,6 +127,25 @@
       margin: 0;
     }
   }
+  &__private-button {
+    background-color: @grey;
+    border: none;
+    cursor: not-allowed;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 1px;
+    border-radius: 4px;
+    .pvt-text {
+      color: @white;
+      font-size: 12px; // Override base size
+      padding: 2px 4px; // Less padding
+      box-shadow: none; // Remove default shadow if present
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+  }
   &__title {
     font-weight: bold;
     font-size: @font-size-label-large;
