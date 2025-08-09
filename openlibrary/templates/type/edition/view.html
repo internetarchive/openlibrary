@@ -129,6 +129,10 @@ $code:
     description = get_description(page)
     putctx("description", description)
 
+    # TEST ONLY
+    edition['trending_score'] = 12.0
+    edition['trending_z_score'] = 2
+
 $def display_value(label, value, itemprop=None):
     $if value:
         <dt>$label</dt>
@@ -206,6 +210,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
+    $ trending_threshold = 5
+    $if (edition and (edition.get('trending_score', 0) >= trending_threshold or edition.get('trending_z_score', 0) >= 2)):
+        $:macros.TrendingBadge(edition)
     <div class="editionCover">
       $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
     </div>
@@ -220,7 +227,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
-
+      
+      $ trending_threshold = 5
+      $if (edition and (edition.get('trending_score', 0) >= trending_threshold or edition.get('trending_z_score', 0) >= 2)):
+          $:macros.TrendingBadge(edition)
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
           $ edit_url = edition.url(suffix="/edit")
@@ -230,7 +240,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $ edit_url = page.key + "?m=edit"
 
       $:render_template("type/edition/compact_title", book_title, edit_url)
-
+      
       $if work and work.description or edition and edition.description:
         $if edition and edition.description:
           $ overview_desc = edition.description

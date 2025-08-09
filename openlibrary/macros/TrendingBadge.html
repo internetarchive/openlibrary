@@ -6,23 +6,26 @@ $ scores.reverse()
 $ scores.append(doc.get('trending_score_hourly_sum', 0))
 $ max_score = max(scores) if scores else 1
 $ max_score = max(max_score, 40)
+
+$ z = float(doc.get('trending_z_score', 0) or 0)
+
 <div class="trending-badge" title="$_('This is only visible to librarians.')">
-    $if doc.trending_z_score >= 4:
+    $if z >= 4:
         🡽
-    $elif doc.trending_z_score >= 2:
+    $elif z >= 2:
         ⇗
-    $elif doc.trending_z_score >= 0.5:
+    $elif z >= 0.5:
         ↗
-    $elif doc.trending_z_score >= -0.5:
+    $elif z >= -0.5:
         ↔
-    $elif doc.trending_z_score >= -2:
+    $elif z >= -2:
         ↘
-    $elif doc.trending_z_score >= -4:
+    $elif z >= -4:
         ⇘
     $else:
         🡾
 
-    $_('Trending: %(score).2f', score=doc.trending_z_score)
+    $_('Trending: %(score).2f', score=z)
     <span class="trending-badge__chart">
         $for score in scores:
             $ height = int((score / max_score) * 16) if max_score else 1
