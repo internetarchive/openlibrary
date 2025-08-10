@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    {% block head %}
-        <meta charset="UTF-8">
-        <title>{% block title %}My Awesome Site{% endblock %}</title>
-        <!-- Common stylesheets, meta tags, etc. -->
-    {% endblock %}
-</head>
+{% include "head.html.jinja" %}
+{% block head %}{% endblock %}
 <body>
     <header>
         {% block neck %}

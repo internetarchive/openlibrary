@@ -83,6 +83,14 @@ async def author_page(request: Request, olid: str):
 
     # The context dictionary passes data to the template. [6]
     context = {
+        "ctx": {
+            "title": name,
+            "description": "",
+            "robots": "index, follow",
+            "links": [],
+            "metatags": [],
+            "features": ["dev"],
+        },
         "request": request,
         "olid": olid,
         "name": name,
