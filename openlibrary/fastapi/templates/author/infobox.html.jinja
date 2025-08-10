@@ -26,8 +26,8 @@
 
 <div class="infobox">
     <div class="illustration">
-        {# {% include "covers/author_photo.html" with context %}
-        {% include "covers/change.html" with context %} #}
+        {{ render_template("covers/author_photo.html", page) | safe }}
+        {# {{ render_template("covers/change.html", page) | safe }} #}
     </div>
     <p class="short-description">
         {% if wikidata %}
