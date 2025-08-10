@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 import os
 
 import httpx  # async HTTP for Solr
+import web
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -10,8 +12,10 @@ from fastapi.templating import Jinja2Templates
 # Use existing Infogami client to talk to Infobase using configured parameters
 from infogami import config as ig_config  # type: ignore
 from infogami.infobase import client as ib_client  # type: ignore
+from infogami.utils.view import render_template
 from openlibrary.plugins.upstream.models import Author
 
+logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
 
 
@@ -84,7 +88,9 @@ async def author_page(request: Request, olid: str):
             wikipedia = url
             break
 
-    # The context dictionary passes data to the template. [6]
+    web.ctx.lang = 'en'
+
+    # logger.info(render_template("covers/author_photo.html", author))
     context = {
         "ctx": {
             "title": name,
@@ -104,6 +110,7 @@ async def author_page(request: Request, olid: str):
         "docs": docs,
         "top_subjects": top_subjects,
         "page": author,
+        "render_template": render_template,
     }
 
     return templates.TemplateResponse("author.html.jinja", context)
