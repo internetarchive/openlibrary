@@ -3,7 +3,8 @@
 {# {% if edit_view %}
     {% set wikidata = page.wikidata(bust_cache=True, fetch_missing=True) %}
 {% else %} #}
-{% set wikidata = page.wikidata(fetch_missing=is_librarian) %}
+{# This is bad practice to fetch missing here instead of async #}
+{% set wikidata = page.wikidata(fetch_missing=True) %}
 {# {% endif %} #}
 
 {% macro render_infobox_row(label, itemprop, value) %}
@@ -17,7 +18,8 @@
 
 {% macro render_social_icon(url, icon_url, title) %}
     {% set title_without_space = title|replace(' ', '_') %}
-    <a href="{{ url }}" title="{{ _('View on %(site)s', site=title) }}" data-ol-link-track="AuthorInfoboxSocialLink|{{ title_without_space }}">
+    {# TODO: Things like { _('View on %(site)s', site=title) }} don't work with the cur function #}
+    <a href="{{ url }}" title="View on {{ title }}" data-ol-link-track="AuthorInfoboxSocialLink|{{ title_without_space }}">
         <img class="profile-icon" src="{{ icon_url }}" alt="">
     </a>
 {% endmacro %}
@@ -29,7 +31,7 @@
     </div>
     <p class="short-description">
         {% if wikidata %}
-            {{ wikidata.get_description(i18n.get_locale()) }}
+            {{ wikidata.get_description('en') }}
         {% endif %}
     </p>
     <table>
@@ -43,7 +45,8 @@
     {% if wikidata %}
         <hr>
         <div class="profile-icon-container">
-            {% set social_profiles = wikidata.get_external_profiles(i18n.get_locale()) %}
+        {# TODO: i18n.get_locale() isn't working here #}
+            {% set social_profiles = wikidata.get_external_profiles('en') %}
             {% for profile in social_profiles %}
                 {{ render_social_icon(profile['url'], profile['icon_url'], profile['label']) }}
             {% endfor %}
