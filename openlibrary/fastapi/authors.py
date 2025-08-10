@@ -115,5 +115,12 @@ async def author_page(request: Request, olid: str):
         "query_param": request.query_params.get,
         "get_remembered_layout": get_remembered_layout,
     }
+    # return "<h1>hello2</h1>"
+    # logger.info(author.get_url())
+    # logger.info("HIIIII")
+    # rendered = render_template("type/author/view", author)
+    # logger.info(f"Rendered keys: {type(rendered)}")
+    # return str(rendered)
+    # return render_template("types/author", page=author)
 
     return templates.TemplateResponse("author/view.html.jinja", context)
