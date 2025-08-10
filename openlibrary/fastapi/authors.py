@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 # Use existing Infogami client to talk to Infobase using configured parameters
 from infogami import config as ig_config  # type: ignore
 from infogami.infobase import client as ib_client  # type: ignore
+from openlibrary.plugins.upstream.models import Author
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ def get_site() -> ib_client.Site:
     return ib_client.Site(conn, ig_config.site or "openlibrary.org")
 
 
-async def fetch_author_and_works(olid: str) -> tuple[dict, list[dict]]:
+async def fetch_author_and_works(olid: str) -> tuple[Author, list[dict]]:
     site = get_site()
     author_key = f"/authors/{olid}"
 
@@ -47,10 +48,12 @@ async def fetch_author_and_works(olid: str) -> tuple[dict, list[dict]]:
     s_json = s_resp.json()
     docs = s_json.get("response", {}).get("docs", [])
 
-    return author.dict(), docs
+    return author, docs
 
 
 templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
+templates.env.add_extension('jinja2.ext.i18n')
+templates.env.install_null_translations()
 
 
 @router.get("/_fast/authors/{olid}", response_class=HTMLResponse)
@@ -100,6 +103,7 @@ async def author_page(request: Request, olid: str):
         "wikipedia": wikipedia,
         "docs": docs,
         "top_subjects": top_subjects,
+        "page": author,
     }
 
     return templates.TemplateResponse("author.html.jinja", context)

@@ -6,6 +6,8 @@
     <h1>{{ name }}</h1>
     <p><small><code>/authors/{{ olid }}</code></small></p>
 
+    {% include "author/infobox.html.jinja" with context %}
+
     {# Conditionally display bio if it exists #}
     {% if bio %}
     <p><strong>Bio:</strong> {{ bio }}</p>
