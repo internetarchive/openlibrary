@@ -14,6 +14,7 @@ from infogami import config as ig_config  # type: ignore
 from infogami.infobase import client as ib_client  # type: ignore
 from infogami.utils.view import render_template
 from openlibrary.plugins.upstream.models import Author
+from openlibrary.plugins.worksearch.code import get_remembered_layout
 
 logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
@@ -57,7 +58,7 @@ async def fetch_author_and_works(olid: str) -> tuple[Author, list[dict]]:
 
 templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
 templates.env.add_extension('jinja2.ext.i18n')
-templates.env.install_null_translations()
+templates.env.install_null_translations(newstyle=True)
 
 
 @router.get("/_fast/authors/{olid}", response_class=HTMLResponse)
@@ -111,6 +112,8 @@ async def author_page(request: Request, olid: str):
         "top_subjects": top_subjects,
         "page": author,
         "render_template": render_template,
+        "query_param": request.query_params.get,
+        "get_remembered_layout": get_remembered_layout,
     }
 
-    return templates.TemplateResponse("author.html.jinja", context)
+    return templates.TemplateResponse("author/view.html.jinja", context)
