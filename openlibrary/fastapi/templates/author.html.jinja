@@ -1,12 +1,8 @@
-<!doctype html>
-<html>
+{% extends "site.html.jinja" %}
 
-<head>
-    <meta charset="utf-8" />
-    <title>{{ name }} — Open Library (Fast)</title>
-</head>
+{% block title %}{{ name }} — Open Library (Fast){% endblock %}
 
-<body>
+{% block body %}
     <h1>{{ name }}</h1>
     <p><small><code>/authors/{{ olid }}</code></small></p>
 
@@ -49,6 +45,4 @@
         <li>{{ subj }} <small>({{ count }})</small></li>
         {% endfor %}
     </ul>
-</body>
-
-</html>
+{% endblock %}
