@@ -1,0 +1,52 @@
+{# {% set is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin()) %} #}
+
+{# {% if edit_view %}
+    {% set wikidata = page.wikidata(bust_cache=True, fetch_missing=True) %}
+{% else %} #}
+{% set wikidata = page.wikidata(fetch_missing=is_librarian) %}
+{# {% endif %} #}
+
+{% macro render_infobox_row(label, itemprop, value) %}
+    {% if value %}
+        <tr>
+            <td><strong>{{ label }}</strong></td>
+            <td><span itemprop="{{ itemprop }}">{{ value }}</span></td>
+        </tr>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_social_icon(url, icon_url, title) %}
+    {% set title_without_space = title|replace(' ', '_') %}
+    <a href="{{ url }}" title="{{ _('View on %(site)s', site=title) }}" data-ol-link-track="AuthorInfoboxSocialLink|{{ title_without_space }}">
+        <img class="profile-icon" src="{{ icon_url }}" alt="">
+    </a>
+{% endmacro %}
+
+<div class="infobox">
+    <div class="illustration">
+        {# {% include "covers/author_photo.html" with context %}
+        {% include "covers/change.html" with context %} #}
+    </div>
+    <p class="short-description">
+        {% if wikidata %}
+            {{ wikidata.get_description(i18n.get_locale()) }}
+        {% endif %}
+    </p>
+    <table>
+        {% if page.birth_date or page.death_date %}
+            {{ render_infobox_row(_("Born"), 'birthDate', page.birth_date) }}
+            {{ render_infobox_row(_("Died"), 'deathDate', page.death_date) }}
+        {% elif page.date %}
+            {{ render_infobox_row(_("Date"), '', page.date) }}
+        {% endif %}
+    </table>
+    {% if wikidata %}
+        <hr>
+        <div class="profile-icon-container">
+            {% set social_profiles = wikidata.get_external_profiles(i18n.get_locale()) %}
+            {% for profile in social_profiles %}
+                {{ render_social_icon(profile['url'], profile['icon_url'], profile['label']) }}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
