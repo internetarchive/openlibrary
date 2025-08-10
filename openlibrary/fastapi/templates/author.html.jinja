@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>{{ name }} — Open Library (Fast)</title>
+</head>
+
+<body>
+    <h1>{{ name }}</h1>
+    <p><small><code>/authors/{{ olid }}</code></small></p>
+
+    {# Conditionally display bio if it exists #}
+    {% if bio %}
+    <p><strong>Bio:</strong> {{ bio }}</p>
+    {% endif %}
+
+    <p>
+        {# Conditionally display birth and death dates #}
+        {% if birth_date %}
+        <strong>Born:</strong> {{ birth_date }}
+        {% endif %}
+        {% if death_date %}
+        <strong>Died:</strong> {{ death_date }}
+        {% endif %}
+    </p>
+
+    {# Conditionally display Wikipedia link #}
+    {% if wikipedia %}
+    <p><a href="{{ wikipedia }}">Wikipedia</a></p>
+    {% endif %}
+
+    <h2>Works <small>({{ docs|length }})</small></h2>
+    <ol>
+        {# Loop through the first 100 documents to display works #}
+        {% for d in docs[:100] %}
+        <li>
+            <a href="{{ d.key }}">{{ d.title }}</a>
+            {% if d.first_publish_year %} — first published {{ d.first_publish_year }} {% endif %}
+            {% if d.edition_count %} — {{ d.edition_count }} editions {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+
+    <h2>Top subjects</h2>
+    <ul>
+        {# Loop through the list of top subjects #}
+        {% for subj, count in top_subjects %}
+        <li>{{ subj }} <small>({{ count }})</small></li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>
