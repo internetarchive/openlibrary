@@ -26,8 +26,7 @@
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
     <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
-    {# {% set style = 'build/css/page-' ~ ctx.get('cssfile', 'user') ~ '.css' %} #}
-    {# <link href="{{ static_url(style) }}" rel="stylesheet" type="text/css" /> #}
+    <link href="{{ url_for('static', path='build/css/page-' ~ ctx.get('cssfile', 'user') ~ '.css') }}" rel="stylesheet" type="text/css" />
 
     <noscript>
       <style>

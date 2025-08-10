@@ -7,6 +7,7 @@ import os
 try:
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import JSONResponse
+    from fastapi.staticfiles import StaticFiles
     from starlette.middleware.wsgi import WSGIMiddleware
 except ImportError as e:
     raise RuntimeError(
@@ -91,6 +92,7 @@ def create_app() -> FastAPI:
         raise
 
     app = FastAPI(title="OpenLibrary ASGI", version="1.0")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # --- Fast routes (mounted within this app) ---
     @app.get("/_fast/health")
