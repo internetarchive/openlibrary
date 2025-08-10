@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+        <meta charset="UTF-8">
+        <title>{% block title %}My Awesome Site{% endblock %}</title>
+        <!-- Common stylesheets, meta tags, etc. -->
+    {% endblock %}
+</head>
+<body>
+    <header>
+        {% block neck %}
+            <!-- Common navigation, header content -->
+        {% endblock %}
+    </header>
+
+    <main>
+        {% block body %}
+            <!-- This is where the main content of each page will go -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        {% block footer %}
+            <!-- Common footer content -->
+        {% endblock %}
+    </footer>
+</body>
+</html>
