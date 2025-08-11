@@ -73,8 +73,8 @@
      'links': myBooksLinks
   } %}
   <ul class="navigation-component">
-    {# <li>{{ render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav") }}</li>
-    <li>{{ render_template("lib/header_dropdown", browseProps, track_prefix="MainNav") }}</li> #}
+    <li>{{ render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav") | safe}}</li>
+    <li>{{ render_template("lib/header_dropdown", browseProps, track_prefix="MainNav") | safe}}</li>
   </ul>
 
   <div class="search-component">
@@ -125,12 +125,12 @@
     </ul>
   {% endif %}
 
-  {# {{ render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger") }} #}
+  {{ render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger") | safe}}
 
 </header>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
-    {# <li>{{ render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav") }}</li>
-    <li>{{ render_template("lib/header_dropdown", browseProps, track_prefix="MainNav") }}</li> #}
+    <li>{{ render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav") | safe}}</li>
+    <li>{{ render_template("lib/header_dropdown", browseProps, track_prefix="MainNav") | safe}}</li>
   </ul>
 </header>
