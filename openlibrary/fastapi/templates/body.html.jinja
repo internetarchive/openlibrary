@@ -22,7 +22,7 @@
     {# on form pages e.g. manage-covers, add-cover we do not display the header #}
     {# this is consistent with version 1. #}
     {% if show_ol_shell %}
-        {# {% include "site/alert" %} #}
+        {{ render_template("site/alert") | safe }}
         {% include "lib/nav_head.html.jinja" %}
     {% endif %}
     {# don't render test-body-mobile for iframes #}
