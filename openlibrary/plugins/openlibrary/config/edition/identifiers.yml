@@ -231,7 +231,7 @@ identifiers:
     website: https://www.worldcat.org
 -   label: OverDrive
     name: overdrive
-    url: https://www.overdrive.com/media/@@@
+    url: https://www.overdrive.com/search?q=@@@
     website: https://www.overdrive.com
 -   label: Paperback Swap
     name: paperback_swap
