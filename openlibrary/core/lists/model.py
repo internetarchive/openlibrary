@@ -324,7 +324,9 @@ class List(Thing):
                 resolved_document = web.ctx.site.get(seed.document.location)
                 if original_notes:
                     # Create AnnotatedSeed with both resolved document and original notes
-                    seed = Seed(self, {'thing': resolved_document, 'notes': original_notes})
+                    seed = Seed(
+                        self, {'thing': resolved_document, 'notes': original_notes}
+                    )
                 else:
                     seed = Seed(self, resolved_document)
                 max_checks -= 1
