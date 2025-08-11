@@ -100,6 +100,7 @@ async def author_page(request: Request, olid: str):
             "links": [],
             "metatags": [],
             "features": ["dev"],
+            "path": request.url.path,
         },
         "request": request,
         "olid": olid,
@@ -114,6 +115,8 @@ async def author_page(request: Request, olid: str):
         "render_template": render_template,
         "query_param": request.query_params.get,
         "get_remembered_layout": get_remembered_layout,
+        "homepath": lambda: "",
+        "get_flash_messages": list,
     }
     # return "<h1>hello2</h1>"
     # logger.info(author.get_url())
