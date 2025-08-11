@@ -4,7 +4,7 @@ import re
 from collections.abc import Callable, Iterable
 from enum import Enum
 from subprocess import CalledProcessError, run
-from typing import Literal, TypeVar
+from typing import Literal
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -19,9 +19,6 @@ def str_to_key(s: str) -> str:
     ''
     """
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
-
-
-T = TypeVar('T')
 
 
 def uniq[T](values: Iterable[T], key=None) -> list[T]:
@@ -47,7 +44,7 @@ def uniq[T](values: Iterable[T], key=None) -> list[T]:
     return result
 
 
-def take_best(
+def take_best[T](
     items: list[T],
     optimization: Literal["min", "max"],
     scoring_fn: Callable[[T], float],
@@ -78,7 +75,7 @@ def take_best(
     return besties
 
 
-def multisort_best(
+def multisort_best[T](
     items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
 ) -> T | None:
     """
