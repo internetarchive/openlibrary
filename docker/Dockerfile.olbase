@@ -67,7 +67,6 @@ RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
-RUN chmod +x docker/*.sh \
- && ln -s vendor/infogami/infogami infogami \
+RUN ln -s vendor/infogami/infogami infogami \
  && make \
  && uv pip list --outdated
