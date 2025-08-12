@@ -98,8 +98,8 @@ async def author_page(request: Request, olid: str):
 
 
 # This route can be ignored it's mostly for experimentation
-@router.get("/_fast2/authors/{olid}/{name}", response_class=HTMLResponse)
-@router.get("/_fast2/authors/{olid}", response_class=HTMLResponse)
+@router.get("/_fast/authors2/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/_fast/authors2/{olid}", response_class=HTMLResponse)
 async def author_page2(request: Request, olid: str):
     author = fetch_author(olid)
     docs = await fetch_author_works(olid)
