@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 
-import httpx  # async HTTP for Solr
+import httpx
 import web
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -30,13 +30,18 @@ def get_site() -> ib_client.Site:
     return ib_client.Site(conn, ig_config.site or "openlibrary.org")
 
 
-async def fetch_author_and_works(olid: str) -> tuple[Author, list[dict]]:
+def fetch_author(olid: str) -> Author:
     site = get_site()
     author_key = f"/authors/{olid}"
 
     author = site.get(author_key)
     if not author:
         raise HTTPException(status_code=404, detail="author not found")
+    return author
+
+
+async def fetch_author_works(olid: str) -> list[dict]:
+    # author = fetch_author(olid)
 
     # Query Solr for works by this author
     solr_url = os.environ.get("SOLR_URL", "http://solr:8983/solr/openlibrary/select")
@@ -53,7 +58,7 @@ async def fetch_author_and_works(olid: str) -> tuple[Author, list[dict]]:
     s_json = s_resp.json()
     docs = s_json.get("response", {}).get("docs", [])
 
-    return author, docs
+    return docs
 
 
 templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
@@ -61,9 +66,12 @@ templates.env.add_extension('jinja2.ext.i18n')
 templates.env.install_null_translations(newstyle=True)
 
 
+# @router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/_fast/authors/{olid}/{name}", response_class=HTMLResponse)
 @router.get("/_fast/authors/{olid}", response_class=HTMLResponse)
 async def author_page(request: Request, olid: str):
-    author, docs = await fetch_author_and_works(olid)
+    author = fetch_author(olid)
+    docs = await fetch_author_works(olid)
 
     # Aggregate top subjects
     subject_counts: dict[str, int] = {}
@@ -90,6 +98,9 @@ async def author_page(request: Request, olid: str):
             break
 
     web.ctx.lang = 'en'
+    cookies_str = "; ".join(f"{k}={v}" for k, v in request.cookies.items())
+    web.ctx.env['HTTP_COOKIE'] = cookies_str
+    web.ctx._parsed_cookies = request.cookies
 
     # logger.info(render_template("covers/author_photo.html", author))
     context = {
@@ -109,7 +120,7 @@ async def author_page(request: Request, olid: str):
         "birth_date": birth_date,
         "death_date": death_date,
         "wikipedia": wikipedia,
-        "docs": docs,
+        # "docs": docs,
         "top_subjects": top_subjects,
         "page": author,
         "render_template": render_template,
@@ -118,12 +129,13 @@ async def author_page(request: Request, olid: str):
         "homepath": lambda: "",
         "get_flash_messages": list,
     }
-    # return "<h1>hello2</h1>"
-    # logger.info(author.get_url())
-    # logger.info("HIIIII")
-    # rendered = render_template("type/author/view", author)
-    # logger.info(f"Rendered keys: {type(rendered)}")
-    # return str(rendered)
-    # return render_template("types/author", page=author)
+    # site = get_site()
+    # u = site.get_user()
+    # web.ctx.get_user()
+    import time
 
-    return templates.TemplateResponse("author/view.html.jinja", context)
+    start = time.perf_counter()
+    t = templates.TemplateResponse("author/view.html.jinja", context)
+    duration = time.perf_counter() - start
+    logger.info(f"Rendered author page for {olid} in {duration:.2f} seconds")
+    return t
