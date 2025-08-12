@@ -3,21 +3,11 @@ from __future__ import annotations
 import logging
 import os
 
-# FastAPI/Starlette
-try:
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import JSONResponse
-    from fastapi.staticfiles import StaticFiles
-    from starlette.middleware.wsgi import WSGIMiddleware
-except ImportError as e:
-    raise RuntimeError(
-        "FastAPI is not installed in the runtime environment. "
-        "Ensure fastapi and uvicorn are available in your Docker image."
-    ) from e
-
-# Legacy stack
 import web  # type: ignore
 import yaml  # type: ignore
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.wsgi import WSGIMiddleware
 
 logger = logging.getLogger("openlibrary.asgi_app")
 
@@ -92,6 +82,7 @@ def create_app() -> FastAPI:
         raise
 
     app = FastAPI(title="OpenLibrary ASGI", version="1.0")
+    # This serves our css/js files
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # --- Fast routes (mounted within this app) ---
