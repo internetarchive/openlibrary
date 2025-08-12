@@ -57,7 +57,7 @@ async def fetch_author_works(olid: str) -> list[dict]:
     return docs
 
 
-def _compute_author_network(olid: str) -> dict:
+async def _compute_author_network(olid: str) -> dict:
     """Compute co-authors by querying Solr and author details via JSON API.
 
     - Fetch author details from the classic JSON API: /authors/{olid}.json
@@ -76,7 +76,9 @@ def _compute_author_network(olid: str) -> dict:
         "rows": 2000,
         "wt": "json",
     }
-    s_resp = httpx.get(solr_url, params=params, timeout=15)
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        s_resp = await client.get(solr_url, params=params)
     s_resp.raise_for_status()
     docs = s_resp.json().get("response", {}).get("docs", [])
 
@@ -129,14 +131,14 @@ def _compute_author_network(olid: str) -> dict:
 
 
 @router.get("/_fast/coauthors/{olid}")
-def author_coauthors(olid: str):
+async def author_coauthors(olid: str):
     """Return author basic info and co-authors via Solr aggregation.
 
     This is intentionally JSON-first for an initial endpoint. We can add an
     HTML template later.
     """
     try:
-        data = _compute_author_network(olid)
+        data = await _compute_author_network(olid)
         return JSONResponse(data)
     except HTTPException:
         raise
