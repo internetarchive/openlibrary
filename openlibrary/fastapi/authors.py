@@ -97,9 +97,9 @@ async def author_page(request: Request, olid: str):
     return templates.TemplateResponse("author/view.html.jinja", context)
 
 
-# This route can be ignored it's mostly for experimentation
-@router.get("/_fast/authors_new/{olid}/{name}", response_class=HTMLResponse)
-@router.get("/_fast/authors_new/{olid}", response_class=HTMLResponse)
+# This was an experiment to see what it would be like to just use new templates instead of rendering old ones
+@router.get("/_fast/authors_simple/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/_fast/authors_simple/{olid}", response_class=HTMLResponse)
 async def author_page2(request: Request, olid: str):
     author = fetch_author(olid)
     docs = await fetch_author_works(olid)
@@ -151,7 +151,7 @@ async def author_page2(request: Request, olid: str):
         "birth_date": birth_date,
         "death_date": death_date,
         "wikipedia": wikipedia,
-        # "docs": docs,
+        "docs": docs,
         "top_subjects": top_subjects,
         "page": author,
         "render_template": render_template,
@@ -166,7 +166,7 @@ async def author_page2(request: Request, olid: str):
     import time
 
     start = time.perf_counter()
-    t = templates.TemplateResponse("author/view.html.jinja", context)
+    t = templates.TemplateResponse("author/simple_author.html.jinja", context)
     duration = time.perf_counter() - start
     logger.info(f"Rendered author page for {olid} in {duration:.2f} seconds")
     return t
