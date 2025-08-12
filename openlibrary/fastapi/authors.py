@@ -71,6 +71,37 @@ templates.env.install_null_translations(newstyle=True)
 @router.get("/_fast/authors/{olid}", response_class=HTMLResponse)
 async def author_page(request: Request, olid: str):
     author = fetch_author(olid)
+
+    # Needed for page banners where we call the old render function, not a new template
+    web.ctx.lang = 'en'
+
+    context = {
+        # New templates use this ctx
+        "ctx": {
+            "title": author.get("name") or olid,
+            "description": "",
+            "robots": "index, follow",
+            "links": [],
+            "metatags": [],
+            "features": ["dev"],
+            "path": request.url.path,
+        },
+        "request": request,
+        "page": author,
+        "render_template": render_template,
+        "query_param": request.query_params.get,
+        "get_remembered_layout": get_remembered_layout,
+        "homepath": lambda: "",
+        "get_flash_messages": list,
+    }
+    return templates.TemplateResponse("author/view.html.jinja", context)
+
+
+# This route can be ignored it's mostly for experimentation
+@router.get("/_fast2/authors/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/_fast2/authors/{olid}", response_class=HTMLResponse)
+async def author_page2(request: Request, olid: str):
+    author = fetch_author(olid)
     docs = await fetch_author_works(olid)
 
     # Aggregate top subjects
