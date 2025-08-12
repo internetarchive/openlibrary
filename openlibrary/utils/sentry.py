@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
+from os import getenv
 
 import sentry_sdk
 import web
@@ -66,7 +67,7 @@ class Sentry:
     def init(self):
         sentry_sdk.init(
             dsn=self.config['dsn'],
-            environment=self.config['environment'],
+            environment=getenv('OL_SENTRY_ENVIRONMENT', self.config['environment']),
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),
@@ -183,3 +184,25 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
             return result
 
         return find_route().to_sentry_name()
+
+
+_sentry: Sentry | None = None
+
+
+def init_sentry(config_dict: dict) -> Sentry:
+    global _sentry
+
+    if _sentry is not None:
+        if config_dict.get('dsn') != _sentry.config.get('dsn'):
+            raise ValueError(
+                f"Sentry initialized with different DSNs: "
+                f"{_sentry.config.get('dsn')} != {config_dict.get('dsn')}."
+            )
+        return _sentry
+
+    _sentry = Sentry(config_dict)
+
+    if _sentry.enabled:
+        _sentry.init()
+
+    return _sentry

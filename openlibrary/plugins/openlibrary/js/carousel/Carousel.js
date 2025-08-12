@@ -207,8 +207,7 @@ export class Carousel {
 
     async fetchPartials() {
         const loadMore = this.loadMore
-        const url = buildPartialsUrl('/partials.json', {
-            _component: 'CarouselLoadMore',
+        const url = buildPartialsUrl('CarouselLoadMore', {
             queryType: loadMore.queryType,
             q: loadMore.q,
             limit: loadMore.limit,
@@ -218,7 +217,8 @@ export class Carousel {
             pageMode: loadMore.pageMode,
             hasFulltextOnly: loadMore.hasFulltextOnly,
             secondaryAction: loadMore.secondaryAction,
-            key: loadMore.key
+            key: loadMore.key,
+            ...loadMore.extraParams
         });
         this.appendLoadingSlide();
 

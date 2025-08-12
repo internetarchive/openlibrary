@@ -73,9 +73,12 @@ export function trimInputValues(param) {
     });
 }
 
-export function buildPartialsUrl(path, params) {
+export function buildPartialsUrl(component, params = {}) {
     const curUrl = new URL(window.location.href);
-    const url = new URL(location.origin + path);
+    const url = new URL(`${location.origin}/partials.json`);
+
+    url.searchParams.set('_component', component)
+
     if (curUrl.searchParams.has('lang')) {
         url.searchParams.set('lang', curUrl.searchParams.get('lang'));
     }

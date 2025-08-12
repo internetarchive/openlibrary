@@ -81,17 +81,24 @@ class trending_books_api(delegate.page):
 
         period = period[1:]  # remove slash
         i = web.input(
-            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0
+            page=1,
+            limit=100,
+            days=0,
+            hours=0,
+            sort_by_count=False,
+            minimum=0,
+            fields='',
         )
+        fields = i.fields.split(',') if i.fields else None
         days = SINCE_DAYS.get(period, int(i.days))
         works = get_trending_books(
             since_days=days,
             since_hours=int(i.hours),
             limit=int(i.limit),
             page=int(i.page),
-            books_only=True,
             sort_by_count=i.sort_by_count != "false",
             minimum=i.minimum,
+            fields=fields,
         )
         result = {
             'query': f"/trending/{period}",

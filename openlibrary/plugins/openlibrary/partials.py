@@ -1,5 +1,6 @@
 import json
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import cast
 from urllib.parse import parse_qs
 
@@ -10,8 +11,13 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.lists import get_user_lists
+from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
-from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.plugins.worksearch.subjects import (
+    date_range_to_publish_year_filter,
+    get_subject,
+)
 from openlibrary.views.loanstats import get_trending_books
 
 
@@ -30,6 +36,41 @@ class PartialDataHandler(ABC):
     @abstractmethod
     def generate(self) -> dict:
         pass
+
+
+class ReadingGoalProgressPartial(PartialDataHandler):
+    """Handler for reading goal progress."""
+
+    def __init__(self):
+        self.i = web.input(year=None)
+
+    def generate(self) -> dict:
+        year = self.i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component = render_template('check_ins/reading_goal_progress', [goal])
+
+        return {"partials": str(component)}
+
+
+class MyBooksDropperListsPartial(PartialDataHandler):
+    """Handler for the MyBooks dropper list component."""
+
+    def generate(self) -> dict:
+        user_lists = get_user_lists(None)
+
+        dropper = render_template("lists/dropper_lists", user_lists)
+        list_data = {
+            list_data['key']: {
+                'members': list_data['list_items'],
+                'listName': list_data['name'],
+            }
+            for list_data in user_lists
+        }
+
+        return {
+            'dropper': str(dropper),
+            'listData': list_data,
+        }
 
 
 class CarouselCardPartial(PartialDataHandler):
@@ -144,15 +185,19 @@ class CarouselCardPartial(PartialDataHandler):
         page = int(params.get("page", 1))
         limit = int(params.get("limit", 18))
         return get_trending_books(
-            minimum=3, limit=limit, page=page, books_only=True, sort_by_count=False
+            minimum=3, limit=limit, page=page, sort_by_count=False
         )
 
     def _do_subjects_query(self, params: dict) -> list:
         pseudoKey = params.get("q", "")
         offset = int(params.get("page", 1))
         limit = int(params.get("limit", 18))
+        published_in = params.get("published_in", "")
+        publish_year = date_range_to_publish_year_filter(published_in)
 
-        subject = get_subject(pseudoKey, offset=offset, limit=limit)
+        subject = get_subject(
+            pseudoKey, offset=offset, limit=limit, publish_year=publish_year
+        )
         return subject.get("works", [])
 
 
@@ -321,6 +366,8 @@ class PartialRequestResolver:
         "FulltextSearchSuggestion": FullTextSuggestionsPartial,
         "BPListsSection": BookPageListsPartial,
         "LazyCarousel": LazyCarouselPartial,
+        "MyBooksDropperLists": MyBooksDropperListsPartial,
+        "ReadingGoalProgress": ReadingGoalProgressPartial,
     }
 
     @staticmethod

@@ -264,17 +264,3 @@ export async function get_author_names(works) {
 
     return authorDirectory
 }
-
-
-// /**
-//  * @param {Object} record
-//  * @param {string} comment
-//  */
-// function put_save(record, comment) {
-//     record._comment = comment;
-//     const url = `${record.key}.json`;
-//     return fetch(url, {
-//         method: 'PUT',
-//         body: JSON.stringify(record)
-//     });
-// }

@@ -74,7 +74,6 @@ export function initPreviewDialogs() {
     });
 }
 
-
 /**
  * Wires up dialog close buttons
  * If an element has the class dialog--open it will trigger the
@@ -97,4 +96,15 @@ export function initDialogs() {
     $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
     // This will close the colorbox from the parent.
     $('.dialog--close-parent').on('click', () => parent.$.fn.colorbox.close());
+}
+
+/**
+ * Adds click listeners for closing dialogs to the given elements.
+ *
+ * @param {NodeList<Element>} closers
+ */
+export function initDialogClosers(closers) {
+    closers.forEach(closer => {
+        $(closer).on('click', () => $.fn.colorbox.close())
+    })
 }

@@ -8,6 +8,8 @@ from typing import Any, Final, Literal, TypedDict, cast
 import web
 
 from infogami.infobase.utils import flatten
+from openlibrary.i18n import gettext as _
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -119,11 +121,10 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def most_logged_books(
         cls,
-        shelf_id: str = '',
+        shelf_id: int | None = None,
         limit: int = 10,
         since: date | None = None,
         page: int = 1,
-        fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
     ) -> list:
@@ -135,19 +136,18 @@ class Bookshelves(db.CommonExtras):
         page = int(page or 1)
         offset = (page - 1) * limit
         oldb = db.get_db()
-        where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
-        if since:
-            where += ' AND created >= $since'
-        group_by = 'group by work_id'
-        if minimum:
-            group_by += " HAVING COUNT(*) > $minimum"
-        order_by = 'order by cnt desc' if sort_by_count else ''
+
         query = f"""
-            select work_id, count(*) as cnt
-            from bookshelves_books
-            {where} {group_by} {order_by}
-            limit $limit offset $offset"""
-        logger.info("Query: %s", query)
+            SELECT work_id, count(*) AS cnt
+            FROM bookshelves_books
+            WHERE
+                bookshelf_id {'=$shelf_id' if shelf_id else 'IS NOT NULL'}
+                {'AND created >= $since' if since else ''}
+            GROUP BY work_id {'HAVING COUNT(*) > $minimum' if minimum else ''}
+            {'ORDER BY cnt DESC' if sort_by_count else ''}
+            LIMIT $limit
+            OFFSET $offset
+        """
         data = {
             'shelf_id': shelf_id,
             'limit': limit,
@@ -156,14 +156,16 @@ class Bookshelves(db.CommonExtras):
             'minimum': minimum,
         }
 
-        logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return list(oldb.query(query, vars=data))
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def add_solr_works(
+        cls, readinglog_items, fields: Iterable[str] | None = None
+    ) -> None:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
-        book records from solr with availability
+        book records from solr with availability. This will add a 'work' key
+        to each item in readinglog_items.
         """
         from openlibrary.core.lending import add_availability
         from openlibrary.plugins.worksearch.code import get_solr_works
@@ -172,6 +174,7 @@ class Bookshelves(db.CommonExtras):
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
             {f"/works/OL{i['work_id']}W" for i in readinglog_items},
+            fields,
             editions=True,
         )
 
@@ -182,13 +185,12 @@ class Bookshelves(db.CommonExtras):
             ]
         )
 
-        # Return items from the work_index in the order
+        # Attach items from the work_index in the order
         # they are represented by the trending logged books
         for i, item in enumerate(readinglog_items):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
                 readinglog_items[i]['work'] = work_index[key]
-        return readinglog_items
 
     @classmethod
     def count_total_books_logged_by_user(
@@ -277,7 +279,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def add_storage_items_for_redirects(
         cls, reading_log_keys, solr_docs: list[web.Storage]
-    ) -> list[web.storage]:
+    ):
         """
         Use reading_log_keys to fill in missing redirected items in the
         the solr_docs query results.
@@ -290,7 +292,6 @@ class Bookshelves(db.CommonExtras):
         """
 
         from openlibrary.plugins.worksearch.code import run_solr_query
-        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         fetched_keys = {doc["key"] for doc in solr_docs}
         missing_keys = {work for (work, _) in reading_log_keys} - fetched_keys
@@ -319,7 +320,8 @@ class Bookshelves(db.CommonExtras):
         ]
         fq = f'edition_key:({" OR ".join(edition_keys_to_query)})'
         if not edition_keys_to_query:
-            return solr_docs
+            return
+
         solr_resp = run_solr_query(
             scheme=WorkSearchScheme(),
             param={'q': '*:*'},
@@ -346,7 +348,36 @@ class Bookshelves(db.CommonExtras):
                     solr_docs.append(web.storage(doc))
                     break
 
-        return solr_docs
+    @classmethod
+    def add_storage_items_for_deletes(
+        cls, reading_log_keys, solr_docs: list[web.Storage]
+    ):
+        missing = {w for w, e in reading_log_keys} - {doc['key'] for doc in solr_docs}
+        # Get them from the DB
+        missing_docs = web.ctx.site.get_many(list(missing))
+
+        # Push some dummy books
+        for doc in missing_docs:
+            if doc.type.key == '/type/delete':
+                solr_docs.append(
+                    web.storage(
+                        {
+                            'key': doc.key,
+                            'title': _('[Record deleted]'),
+                        }
+                    )
+                )
+            else:
+                # Should never happen?
+                logger.warning(f"Missing item in Solr: {doc.key}")
+                solr_docs.append(
+                    web.storage(
+                        {
+                            'key': doc.key,
+                            'title': doc.key,
+                        }
+                    )
+                )
 
     @classmethod
     def get_users_logged_books(
@@ -374,7 +405,6 @@ class Bookshelves(db.CommonExtras):
         """
         from openlibrary.core.models import LoggedBooksData
         from openlibrary.plugins.worksearch.code import run_solr_query
-        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
@@ -553,15 +583,13 @@ class Bookshelves(db.CommonExtras):
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
 
-            solr_docs = cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            if len(solr_docs) < len(reading_log_keys):
+                cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
+
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             solr_docs = cls.link_editions_to_works(solr_docs)
-
-            assert len(solr_docs) == len(reading_log_keys), (
-                "solr_docs is missing an item/items from reading_log_keys; "
-                "see add_storage_items_for_redirects()"
-            )
 
             return LoggedBooksData(
                 username=username,
@@ -613,7 +641,6 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: str | None = None,
         limit: int = 50,
         page: int = 1,
-        fetch: bool = False,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
@@ -627,8 +654,7 @@ class Bookshelves(db.CommonExtras):
             f"SELECT * from bookshelves_books {where} "
             "ORDER BY created DESC LIMIT $limit OFFSET $offset"
         )
-        logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:

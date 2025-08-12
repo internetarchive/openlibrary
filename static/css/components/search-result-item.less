@@ -40,8 +40,8 @@
 
     // Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color
     content: "";
-    -webkit-mask: url(../images/icons/open-book.svg);
-    mask: url(../images/icons/open-book.svg);
+    -webkit-mask: url(/static/images/icons/open-book.svg);
+    mask: url(/static/images/icons/open-book.svg);
     -webkit-mask-size: cover;
     mask-size: cover;
     background-color: @primary-blue;
@@ -194,6 +194,26 @@
   }
   a:hover span {
     background-position: -21px 0;
+  }
+}
+
+.trending-badge {
+  display: inline-block;
+  background-color: fade(@olive, 12%);
+  border-radius: 50px;
+  padding: 0 13px;
+
+  .trending-badge__chart {
+    display: inline-block;
+    margin-left: 4px;
+    letter-spacing: -2px;
+  }
+
+  // stylelint-disable-next-line no-descending-specificity
+  .trending-badge__chart > span {
+    display: inline-block;
+    width: 4px;
+    background: @green;
   }
 }
 

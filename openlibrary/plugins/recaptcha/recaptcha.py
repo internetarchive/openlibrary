@@ -43,7 +43,7 @@ class Recaptcha(web.form.Input):
 
         try:
             r = requests.get(url, params=params, timeout=3)
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.exception('Recaptcha call failed: letting user through')
             return True
 

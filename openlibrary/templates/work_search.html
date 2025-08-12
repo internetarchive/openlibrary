@@ -1,5 +1,7 @@
 $def with (q_param, search_response, get_doc, param, page, rows)
 
+$ layout = get_remembered_layout()
+
 <div>
     <div id="contentHead">
       <h1>$_("Search Books")</h1>
@@ -85,10 +87,13 @@ $def with (q_param, search_response, get_doc, param, page, rows)
 
           $if search_response.num_found > 1:
             $:render_template("search/sort_options.html", search_response.sort)
+
+          $if search_response.num_found > 0:
+            $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul class="list-books">
+          <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]

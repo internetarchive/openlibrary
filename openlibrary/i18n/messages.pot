@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
+#: openlibrary/core/bookshelves.py
+msgid "[Record deleted]"
+msgstr ""
+
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
 msgstr ""
@@ -102,8 +106,8 @@ msgstr ""
 msgid "Preview Only"
 msgstr ""
 
-#: BookPreview.html book_providers/direct_read_button.html
-#: books/edit/edition.html editpage.html
+#: BookPreview.html book_providers/read_button.html books/edit/edition.html
+#: editpage.html
 msgid "Preview"
 msgstr ""
 
@@ -115,7 +119,8 @@ msgstr ""
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
-#: my_books/dropdown_content.html native_dialog.html
+#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
+#: native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -256,7 +261,7 @@ msgid_plural "View %(count)s Editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: EditionNavBar.html site/stats.html
+#: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
 msgstr ""
 
@@ -356,15 +361,8 @@ msgid "Loading indicator"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/runeberg_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html books/edit/edition.html
-#: books/show.html books/works-show.html trending.html type/list/embed.html
-#: widget.html
+#: book_providers/read_button.html books/edit/edition.html books/show.html
+#: books/works-show.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -576,6 +574,14 @@ msgstr ""
 
 #: RawQueryCarousel.html
 msgid "Retry?"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "No books match the current filters."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry without filters?"
 msgstr ""
 
 #: RawQueryCarousel.html
@@ -792,7 +798,7 @@ msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages<
 msgstr[0] ""
 msgstr[1] ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
 msgstr ""
 
@@ -936,6 +942,11 @@ msgstr ""
 msgid "Page %s"
 msgstr ""
 
+#: TrendingBadge.html
+#, python-format
+msgid "Trending: %(score).2f"
+msgstr ""
+
 #: TypeChanger.html
 msgid "Page Type"
 msgstr ""
@@ -1017,9 +1028,9 @@ msgstr ""
 msgid "Edit this page"
 msgstr ""
 
-#: account.html check_ins/check_in_prompt.html
-#: check_ins/reading_goal_progress.html databarHistory.html
-#: databarTemplate.html databarView.html subjects.html
+#: account.html databarHistory.html databarTemplate.html databarView.html
+#: my_books/check_ins/check_in_prompt.html
+#: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
@@ -2023,11 +2034,7 @@ msgid "Added new book."
 msgstr ""
 
 #: messages.html
-msgid "Thank you very much for adding that new book!"
-msgstr ""
-
-#: messages.html
-msgid "Thank you very much for improving that record!"
+msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
 #: notfound.html
@@ -2122,7 +2129,8 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -2167,6 +2175,10 @@ msgid "Staged"
 msgstr ""
 
 #: status.html
+msgid "View PRs on GitHub"
+msgstr ""
+
+#: status.html
 msgid "Show changed files"
 msgstr ""
 
@@ -2207,8 +2219,8 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html check_ins/check_in_form.html
-#: check_ins/check_in_prompt.html trending.html
+#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
+#: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
 msgstr ""
 
@@ -2289,7 +2301,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: check_ins/reading_goal_form.html widget.html
+#: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -2689,10 +2701,6 @@ msgstr ""
 msgid "%(year_span)s reading goal"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
-msgid "Untitled list"
-msgstr ""
-
 #: account/mybooks.html
 msgid "View All Lists"
 msgstr ""
@@ -3056,6 +3064,10 @@ msgstr ""
 msgid "Create a list"
 msgstr ""
 
+#: account/sidebar.html
+msgid "Untitled list"
+msgstr ""
+
 #: account/topmenu.html
 msgid "Import & Export"
 msgstr ""
@@ -3321,8 +3333,8 @@ msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html
+#: admin/people/edits.html admin/permissions.html
+#: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -4127,14 +4139,6 @@ msgstr ""
 msgid "More at Cita Press"
 msgstr ""
 
-#: book_providers/cita_press_read_button.html
-msgid "Read eBook from Cita Press"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-msgid "Read free online"
-msgstr ""
-
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
 msgstr ""
@@ -4168,10 +4172,6 @@ msgstr ""
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid "Read eBook from Project Gutenberg"
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -4222,14 +4222,6 @@ msgstr ""
 msgid "More at LibriVox"
 msgstr ""
 
-#: book_providers/librivox_read_button.html
-msgid "Listen to a reading from LibriVox"
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid "Audiobook"
-msgstr ""
-
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
 msgstr ""
@@ -4238,8 +4230,18 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
-#: book_providers/openstax_read_button.html
-msgid "Read eBook from OpenStax"
+#: book_providers/read_button.html
+#, python-format
+msgid "Listen to a reading from %s"
+msgstr ""
+
+#: book_providers/read_button.html
+msgid "Audiobook"
+msgstr ""
+
+#: book_providers/read_button.html
+#, python-format
+msgid "Read free online from %s"
 msgstr ""
 
 #: book_providers/runeberg_download_options.html
@@ -4282,10 +4284,6 @@ msgstr ""
 msgid "More at Project Runeberg"
 msgstr ""
 
-#: book_providers/runeberg_read_button.html
-msgid "Read eBook from Project Runeberg"
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
 msgstr ""
@@ -4318,10 +4316,6 @@ msgstr ""
 msgid "More at Standard Ebooks"
 msgstr ""
 
-#: book_providers/standard_ebooks_read_button.html
-msgid "Read eBook from Standard eBooks"
-msgstr ""
-
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
 msgstr ""
@@ -4344,10 +4338,6 @@ msgstr ""
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_read_button.html
-msgid "Read eBook on Wikisource"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -5324,130 +5314,6 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: check_ins/check_in_form.html
-msgid "January"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "February"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "March"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "April"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "May"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "June"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "July"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "August"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "September"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "October"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "November"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "December"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid ""
-"Add an optional check-in date. Check-in dates are used to track yearly "
-"reading goals."
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "End Date:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Delete Event"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-#, python-format
-msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "When did you finish this book?"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Other"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Check-In"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "How many books would you like to read this year?"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid ""
-"<span class=\"reading-goal-progress__books-"
-"read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> Books"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid "Edit %(year)d Reading Goal"
-msgstr ""
-
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
@@ -5511,7 +5377,7 @@ msgstr ""
 msgid "Upload image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/external_image.html
 msgid "Upload Image"
 msgstr ""
 
@@ -5520,7 +5386,7 @@ msgid "Uploading..."
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Wikidata"
 msgstr ""
 
 #: covers/author_photo.html
@@ -5592,6 +5458,11 @@ msgstr ""
 
 #: covers/change.html
 msgid "Manage"
+msgstr ""
+
+#: covers/external_image.html
+#, python-format
+msgid "Or, use the cover from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -6216,7 +6087,7 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html
+#: lib/nav_head.html search/sort_options.html
 msgid "Trending"
 msgstr ""
 
@@ -6422,6 +6293,18 @@ msgstr ""
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Private"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "OpenLibrary Logo"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Community List"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
@@ -6769,6 +6652,109 @@ msgstr ""
 msgid "Add to List"
 msgstr ""
 
+#: my_books/check_ins/check_in_form.html
+msgid "January"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "February"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "March"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "April"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "May"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "June"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "July"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "August"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "September"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "October"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "November"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "December"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid ""
+"Add an optional check-in date. Check-in dates are used to track yearly "
+"reading goals."
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "End Date:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "When did you finish this book?"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Other"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Check-In"
+msgstr ""
+
 #: observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
@@ -6850,6 +6836,27 @@ msgstr ""
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "How many books would you like to read this year?"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Books"
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html
@@ -7034,6 +7041,14 @@ msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
+
+#: search/layout_options.html
+msgid "Grid"
+msgstr ""
+
+#: search/layout_options.html
+msgid "View as: "
+msgstr ""
 
 #: search/lists.html
 msgid "Search results for Lists"
@@ -7459,20 +7474,12 @@ msgid "That merge didn't work. It's our fault, and we've made a note of it."
 msgstr ""
 
 #: type/author/view.html
-msgid "Location"
-msgstr ""
-
-#: type/author/view.html
 msgid "Add another?"
 msgstr ""
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
-
-#: type/author/view.html
-msgid "Sort by: "
 msgstr ""
 
 #: type/author/view.html
@@ -7526,11 +7533,11 @@ msgid "View the previous version"
 msgstr ""
 
 #: type/delete/view.html
-msgid "Recreate it"
+msgid "See the page's history"
 msgstr ""
 
 #: type/delete/view.html
-msgid "See the page's history"
+msgid "Recreate it"
 msgstr ""
 
 #: type/edition/admin_bar.html
@@ -7728,6 +7735,10 @@ msgstr ""
 
 #: type/list/edit.html
 msgid "Edit List"
+msgstr ""
+
+#: type/list/edit.html
+msgid "Move..."
 msgstr ""
 
 #: type/list/edit.html

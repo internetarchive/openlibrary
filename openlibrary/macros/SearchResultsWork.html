@@ -113,6 +113,8 @@ $code:
           $ ratings_avg = doc.get('ratings_average', None)
           $ want_to_read_count = doc.get('want_to_read_count', None)
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
+          $if show_librarian_extras and doc.get('trending_z_score') is not None:
+            $:macros.TrendingBadge(doc)
           $if doc.get('ia'):
             $if len(doc.get('ia')) > 1:
               $ blur_preview = "preview-covers--blur" if blur else ""

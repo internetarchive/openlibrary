@@ -188,11 +188,11 @@ class IAMiddleware(ConnectionMiddleware):
     def _ensure_no_store_entry(self, sitename, identifier):
         key = "ia-scan/" + identifier
         store_key = "/_store/" + key
-        # If the entry is not found, create an entry
+        # If the entry is found, delete it
         try:
-            jsontext = self.store_get(sitename, store_key)
+            self.store_get(sitename, store_key)
             self.store_delete(sitename, store_key, {"_rev": None})
-        except client.ClientException as e:
+        except client.ClientException:
             # nothing to do if that doesn't exist
             pass
 
@@ -463,9 +463,9 @@ class MigrationMiddleware(ConnectionMiddleware):
 
     def exists(self, key):
         try:
-            d = ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
+            ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
             return True
-        except client.ClientException as e:
+        except client.ClientException:
             return False
 
     def _process(self, data):

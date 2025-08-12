@@ -65,26 +65,15 @@ See 'docker run --help'.
 
 ## Build the project
 
-For most architectures, you can `cd` and change into the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`) and run:
+To build the project, `cd` into the project root directory (where `compose.yaml` is located) and run:
 
 ```sh
 docker compose build
 ```
 
-The `build` process may take more than 15 minutes on older hardware or slower networks, and may **timeout** and result in failure. If this happens, you may have to re-run the `docker compose build` command.
+The build process may take more than 15 minutes on older hardware or slower networks. If it times out and fails, simply re-run the `docker compose build` command.
 
-If you are using a mac [`arm64` #10276](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2576717718), [`M2` #10078](https://github.com/internetarchive/openlibrary/issues/10078#issuecomment-2495487385), or some other architecture, it's possible the `build` command may **fail** with an error of:
-```
-failed to solve openlibrary/olbase:latest` no match for platform in manifest: not found
-```
-
-In these cases, [until we standardize our images across architectures](https://github.com/internetarchive/openlibrary/issues/10276#issuecomment-2573844779), try running the following and proceed with the installation steps normally:
-
-```sh
-docker build -f docker/Dockerfile.olbase -t openlibrary/olbase:latest .
-```
-
-If you hit another **error** while building the project, please jump to the [Troubleshooting Guide](#troubleshooting) and [browse our open and closed docker issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22%20)
+If you encounter any build errors, please check the [Troubleshooting Guide](#troubleshooting) for solutions or [browse our issues tagged with docker](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue%20label%3A%22Module%3A%20Docker%22).
 
 ## Run the app
 ```sh
@@ -171,7 +160,7 @@ docker container prune --filter label="com.docker.compose.project=openlibrary" -
 docker image prune --filter label="com.docker.compose.project=openlibrary" --force
 
 # Remove volumes that might have outdated dependencies/code
-docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
+docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-postgres openlibrary_ol-vendor openlibrary_solr-data openlibrary_solr-updater-data
 
 # Bring it back up again
 docker compose up  # or docker compose up -d

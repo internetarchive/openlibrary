@@ -569,7 +569,7 @@ class Work(models.Work):
     def get_covers_from_solr(self) -> list[Image]:
         try:
             w = self._solr_data
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception(
                 'Unable to retrieve covers from solr'
             )
@@ -604,7 +604,7 @@ class Work(models.Work):
         stats.begin("solr", get=self.key, fields=fields)
         try:
             return solr.get(self.key, fields=fields)
-        except Exception as e:
+        except Exception:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:
@@ -854,12 +854,12 @@ class SubjectPerson(Subject):
 class User(models.User):
     displayname: str | None
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.displayname or self.key.split('/')[-1]
 
     name = property(get_name)
 
-    def get_edit_history(self, limit=10, offset=0):
+    def get_edit_history(self, limit: int = 10, offset: int = 0):
         return web.ctx.site.versions(
             {"author": self.key, "limit": limit, "offset": offset}
         )
@@ -875,13 +875,13 @@ class User(models.User):
             )[0]
             return web.storage({"ip": d.ip, "member_since": d.created})
 
-    def get_edit_count(self):
+    def get_edit_count(self) -> int:
         if web.ctx.path.startswith("/admin"):
             return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
         else:
             return 0
 
-    def get_loan_count(self):
+    def get_loan_count(self) -> int:
         return len(borrow.get_loans(self))
 
     def get_loans(self):

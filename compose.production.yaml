@@ -14,6 +14,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      # Note this won't work with uv pip, because uv makes a network request
       - BEFORE_START=pip install -e /booklending_utils
     volumes:
       - ../booklending_utils:/booklending_utils
@@ -257,9 +258,11 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
-      - EXTRA_OPTS=--no-solr-next
+      - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
+      - /www0_1:/1
     logging:
       options:
         max-size: "512m"
@@ -273,15 +276,20 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    init: true
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
+      - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
-      - EXTRA_OPTS=--solr-next
+      - TRENDING_OFFSET_FILE=trending-next-update.offset
+      - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
+      # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
+      - /www0_1:/1
     command: docker/ol-solr-updater-start.sh
     networks:
       - webnet

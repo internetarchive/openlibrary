@@ -20,18 +20,32 @@ const DEFAULT_JSON_FIELDS = [
     'title',
     'subtitle',
     'author_name',
+    'editions',
+    // This is for authors autocomplete; we mix them all up here for simplicity
     'name',
 ];
 /** Functions that render autocomplete results */
 const RENDER_AUTOCOMPLETE_RESULT = {
     ['/search'](work) {
+        const book = work.editions?.docs?.[0] || work;
         const author_name = work.author_name ? work.author_name[0] : '';
+        // See _get_safepath_re in openlibrary/core/helpers.py
+        let link = `${work.key}/${encodeURIComponent(work.title.replace(/[;/?:@&=+$,\s<>#%"{}|\\^[\]`]+/g, '_'))}`;
+        if (book !== work) {
+            link += `?edition=key:${book.key}`;
+        }
         return `
             <li tabindex=0>
-                <a href="${work.key}">
-                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
+                <a href="${link}">
+                    <img
+                        src="//covers.openlibrary.org/b/id/${book.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png"
+                        srcset="//covers.openlibrary.org/b/id/${book.cover_i}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png 2x"
+                        alt=""
+                    />
                     <span class="book-desc">
-                        <div class="book-title">${websafe(work.title)}</div><div class="book-subtitle">${websafe(work.subtitle)}</div> by <span class="book-author">${websafe(author_name)}</span>
+                        <div class="book-title">${websafe(book.title)}</div>
+                        <div class="book-subtitle">${websafe(book.subtitle)}</div>
+                        by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
@@ -40,7 +54,11 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <img
+                        src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png"
+                        srcset="//covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png 2x"
+                        alt=""
+                    />
                     <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;

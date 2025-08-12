@@ -51,51 +51,50 @@ $code:
               { 'sort': 'already_read', 'name': _("Already Read"), 'ga_key': 'ReadingLogAlreadyRead' },
             ]
           },
+         { 'sort': 'trending', 'name': _("Trending"), 'ga_key': 'Trending' },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
        if selected_sort == 'title' or (ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())):
          sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
 
      selected_sort_option = get_selected_sort_option(sort_options, selected_sort) or get_selected_sort_option(sort_options, default_sort)
-    <span class="sort-dropper">
-      <details>
-        <summary>
-          <img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" />
-          <p>$selected_sort_option['name']</p>
-        </summary>
-        <span class="sort-content">
-          <span class="sort-content-inner">
-            $for sort_option in sort_options:
-              $if exclude and sort_option['sort'] in exclude:
-                $continue
-              $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort
-              $ sub_sorts = sort_option.get('sub_sorts', [])
-              $ sub_sort_selected = any(sub_sort.get('selected') or sub_sort['sort'] == selected_sort for sub_sort in sub_sorts)
-              $if is_selected:
-                <a class="sort-selected">$sort_option['name']</a>
-              $else:
-                <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
-                   data-ol-link-track="SearchSort|$sort_option['ga_key']"
-                   rel="nofollow"
-                >
-                  $sort_option['name']
-                </a>
-              $if sub_sorts and (is_selected or sub_sort_selected):
-                $for sub_sort in sort_option['sub_sorts']:
-                  $ is_selected = sub_sort.get('selected') or sub_sort['sort'] == selected_sort
-                  $if is_selected:
-                    <a class="sort-subsort-selected">$sub_sort['name']</a>
-                  $else:
-                    <a class="sort-subsort"
-                       href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
-                       data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"
-                    >
-                      $sub_sort['name']
-                    </a>
-          </span>
+    <details class="sort-dropper">
+      <summary class="tool-button">
+        <img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" />
+        $selected_sort_option['name']
+      </summary>
+      <span class="sort-content">
+        <span class="sort-content-inner">
+          $for sort_option in sort_options:
+            $if exclude and sort_option['sort'] in exclude:
+              $continue
+            $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort
+            $ sub_sorts = sort_option.get('sub_sorts', [])
+            $ sub_sort_selected = any(sub_sort.get('selected') or sub_sort['sort'] == selected_sort for sub_sort in sub_sorts)
+            $if is_selected:
+              <a class="sort-selected">$sort_option['name']</a>
+            $else:
+              <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
+                  data-ol-link-track="SearchSort|$sort_option['ga_key']"
+                  rel="nofollow"
+              >
+                $sort_option['name']
+              </a>
+            $if sub_sorts and (is_selected or sub_sort_selected):
+              $for sub_sort in sort_option['sub_sorts']:
+                $ is_selected = sub_sort.get('selected') or sub_sort['sort'] == selected_sort
+                $if is_selected:
+                  <a class="sort-subsort-selected">$sub_sort['name']</a>
+                $else:
+                  <a class="sort-subsort"
+                      href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
+                      data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"
+                  >
+                    $sub_sort['name']
+                  </a>
         </span>
-      </details>
-    </span>
+      </span>
+    </details>
     $if selected_sort and selected_sort.startswith('random') and not is_bot():
           <a class="sort-random-shuffle"
              href="$changequery(page=None, sort='random_%s' % today().timestamp())"

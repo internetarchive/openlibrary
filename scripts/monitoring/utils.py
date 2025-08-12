@@ -1,11 +1,12 @@
 import fnmatch
 import os
 import subprocess
+from pathlib import Path
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
-def bash_run(cmd: str, sources: list[str] | None = None, capture_output=False):
+def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=False):
     if not sources:
         sources = []
 

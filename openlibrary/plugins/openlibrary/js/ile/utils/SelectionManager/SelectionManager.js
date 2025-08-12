@@ -451,6 +451,20 @@ SelectionManager.SELECTION_PROVIDERS = [
         data: el => el.href.match(/OL\d+A/)[0],
     },
     /**
+     * This selection provider makes work on the books page selectable.
+     */
+    {
+        path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
+        selector: '.work-line a[href^="/works/OL"]',
+        addHandle: true,
+        type: ['work'],
+        /**
+         * @param {HTMLAnchorElement} el
+         * @return {import('../ol.js').WorkOLID}
+         **/
+        data: el => el.href.match(/OL\d+W/)[0],
+    },
+    /**
      * This selection provider makes authors selectable on search result pages
      */
     {

@@ -15,7 +15,6 @@ $else:
     $ lists = []
 
 <div id="contentHead">
-    <h1>$settings.get('username')</h1>
     $if is_public and not owners_page:
         <div class="right">$:macros.Follow(username, following=is_subscribed)</div>
     $:macros.databarView(page)
@@ -45,8 +44,9 @@ $else:
             <a href="$url" rel="nofollow">$url</a><br/>
         </p>
 
-    $:sanitize(format(page.description))
-
+    <div class="markdown-content">
+        $:sanitize(format(page.description))
+    </div>
 
     <h2>$_('Reading Log')</h2>
     $if owners_page:

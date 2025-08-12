@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, fallback=None)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -19,7 +19,8 @@ $if lazy:
             "limit": limit,
             "search": search,
             "has_fulltext_only": has_fulltext_only,
-            "layout": layout
+            "layout": layout,
+            "fallback": fallback,
         }
         if title:
             config["title"] = title
@@ -30,6 +31,10 @@ $if lazy:
         <div class="lazy-carousel-retry hidden">
             $_("Failed to fetch carousel.") <a href="#" class="retry-btn">$_("Retry?")</a>
         </div>
+        $if fallback:
+          <div class="lazy-carousel-fallback hidden">
+              $_("No books match the current filters.") <a href="#" class="retry-btn">$_("Retry without filters?")</a>
+          </div>
     </div>
 $else:
     $# Enable search within this query

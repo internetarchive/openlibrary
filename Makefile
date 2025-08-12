@@ -8,21 +8,19 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
-# Use python from local env if it exists or else default to python in the path.
-PYTHON=$(if $(wildcard env),env/bin/python,python)
 
 .PHONY: all clean distclean git css js components i18n lint
 
 all: git css js components i18n
 
-css: static/css/page-*.less
+css:
 	mkdir -p $(BUILD)
-	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
+	NODE_ENV=production npx webpack --config webpack.config.css.js
 
 js:
 	mkdir -p $(BUILD)
 	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
-	npm run build-assets:webpack
+	NODE_ENV=production npx webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
 	for js in $(BUILD)/*.js; do \
 		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
@@ -36,7 +34,7 @@ components:
 
 
 i18n:
-	$(PYTHON) ./scripts/i18n-messages compile
+	python ./scripts/i18n-messages compile
 
 git:
 	git submodule init
@@ -50,10 +48,6 @@ distclean:
 	git clean -fdx
 	git submodule foreach git clean -fdx
 
-load_sample_data:
-	@echo "loading sample docs from openlibrary.org website"
-	$(PYTHON) scripts/copydocs.py --list /people/anand/lists/OL1815L
-	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
@@ -67,14 +61,14 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	$(PYTHON) -m ruff --no-cache .
+	python -m ruff check .
 
 test-py:
 	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
-	$(PYTHON) ./scripts/i18n-messages validate de es fr hr it ja zh
+	python ./scripts/i18n-messages validate de es fr hr it ja zh
 
 test:
 	make test-py && npm run test && make test-i18n

@@ -77,8 +77,13 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 @public
-def get_solr_works(work_keys: set[str], editions=False) -> dict[str, web.storage]:
+def get_solr_works(
+    work_keys: set[str], fields: Iterable[str] | None = None, editions=False
+) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
+
+    if not fields:
+        fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
 
     if editions:
         # To get the top matching edition, need to do a proper query
@@ -86,7 +91,7 @@ def get_solr_works(work_keys: set[str], editions=False) -> dict[str, web.storage
             WorkSearchScheme(),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
-            fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+            fields=list(fields),
             facet=False,
         )
         return {
@@ -95,13 +100,7 @@ def get_solr_works(work_keys: set[str], editions=False) -> dict[str, web.storage
             for doc in resp.docs
         }
     else:
-        return {
-            doc['key']: doc
-            for doc in get_solr().get_many(
-                work_keys,
-                fields=WorkSearchScheme.default_fetched_fields,
-            )
-        }
+        return {doc['key']: doc for doc in get_solr().get_many(work_keys, fields)}
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -169,6 +168,24 @@ def execute_solr_query(
 
 # Expose this publicly
 public(has_solr_editions_enabled)
+
+
+@public
+def get_remembered_layout():
+    def read_query_string():
+        return web.input(layout=None).get('layout')
+
+    def read_cookie():
+        if "LBL" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get('LBL')
+
+    if (qs_value := read_query_string()) is not None:
+        return qs_value
+
+    if (cookie_value := read_cookie()) is not None:
+        return cookie_value
+
+    return 'details'
 
 
 def run_solr_query(  # noqa: PLR0912
@@ -358,6 +375,8 @@ def do_search(
         'ratings_count',
         'want_to_read_count',
     }
+    if sort and 'trending' in sort:
+        extra_fields.add('trending_*')
     fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
     if web.cookies(sfw="").sfw == 'yes':
@@ -381,7 +400,7 @@ def get_doc(doc: SolrDocument):
 
     called from work_search template
     """
-    return web.storage(
+    result = web.storage(
         key=doc['key'],
         title=doc['title'],
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
@@ -430,6 +449,11 @@ def get_doc(doc: SolrDocument):
         ratings_count=doc.get('ratings_count', None),
         want_to_read_count=doc.get('want_to_read_count', None),
     )
+    for field in doc:
+        if field.startswith('trending_'):
+            result[field] = doc[field]
+
+    return result
 
 
 class scan(delegate.page):
@@ -605,7 +629,9 @@ def works_by_author(
                 "time_facet",
             ]
         ),
-        fields=WorkSearchScheme.default_fetched_fields | {'editions'},
+        fields=list(
+            WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
+        ),
         extra_params=[
             ('fq', f'author_key:{akey}'),
             ('facet.limit', 25),

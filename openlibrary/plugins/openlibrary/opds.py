@@ -187,7 +187,6 @@ class OPDSEntry(OPDS):
     # add_rel_links()
     # ___________________________________________________________________________
     def add_rel_links(self, book, work):
-        links = []
         if work:
             self.create_rel_link(
                 None,
@@ -235,7 +234,6 @@ class OPDSEntry(OPDS):
         collection = set()
         if meta_fields := book.get_ia_meta_fields():
             collection = meta_fields.get('collection', [])
-            contrib = meta_fields.get('contributor')
 
         coverLarge = book.get_cover_url('L')
         coverThumb = book.get_cover_url('S')

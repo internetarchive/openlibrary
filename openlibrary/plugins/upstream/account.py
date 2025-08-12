@@ -202,7 +202,7 @@ class account_migration(delegate.page):
                 ol_account = OpenLibraryAccount.get(username=i.username)
             elif i.email:
                 ol_account = OpenLibraryAccount.get(email=i.email)
-        except Exception as e:
+        except Exception:
             return delegate.RawText(
                 json.dumps({'error': 'bad-account'}), content_type="application/json"
             )
@@ -417,8 +417,6 @@ class account_login_json(delegate.page):
         )
 
         d = json.loads(web.data())
-        email = d.get('email', "")
-        remember = d.get('remember', "")
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -440,29 +438,7 @@ class account_login_json(delegate.page):
                     'errorDisplayString': get_login_error(error),
                 }
                 raise olib.code.BadRequest(json.dumps(resp))
-            expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
-            web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            if audit.get('ia_email') and (
-                ol_account := OpenLibraryAccount.get(email=audit['ia_email'])
-            ):
-                _set_account_cookies(ol_account, expires)
-
-                if web.cookies().get("pda"):
-                    _update_account_on_pd_request(ol_account)
-                    _notify_on_rpd_verification(
-                        ol_account, get_pd_org(web.cookies().get("pda"))
-                    )
-                    _expire_pd_cookies()
-
-                has_special_access = audit.get('special_access')
-                if (
-                    has_special_access
-                    and ol_account.get_user().preferences().get('rpd')
-                    != PDRequestStatus.FULFILLED.value
-                ):
-                    _update_account_on_pd_fulfillment(ol_account)
-
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -530,7 +506,7 @@ class account_login(delegate.page):
             secret=None,
             action="",
         )
-        email = i.username  # XXX username is now email
+        email = '' if (i.access and i.secret) else i.username
         audit = audit_accounts(
             email,
             i.password,
@@ -541,6 +517,7 @@ class account_login(delegate.page):
         )
         if error := audit.get('error'):
             return self.render_error(error, i)
+        email = email or audit.get('ia_email') or audit.get('ol_email')
 
         expires = 3600 * 24 * 365 if i.remember else ""
         web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
@@ -931,14 +908,18 @@ class export_books(delegate.page):
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
+        # Can't put at top due to cyclical imports
+        from openlibrary.plugins.upstream.models import Work
+
         work_key = f"/works/{work_id}"
         work: Work = web.ctx.site.get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':
-            # Fetch actual work and resolve redirects before exporting:
-            work = web.ctx.site.get(work.location)
-            work.resolve_redirect_chain(work_key)
+            # Resolve the redirect before exporting
+            work = web.ctx.site.get(
+                Work.resolve_redirect_chain(work_key).get('resolved_key')
+            )
         return work
 
     def generate_reading_log(self, username: str) -> str:
@@ -1187,6 +1168,63 @@ class account_waitlist(delegate.page):
 #
 #     def GET(self, path):
 #         return render.notfound(path, create=False)
+
+
+class account_anonymization_json(delegate.page):
+    path = "/account/anonymize"
+    encoding = "json"
+
+    def POST(self):
+        i = web.input(test='false')
+        test = i.test == "true"
+
+        # Validate request origin
+        if not self._validate_headers():
+            raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
+
+        # Get S3 keys from request header
+        try:
+            s3_access, s3_secret = self._parse_auth_header()
+        except ValueError:
+            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"})
+
+        # Fetch and anonymize account
+        xauthn_response = InternetArchiveAccount.s3auth(s3_access, s3_secret)
+        if 'error' in xauthn_response:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        ol_account = OpenLibraryAccount.get(link=xauthn_response.get('itemname', ''))
+        if not ol_account:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        try:
+            result = ol_account.anonymize(test=test)
+        except Exception:
+            raise web.HTTPError(
+                "500 Internal Server Error", {"Content-Type": "application/json"}
+            )
+
+        raise web.HTTPError(
+            "200 OK", {"Content-Type": "application/json"}, data=json.dumps(result)
+        )
+
+    def _validate_headers(self):
+        origin = web.ctx.env.get('HTTP_ORIGIN') or web.ctx.env.get('HTTP_REFERER')
+        if not origin:
+            return False
+
+        parsed_origin = urlparse(origin)
+        host = parsed_origin.hostname
+        return host == "archive.org" or host.endswith(".archive.org")
+
+    def _parse_auth_header(self):
+        header_value = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+        try:
+            _, keys = header_value.split('LOW ', 1)
+            s3_access, s3_secret = keys.split(':', 1)
+            return s3_access.strip(), s3_secret.strip()
+        except ValueError:
+            raise ValueError("Malformed Authorization Header")
 
 
 def as_admin(f):

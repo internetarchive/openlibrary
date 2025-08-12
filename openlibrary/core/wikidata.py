@@ -133,6 +133,18 @@ class WikidataEntity:
 
         return profiles
 
+    def get_image_urls(self) -> list[str]:
+        """
+        Get all image URLs for the entity.
+        Images are typically stored on Wikimedia Commons.
+        Property P18 is used for images.
+        """
+        image_filenames = self._get_statement_values("P18")
+        base_url = "https://commons.wikimedia.org/wiki/Special:FilePath/"
+        return [
+            f"{base_url}{filename.replace(' ', '_')}" for filename in image_filenames
+        ]
+
     def _get_wikipedia_link(self, language: str = 'en') -> tuple[str, str] | None:
         """
         Get the Wikipedia URL and language for a given language code.

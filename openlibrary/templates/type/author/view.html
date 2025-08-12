@@ -40,6 +40,7 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$ layout = get_remembered_layout()
 $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 <div id="contentHead">
 
@@ -106,11 +107,6 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $:format(page.get('bio', ''))
         </div>
 
-        $if page.location:
-            <div class="section hidden">
-                <h6 class="collapse black uppercase">$_("Location")</h6>
-                $page.location
-            </div>
         <span class="mobile-only">
             $:render_template("authors/infobox", page, imagesId="mobile")
         </span>
@@ -131,20 +127,24 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                   </form>
         <div class="clearfix"></div>
 
-                $if books_count > 1:
-                    <div id="books">
-                        <label for="sortOptions">$_('Sort by: ')</label>
+                <div class="search-results-stats">
+                    $if books_count > 1:
                         $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+
+                    $if books_count > 0:
+                        $:render_template("search/layout_options.html", selected_layout=layout)
+
+                    $if books_count > 1:
                         $if input(mode="everything").mode == "everything":
                             <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
                         $else:
                             <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
-                    </div>
+                </div>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
                 <div id="searchResults">
-                    <ul class="list-books">
+                    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
                     </ul>

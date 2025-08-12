@@ -34,6 +34,7 @@ from openlibrary.plugins.upstream import (
     recentchanges,  # noqa: F401 side effects may be needed
     spamcheck,
     utils,
+    yearly_reading_goals,
 )  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
@@ -383,6 +384,7 @@ def setup():
     # merge_works.setup() # ILE code
     edits.setup()
     checkins.setup()
+    yearly_reading_goals.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
 

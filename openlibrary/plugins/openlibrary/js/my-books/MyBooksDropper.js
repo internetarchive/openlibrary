@@ -3,7 +3,7 @@
  * @module my-books/MyBooksDropper
  */
 import myBooksStore from './store'
-import { ReadDateComponents } from './MyBooksDropper/ReadDateComponents'
+import { CheckInComponents } from './MyBooksDropper/CheckInComponents'
 import { ReadingLists } from './MyBooksDropper/ReadingLists'
 import {ReadingLogForms, ReadingLogShelves} from './MyBooksDropper/ReadingLogForms'
 import { Dropper } from '../dropper/Dropper'
@@ -61,23 +61,25 @@ export class MyBooksDropper extends Dropper {
         this.loadingAnimationId
 
         /**
-         * References this dropper's read date prompt and display.
-         * @member {ReadDateComponents}
-         */
-        this.readDateComponents = new ReadDateComponents(dropper)
-
-        /**
-         * References this dropper's reading log buttons.
-         * @member {ReadingLogForms}
-         */
-        this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
-
-        /**
          * The work key associated with this dropper, if any.
          *
          * @member {string|undefined}
          */
         this.workKey = this.dropper.dataset.workKey
+
+        const splitKey = this.workKey ? this.workKey.split('/') : ['']
+        const workOlid = splitKey[splitKey.length - 1]
+
+        /**
+         * @type {CheckInComponents|null}
+         */
+        this.checkInComponents = workOlid ? new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`)) : null
+
+        /**
+         * References this dropper's reading log buttons.
+         * @member {ReadingLogForms}
+         */
+        this.readingLogForms = new ReadingLogForms(dropper, this.checkInComponents, dropperActionCallbacks)
     }
 
     /**
@@ -88,6 +90,9 @@ export class MyBooksDropper extends Dropper {
 
         this.readingLogForms.initialize()
         this.readingLists.initialize()
+        if (this.checkInComponents) {
+            this.checkInComponents.initialize()
+        }
 
         this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'))
     }
@@ -179,11 +184,11 @@ export class MyBooksDropper extends Dropper {
         this.readingLogForms.updatePrimaryBookshelfId(Number(shelf))
         this.readingLogForms.updatePrimaryButtonText(this.readingLogForms.getDisplayString(shelf))
 
-        if (this.readDateComponents) {
-            if (!this.readDateComponents.hasReadDate() && shelf === ReadingLogShelves.ALREADY_READ) {
-                this.readDateComponents.showDatePrompt()
+        if (this.checkInComponents) {
+            if (!this.checkInComponents.hasReadDate() && shelf === ReadingLogShelves.ALREADY_READ) {
+                this.checkInComponents.showCheckInDisplay()
             } else {
-                this.readDateComponents.hideDatePrompt()
+                this.checkInComponents.hideCheckInPrompt()
             }
         }
     }

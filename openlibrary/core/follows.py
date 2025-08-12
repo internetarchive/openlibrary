@@ -111,7 +111,9 @@ class PubSub:
         for i, rb in enumerate(recent_books):
             recent_books[i].key = f'/works/OL{rb.work_id}W'
 
-        return Bookshelves.fetch(recent_books)
+        Bookshelves.add_solr_works(recent_books)
+
+        return recent_books
 
     @classmethod
     def count_following(cls, subscriber):

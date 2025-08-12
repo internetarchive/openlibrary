@@ -9,15 +9,6 @@ const
     distDir = path.resolve(__dirname, 'static/build');
 
 module.exports = {
-    // Apply the rule of silence: https://wikipedia.org/wiki/Unix_philosophy.
-    stats: {
-        all: false,
-        // Output a timestamp when a build completes. Useful when watching files.
-        builtAt: true,
-        errors: true,
-        warnings: true
-    },
-
     // Fail on the first build error instead of tolerating it for prod builds. This seems to
     // correspond to optimization.noEmitOnErrors.
     bail: prod,
@@ -118,5 +109,12 @@ module.exports = {
         maxEntrypointSize: 703 * 1024,
         // Size violations for prod builds fail; development builds are unchecked.
         hints: prod ? 'error' : false
-    }
+    },
+
+    // Useful for developing in docker/windows, which doesn't support file watchers
+    watchOptions: process.env.FORCE_POLLING === 'true' ? {
+        poll: 1000, // Check for changes every second
+        aggregateTimeout: 300, // Delay before rebuilding
+        ignored: /node_modules/
+    } : undefined,
 };

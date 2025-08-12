@@ -227,25 +227,13 @@ em {
   font-style: italic;
 }
 
-#contentBody {
-  ul,
-  ol {
-    margin-bottom: 20px;
-    margin-left: 0.5em;
-    margin-right: 0.5em;
+// Styles that should apply to markdown documents
+.markdown-content {
+  ol,
+  ul {
+    padding-left: 40px;
   }
-  li,
-  blockquote {
-    line-height: 1.5em;
-  }
-  input[type="submit"] {
-    font-size: 1.125em;
-  }
-  &.map {
-    width: 958px !important;
-    padding: 0 !important;
-    position: relative;
-  }
+
   ol li {
     list-style: decimal;
     color: @dark-grey;
@@ -494,25 +482,17 @@ input {
 
 // openlibrary/templates/search/inside.html
 .search-results-stats {
-  margin: 0;
-  margin-bottom: 10px;
-  color: @grey;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 10px;
   font-size: 0.9em;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
 /* Search v2 */
 .serp {
-  // openlibrary/templates/work_search.html
-  &-ctx {
-    line-height: 1.5em;
-    margin-bottom: 5px;
-    font-size: 1em;
-
-    .show-similar {
-      margin-top: 15px;
-      font-size: 0.9em;
-    }
-  }
   // openlibrary/macros/SearchResultsWork.html
   &-extras {
     border: 1px solid @lighter-grey;
@@ -727,15 +707,6 @@ div.siteSearch {
   }
 }
 
-// openlibrary/templates/search/advancedsearch.html
-#qtop {
-  input {
-    border-radius: 5px;
-    padding: 7px;
-    border: none;
-  }
-}
-
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
@@ -875,23 +846,10 @@ div.verify {
     min-height: 100px;
     margin-bottom: 20px;
   }
-  &ThreeQuarter {
-    min-height: 100px;
-    margin-bottom: 20px;
-  }
-
   &Spacer {
     width: 19px;
     height: 2px;
   }
-}
-
-// openlibrary/templates/subjects.html
-// openlibrary/templates/publishers/view.html
-div.spacer {
-  float: left;
-  width: 30px;
-  min-height: 10px;
 }
 
 #content {
@@ -912,10 +870,6 @@ div.spacer {
   }
 }
 
-div.editThis {
-  margin-left: 20px;
-}
-
 /* HOME PAGE */
 
 /* NEW HOME PAGE */
@@ -926,15 +880,11 @@ div.editThis {
 /* SEARCH RESULTS */
 
 div#searchResults,
-div#searchResults ul {
+div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
   margin-bottom: 0;
-  .dropper-menu {
-    width: 190px;
-    margin-right: 0;
-  }
 }
 
 // openlibrary/templates/books/check.html
@@ -983,10 +933,6 @@ div#searchResults {
     margin-right: 4px;
     position: relative;
   }
-}
-
-.print-disabled-only {
-  background-color: @purple;
 }
 
 // openlibrary/macros/AvailabilityButton.html
@@ -1196,13 +1142,6 @@ div.books {
   }
 }
 
-#tabsAdd {
-  // openlibrary/templates/books/edit.html
-  &book {
-    margin-bottom: 5px;
-  }
-}
-
 // `input.addweb` is used in openlibrary/templates/type/author/edit.html
 // `select#select-id` is used in openlibrary/templates/books/edit/edition.html
 input.addweb,
@@ -1212,12 +1151,6 @@ select#select-id {
 
 // openlibrary/templates/books/edition-sort.html
 .links {
-  .print-disabled-download {
-    white-space: nowrap;
-    font-size: 0.8em;
-    text-align: center;
-    margin-top: 5px;
-  }
   ul li.read-option a {
     display: block;
     text-align: center;
@@ -1467,6 +1400,54 @@ ul.list-books {
   // openlibrary/templates/books/show.html
   span.resultType {
     font-size: 0.6875em;
+  }
+}
+
+.list-books--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-gap: 30px 5px;
+  padding: 10px;
+
+  .searchResultItem {
+    padding: 0 5px;
+    background: transparent;
+    border: 0;
+    position: relative;
+
+    &:not(.sri--w-main),
+    .sri__main {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .bookcover {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      margin: 0;
+    }
+
+    > .details,
+    .sri__main > .details {
+      display: none;
+    }
+
+    .searchResultItemCTA {
+      font-size: 0.85em;
+      padding: 0;
+      margin: 0;
+      min-width: unset;
+      width: 100%;
+    }
+
+    .check-in-prompt,
+    .star-rating-form {
+      display: none;
+    }
   }
 }
 
