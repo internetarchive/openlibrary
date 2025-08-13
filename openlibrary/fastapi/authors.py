@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import unquote
 
 import httpx
 import web
@@ -19,13 +20,16 @@ logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
 
 
-def get_site() -> ib_client.Site:
+def get_site(auth_token: str | None = None) -> ib_client.Site:
     """Create an Infobase client Site using already-loaded config.
 
     This avoids calling back into the legacy WSGI app and uses existing Python
     facilities to load objects.
     """
     conn = ib_client.connect(**ig_config.infobase_parameters)
+    if auth_token:
+        auth_token = unquote(auth_token)
+        conn.set_auth_token(auth_token)
     return ib_client.Site(conn, ig_config.site or "openlibrary.org")
 
 
@@ -75,6 +79,11 @@ templates.env.install_null_translations(newstyle=True)
 async def author_page(request: Request, olid: str):
     author = fetch_author(olid)
 
+    # TODO: Turn this into a middleware
+    auth_token = request.cookies.get(ig_config.login_cookie_name)
+    site = get_site(auth_token)
+    u = site.get_user()
+
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
 
@@ -88,6 +97,7 @@ async def author_page(request: Request, olid: str):
             "metatags": [],
             "features": ["dev"],
             "path": request.url.path,
+            "user": u,
         },
         "request": request,
         "page": author,
@@ -136,6 +146,10 @@ async def author_page2(request: Request, olid: str):
     web.ctx.env['HTTP_COOKIE'] = cookies_str
     web.ctx._parsed_cookies = request.cookies
 
+    auth_token = request.cookies.get(ig_config.login_cookie_name)
+    site = get_site(auth_token)
+    u = site.get_user()
+
     # logger.info(render_template("covers/author_photo.html", author))
     context = {
         "ctx": {
@@ -149,7 +163,7 @@ async def author_page2(request: Request, olid: str):
         },
         "request": request,
         "olid": olid,
-        "name": name,
+        "name": name + str(u.is_admin()),
         "bio": bio,
         "birth_date": birth_date,
         "death_date": death_date,
@@ -163,9 +177,6 @@ async def author_page2(request: Request, olid: str):
         "homepath": lambda: "",
         "get_flash_messages": list,
     }
-    # site = get_site()
-    # u = site.get_user()
-    # web.ctx.get_user()
     import time
 
     start = time.perf_counter()
