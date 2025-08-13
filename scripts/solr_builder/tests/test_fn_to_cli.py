@@ -35,7 +35,7 @@ class TestFnToCLI:
 
     def test_type_to_argparse(self):
         assert FnToCLI.type_to_argparse(int) == {'type': int}
-        assert FnToCLI.type_to_argparse(typing.Optional[int]) == {  # noqa: UP007
+        assert FnToCLI.type_to_argparse(typing.Optional[int]) == {  # noqa: UP045
             'type': int
         }
         assert FnToCLI.type_to_argparse(bool) == {
@@ -47,7 +47,7 @@ class TestFnToCLI:
         }
 
     def test_is_optional(self):
-        assert FnToCLI.is_optional(typing.Optional[int])  # noqa: UP007
+        assert FnToCLI.is_optional(typing.Optional[int])  # noqa: UP045
         assert not FnToCLI.is_optional(int)
 
     def test_lists(self):
