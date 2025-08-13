@@ -1,24 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-{% include "head.html.jinja" %}
-{% block head %}{% endblock %}
+<head>
+    {% include "head.html.jinja" %}
+    <title>{% block title %}Open Library{% endblock %}</title>
+</head>
 <body>
-    <header>
-        {% block neck %}
-            <!-- Common navigation, header content -->
-        {% endblock %}
-    </header>
-
-    <main>
-        {% block main %}
-            <!-- This is where the main content of each page will go -->
-        {% endblock %}
-    </main>
-
-    <footer>
-        {% block footer %}
-            <!-- Common footer content -->
-        {% endblock %}
-    </footer>
+    {% block body %}{% endblock %}
+    {% include "footer.html.jinja" %}
 </body>
 </html>
