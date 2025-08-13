@@ -106,6 +106,9 @@ class home(delegate.page):
         return web.template.TemplateResult(cached_homepage)
 
 
+@cache.memoize(
+    engine="memcache", key="home.random_book", expires=dateutil.HALF_HOUR_SECS
+)
 def get_random_borrowable_ebook_keys(count: int) -> list[str]:
     solr = search.get_solr()
     docs = solr.select(
@@ -121,12 +124,7 @@ class random_book(delegate.page):
     path = "/random"
 
     def GET(self):
-        # We cache 1000 books for a minute and return one randomly for each request
-        keys = cache.memcache_memoize(
-            get_random_borrowable_ebook_keys,
-            'home.random_book',
-            timeout=dateutil.MINUTE_SECS,
-        )(1000)
+        keys = get_random_borrowable_ebook_keys(1000)
         raise web.seeother(random.choice(keys))
 
 
