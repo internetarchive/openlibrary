@@ -14,7 +14,10 @@ export const DEFAULT_EDITION_LIMIT = 200
 export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 2000) {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            return await fetch(input, init);
+            const response = await fetch(input, init);
+            if (response.status !== 429) {
+                return response;
+            }
         } catch (error) {
             // This block catches network errors (e.g., DNS, connection refused) and the server errors we threw above.
             // 429s come here if there is a cors issue (like on localhost)
