@@ -1,6 +1,6 @@
 {% extends "site.html.jinja" %}
 
-{% block main %}
+{% block body %}
     {% set bodyclass = ctx.get('bodyclass', []) %}
     {% set show_ol_shell = ctx.get('show_ol_shell', True) %}
     {% set bodyattrs = ctx.get('bodyattrs', []) %}
@@ -43,9 +43,7 @@
             {% include 'site/banner' with context %}
         {% endif %}
         {% endif %}
-        {% block body %}
-            <!-- This is where the main content of each page will go -->
-        {% endblock %}
+        <main>{% block main %}{% endblock %}</main>
     </div>
     </body>
 {% endblock %}

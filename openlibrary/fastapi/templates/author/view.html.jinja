@@ -1,7 +1,7 @@
 {% extends "body.html.jinja" %}
 
-{% block title %}{{ name }} — Open Library (Fast){% endblock %}
+{% block title %}{{ page.name }} — Open Library (Fast){% endblock %}
 
-{% block body %}
+{% block main %}
     {{ render_template("type/author/view", page=page) | safe }}
 {% endblock %}
