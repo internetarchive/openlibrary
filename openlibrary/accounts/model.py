@@ -485,6 +485,20 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
+    def get_or_raise(
+        cls,
+        link: str | None = None,
+        email: str | None = None,
+        username: str | None = None,
+        key: str | None = None,
+    ) -> 'OpenLibraryAccount':
+        # TODO: Long term we want to switch the .get method to raise an error
+        account = cls.get(link=link, email=email, username=username, key=key)
+        if not account:
+            raise ValueError('Unable to get Open Library account')
+        return account
+
+    @classmethod
     def get(
         cls,
         link: str | None = None,

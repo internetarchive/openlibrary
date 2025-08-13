@@ -48,7 +48,7 @@ class WikidataEntity:
     _updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
 
     @classmethod
-    def from_dict(cls, response: dict, updated: datetime):
+    def from_dict(cls, response: dict, updated: datetime) -> "WikidataEntity":
         return cls(
             **response,
             _updated=updated,
