@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 
 import httpx
 import web
@@ -44,7 +43,11 @@ async def fetch_author_works(olid: str) -> list[dict]:
     # author = fetch_author(olid)
 
     # Query Solr for works by this author
-    solr_url = os.environ.get("SOLR_URL", "http://solr:8983/solr/openlibrary/select")
+    # solr_url = os.environ.get("SOLR_URL", "http://solr:8983/solr/openlibrary/select")
+
+    from openlibrary.solr.utils import get_solr_base_url
+
+    solr_url = get_solr_base_url() + '/select'
     params = {
         "q": f"author_key:{olid}",
         "fl": "key,title,first_publish_year,edition_count,cover_i,author_key,author_name,subject_facet",
