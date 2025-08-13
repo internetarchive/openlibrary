@@ -24,7 +24,7 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
             // 429s come here if there is a cors issue (like on localhost)
             lastError = error;
         }
-        
+
         const backoff = Math.pow(2, attempt) * initialDelay;
         const jitter = Math.random() * 2000;
         const delay = backoff + jitter;
@@ -34,7 +34,7 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
     if (lastError) {
         throw lastError;
     } else {
-        throw new Error("Max retries exceeded for request");
+        throw new Error('Max retries exceeded for request');
     }
 }
 
