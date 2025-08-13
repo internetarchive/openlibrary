@@ -80,8 +80,7 @@
 
 </script>
 {% if "dev" in ctx.features %}
-{#
-<link href="{{ static_url('build/css/page-dev.css') }}" rel="stylesheet" type="text/css" /> #}
+  <link href="{{ url_for('static', path='build/css/page-dev.css') }}" rel="stylesheet" type="text/css" />
 {% endif %}
 
 <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
