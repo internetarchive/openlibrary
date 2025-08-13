@@ -12,6 +12,7 @@ export const DEFAULT_EDITION_LIMIT = 200
  * @returns {Promise<Response>}
  */
 export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDelay = 2000) {
+    let lastError = null;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             const response = await fetch(input, init);
@@ -21,14 +22,19 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
         } catch (error) {
             // This block catches network errors (e.g., DNS, connection refused) and the server errors we threw above.
             // 429s come here if there is a cors issue (like on localhost)
-            if (attempt === maxRetries - 1) {
-                throw error;
-            }
+            lastError = error;
         }
+        
         const backoff = Math.pow(2, attempt) * initialDelay;
         const jitter = Math.random() * 2000;
         const delay = backoff + jitter;
         await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    if (lastError) {
+        throw lastError;
+    } else {
+        throw new Error("Max retries exceeded for request");
     }
 }
 
