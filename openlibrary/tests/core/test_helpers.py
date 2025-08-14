@@ -100,6 +100,7 @@ def test_sprintf():
 
 
 def test_commify():
+    web.ctx.lang = "en"
     assert h.commify(123) == "123"
     assert h.commify(1234) == "1,234"
     assert h.commify(1234567) == "1,234,567"
