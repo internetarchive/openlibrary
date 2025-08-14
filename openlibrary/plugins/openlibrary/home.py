@@ -107,18 +107,26 @@ class home(delegate.page):
         return web.template.TemplateResult(cached_homepage)
 
 
+@cache.memoize(
+    engine="memcache", key="home.random_book", expires=dateutil.HALF_HOUR_SECS
+)
+def get_random_borrowable_ebook_keys(count: int) -> list[str]:
+    solr = search.get_solr()
+    docs = solr.select(
+        'type:edition AND ebook_access:[borrowable TO *]',
+        fields=['key'],
+        rows=count,
+        sort=f'random_{random.random()} desc',
+    )['docs']
+    return [doc['key'] for doc in docs]
+
+
 class random_book(delegate.page):
     path = "/random"
 
     def GET(self):
-        solr = search.get_solr()
-        key = solr.select(
-            'type:edition AND ebook_access:[borrowable TO *]',
-            fields=['key'],
-            rows=1,
-            sort=f'random_{random.random()} desc',
-        )['docs'][0]['key']
-        raise web.seeother(key)
+        keys = get_random_borrowable_ebook_keys(1000)
+        raise web.seeother(random.choice(keys))
 
 
 def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
