@@ -3,10 +3,11 @@
 Copies all patrons' preferences to the `store` tables.
 """
 import argparse
-import time
 from pathlib import Path
 
 import infogami
+from psycopg2 import DatabaseError
+
 from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
@@ -23,18 +24,12 @@ def setup(config_path):
     load_config(config_path)
     infogami._setup()
 
-
-def copy_preferences_to_store():
-    page = 0
-    while rs := _fetch_user_keys(page=page):
-        page += 1
-        for item in rs:
-            # Get account
-            key = item.get('key')
+def copy_preferences_to_store(keys):
+    errors = []
+    for key in keys:
+        try:
             username = key.split('/')[-1]
             ol_acct = OpenLibraryAccount.get_by_username(username)
-
-            # Update preferences
             prefs = ol_acct.get_user().preferences()
             if not prefs.get('type', '') == PREFERENCE_TYPE:
                 prefs['type'] = PREFERENCE_TYPE
@@ -42,26 +37,60 @@ def copy_preferences_to_store():
 
                 with RunAs(username):
                     ol_acct.get_user().save_preferences(prefs, msg="Update preferences for store", use_store=True)
-                    time.sleep(0.5)
+        except Exception as e:
+            print(f"An error occurred while copying preferences to store: {e}")
+            errors.append(key)
+    return errors
 
-
-def _fetch_user_keys(page=0):
-    oldb = db.get_db()
-    query = """
-        SELECT key FROM thing WHERE type = (
-            SELECT id FROM thing WHERE key = '/type/user'
-        ) AND key LIKE '/people/%'
-        ORDER BY id ASC LIMIT 1000
+def _fetch_preference_keys() -> list[str]:
     """
-    if page > 0:
-        query += f' OFFSET {page * 1000}'
+    Returns a list of all preference keys that contain a `pda` value but are
+    not yet persisted in the store.
 
-    return list(oldb.query(query))
+    """
+    oldb = db.get_db()
+    t = oldb.transaction()
 
+    tmp_tbl_query = """
+        CREATE TEMPORARY TABLE temp_preference_ids AS
+        SELECT thing_id FROM datum_str
+        WHERE key_id = (
+            SELECT id FROM property
+            WHERE name = 'notifications.pda'
+        )
+        ORDER BY thing_id ASC
+    """
+
+    preference_key_join_query = """
+        SELECT thing.key as key FROM thing
+        LEFT JOIN store ON thing.key = store.key
+        WHERE thing.id IN (
+            SELECT thing_id FROM temp_preference_ids
+        )
+        AND store.key IS NULL;
+    """
+
+    keys = []
+    try:
+        # Create temporary table containing `thing` IDs of all affected preference objects
+        oldb.query(tmp_tbl_query)
+
+        missing_store_entries = oldb.query(preference_key_join_query)
+        keys = [entry.get('key', '') for entry in list(missing_store_entries)]
+    except DatabaseError as e:
+        print(f"An error occurred while fetching preference keys: {e}")
+        t.rollback()
+    t.rollback()
+    return keys
 
 def main(args):
     setup(args.config)
-    copy_preferences_to_store()
+
+    affected_pref_keys = _fetch_preference_keys()
+    while affected_pref_keys:
+        cur_batch = affected_pref_keys[:1000]
+        retries = copy_preferences_to_store(cur_batch)
+        affected_pref_keys.extend(retries)
 
 
 def _parse_args():
