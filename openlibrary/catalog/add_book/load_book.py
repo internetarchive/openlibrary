@@ -216,13 +216,13 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             continue
         seen.add(key)
         assert a.type.key == '/type/author'
-        if 'birth_date' in author and 'birth_date' not in a:
-            continue
-        if 'birth_date' not in author and 'birth_date' in a:
-            continue
-        if not author_dates_match(author, a):
-            continue
-        match.append(a)
+        # Both records are dateless: assume a potential match
+        if not ('birth_date' in author or 'death_date' in author) and not ('birth_date' in a or 'death_date' in a):
+            match.append(a)
+        # Match if both records have at least one date, and the dates are compatible:
+        elif ('birth_date' in author or 'death_date' in author) and ('birth_date' in a or 'death_date' in a) and author_dates_match(author, a):
+            match.append(a)
+        # Otherwise, if one record is dated and the other dateless, don't assume a match.
     if not match:
         return []
     if len(match) == 1:
