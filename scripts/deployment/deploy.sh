@@ -350,6 +350,9 @@ deploy_openlibrary() {
     echo "[Now] Deploying openlibrary"
 
     cd $DEPLOY_DIR
+    if [ -n "$DEPLOY_DIR/openlibrary" ]; then
+        cleanup "$DEPLOY_DIR/openlibrary"
+    fi
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
@@ -412,8 +415,6 @@ deploy_openlibrary() {
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
-
-    cleanup "${DEPLOY_DIR}/openlibrary"
 
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
@@ -655,8 +656,6 @@ deploy_wizard() {
         echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
     fi
-
-    cleanup "$DEPLOY_DIR"
 }
 
 # See deployment documentation at https://github.com/internetarchive/olsystem/wiki/Deployments
@@ -691,4 +690,9 @@ else
     echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     exit 1
+fi
+
+# In all cases, cleanup upon success
+if [ -n "$DEPLOY_DIR" ]; then
+    cleanup "$DEPLOY_DIR"
 fi
