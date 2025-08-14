@@ -1,0 +1,13 @@
+$def with (source_record)
+
+$if source_record.source_url:
+    <a href="$source_record.source_url">$source_record.source_name</a>
+$else:
+    $source_record.source_name
+
+$if source_record.url:
+    $ record_type = _('record')
+    $if source_record.source_prefix == 'marc':
+        $ record_type = _('MARC record')
+
+    <a href="$source_record.url">$record_type</a>

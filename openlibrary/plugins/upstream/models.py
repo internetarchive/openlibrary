@@ -1,7 +1,9 @@
+import functools
 import logging
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import cached_property
 from typing import cast
 
@@ -13,6 +15,7 @@ from infogami.infobase import client
 from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
+from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import (
     account,  # noqa: F401 side effects may be needed
@@ -491,6 +494,12 @@ class Edition(models.Edition):
 
     def set_providers(self, providers):
         self.providers = providers
+
+    def get_source_records(self) -> 'list[SourceRecord]':
+        return [
+            SourceRecord.from_record_id(record_id)
+            for record_id in (self.get('source_records') or [])
+        ]
 
 
 class Author(models.Author):
@@ -1046,6 +1055,102 @@ class AddBookChangeset(Changeset):
         for doc in self.get_changes():
             if doc.key.startswith("/authors/"):
                 return doc
+
+
+@functools.cache
+def get_marc_names():
+    names = {
+        "bpl_marc": "Boston Public Library",
+        "CollingswoodLibraryMarcDump10-27-2008": "Collingswood Public Library",
+        "harvard_bibliographic_metadata": "Harvard University",
+        "hollis_marc": "Harvard's HOLLIS catalog",
+        "marc_baclac": "Library and Archives Canada",
+        "marc_binghamton_univ": "Binghamton University",
+        "marc_boston_college": "Boston College",
+        "marc_dnb_202006": "Deutsche Nationalbibliothek",
+        "marc_ithaca_college": "Ithaca College Library",
+        "marc_laurentian": "The Laurentian Library",
+        "marc_loc_2016": "Library of Congress",
+        "marc_loc_2019": "Library of Congress",
+        "marc_loc_updates": "Library of Congress",
+        "marc_marygrove": "Marygrove College",
+        "marc_miami_univ_ohio": "Miami University of Ohio",
+        "marc_oregon_summit_records": "Oregon Libraries",
+        "marc_records_scriblio_net": "Scriblio",
+        "marc_university_of_toronto": "University of Toronto",
+        "marc_upei": "University of Prince Edward Island",
+        "marc_western_washington_univ": "Western Washington University",
+        "talis_openlibrary_contribution": "Talis",
+        "unc_catalog_marc": "University of North Carolina",
+        "wfm_bk_marc": "Buffalo State College",
+    }
+    for i in range(1, 17):
+        names["SanFranPL%02d" % i] = "San Francisco Public Library"
+    return names
+
+
+@dataclass
+class SourceRecord:
+    id: str
+    url: str | None
+    source_name: str
+    source_url: str | None
+
+    @property
+    def source_prefix(self):
+        return self.source_name.split(":", 1)[0]
+
+    @staticmethod
+    def from_record_id(record_id: str) -> 'SourceRecord':
+        if '/' not in record_id and '_meta.mrc:' in record_id:
+            record_id = 'ia:' + record_id.split('_')[0]
+
+        source_prefix, source_value = record_id.split(":", 1)
+        item = source_value.split("/")[0]
+        url: str | None = "/show-records/" + record_id
+
+        if source_prefix == "ia":
+            source_name = "Internet Archive"
+            source_url = "//archive.org/details/" + item
+        elif source_prefix == "promise":
+            source_name = "Promise Item"
+            source_url = "https://archive.org/details/" + item
+            url = None
+        elif source_prefix == "amazon":
+            source_name = "amazon.com"
+            source_url = "https://www.amazon.com/?tag=" + affiliate_id('amazon')
+        elif source_prefix == "bwb":
+            source_name = "Better World Books"
+            source_url = "https://www.betterworldbooks.com/"
+        elif source_prefix == "google_books":
+            source_name = "Google Books"
+            source_url = "https://books.google.com/"
+        elif source_prefix in ("idb", "osp"):
+            source_name = "ISBNdb"
+            source_url = "https://isbndb.com/"
+            url = None
+        elif source_prefix == "openalex":
+            source_name = "OpenAlex"
+            source_url = "https://openalex.org/" + item
+            url = None
+        elif item in get_marc_names():
+            source_name = get_marc_names().get(item, item)
+            source_url = "//archive.org/details/" + item
+            url = "/show-records/" + source_value
+        else:
+            # Unrecognized
+            source_name = source_prefix
+            url = None
+            if source_value.startswith(('https:', 'http:')):
+                source_url = source_value
+            else:
+                source_url = None
+        return SourceRecord(
+            id=record_id,
+            url=url,
+            source_name=source_name,
+            source_url=source_url,
+        )
 
 
 class Tag(models.Tag):

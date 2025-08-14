@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
         Author,
         Edition,
+        SourceRecord,
         Work,
     )
 
@@ -161,6 +162,13 @@ def render_template(name: str, *a, **kw) -> TemplateResult:
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
+
+
+@public
+def get_source_record(record_id: str) -> 'SourceRecord':
+    from openlibrary.plugins.upstream.models import SourceRecord
+
+    return SourceRecord.from_record_id(record_id)
 
 
 def kebab_case(upper_camel_case: str) -> str:

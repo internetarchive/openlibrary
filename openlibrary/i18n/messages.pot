@@ -5658,8 +5658,12 @@ msgstr ""
 msgid "Edited without comment."
 msgstr ""
 
-#: history/sources.html
+#: history/source_record_link.html
 msgid "record"
+msgstr ""
+
+#: history/source_record_link.html
+msgid "MARC record"
 msgstr ""
 
 #: home/about.html
