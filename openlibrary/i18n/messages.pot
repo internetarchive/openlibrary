@@ -5651,10 +5651,6 @@ msgid "Imported from"
 msgstr ""
 
 #: history/comment.html
-msgid "Found a matching"
-msgstr ""
-
-#: history/comment.html
 msgid "Edited without comment."
 msgstr ""
 
