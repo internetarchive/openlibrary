@@ -12,6 +12,7 @@ from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
 from openlibrary.core import db
+from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 
 DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
@@ -19,6 +20,7 @@ PREFERENCE_TYPE = 'preferences'
 
 
 def setup(config_path):
+    init_signal_handler()
     if not Path(config_path).exists():
         raise FileNotFoundError(f'no config file at {config_path}')
     load_config(config_path)
@@ -27,6 +29,8 @@ def setup(config_path):
 def copy_preferences_to_store(keys):
     errors = []
     for key in keys:
+        if was_shutdown_requested():
+            break
         try:
             username = key.split('/')[-1]
             ol_acct = OpenLibraryAccount.get_by_username(username)
@@ -87,10 +91,16 @@ def main(args):
     setup(args.config)
 
     affected_pref_keys = _fetch_preference_keys()
-    while affected_pref_keys:
+    while affected_pref_keys and not was_shutdown_requested():
         cur_batch = affected_pref_keys[:1000]
         retries = copy_preferences_to_store(cur_batch)
         affected_pref_keys.extend(retries)
+
+    if was_shutdown_requested():
+        print("Script terminated early due to shutdown request.")
+        return
+
+    print("All affected preferences have been written to the store")
 
 
 def _parse_args():
