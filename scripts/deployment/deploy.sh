@@ -1,7 +1,7 @@
 #!/bin/bash
 
 clean_exit() {
-    if [ -n "$DEPLOY_DIR" ]; then
+    if [ -d "$DEPLOY_DIR" ]; then
         cleanup "$DEPLOY_DIR"
     fi
     exit 1
@@ -350,7 +350,7 @@ deploy_openlibrary() {
     echo "[Now] Deploying openlibrary"
 
     cd $DEPLOY_DIR
-    if [ -n "$DEPLOY_DIR/openlibrary" ]; then
+    if [ -d "$DEPLOY_DIR/openlibrary" ]; then
         cleanup "$DEPLOY_DIR/openlibrary"
     fi
     echo -ne "Cloning openlibrary repo ... "
@@ -693,6 +693,6 @@ else
 fi
 
 # In all cases, cleanup upon success
-if [ -n "$DEPLOY_DIR" ]; then
+if [ -d "$DEPLOY_DIR" ]; then
     cleanup "$DEPLOY_DIR"
 fi
