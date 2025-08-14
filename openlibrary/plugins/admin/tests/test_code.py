@@ -19,7 +19,7 @@ def make_test_account(username: str) -> OpenLibraryAccount:
         displayname=f"{username} User",
     )
     web.ctx.site.activate_account(username)
-    return cast(OpenLibraryAccount, OpenLibraryAccount.get(username=username))
+    return cast(OpenLibraryAccount, OpenLibraryAccount.get_by_username(username))
 
 
 def make_thing(key: str, title: str = '', thing_type: str | None = None) -> dict:
