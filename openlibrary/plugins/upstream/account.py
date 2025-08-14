@@ -171,9 +171,11 @@ class internal_audit(delegate.page):
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
-                result = OpenLibraryAccount.get(
-                    email=i.email, link=i.itemname, username=i.username
-                )
+                result = OpenLibraryAccount.get_by_email(i.email)
+                if result is None:
+                    result = OpenLibraryAccount.get_by_link(i.itemname)
+                if result is None:
+                    OpenLibraryAccount.get_by_username(i.username)
                 if result is None:
                     raise ValueError('Invalid Open Library account email or itemname')
                 result.enc_password = 'REDACTED'
