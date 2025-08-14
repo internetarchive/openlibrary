@@ -1,6 +1,6 @@
 import pytest
-from openlibrary.catalog.utils import author_dates_match 
 
+from openlibrary.catalog.utils import author_dates_match
 
 EXISTING = {'birth_date': '1904', 'death_date': '1996'}
 
@@ -18,11 +18,11 @@ NON_MATCH_CASES = [
 ]
 
 
-@pytest.mark.parametrize('a', MATCH_CASES) 
+@pytest.mark.parametrize('a', MATCH_CASES)
 def test_author_dates_match_true(a):
     assert author_dates_match(a, EXISTING)
 
 
-@pytest.mark.parametrize('a', NON_MATCH_CASES) 
+@pytest.mark.parametrize('a', NON_MATCH_CASES)
 def test_author_dates_match_false(a):
     assert not author_dates_match(a, EXISTING)
