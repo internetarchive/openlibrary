@@ -49,6 +49,7 @@ jobs:
             uv pip install --upgrade pip setuptools wheel
           }
           uv pip install -r requirements_test.txt
+          uv pip install pytest-xdist
       - run: make git
       - name: Run make i18n
         run: |
