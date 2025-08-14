@@ -9,7 +9,7 @@ import secrets
 import string
 import time
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
@@ -487,48 +487,33 @@ class OpenLibraryAccount(Account):
     @classmethod
     def get_or_raise(
         cls,
-        link: str | None = None,
-        email: str | None = None,
-        username: str | None = None,
-        key: str | None = None,
+        value: str,
+        field: Literal['link', 'email', 'username', 'key'],
     ) -> 'OpenLibraryAccount':
-        # TODO: Long term we want to switch the .get method to raise an error
-        account = cls.get(link=link, email=email, username=username, key=key)
+        """Utility method retrieve an openlibrary account by its email,
+        username or archive.org itemname (i.e. link)
+        """
+        account = None
+        if field == 'username':
+            account = cls.get_by_username(value)
+        elif field == 'email':
+            account = cls.get_by_email(value)
+        elif field == 'link':
+            account = cls.get_by_link(value)
+        elif field == 'key':
+            account = cls.get_by_key(value)
         if not account:
             raise ValueError('Unable to get Open Library account')
         return account
 
     @classmethod
-    def get(
-        cls,
-        link: str | None = None,
-        email: str | None = None,
-        username: str | None = None,
-        key: str | None = None,
-        test: bool = False,
-    ) -> 'OpenLibraryAccount | None':
-        """Utility method retrieve an openlibrary account by its email,
-        username or archive.org itemname (i.e. link)
-        """
-        if link:
-            return cls.get_by_link(link, test=test)
-        elif email:
-            return cls.get_by_email(email, test=test)
-        elif username:
-            return cls.get_by_username(username, test=test)
-        elif key:
-            return cls.get_by_key(key, test=test)
-        raise ValueError("Open Library email or Archive.org itemname required.")
-
     @classmethod
-    def get_by_key(cls, key, test=False):
+    def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
         username = key.split('/')[-1]
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(
-        cls, username: str, test: bool = False
-    ) -> 'OpenLibraryAccount | None':
+    def get_by_username(cls, username: str) -> 'OpenLibraryAccount | None':
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1
@@ -547,7 +532,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link: str, test: bool = False) -> 'OpenLibraryAccount | None':
+    def get_by_link(cls, link: str) -> 'OpenLibraryAccount | None':
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -557,9 +542,7 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(
-        cls, email: str, test: bool = False
-    ) -> 'OpenLibraryAccount | None':
+    def get_by_email(cls, email: str) -> 'OpenLibraryAccount | None':
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
