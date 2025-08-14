@@ -14,8 +14,7 @@ from openlibrary.config import load_config
 from openlibrary.core import db
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
-
-DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
+DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 PREFERENCE_TYPE = 'preferences'
 
 
