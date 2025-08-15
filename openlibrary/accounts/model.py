@@ -9,7 +9,7 @@ import secrets
 import string
 import time
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
@@ -430,14 +430,14 @@ class OpenLibraryAccount(Account):
                             subsequent attempts should be made to find
                             an available username.
         """
-        if cls.get(email=email):
+        if cls.get_by_email(email):
             raise ValueError('email_registered')
 
         username = username[1:] if username[0] == '@' else username
         displayname = displayname or username
 
         # tests whether a user w/ this username exists
-        _user = cls.get(username=username)
+        _user = cls.get_by_username(username)
         new_username = username
         attempt = 0
         while _user:
@@ -448,7 +448,7 @@ class OpenLibraryAccount(Account):
 
             new_username = append_random_suffix(username)
             attempt += 1
-            _user = cls.get(username=new_username)
+            _user = cls.get_by_username(new_username)
         username = new_username
         if test:
             return cls(
@@ -474,7 +474,7 @@ class OpenLibraryAccount(Account):
             web.ctx.site.store[key] = doc
             web.ctx.site.activate_account(username=username)
 
-        ol_account = cls.get(email=email)
+        ol_account = cls.get_by_email(email)
 
         # Update user preferences; reading log public by default
         from openlibrary.accounts import RunAs
@@ -487,48 +487,33 @@ class OpenLibraryAccount(Account):
     @classmethod
     def get_or_raise(
         cls,
-        link: str | None = None,
-        email: str | None = None,
-        username: str | None = None,
-        key: str | None = None,
+        value: str,
+        field: Literal['link', 'email', 'username', 'key'],
     ) -> 'OpenLibraryAccount':
-        # TODO: Long term we want to switch the .get method to raise an error
-        account = cls.get(link=link, email=email, username=username, key=key)
+        """Utility method retrieve an openlibrary account by its email,
+        username or archive.org itemname (i.e. link)
+        """
+        account = None
+        if field == 'username':
+            account = cls.get_by_username(value)
+        elif field == 'email':
+            account = cls.get_by_email(value)
+        elif field == 'link':
+            account = cls.get_by_link(value)
+        elif field == 'key':
+            account = cls.get_by_key(value)
         if not account:
             raise ValueError('Unable to get Open Library account')
         return account
 
     @classmethod
-    def get(
-        cls,
-        link: str | None = None,
-        email: str | None = None,
-        username: str | None = None,
-        key: str | None = None,
-        test: bool = False,
-    ) -> 'OpenLibraryAccount | None':
-        """Utility method retrieve an openlibrary account by its email,
-        username or archive.org itemname (i.e. link)
-        """
-        if link:
-            return cls.get_by_link(link, test=test)
-        elif email:
-            return cls.get_by_email(email, test=test)
-        elif username:
-            return cls.get_by_username(username, test=test)
-        elif key:
-            return cls.get_by_key(key, test=test)
-        raise ValueError("Open Library email or Archive.org itemname required.")
-
     @classmethod
-    def get_by_key(cls, key, test=False):
+    def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
         username = key.split('/')[-1]
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(
-        cls, username: str, test: bool = False
-    ) -> 'OpenLibraryAccount | None':
+    def get_by_username(cls, username: str) -> 'OpenLibraryAccount | None':
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1
@@ -547,7 +532,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link: str, test: bool = False) -> 'OpenLibraryAccount | None':
+    def get_by_link(cls, link: str) -> 'OpenLibraryAccount | None':
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -557,9 +542,7 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(
-        cls, email: str, test: bool = False
-    ) -> 'OpenLibraryAccount | None':
+    def get_by_email(cls, email: str) -> 'OpenLibraryAccount | None':
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
@@ -623,7 +606,7 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def authenticate(cls, email: str, password: str, test: bool = False) -> str:
-        ol_account = cls.get(email=email, test=test)
+        ol_account = cls.get_by_email(email)
         if not ol_account:
             return "account_not_found"
         if ol_account.is_blocked():
@@ -874,7 +857,7 @@ def audit_accounts(
         ia_account = InternetArchiveAccount.get(email=email, test=test)
 
         # Get the OL account which links to this IA account
-        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
+        ol_account = OpenLibraryAccount.get_by_link(ia_account.itemname)
         link = ol_account.itemname if ol_account else None
 
         # The fact that there is no link implies either:
@@ -888,7 +871,7 @@ def audit_accounts(
         if not link:
             # If no account linkage is found, then check if there's an Open Library account
             # which shares the same email as this IA account.
-            ol_account = OpenLibraryAccount.get(email=email, test=test)
+            ol_account = OpenLibraryAccount.get_by_email(email=email)
 
             # If an Open Library account with a matching email account exists...
             # Check if it is linked already, i.e. has an itemname set. We already
@@ -948,7 +931,7 @@ def audit_accounts(
                 return {'error': 'account_blocked'}
 
     if require_link:
-        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
+        ol_account = OpenLibraryAccount.get_by_link(ia_account.itemname)
         if ol_account and not ol_account.itemname:
             return {'error': 'accounts_not_connected'}
 
@@ -983,5 +966,5 @@ def audit_accounts(
 @public
 def get_internet_archive_id(key: str) -> str | None:
     username = key.split('/')[-1]
-    ol_account = OpenLibraryAccount.get(username=username)
+    ol_account = OpenLibraryAccount.get_by_username(username)
     return ol_account.itemname if ol_account else None
