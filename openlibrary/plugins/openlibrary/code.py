@@ -1176,7 +1176,7 @@ def internalerror():
                 evalue=exception_value,
             )
         )
-        raise web.internalerror(msg)
+        raise web.internalerror(web.safestr(msg))
 
 
 delegate.app.internalerror = internalerror
