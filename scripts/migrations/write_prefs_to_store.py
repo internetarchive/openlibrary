@@ -35,14 +35,14 @@ def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
                 print(f"Writing {key} to store...")
             username = key.split('/')[-1]
             ol_acct = OpenLibraryAccount.get_by_username(username)
-            prefs = ol_acct.get_user().preferences()
-            if not prefs.get('type', '') == PREFERENCE_TYPE:
+            prefs = (ol_acct and ol_acct.get_user().preferences()) or {}
+            if ol_acct and prefs.get('type', '') != PREFERENCE_TYPE:
                 prefs['type'] = PREFERENCE_TYPE
                 prefs['_rev'] = None
 
                 with RunAs(username):
                     ol_acct.get_user().save_preferences(prefs, msg="Update preferences for store", use_store=True)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"An error occurred while copying preferences to store: {e}")
             errors.append(key)
 
