@@ -43,6 +43,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.openlibrary.pd import get_pd_options, get_pd_org
 from openlibrary.plugins.recaptcha import recaptcha
+from openlibrary.core.auth import get_bookshare_oauth_client
 from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
@@ -329,7 +330,14 @@ class account_create(delegate.page):
                     retries=USERNAME_RETRIES,
                 )
                 if "pd_request" in web.input() and web.input().get("pd_program"):
-                    web.setcookie("pda", web.input().get("pd_program"))
+                    pda_value = web.input().get("pd_program")
+                    web.setcookie("pda", pda_value)
+                    
+                    # If user selected BookShare, redirect to OAuth flow after account creation
+                    if pda_value == "ia_bookshareaccess_disabilityresources":
+                        # Set a flag to redirect to bookshare OAuth after verification
+                        web.setcookie("bookshare_oauth_pending", "true", expires=3600)  # 1 hour
+                
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
@@ -529,19 +537,39 @@ class account_login(delegate.page):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
-                _update_account_on_pd_request(ol_account)
-                _notify_on_rpd_verification(
-                    ol_account, get_pd_org(web.cookies().get("pda"))
-                )
-                _expire_pd_cookies()
-                add_flash_message(
-                    "info",
-                    _(
-                        "Thank you for registering an Open Library account and "
-                        "requesting special print disability access. You should receive "
-                        "an email detailing next steps in the process."
-                    ),
-                )
+                pda_value = web.cookies().get("pda")
+                
+                # Check if user selected BookShare and should be redirected to OAuth
+                if (pda_value == "ia_bookshareaccess_disabilityresources" and 
+                    web.cookies().get("bookshare_oauth_pending")):
+                    # Clear the pending flag
+                    web.setcookie("bookshare_oauth_pending", "", expires=1)
+                    # Don't send notification email for BookShare users - they'll get OAuth verification
+                    _update_account_on_pd_request(ol_account)
+                    add_flash_message(
+                        "info",
+                        _(
+                            "Please complete your Bookshare account verification to activate "
+                            "print disability access."
+                        )
+                    )
+                    # Redirect to Bookshare OAuth flow
+                    raise web.seeother("/account/bookshare")
+                else:
+                    # Normal PD flow for other organizations
+                    _update_account_on_pd_request(ol_account)
+                    _notify_on_rpd_verification(
+                        ol_account, get_pd_org(web.cookies().get("pda"))
+                    )
+                    _expire_pd_cookies()
+                    add_flash_message(
+                        "info",
+                        _(
+                            "Thank you for registering an Open Library account and "
+                            "requesting special print disability access. You should receive "
+                            "an email detailing next steps in the process."
+                        ),
+                    )
 
             has_special_access = audit.get('special_access')
             if (
@@ -622,6 +650,187 @@ class account_validation(delegate.page):
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
         return delegate.RawText(json.dumps(errors), content_type="application/json")
+
+
+class account_bookshare(delegate.page):
+    """Controller for Bookshare OAuth integration in print disability qualification flow."""
+    
+    path = "/account/bookshare"
+    
+    def GET(self):
+        """Serve Bookshare OAuth qualification page."""
+        i = web.input(code='', state='', error='')
+        
+        # Handle OAuth callback
+        if i.code:
+            return self.handle_oauth_callback(i.code, i.state)
+        
+        # Handle OAuth error
+        if i.error:
+            error_msg = _("Authorization failed: {}").format(i.error)
+            return render['account/bookshare'](error=error_msg)
+        
+        # Generate authorization URL for initial visit
+        try:
+            oauth_client = get_bookshare_oauth_client()
+            # Use session-based state for CSRF protection
+            state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
+            web.ctx.session['bookshare_oauth_state'] = state
+            
+            auth_url = oauth_client.get_authorization_url(state=state)
+            return render['account/bookshare'](auth_url=auth_url)
+            
+        except Exception as e:
+            logger.error(f"Error generating Bookshare auth URL: {e}")
+            error_msg = _("Bookshare integration is temporarily unavailable. Please try again later.")
+            return render['account/bookshare'](error=error_msg)
+    
+    def handle_oauth_callback(self, code: str, state: str) -> str:
+        """Handle OAuth callback from Bookshare."""
+        try:
+            # Verify state parameter for CSRF protection
+            expected_state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
+            if state != expected_state:
+                logger.warning("OAuth state mismatch")
+                error_msg = _("Security error during authorization. Please try again.")
+                return render['account/bookshare'](error=error_msg)
+            
+            oauth_client = get_bookshare_oauth_client()
+            
+            # Exchange code for access token
+            token_response = oauth_client.exchange_code_for_token(code, state)
+            if not token_response:
+                error_msg = _("Failed to complete authorization with Bookshare.")
+                return render['account/bookshare'](error=error_msg)
+            
+            access_token = token_response.get('access_token')
+            if not access_token:
+                error_msg = _("Invalid authorization response from Bookshare.")
+                return render['account/bookshare'](error=error_msg)
+            
+            # Get user info from Bookshare
+            user_info = oauth_client.get_user_info(access_token)
+            if not user_info:
+                error_msg = _("Failed to retrieve user information from Bookshare.")
+                return render['account/bookshare'](error=error_msg)
+            
+            # Verify eligibility
+            if not oauth_client.verify_bookshare_eligibility(user_info):
+                error_msg = _("Your Bookshare account does not qualify for print disability access.")
+                return render['account/bookshare'](error=error_msg)
+            
+            # Success - process qualification
+            return self.process_bookshare_qualification(user_info, access_token)
+            
+        except Exception as e:
+            logger.error(f"Error processing Bookshare OAuth callback: {e}")
+            error_msg = _("An error occurred during authorization. Please try again.")
+            return render['account/bookshare'](error=error_msg)
+    
+    def process_bookshare_qualification(self, user_info: dict, access_token: str) -> str:
+        """Process successful Bookshare qualification."""
+        try:
+            user = accounts.get_current_user()
+            if not user:
+                # Store OAuth info in session for after login
+                web.ctx.session['bookshare_oauth_success'] = {
+                    'user_info': user_info,
+                    'access_token': access_token
+                }
+                add_flash_message(
+                    "info",
+                    _("Please log in to complete your Bookshare verification.")
+                )
+                raise web.seeother("/account/login?redirect=/account/bookshare/complete")
+            
+            # Get current Open Library account
+            ol_account = OpenLibraryAccount.get(username=user['key'].split('/')[-1])
+            if not ol_account:
+                error_msg = _("Open Library account not found.")
+                return render['account/bookshare'](error=error_msg)
+            
+            # Update user preferences with Bookshare qualification
+            preferences = {
+                "rpd": PDRequestStatus.FULFILLED.value,
+                "pda": "ia_bookshareaccess_disabilityresources",
+                "bookshare_user_id": user_info.get('userId'),
+                "bookshare_verified": True
+            }
+            
+            ol_account.get_user().save_preferences(preferences)
+            
+            # Clear any pending PD cookies
+            _expire_pd_cookies()
+            
+            # Add success message
+            add_flash_message(
+                "info",
+                _(
+                    "Your Bookshare account has been successfully verified! "
+                    "You now have access to Open Library's print disability collection."
+                )
+            )
+            
+            # Redirect to account page
+            raise web.seeother("/account")
+            
+        except Exception as e:
+            logger.error(f"Error processing Bookshare qualification: {e}")
+            error_msg = _("Failed to complete qualification. Please contact support.")
+            return render['account/bookshare'](error=error_msg)
+
+
+class account_bookshare_complete(delegate.page):
+    """Handle Bookshare OAuth completion after user login."""
+    
+    path = "/account/bookshare/complete"
+    
+    @require_login
+    def GET(self):
+        """Complete Bookshare OAuth after user login."""
+        oauth_data = web.ctx.session.get('bookshare_oauth_success')
+        if not oauth_data:
+            add_flash_message(
+                "error",
+                _("No pending Bookshare verification found.")
+            )
+            raise web.seeother("/account/bookshare")
+        
+        try:
+            user = accounts.get_current_user()
+            ol_account = OpenLibraryAccount.get(username=user['key'].split('/')[-1])
+            
+            # Update user preferences with Bookshare qualification
+            preferences = {
+                "rpd": PDRequestStatus.FULFILLED.value,
+                "pda": "ia_bookshareaccess_disabilityresources",
+                "bookshare_user_id": oauth_data['user_info'].get('userId'),
+                "bookshare_verified": True
+            }
+            
+            ol_account.get_user().save_preferences(preferences)
+            
+            # Clear session data and cookies
+            del web.ctx.session['bookshare_oauth_success']
+            _expire_pd_cookies()
+            
+            add_flash_message(
+                "info",
+                _(
+                    "Your Bookshare account has been successfully verified! "
+                    "You now have access to Open Library's print disability collection."
+                )
+            )
+            
+            raise web.seeother("/account")
+            
+        except Exception as e:
+            logger.error(f"Error completing Bookshare qualification: {e}")
+            add_flash_message(
+                "error", 
+                _("Failed to complete qualification. Please contact support.")
+            )
+            raise web.seeother("/account/bookshare")
 
 
 class account_email_verify(delegate.page):
