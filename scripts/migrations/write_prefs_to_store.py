@@ -25,12 +25,14 @@ def setup(config_path):
     load_config(config_path)
     infogami._setup()
 
-def copy_preferences_to_store(keys):
+def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
     errors = []
     for key in keys:
         if was_shutdown_requested():
             break
         try:
+            if verbose:
+                print(f"Writing {key} to store...")
             username = key.split('/')[-1]
             ol_acct = OpenLibraryAccount.get_by_username(username)
             prefs = ol_acct.get_user().preferences()
@@ -43,6 +45,7 @@ def copy_preferences_to_store(keys):
         except Exception as e:
             print(f"An error occurred while copying preferences to store: {e}")
             errors.append(key)
+
     return errors
 
 def _fetch_preference_keys() -> list[str]:
@@ -87,19 +90,30 @@ def _fetch_preference_keys() -> list[str]:
     return keys
 
 def main(args):
+    print("Setting up connection with DB...")
     setup(args.config)
 
+    print("Fetching affected preferences...")
     affected_pref_keys = _fetch_preference_keys()
+
+    print(f"Found {len(affected_pref_keys)} affected preferences")
+    if args.dry_run:
+        print(f"Skipping copy to store step...")
+        return
+
+    print("Copying preferences to store...")
     while affected_pref_keys and not was_shutdown_requested():
+        print(f"Begin writing batch of {len(affected_pref_keys)} preferences to store...")
         cur_batch = affected_pref_keys[:1000]
-        retries = copy_preferences_to_store(cur_batch)
+        retries = copy_preferences_to_store(cur_batch, verbose=args.verbose)
         affected_pref_keys.extend(retries)
+        print(f"Batch completed with {len(retries)} errors\n")
 
     if was_shutdown_requested():
         print("Script terminated early due to shutdown request.")
         return
 
-    print("All affected preferences have been written to the store")
+    print("All affected preferences have been written to the store.")
 
 
 def _parse_args():
@@ -110,9 +124,22 @@ def _parse_args():
         default=DEFAULT_CONFIG_PATH,
         help="Path to the `openlibrary.yml` configuration file",
     )
+    p.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help="Enable dry-run mode, which merely prints the number of preference keys that will be written to the store",
+    )
+    p.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Print each preference key when it is added to the store",
+    )
     p.set_defaults(func=main)
     return p.parse_args()
 
 if __name__ == '__main__':
     _args = _parse_args()
     _args.func(_args)
+    print("\nScript execution complete. So long and take care!")
