@@ -142,6 +142,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
     Searches OL for an author by a range of queries.
     """
 
+    def has_dates(author: "dict | Author") -> bool:
+        return 'birth_date' in author or 'death_date' in author
+
     def walk_redirects(obj, seen):
         seen.add(obj['key'])
         while obj['type']['key'] == '/type/redirect':
@@ -216,13 +219,12 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             continue
         seen.add(key)
         assert a.type.key == '/type/author'
-        if 'birth_date' in author and 'birth_date' not in a:
-            continue
-        if 'birth_date' not in author and 'birth_date' in a:
-            continue
-        if not author_dates_match(author, a):
-            continue
-        match.append(a)
+        # Both records are dateless: assume a potential match
+        if (not has_dates(author) and not has_dates(a)) or (
+            has_dates(author) and has_dates(a) and author_dates_match(author, a)
+        ):
+            match.append(a)
+        # Otherwise, if one record is dated and the other dateless, don't assume a match.
     if not match:
         return []
     if len(match) == 1:
