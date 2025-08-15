@@ -5,18 +5,13 @@ $def with (action, img_url_cover, img_url_title, source_name)
         <label>$_("Or, use a cover from %s", source_name)</label>
     </div>
     <div style="display: flex; flex-direction: row;">
-        <div class="input">
-            <a href="$img_url_cover" target="_blank" style="flex-direction: column;">
-                <img class="ol-cover-form--external_image" src="$img_url_cover" style="height: 200px" alt="" />
-            </a>
-            <button type="submit" class="cta-btn cta-btn--vanilla" name="url" style="flex-direction: column;" value="$img_url_cover">$_("Upload Image")</button>
-        </div>
-        <div class="input">
-                $if img_url_title != None:
-                    <a href="$img_url_title" target="_blank">
-                        <img class="ol-cover-form--external_image" src="$img_url_title" style="height: 200px" alt="" />
+        $for url in [img_url_cover, img_url_title]:
+            $if url:
+                <div class="input">
+                    <a href="$url" target="_blank" style="flex-direction: column;">
+                        <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
                     </a>
-                    <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$img_url_title">$_("Upload Image")</button>
-        </div>
+                    <button type="submit" class="cta-btn cta-btn--vanilla" name="url" style="flex-direction: column;" value="$url">$_("Upload Image")</button>
+                </div>
     </div>
 </form>
