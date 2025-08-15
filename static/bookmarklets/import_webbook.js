@@ -16,7 +16,8 @@ Overall Behavior Guidelines:
 ---
 
 Output Constraints (Critical):
-- Your final output must be a single, clean, parsable JSONL object in a code block all on a single line in jsonl format (matching the schema and rules below) with no markdown, no commentary, and no prose outside the JSON code block.
+- Your final output must be a single, clean, parsable JSONL object in a code block all on a single line in jsonl format (matching the schema and rules below) with no markdown, no commentary, and no prose outside the JSON code block. 
+- Use U+0022 format for quote marks.
 
 Safety & Quality Check:
 - If the provided URL appears fundamentally unsound, spammy / phishy, malicious, deceptive, highly self-promotional, overtly pirated (DMCA-violating), poses an imminent risk of harm, or is extremely low quality, you must abort and respond with a reasonable JSON object like: \`{"error": "suspected spam"}\`
