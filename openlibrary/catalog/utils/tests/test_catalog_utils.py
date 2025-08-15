@@ -26,3 +26,8 @@ def test_author_dates_match_true(a):
 @pytest.mark.parametrize('a', NON_MATCH_CASES)
 def test_author_dates_match_false(a):
     assert not author_dates_match(a, EXISTING)
+
+def test_author_dates_match_death_only():
+    a = {'death_date': '1996'}
+    b = {'death_date': '1996'}
+    assert author_dates_match(a, b)
