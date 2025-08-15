@@ -33,10 +33,13 @@ assignees: ''
 - accessibility
 -->
 
+<details>
+<summary><strong>Implementation & Decision Details</strong></summary>
+
 ## Decisions
 <!-- This section should be updated once stakeholders and staff have arrived at a decision -->
 
 ### Stakeholders
 <!-- @ tag stakeholders for feedback -->
 
-
+</details>
