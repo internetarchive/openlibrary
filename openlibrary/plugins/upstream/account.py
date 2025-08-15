@@ -673,9 +673,13 @@ class account_bookshare(delegate.page):
         # Generate authorization URL for initial visit
         try:
             oauth_client = get_bookshare_oauth_client()
-            # Use session-based state for CSRF protection
-            state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
-            web.ctx.session['bookshare_oauth_state'] = state
+            # Use session-based state for CSRF protection, with fallback
+            if hasattr(web.ctx, 'session') and web.ctx.session:
+                state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
+                web.ctx.session['bookshare_oauth_state'] = state
+            else:
+                # Fallback to a basic state if sessions not available
+                state = 'openlibrary'
             
             auth_url = oauth_client.get_authorization_url(state=state)
             return render['account/bookshare'](auth_url=auth_url)
@@ -689,7 +693,11 @@ class account_bookshare(delegate.page):
         """Handle OAuth callback from Bookshare."""
         try:
             # Verify state parameter for CSRF protection
-            expected_state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
+            if hasattr(web.ctx, 'session') and web.ctx.session:
+                expected_state = web.ctx.session.get('bookshare_oauth_state', 'openlibrary')
+            else:
+                expected_state = 'openlibrary'  # Fallback state
+                
             if state != expected_state:
                 logger.warning("OAuth state mismatch")
                 error_msg = _("Security error during authorization. Please try again.")
@@ -732,16 +740,22 @@ class account_bookshare(delegate.page):
         try:
             user = accounts.get_current_user()
             if not user:
-                # Store OAuth info in session for after login
-                web.ctx.session['bookshare_oauth_success'] = {
-                    'user_info': user_info,
-                    'access_token': access_token
-                }
+                # Store OAuth info in session for after login, with fallback
+                if hasattr(web.ctx, 'session') and web.ctx.session:
+                    web.ctx.session['bookshare_oauth_success'] = {
+                        'user_info': user_info,
+                        'access_token': access_token
+                    }
+                    redirect_url = "/account/login?redirect=/account/bookshare/complete"
+                else:
+                    # If no session, redirect directly to login
+                    redirect_url = "/account/login?redirect=/account/bookshare"
+                    
                 add_flash_message(
                     "info",
                     _("Please log in to complete your Bookshare verification.")
                 )
-                raise web.seeother("/account/login?redirect=/account/bookshare/complete")
+                raise web.seeother(redirect_url)
             
             # Get current Open Library account
             ol_account = OpenLibraryAccount.get(username=user['key'].split('/')[-1])
@@ -788,7 +802,11 @@ class account_bookshare_complete(delegate.page):
     @require_login
     def GET(self):
         """Complete Bookshare OAuth after user login."""
-        oauth_data = web.ctx.session.get('bookshare_oauth_success')
+        if hasattr(web.ctx, 'session') and web.ctx.session:
+            oauth_data = web.ctx.session.get('bookshare_oauth_success')
+        else:
+            oauth_data = None
+            
         if not oauth_data:
             add_flash_message(
                 "error",
@@ -811,7 +829,8 @@ class account_bookshare_complete(delegate.page):
             ol_account.get_user().save_preferences(preferences)
             
             # Clear session data and cookies
-            del web.ctx.session['bookshare_oauth_success']
+            if hasattr(web.ctx, 'session') and web.ctx.session:
+                del web.ctx.session['bookshare_oauth_success']
             _expire_pd_cookies()
             
             add_flash_message(

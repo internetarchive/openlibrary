@@ -109,6 +109,16 @@ class BookshareOAuth:
             
         Returns:
             True if user is eligible for print disability access
+            
+        Expected user_info structure:
+        {
+            "userId": "12345",
+            "membershipStatus": "active",  # or "inactive"
+            "hasQualification": true,      # boolean indicating PD qualification
+            "firstName": "John",
+            "lastName": "Doe",
+            "email": "user@example.com"
+        }
         """
         # Check if user has an active Bookshare membership
         # and is qualified for print disability access
