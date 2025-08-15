@@ -220,10 +220,9 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
         seen.add(key)
         assert a.type.key == '/type/author'
         # Both records are dateless: assume a potential match
-        if not has_dates(author) and not has_dates(a):
-            match.append(a)
-        # Match if both records have at least one date, and the dates are compatible:
-        elif has_dates(author) and has_dates(a) and author_dates_match(author, a):
+        if (not has_dates(author) and not has_dates(a)) or (
+            has_dates(author) and has_dates(a) and author_dates_match(author, a)
+        ):
             match.append(a)
         # Otherwise, if one record is dated and the other dateless, don't assume a match.
     if not match:
