@@ -1206,6 +1206,29 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
+    def get_solr_query(self):
+        """Return the appropriate Solr query string for this subject type.
+        
+        For person subjects: person_key:value
+        For place subjects: place_key:value  
+        For time subjects: time_key:value
+        For regular subjects: subject_key:value
+        """
+        # Extract the subject identifier from the key
+        subject_value = self.key.split('/')[-1]
+        
+        # Determine the appropriate key type based on subject_type
+        if hasattr(self, 'subject_type'):
+            if self.subject_type == 'person':
+                return f"person_key:{subject_value}"
+            elif self.subject_type == 'place':
+                return f"place_key:{subject_value}"
+            elif self.subject_type == 'time':
+                return f"time_key:{subject_value}"
+        
+        # Default to subject_key for regular subjects
+        return f"subject_key:{subject_value}"
+
 
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
