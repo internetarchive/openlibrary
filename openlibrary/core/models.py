@@ -1167,6 +1167,10 @@ class UserGroup(Thing):
 
 class Subject(web.storage):
     key: str
+    name: str
+    subject_type: str
+    solr_query: str
+    """Query with normalized subject key to get matching books; eg 'person_key:ned_wilcox'"""
 
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {

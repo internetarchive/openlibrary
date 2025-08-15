@@ -315,6 +315,10 @@ class SubjectEngine:
             key=key,
             name=name,
             subject_type=subject_type,
+            solr_query=query_dict_to_str(
+                {meta.facet_key: self.normalize_key(path)},
+                phrase=True,
+            ),
             work_count=result.num_found,
             works=add_availability([self.work_wrapper(d) for d in result.docs]),
         )
