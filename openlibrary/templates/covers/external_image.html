@@ -4,10 +4,10 @@ $def with (action, img_url_cover, img_url_title, source_name)
     <div class="label">
         <label>$_("Or, use a cover from %s", source_name)</label>
     </div>
-    <div style="display: flex; flex-direction: row;">
+    <div style="display: flex; flex-direction: row; gap: 5px;">
         $for url in [img_url_cover, img_url_title]:
             $if url:
-                <div class="input">
+                <div class="input" style="align-items: center;">
                     <a href="$url" target="_blank" style="flex-direction: column;">
                         <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
                     </a>
