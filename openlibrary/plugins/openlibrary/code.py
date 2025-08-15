@@ -1147,7 +1147,7 @@ def save_error():
 
 
 def internalerror():
-    name = save_error()
+    name_webpy_error = save_error()
 
     import sys
 
@@ -1161,16 +1161,20 @@ def internalerror():
     # TODO: move this to plugins\openlibrary\sentry.py
     from openlibrary.plugins.openlibrary.sentry import sentry
 
-    event_id: str | None = None
+    sentry_event_id: str | None = None
     if sentry.enabled:
-        event_id = sentry.capture_exception_webpy()
+        sentry_event_id = sentry.capture_exception_webpy()
 
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
-        name = event_id if event_id else name
         msg = render.site(
-            render.internalerror(name, etype=exception_type, evalue=exception_value)
+            render.internalerror(
+                name_webpy_error,
+                sentry_event_id,
+                etype=exception_type,
+                evalue=exception_value,
+            )
         )
         raise web.internalerror(msg)
 

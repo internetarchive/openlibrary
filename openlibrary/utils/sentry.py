@@ -91,7 +91,6 @@ class Sentry:
             trace_id = transaction.trace_id if transaction else None
             return trace_id
 
-
     def capture_exception(self, ex, extras: dict | None = None):
         with sentry_sdk.new_scope() as scope:
             if extras:
