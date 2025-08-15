@@ -12,5 +12,5 @@ This script was created in support of [issue #10887](https://github.com/internet
 
 ## `write_prefs_to_store.py`
 
-Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes 
+Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes
 a subset of existing preferences to the store.

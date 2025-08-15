@@ -5,9 +5,9 @@ Copies all patrons' preferences to the `store` tables.
 import argparse
 from pathlib import Path
 
-import infogami
 from psycopg2 import DatabaseError
 
+import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
@@ -25,6 +25,7 @@ def setup(config_path):
     load_config(config_path)
     infogami._setup()
 
+
 def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
     errors = []
     for key in keys:
@@ -41,12 +42,15 @@ def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
                 prefs['_rev'] = None
 
                 with RunAs(username):
-                    ol_acct.get_user().save_preferences(prefs, msg="Update preferences for store", use_store=True)
+                    ol_acct.get_user().save_preferences(
+                        prefs, msg="Update preferences for store", use_store=True
+                    )
         except Exception as e:  # noqa: BLE001
             print(f"An error occurred while copying preferences to store: {e}")
             errors.append(key)
 
     return errors
+
 
 def _fetch_preference_keys() -> list[str]:
     """
@@ -89,6 +93,7 @@ def _fetch_preference_keys() -> list[str]:
     t.rollback()
     return keys
 
+
 def main(args):
     print("Setting up connection with DB...")
     setup(args.config)
@@ -98,12 +103,14 @@ def main(args):
 
     print(f"Found {len(affected_pref_keys)} affected preferences")
     if args.dry_run:
-        print(f"Skipping copy to store step...")
+        print("Skipping copy to store step...")
         return
 
     print("Copying preferences to store...")
     while affected_pref_keys and not was_shutdown_requested():
-        print(f"Begin writing batch of {len(affected_pref_keys)} preferences to store...")
+        print(
+            f"Begin writing batch of {len(affected_pref_keys)} preferences to store..."
+        )
         cur_batch = affected_pref_keys[:1000]
         retries = copy_preferences_to_store(cur_batch, verbose=args.verbose)
         affected_pref_keys.extend(retries)
@@ -138,6 +145,7 @@ def _parse_args():
     )
     p.set_defaults(func=main)
     return p.parse_args()
+
 
 if __name__ == '__main__':
     _args = _parse_args()
