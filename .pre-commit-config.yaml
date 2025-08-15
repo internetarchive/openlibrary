@@ -123,3 +123,19 @@ repos:
       language: python
       verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2  # or latest stable version
+    hooks:
+      - id: sqlfluff-fix
+        name: SQLFluff Auto-Fix
+        types: [sql]
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2
+    hooks:
+      - id: sqlfluff-lint
+        name: SQLFluff Linter
+        entry: sqlfluff lint
+        language: python
+        types: [sql]
