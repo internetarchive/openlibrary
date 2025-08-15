@@ -17,11 +17,15 @@ $code:
                 return selected_sub_sort
 
      if search_scheme == 'authors':
-       sort_options = [
-         { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
-         { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
-         { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
-      ]
+        sort_options = [
+          { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
+          { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
+          { 'sort': 'name asc', 'name': _("Name"), 'ga_key': 'Name' },
+          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
+        ]
+        if selected_sort in ('birth_date_asc', 'birth_date_desc') or (ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())):
+          sort_options.append({ 'sort': 'birth_date_asc', 'name': _("Birth Date (oldest) (beta: Librarian only)"), 'ga_key': 'BirthDateOldest' })
+          sort_options.append({ 'sort': 'birth_date_desc', 'name': _("Birth Date (youngest) (beta: Librarian only)"), 'ga_key': 'BirthDateYoungest' })
      elif search_scheme == 'lists_seeds':
        sort_options = [
          { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },

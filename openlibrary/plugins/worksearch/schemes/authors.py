@@ -27,6 +27,10 @@ class AuthorSearchScheme(SearchScheme):
     sorts = MappingProxyType(
         {
             'work_count desc': 'work_count desc',
+            'name asc': 'name asc',
+            # Birth Year
+            'birth_date_asc': 'birth_date asc',
+            'birth_date_desc': 'birth_date desc',
             # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
