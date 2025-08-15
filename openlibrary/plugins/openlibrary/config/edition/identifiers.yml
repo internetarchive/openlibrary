@@ -171,8 +171,8 @@ identifiers:
     url: https://archive.org/details/@@@
 -   label: Internet Speculative Fiction Database
     name: isfdb
-    url: http://www.isfdb.org/cgi-bin/pl.cgi?@@@
-    website: http://www.isfdb.org
+    url: https://www.isfdb.org/cgi-bin/pl.cgi?@@@
+    website: https://www.isfdb.org
 -   label: English Title Short Catalogue Citation Number
     name: etsc
     url: http://estc.bl.uk/@@@
