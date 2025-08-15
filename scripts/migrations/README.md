@@ -9,3 +9,8 @@ Created as a follow-up to [issue #11024](https://github.com/internetarchive/open
 ## `delete_merge_debug.py`
 
 This script was created in support of [issue #10887](https://github.com/internetarchive/openlibrary/issues/10887).  When executed, it will delete all entries having `type` `merge-authors-debug` from the `store` and `store_index` tables.
+
+## `write_prefs_to_store.py`
+
+Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes
+a subset of existing preferences to the store.
