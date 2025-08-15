@@ -21,7 +21,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 </div>
 
 <div class="contentBody">
-    $:macros.QueryCarousel(query='publisher_facet:"%s"' % page.name.replace('"', '\\"'), sort='trending,trending_score_hourly_sum', user_lang_only=False, has_fulltext_only=False)
+    $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=False, has_fulltext_only=False)
 
 	<div class="head">
 	    <h2>
