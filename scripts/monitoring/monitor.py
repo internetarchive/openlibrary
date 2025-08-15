@@ -5,7 +5,11 @@ Defines various monitoring jobs, that check the health of the system.
 
 import asyncio
 import os
+import time
 
+import httpx
+
+from scripts.monitoring.haproxy_monitor import GraphiteEvent
 from scripts.monitoring.utils import (
     bash_run,
     get_service_ip,
@@ -107,6 +111,20 @@ async def monitor_haproxy():
         commit_freq=30,
         agg=None,  # No aggregation
     )
+
+
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_empty_homepage():
+    async with httpx.AsyncClient() as client:
+        ts = int(time.time())
+        response = await client.get('https://openlibrary.org')
+        book_count = response.text.count('<div class="book ')
+        GraphiteEvent(
+            path="stats.ol.homepage_book_count",
+            value=book_count,
+            timestamp=ts,
+        ).submit('graphite.us.archive.org:2004')
 
 
 async def main():
