@@ -58,9 +58,14 @@ $def with (page)
       </style>
     </noscript>
  <script>
-
+   var _mtm = window._mtm = window._mtm || [];
+   _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+   (function() {
+     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+     g.async=true; g.src='https://apollo.archive.org/js/container_7cLc1b4U.js'; s.parentNode.insertBefore(g,s);
+  })();
 /* @licstart  The following is the entire license notice for the
- * JavaScript code in this page.
+ * JavaScript code in this page served from openlibrary.org.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
