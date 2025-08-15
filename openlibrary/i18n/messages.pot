@@ -1916,7 +1916,7 @@ msgstr ""
 #: internalerror.html
 #, python-format
 msgid ""
-"The reference code %s and Sentry error ID %s have been created to track "
+"The reference code %s and Sentry trace ID %s have been created to track "
 "this error and we will investigate as we're able."
 msgstr ""
 

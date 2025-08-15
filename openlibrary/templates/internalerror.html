@@ -13,7 +13,7 @@ $var title: $_("Internal Error")
         $evalue
     </code>
     $if sentry_event_id:
-        <p>$:_("The reference code %s and Sentry error ID %s have been created to track this error and we will investigate as we're able.", name_webpy_error, sentry_event_id)</p>
+        <p>$:_("The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able.", name_webpy_error, sentry_event_id)</p>
     $else:
         <p>$:_("The reference code %s has been created to track this error and we will investigate as we're able.", name_webpy_error)</p>
     <p>$:_('Return to the <a class="go-back-link" href="javascript:;">previous page</a>?')</p>
