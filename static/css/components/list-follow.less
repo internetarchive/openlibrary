@@ -131,7 +131,7 @@
     background-color: @grey;
     border: none;
     cursor: not-allowed;
-    pointer-events: none;
+    pointer-events: auto;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -144,6 +144,11 @@
       box-shadow: none; // Remove default shadow if present
       margin: 0;
       letter-spacing: 0.2px;
+      margin-top: 1px;
+    }
+    .pvt-icon {
+      color: @white;
+      font-size: 14px;
     }
   }
   &__title {
