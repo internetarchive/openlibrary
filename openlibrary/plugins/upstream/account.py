@@ -24,6 +24,7 @@ from openlibrary.accounts import (
     InternetArchiveAccount,
     OLAuthenticationError,
     OpenLibraryAccount,
+    RunAs,
     audit_accounts,
     clear_cookies,
     valid_email,
@@ -1194,7 +1195,8 @@ class account_anonymization_json(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         try:
-            result = ol_account.anonymize(test=test)
+            with RunAs(ol_account.username):
+                result = ol_account.anonymize(test=test)
         except Exception:
             raise web.HTTPError(
                 "500 Internal Server Error", {"Content-Type": "application/json"}
