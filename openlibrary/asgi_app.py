@@ -93,9 +93,11 @@ def create_app() -> FastAPI:
     # Mount authors router
     from openlibrary.fastapi.authors import router as authors_router  # type: ignore
     from openlibrary.fastapi.coauthors import router as coauthors_router  # type: ignore
+    from openlibrary.fastapi.languages import router as languages_router  # type: ignore
 
     app.include_router(authors_router)
     app.include_router(coauthors_router)
+    app.include_router(languages_router)
 
     # Finally, mount the legacy app at "/" so all existing routes keep working.
     # Ordering matters: Fast routes are declared BEFORE the catch-all mount.
