@@ -113,6 +113,22 @@ async def monitor_haproxy():
     )
 
 
+@limit_server(["ol-solr0", "ol-solr1"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_solr():
+    # Note this is a long-running job that does its own scheduling.
+    # But by having it on a 60s interval, we ensure it restarts if it fails.
+    from scripts.monitoring.solr_logs_monitor import main
+
+    main(
+        solr_container=(
+            'solr_builder-solr_prod-1' if SERVER == 'ol-solr1' else 'openlibrary-solr-1'
+        ),
+        graphite_prefix=f'stats.ol.{SERVER}',
+        graphite_address='graphite.us.archive.org:2004',
+    )
+
+
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
 async def monitor_empty_homepage():
