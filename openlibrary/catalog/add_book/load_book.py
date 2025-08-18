@@ -213,19 +213,18 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
             break
     match = []
     seen = set()
+    # If author has dates, we only consider dated candidates,
+    # otherwise only include undated candidates.
     for a in things:
-        key = a['key']
-        if key in seen:
+        if key := a['key'] in seen:
             continue
         seen.add(key)
+        if has_dates(author) != has_dates(a):
+            continue
         assert a.type.key == '/type/author'
-        # Both records are dateless: assume a potential match
-        if not has_dates(author) and not has_dates(a):
-            match.append(a)
-        # Match if both records have at least one date, and the dates are compatible:
-        elif has_dates(author) and has_dates(a) and author_dates_match(author, a):
-            match.append(a)
-        # Otherwise, if one record is dated and the other dateless, don't assume a match.
+        if has_dates(author) and not author_dates_match(author, a):
+            continue
+        match.append(a)
     if not match:
         return []
     if len(match) == 1:
