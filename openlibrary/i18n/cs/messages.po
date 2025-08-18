@@ -2285,7 +2285,7 @@ msgstr "méně"
 
 #: openlibrary/macros/EditButtons.html:5
 msgid "Please, leave a short note about what you changed:"
-msgstr "Zanechte prosím krátkou poznámku o tom co jste upravily:"
+msgstr "Zanechte prosím krátkou poznámku o tom, co jste upravili:"
 
 #: openlibrary/macros/EditButtons.html:5
 msgid "(Optional, but very useful!)"
