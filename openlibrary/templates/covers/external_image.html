@@ -8,11 +8,12 @@ $ existing_urls = set(image.info().get('img_url', '') for image in doc.get_cover
     </div>
     <div class="input">
         <a href="$img_url" target="_blank">
-            <img class="ol-cover-form--external_image" src="$img_url" style="height: 200px" alt="" />
         </a>
         $if existing_urls == img_url:
+            <img class="ol-cover-form--external_image" src="$img_url" style="height: 200px" alt="" />
             <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Upload Image")</button>
         $else:
-            <button type="submit" class="cta-btn cta-btn--unavailable" name="disabled"></button>
+            <img class="ol-cover-form--uploaded_image" src="$img_url" style="height: 200px" alt="" />
+            <button type="submit" class="cta-btn cta-btn--unavailable" name="disabled">$_("Already Uploaded")</button>
     </div>
 </form>
