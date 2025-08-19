@@ -1,10 +1,11 @@
 import datetime
 import itertools
 import re
+import signal
 import subprocess
 import sys
 from collections import Counter
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Callable, Generator, Iterable, Iterator
 from dataclasses import dataclass
 from typing import Literal
 
@@ -103,14 +104,27 @@ def parse_log_entry(log_line: str) -> 'SolrLogEntry':
 def groupby_buffered[T, U](
     iterable: Iterable[T],
     key_func: Callable[[T], U],
-    buffer: int = 0,
+    buffer_size: int = 0,
 ) -> Generator[list[T], None, None]:
     current_group: list[T] = []
     current_key: U | None = None
-    buffered: list[T] = []
-    queue = iterable
+    skipped: list[T] = []
+    buffer: list[T] = []
 
-    for item in queue:
+    class CustomIterator:
+        def __init__(self, buffer: list[T], iterable: Iterable[T]):
+            self.buffer = buffer
+            self.iterable = iter(iterable)
+
+        def __iter__(self) -> Iterator[T]:
+            return self
+
+        def __next__(self) -> T:
+            if self.buffer:
+                return self.buffer.pop(0)
+            return next(self.iterable)
+
+    for item in CustomIterator(buffer, iterable):
         key = key_func(item)
         if not current_group:
             # Initial case
@@ -121,21 +135,24 @@ def groupby_buffered[T, U](
             # print('+', key)
             current_group.append(item)
         else:
-            # print('B', key)
-            buffered.append(item)
+            # print('S', key)
+            skipped.append(item)
             # Different, add to buffer
-            if len(buffered) > buffer:
+            if len(skipped) > buffer_size:
                 # Run out of buffer, time to move on
                 yield current_group
                 current_group = []
                 current_key = None
                 # Note we don't need to make this recursive because there will always be <buffer length
                 # items in the buffered array
-                queue = itertools.chain(buffered, iterable)
+                buffer.extend(skipped)
+                skipped = []
+
     if current_group:
         yield current_group
-    if buffered:
-        for key, grp in itertools.groupby(buffered, key_func):
+    buffer = skipped + buffer
+    if buffer:
+        for key, grp in itertools.groupby(buffer, key_func):
             yield list(grp)
 
 
@@ -190,8 +207,12 @@ def main(
     graphite_address='graphite.us.archive.org:2004',
     dry_run=False,
     interval: Literal['minute', 'second'] = 'minute',
+    buffer=25,
 ):
-    # signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    # Only set SIGPIPE handler on platforms that support it (i.e., not Windows)
+    if SIGPIPE := getattr(signal, "SIGPIPE", None):
+        signal.signal(SIGPIPE, signal.SIG_DFL)
+
     interval_offset = 16 if interval == 'minute' else 19
     try:
         for minute_log_lines in groupby_buffered(
@@ -201,7 +222,7 @@ def main(
                 if (entry := safe_parse_log_entry(line)) is not None
             ),
             key_func=lambda x: x.timestamp[:interval_offset],
-            buffer=25,  # Keep lines of logs in memory
+            buffer_size=buffer,
         ):
             # eg '2025-01-14 20:50:33.796'
             timestamp_str = minute_log_lines[0].timestamp
