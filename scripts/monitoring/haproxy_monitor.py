@@ -32,6 +32,9 @@ class GraphiteEvent:
     def serialize(self):
         return (self.path, (self.timestamp, self.value))
 
+    def serialize_str(self) -> str:
+        return f"{self.path} {self.value} {self.timestamp}"
+
     def submit(self, graphite_address: str | tuple[str, int]):
         GraphiteEvent.submit_many([self], graphite_address)
 

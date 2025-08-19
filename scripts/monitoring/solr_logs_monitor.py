@@ -6,6 +6,7 @@ import sys
 from collections import Counter
 from collections.abc import Callable, Generator, Iterable
 from dataclasses import dataclass
+from typing import Literal
 
 from scripts.monitoring.haproxy_monitor import GraphiteEvent
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -36,6 +37,20 @@ class RequestLogEntry(SolrLogEntry):
     status: int
     qtime: int
     other_fields: dict
+
+    def parse_params(self) -> dict[str, str | list[str]]:
+        params: dict[str, str | list[str]] = {}
+        for kvp in self.params[1:-1].split('&'):
+            key, value = kvp.split('=', 1)
+            if key in params:
+                existing_value = params[key]
+                if isinstance(existing_value, list):
+                    existing_value.append(value)
+                else:
+                    params[key] = [existing_value, value]
+            else:
+                params[key] = value
+        return params
 
     @staticmethod
     def parse_log_entry(match: re.Match) -> 'RequestLogEntry':
@@ -173,8 +188,11 @@ def main(
     solr_container='openlibrary-solr-1',
     graphite_prefix='stats.ol.solr0',
     graphite_address='graphite.us.archive.org:2004',
+    dry_run=False,
+    interval: Literal['minute', 'second'] = 'minute',
 ):
     # signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    interval_offset = 16 if interval == 'minute' else 19
     try:
         for minute_log_lines in groupby_buffered(
             (
@@ -182,9 +200,8 @@ def main(
                 for line in stream_docker_logs(solr_container)
                 if (entry := safe_parse_log_entry(line)) is not None
             ),
-            key_func=lambda x: x.timestamp[:16],  # Group by minute
-            buffer=5,  # TMP
-            # buffer=25,  # Keep lines of logs in memory
+            key_func=lambda x: x.timestamp[:interval_offset],
+            buffer=25,  # Keep lines of logs in memory
         ):
             # eg '2025-01-14 20:50:33.796'
             timestamp_str = minute_log_lines[0].timestamp
@@ -234,10 +251,32 @@ def main(
                     )
                 )
 
-            for event in events:
-                print(event.serialize())
+            # .{query_label}.count           <count>
+            # .{query_label}.time.{duration} <count>
 
-            GraphiteEvent.submit_many(events, graphite_address)
+            count_by_query_label = Counter(
+                (
+                    entry.parse_params().get('ol.label', 'UNLABELLED'),
+                    standard_duration_blocks(entry.qtime),
+                )
+                for entry in minute_log_lines
+                if isinstance(entry, RequestLogEntry) and entry.path == '/select'
+            )
+
+            for (query_label, duration), count in count_by_query_label.items():
+                events.append(
+                    GraphiteEvent(
+                        path=f"{graphite_prefix}.requests.query.{query_label}.time.{duration}",
+                        value=count,
+                        timestamp=timestamp_int,
+                    )
+                )
+
+            for event in events:
+                print(event.serialize_str())
+
+            if not dry_run:
+                GraphiteEvent.submit_many(events, graphite_address)
     except BrokenPipeError:
         sys.exit(0)
 

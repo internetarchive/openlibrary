@@ -508,6 +508,7 @@ class WorkSearchScheme(SearchScheme):
             # for `userEdQuery` to be available to `editions.q`, we will
             # need to specify it twice.
             new_params.append(('editions.userEdQuery', ed_q or '*:*'))
+            new_params.append(('editions.ol.label', 'EDITION_MATCH'))
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
