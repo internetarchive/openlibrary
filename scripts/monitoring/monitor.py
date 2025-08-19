@@ -40,16 +40,14 @@ def log_recent_bot_traffic():
     match SERVER:
         case "ol-www0":
             bucket = "ol"
-            container = "openlibrary-web_nginx-1"
         case "ol-covers0":
             bucket = "ol-covers"
-            container = "openlibrary-covers_nginx-1"
         case _:
             raise ValueError(f"Unknown server: {SERVER}")
 
     bash_run(
-        f"log_recent_bot_traffic stats.{bucket}.bot_traffic {container}",
-        sources=["utils.sh"],
+        f"log_recent_bot_traffic stats.{bucket}.bot_traffic",
+        sources=["../obfi.sh", "utils.sh"],
     )
 
 
@@ -60,16 +58,14 @@ def log_recent_http_statuses():
     match SERVER:
         case "ol-www0":
             bucket = "ol"
-            container = "openlibrary-web_nginx-1"
         case "ol-covers0":
             bucket = "ol-covers"
-            container = "openlibrary-covers_nginx-1"
         case _:
             raise ValueError(f"Unknown server: {SERVER}")
 
     bash_run(
-        f"log_recent_http_statuses stats.{bucket}.http_status {container}",
-        sources=["utils.sh"],
+        f"log_recent_http_statuses stats.{bucket}.http_status",
+        sources=["../obfi.sh", "utils.sh"],
     )
 
 
@@ -80,16 +76,14 @@ def log_top_ip_counts():
     match SERVER:
         case "ol-www0":
             bucket = "ol"
-            container = "openlibrary-web_nginx-1"
         case "ol-covers0":
             bucket = "ol-covers"
-            container = "openlibrary-covers_nginx-1"
         case _:
             raise ValueError(f"Unknown server: {SERVER}")
 
     bash_run(
-        f"log_top_ip_counts stats.{bucket}.top_ips {container}",
-        sources=["utils.sh"],
+        f"log_top_ip_counts stats.{bucket}.top_ips",
+        sources=["../obfi.sh", "utils.sh"],
     )
 
 
