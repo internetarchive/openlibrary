@@ -35,8 +35,8 @@ def log_workers_cur_fn():
 
 @limit_server(["ol-www0", "ol-covers0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
-def log_recent_bot_traffic():
-    """Logs the state of the gunicorn workers."""
+def monitor_nginx_logs():
+    """Logs recent bot traffic, HTTP statuses, and top IP counts."""
     match SERVER:
         case "ol-www0":
             bucket = "ol"
@@ -49,38 +49,10 @@ def log_recent_bot_traffic():
         f"log_recent_bot_traffic stats.{bucket}.bot_traffic",
         sources=["../obfi.sh", "utils.sh"],
     )
-
-
-@limit_server(["ol-www0", "ol-covers0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
-def log_recent_http_statuses():
-    """Logs the recent HTTP statuses."""
-    match SERVER:
-        case "ol-www0":
-            bucket = "ol"
-        case "ol-covers0":
-            bucket = "ol-covers"
-        case _:
-            raise ValueError(f"Unknown server: {SERVER}")
-
     bash_run(
         f"log_recent_http_statuses stats.{bucket}.http_status",
         sources=["../obfi.sh", "utils.sh"],
     )
-
-
-@limit_server(["ol-www0", "ol-covers0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
-def log_top_ip_counts():
-    """Logs the recent HTTP statuses."""
-    match SERVER:
-        case "ol-www0":
-            bucket = "ol"
-        case "ol-covers0":
-            bucket = "ol-covers"
-        case _:
-            raise ValueError(f"Unknown server: {SERVER}")
-
     bash_run(
         f"log_top_ip_counts stats.{bucket}.top_ips",
         sources=["../obfi.sh", "utils.sh"],
