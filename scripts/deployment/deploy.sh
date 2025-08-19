@@ -28,7 +28,7 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 mkdir -p $DEPLOY_DIR
 
 WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 ol-solr0 ol-solr1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
