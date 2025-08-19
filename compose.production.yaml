@@ -164,6 +164,9 @@ services:
       - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     expose:
       - 7072
+    ports:
+      # For prometheus logging
+      - 8405:8405
     logging:
       options:
         max-size: "512m"
