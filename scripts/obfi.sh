@@ -64,13 +64,18 @@ obfi() {
         return 0
     fi
     CMD=${1:-"tail -f"}
+    CONTAINER="${CONTAINER:-}"
+    OBFI_SUDO=${OBFI_SUDO-"sudo"}
+    local sudo_cmd=""
+
+    if [ ! -z "$OBFI_SUDO" ]; then
+        sudo_cmd="$OBFI_SUDO -E"
+    fi
 
     if command -v docker >/dev/null 2>&1; then
         if [ -z "$CONTAINER" ]; then
             CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
         fi
-    else
-        CONTAINER=""
     fi
 
     if [ ! -z "$CONTAINER" ]; then
@@ -82,8 +87,34 @@ obfi() {
         LOG_DIR="${OBFI_LOG_DIR:-/1/var/log/nginx}"
         FILE=${2:-"$LOG_DIR/access.log"}
         echo "Reading from $FILE" 1>&2
-        sudo -E $CMD $FILE
+        $sudo_cmd $CMD $FILE
     fi
+}
+
+obfi_in_docker() {
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "Docker is not installed" 1>&2
+        return 1
+    fi
+
+    CMD=${1:-"tail -f"}
+    CONTAINER="${CONTAINER:-}"
+
+    if [ -z "$CONTAINER" ]; then
+        CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
+    fi
+
+    if [ -z "$CONTAINER" ]; then
+        echo "No nginx container found"
+        return 1
+    fi
+
+    docker exec "$CONTAINER" bash -c "
+        source /openlibrary/scripts/obfi.sh
+        export OBFI_SUDO=''
+        export OBFI_LOG_DIR='/var/log/nginx'
+        $CMD
+    "
 }
 
 ###############################################################

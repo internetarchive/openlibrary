@@ -75,7 +75,7 @@ log_recent_bot_traffic() {
     BUCKET="$1"
 
     # Get top bot user agent counts in the last minute
-    BOT_TRAFFIC_COUNTS=$(obfi_previous_minute | obfi_top_bots)
+    BOT_TRAFFIC_COUNTS=$(obfi_in_docker obfi_previous_minute | obfi_top_bots)
 
     # Output like this:
     # 1412516 bingbot
@@ -101,9 +101,9 @@ log_recent_bot_traffic() {
 
     # Also log other bots as a single metric
     OTHER_BOTS_COUNT=$(
-        obfi_previous_minute | \
+        obfi_in_docker obfi_previous_minute | \
         grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        grep -viE 'bingbot|claudebot|googlebot|applebot|gptbot|yandex.com/bots|ahrefsbot|amazonbot|petalbot|brightbot|SemanticScholarBot|uptimerobot|seznamebot|OAI-SearchBot|VsuSearchSpider' | \
+        obfi_top_bots -v | \
         wc -l
     )
 
@@ -113,7 +113,7 @@ log_recent_bot_traffic() {
 
     # And finally, also log non bot traffic
     NON_BOT_TRAFFIC_COUNT=$(
-        obfi_previous_minute | \
+        obfi_in_docker obfi_previous_minute | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
         wc -l
     )
@@ -128,7 +128,7 @@ log_recent_http_statuses() {
     BUCKET="$1"
 
     # Get top http counts from previous minute
-    HTTP_STATUS_COUNTS=$(obfi_previous_minute | obfi_top_http_statuses)
+    HTTP_STATUS_COUNTS=$(obfi_in_docker obfi_previous_minute | obfi_top_http_statuses)
     # Output like this:
     #   60319 " 200
     #   55926 " 302
@@ -157,7 +157,7 @@ log_top_ip_counts() {
 
     # Get top IP counts in the last minute
     TOP_IP_COUNTS=$(
-        obfi_previous_minute | \
+        obfi_in_docker obfi_previous_minute | \
         obfi_top_ips 25 | \
         awk '{print $1}'
     )

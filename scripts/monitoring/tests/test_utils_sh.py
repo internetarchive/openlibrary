@@ -34,10 +34,10 @@ def test_log_recent_bot_traffic():
         # alias the obfi commands to return some noise
         aliases_fp.write(
             f"""
-                obfi_previous_minute() {{
+                obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
-                export -f obfi_previous_minute
+                export -f obfi_in_docker
 
                 nc() {{
                     # Read stdin and write to nc_fp
@@ -62,7 +62,7 @@ def test_log_recent_bot_traffic():
             expected_output = """
 stats.ol-covers0.bot_traffic.gptbot 2 1741054377
 stats.ol-covers0.bot_traffic.meta_externalagent 1 1741054377
-stats.ol-covers0.bot_traffic.other 0 1741054377
+stats.ol-covers0.bot_traffic.other 1 1741054377
 stats.ol-covers0.bot_traffic.non_bot 6 1741054377
             """.strip()
             assert f.read().strip() == expected_output
@@ -76,10 +76,10 @@ def test_log_recent_http_statuses():
         # alias the obfi commands to return some noise
         aliases_fp.write(
             f"""
-                obfi_previous_minute() {{
+                obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
-                export -f obfi_previous_minute
+                export -f obfi_in_docker
 
                 nc() {{
                     # Read stdin and write to nc_fp
