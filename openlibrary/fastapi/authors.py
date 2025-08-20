@@ -82,7 +82,8 @@ async def author_page(request: Request, olid: str):
     # TODO: Turn this into a middleware
     auth_token = request.cookies.get(ig_config.login_cookie_name)
     site = get_site(auth_token)
-    u = site.get_user()
+    d = site._request('/account/get_user')
+    u = ib_client.create_thing(site, d['key'], d)
 
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
@@ -106,6 +107,8 @@ async def author_page(request: Request, olid: str):
         "get_remembered_layout": get_remembered_layout,
         "homepath": lambda: "",
         "get_flash_messages": list,
+        "get_internet_archive_id": lambda x: "@openlibrary",
+        "cached_get_counts_by_mode": lambda mode: 0,
     }
     return templates.TemplateResponse("author/view.html.jinja", context)
 
