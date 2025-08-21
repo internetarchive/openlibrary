@@ -1,6 +1,7 @@
 import functools
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Literal, cast
 
@@ -92,7 +93,13 @@ async def update_keys(
         for key in updater_keys:
             logger.debug(f"processing {key}")
             try:
-                thing = await data_provider.get_document(key)
+                fake_work = re.fullmatch(r'^/works/(OL\d+M)$', key)
+                if fake_work and isinstance(updater, WorkSolrUpdater):
+                    # This is a "fake" work key made from processing an orphaned edition. We know this doesn't exist, don't try to fetch it.
+                    real_key = f"/books/{fake_work.group(1)}"
+                    thing = await data_provider.get_document(real_key)
+                else:
+                    thing = await data_provider.get_document(key)
 
                 if thing and thing['type']['key'] == '/type/redirect':
                     logger.warning("Found redirect to %r", thing['location'])
