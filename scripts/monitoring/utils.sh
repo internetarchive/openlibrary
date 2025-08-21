@@ -73,17 +73,9 @@ export -f log_workers_cur_fn
 
 log_recent_bot_traffic() {
     BUCKET="$1"
-    CONTAINER_NAME="$2"
 
-    # Get top IP counts in the last 17500 requests
-    # (As of 2024-01-08, that's about how many requests we have a minute)
-    BOT_TRAFFIC_COUNTS=$(
-        docker exec -i "$CONTAINER_NAME" tail -n 17500 /var/log/nginx/access.log | \
-        grep -oiE 'bingbot|claudebot|googlebot|applebot|gptbot|yandex.com/bots|ahrefsbot|amazonbot|petalbot|brightbot|SemanticScholarBot|uptimerobot|seznamebot|OAI-SearchBot|VsuSearchSpider' | \
-        tr '[:upper:]' '[:lower:]' | \
-        sed 's/[^[:alnum:]\n]/_/g' | \
-        sort | uniq -c | sort -rn
-    )
+    # Get top bot user agent counts in the last minute
+    BOT_TRAFFIC_COUNTS=$(obfi_in_docker obfi_previous_minute | obfi_top_bots)
 
     # Output like this:
     # 1412516 bingbot
@@ -109,9 +101,9 @@ log_recent_bot_traffic() {
 
     # Also log other bots as a single metric
     OTHER_BOTS_COUNT=$(
-        docker exec -i "$CONTAINER_NAME" tail -n 17500 /var/log/nginx/access.log | \
+        obfi_in_docker obfi_previous_minute | \
         grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        grep -viE 'bingbot|claudebot|googlebot|applebot|gptbot|yandex.com/bots|ahrefsbot|amazonbot|petalbot|brightbot|SemanticScholarBot|uptimerobot|seznamebot|OAI-SearchBot|VsuSearchSpider' | \
+        obfi_top_bots -v | \
         wc -l
     )
 
@@ -121,7 +113,7 @@ log_recent_bot_traffic() {
 
     # And finally, also log non bot traffic
     NON_BOT_TRAFFIC_COUNT=$(
-        docker exec -i "$CONTAINER_NAME" tail -n 17500 /var/log/nginx/access.log | \
+        obfi_in_docker obfi_previous_minute | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
         wc -l
     )
@@ -134,15 +126,9 @@ export -f log_recent_bot_traffic
 
 log_recent_http_statuses() {
     BUCKET="$1"
-    CONTAINER_NAME="$2"
 
-    # Get top IP counts in the last 17500 requests
-    # (As of 2024-01-08, that's about how many requests we have a minute)
-    HTTP_STATUS_COUNTS=$(
-        docker exec -i "$CONTAINER_NAME" tail -n 17500 /var/log/nginx/access.log | \
-        grep -oE '" [0-9]{3} ' | \
-        sort | uniq -c | sort -rn
-    )
+    # Get top http counts from previous minute
+    HTTP_STATUS_COUNTS=$(obfi_in_docker obfi_previous_minute | obfi_top_http_statuses)
     # Output like this:
     #   60319 " 200
     #   55926 " 302
@@ -168,15 +154,11 @@ export -f log_recent_http_statuses
 
 log_top_ip_counts() {
     BUCKET="$1"
-    CONTAINER_NAME="$2"
 
-    # Get top IP counts in the last 17500 requests
-    # (As of 2024-01-08, that's about how many requests we have a minute)
+    # Get top IP counts in the last minute
     TOP_IP_COUNTS=$(
-        docker exec -i "$CONTAINER_NAME" tail -n 17500 /var/log/nginx/access.log | \
-        grep -oE '^[^ ]+' | \
-        sort | uniq -c | sort -rn | \
-        head -n 25 | \
+        obfi_in_docker obfi_previous_minute | \
+        obfi_top_ips 25 | \
         awk '{print $1}'
     )
     # Output like this before the last awk:

@@ -46,7 +46,8 @@ services:
         max-file: "4"
 
   solr_restarter:
-    profiles: ["ol-solr0"]
+    # Disabled for now ; seemed to be making things worse, and seems no longer needed
+    profiles: ["ol-never"]
     build:
       context: scripts/solr_restarter
       args:
@@ -316,7 +317,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
