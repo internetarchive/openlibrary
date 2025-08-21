@@ -51,6 +51,7 @@ class WorkSearchScheme(SearchScheme):
             "alternative_subtitle",
             "cover_i",
             "ebook_access",
+            "ebook_provider",
             "edition_count",
             "edition_key",
             "format",

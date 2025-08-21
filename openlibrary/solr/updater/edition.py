@@ -104,7 +104,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         self._edition = edition
         self._solr_work = solr_work
         self._ia_metadata = ia_metadata
-        self._provider = bp.get_book_provider(edition)
+        self._providers = list(bp.get_book_providers(edition))
+        self._best_provider = self._providers[0] if self._providers else None
 
     @property
     def key(self):
@@ -273,12 +274,16 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @cached_property
     def ebook_access(self) -> bp.EbookAccess:
-        if not self._provider:
+        if not self._best_provider:
             return bp.EbookAccess.NO_EBOOK
-        elif isinstance(self._provider, bp.InternetArchiveProvider):
-            return self._provider.get_access(self._edition, self._ia_metadata)
+        elif isinstance(self._best_provider, bp.InternetArchiveProvider):
+            return self._best_provider.get_access(self._edition, self._ia_metadata)
         else:
-            return self._provider.get_access(self._edition)
+            return self._best_provider.get_access(self._edition)
+
+    @property
+    def ebook_provider(self) -> list[str]:
+        return [provider.provider_name for provider in (self._providers or [])]
 
     @property
     def has_fulltext(self) -> bool:
@@ -335,6 +340,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'ia_box_id': self.ia_box_id,
                 # Ebook access
                 'ebook_access': self.ebook_access.to_solr_str(),
+                'ebook_provider': self.ebook_provider,
                 'has_fulltext': self.has_fulltext,
                 'public_scan_b': self.public_scan_b,
             },
