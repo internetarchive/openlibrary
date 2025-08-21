@@ -81,9 +81,12 @@ async def author_page(request: Request, olid: str):
 
     # TODO: Turn this into a middleware
     auth_token = request.cookies.get(ig_config.login_cookie_name)
-    site = get_site(auth_token)
-    d = site._request('/account/get_user')
-    u = ib_client.create_thing(site, d['key'], d)
+    if auth_token:
+        site = get_site(auth_token)
+        d = site._request('/account/get_user')
+        u = ib_client.create_thing(site, d['key'], d)
+    else:
+        u = None
 
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
