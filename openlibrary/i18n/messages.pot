@@ -6303,6 +6303,15 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
+#: lists/list_follow.html
+msgid "Cover of a book in the list"
+msgstr ""
+
+#: lists/list_follow.html
+#, python-format
+msgid "Avatar of %(owner)s"
+msgstr ""
+
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
 msgstr ""
