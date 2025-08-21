@@ -706,7 +706,7 @@ class list_search(delegate.page):
     path = '/search/lists'
 
     def GET(self):  # referenced subject_search
-        req = ListSearchRequest.from_web_input(web.input(api='new'))
+        req = ListSearchRequest.from_web_input(web.input(api='next'))
         # Can't set fields when rendering html
         req.fields = 'key'
         resp = self.get_results(req)
