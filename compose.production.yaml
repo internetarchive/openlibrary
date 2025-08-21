@@ -46,7 +46,8 @@ services:
         max-file: "4"
 
   solr_restarter:
-    profiles: ["ol-solr0"]
+    # Disabled for now ; seemed to be making things worse, and seems no longer needed
+    profiles: ["ol-never"]
     build:
       context: scripts/solr_restarter
       args:
