@@ -68,6 +68,17 @@ async def fetch_author_works(olid: str) -> list[dict]:
     return docs
 
 
+def get_user_from_request(request: Request):
+    # TODO: Turn into a fastapi dependency
+    if auth_token := request.cookies.get(ig_config.login_cookie_name):
+        site = get_site(auth_token)
+        d = site._request('/account/get_user')
+        u = ib_client.create_thing(site, d['key'], d)
+    else:
+        u = None
+    return u
+
+
 templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
 templates.env.add_extension('jinja2.ext.i18n')
 templates.env.install_null_translations(newstyle=True)
@@ -79,14 +90,7 @@ templates.env.install_null_translations(newstyle=True)
 async def author_page(request: Request, olid: str):
     author = fetch_author(olid)
 
-    # TODO: Turn this into a middleware
-    auth_token = request.cookies.get(ig_config.login_cookie_name)
-    if auth_token:
-        site = get_site(auth_token)
-        d = site._request('/account/get_user')
-        u = ib_client.create_thing(site, d['key'], d)
-    else:
-        u = None
+    u = get_user_from_request(request)
 
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
@@ -148,13 +152,7 @@ async def author_page2(request: Request, olid: str):
             break
 
     web.ctx.lang = 'en'
-    cookies_str = "; ".join(f"{k}={v}" for k, v in request.cookies.items())
-    web.ctx.env['HTTP_COOKIE'] = cookies_str
-    web.ctx._parsed_cookies = request.cookies
-
-    auth_token = request.cookies.get(ig_config.login_cookie_name)
-    site = get_site(auth_token)
-    u = site.get_user()
+    u = get_user_from_request(request)
 
     # logger.info(render_template("covers/author_photo.html", author))
     context = {
