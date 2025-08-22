@@ -296,7 +296,7 @@ msgstr ""
 msgid "UnfollowFollow"
 msgstr ""
 
-#: Follow.html
+#: Follow.html lists/list_follow.html
 msgid "Follow"
 msgstr ""
 
@@ -6308,7 +6308,11 @@ msgid "You"
 msgstr ""
 
 #: lists/list_follow.html
-msgid "Private"
+msgid "This patron has not enabled following"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "🔒︎"
 msgstr ""
 
 #: lists/list_follow.html

@@ -20,7 +20,6 @@ export function initListsSection(elem) {
                 fetchPartials(ids.work, ids.edition)
                     .then((resp) => {
                         // Check response code, continue if not 4XX or 5XX
-
                         return resp.json()
                     })
                     .then((data) => {
@@ -43,6 +42,8 @@ export function initListsSection(elem) {
                                 showAllLink.classList.remove('hidden')
                             }
                         }
+                        // Initialize private buttons after content is loaded
+                        initPrivateButtonsAfterLoad(listSection)
                     })
             }
         })
@@ -53,6 +54,20 @@ export function initListsSection(elem) {
     })
 
     intersectionObserver.observe(elem)
+}
+
+/**
+ * Initialize private buttons after the lists section has been loaded
+ * @param {HTMLElement} container - The container that now has the loaded content
+ */
+function initPrivateButtonsAfterLoad(container) {
+    const privateButtons = container.querySelectorAll('.list-follow-card__private-button')
+    if (privateButtons.length > 0) {
+        import(/* webpackChunkName: "private-buttons" */ './private-button')
+            .then(module => {
+                module.initPrivateButtons(privateButtons)
+            })
+    }
 }
 
 async function fetchPartials(workId, editionId) {

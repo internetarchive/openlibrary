@@ -53,9 +53,12 @@ $def list_card(list, owner, own_list):
                         $if is_public:
                             $:render_follow_button(owner_username, is_subscribed)
                         $else:
-                            <button class="list-follow-card__private-button" disabled>
-                                <span class="pvt-text">$_('Private')</span>
-                            </button>
+                            <div title="$_('This patron has not enabled following')">
+                                <button class="list-follow-card__private-button" >
+                                    <span class="pvt-icon">$_('🔒︎')</span>
+                                    <span class="pvt-text">$_('Follow')</span>
+                                </button>
+                            </div>
                 </div>
             </div>
         $else:
