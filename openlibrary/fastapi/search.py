@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
-from openlibrary.plugins.worksearch.code import work_search
+from openlibrary.plugins.worksearch.code import async_work_search
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 logger = logging.getLogger("openlibrary.api")
@@ -38,7 +38,7 @@ async def search_json(
         _fields = fields.split(',')  # type: ignore
 
     query = {"q": q, "page": page, "limit": limit}
-    response = work_search(
+    response = await async_work_search(
         query,
         sort=sort,
         page=page,

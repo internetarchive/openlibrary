@@ -66,7 +66,7 @@ async def _compute_author_network(olid: str) -> dict:
     import httpx  # type: ignore
 
     # Resolve service URLs from env with sensible defaults for docker-compose
-    base_web = os.environ.get("OL_WEB_INTERNAL", "http://localhost:8080")
+    base_web = os.environ.get("OL_WEB_INTERNAL", "http://localhost:8080")  # noqa: F841
     solr_url = os.environ.get("SOLR_URL", "http://solr:8983/solr/openlibrary/select")
 
     # Query Solr for works by this author and compute co-authors

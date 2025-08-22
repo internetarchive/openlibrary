@@ -76,7 +76,7 @@ def create_app() -> FastAPI:
     ol_config = os.environ.get("OL_CONFIG", "/openlibrary/conf/openlibrary.yml")
     try:
         # We still call this even though we don't use it because of the side effects
-        legacy_wsgi = _load_legacy_wsgi(ol_config)
+        legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
     except Exception:
         logger.exception("Failed to initialize legacy WSGI app")
         raise

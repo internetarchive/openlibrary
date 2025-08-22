@@ -21,6 +21,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.fastapi.async_land import run_sync
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
@@ -146,6 +147,14 @@ def execute_solr_query(
     params: dict | list[tuple[str, Any]],
     _timeout: int | None = None,
 ) -> Response | None:
+    return run_sync(async_execute_solr_query, solr_path, params, _timeout=_timeout)
+
+
+async def async_execute_solr_query(
+    solr_path: str,
+    params: dict | list[tuple[str, Any]],
+    _timeout: int | None = None,
+) -> Response | None:
     url = solr_path
     if params:
         url += '&' if '?' in url else '?'
@@ -153,7 +162,7 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(
+        response = await get_solr().async_raw_request(
             solr_path,
             urlencode(params),
             _timeout=_timeout,
@@ -188,7 +197,7 @@ def get_remembered_layout():
     return 'details'
 
 
-def run_solr_query(  # noqa: PLR0912
+async def async_run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -292,7 +301,7 @@ def run_solr_query(  # noqa: PLR0912
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = execute_solr_query(solr_select_url, params)
+    response = await async_execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response is not None else None
     end_time = time.time()
     duration = end_time - start_time
@@ -303,6 +312,38 @@ def run_solr_query(  # noqa: PLR0912
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
 
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
+
+
+def run_solr_query(
+    scheme: SearchScheme,
+    param: dict | None = None,
+    rows=100,
+    page=1,
+    sort: str | None = None,
+    spellcheck_count=None,
+    offset=None,
+    fields: str | list[str] | None = None,
+    facet: bool | Iterable[str] = True,
+    allowed_filter_params: set[str] | None = None,
+    extra_params: list[tuple[str, Any]] | None = None,
+):
+    """
+    :param param: dict of query parameters
+    """
+    return run_sync(
+        async_run_solr_query,
+        scheme,
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        offset,
+        fields,
+        facet,
+        allowed_filter_params,
+        extra_params,
+    )
 
 
 @dataclass
@@ -892,7 +933,7 @@ def rewrite_list_query(q, page, offset, limit):
 
 
 @public
-def work_search(
+async def async_work_search(
     query: dict,
     sort: str | None = None,
     page: int = 1,
@@ -913,7 +954,7 @@ def work_search(
     query['q'], page, offset, limit = rewrite_list_query(
         query['q'], page, offset, limit
     )
-    resp = run_solr_query(
+    resp = await async_run_solr_query(
         WorkSearchScheme(),
         query,
         rows=limit,
@@ -940,6 +981,33 @@ def work_search(
             ]
         )
     return response
+
+
+@public
+def work_search(
+    query: dict,
+    sort: str | None = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int | None = None,
+) -> dict:
+    """
+    :param sort: key of SORTS dict at the top of this file
+    """
+    return run_sync(
+        async_work_search,
+        query,
+        sort,
+        page,
+        offset,
+        limit,
+        fields,
+        facet,
+        spellcheck_count,
+    )
 
 
 class search_json(delegate.page):
