@@ -7,7 +7,6 @@ import web  # type: ignore
 import yaml  # type: ignore
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.wsgi import WSGIMiddleware
 
 logger = logging.getLogger("openlibrary.asgi_app")
 
@@ -76,6 +75,7 @@ def create_app() -> FastAPI:
 
     ol_config = os.environ.get("OL_CONFIG", "/openlibrary/conf/openlibrary.yml")
     try:
+        # We still call this even though we don't use it because of the side effects
         legacy_wsgi = _load_legacy_wsgi(ol_config)
     except Exception:
         logger.exception("Failed to initialize legacy WSGI app")
@@ -98,10 +98,6 @@ def create_app() -> FastAPI:
     app.include_router(authors_router)
     app.include_router(coauthors_router)
     app.include_router(languages_router)
-
-    # Finally, mount the legacy app at "/" so all existing routes keep working.
-    # Ordering matters: Fast routes are declared BEFORE the catch-all mount.
-    app.mount("/", WSGIMiddleware(legacy_wsgi))
 
     return app
 
