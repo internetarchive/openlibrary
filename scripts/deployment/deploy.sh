@@ -237,7 +237,7 @@ deploy_olsystem() {
     if [ -d "$DEPLOY_DIR/$REPO_NEW" ]; then
         cleanup "$DEPLOY_DIR/$REPO_NEW"
     fi
-    
+
     # Get the latest code
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
