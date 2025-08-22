@@ -2,14 +2,80 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Query
-from fastapi.responses import JSONResponse
+import web
+from fastapi import APIRouter, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 
-from openlibrary.plugins.worksearch.code import async_work_search
+# Use existing Infogami client to talk to Infobase using configured parameters
+from infogami.utils.view import render_template
+from openlibrary.fastapi.authors import get_user_from_request
+from openlibrary.plugins.worksearch.code import (
+    async_run_solr_query,
+    async_work_search,
+    get_remembered_layout,
+)
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
+
+
+templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
+templates.env.add_extension('jinja2.ext.i18n')
+templates.env.install_null_translations(newstyle=True)
+
+
+@router.get("/search/authors/", response_class=HTMLResponse)
+async def author_page(
+    request: Request,
+    q: str = Query(..., description="The search query."),
+):
+    async def get_results(q, offset=0, limit=100, fields='*', sort=''):
+        return await async_run_solr_query(
+            AuthorSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            fields=fields,
+            sort=sort,
+        )
+
+    results = await get_results(q=q)
+
+    u = get_user_from_request(request)
+
+    # Needed for page banners where we call the old render function, not a new template
+    web.ctx.lang = 'en'
+
+    def dummy_get_results(q, *, offset=0, limit=100, fields='*', sort='', **kwargs):
+        return results
+
+    context = {
+        # New templates use this ctx
+        "ctx": {
+            "title": "temp title",  # author.get("name") or olid,
+            "description": "",
+            "robots": "index, follow",
+            "links": [],
+            "metatags": [],
+            "features": ["dev"],
+            "path": request.url.path,
+            "user": u,
+        },
+        "request": request,
+        "page": {'name': q},
+        "render_template": render_template,
+        "query_param": request.query_params.get,
+        "get_remembered_layout": get_remembered_layout,
+        "homepath": lambda: "",
+        "get_flash_messages": list,
+        "get_internet_archive_id": lambda x: "@openlibrary",
+        "cached_get_counts_by_mode": lambda mode: 0,
+        "get_results": dummy_get_results,
+    }
+    return templates.TemplateResponse("search/authors.html.jinja", context)
 
 
 @router.get("/_fast/search.json", response_class=JSONResponse)
