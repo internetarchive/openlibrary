@@ -17,7 +17,7 @@ SortOptions = Literal["count", "name", "ebook_edition_count"]
 
 
 # This can handle 5x as many requests without even using async at lower levels
-@router.get("/_fast/languages", response_class=JSONResponse)
+@router.get("/_fast/languages.json", response_class=JSONResponse)
 async def get_languages(limit: int = Query(15, gt=0), sort: SortOptions = "count"):
     """
     Get a list of top languages.
