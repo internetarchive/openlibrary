@@ -233,6 +233,11 @@ deploy_olsystem() {
     done
     echo -e "No changes found in the $REPO repo on the servers.\n"
 
+    cd $DEPLOY_DIR
+    if [ -d "$DEPLOY_DIR/$REPO_NEW" ]; then
+        cleanup "$DEPLOY_DIR/$REPO_NEW"
+    fi
+    
     # Get the latest code
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
@@ -352,6 +357,9 @@ deploy_openlibrary() {
     cd $DEPLOY_DIR
     if [ -d "$DEPLOY_DIR/openlibrary" ]; then
         cleanup "$DEPLOY_DIR/openlibrary"
+    fi
+    if [ -d "$DEPLOY_DIR/openlibrary_new" ]; then
+        cleanup "$DEPLOY_DIR/openlibrary_new"
     fi
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
