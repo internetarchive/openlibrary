@@ -32,6 +32,8 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
+from openlibrary.plugins.worksearch.code import run_solr_query
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
@@ -228,6 +230,29 @@ class Thing(client.Thing):
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
         }
+
+    def _get_lists_solr(self, limit: int = 50, offset: int = 0, sort: bool = True):
+        # Fetches and caches the lists through Solr, rather than through the DB.
+        # Caching the default case
+        if limit == 50 and offset == 0:
+            keys = self._get_lists_solr_cached()
+        else:
+            keys = self._get_lists_solr_uncached(limit=limit, offset=offset)
+
+        return keys
+
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
+    def _get_lists_solr_cached(self):
+        return self.get_lists_solr_uncached()
+
+    def _get_lists_solr_uncached(self, limit: int = 50, offset: int = 0):
+        q = {"seed": self.key}
+
+        response = run_solr_query(
+            param=q, scheme=ListSearchScheme(), fields=["key", "name"], offset=offset
+        )
+        print(response)
+        return [doc for doc in response.docs if doc.split('/')[2] == "lists"]
 
 
 class ThingReferenceDict(TypedDict):
