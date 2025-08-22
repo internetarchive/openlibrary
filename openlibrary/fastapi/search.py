@@ -48,6 +48,8 @@ async def author_page(
 
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
+    # This is apparently the right way to set things that'll be accessed from web.input()
+    web.ctx.env['QUERY_STRING'] = f'q={q}'
 
     def dummy_get_results(q, *, offset=0, limit=100, fields='*', sort='', **kwargs):
         return results
@@ -67,7 +69,6 @@ async def author_page(
         "request": request,
         "page": {'name': q},
         "render_template": render_template,
-        "query_param": request.query_params.get,
         "get_remembered_layout": get_remembered_layout,
         "homepath": lambda: "",
         "get_flash_messages": list,
