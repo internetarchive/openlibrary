@@ -42,9 +42,7 @@ def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
                 prefs['_rev'] = None
 
                 with RunAs(username):
-                    ol_acct.get_user().save_preferences(
-                        prefs, msg="Update preferences for store", use_store=True
-                    )
+                    ol_acct.get_user().save_preferences(prefs)
         except Exception as e:  # noqa: BLE001
             print(f"An error occurred while copying preferences to store: {e}")
             errors.append(key)
