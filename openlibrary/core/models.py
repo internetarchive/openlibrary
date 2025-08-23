@@ -909,11 +909,7 @@ class User(Thing):
 
         key = f"{self.key}/preferences"
 
-        return (
-            query_store(key)
-            or query_fallback(key)
-            or self.get_default_preferences()
-        )
+        return query_store(key) or query_fallback(key) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs) -> None:
         key = f'{self.key}/preferences'
