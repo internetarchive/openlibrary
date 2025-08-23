@@ -374,9 +374,6 @@ class Account(web.storage):
             for grp in patron.usergroups:
                 grp.remove_user(patron.key)
 
-            # Set preferences to default:
-            patron.save_preferences({'updates': 'no', 'public_readlog': 'no'})
-
             # Clear patron's profile page:
             data = {'key': patron.key, 'type': '/type/delete'}
             patron.set_data(data)
@@ -387,6 +384,8 @@ class Account(web.storage):
             del web.ctx.site.store[f'account/{username}/password']
             del web.ctx.site.store[f'account-email/{email}']
             del web.ctx.site.store[f'account-email/{email.lower()}']
+            # Delete preferences:
+            del web.ctx.site.store[f'/people/{username}/preferences']
 
         return results
 
