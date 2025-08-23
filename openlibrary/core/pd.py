@@ -11,7 +11,7 @@ def make_pd_request_query():
             COUNT(CASE WHEN rpd.value = '1' THEN 1 END) AS emailed,
             COUNT(CASE WHEN rpd.value = '2' THEN 1 END) AS fulfilled
         FROM store_index pda
-        JOIN store_index rpd 
+        JOIN store_index rpd
             ON pda.store_id = rpd.store_id
            AND rpd.type = 'preferences'
            AND rpd.name = 'rpd'
