@@ -11,7 +11,7 @@ $if "lists" not in ctx.features:
 
 $code:
     def get_page_lists(page, seed_info):
-        return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
+        return [get_list_data(list, seed_info['seed']) for list in page.get_lists_solr(sort=False)]
 
 $ seed_info = get_seed_info(page)
 $ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
