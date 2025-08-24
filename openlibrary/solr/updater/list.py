@@ -5,11 +5,11 @@ from typing import cast
 
 import httpx
 
+from openlibrary.core.models import SubjectType
 from openlibrary.plugins.openlibrary.lists import (
     SeedType,
     seed_key_to_seed_type,
 )
-from openlibrary.plugins.worksearch.subjects import SubjectType
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_key
