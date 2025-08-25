@@ -79,7 +79,7 @@ async def author_page(
     return templates.TemplateResponse("search/authors.html.jinja", context)
 
 
-@router.get("/_fast/search.json", response_class=JSONResponse)
+@router.get("/search.json", response_class=JSONResponse)
 async def search_json(
     q: str = Query(..., description="The search query."),
     page: int | None = Query(

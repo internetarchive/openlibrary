@@ -85,8 +85,8 @@ templates.env.install_null_translations(newstyle=True)
 
 
 # @router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
-@router.get("/_fast/authors/{olid}/{name}", response_class=HTMLResponse)
-@router.get("/_fast/authors/{olid}", response_class=HTMLResponse)
+@router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/authors/{olid}", response_class=HTMLResponse)
 async def author_page(request: Request, olid: str):
     author = fetch_author(olid)
 
