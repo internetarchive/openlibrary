@@ -304,8 +304,8 @@ class BookPageListsPartial(PartialDataHandler):
         edition = (edition_id and web.ctx.site.get(edition_id)) or None
 
         # Do checks and render
-        has_lists = (work and work.get_lists(limit=1)) or (
-            edition and edition.get_lists(limit=1)
+        has_lists = (work and work.get_lists_solr(limit=1)) or (
+            edition and edition.get_lists_solr(limit=1)
         )
         results["hasLists"] = bool(has_lists)
 
