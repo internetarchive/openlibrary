@@ -58,7 +58,7 @@ def author_dates_match(a: dict, b: "dict | Author") -> bool:
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
     does not match that in the other, otherwise True. If any one author does not have
-    dates, it will return True.
+    dates, it will return True (i.e. "possible match").
 
     :param dict a: Author import dict {"name": "Some One", "birth_date": "1960"}
     :param dict b: Author import dict {"name": "Some One"}
