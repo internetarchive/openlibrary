@@ -1,17 +1,11 @@
 <template>
-  <table class="identifiers">
-    <tr id="identifiers-form">
-      <th>
-        <select
-          v-model="selectedIdentifier"
-          class="form-control"
-          name="name"
-        >
-          <option
-            disabled
-            value=""
-          >
-            Select one
+  <div class="identifiers wrapper" role="table">
+  <div id="identifiers-form" class="identifiers-table" role="row">
+      <select v-model="selectedIdentifier" class="form-control cell1" name="name">
+        <option disabled value="">Select one</option>
+        <template v-if="hasPopularIds">
+          <option v-for="entry in popularIds" :key="entry.name" :value="entry.name">
+            {{ entry.label }}
           </option>
           <template v-if="hasPopularIds">
             <option
@@ -28,18 +22,18 @@
               ---
             </option>
           </template>
-          <option
-            v-for="idConfig in identifierConfigsByKey"
-            :key="idConfig.name"
-            :value="idConfig.name"
-            :disabled="!isAdmin && idConfig.name === 'ocaid'"
-            :title="!isAdmin && idConfig.name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
-          >
-            {{ idConfig.label }}
-          </option>
-        </select>
-      </th>
-      <th>
+        </template>
+        <option
+          v-for="idConfig in identifierConfigsByKey"
+          :key="idConfig.name"
+          :value="idConfig.name"
+          :disabled="!isAdmin && idConfig.name === 'ocaid'"
+          :title="!isAdmin && idConfig.name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
+        >
+          {{ idConfig.label }}
+        </option>
+      </select>
+      <div class="cell2" role="cell">
         <input
           id="id-value"
           v-model.trim="inputValue"
@@ -48,8 +42,8 @@
           name="value"
           @keyup.enter="setIdentifier"
         >
-      </th>
-      <th>
+      </div>
+      <div class="cell3" role="cell">
         <button
           class="form-control"
           name="set"
@@ -58,32 +52,35 @@
         >
           Set
         </button>
-      </th>
-    </tr>
+      </div>
+    </div>
+
     <template v-for="(value, name) in assignedIdentifiers">
-      <tr
-        v-if="value && !saveIdentifiersAsList"
-        :key="name"
+      <div
+        v-if="value && !saveIdentifiersAsList" class="assigned-identifiers-table"
+        :key="name" role="row"
       >
-        <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
-        <td>{{ value }}</td>
-        <td>
+        <div class="identifier-name" role="rowheader">{{ identifierConfigsByKey[name]?.label ?? name }}</div>
+        <div class="identifier-value" role="cell">{{ value }}</div>
+        <div class="remove-button" role="cell">
           <button
             class="form-control"
             @click="removeIdentifier(name)"
           >
             Remove
           </button>
-        </td>
-      </tr>
+        </div>
+      </div>
       <template v-else-if="value && saveIdentifiersAsList">
-        <tr
+        <div
           v-for="(item, idx) in value"
           :key="name + idx"
+          class="assigned-identifiers-table"
+          role="row"
         >
-          <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
-          <td>{{ item }}</td>
-          <td>
+          <div class="identifier-name" role="rowheader">{{ identifierConfigsByKey[name]?.label ?? name }}</div>
+          <div class="identifier-value" role="cell">{{ item }}</div>
+          <div class="remove-button" role="cell">
             <button
               class="form-control"
               :disabled="!isAdmin && name === 'ocaid'"
@@ -92,11 +89,11 @@
             >
               Remove
             </button>
-          </td>
-        </tr>
+          </div>
+        </div>
       </template>
     </template>
-  </table>
+  </div>
 </template>
 
 <script>
@@ -313,25 +310,64 @@ export default {
 <style lang="less">
 // This and .form-control ensure that select, input, and buttons are the same height
 select.form-control {
-  height: calc(2.25rem + 2px);
+  height: calc(2.25rem + 2px); 
+}
+.wrapper {
+  display: inline-block;
+  background-color: #f6f5ee;
+  padding: .25rem;
+}
+.identifiers-table {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 4px;
+}
+.cell3 {
+  justify-self: end;
+}
+.assigned-identifiers-table {
+  display: grid;
+  grid-template-columns: 60% auto auto; 
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+  border-top: 1px solid #ddd;
+  padding: .25rem 0;
+}
+.identifier-value, .identifier-name {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+.remove-button {
+  justify-self: end;
+}
+// The <select> element will cause the IdentifiersInput area to expand past its boundaries at around 850px which is why the media query targets 855px and not the standard tablet breakpoint of 768.
+@media (max-width: 855px) {
+  .identifiers-table {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 
+      "cell1 cell1"
+      "cell2 cell3";
+  }
+  .cell1 { grid-area: cell1; }
+  .cell2 { grid-area: cell2; }
+  .cell3 { grid-area: cell3; }
+  .assigned-identifiers-table {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 
+      "identifier-name remove-button"
+      "identifier-value remove-button";
+  }
+  .identifier-name { grid-area: identifier-name; }
+  .identifier-value { grid-area: identifier-value; }
+  .remove-button { grid-area: remove-button; }
 }
 .form-control {
   padding: .375rem .75rem;
   font-size: 1rem;
   line-height: 1.5;
   border: 1px solid #ced4da;
-}
-table {
-  background-color: #f6f5ee;
-  border-collapse: collapse;
-}
-th {
-  text-align: left;
-}
-td {
-  border-top: 1px solid #ddd;
-}
-th, td {
-  padding: .25rem;
 }
 </style>
