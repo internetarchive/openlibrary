@@ -10,8 +10,6 @@ import httpx
 import requests
 import web
 
-from openlibrary.fastapi.async_land import run_sync
-
 logger = logging.getLogger("openlibrary.logger")
 
 
@@ -180,13 +178,34 @@ class Solr:
         path_or_url: str,
         payload: str,
         _timeout: int | None = None,
-    ) -> httpx.Response:
-        return run_sync(
-            self.async_raw_request,
-            path_or_url,
-            payload,
-            _timeout=_timeout,
-        )
+    ) -> requests.Response:
+        if path_or_url.startswith("http"):
+            # TODO: Should this only take a path, not a full url? Would need to
+            # update worksearch.code.execute_solr_query accordingly.
+            url = path_or_url
+        else:
+            url = f'{self.base_url}/{path_or_url.lstrip("/")}'
+
+        if _timeout is not None:
+            timeout = _timeout
+        else:
+            timeout = 10
+
+        # switch to POST request when the payload is too big.
+        # XXX: would it be a good idea to switch to POST always?
+        if len(payload) < 500:
+            sep = '&' if '?' in url else '?'
+            url = url + sep + payload
+            logger.info("solr request: %s", url)
+            return self.session.get(url, timeout=timeout)
+        else:
+            logger.info("solr request: %s ...", url)
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            }
+            return self.session.post(
+                url, data=payload, headers=headers, timeout=timeout
+            )
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result['response']
