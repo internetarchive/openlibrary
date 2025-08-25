@@ -172,9 +172,11 @@ class internal_audit(delegate.page):
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
-                result = OpenLibraryAccount.get(
-                    email=i.email, link=i.itemname, username=i.username
-                )
+                result = OpenLibraryAccount.get_by_email(i.email)
+                if result is None:
+                    result = OpenLibraryAccount.get_by_link(i.itemname)
+                if result is None:
+                    OpenLibraryAccount.get_by_username(i.username)
                 if result is None:
                     raise ValueError('Invalid Open Library account email or itemname')
                 result.enc_password = 'REDACTED'
@@ -200,9 +202,9 @@ class account_migration(delegate.page):
             )
         try:
             if i.username:
-                ol_account = OpenLibraryAccount.get(username=i.username)
+                ol_account = OpenLibraryAccount.get_by_username(i.username)
             elif i.email:
-                ol_account = OpenLibraryAccount.get(email=i.email)
+                ol_account = OpenLibraryAccount.get_by_email(i.email)
         except Exception:
             return delegate.RawText(
                 json.dumps({'error': 'bad-account'}), content_type="application/json"
@@ -526,7 +528,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
 
-        if ol_account := OpenLibraryAccount.get(email=email):
+        if ol_account := OpenLibraryAccount.get_by_email(email):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
@@ -597,7 +599,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        ol_account = OpenLibraryAccount.get(username=username)
+        ol_account = OpenLibraryAccount.get_by_username(username)
         if ol_account:
             return _("Username unavailable")
 
@@ -607,7 +609,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        ol_account = OpenLibraryAccount.get(email=email)
+        ol_account = OpenLibraryAccount.get_by_email(email)
         if ol_account:
             return _('Email already registered')
 
@@ -671,7 +673,7 @@ class account_ia_email_forgot(delegate.page):
         err = ""
 
         if valid_email(i.email):
-            act = OpenLibraryAccount.get(email=i.email)
+            act = OpenLibraryAccount.get_by_email(i.email)
             if act:
                 if OpenLibraryAccount.authenticate(i.email, i.password) == "ok":
                     ia_act = act.get_linked_ia_account()
@@ -1190,7 +1192,7 @@ class account_anonymization_json(delegate.page):
         if 'error' in xauthn_response:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
-        ol_account = OpenLibraryAccount.get(link=xauthn_response.get('itemname', ''))
+        ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get('itemname', ''))
         if not ol_account:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
@@ -1265,7 +1267,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     items creates pagination and navigation issues. For further discussion,
     see https://github.com/internetarchive/openlibrary/pull/8375.
     """
-    if not (account := OpenLibraryAccount.get(username=mb.username)):
+    if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound(
             "Account for not found for %s" % mb.username, create=False
         )
