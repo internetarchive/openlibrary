@@ -360,7 +360,7 @@ select.form-control {
       "identifier-name remove-button"
       "identifier-value remove-button";
   }
-  .identifier-name { grid-area: identifier-name; }
+  .identifier-name { grid-area: identifier-name; font-weight: bold; }
   .identifier-value { grid-area: identifier-value; }
   .remove-button { grid-area: remove-button; }
 }
