@@ -2194,8 +2194,8 @@ msgstr ""
 msgid "Show changed files"
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html status.html
-#: type/author/edit.html type/language/view.html
+#: admin/inspect/store.html admin/people/index.html search/sort_options.html
+#: status.html type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr ""
 
@@ -7097,6 +7097,14 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Random"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (oldest) (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (youngest) (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
