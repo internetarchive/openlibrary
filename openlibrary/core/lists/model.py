@@ -319,7 +319,16 @@ class List(Thing):
             seed = Seed.from_db(self, s)
             max_checks = 10
             while resolve_redirects and seed.type == 'redirect' and max_checks:
-                seed = Seed(self, web.ctx.site.get(seed.document.location))
+                # Preserve notes when resolving redirects
+                original_notes = seed.notes
+                resolved_document = web.ctx.site.get(seed.document.location)
+                if original_notes:
+                    # Create AnnotatedSeed with both resolved document and original notes
+                    seed = Seed(
+                        self, {'thing': resolved_document, 'notes': original_notes}
+                    )
+                else:
+                    seed = Seed(self, resolved_document)
                 max_checks -= 1
             seeds.append(seed)
 
