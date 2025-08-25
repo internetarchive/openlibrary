@@ -29,12 +29,13 @@ services:
   solr:
     profiles:
       - build
-    image: solr:9.5.0
+    image: solr:9.9.0
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
       # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
       - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+      - SOLR_MODULES=analysis-extras
       - SOLR_JAVA_MEM=-Xms3g -Xmx3g
     ports:
       - 8983:8983
@@ -53,7 +54,7 @@ services:
     profiles:
       - production
     restart: unless-stopped
-    image: solr:9.5.0
+    image: solr:9.9.0
     expose:
       - 8983
     environment:
