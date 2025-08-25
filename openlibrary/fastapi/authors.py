@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 from infogami import config as ig_config  # type: ignore
 from infogami.infobase import client as ib_client  # type: ignore
 from infogami.utils.view import render_template
+from openlibrary.fastapi.utils import get_jinja_context
 from openlibrary.plugins.upstream.models import Author
 from openlibrary.plugins.worksearch.code import get_remembered_layout
 
@@ -95,29 +96,9 @@ async def author_page(request: Request, olid: str):
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
 
-    context = {
-        # New templates use this ctx
-        "ctx": {
-            "title": author.get("name") or olid,
-            "description": "",
-            "robots": "index, follow",
-            "links": [],
-            "metatags": [],
-            "features": ["dev"],
-            "path": request.url.path,
-            "user": u,
-        },
-        "request": request,
-        "page": author,
-        "render_template": render_template,
-        "query_param": request.query_params.get,
-        "get_remembered_layout": get_remembered_layout,
-        "homepath": lambda: "",
-        "get_flash_messages": list,
-        "get_internet_archive_id": lambda x: "@openlibrary",
-        "cached_get_counts_by_mode": lambda mode: 0,
-    }
-    return templates.TemplateResponse("author/view.html.jinja", context)
+    context = get_jinja_context(request, u, author, author.get("name") or olid)
+    context["main_content"] = render_template("type/author/view", page=author)
+    return templates.TemplateResponse("generic_template.html.jinja", context)
 
 
 # This was an experiment to see what it would be like to just use new templates instead of rendering old ones

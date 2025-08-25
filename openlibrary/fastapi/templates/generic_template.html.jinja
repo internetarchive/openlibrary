@@ -3,5 +3,5 @@
 {% block title %}{{ page.name }} — Open Library (Fast){% endblock %}
 
 {% block main %}
-    {{ render_template("type/author/view", page=page) | safe }}
+    {{ main_content | safe }}
 {% endblock %}
