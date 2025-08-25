@@ -132,8 +132,7 @@ class Solr:
                 else:
                     name = f
                 params['facet.field'].append(name)
-        json_data = run_sync(
-            self.raw_request,
+        json_data = self.raw_request(
             'select',
             urlencode(params, doseq=True),
             _timeout=_timeout,
