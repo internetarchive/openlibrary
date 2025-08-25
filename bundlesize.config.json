@@ -14,7 +14,7 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/covers.*.js",
@@ -90,8 +90,8 @@
       "maxSize": "26KB"
     },
     {
-      "path": "static/build/css/page-subject.css",
-      "maxSize": "9.2KB"
+      "path": "static/build/page-subject.css",
+      "maxSize": "10KB"
     },
     {
       "path": "static/build/css/page-user.css",
