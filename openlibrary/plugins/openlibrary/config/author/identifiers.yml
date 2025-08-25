@@ -27,6 +27,11 @@ identifiers:
     notes: Should be something like nm0393654
     url: https://www.imdb.com/name/@@@
     website: https://www.imdb.com/
+-   label: Internet Speculative Fiction Database
+    name: isfdb
+    notes: Should be a number
+    url: https://www.isfdb.org/cgi-bin/ea.cgi?@@@
+    website: https://www.isfdb.org
 -   label: Inventaire
     name: inventaire
     notes: two formats depending on if the author exists in wikidata, wd:Q42 or inv:914ad8068b8711ead0cc2efbed56e53c
