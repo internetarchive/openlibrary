@@ -1,7 +1,0 @@
-{% extends "body.html.jinja" %}
-
-{% block title %}{{ page.name }} — Open Library (Fast){% endblock %}
-
-{% block main %}
-    {{ render_template("search/authors", get_results) | safe }}
-{% endblock %}
