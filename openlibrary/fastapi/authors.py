@@ -96,7 +96,9 @@ async def author_page(request: Request, olid: str):
     # Needed for page banners where we call the old render function, not a new template
     web.ctx.lang = 'en'
 
-    context = get_jinja_context(request, u, author, author.get("name") or olid)
+    context = get_jinja_context(
+        request, user=u, page=author, title=author.get("name") or olid
+    )
     context["main_content"] = render_template("type/author/view", page=author)
     return templates.TemplateResponse("generic_template.html.jinja", context)
 

@@ -10,10 +10,10 @@ from fastapi.templating import Jinja2Templates
 # Use existing Infogami client to talk to Infobase using configured parameters
 from infogami.utils.view import render_template
 from openlibrary.fastapi.authors import get_user_from_request
+from openlibrary.fastapi.utils import get_jinja_context
 from openlibrary.plugins.worksearch.code import (
     async_run_solr_query,
     async_work_search,
-    get_remembered_layout,
 )
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
@@ -54,29 +54,9 @@ async def author_page(
     def dummy_get_results(q, *, offset=0, limit=100, fields='*', sort='', **kwargs):
         return results
 
-    context = {
-        # New templates use this ctx
-        "ctx": {
-            "title": "temp title",  # author.get("name") or olid,
-            "description": "",
-            "robots": "index, follow",
-            "links": [],
-            "metatags": [],
-            "features": ["dev"],
-            "path": request.url.path,
-            "user": u,
-        },
-        "request": request,
-        "page": {'name': q},
-        "render_template": render_template,
-        "get_remembered_layout": get_remembered_layout,
-        "homepath": lambda: "",
-        "get_flash_messages": list,
-        "get_internet_archive_id": lambda x: "@openlibrary",
-        "cached_get_counts_by_mode": lambda mode: 0,
-        "get_results": dummy_get_results,
-    }
-    return templates.TemplateResponse("search/authors.html.jinja", context)
+    context = get_jinja_context(request, user=u, title=q)
+    context["main_content"] = render_template("search/authors", dummy_get_results)
+    return templates.TemplateResponse("generic_template.html.jinja", context)
 
 
 @router.get("/search.json", response_class=JSONResponse)
