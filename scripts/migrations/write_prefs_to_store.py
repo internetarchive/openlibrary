@@ -34,7 +34,7 @@ def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
         try:
             if verbose:
                 print(f"Writing {key} to store...")
-            username = key.split('/')[-1]
+            username = key.split('/')[-2]
             ol_acct = OpenLibraryAccount.get_by_username(username)
             prefs = (ol_acct and ol_acct.get_user().preferences()) or {}
             if ol_acct and prefs.get('type', '') != PREFERENCE_TYPE:
@@ -112,6 +112,7 @@ def main(args):
             f"Begin writing batch of {len(affected_pref_keys)} preferences to store..."
         )
         cur_batch = affected_pref_keys[:1000]
+        affected_pref_keys = affected_pref_keys[1000:]
         retries = copy_preferences_to_store(cur_batch, verbose=args.verbose)
         affected_pref_keys.extend(retries)
         print(f"Batch completed with {len(retries)} errors\n")
