@@ -1,4 +1,4 @@
-$def with (action, img_url_cover, img_url_title, source_name)
+$def with (action, img_url_cover, img_url_title, source_name, previous_upload)
 
 <form class="ol-cover-form ol-cover-form--external" method="post" enctype="multipart/form-data" action="$action">
     <div class="label">
@@ -7,11 +7,19 @@ $def with (action, img_url_cover, img_url_title, source_name)
     <div class="input-container">
         $for url in [img_url_cover, img_url_title]:
             $if url:
-                <div class="input">
-                    <a href="$url" target="_blank">
-                        <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
-                    </a>
-                    <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
-                </div>
+                $if previous_upload == False:
+                    <div class="input">
+                        <a href="$url" target="_blank">
+                            <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
+                        </a>
+                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
+                    </div>
+                $else:
+                    <div class="input">
+                        <a href="$url" target="_blank">
+                            <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
+                        </a>
+                            <button type="submit" class="cta-btn cta-btn--vanilla:disabled" disabled>$_("Already Uploaded")</button>
+                    </div>
     </div>
 </form>
