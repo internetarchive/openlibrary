@@ -5,7 +5,7 @@ from os import getenv
 
 import sentry_sdk
 import web
-from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
+from sentry_sdk.tracing import Transaction, TransactionSource
 from sentry_sdk.utils import capture_internal_exceptions
 
 from infogami.utils.app import (
@@ -139,7 +139,7 @@ class WebPySentryProcessor:
                 environ,
                 op="http.server",
                 name=route_name,
-                source=TRANSACTION_SOURCE_ROUTE,
+                source=TransactionSource.ROUTE,
             )
 
             with hub.start_transaction(transaction):
