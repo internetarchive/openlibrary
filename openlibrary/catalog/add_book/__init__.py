@@ -826,6 +826,13 @@ def validate_record(rec: dict) -> None:
 
     If all the validations pass, implicitly return None.
     """
+    source_records = rec.get('source_records', [])
+    rec['source_records'] = source_records if isinstance(source_records, list) else [source_records]
+
+    for record in rec['source_records']:
+        if record.startswith('ia:'):
+            return None
+
     # Only validate publication year if a year is found.
     if publication_year := get_publication_year(rec.get('publish_date')):
         if publication_too_old_and_not_exempt(rec):
