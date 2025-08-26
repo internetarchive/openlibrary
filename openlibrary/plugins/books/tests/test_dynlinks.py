@@ -233,6 +233,13 @@ def monkeypatch_ol(monkeypatch):
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
     monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
+    
+    # Mock lending.get_availability to return empty dict (simulates API failure/unavailable)
+    # This ensures tests fall back to the individual get_ia_availability calls
+    mock_lending = type('MockLending', (), {
+        'get_availability': lambda id_type, ids: {}
+    })()
+    monkeypatch.setattr(dynlinks, "lending", mock_lending)
 
 
 def test_query_keys(monkeypatch):
@@ -352,6 +359,89 @@ def test_dynlinks(monkeypatch):
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert json.loads(js) == expected_result
+
+
+def test_bulk_availability_processing(monkeypatch):
+    """Test that bulk availability processing works correctly."""
+    monkeypatch_ol(monkeypatch)
+    
+    # Mock lending.get_availability to return test data
+    def mock_get_availability(id_type, ids):
+        return {
+            'test-borrow': {
+                'is_lendable': True,
+                'is_printdisabled': False,
+                'status': 'borrow_available'
+            },
+            'test-restricted': {
+                'is_lendable': False,
+                'is_printdisabled': True,
+                'status': 'open'
+            },
+            'test-full': {
+                'is_lendable': False,
+                'is_printdisabled': False,
+                'status': 'open'
+            }
+        }
+    
+    mock_lending = type('MockLending', (), {
+        'get_availability': mock_get_availability
+    })()
+    monkeypatch.setattr(dynlinks, "lending", mock_lending)
+    
+    # Test data with multiple items having different ocaids
+    test_result = {
+        "isbn:1111111111": {
+            "key": "/books/OL1M",
+            "title": "Test Book 1",
+            "ocaid": "test-borrow"
+        },
+        "isbn:2222222222": {
+            "key": "/books/OL2M", 
+            "title": "Test Book 2",
+            "ocaid": "test-restricted"
+        },
+        "isbn:3333333333": {
+            "key": "/books/OL3M",
+            "title": "Test Book 3",
+            "ocaid": "test-full"
+        },
+        "isbn:4444444444": {
+            "key": "/books/OL4M",
+            "title": "Test Book 4"
+            # No ocaid
+        }
+    }
+    
+    # Test the bulk processing function
+    result = dynlinks.process_result_for_viewapi(test_result)
+    
+    # Verify correct availability mapping
+    assert result["isbn:1111111111"]["preview"] == "borrow"
+    assert result["isbn:2222222222"]["preview"] == "restricted"
+    assert result["isbn:3333333333"]["preview"] == "full"
+    assert result["isbn:4444444444"]["preview"] == "noview"
+
+
+def test_availability_mapping():
+    """Test the availability mapping function."""
+    
+    # Test lendable item
+    borrow_data = {'is_lendable': True, 'is_printdisabled': False}
+    assert dynlinks.map_availability_to_legacy_contract(borrow_data) == 'borrow'
+    
+    # Test printdisabled item  
+    restricted_data = {'is_lendable': False, 'is_printdisabled': True}
+    assert dynlinks.map_availability_to_legacy_contract(restricted_data) == 'restricted'
+    
+    # Test open item
+    full_data = {'is_lendable': False, 'is_printdisabled': False}
+    assert dynlinks.map_availability_to_legacy_contract(full_data) == 'full'
+    
+    # Test missing data
+    assert dynlinks.map_availability_to_legacy_contract(None) == 'noview'
+    assert dynlinks.map_availability_to_legacy_contract({}) == 'noview'
 
 
 def test_isbnx(monkeypatch):
