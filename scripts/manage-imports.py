@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import multiprocessing
 import os
 import sys
 import time
@@ -51,7 +52,6 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
 
 
 def do_import(item, servername=None, require_marc=True):
-    import os
 
     logger.info(f"do_import START (pid:{os.getpid()})")
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
@@ -151,7 +151,6 @@ def import_item(args, **kwargs):
 
 
 def import_all(args, **kwargs):
-    import multiprocessing
 
     servername = kwargs.get('servername')
     require_marc = False
@@ -181,7 +180,6 @@ def main():
         configfile = sys.argv[index + 1]
         del sys.argv[index : index + 2]
     else:
-        import os
 
         configfile = os.path.abspath(
             os.path.join(

@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 from infogami import config
 from infogami.utils import delegate
@@ -57,7 +58,6 @@ class DevMergedStatus:
 
     def get_github_search_link(self) -> str:
         """Constructs a GitHub search URL for all PRs in pr_statuses."""
-        from urllib.parse import urlencode
 
         pull_ids = [pr.pull_id for pr in self.pr_statuses if pr.pull_id]
 
