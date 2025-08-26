@@ -95,11 +95,13 @@ def create_app() -> FastAPI:
     from openlibrary.fastapi.coauthors import router as coauthors_router  # type: ignore
     from openlibrary.fastapi.languages import router as languages_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
+    from openlibrary.fastapi.works import router as works_router  # type: ignore
 
     app.include_router(authors_router)
     app.include_router(coauthors_router)
     app.include_router(languages_router)
     app.include_router(search_router)
+    app.include_router(works_router)
 
     return app
 

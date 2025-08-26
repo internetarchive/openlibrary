@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from urllib.parse import unquote
 
 import httpx
 import web
@@ -10,28 +9,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 # Use existing Infogami client to talk to Infobase using configured parameters
-from infogami import config as ig_config  # type: ignore
-from infogami.infobase import client as ib_client  # type: ignore
 from infogami.utils.view import render_template
-from openlibrary.fastapi.utils import get_jinja_context
+from openlibrary.fastapi.utils import get_jinja_context, get_site, get_user_from_request
 from openlibrary.plugins.upstream.models import Author
 from openlibrary.plugins.worksearch.code import get_remembered_layout
 
 logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
-
-
-def get_site(auth_token: str | None = None) -> ib_client.Site:
-    """Create an Infobase client Site using already-loaded config.
-
-    This avoids calling back into the legacy WSGI app and uses existing Python
-    facilities to load objects.
-    """
-    conn = ib_client.connect(**ig_config.infobase_parameters)
-    if auth_token:
-        auth_token = unquote(auth_token)
-        conn.set_auth_token(auth_token)
-    return ib_client.Site(conn, ig_config.site or "openlibrary.org")
 
 
 def fetch_author(olid: str) -> Author:
@@ -67,17 +51,6 @@ async def fetch_author_works(olid: str) -> list[dict]:
     docs = s_json.get("response", {}).get("docs", [])
 
     return docs
-
-
-def get_user_from_request(request: Request):
-    # TODO: Turn into a fastapi dependency
-    if auth_token := request.cookies.get(ig_config.login_cookie_name):
-        site = get_site(auth_token)
-        d = site._request('/account/get_user')
-        u = ib_client.create_thing(site, d['key'], d)
-    else:
-        u = None
-    return u
 
 
 templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
