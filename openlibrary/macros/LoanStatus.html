@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
+11200$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -13,7 +13,6 @@ $ loanstatus_start_time = time()
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else doc.get('availability', {})
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0]['key'])
-$ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
 $ waiting_loan_start_time = time()
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_user_waiting_loans(ocaid, use_cache=True)
