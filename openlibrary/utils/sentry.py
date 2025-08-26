@@ -86,6 +86,7 @@ class Sentry:
     def capture_exception_webpy(self) -> str | None:
         with sentry_sdk.push_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
+            scope.add_error_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
             transaction = sentry_sdk.get_current_scope().transaction
             trace_id = transaction.trace_id if transaction else None
