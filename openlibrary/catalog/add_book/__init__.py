@@ -827,7 +827,9 @@ def validate_record(rec: dict) -> None:
     If all the validations pass, implicitly return None.
     """
     source_records = rec.get('source_records', [])
-    rec['source_records'] = source_records if isinstance(source_records, list) else [source_records]
+    rec['source_records'] = (
+        source_records if isinstance(source_records, list) else [source_records]
+    )
 
     for record in rec['source_records']:
         if record.startswith('ia:'):
