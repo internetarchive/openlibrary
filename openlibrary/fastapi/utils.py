@@ -4,6 +4,7 @@ from typing import Any
 from urllib.parse import unquote
 
 from fastapi import Request
+from fastapi.templating import Jinja2Templates
 
 from infogami import config as ig_config  # type: ignore
 from infogami.infobase import client as ib_client  # type: ignore
@@ -13,6 +14,10 @@ from infogami.utils.view import render_template
 from openlibrary.plugins.worksearch.code import (
     get_remembered_layout,
 )
+
+templates: Jinja2Templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
+templates.env.add_extension('jinja2.ext.i18n')
+templates.env.install_null_translations(newstyle=True)
 
 
 def get_jinja_context(

@@ -6,11 +6,15 @@ import httpx
 import web
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 
 # Use existing Infogami client to talk to Infobase using configured parameters
 from infogami.utils.view import render_template
-from openlibrary.fastapi.utils import get_jinja_context, get_site, get_user_from_request
+from openlibrary.fastapi.utils import (
+    get_jinja_context,
+    get_site,
+    get_user_from_request,
+    templates,
+)
 from openlibrary.plugins.upstream.models import Author
 from openlibrary.plugins.worksearch.code import get_remembered_layout
 
@@ -53,9 +57,9 @@ async def fetch_author_works(olid: str) -> list[dict]:
     return docs
 
 
-templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
-templates.env.add_extension('jinja2.ext.i18n')
-templates.env.install_null_translations(newstyle=True)
+# templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
+# templates.env.add_extension('jinja2.ext.i18n')
+# templates.env.install_null_translations(newstyle=True)
 
 
 # @router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
