@@ -2,10 +2,8 @@
 // k6 run openlibrary/fastapi/loadtest.js
 
 import http from 'k6/http';
-import { sleep, group, check } from 'k6';
-import { expect } from 'https://jslib.k6.io/k6-testing/0.5.0/index.js';
+import { check } from 'k6';
 import { Counter } from 'k6/metrics';
-import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 const totalRequests = new Counter('total_http_requests');
 
 const config = {
@@ -23,7 +21,7 @@ const delayBetweenScenarios = 10;
 let total_duration = -1;
 function getSenario(exec) {
     let startTime = '';
-    if (total_duration == -1) {
+    if (total_duration === -1) {
         total_duration = 0;
         startTime = '0s';
     } else {
@@ -52,13 +50,13 @@ export const options = {
     ),
     thresholds: Object.fromEntries(activeSenarios.flatMap(s => [
         [`http_req_duration{endpoint:${s},version:fastapi}`, ['p(95)<2000']],
-        [`http_req_duration{endpoint:${s},version:web.py_}`, ['p(95)<2000']],
+        [`http_req_duration{endpoint:${s},version:_web.py}`, ['p(95)<2000']],
     ])),
     summaryTrendStats: ['avg', 'min', 'max', 'p(95)', 'p(99)', 'count'],
 };
 
 export function genric_function(endpoint, label, legacy) {
-    const tags = { version: legacy ? 'web.py_' : 'fastapi', endpoint: label, };
+    const tags = { version: legacy ? '_web.py' : 'fastapi', endpoint: label, };
     const url = `${config[legacy ? 'old_api' : 'new_api'].baseUrl}/${endpoint}`
     const res = http.get(url, { tags });
     check(res, { 'status is 200': (r) => r.status === 200 });
