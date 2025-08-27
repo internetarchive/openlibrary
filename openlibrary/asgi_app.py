@@ -7,6 +7,7 @@ import web  # type: ignore
 import yaml  # type: ignore
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 logger = logging.getLogger("openlibrary.asgi_app")
 
@@ -84,6 +85,9 @@ def create_app() -> FastAPI:
     app = FastAPI(title="OpenLibrary ASGI", version="1.0")
     # This serves our css/js files
     app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    # Needed for the staging nginx proxy
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
     # --- Fast routes (mounted within this app) ---
     @app.get("/_fast/health")
