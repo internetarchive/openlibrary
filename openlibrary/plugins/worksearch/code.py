@@ -363,6 +363,7 @@ def run_solr_query(  # noqa: PLR0912
     facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
+    query_label: QueryLabel = 'UNLABELLED',
 ):
     """
     :param param: dict of query parameters
@@ -382,6 +383,7 @@ def run_solr_query(  # noqa: PLR0912
         *(('fq', subquery) for subquery in scheme.universe),
         ('start', offset),
         ('rows', rows),
+        ('ol.label', query_label),
         ('wt', param.get('wt', 'json')),
     ] + (extra_params or [])
 
