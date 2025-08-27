@@ -57,11 +57,6 @@ async def fetch_author_works(olid: str) -> list[dict]:
     return docs
 
 
-# templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
-# templates.env.add_extension('jinja2.ext.i18n')
-# templates.env.install_null_translations(newstyle=True)
-
-
 # @router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
 @router.get("/authors/{olid}/{name}", response_class=HTMLResponse)
 @router.get("/authors/{olid}", response_class=HTMLResponse)

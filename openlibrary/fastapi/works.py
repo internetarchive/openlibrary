@@ -30,11 +30,6 @@ def fetch_work(olid: str) -> Author:
     return author
 
 
-# templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
-# templates.env.add_extension('jinja2.ext.i18n')
-# templates.env.install_null_translations(newstyle=True)
-
-
 @router.get("/works/{olid}/{name}", response_class=HTMLResponse)
 @router.get("/works/{olid}", response_class=HTMLResponse)
 async def works_page(request: Request, olid: str):

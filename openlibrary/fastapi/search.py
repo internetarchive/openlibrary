@@ -28,11 +28,6 @@ logger = logging.getLogger("openlibrary.api")
 router = APIRouter()
 
 
-# templates = Jinja2Templates(directory="openlibrary/fastapi/templates")
-# templates.env.add_extension('jinja2.ext.i18n')
-# templates.env.install_null_translations(newstyle=True)
-
-
 @router.get("/search/authors/", response_class=HTMLResponse)
 async def author_page(
     request: Request,
