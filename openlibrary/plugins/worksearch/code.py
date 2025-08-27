@@ -1159,6 +1159,7 @@ def work_search(
     fields: str = '*',
     facet: bool = True,
     spellcheck_count: int | None = None,
+    query_label: QueryLabel = 'UNLABELLED',
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
@@ -1181,6 +1182,7 @@ def work_search(
         fields=fields,
         facet=facet,
         spellcheck_count=spellcheck_count,
+        query_label=query_label,
     )
     response = resp.raw_resp['response']
 
