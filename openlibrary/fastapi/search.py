@@ -149,7 +149,7 @@ async def search_page(
         param = {}
 
     page = int(param.get('page', 1))
-    sort = param.get('sort', None)
+    sort = param.get('sort')
     rows = 20
     if param:
         search_response = do_search(param, sort, page, rows=rows, spellcheck_count=3)
