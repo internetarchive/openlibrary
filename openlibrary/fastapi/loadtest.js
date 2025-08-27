@@ -1,0 +1,85 @@
+// To run install k6 then run:
+// k6 run openlibrary/fastapi/loadtest.js
+
+import http from 'k6/http';
+import { sleep, group, check } from 'k6';
+import { expect } from 'https://jslib.k6.io/k6-testing/0.5.0/index.js';
+import { Counter } from 'k6/metrics';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
+const totalRequests = new Counter('total_http_requests');
+
+const config = {
+    old_api: {
+        baseUrl: 'http://localhost:8080',
+    },
+    new_api: {
+        baseUrl: 'http://localhost:18080',
+    },
+};
+
+const test_duration = 10;
+const delayBetweenScenarios = 10;
+
+let total_duration = -1;
+function getSenario(exec) {
+    let startTime = '';
+    if (total_duration == -1) {
+        total_duration = 0;
+        startTime = '0s';
+    } else {
+        startTime = `${total_duration += test_duration + delayBetweenScenarios}s`;
+    }
+    // vus are the number of virtual users
+    return { executor: 'constant-vus', vus: 1, duration: `${test_duration}s`, exec, startTime };
+}
+
+const activeSenarios = [
+    'authors',
+    'languages_json',
+    'search_works_html',
+    'search_authors_html',
+    'search_works_json',
+    'works',
+]
+
+export const options = {
+    // This is just some wacky code to auto generate the senarios. It's just to avoid duplicating.
+    scenarios: Object.fromEntries(
+        activeSenarios.flatMap(s => [
+            [`new_${s}`, getSenario(`new_${s}`)],
+            [`old_${s}`, getSenario(`old_${s}`)],
+        ])
+    ),
+    thresholds: Object.fromEntries(activeSenarios.flatMap(s => [
+        [`http_req_duration{endpoint:${s},version:fastapi}`, ['p(95)<2000']],
+        [`http_req_duration{endpoint:${s},version:web.py_}`, ['p(95)<2000']],
+    ])),
+    summaryTrendStats: ['avg', 'min', 'max', 'p(95)', 'p(99)', 'count'],
+};
+
+export function genric_function(endpoint, label, legacy) {
+    const tags = { version: legacy ? 'web.py_' : 'fastapi', endpoint: label, };
+    const url = `${config[legacy ? 'old_api' : 'new_api'].baseUrl}/${endpoint}`
+    const res = http.get(url, { tags });
+    check(res, { 'status is 200': (r) => r.status === 200 });
+    totalRequests.add(1, tags);
+}
+
+export function old_search_works_json() { genric_function('search.json?q=mark&mode=everything', 'search_works_json', true); }
+export function new_search_works_json() { genric_function('search.json?q=mark&mode=everything', 'search_works_json', false); }
+
+export function old_languages_json() { genric_function('languages.json', 'languages_json', true); }
+export function new_languages_json() { genric_function('languages.json', 'languages_json', false); }
+
+export function old_authors() { genric_function('authors/OL26320A/J.R.R._Tolkien', 'authors', true); }
+export function new_authors() { genric_function('authors/OL26320A/J.R.R._Tolkien', 'authors', false); }
+
+export function old_works() { genric_function('works/OL54120W/The_wit_wisdom_of_Mark_Twain', 'works', true); }
+export function new_works() { genric_function('works/OL54120W/The_wit_wisdom_of_Mark_Twain', 'works', false); }
+
+export function old_search_works_html() { genric_function('search/?q=mark', 'search_works_html', true); }
+export function new_search_works_html() { genric_function('search/?q=mark', 'search_works_html', false); }
+
+export function old_search_authors_html() { genric_function('search/authors/?q=mark', 'search_authors_html', true); }
+export function new_search_authors_html() { genric_function('search/authors/?q=mark', 'search_authors_html', false); }
+
