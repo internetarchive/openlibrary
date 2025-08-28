@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
@@ -225,6 +226,5 @@ def main(dumpfile: str) -> None:
 
 
 if __name__ == "__main__":
-    import sys
 
     main(sys.argv[1])

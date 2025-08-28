@@ -826,7 +826,10 @@ class Loan(dict):
 
     @staticmethod
     def new(
-        identifier: str, resource_type: str, user_key: str, book_key: str | None = None
+        identifier: str,
+        resource_type: Literal["bookreader"],
+        user_key: str,
+        book_key: str | None = None,
     ) -> Loan:
         """Creates a new loan object.
 

@@ -374,7 +374,6 @@ def http_notify(site, old, new):
             )
         except Exception:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
-            import traceback
 
             traceback.print_exc()
 

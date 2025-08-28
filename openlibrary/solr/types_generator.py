@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import xml.etree.ElementTree as ET
 
 root = os.path.dirname(__file__)
 OVERRIDES = {
@@ -14,7 +15,6 @@ OVERRIDES = {
 
 def generate():
     """This function generates the types.py file."""
-    import xml.etree.ElementTree as ET
 
     # read the managed-schema xml file
     solr_schema = ET.parse(
