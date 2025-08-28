@@ -202,7 +202,7 @@ create table edition_str (
 );
 create index edition_str_idx ON edition_str(key_id, value);
 create index edition_str_thing_id_idx ON edition_str(thing_id);
-CREATE INDEX edition_str_covering_idx ON edition_str (key_id, last_modified DESC, thing_id);
+CREATE INDEX thing_covering_idx ON thing (last_modified DESC, id);
 
 create table publisher_boolean (
     thing_id int references thing,
