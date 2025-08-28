@@ -1,4 +1,4 @@
-$def with (page, edition=None)
+$def with (page, edition=None, editions=[], reader_observations={}, authors=[])
 
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 $ is_librarian = ctx.user and ctx.user.is_librarian()
@@ -7,7 +7,7 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
-$ editions = []
+<!-- editions = [] -->
 $ page_type = page.key.split('/')[1]
 $ show_observations = True
 
@@ -56,12 +56,13 @@ $# Tradeoff: limits our ability to select best edition
 $ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
 $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
 $ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
-$if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
-  $# use ebooks_only to determine whether to lazyload editions table
-  $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
+  $if ebooks_only:
+    $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
+  $if not editions:
+    $# use ebooks_only to determine whether to lazyload editions table
+    $ ebooks_only = False
+    $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -86,7 +87,8 @@ $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
 $ book_subtitle = edition.get('subtitle', '')
-$ authors = work.get_authors() if work else edition.get_authors()
+$if not authors:
+  $ authors = work.get_authors() if work else edition.get_authors()
 $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
@@ -174,7 +176,8 @@ $ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
-$ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+$if not reader_observations:
+    $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 $ component_times['affiliate_links component'] = time()
