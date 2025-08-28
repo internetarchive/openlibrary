@@ -227,7 +227,3 @@ def debug(*a):
 @web.memoize
 def get_thing_id(key):
     return db.query("SELECT * FROM thing WHERE key=$key", vars=locals())[0].id
-
-
-
-
