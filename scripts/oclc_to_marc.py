@@ -3,6 +3,7 @@
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 
+import sys
 import urllib
 
 import requests
@@ -38,7 +39,6 @@ def main(oclc):
 
 
 if __name__ == "__main__":
-    import sys
 
     if len(sys.argv) == 1 or "-h" in sys.argv or "--help" in sys.argv:
         print(__doc__, file=sys.stderr)

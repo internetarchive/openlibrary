@@ -3,17 +3,20 @@ Open Library Plugin.
 """
 
 import datetime
+import gzip
 import json
 import logging
 import math
 import os
 import random
 import socket
+import sys
 from time import time
 from urllib.parse import parse_qs, urlencode
 
 import requests
 import web
+import yaml
 
 import infogami
 from openlibrary.core import db
@@ -196,7 +199,6 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename='sampledump.txt.gz'):
-    import gzip
 
     with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
         queries = [json.loads(line) for line in file]
@@ -861,12 +863,10 @@ class _yaml(delegate.mode):
         return json.loads(d)
 
     def dump(self, d):
-        import yaml
 
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
     def load(self, data):
-        import yaml
 
         return yaml.safe_load(data)
 
@@ -1148,8 +1148,6 @@ def save_error():
 
 def internalerror():
     name_webpy_error = save_error()
-
-    import sys
 
     exception_type, exception_value, _ = sys.exc_info()
 

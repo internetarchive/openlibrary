@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import os
+import socket
 import subprocess
 import sys
 import traceback
@@ -218,7 +219,6 @@ class reload:
 
 @web.memoize
 def local_ip():
-    import socket
 
     return socket.gethostbyname(socket.gethostname())
 

@@ -7,6 +7,7 @@ import os
 import random
 import socket
 import string
+import traceback
 from io import IOBase as file
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
@@ -53,7 +54,6 @@ def ol_things(key, value):
             result = json.loads(result)
             return result['result']
         except OSError:
-            import traceback
 
             traceback.print_exc()
             return []

@@ -15,9 +15,12 @@ from html.parser import HTMLParser
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
+    quote,
+    quote_plus,
     urlparse,
     urlunparse,
 )
+from urllib.parse import urlencode as og_urlencode
 from urllib.parse import (
     urlencode as parse_urlencode,
 )
@@ -643,8 +646,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
-    from urllib.parse import quote, quote_plus
-    from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):

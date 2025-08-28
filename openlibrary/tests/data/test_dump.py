@@ -1,4 +1,5 @@
 import json
+import string
 
 from openlibrary.data.dump import pgdecode, print_dump
 
@@ -56,6 +57,5 @@ class TestPgDecode:
         assert pgdecode(r"\n\r\t\\") == "\n\r\t\\"
 
     def test_pgdecode_ascii_printable(self):
-        import string
 
         assert pgdecode(string.printable) == string.printable

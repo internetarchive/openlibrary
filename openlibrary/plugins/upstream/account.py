@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
@@ -1231,7 +1232,6 @@ def as_admin(f):
 
 
 def process_goodreads_csv(i):
-    import csv
 
     csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
     csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
