@@ -76,7 +76,36 @@ def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
     """
     Returns False if there is no by_statement in rec.
     Otherwise returns whether author name uses eastern name order.
-    TODO: elaborate on what this actually means, and how it is used.
+
+    This function is a heuristic designed to detect if an author's name is presented
+    in Eastern name order (Family Name, Given Name) within a book's `by_statement` field.
+
+    How it is used:
+    - Primarily for data normalization and display logic. It helps ensure author names
+      are rendered consistently across the platform, respecting the cultural convention
+      implied by the source metadata.
+
+    The Logic:
+    1. It first checks if the necessary fields (`by_statement`, `authors`) exist.
+    2. It takes the author's name and generates a "flipped" version (e.g., converts
+       "Haruki Murakami" to "Murakami, Haruki").
+    3. It cleans both the original and flipped names by removing periods and commas
+       for a more robust comparison.
+    4. If the cleaned original and flipped names are identical, it means the name
+       could not be meaningfully flipped (e.g., single names like "Plato") and returns False.
+    5. Finally, it checks if the *original* (unflipped) name appears in the `by_statement`.
+       - If it does NOT appear, this suggests the `by_statement` uses the flipped,
+         Eastern-order version of the name, so the function returns True.
+       - If it does appear, the `by_statement` uses Western order, and it returns False.
+
+    Example:
+        author = {'name': 'Haruki Murakami'}
+        rec = {'by_statement': 'by Murakami, Haruki'}
+
+        The original name "Haruki Murakami" is not found in the by_statement
+        "by Murakami, Haruki", so the function returns True.
+
+    Note: This is a best-effort heuristic and may not be accurate for all edge cases.
     """
     if 'by_statement' not in rec:
         return False

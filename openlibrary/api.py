@@ -221,7 +221,6 @@ class OpenLibrary:
     def import_data(self, data):
         return self._request('/api/import', method='POST', data=data).text
 
-
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
@@ -240,7 +239,6 @@ def marshal(data):
         return {"key": str(data)}
     else:
         return data
-
 
 def unmarshal(d):
     """Converts OL serialized objects to python.::
