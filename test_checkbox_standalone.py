@@ -1,8 +1,8 @@
 def render_checkbox(name, checked=False):
-    """Simple helper that mimics the checkbox HTML you added."""
+    """Simple helper that mimics the checkbox HTML with accessibility."""
     if checked:
-        return f'<input type="checkbox" name="{name}" checked>'
-    return f'<input type="checkbox" name="{name}">'
+        return f'<input type="checkbox" name="{name}" aria-label="{name}" checked>'
+    return f'<input type="checkbox" name="{name}" aria-label="{name}">'
 
 
 def test_checkbox_renders_unchecked():
