@@ -1,6 +1,7 @@
 ﻿"""Library for loading and dumping data to json and yaml."""
 
 import json
+from typing import Literal
 
 import yaml
 
@@ -17,7 +18,7 @@ def dump_yaml(data):
     return yaml.safe_dump(data, indent=4, allow_unicode=True, default_flow_style=False)
 
 
-def load(text, format):
+def load(text, format: Literal["json", "yaml"]):
     if format == "json":
         return json.loads(text)
     elif format == "yaml":
@@ -26,7 +27,7 @@ def load(text, format):
         raise Exception("unsupported format %r" % format)
 
 
-def dump(data, format):
+def dump(data, format: Literal["json", "yml"]):
     if format == "json":
         return json.dumps(data, cls=NothingEncoder)
     elif format == "yml":

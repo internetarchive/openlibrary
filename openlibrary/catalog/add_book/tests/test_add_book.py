@@ -1559,14 +1559,18 @@ def test_adding_list_field_items_to_edition_deduplicates_input(mock_site) -> Non
         ),
         (
             "Trying to import a book from a future year raises an error",
-            {'title': 'a book', 'source_records': ['ia:ocaid'], 'publish_date': '3000'},
+            {
+                'title': 'a book',
+                'source_records': ['amazon:amazon_id'],
+                'publish_date': '3000',
+            },
             PublishedInFutureYear,
         ),
         (
             "Independently published books CANNOT be imported",
             {
                 'title': 'a book',
-                'source_records': ['ia:ocaid'],
+                'source_records': ['amazon:amazon_id'],
                 'publishers': ['Independently Published'],
             },
             IndependentlyPublished,
@@ -1575,7 +1579,7 @@ def test_adding_list_field_items_to_edition_deduplicates_input(mock_site) -> Non
             "Non-independently published books can be imported",
             {
                 'title': 'a book',
-                'source_records': ['ia:ocaid'],
+                'source_records': ['other:ocaid'],
                 'publishers': ['Best Publisher'],
             },
             None,
@@ -1597,6 +1601,16 @@ def test_adding_list_field_items_to_edition_deduplicates_input(mock_site) -> Non
         (
             "Can import from sources that don't require an ISBN",
             {'title': 'a book', 'source_records': ['ia:wheeee'], 'isbn_10': []},
+            None,
+        ),
+        (
+            "Can import an otherwise invalid record if it is from internet archive",
+            {
+                'title': 'a book',
+                'source_records': ['ia:wheeee'],
+                'isbn_10': [],
+                'publishers': ['Independently Published'],
+            },
             None,
         ),
     ],

@@ -3,7 +3,6 @@
 import datetime
 import json
 from dataclasses import dataclass
-from typing import Literal
 
 import web
 
@@ -148,8 +147,6 @@ def date_range_to_publish_year_filter(published_in: str) -> str:
                 return published_in
     return ''
 
-
-SubjectType = Literal["subject", "place", "person", "time"]
 
 SubjectPseudoKey = str
 """
