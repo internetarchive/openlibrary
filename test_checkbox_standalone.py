@@ -1,5 +1,3 @@
-import pytest
-
 def render_checkbox(name, checked=False):
     """Simple helper that mimics the checkbox HTML you added."""
     if checked:

@@ -112,7 +112,6 @@ class RegisterForm(Form):
             maxlength="20",
             required="true",
         ),
-       
         Checkbox(
             "pd_request",
             description=_(

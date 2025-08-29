@@ -321,12 +321,11 @@ class account_create(delegate.page):
                 "announcements checkbox" should map to BOTH `ml_best_of` and
                 `ml_updates`
                 """  # nopep8
-                
+
                 InternetArchiveAccount.create(
                     screenname=f.username.value,
                     email=f.email.value,
                     password=f.password.value,
-            
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )

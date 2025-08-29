@@ -4,7 +4,7 @@ import pytest
 from web import application, test
 
 # Import the app entrypoint (OpenLibrary web app)
-import openlibrary.plugins.upstream.account as account
+from openlibrary.plugins.upstream import account
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def test_account_create_form_submits_with_newsletter(app, monkeypatch):
         username="testuser",
         email="test@example.com",
         password="secret",
-        ia_newsletter="on"
+        ia_newsletter="on",
     )
 
     response = test.app(app).post("/account/create", data)
