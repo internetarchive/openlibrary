@@ -1,0 +1,29 @@
+<div class="form-element">
+  <label for="ia_newsletter">
+    <input
+      type="checkbox"
+      id="ia_newsletter"
+      name="ia_newsletter"
+      value="1"
+      {% if request and request.get('ia_newsletter') %}checked{% endif %}
+    >
+    I want to receive news, announcements, and resources from the
+    <a href="https://archive.org/">Internet Archive</a>
+  </label>
+</div>
+
+<div class="form-element">
+  <label for="pd_request">
+    <input
+      type="checkbox"
+      id="pd_request"
+      name="pd_request"
+      value="1"
+      {% if request and request.get('pd_request') %}checked{% endif %}
+    >
+    I want to apply* for
+    <a href="https://help.archive.org/help/program-overview/" target="_blank">
+      special print disability access
+    </a>
+  </label>
+</div>

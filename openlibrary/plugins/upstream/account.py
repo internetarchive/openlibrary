@@ -306,6 +306,8 @@ class account_create(delegate.page):
 
     def POST(self):
         f: forms.RegisterForm = self.get_form()
+        print("DEBUG FORM DATA:", dict(self.request.params))
+
 
         if f.validates(web.input(email="")):
             try:
@@ -322,6 +324,8 @@ class account_create(delegate.page):
                 """  # nopep8
                 mls = ['ml_best_of', 'ml_updates']
                 notifications = mls if "ia_newsletter" in web.input() else []
+                if "pd_request" in web.input() and web.input().get("pd_program"):
+                    web.setcookie("pda", web.input().get("pd_program"))
                 InternetArchiveAccount.create(
                     screenname=f.username.value,
                     email=f.email.value,
