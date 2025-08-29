@@ -1,4 +1,4 @@
-"""Upstream customizations."""
+﻿"""Upstream customizations."""
 
 import datetime
 import hashlib

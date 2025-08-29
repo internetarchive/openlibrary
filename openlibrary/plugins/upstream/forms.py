@@ -1,4 +1,4 @@
-import web
+﻿import web
 
 from infogami.core import forms
 from infogami.infobase.client import ClientException

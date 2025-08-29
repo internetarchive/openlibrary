@@ -1,4 +1,4 @@
-"""Utilities for coverstore"""
+﻿"""Utilities for coverstore"""
 
 import contextlib
 import json

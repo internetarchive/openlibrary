@@ -1,4 +1,4 @@
-"""Helper functions used by the List model."""
+﻿"""Helper functions used by the List model."""
 
 import contextlib
 import logging

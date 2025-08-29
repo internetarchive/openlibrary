@@ -1,4 +1,4 @@
-"""Module to provide data for solr indexer.
+﻿"""Module to provide data for solr indexer.
 
 This module has all the logic for querying different sources for getting the
 data required for solr.

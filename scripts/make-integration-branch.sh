@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Util script to merge multiple branches as listed in a file into a new branch
 # Used for dev.openlibrary.org "deploys"

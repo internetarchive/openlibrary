@@ -1,4 +1,4 @@
-from typing import cast
+﻿from typing import cast
 
 from openlibrary.core.lists.model import List, Seed, ThingReferenceDict
 

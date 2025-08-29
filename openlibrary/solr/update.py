@@ -1,4 +1,4 @@
-import functools
+﻿import functools
 import json
 import logging
 import re

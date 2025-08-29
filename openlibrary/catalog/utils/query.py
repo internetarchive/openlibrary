@@ -1,4 +1,4 @@
-import json
+﻿import json
 import sys
 import urllib
 from time import sleep

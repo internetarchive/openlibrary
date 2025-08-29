@@ -1,4 +1,4 @@
-from openlibrary.core.bookshelves import Bookshelves
+﻿from openlibrary.core.bookshelves import Bookshelves
 
 from . import db
 

@@ -1,4 +1,4 @@
-import json
+﻿import json
 import urllib
 from os import system
 from os.path import abspath, dirname, join, pardir

@@ -1,4 +1,4 @@
-"""Library for managing Open Library data"""
+﻿"""Library for managing Open Library data"""
 
 import json
 

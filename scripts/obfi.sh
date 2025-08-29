@@ -1,4 +1,4 @@
-#! /bin/bash
+﻿#! /bin/bash
 # Set of utility scripts for working with nginx logs in Open Library.
 #
 # To use: `source scripts/obfi.sh`

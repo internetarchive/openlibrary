@@ -1,4 +1,4 @@
-"""Utility to bulk import documents into Open Library database without
+﻿"""Utility to bulk import documents into Open Library database without
 going through infobase API.
 """
 

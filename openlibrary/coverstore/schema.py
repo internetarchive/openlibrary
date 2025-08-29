@@ -1,4 +1,4 @@
-"""Coverstore schema."""
+﻿"""Coverstore schema."""
 
 from openlibrary.utils import schema
 

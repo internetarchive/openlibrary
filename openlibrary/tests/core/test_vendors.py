@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from unittest.mock import patch
 
 import pytest
@@ -115,7 +115,7 @@ def test_clean_amazon_metadata_for_load_translator():
         "edition": "3",
         'authors': [{'name': 'Rachel Kushner'}],
         'contributors': [
-            {'role': 'Translator', 'name': 'Suat Ertüzün'},
+            {'role': 'Translator', 'name': 'Suat ErtÃ¼zÃ¼n'},
             {'role': 'Translator', 'name': 'Second Translator'},
         ],
         "isbn_13": ["9780190906764"],
@@ -148,7 +148,7 @@ def test_clean_amazon_metadata_for_load_translator():
     )
     assert result['authors'][0]['name'] == 'Rachel Kushner'
     assert result['contributors'][0]['role'] == 'Translator'
-    assert result['contributors'][0]['name'] == 'Suat Ertüzün'
+    assert result['contributors'][0]['name'] == 'Suat ErtÃ¼zÃ¼n'
     assert result['contributors'][1]['role'] == 'Translator'
     assert result['contributors'][1]['name'] == 'Second Translator'
     assert result.get('isbn') is None
@@ -432,7 +432,7 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
     classification = None
     contributors = [
         Contributor(None, 'Rachel Kushner', 'Author'),
-        Contributor(None, 'Suat Ertüzün', 'Translator'),
+        Contributor(None, 'Suat ErtÃ¼zÃ¼n', 'Translator'),
         Contributor(None, 'Second Translator', 'Translator'),
         Contributor(None, 'No Role', ''),
         Contributor(None, 'Third Contributor', 'Unsupported Role'),
@@ -462,7 +462,7 @@ def test_serialize_does_not_load_translators_as_authors() -> None:
         'cover': None,
         'authors': [{'name': 'Rachel Kushner'}],
         'contributors': [
-            {'role': 'Translator', 'name': 'Suat Ertüzün'},
+            {'role': 'Translator', 'name': 'Suat ErtÃ¼zÃ¼n'},
             {'role': 'Translator', 'name': 'Second Translator'},
         ],
         'publishers': [],

@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 set -e
 source ./scripts/solr_builder/utils.sh
@@ -34,18 +34,18 @@ echo "Check if either solr-dump container is running"
 echo -n "  solr-dump ... "
 solr_dump_running=$(ssh $SOLR_SERVER "docker ps --quiet --filter name=solr-dump")
 if [ -n "$solr_dump_running" ]; then
-    echo "✗ ERROR: $SOLR_SERVER has a solr-dump container running"
+    echo "âœ— ERROR: $SOLR_SERVER has a solr-dump container running"
     exit 1
 else
-    echo "✓"
+    echo "âœ“"
 fi
 echo -n "  solr-dump-upload ... "
 solr_dump_upload_running=$(ssh $SOLR_SERVER "docker ps --quiet --filter name=solr-dump-upload")
 if [ -n "$solr_dump_upload_running" ]; then
-    echo "✗ ERROR: $SOLR_SERVER has a solr-dump-upload container running"
+    echo "âœ— ERROR: $SOLR_SERVER has a solr-dump-upload container running"
     exit 1
 else
-    echo "✓"
+    echo "âœ“"
 fi
 
 
@@ -75,11 +75,11 @@ var_solr_size_str=$(numfmt --to=iec --suffix=B $((var_solr_size * 1000)))
 empty_space_str=$(numfmt --to=iec --suffix=B $((empty_space * 1000)))
 
 if [ $var_solr_size -gt $empty_space ]; then
-    echo "✗ ERROR: Not enough space on $SOLR_SERVER"
+    echo "âœ— ERROR: Not enough space on $SOLR_SERVER"
     echo "(/var/solr is $var_solr_size_str, $SOLR_SERVER has $empty_space_str free)"
     # exit 1
 fi
-echo "✓"
+echo "âœ“"
 echo "(/var/solr is $var_solr_size_str, $SOLR_SERVER has $empty_space_str free)"
 
 echo "Check if $solr_updater_container is running"
@@ -92,7 +92,7 @@ if [ -n "$solr_updater_running" ]; then
         set -e
         docker stop $solr_updater_container
     " > /dev/null
-    echo "✓"
+    echo "âœ“"
 else
     echo "$solr_updater_container not running"
 fi
@@ -151,7 +151,7 @@ if [ -n "$solr_updater_running" ]; then
         set -e
         docker start $solr_updater_container
     " > /dev/null
-    echo "✓"
+    echo "âœ“"
 fi
 
 echo "Uploading dump to IA"

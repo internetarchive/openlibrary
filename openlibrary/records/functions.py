@@ -1,4 +1,4 @@
-"""
+﻿"""
 Functions which are used by the records package. The two public ones
 are `search` and `create` which are callable from the outside world.
 """

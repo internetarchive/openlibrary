@@ -1,4 +1,4 @@
-import re
+﻿import re
 from itertools import groupby
 
 from babel.messages.catalog import (

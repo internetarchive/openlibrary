@@ -1,4 +1,4 @@
-from scripts.solr_updater.trending_updater_hourly import compute_trending_z_score
+﻿from scripts.solr_updater.trending_updater_hourly import compute_trending_z_score
 
 
 def test_compute_trending_z_score_zero_for_low_past():

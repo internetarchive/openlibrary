@@ -1,4 +1,4 @@
-import json
+﻿import json
 from dataclasses import dataclass
 from typing import cast, override
 

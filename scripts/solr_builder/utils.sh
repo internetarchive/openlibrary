@@ -1,4 +1,4 @@
-# Example: send_slack_message "@openlibrary-g" "Hello world"
+﻿# Example: send_slack_message "@openlibrary-g" "Hello world"
 # This is a slackbot currently owned by @cdrini
 send_slack_message() {
     # Note channel must include e.g. "#" at start
@@ -56,9 +56,9 @@ test_all_ol_search() {
         echo -n "  Testing $base ... "
         test_ol_search $base
         if [ $? -eq 0 ]; then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "✗"
+            echo "âœ—"
             return 1
         fi
     done
@@ -122,14 +122,14 @@ switch_all_web_to_solr() {
         switch_web_to_solr $node $solr
 
         if [ $? -eq 0 ]; then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "✗"
+            echo "âœ—"
             exit 1
         fi
     done
 
     echo -n "Waiting for everything to restart ... "
     sleep 15 # Wait for everything to restart
-    echo "✓"
+    echo "âœ“"
 }

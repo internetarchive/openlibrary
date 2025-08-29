@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from typing import cast
 
 from openlibrary.core.bookshelves import Bookshelves

@@ -1,4 +1,4 @@
-"""Library to mock memcache functionality."""
+﻿"""Library to mock memcache functionality."""
 
 import memcache
 import pytest

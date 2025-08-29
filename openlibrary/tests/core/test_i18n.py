@@ -1,4 +1,4 @@
-import web
+﻿import web
 
 # The i18n module should be moved to core.
 from openlibrary import i18n

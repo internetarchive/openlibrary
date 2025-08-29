@@ -1,4 +1,4 @@
-import re
+﻿import re
 from socket import AF_INET, SO_BROADCAST, SOCK_DGRAM, SOL_UDP, socket
 
 re_loc = re.compile(r'^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """

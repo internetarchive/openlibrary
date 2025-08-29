@@ -1,4 +1,4 @@
-"""Infobase hook for openlibrary.
+﻿"""Infobase hook for openlibrary.
 
 * Log all modified book pages as required for the search engine.
 """

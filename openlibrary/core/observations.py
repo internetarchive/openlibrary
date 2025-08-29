@@ -1,4 +1,4 @@
-"""Module for handling patron observation functionality"""
+﻿"""Module for handling patron observation functionality"""
 
 from collections import defaultdict, namedtuple
 

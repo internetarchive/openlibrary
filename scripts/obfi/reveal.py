@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 # this matches obscured ip's and reveals them in ()'s
 # use: cat /var/log/lighttpd/current-access.log | reveal

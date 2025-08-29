@@ -1,4 +1,4 @@
-# from infogami.core.forms import register
+﻿# from infogami.core.forms import register
 # from infogami import config
 #
 # import recaptcha

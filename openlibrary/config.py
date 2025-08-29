@@ -1,4 +1,4 @@
-"""Utility for loading config file."""
+﻿"""Utility for loading config file."""
 
 import os
 import sys

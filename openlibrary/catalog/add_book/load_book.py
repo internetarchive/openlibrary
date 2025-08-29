@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Final
+﻿from typing import TYPE_CHECKING, Any, Final
 
 import web
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 # Sort by descending length to remove the _longest_ match.
-# E.g. remove "señorita" and not "señor", when both match.
+# E.g. remove "seÃ±orita" and not "seÃ±or", when both match.
 HONORIFICS: Final = sorted(
     [
         'countess',
@@ -25,7 +25,7 @@ HONORIFICS: Final = sorted(
         'dr',
         'dr.',
         'frau',
-        'fräulein',
+        'frÃ¤ulein',
         'herr',
         'lady',
         'lord',
@@ -50,9 +50,9 @@ HONORIFICS: Final = sorted(
         'mx',
         'mx.',
         'professor',
-        'señor',
-        'señora',
-        'señorita',
+        'seÃ±or',
+        'seÃ±ora',
+        'seÃ±orita',
         'sir',
         'sr.',
         'sra.',

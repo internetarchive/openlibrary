@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # usage: ./scripts/deployment/patchdeploy.sh 1234
 
@@ -72,10 +72,10 @@ for host in $SERVERS; do
             " > $TMP_OUTPUT_FILE
 
             if [ $? -eq 0 ]; then
-                echo -n '✓'
+                echo -n 'âœ“'
                 rm $TMP_OUTPUT_FILE
             else
-                echo -n '✗'
+                echo -n 'âœ—'
                 cat $TMP_OUTPUT_FILE
                 rm $TMP_OUTPUT_FILE
                 exit 1
@@ -97,7 +97,7 @@ for host in $SERVERS; do
     if [ $STATUS -eq 0 ]; then
         rm $TMP_OUTPUT_FILE
 
-        echo -n '✓ restarting ... '
+        echo -n 'âœ“ restarting ... '
         ssh ${host}.us.archive.org "
             export COMPOSE_FILE='/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml'
             export HOSTNAME=\$HOSTNAME
@@ -105,16 +105,16 @@ for host in $SERVERS; do
         " > $TMP_OUTPUT_FILE
 
         if [ $? -eq 0 ]; then
-            echo '✓'
+            echo 'âœ“'
             rm $TMP_OUTPUT_FILE
         else
-            echo '✗'
+            echo 'âœ—'
             cat $TMP_OUTPUT_FILE
             rm $TMP_OUTPUT_FILE
             exit 1
         fi
     else
-        echo '✗ (Skipping)'
+        echo 'âœ— (Skipping)'
         cat $TMP_OUTPUT_FILE
         rm $TMP_OUTPUT_FILE
     fi

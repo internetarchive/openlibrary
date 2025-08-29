@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+﻿from collections.abc import Sequence
 
 import pytest
 import web
@@ -12,7 +12,7 @@ from .. import utils
 def test_url_quote():
     assert utils.url_quote('https://foo bar') == 'https%3A%2F%2Ffoo+bar'
     assert utils.url_quote('abc') == 'abc'
-    assert utils.url_quote('Kabitā') == 'Kabit%C4%81'
+    assert utils.url_quote('KabitÄ') == 'Kabit%C4%81'
     assert utils.url_quote('Kabit\u0101') == 'Kabit%C4%81'
 
 
@@ -27,13 +27,13 @@ def test_urlencode():
     assert f([('x', '3'), ('x', '5')]) == 'x=3&x=5', 'list with multi keys'
     assert f({'q': 'a b c'}) == 'q=a+b+c', 'handles spaces'
     assert f({'q': 'a$$'}) == 'q=a%24%24', 'handles special ascii chars'
-    assert f({'q': 'héé'}) == 'q=h%C3%A9%C3%A9'
-    assert f({'q': 'héé'}) == 'q=h%C3%A9%C3%A9', 'handles unicode without the u?'
+    assert f({'q': 'hÃ©Ã©'}) == 'q=h%C3%A9%C3%A9'
+    assert f({'q': 'hÃ©Ã©'}) == 'q=h%C3%A9%C3%A9', 'handles unicode without the u?'
     assert f({'q': 1}) == 'q=1', 'numbers'
     assert f({'q': ['test']}) == 'q=%5B%27test%27%5D', 'list'
-    assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode without the u'
-    assert f({'q': 'αβγ'.encode()}) == 'q=%CE%B1%CE%B2%CE%B3', 'uf8 encoded unicode'
-    assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
+    assert f({'q': 'Î±Î²Î³'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode without the u'
+    assert f({'q': 'Î±Î²Î³'.encode()}) == 'q=%CE%B1%CE%B2%CE%B3', 'uf8 encoded unicode'
+    assert f({'q': 'Î±Î²Î³'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
 
 
 def test_entity_decode():
@@ -171,9 +171,9 @@ def test_reformat_html():
 def test_strip_accents():
     f = utils.strip_accents
     assert f('Plain ASCII text') == 'Plain ASCII text'
-    assert f('Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    assert f('Des idÃ©es napolÃ©oniennes') == 'Des idees napoleoniennes'
     # It only modifies Unicode Nonspacing Mark characters:
-    assert f('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'
+    assert f('BokmÃ¥l : Standard Ã˜stnorsk') == 'Bokmal : Standard Ã˜stnorsk'
 
 
 def test_get_abbrev_from_full_lang_name(
@@ -191,10 +191,10 @@ def test_get_abbrev_from_full_lang_name(
             "name": "English",
             "type": {"key": "/type/language"},
             "name_translated": {
-                "tg": ["ингилисӣ"],
+                "tg": ["Ð¸Ð½Ð³Ð¸Ð»Ð¸ÑÓ£"],
                 "en": ["English"],
                 "ay": ["Inlish aru"],
-                "pnb": ["انگریزی"],
+                "pnb": ["Ø§Ù†Ú¯Ø±ÛŒØ²ÛŒ"],
                 "na": ["Dorerin Ingerand"],
             },
         }
@@ -237,8 +237,8 @@ def test_get_abbrev_from_full_lang_name(
 
     assert utils.get_abbrev_from_full_lang_name("EnGlish") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Dorerin Ingerand") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("ингилисӣ") == "eng"
-    assert utils.get_abbrev_from_full_lang_name("ингилиси") == "eng"
+    assert utils.get_abbrev_from_full_lang_name("Ð¸Ð½Ð³Ð¸Ð»Ð¸ÑÓ£") == "eng"
+    assert utils.get_abbrev_from_full_lang_name("Ð¸Ð½Ð³Ð¸Ð»Ð¸ÑÐ¸") == "eng"
     assert utils.get_abbrev_from_full_lang_name("Anglais") == "fre"
     assert utils.get_abbrev_from_full_lang_name("Portuguese Brazilian") == "por"
 
@@ -277,10 +277,10 @@ def test_get_location_and_publisher() -> None:
     assert utils.get_location_and_publisher("") == ([], [])
 
     # Test simple case of "City : Publisher".
-    loc_pub = "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]"
+    loc_pub = "SoÌ†ul T'uÌ†kpyoÌ†lsi : [KimyoÌ†ngsa]"
     assert utils.get_location_and_publisher(loc_pub) == (
-        ["Sŏul T'ŭkpyŏlsi"],
-        ["Kimyŏngsa"],
+        ["SoÌ†ul T'uÌ†kpyoÌ†lsi"],
+        ["KimyoÌ†ngsa"],
     )
 
     # Test multiple locations and one publisher.
@@ -324,7 +324,7 @@ def test_get_location_and_publisher() -> None:
     ("name", "seq", "locale", "expected"),
     [
         ("English", ["apples", "oranges", "pears"], "en", "apples, oranges, and pears"),
-        ("Chinese", ["apples", "oranges", "pears"], "zh", "apples、oranges和pears"),
+        ("Chinese", ["apples", "oranges", "pears"], "zh", "applesã€orangeså’Œpears"),
         (
             "non existent locale",
             ["apples", "oranges", "pears"],

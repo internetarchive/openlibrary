@@ -1,4 +1,4 @@
-"""
+﻿"""
 List of functions that return various numbers which are stored in the
 admin database by the stats module.
 

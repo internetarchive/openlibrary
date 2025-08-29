@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 python --version
 OSP_DUMP_LOCATION="/solr-updater-data/osp_totals.db"

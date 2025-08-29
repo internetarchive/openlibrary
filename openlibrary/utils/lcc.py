@@ -1,4 +1,4 @@
-"""
+﻿"""
 Crash course Library of Congress Classification (LCC)
 
 Examples:

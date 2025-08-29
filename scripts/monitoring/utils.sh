@@ -1,4 +1,4 @@
-# Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
+﻿# Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
 
 py_spy_cur_fn() {
     pid=$1
@@ -33,9 +33,9 @@ py_spy_find_worker() {
         full_dump="$(py-spy dump --nonblocking --pid $pid)"
         match=$(echo "$full_dump" | grep -E "$pattern")
         if [ -z "$match" ]; then
-            echo "✗"
+            echo "âœ—"
         else
-            echo "✓"
+            echo "âœ“"
             echo "$full_dump"
             return 0
         fi

@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # This script git pulls master for openlibrary, infogami, and olsystem
 # and then starts the Docker service specified by $SERVICE
 

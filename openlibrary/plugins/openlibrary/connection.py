@@ -1,4 +1,4 @@
-"""Open Library extension to provide a new kind of client connection with caching support."""
+﻿"""Open Library extension to provide a new kind of client connection with caching support."""
 
 import datetime
 import json

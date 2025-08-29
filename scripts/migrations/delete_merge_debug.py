@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Deletes store entries that have the type `merge-authors-debug`.
 

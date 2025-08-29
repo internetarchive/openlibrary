@@ -1,4 +1,4 @@
-"""Infobase schema for Open Library"""
+﻿"""Infobase schema for Open Library"""
 
 import web
 

@@ -1,4 +1,4 @@
-"""Module to load books into Open Library.
+﻿"""Module to load books into Open Library.
 
 This is used to load books from various MARC sources, including
 Internet Archive.

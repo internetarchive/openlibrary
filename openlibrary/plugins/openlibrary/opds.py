@@ -1,4 +1,4 @@
-"""
+﻿"""
 OPDS helper class.
 A lightweight version of github.com/internetarchive/bookserver
 """

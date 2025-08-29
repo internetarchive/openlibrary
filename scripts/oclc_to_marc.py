@@ -1,4 +1,4 @@
-"""Find marc record URL from oclc number.
+﻿"""Find marc record URL from oclc number.
 
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """

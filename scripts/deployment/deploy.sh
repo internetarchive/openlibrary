@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 clean_exit() {
     if [ -d "$DEPLOY_DIR" ]; then
@@ -77,7 +77,7 @@ check_crons() {
 
     # If KILL_CRON is an empty string and there are running jobs, exit early
     if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
-        echo "✗"
+        echo "âœ—"
         echo "Critical cron jobs are currently running. Halting deployment:"
         echo "$RUNNING_CRONS"
         echo ""
@@ -85,7 +85,7 @@ check_crons() {
         echo ""
         exit 1
     else
-        echo "✓"
+        echo "âœ“"
     fi
 }
 
@@ -98,9 +98,9 @@ check_for_local_changes() {
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
     if [ -z "$OUTPUT" ]; then
-        echo "✓"
+        echo "âœ“"
     else
-        echo "✗"
+        echo "âœ—"
         echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
         ssh -t $SERVER "
             cd $REPO_DIR
@@ -121,11 +121,11 @@ check_server_access() {
 
     for SERVER in $FQDNS; do
         echo -n "   $SERVER ... "
-        DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
-        if [ "$DOCKER_ACCESS" == "✓" ]; then
-            echo "✓"
+        DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "âœ“" || echo "âœ—")
+        if [ "$DOCKER_ACCESS" == "âœ“" ]; then
+            echo "âœ“"
         else
-            echo "⚠"
+            echo "âš "
             echo "Could not access $SERVER."
             exit 1
         fi
@@ -149,18 +149,18 @@ copy_to_servers() {
         ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
 
         if OUTPUT=$(scp "$TAR_PATH" "$SERVER:/tmp/$TAR_FILE" 2>&1); then
-            echo -n "✓."
+            echo -n "âœ“."
         else
-            echo "⚠"
+            echo "âš "
             echo "$OUTPUT"
             return 1
         fi
 
         echo -n " Extracting ... "
         if OUTPUT=$(ssh "$SERVER" "sudo tar -xzf /tmp/$TAR_FILE -C $DESTINATION_PARENT" 2>&1); then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "⚠"
+            echo "âš "
             echo "$OUTPUT"
             ssh "$SERVER" "sudo rm -rf /tmp/$TAR_FILE"
             return 1
@@ -241,7 +241,7 @@ deploy_olsystem() {
     # Get the latest code
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
-    echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
+    echo -n "âœ” (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
     # compress the repo to speed up the transfer
     tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
@@ -265,9 +265,9 @@ deploy_olsystem() {
             sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "⚠"
+            echo "âš "
             echo "$OUTPUT"
             cleanup "${DEPLOY_DIR}/olsystem"
             exit 1
@@ -339,11 +339,11 @@ check_olbase_image_up_to_date() {
     IMAGE_LAST_UPDATED_TS=$(date_to_timestamp "$IMAGE_LAST_UPDATED")
 
     if [ "$GIT_LAST_UPDATED_TS" -gt "$IMAGE_LAST_UPDATED_TS" ]; then
-        echo "✗ Docker image is NOT up-to-date."
+        echo "âœ— Docker image is NOT up-to-date."
         echo -e "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
         return 1
     else
-        echo "✓ Docker image is up-to-date."
+        echo "âœ“ Docker image is up-to-date."
         return 0
     fi
 }
@@ -364,7 +364,7 @@ deploy_openlibrary() {
     echo -ne "Cloning openlibrary repo ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
-    echo "✔ (SHA: $GIT_SHA)"
+    echo "âœ” (SHA: $GIT_SHA)"
     echo ""
 
     if ! check_olbase_image_up_to_date; then
@@ -442,7 +442,7 @@ deploy_images() {
         echo -n "   Fetching OLBASE_DIGEST ... "
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
-        echo "✓ ($OLBASE_DIGEST)"
+        echo "âœ“ ($OLBASE_DIGEST)"
     fi
 
     local pids=()
@@ -473,9 +473,9 @@ deploy_images() {
         server="${SERVER_NAMES_ARRAY[$i]}"
         echo -n "   $server ... "
         if wait $pid; then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "✗"
+            echo "âœ—"
             echo "Failed to pull images on $server"
             echo "Output:"
             cat "${output_files[$i]}"
@@ -510,14 +510,14 @@ check_server_storage() {
         AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
         for SIZE in $AVAILABLE_SIZES; do
             if [ "$SIZE" -lt 2147483648 ]; then
-                echo "✗ (Less than 2GB free!)"
+                echo "âœ— (Less than 2GB free!)"
                 ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
                 FAILED=1
                 SERVER_FAILED=1
             fi
         done
         if [ $SERVER_FAILED -eq 0 ]; then
-            echo "✓"
+            echo "âœ“"
         fi
     done
 
@@ -567,9 +567,9 @@ prune_docker () {
         fi
 
         if OUTPUT=$(ssh $SERVER "$PRUNE_CMD" 2>&1); then
-            echo "✓"
+            echo "âœ“"
         else
-            echo "⚠"
+            echo "âš "
             echo "$OUTPUT"
             return 1
         fi

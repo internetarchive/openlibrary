@@ -1,4 +1,4 @@
-import re
+﻿import re
 from collections.abc import Iterable
 
 import web

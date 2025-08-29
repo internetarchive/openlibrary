@@ -1,4 +1,4 @@
-"""Library for generating sitemaps from Open Library dump.
+﻿"""Library for generating sitemaps from Open Library dump.
 
 Input for generating sitemaps is a tsv file with "path", "title", "created"
 and "last_modified" columns. It is desirable that the file is sorted on

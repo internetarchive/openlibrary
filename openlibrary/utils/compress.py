@@ -1,4 +1,4 @@
-# incremental zlib compression, written by solrize, August 2009
+﻿# incremental zlib compression, written by solrize, August 2009
 import zlib
 
 __doc__ = """

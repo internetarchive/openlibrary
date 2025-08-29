@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 import itertools
 import json
 import subprocess
@@ -155,7 +155,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
         )
         resp.raise_for_status()
         data = resp.json()
-        print(f"\rBatch {i + 1}/{batch_count} ... ✓ ", end='', flush=True)
+        print(f"\rBatch {i + 1}/{batch_count} ... âœ“ ", end='', flush=True)
         for edition in data:
             if not edition.get('works'):
                 print(f"WARN: Edition {edition['key']} has no works, skipping")

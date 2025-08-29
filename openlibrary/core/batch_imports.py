@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import json
 from dataclasses import dataclass
 from json.decoder import JSONDecodeError

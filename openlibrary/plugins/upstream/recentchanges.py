@@ -1,4 +1,4 @@
-"""New recentchanges implementation.
+﻿"""New recentchanges implementation.
 
 This should go into infogami.
 """

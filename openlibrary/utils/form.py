@@ -1,4 +1,4 @@
-"""New form library to use instead of web.form.
+﻿"""New form library to use instead of web.form.
 
 (this should go to web.py)
 """

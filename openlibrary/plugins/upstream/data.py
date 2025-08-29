@@ -1,4 +1,4 @@
-"""Code for handling /data/*.txt.gz URLs."""
+﻿"""Code for handling /data/*.txt.gz URLs."""
 
 import requests
 import web

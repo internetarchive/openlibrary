@@ -1,4 +1,4 @@
-from .. import models
+﻿from .. import models
 
 
 def test_related_subjects():
@@ -35,7 +35,7 @@ def test_related_subjects():
         "Horror stories",
         "Multiple personality",
         "Internet Archive Wishlist",
-        "François",
+        "FranÃ§ois",
         "Remove period.",
         "Remove &",
         "remove '",

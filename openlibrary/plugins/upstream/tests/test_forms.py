@@ -1,4 +1,4 @@
-from .. import forms, spamcheck
+﻿from .. import forms, spamcheck
 
 
 class TestRegister:

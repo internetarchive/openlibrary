@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+﻿from collections.abc import Iterable
 from typing import cast
 
 import openlibrary.book_providers as bp

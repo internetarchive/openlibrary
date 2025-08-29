@@ -1,4 +1,4 @@
-"""Special customizations for dev instance.
+﻿"""Special customizations for dev instance.
 
 This module is imported only if dev_instance is set to True in openlibrary config.
 """

@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime

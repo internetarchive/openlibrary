@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.solr.query_utils import (
     EmptyTreeError,

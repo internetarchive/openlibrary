@@ -1,4 +1,4 @@
-from openlibrary.utils import (
+﻿from openlibrary.utils import (
     extract_numeric_id_from_olid,
     str_to_key,
 )

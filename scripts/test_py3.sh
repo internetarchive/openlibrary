@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 
 pytest . \
        --ignore=scripts/2011 \

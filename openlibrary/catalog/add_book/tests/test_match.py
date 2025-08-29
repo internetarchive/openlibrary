@@ -1,4 +1,4 @@
-from copy import deepcopy
+﻿from copy import deepcopy
 from types import MappingProxyType
 
 import pytest
@@ -56,7 +56,7 @@ def test_add_db_name():
 
 titles = [
     ('Hello this is a           Title', 'hello this is a title'),  # Spaces
-    ('Kitāb Yatīmat ud-Dahr', 'kitāb yatīmat ud dahr'),  # Unicode
+    ('KitÄb YatÄ«mat ud-Dahr', 'kitÄb yatÄ«mat ud dahr'),  # Unicode
     ('This and That', 'this and that'),
     ('This & That', 'this and that'),  # ampersand
     ('A Title.', 'a title'),  # period and space stripping
@@ -76,7 +76,7 @@ mk_norm_conversions = [
     ("Hello I'm a  title.", "helloi'matitle"),
     ("Hello I'm a  title.", "helloi'matitle"),
     ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
-    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
+    ('KitÄb YatÄ«mat ud-Dahr', 'kitÄbyatÄ«matuddahr'),
     ('The Fish and Chips', 'fishchips'),
     ('A Fish & Chip shop', 'fishchipshop'),
 ]

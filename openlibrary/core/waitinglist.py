@@ -1,4 +1,4 @@
-"""Implementation of waiting-list feature for OL loans.
+﻿"""Implementation of waiting-list feature for OL loans.
 
 Each waiting instance is represented as a document in the store as follows:
 

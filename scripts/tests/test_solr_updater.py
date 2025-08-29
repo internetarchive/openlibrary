@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 from unittest.mock import MagicMock
 
 # TODO: Can we remove _init_path someday :(

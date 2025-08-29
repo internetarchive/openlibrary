@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.utils.lcc import (
     choose_sorting_lcc,

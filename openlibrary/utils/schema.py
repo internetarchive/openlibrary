@@ -1,4 +1,4 @@
-"""utility to generate db schema for any database engine.
+﻿"""utility to generate db schema for any database engine.
 (should go to web.py)
 """
 

@@ -1,4 +1,4 @@
-"""Module for providing core functionality of lending on Open Library."""
+﻿"""Module for providing core functionality of lending on Open Library."""
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 

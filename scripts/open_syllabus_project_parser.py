@@ -1,4 +1,4 @@
-'''
+﻿'''
 Run from root of openlibrary like so:
 PYTHONPATH=$(PWD) python3 scripts/open_syllabus_project_parser.py
 

@@ -1,4 +1,4 @@
-"""Simple library to process large datasets using map-reduce.
+﻿"""Simple library to process large datasets using map-reduce.
 
 This works as follows:
 

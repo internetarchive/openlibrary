@@ -1,4 +1,4 @@
-# read MARC mnemonics
+﻿# read MARC mnemonics
 # result is in MARC8 and still needs to be converted to Unicode
 
 import re

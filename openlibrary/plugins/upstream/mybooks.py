@@ -1,4 +1,4 @@
-import json
+﻿import json
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final, Literal, cast
 

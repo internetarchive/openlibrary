@@ -1,4 +1,4 @@
-"""
+﻿"""
 Hook to show MARC or other source record details in Open Library.
 """
 

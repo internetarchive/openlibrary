@@ -1,4 +1,4 @@
-import re
+﻿import re
 
 REV_RE = re.compile(r'rev.*')
 REMOVESUFFIX_RE = re.compile(r'[^\/]+')

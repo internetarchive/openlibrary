@@ -1,4 +1,4 @@
-# See https://github.com/nodesource/distributions#debian-and-ubuntu-based-distributions
+﻿# See https://github.com/nodesource/distributions#debian-and-ubuntu-based-distributions
 
 NODE_MAJOR=20
 

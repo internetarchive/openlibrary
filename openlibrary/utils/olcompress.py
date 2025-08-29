@@ -1,4 +1,4 @@
-"""Initial seed to create compress object.
+﻿"""Initial seed to create compress object.
 
 see compress module for details.
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 

@@ -1,4 +1,4 @@
-import json
+﻿import json
 import string
 
 from openlibrary.data.dump import pgdecode, print_dump

@@ -1,4 +1,4 @@
-"""New script to handle solr updates.
+﻿"""New script to handle solr updates.
 
 Author: Anand Chitipothu
 

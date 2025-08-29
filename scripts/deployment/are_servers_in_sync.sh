@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}

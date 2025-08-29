@@ -1,4 +1,4 @@
-from typing import Final
+﻿from typing import Final
 
 import pytest
 import web

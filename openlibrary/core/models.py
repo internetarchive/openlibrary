@@ -1,4 +1,4 @@
-"""Models of various OL objects."""
+﻿"""Models of various OL objects."""
 
 import logging
 from collections import defaultdict

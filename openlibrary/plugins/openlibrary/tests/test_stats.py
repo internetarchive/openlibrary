@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests the stats gathering systems.
 """
 

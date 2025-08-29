@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 
 import pytest
@@ -69,7 +69,7 @@ class TestGoodReadsImport:
                 "Recommended By": "",
                 "Recommended For": "",
                 "Spoiler": "",
-                "Title": "Pippi Longstocking (Pippi Långstrump, #1)",
+                "Title": "Pippi Longstocking (Pippi LÃ¥ngstrump, #1)",
                 "Year Published": "2005",
             },
             "0735214484": {

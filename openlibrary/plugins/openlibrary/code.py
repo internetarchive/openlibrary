@@ -1,4 +1,4 @@
-"""
+﻿"""
 Open Library Plugin.
 """
 
@@ -1272,20 +1272,20 @@ def setup_template_globals():
 
     def get_supported_languages():
         return {
-            "cs": {"code": "cs", "localized": _('Czech'), "native": "Čeština"},
+            "cs": {"code": "cs", "localized": _('Czech'), "native": "ÄŒeÅ¡tina"},
             "de": {"code": "de", "localized": _('German'), "native": "Deutsch"},
             "en": {"code": "en", "localized": _('English'), "native": "English"},
-            "es": {"code": "es", "localized": _('Spanish'), "native": "Español"},
-            "fr": {"code": "fr", "localized": _('French'), "native": "Français"},
-            "hi": {"code": "hi", "localized": _('Hindi'), "native": "हिंदी"},
+            "es": {"code": "es", "localized": _('Spanish'), "native": "EspaÃ±ol"},
+            "fr": {"code": "fr", "localized": _('French'), "native": "FranÃ§ais"},
+            "hi": {"code": "hi", "localized": _('Hindi'), "native": "à¤¹à¤¿à¤‚à¤¦à¥€"},
             "hr": {"code": "hr", "localized": _('Croatian'), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _('Italian'), "native": "Italiano"},
-            "pt": {"code": "pt", "localized": _('Portuguese'), "native": "Português"},
-            "ro": {"code": "ro", "localized": _('Romanian'), "native": "Română"},
+            "pt": {"code": "pt", "localized": _('Portuguese'), "native": "PortuguÃªs"},
+            "ro": {"code": "ro", "localized": _('Romanian'), "native": "RomÃ¢nÄƒ"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
-            "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
-            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
-            "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
+            "te": {"code": "te", "localized": _('Telugu'), "native": "à°¤à±†à°²à±à°—à±"},
+            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Ð£ÐºÑ€Ð°Ñ—Ð½ÑÑŒÐºÐ°"},
+            "zh": {"code": "zh", "localized": _('Chinese'), "native": "ä¸­æ–‡"},
         }
 
     web.template.Template.globals.update(

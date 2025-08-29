@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
@@ -34,7 +34,7 @@ class Test_BinaryDataField:
     def test_translate(self):
         bdf = BinaryDataField(MockMARC('marc8'), b'')
         assert (
-            bdf.translate(b'Vieira, Claudio Bara\xe2una,') == 'Vieira, Claudio Baraúna,'
+            bdf.translate(b'Vieira, Claudio Bara\xe2una,') == 'Vieira, Claudio BaraÃºna,'
         )
 
     def test_bad_marc_line(self):
@@ -43,7 +43,7 @@ class Test_BinaryDataField:
         )
         bdf = BinaryDataField(MockMARC('marc8'), line)
         assert list(bdf.get_all_subfields()) == [
-            ('á', 'Etude objective des phénomènes neuro-psychiques;')
+            ('Ã¡', 'Etude objective des phÃ©nomÃ¨nes neuro-psychiques;')
         ]
 
 

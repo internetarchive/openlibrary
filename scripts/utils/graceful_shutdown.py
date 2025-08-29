@@ -1,4 +1,4 @@
-import signal
+﻿import signal
 
 # Global flag indicating whether a shutdown signal has been received.
 _shutdown_requested = False

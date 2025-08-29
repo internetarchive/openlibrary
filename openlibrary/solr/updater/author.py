@@ -1,4 +1,4 @@
-import typing
+﻿import typing
 from typing import cast
 
 import httpx

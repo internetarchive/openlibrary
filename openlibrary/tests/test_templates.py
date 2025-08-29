@@ -1,4 +1,4 @@
-import glob
+﻿import glob
 from pathlib import Path
 from tokenize import TokenError
 

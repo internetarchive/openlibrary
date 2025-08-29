@@ -1,4 +1,4 @@
-"""Templetor extension to support javascript templates.
+﻿"""Templetor extension to support javascript templates.
 
 During AJAX development, there will be need to generate HTML and update
 some part of the DOM. It it clumsy to do that in javascript. Even though

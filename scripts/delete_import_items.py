@@ -1,4 +1,4 @@
-"""
+﻿"""
 Deletes entries from the import_item table.
 
 Reads ia_ids that should be deleted from an input file.  The input file is expected to be tab-delimited, and each line will have the following format:

@@ -1,4 +1,4 @@
-"""Interface to Open Library stats database.
+﻿"""Interface to Open Library stats database.
 
 The stats table in the openlibrary database is of the following schema:
 

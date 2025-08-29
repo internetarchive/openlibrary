@@ -1,4 +1,4 @@
-#! /bin/bash
+﻿#! /bin/bash
 #
 # Create a dump of all Open Library records, and generate sitemaps
 #

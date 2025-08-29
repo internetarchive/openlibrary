@@ -1,4 +1,4 @@
-"""
+﻿"""
 Create a edition dict that can be passed to catalog.add_book.load()
 
 This class encapsulates the logic of creating edition dicts.

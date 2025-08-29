@@ -1,4 +1,4 @@
-"""Open Library Import API"""
+﻿"""Open Library Import API"""
 
 import base64
 import json

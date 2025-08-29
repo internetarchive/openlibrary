@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """Run affiliate server.
 
 Usage:
@@ -255,9 +255,9 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
     Processing https://www.googleapis.com/books/v1/volumes?q=isbn:9785699350131:
     {'isbn_10': ['5699350136'],
      'isbn_13': ['9785699350131'],
-     'title': 'Бал моей мечты',
-     'subtitle': '[для сред. шк. возраста]',
-     'authors': [{'name': 'Светлана Лубенец'}],
+     'title': 'Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹',
+     'subtitle': '[Ð´Ð»Ñ ÑÑ€ÐµÐ´. ÑˆÐº. Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð°]',
+     'authors': [{'name': 'Ð¡Ð²ÐµÑ‚Ð»Ð°Ð½Ð° Ð›ÑƒÐ±ÐµÐ½ÐµÑ†'}],
      'source_records': ['google_books:9785699350131'],
      'publishers': [],
      'publish_date': '2009',

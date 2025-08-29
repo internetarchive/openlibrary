@@ -1,4 +1,4 @@
-"""Handle book cover/author photo upload."""
+﻿"""Handle book cover/author photo upload."""
 
 import os
 from logging import getLogger

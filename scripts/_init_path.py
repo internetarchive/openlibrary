@@ -1,4 +1,4 @@
-"""Helper to add openlibrary module to sys.path."""
+﻿"""Helper to add openlibrary module to sys.path."""
 
 import os
 import sys

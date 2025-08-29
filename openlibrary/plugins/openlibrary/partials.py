@@ -1,4 +1,4 @@
-import json
+﻿import json
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import cast

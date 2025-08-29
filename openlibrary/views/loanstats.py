@@ -1,4 +1,4 @@
-"""Loan Stats"""
+﻿"""Loan Stats"""
 
 from collections.abc import Iterable
 

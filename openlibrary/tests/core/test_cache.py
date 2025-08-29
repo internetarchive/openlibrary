@@ -1,4 +1,4 @@
-import time
+﻿import time
 
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache

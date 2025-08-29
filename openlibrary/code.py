@@ -1,4 +1,4 @@
-"""Main entry point for openlibrary app.
+﻿"""Main entry point for openlibrary app.
 
 Loaded from Infogami plugin mechanism.
 """

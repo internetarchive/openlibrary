@@ -1,4 +1,4 @@
-from types import MappingProxyType
+﻿from types import MappingProxyType
 from typing import cast
 
 import pytest

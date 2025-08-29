@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+﻿from unittest.mock import Mock, patch
 
 from openlibrary.core import lending
 

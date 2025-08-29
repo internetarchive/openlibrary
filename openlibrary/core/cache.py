@@ -1,4 +1,4 @@
-"""Caching utilities."""
+﻿"""Caching utilities."""
 
 import functools
 import hashlib

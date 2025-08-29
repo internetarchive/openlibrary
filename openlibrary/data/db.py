@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """Library to provide fast access to Open Library database.
 
 How to use:

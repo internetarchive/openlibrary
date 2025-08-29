@@ -1,4 +1,4 @@
-import gzip
+﻿import gzip
 import json
 import logging
 import os

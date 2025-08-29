@@ -1,4 +1,4 @@
-"""Generic helper functions to use in the templates and the webapp."""
+﻿"""Generic helper functions to use in the templates and the webapp."""
 
 import json
 import re

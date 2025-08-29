@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 Fetches Open Library GitHub issues and PRs that have been commented on
 within some amount of time, in hours.

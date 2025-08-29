@@ -1,4 +1,4 @@
-from openlibrary.plugins.ol_infobase import OLIndexer
+﻿from openlibrary.plugins.ol_infobase import OLIndexer
 
 
 class TestOLIndexer:

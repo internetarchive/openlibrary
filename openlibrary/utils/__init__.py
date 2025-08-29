@@ -1,4 +1,4 @@
-"""Generic utilities"""
+﻿"""Generic utilities"""
 
 import re
 from collections.abc import Callable, Iterable

@@ -1,4 +1,4 @@
-# This will be moved to core soon.
+﻿# This will be moved to core soon.
 import json
 
 from openlibrary.plugins.openlibrary import connection as connections

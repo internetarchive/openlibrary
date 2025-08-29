@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # NOTE: Not fully tested, needs to be run line-by-line for a bit to make sure everything still
 # works, especially in our new proxy world!

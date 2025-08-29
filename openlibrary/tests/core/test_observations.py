@@ -1,4 +1,4 @@
-from openlibrary.core.observations import _sort_values
+﻿from openlibrary.core.observations import _sort_values
 
 
 def test_sort_values():

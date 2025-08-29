@@ -1,4 +1,4 @@
-"""Handlers for borrowing books"""
+﻿"""Handlers for borrowing books"""
 
 import copy
 import hashlib

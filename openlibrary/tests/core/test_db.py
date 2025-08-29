@@ -1,4 +1,4 @@
-import web
+﻿import web
 
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves

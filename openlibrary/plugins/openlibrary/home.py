@@ -1,4 +1,4 @@
-"""Controller for home page."""
+﻿"""Controller for home page."""
 
 import logging
 import random

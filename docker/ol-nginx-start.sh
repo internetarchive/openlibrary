@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Create certs for domains missing them
 CERTBOT_OPTIONS=""

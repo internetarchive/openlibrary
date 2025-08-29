@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import re
 from functools import cached_property
 from typing import TYPE_CHECKING, cast

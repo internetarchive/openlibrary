@@ -1,4 +1,4 @@
-"""Library for generating and processing Open Library data dumps.
+﻿"""Library for generating and processing Open Library data dumps.
 
 Glossary:
 

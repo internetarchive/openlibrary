@@ -1,4 +1,4 @@
-import web
+﻿import web
 
 from infogami.infobase import client, common
 from openlibrary.plugins.upstream.merge_authors import (

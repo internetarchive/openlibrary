@@ -1,4 +1,4 @@
-"""Test suite for dynlinks.
+﻿"""Test suite for dynlinks.
 
 Most of the tests here use 3 sets of data.
 

@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Final, TypeVar
+﻿from typing import Annotated, Any, Final, TypeVar
 
 from annotated_types import MinLen
 from pydantic import BaseModel, ValidationError, model_validator

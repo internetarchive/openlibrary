@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+﻿from collections.abc import Iterator
 from unicodedata import normalize
 
 from pymarc import MARC8ToUnicode

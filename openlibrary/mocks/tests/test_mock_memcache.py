@@ -1,4 +1,4 @@
-import memcache
+﻿import memcache
 
 from .. import mock_memcache
 

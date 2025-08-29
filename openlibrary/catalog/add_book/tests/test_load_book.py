@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.catalog.add_book import load_book
 from openlibrary.catalog.add_book.load_book import (
@@ -38,7 +38,7 @@ unchanged_names = [
     {'entity_type': 'org', 'name': 'Organisation, Place'},
     {
         'entity_type': 'org',
-        'name': '首都师范大学 (Beijing, China). 中国诗歌硏究中心',
+        'name': 'é¦–éƒ½å¸ˆèŒƒå¤§å­¦ (Beijing, China). ä¸­å›½è¯—æ­Œç¡ç©¶ä¸­å¿ƒ',
     },
 ]
 
@@ -302,14 +302,14 @@ class TestImportAuthor:
 
         # No exact name match.
         author = {
-            "name": "Фёдор Михайлович Достоевский",
+            "name": "Ð¤Ñ‘Ð´Ð¾Ñ€ ÐœÐ¸Ñ…Ð°Ð¹Ð»Ð¾Ð²Ð¸Ñ‡ Ð”Ð¾ÑÑ‚Ð¾ÐµÐ²ÑÐºÐ¸Ð¹",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
         }
 
         # Alternate name match with no birth or death date
         author_alternate_name = {
-            "name": "Фёдор Михайлович Достоевский",
+            "name": "Ð¤Ñ‘Ð´Ð¾Ñ€ ÐœÐ¸Ñ…Ð°Ð¹Ð»Ð¾Ð²Ð¸Ñ‡ Ð”Ð¾ÑÑ‚Ð¾ÐµÐ²ÑÐºÐ¸Ð¹",
             "key": "/authors/OL4A",
             "alternate_names": ["Fyodor Dostoevsky"],
             "type": {"key": "/type/author"},
@@ -317,7 +317,7 @@ class TestImportAuthor:
 
         # Alternate name match with matching birth and death date.
         author_alternate_name_with_dates = {
-            "name": "Фёдор Михайлович Достоевский",
+            "name": "Ð¤Ñ‘Ð´Ð¾Ñ€ ÐœÐ¸Ñ…Ð°Ð¹Ð»Ð¾Ð²Ð¸Ñ‡ Ð”Ð¾ÑÑ‚Ð¾ÐµÐ²ÑÐºÐ¸Ð¹",
             "key": "/authors/OL5A",
             "alternate_names": ["Fyodor Dostoevsky"],
             "type": {"key": "/type/author"},

@@ -1,4 +1,4 @@
-from openlibrary.catalog.marc.get_subjects import subjects_for_work
+﻿from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import MarcBase
 from openlibrary.catalog.marc.parse import read_isbn, read_pagination, read_title
 

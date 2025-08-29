@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
     Script for creating a file of similar ISBNs or LCCNs from Solr.
 

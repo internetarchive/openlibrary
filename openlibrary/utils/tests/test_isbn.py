@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.utils.isbn import (
     get_isbn_10_and_13,

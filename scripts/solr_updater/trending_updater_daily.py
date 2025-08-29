@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr

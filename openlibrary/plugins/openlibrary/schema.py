@@ -1,4 +1,4 @@
-"""OpenLibrary schema."""
+﻿"""OpenLibrary schema."""
 
 from openlibrary.core.schema import get_schema
 

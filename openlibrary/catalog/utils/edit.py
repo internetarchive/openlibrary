@@ -1,4 +1,4 @@
-import re
+﻿import re
 from time import sleep
 
 import requests

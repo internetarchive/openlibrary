@@ -1,4 +1,4 @@
-"""Interface to import queue."""
+﻿"""Interface to import queue."""
 
 import contextlib
 import datetime

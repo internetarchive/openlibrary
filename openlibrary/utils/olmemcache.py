@@ -1,4 +1,4 @@
-"""Memcache interface to store data in memcached."""
+﻿"""Memcache interface to store data in memcached."""
 
 import memcache
 import web

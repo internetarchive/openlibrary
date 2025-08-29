@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.solr.updater.edition import EditionSolrUpdater
 from openlibrary.tests.solr.test_update import FakeDataProvider

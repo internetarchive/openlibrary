@@ -1,4 +1,4 @@
-from ..solr import Solr
+﻿from ..solr import Solr
 
 
 def test_prepare_select():

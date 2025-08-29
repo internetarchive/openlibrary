@@ -1,4 +1,4 @@
-import re
+﻿import re
 from collections.abc import Callable
 from typing import Literal
 
@@ -54,7 +54,7 @@ def luqum_traverse(item: Item, _parents: list[Item] | None = None):
     Traverses every node in the parse tree in depth-first order.
 
     Does not make any guarantees about what will happen if you
-    modify the tree while traversing it 😅 But we do it anyways.
+    modify the tree while traversing it ðŸ˜… But we do it anyways.
 
     :param item: Node to traverse
     :param _parents: Internal parameter for tracking parents

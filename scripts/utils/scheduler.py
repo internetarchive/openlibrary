@@ -1,4 +1,4 @@
-import functools
+﻿import functools
 import typing
 from typing import TYPE_CHECKING, cast
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 To run:
 
 PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yml ./path/to/pressbooks.json

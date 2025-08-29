@@ -1,4 +1,4 @@
-"""
+﻿"""
 Process partner bibliographic csv data into importable json book
 records and then batch submit into the ImportBot
 `import_item` table (http://openlibrary.org/admin/imports)
@@ -57,12 +57,12 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
     for x in (
         # Noisy classic re-prints
         'annotated',
-        'annoté',
+        'annotÃ©',
         'classic',
         'classics',
         'illustarted',  # Some books have typos in their titles!
         'illustrated',
-        'Illustrée',
+        'IllustrÃ©e',
         'original',
         'summary',
         'version',

@@ -1,4 +1,4 @@
-"""Search utilities."""
+﻿"""Search utilities."""
 
 import os
 

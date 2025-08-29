@@ -1,4 +1,4 @@
-from openlibrary.core import ia
+﻿from openlibrary.core import ia
 
 
 def test_get_metadata(monkeypatch, mock_memcache):

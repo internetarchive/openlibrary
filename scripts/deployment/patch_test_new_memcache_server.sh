@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # CAUTION: This script restarts production servers!
 

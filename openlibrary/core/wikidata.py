@@ -1,4 +1,4 @@
-"""
+﻿"""
 The purpose of this file is to:
 1. Interact with the Wikidata API
 2. Store the results

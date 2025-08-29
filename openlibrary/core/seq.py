@@ -1,4 +1,4 @@
-"""Library to generate keys for new documents using database sequences.
+﻿"""Library to generate keys for new documents using database sequences.
 
 Currently new keys are generated for author, edition and work types.
 """

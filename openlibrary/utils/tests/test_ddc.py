@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 
 from openlibrary.utils.ddc import (
     choose_sorting_ddc,
@@ -76,14 +76,14 @@ TESTS = [
         'Two Dewey numbers and one edition number',
     ),
     ('813. 54', ['813.54'], 'Space after decimal'),
-    ('813.′54', ['813.54'], 'Curly quote separator (real world)'),  # noqa: RUF001
-    ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),  # noqa: RUF001
+    ('813.â€²54', ['813.54'], 'Curly quote separator (real world)'),  # noqa: RUF001
+    ('813â€™.54', ['813.54'], 'Other kind of curly quote (real world)'),  # noqa: RUF001
     ('813. 54 (ddc21)', ['813.54'], 'catalog number with ddc prefix (real world)'),
     ('823/.92 22', ['823.92'], 'catalog number without leading 0 (real world)'),
     ("813.' 54", ['813.54'], 'Space and quote separate (real world)'),
     ("726. 6' 0945' 51 (ddc21)", ['726.6'], 'Random spaces (real world)'),
     (
-        '813./​54',  # noqa: PLE2515
+        '813./â€‹54',  # noqa: PLE2515
         ['813.54'],
         'Random non-printable chars (real world)',
     ),

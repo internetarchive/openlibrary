@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 PYTHONPATH=. python ./scripts/update_stale_ocaid_references.py /olsystem/etc/openlibrary.yml --since "2025-03" --statefile "statefile.json"
 

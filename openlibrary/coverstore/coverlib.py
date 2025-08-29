@@ -1,4 +1,4 @@
-"""Cover management."""
+﻿"""Cover management."""
 
 import datetime
 import os

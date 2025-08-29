@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Identifies and deletes any remaining `account-email` store entries that are associated
 with anonymized accounts.

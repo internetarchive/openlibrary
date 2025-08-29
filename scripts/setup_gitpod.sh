@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # This script does the setup needed for Gitpod
 
 # Setup pre-commit hooks

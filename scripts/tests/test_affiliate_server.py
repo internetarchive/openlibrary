@@ -1,4 +1,4 @@
-"""
+﻿"""
 # docker compose run --rm home pytest scripts/tests/test_affiliate_server.py
 """
 
@@ -189,9 +189,9 @@ complete_book_data = {
             "etag": "a6JFgm2Cyu0",
             "selfLink": "https://www.googleapis.com/books/v1/volumes/YJ1uQwAACAAJ",
             "volumeInfo": {
-                "title": "Бал моей мечты",
-                "subtitle": "[для сред. шк. возраста]",
-                "authors": ["Светлана Лубенец"],
+                "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
+                "subtitle": "[Ð´Ð»Ñ ÑÑ€ÐµÐ´. ÑˆÐº. Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð°]",
+                "authors": ["Ð¡Ð²ÐµÑ‚Ð»Ð°Ð½Ð° Ð›ÑƒÐ±ÐµÐ½ÐµÑ†"],
                 "publishedDate": "2009",
                 "industryIdentifiers": [
                     {"type": "ISBN_10", "identifier": "5699350136"},
@@ -218,9 +218,9 @@ complete_book_data = {
 expected_output_complete = {
     "isbn_10": ["5699350136"],
     "isbn_13": ["9785699350131"],
-    "title": "Бал моей мечты",
-    "subtitle": "[для сред. шк. возраста]",
-    "authors": [{"name": "Светлана Лубенец"}],
+    "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
+    "subtitle": "[Ð´Ð»Ñ ÑÑ€ÐµÐ´. ÑˆÐº. Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð°]",
+    "authors": [{"name": "Ð¡Ð²ÐµÑ‚Ð»Ð°Ð½Ð° Ð›ÑƒÐ±ÐµÐ½ÐµÑ†"}],
     "source_records": ["google_books:9785699350131"],
     "publishers": ["Some Publisher"],
     "publish_date": "2009",
@@ -242,8 +242,8 @@ expected_output_complete = {
                 "items": [
                     {
                         "volumeInfo": {
-                            "title": "Бал моей мечты",
-                            "authors": ["Светлана Лубенец"],
+                            "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
+                            "authors": ["Ð¡Ð²ÐµÑ‚Ð»Ð°Ð½Ð° Ð›ÑƒÐ±ÐµÐ½ÐµÑ†"],
                             "publishedDate": "2009",
                             "industryIdentifiers": [
                                 {"type": "ISBN_10", "identifier": "5699350136"}
@@ -257,9 +257,9 @@ expected_output_complete = {
             {
                 "isbn_10": ["5699350136"],
                 "isbn_13": [],
-                "title": "Бал моей мечты",
+                "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
                 "subtitle": None,
-                "authors": [{"name": "Светлана Лубенец"}],
+                "authors": [{"name": "Ð¡Ð²ÐµÑ‚Ð»Ð°Ð½Ð° Ð›ÑƒÐ±ÐµÐ½ÐµÑ†"}],
                 "source_records": ["google_books:5699350136"],
                 "publishers": ["Some Publisher"],
                 "publish_date": "2009",
@@ -275,7 +275,7 @@ expected_output_complete = {
                 "items": [
                     {
                         "volumeInfo": {
-                            "title": "Бал моей мечты",
+                            "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
                             "publishedDate": "2009",
                             "industryIdentifiers": [
                                 {"type": "ISBN_10", "identifier": "5699350136"},
@@ -290,7 +290,7 @@ expected_output_complete = {
             {
                 "isbn_10": ["5699350136"],
                 "isbn_13": ["9785699350131"],
-                "title": "Бал моей мечты",
+                "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
                 "subtitle": None,
                 "authors": [],
                 "source_records": ["google_books:9785699350131"],
@@ -308,7 +308,7 @@ expected_output_complete = {
                 "items": [
                     {
                         "volumeInfo": {
-                            "title": "Бал моей мечты",
+                            "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
                             "industryIdentifiers": [
                                 {"type": "ISBN_13", "identifier": "9785699350131"}
                             ],
@@ -319,7 +319,7 @@ expected_output_complete = {
             {
                 "isbn_10": [],
                 "isbn_13": ["9785699350131"],
-                "title": "Бал моей мечты",
+                "title": "Ð‘Ð°Ð» Ð¼Ð¾ÐµÐ¹ Ð¼ÐµÑ‡Ñ‚Ñ‹",
                 "subtitle": None,
                 "authors": [],
                 "source_records": ["google_books:9785699350131"],

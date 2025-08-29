@@ -1,4 +1,4 @@
-# solr start script
+﻿# solr start script
 
 cd /opt/openlibrary/production/vendor/solr
 

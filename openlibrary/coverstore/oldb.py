@@ -1,4 +1,4 @@
-"""Library to talk directly to OL database to avoid expensive API calls."""
+﻿"""Library to talk directly to OL database to avoid expensive API calls."""
 
 import json
 

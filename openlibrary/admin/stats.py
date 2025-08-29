@@ -1,4 +1,4 @@
-"""
+﻿"""
 Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """

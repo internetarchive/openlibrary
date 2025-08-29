@@ -1,4 +1,4 @@
-from openlibrary.core.olmarkdown import OLMarkdown
+﻿from openlibrary.core.olmarkdown import OLMarkdown
 
 
 def test_olmarkdown():

@@ -1,4 +1,4 @@
-import web
+﻿import web
 
 from openlibrary.plugins.worksearch.code import (
     get_doc,

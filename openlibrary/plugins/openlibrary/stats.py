@@ -1,4 +1,4 @@
-"""Hooks for collecting performance stats."""
+﻿"""Hooks for collecting performance stats."""
 
 import logging
 import os

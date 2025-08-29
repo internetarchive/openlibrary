@@ -1,4 +1,4 @@
-from openlibrary.plugins.upstream.table_of_contents import TableOfContents, TocEntry
+﻿from openlibrary.plugins.upstream.table_of_contents import TableOfContents, TocEntry
 
 
 class TestTableOfContents:

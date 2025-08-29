@@ -1,4 +1,4 @@
-from unittest import mock
+﻿from unittest import mock
 
 from requests.models import Response
 

@@ -1,4 +1,4 @@
-import openlibrary.core.lists.model as list_model
+﻿import openlibrary.core.lists.model as list_model
 from openlibrary.mocks.mock_infobase import MockSite
 
 

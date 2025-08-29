@@ -1,4 +1,4 @@
-import os
+﻿import os
 from datetime import datetime
 
 import requests
@@ -31,8 +31,8 @@ if __name__ == "__main__":
         'scottbarnes': '<@U03MNR6T7FH>',
     }
     LABEL_EMOJI = {
-        'Priority: 0': '🚨 ',
-        'Priority: 1': '❗️ ',
+        'Priority: 0': 'ðŸš¨ ',
+        'Priority: 1': 'â—ï¸ ',
     }
 
     INCLUDE_AUTHORS = ['mekarpeles', 'cdrini', 'scottbarnes', 'jimchamp']
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         message += ' | '.join(
             [
                 f"by {pr['user']['login']} {pr_age_days} days ago",
-                f"Assigned: {GH_LOGIN_TO_SLACK[pr['assignee']['login']] if pr['assignee'] else '⚠️ None'}",
+                f"Assigned: {GH_LOGIN_TO_SLACK[pr['assignee']['login']] if pr['assignee'] else 'âš ï¸ None'}",
                 f"{', '.join(LABEL_EMOJI.get(label['name'], '') + label['name'] for label in pr['labels'])}\n\n",
             ]
         )

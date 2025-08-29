@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from Cython.Build import cythonize
 from setuptools import setup

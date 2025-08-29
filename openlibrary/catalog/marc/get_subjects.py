@@ -1,4 +1,4 @@
-import re
+﻿import re
 from collections import defaultdict
 
 from openlibrary.catalog.utils import flip_name, remove_trailing_dot

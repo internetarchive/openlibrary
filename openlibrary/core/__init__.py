@@ -1,4 +1,4 @@
-"""Core functionality of Open Library.
+﻿"""Core functionality of Open Library.
 
 This is a set of reusable, easily testable modules.
 """

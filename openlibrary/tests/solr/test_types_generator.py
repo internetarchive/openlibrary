@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from openlibrary.solr.types_generator import generate
 

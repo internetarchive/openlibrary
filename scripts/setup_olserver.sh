@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # This script is used to provision an ol-server node _before_ docker gets on it.
 # It takes a few environment variables:
 #

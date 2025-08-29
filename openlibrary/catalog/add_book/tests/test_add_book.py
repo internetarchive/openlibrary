@@ -1,4 +1,4 @@
-import os
+﻿import os
 from datetime import datetime
 
 import pytest
@@ -65,7 +65,7 @@ bookseller_titles = [
         'An American Marriage',
         'A Novel',
     ],
-    ['A Növel (German Edition)', 'A Növel', None],
+    ['A NÃ¶vel (German Edition)', 'A NÃ¶vel', None],
     [
         (
             'Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
@@ -238,14 +238,14 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
-        'authors': [{'name': 'John Döe'}],
+        'authors': [{'name': 'John DÃ¶e'}],
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert reply['authors'][0]['status'] == 'created'
-    assert reply['authors'][0]['name'] == 'John Döe'
+    assert reply['authors'][0]['name'] == 'John DÃ¶e'
     akey1 = reply['authors'][0]['key']
     assert akey1 == '/authors/OL1A'
     a = mock_site.get(akey1)
@@ -257,7 +257,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item1b',
         'title': 'Test item1b',
-        'authors': [{'name': 'Döe, John', 'entity_type': 'person'}],
+        'authors': [{'name': 'DÃ¶e, John', 'entity_type': 'person'}],
         'source_records': 'ia:test_item1b',
     }
     reply = load(rec)
@@ -1374,7 +1374,7 @@ def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     existing_work = {
         'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL1W',
-        'subjects': ['granite', 'GRANITE', 'Straße', 'ΠΑΡΆΔΕΙΣΟΣ'],
+        'subjects': ['granite', 'GRANITE', 'StraÃŸe', 'Î Î‘Î¡Î†Î”Î•Î™Î£ÎŸÎ£'],
         'title': 'Some Title',
         'type': {'key': '/type/work'},
     }
@@ -1406,7 +1406,7 @@ def test_add_subjects_to_work_deduplicates(mock_site) -> None:
             'SANDSTONE',
             'sandstone',
             'strasse',
-            'παράδεισος',
+            'Ï€Î±ÏÎ¬Î´ÎµÎ¹ÏƒÎ¿Ï‚',
         ],
         'title': 'Some Title',
     }
@@ -1421,7 +1421,7 @@ def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     def get_casefold(item_list: list[str]):
         return [item.casefold() for item in item_list]
 
-    expected = ['granite', 'Straße', 'ΠΑΡΆΔΕΙΣΟΣ', 'sandstone']
+    expected = ['granite', 'StraÃŸe', 'Î Î‘Î¡Î†Î”Î•Î™Î£ÎŸÎ£', 'sandstone']
     got = w.subjects
     assert get_casefold(got) == get_casefold(expected)
 

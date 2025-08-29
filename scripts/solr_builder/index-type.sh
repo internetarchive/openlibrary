@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 
 # Convenience aliases/functions
 shopt -s expand_aliases

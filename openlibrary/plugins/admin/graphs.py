@@ -1,4 +1,4 @@
-"""Utilities for rendering Graphite graphs."""
+﻿"""Utilities for rendering Graphite graphs."""
 
 import urllib
 

@@ -1,4 +1,4 @@
-"""Admin functionality."""
+﻿"""Admin functionality."""
 
 import calendar
 import datetime

@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 import web
 
 from openlibrary.plugins.books import readlinks

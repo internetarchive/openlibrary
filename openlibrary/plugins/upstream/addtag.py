@@ -1,4 +1,4 @@
-"""Handlers for adding and editing tags."""
+﻿"""Handlers for adding and editing tags."""
 
 import web
 

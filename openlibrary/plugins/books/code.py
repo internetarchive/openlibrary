@@ -1,4 +1,4 @@
-"""Open Library Books API"""
+﻿"""Open Library Books API"""
 
 import json
 import re

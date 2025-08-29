@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 # this matches obscured IPs, resolves them if possible, and reveals the
 # resolved host in []s

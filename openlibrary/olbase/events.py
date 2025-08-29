@@ -1,4 +1,4 @@
-"""Infobase event hooks for Open Library.
+﻿"""Infobase event hooks for Open Library.
 
 Triggers and handles various events from Infobase. All the events are triggered using eventer.
 

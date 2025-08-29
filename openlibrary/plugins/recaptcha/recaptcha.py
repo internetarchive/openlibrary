@@ -1,4 +1,4 @@
-"""Recapcha Input to use in web.py forms."""
+﻿"""Recapcha Input to use in web.py forms."""
 
 import logging
 

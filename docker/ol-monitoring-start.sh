@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 echo "Starting monitoring on $HOSTNAME"
 

@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 
 import web
 from bs4 import BeautifulSoup

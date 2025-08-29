@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 
 # Creates reading log data, star ratings, community review tags, and a list
 # for the openlibrary dev account.

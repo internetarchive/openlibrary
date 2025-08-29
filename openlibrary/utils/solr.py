@@ -1,4 +1,4 @@
-"""Python library for accessing Solr"""
+﻿"""Python library for accessing Solr"""
 
 import logging
 import re

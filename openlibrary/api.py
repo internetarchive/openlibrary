@@ -1,4 +1,4 @@
-r"""Open Library API Client.
+﻿r"""Open Library API Client.
 
 Sample Usage::
 

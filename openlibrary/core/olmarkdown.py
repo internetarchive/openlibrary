@@ -1,4 +1,4 @@
-"""Open Library Flavored Markdown, inspired by [Github Flavored Markdown][GFM].
+﻿"""Open Library Flavored Markdown, inspired by [Github Flavored Markdown][GFM].
 
 GFM: http://github.github.com/github-flavored-markdown/
 

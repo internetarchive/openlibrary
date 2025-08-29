@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 See colab:
 https://colab.research.google.com/drive/1HETHnP9bCS7zgli6YU32z5dWzlq0F1sY?authuser=2#scrollTo=7xd5NY4f_4pd
@@ -51,9 +51,9 @@ EXCLUDE_TITLES = [
             "annals",
             "proceeding",
             "proceedings",
-            "*报告*",
-            "*任务书",
-            "*年度*",
+            "*æŠ¥å‘Š*",
+            "*ä»»åŠ¡ä¹¦",
+            "*å¹´åº¦*",
             "isbn*",
             "catalog",
             "catalogue",
@@ -122,7 +122,7 @@ EXCLUDE_COLLECTIONS = [
     "uoftgovpubs",
 ] + EXCLUDE_GENERAL
 
-EXCLUDE_CREATORS = ["*ongres*", "u.s. mint", "国家", "(united AND states)"]
+EXCLUDE_CREATORS = ["*ongres*", "u.s. mint", "å›½å®¶", "(united AND states)"]
 
 
 def create_session_with_retries(

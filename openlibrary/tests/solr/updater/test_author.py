@@ -1,4 +1,4 @@
-import httpx
+﻿import httpx
 import pytest
 
 from openlibrary.solr.updater.author import AuthorSolrUpdater

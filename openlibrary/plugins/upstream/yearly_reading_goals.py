@@ -1,4 +1,4 @@
-import json
+﻿import json
 from datetime import datetime
 from math import floor
 

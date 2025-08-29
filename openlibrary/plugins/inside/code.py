@@ -1,4 +1,4 @@
-import json
+﻿import json
 from time import time
 
 import web

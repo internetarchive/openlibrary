@@ -1,4 +1,4 @@
-"""
+﻿"""
 Legacy file now containing a few helper methods.
 """
 

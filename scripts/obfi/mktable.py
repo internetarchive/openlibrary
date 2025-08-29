@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 # matches ip's from input, builds reverse table to unhide hidden ips
 # use:

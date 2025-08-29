@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 ######
 # This script is for use with Samuel's IP (de)obfuscation scripts. It has three requirements:

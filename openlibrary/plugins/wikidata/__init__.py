@@ -1,1 +1,1 @@
-'wikidata plugin.'
+﻿'wikidata plugin.'

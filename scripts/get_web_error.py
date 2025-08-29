@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 """
 % `python3 get_web_error.py 2023-02-03/011556535629.html | lynx --stdin`

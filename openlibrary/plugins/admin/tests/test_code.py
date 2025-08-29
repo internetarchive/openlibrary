@@ -1,4 +1,4 @@
-from typing import cast
+﻿from typing import cast
 
 import web
 

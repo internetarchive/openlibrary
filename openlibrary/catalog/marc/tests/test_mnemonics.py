@@ -1,4 +1,4 @@
-from openlibrary.catalog.marc.mnemonics import read
+﻿from openlibrary.catalog.marc.mnemonics import read
 
 
 def test_read_conversion_to_marc8():

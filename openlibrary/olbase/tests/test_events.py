@@ -1,4 +1,4 @@
-from .. import events
+﻿from .. import events
 
 
 class TestMemcacheInvalidater:

@@ -1,4 +1,4 @@
-"""Lists implementation."""
+﻿"""Lists implementation."""
 
 import json
 import random

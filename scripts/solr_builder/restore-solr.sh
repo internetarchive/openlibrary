@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # E.g. `./restore-solr.sh ol-solr0 ol-solr1` will restore the ol-solr1 dump on ol-solr0
 
 set -e
@@ -39,7 +39,7 @@ ssh $SOLR_HOST "
     export COMPOSE_FILE='compose.yaml:compose.production.yaml'
     docker compose --profile ol-solr0 down
 "
-echo "✓"
+echo "âœ“"
 
 # Prune everything! This deletes the actual solr data volumes
 echo "Pruning everything docker ... "

@@ -1,4 +1,4 @@
-"""'Read' api implementation.  This is modeled after the HathiTrust
+﻿"""'Read' api implementation.  This is modeled after the HathiTrust
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
