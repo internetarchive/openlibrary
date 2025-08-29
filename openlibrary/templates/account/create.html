@@ -76,10 +76,8 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.password)
 
             <div class="ol-signup-form__checkbox">
-                $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
-            </div>
-            <div id="rpd-checkbox" class="ol-signup-form__checkbox">
-                $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
+                <input type="checkbox" name="ia_newsletter" id="ia_newsletter" value="yes">
+                <label for="ia_newsletter">Sign me up for the Internet Archive newsletter</label>
             </div>
             <div id="pda-selector" class="ol-signup-form__select hidden">
                 <div class="ol-signup-form__error" id="pd_programMessage"></div>

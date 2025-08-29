@@ -3,6 +3,7 @@ from unittest import mock
 from requests.models import Response
 
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
+from openlibrary.plugins.upstream.account import account_create
 
 
 def get_username(account):
@@ -99,3 +100,44 @@ def test_get(mock_web):
     key = f'test/{retrieved_username}'
     retrieved_account = OpenLibraryAccount.get(key=key, test=test)
     assert retrieved_account
+
+
+def test_newsletter_subscription_on_registration():
+    """Test newsletter subscription during account creation."""
+    with mock.patch('openlibrary.plugins.upstream.account.web') as mock_web, \
+         mock.patch('openlibrary.plugins.upstream.account.InternetArchiveAccount') as mock_ia_account, \
+         mock.patch('openlibrary.plugins.upstream.account.render'):
+
+        # Arrange
+        mock_form = mock.Mock()
+        mock_form.validates.return_value = True
+        mock_form.username.value = 'testuser'
+        mock_form.email.value = 'test@example.com'
+        mock_form.password.value = 'password'
+
+        # Test with newsletter
+        mock_web.input.return_value = {'ia_newsletter': 'yes', 'email': 'test@example.com'}
+        with mock.patch.object(account_create, 'get_form', return_value=mock_form):
+            account_create().POST()
+            mock_ia_account.create.assert_called_with(
+                screenname='testuser',
+                email='test@example.com',
+                password='password',
+                notifications=['ml_best_of', 'ml_updates'],
+                verified=False,
+                retries=3
+            )
+
+        # Reset mock and test without newsletter
+        mock_ia_account.create.reset_mock()
+        mock_web.input.return_value = {'email': 'test@example.com'}
+        with mock.patch.object(account_create, 'get_form', return_value=mock_form):
+            account_create().POST()
+            mock_ia_account.create.assert_called_with(
+                screenname='testuser',
+                email='test@example.com',
+                password='password',
+                notifications=[],
+                verified=False,
+                retries=3
+            )
