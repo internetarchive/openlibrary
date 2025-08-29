@@ -61,7 +61,7 @@ def get_top_languages(
     return results[:limit]
 
 
-@cache.memoize("memcache", key='get_all_language_counts', expires=60 * 60)
+@cache.memoize("memory", key='get_all_language_counts', expires=60 * 60)
 def get_all_language_counts(
     solr_type: Literal['work', 'edition'],
     ebook_access: str | None = None,
@@ -100,6 +100,7 @@ class index(delegate.page):
         return True
 
 
+# Faster version over in fastapi
 class index_json(delegate.page):
     path = "/languages"
     encoding = "json"
