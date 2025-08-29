@@ -627,9 +627,9 @@ def get_loan(identifier: str, user_key: str | None = None):
     account = None
     if user_key:
         if user_key.startswith('@'):
-            account = OpenLibraryAccount.get(link=user_key)
+            account = OpenLibraryAccount.get_by_link(user_key)
         else:
-            account = OpenLibraryAccount.get(key=user_key)
+            account = OpenLibraryAccount.get_by_key(user_key)
 
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (
@@ -667,7 +667,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         """
         delegate.fakeload()
 
-    account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+    account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata]
@@ -698,7 +698,7 @@ def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
         delegate.fakeload()
 
     try:
-        account = OpenLibraryAccount.get(key=user_key)
+        account = OpenLibraryAccount.get_by_key(user_key)
         itemname = account.itemname if account else None
         result = WaitingLoan.query(userid=itemname)
         get_cached_user_waiting_loans.memcache_set(
@@ -959,7 +959,7 @@ class Loan(dict):
     def delete(self) -> None:
         loan = dict(self, returned_at=time.time())
         user_key = self['user']
-        account = OpenLibraryAccount.get(key=user_key)
+        account = OpenLibraryAccount.get_by_key(user_key)
         if self.get("stored_at") == 'ia':
             ia_lending_api.delete_loan(self['ocaid'], userkey2userid(user_key))
             if account and account.itemname:
