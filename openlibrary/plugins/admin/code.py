@@ -1,12 +1,15 @@
 """Plugin to provide admin interface."""
 
 import datetime
+import hashlib
+import hmac
 import json
 import logging
 import os
 import socket
 import subprocess
 import sys
+import time
 import traceback
 from collections.abc import Iterable
 
@@ -247,6 +250,102 @@ class _reload(delegate.page):
 class any:
     def GET(self):
         pass
+
+
+class ExpiredTokenError(Exception):
+    pass
+
+def verify_hmac(digest, msg, key_prefix, delimiter=":"):
+    # Current time, in seconds
+    current_time = time.time()
+    expiry = msg.split(delimiter)[-1]
+
+    # To avoid timing attacks, we avoid raising exceptions
+    # until after the digests are compared
+    err: Exception | None = None
+
+    if current_time > expiry:
+        err = ExpiredTokenError()
+
+    key_name = f"{key_prefix}_shared_key"
+
+    # TODO : Pull key from config using `key_name`
+    if not (key := ''):
+        err = ValueError("No key found")
+
+    mac = ''
+    if key:
+        mac = hmac.new(
+            key.encode('utf-8'),
+            msg.encode('utf-8'),
+            hashlib.md5
+        ).hexdigest()
+
+    result = hmac.compare_digest(mac, digest)
+    if err:
+        raise err
+    return result
+
+
+class sync_ia_ol(delegate.page):
+    path = '/ia/sync'
+    encoding = 'json'
+
+    def POST(self):
+        i = web.input(digest="", msg="")
+
+        digest = i.digest
+        msg = i.msg
+
+        try:
+            verify_hmac(digest, msg, "ia_sync")
+        except (ValueError, ExpiredTokenError):
+            # XXX : Is this the correct response for this case?
+            raise web.HTTPError("401 Unauthorized")
+
+        op, ocaid, _ = msg.split(":")
+
+        if not op or not ocaid:
+            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
+
+        # Fetch affected editions
+        if not (edition_keys := web.ctx.site.things({"type": '/type/edition', "ocaid": ocaid})):
+            raise web.HTTPError("404 Not Found")
+
+        editions = [web.ctx.site.get(key) for key in edition_keys]
+        if len(editions) > 1:
+            raise web.HTTPError(
+                "409 Conflict",
+                data=json.dumps({"error": "Multiple editions associated with given ocaid"})
+            )
+
+        edition = editions[0]
+
+        # Update records
+        try:
+            match op:
+                case "makedark":
+                    self.make_dark(edition)
+                case "updatemarc":
+                    # XXX : Where is the new marc record coming from?
+                    new_marc = None
+                    self.update_marc(edition, new_marc)
+                case _:
+                    raise ValueError(f"Unknown operation : {op}")
+        except (NotImplementedError, ValueError) as e:
+            raise web.HTTPError("400 Bad Request",
+                data=json.dumps({"error": f"Unrecognized operation : {op}"})
+            )
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    def make_dark(self, edition):
+        data = edition.dict()
+        del data["ocaid"]
+        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
+
+    def update_marc(self, edition, new_marc):
+        raise NotImplementedError()
 
 
 class people:
