@@ -737,7 +737,9 @@ class list_search(delegate.page):
         req = ListSearchRequest.from_web_input(web.input(api='next'))
         # Can't set fields when rendering html
         req.fields = 'key'
-        resp = self.get_results(req, 'LIST_SEARCH')
+        logger.warning("SEARCH QUERY FORMAT")
+        logger.warning(req)
+        resp = self.get_results(req)
         lists = list(web.ctx.site.get_many([doc['key'] for doc in resp.docs]))
         return render_template('search/lists.html', req, resp, lists)
 
