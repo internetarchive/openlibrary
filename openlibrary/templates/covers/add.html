@@ -80,12 +80,18 @@ $#        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Submit")</b
 $#    </div>
 $#</form>
 
+$ previous_upload = False
 $if doc.type.key == "/type/edition" and doc.ocaid:
+    $ existing_urls = set(image.info().get('source_url', '') for image in doc.get_covers())
+    $for url in existing_urls:
+        $if url.startswith("https://archive.org/download/"):
+            $ previous_upload = True
+
     $ img_url_cover = "https://archive.org/download/%s/page/cover" % doc.ocaid
     $ img_url_title = "https://archive.org/download/%s/page/title" % doc.ocaid
-    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Internet Archive"))
+    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Internet Archive"), previous_upload)
 
 $if doc.type.key == "/type/author" and data.get('wikidata_images'):
     $ img_url_cover = data.get('wikidata_images')[0]
     $ img_url_title = None
-    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Wikidata"))
+    $:render_template("covers/external_image", action, img_url_cover, img_url_title, _("Wikidata"), previous_upload)
