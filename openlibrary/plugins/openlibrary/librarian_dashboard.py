@@ -1,8 +1,8 @@
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import web
-from infogami.utils.view import public
 
+from infogami.utils.view import public
 from openlibrary.i18n import gettext as _
 
 

@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import public
 

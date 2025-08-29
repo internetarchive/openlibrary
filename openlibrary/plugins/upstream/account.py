@@ -8,9 +8,10 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -19,7 +20,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,

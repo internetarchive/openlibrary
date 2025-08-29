@@ -6,9 +6,9 @@ with anonymized accounts.
 import argparse
 from pathlib import Path
 
-import infogami
 import web
 
+import infogami
 from openlibrary.config import load_config
 from openlibrary.core import db
 
