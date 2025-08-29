@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable
 from typing import TypeVar
 from urllib.parse import urlencode, urlsplit
 
+import httpx
 import requests
 import web
 
@@ -23,6 +24,7 @@ class Solr:
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
         self.session = requests.Session()
+        self.httpx_session = httpx.AsyncClient()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -128,7 +130,6 @@ class Solr:
                 else:
                     name = f
                 params['facet.field'].append(name)
-
         json_data = self.raw_request(
             'select',
             urlencode(params, doseq=True),
@@ -137,6 +138,40 @@ class Solr:
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
+
+    async def async_raw_request(
+        self,
+        path_or_url: str,
+        payload: str,
+        _timeout: int | None = None,
+    ) -> httpx.Response:
+        if path_or_url.startswith("http"):
+            # TODO: Should this only take a path, not a full url? Would need to
+            # update worksearch.code.execute_solr_query accordingly.
+            url = path_or_url
+        else:
+            url = f'{self.base_url}/{path_or_url.lstrip("/")}'
+
+        if _timeout is not None:
+            timeout = _timeout
+        else:
+            timeout = 10
+
+        # switch to POST request when the payload is too big.
+        # XXX: would it be a good idea to switch to POST always?
+        if len(payload) < 500:
+            sep = '&' if '?' in url else '?'
+            url = url + sep + payload
+            logger.info("solr request: %s", url)
+            return await self.httpx_session.get(url, timeout=timeout)
+        else:
+            logger.info("solr request: %s ...", url)
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            }
+            return await self.httpx_session.post(
+                url, data=payload, headers=headers, timeout=timeout
+            )
 
     def raw_request(
         self,

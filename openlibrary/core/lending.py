@@ -407,12 +407,16 @@ def get_availability(
     cached_values = cast(
         dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids])
     )
+    logger.info(f"Fetched {len(cached_values)} cached values for {id_type}")
     availabilities = {
         _id: cached_values[key]
         for _id in ids
         if (key := key_func(_id)) in cached_values
     }
     ids_to_fetch = set(ids) - set(availabilities)
+    logger.info(f"Still must fetch {len(ids_to_fetch)} values for {id_type}")
+    # Try returning early to see how performance is
+    return {}
 
     if not ids_to_fetch:
         return availabilities
@@ -444,6 +448,7 @@ def get_availability(
         resp.raise_for_status()
 
         response = cast(AvailabilityServiceResponse, resp.json())
+        logger.info(f"Response: {response}")
 
         if not response['success']:
             logger.warning(f"AvailabilityServiceError: {response['error']}")
@@ -460,6 +465,9 @@ def get_availability(
             for _id, availability in response['responses'].items()
         }
         availabilities |= uncached_values
+        logger.info(
+            f"availabilities: {availabilities}, uncached_values: {uncached_values}"
+        )
         mc.set_multi(
             {
                 key_func(_id): availability
