@@ -75,9 +75,26 @@ async def author_page(request: Request, olid: str):
     return templates.TemplateResponse("generic_template.html.jinja", context)
 
 
+@router.get("/shell", response_class=HTMLResponse)
+async def shell(request: Request):
+    # All based on having 4 threads running
+    # Without user in 5 seconds we got 18300/5 = 3660 req/s
+    # With user in 5 seconds we got 20203/5 = 4040 req/s
+    # With user in 5 seconds and passing it down to the sell we got 18934/5 = 3786 req/s
+    # So from this we can see the shell part is pretty fast and reliable
+    u = get_user_from_request(request)
+
+    # Needed for page banners where we call the old render function, not a new template
+    web.ctx.lang = 'en'
+
+    context = get_jinja_context(request, title="shell", user=u)
+    context["main_content"] = "<h1>Shell</h1>"
+    return templates.TemplateResponse("generic_template.html.jinja", context)
+
+
 # This was an experiment to see what it would be like to just use new templates instead of rendering old ones
-@router.get("/_fast/authors_simple/{olid}/{name}", response_class=HTMLResponse)
-@router.get("/_fast/authors_simple/{olid}", response_class=HTMLResponse)
+@router.get("/authors_simple/{olid}/{name}", response_class=HTMLResponse)
+@router.get("/authors_simple/{olid}", response_class=HTMLResponse)
 async def author_page2(request: Request, olid: str):
     author = fetch_author(olid)
     docs = await fetch_author_works(olid)
