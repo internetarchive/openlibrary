@@ -6,7 +6,6 @@ from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
-    
     Email,
     Form,
     Hidden,

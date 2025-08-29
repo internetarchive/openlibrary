@@ -1283,8 +1283,16 @@ def setup_template_globals():
             "pt": {"code": "pt", "localized": _('Portuguese'), "native": "PortuguÃªs"},
             "ro": {"code": "ro", "localized": _('Romanian'), "native": "RomÃ¢nÄƒ"},
             "sc": {"code": "sc", "localized": _('Sardinian'), "native": "Sardu"},
-            "te": {"code": "te", "localized": _('Telugu'), "native": "à°¤à±†à°²à±à°—à±"},
-            "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Ð£ÐºÑ€Ð°Ñ—Ð½ÑÑŒÐºÐ°"},
+            "te": {
+                "code": "te",
+                "localized": _('Telugu'),
+                "native": "à°¤à±†à°²à±à°—à±",
+            },
+            "uk": {
+                "code": "uk",
+                "localized": _('Ukrainian'),
+                "native": "Ð£ÐºÑ€Ð°Ñ—Ð½ÑÑŒÐºÐ°",
+            },
             "zh": {"code": "zh", "localized": _('Chinese'), "native": "ä¸­æ–‡"},
         }
 

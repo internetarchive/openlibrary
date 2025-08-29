@@ -34,7 +34,8 @@ class Test_BinaryDataField:
     def test_translate(self):
         bdf = BinaryDataField(MockMARC('marc8'), b'')
         assert (
-            bdf.translate(b'Vieira, Claudio Bara\xe2una,') == 'Vieira, Claudio BaraÃºna,'
+            bdf.translate(b'Vieira, Claudio Bara\xe2una,')
+            == 'Vieira, Claudio BaraÃºna,'
         )
 
     def test_bad_marc_line(self):
