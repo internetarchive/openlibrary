@@ -6,7 +6,6 @@ A lightweight version of github.com/internetarchive/bookserver
 from types import MappingProxyType
 
 import lxml.etree as ET
-
 from infogami.infobase.utils import parse_datetime
 
 

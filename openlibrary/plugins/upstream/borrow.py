@@ -13,8 +13,6 @@ from typing import Literal
 
 import lxml.etree
 import web
-from lxml import etree
-
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -22,6 +20,8 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
+from lxml import etree
+
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.app import render_template

@@ -7,10 +7,10 @@ WARNING: This will delete all of the records if the `--batches` argument is excl
 import argparse
 from pathlib import Path
 
-import web
-
 import infogami
+import web
 from infogami.infobase.client import ClientException
+
 from openlibrary.config import load_config
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 

@@ -3,9 +3,9 @@
 import json
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import public
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils import extract_numeric_id_from_olid

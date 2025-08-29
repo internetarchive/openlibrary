@@ -5,9 +5,9 @@ Copies all patrons' preferences to the `store` tables.
 import argparse
 from pathlib import Path
 
+import infogami
 from psycopg2 import DatabaseError
 
-import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
