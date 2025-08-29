@@ -1,6 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-
+*.sh text eol=lf
+*.py text eol=lf
 # Standard to msysgit
 *.doc	diff=astextplain
 *.docx	diff=astextplain
@@ -9,5 +10,3 @@
 
 # MARC binary
 *.mrc	binary -linguist-detectable
-*.sh text eol=lf
-*.py text eol=lf
