@@ -9,3 +9,5 @@
 
 # MARC binary
 *.mrc	binary -linguist-detectable
+*.sh text eol=lf
+*.py text eol=lf
