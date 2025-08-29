@@ -15,8 +15,8 @@ const config = {
     },
 };
 
-const test_duration = 10;
-const delayBetweenScenarios = 10;
+const test_duration = 5;
+const delayBetweenScenarios = 5;
 
 let total_duration = -1;
 function getSenario(exec) {
@@ -33,6 +33,7 @@ function getSenario(exec) {
 
 const activeSenarios = [
     'authors',
+    'shell',
     'languages_json',
     'search_works_html',
     'search_authors_html',
@@ -81,3 +82,5 @@ export function new_search_works_html() { genric_function('search/?q=mark', 'sea
 export function old_search_authors_html() { genric_function('search/authors/?q=mark', 'search_authors_html', true); }
 export function new_search_authors_html() { genric_function('search/authors/?q=mark', 'search_authors_html', false); }
 
+export function old_shell() { genric_function('shell', 'shell', true); }
+export function new_shell() { genric_function('shell', 'shell', false); }
