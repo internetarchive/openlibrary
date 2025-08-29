@@ -104,9 +104,13 @@ def test_get(mock_web):
 
 def test_newsletter_subscription_on_registration():
     """Test newsletter subscription during account creation."""
-    with mock.patch('openlibrary.plugins.upstream.account.web') as mock_web, \
-         mock.patch('openlibrary.plugins.upstream.account.InternetArchiveAccount') as mock_ia_account, \
-         mock.patch('openlibrary.plugins.upstream.account.render'):
+    with (
+        mock.patch('openlibrary.plugins.upstream.account.web') as mock_web,
+        mock.patch(
+            'openlibrary.plugins.upstream.account.InternetArchiveAccount'
+        ) as mock_ia_account,
+        mock.patch('openlibrary.plugins.upstream.account.render'),
+    ):
 
         # Arrange
         mock_form = mock.Mock()
@@ -116,7 +120,10 @@ def test_newsletter_subscription_on_registration():
         mock_form.password.value = 'password'
 
         # Test with newsletter
-        mock_web.input.return_value = {'ia_newsletter': 'yes', 'email': 'test@example.com'}
+        mock_web.input.return_value = {
+            'ia_newsletter': 'yes',
+            'email': 'test@example.com',
+        }
         with mock.patch.object(account_create, 'get_form', return_value=mock_form):
             account_create().POST()
             mock_ia_account.create.assert_called_with(
@@ -125,7 +132,7 @@ def test_newsletter_subscription_on_registration():
                 password='password',
                 notifications=['ml_best_of', 'ml_updates'],
                 verified=False,
-                retries=3
+                retries=3,
             )
 
         # Reset mock and test without newsletter
@@ -139,5 +146,5 @@ def test_newsletter_subscription_on_registration():
                 password='password',
                 notifications=[],
                 verified=False,
-                retries=3
+                retries=3,
             )

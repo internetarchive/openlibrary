@@ -236,7 +236,7 @@ ws_languages = [
         # Check if book description contains a page range. These are generally articles
         # or papers, not books.
         # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
-        description_exclusion_re=r"^Letter\b|[ .]\d{1,3}[-â€“]\d{1,3}\b",  # noqa RUF001
+        description_exclusion_re=r"^Letter\b|[ .]\d{1,3}[-â€“]\d{1,3}\b",
         title_exclusion_re=r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
         subject_exclusion_re=r'\b(speeches)\b',
     )

@@ -309,7 +309,6 @@ class account_create(delegate.page):
         f: forms.RegisterForm = self.get_form()
         print("DEBUG FORM DATA:", dict(self.request.params))
 
-
         if f.validates(web.input(email="")):
             try:
                 # Create ia_account: require they activate via IA email
