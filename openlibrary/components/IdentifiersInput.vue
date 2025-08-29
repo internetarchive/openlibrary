@@ -15,7 +15,7 @@
           </option>
           <template v-if="hasPopularIds">
             <option
-              v-for="entry in popularIds"
+              v-for="entry in popularIds.filter(e => isAdmin || e.name !== 'ocaid')"
               :key="entry.name"
               :value="entry.name"
             >
@@ -32,6 +32,8 @@
             v-for="idConfig in identifierConfigsByKey"
             :key="idConfig.name"
             :value="idConfig.name"
+            :disabled="!isAdmin && idConfig.name === 'ocaid'"
+            :title="!isAdmin && idConfig.name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
           >
             {{ idConfig.label }}
           </option>
@@ -81,19 +83,11 @@
         >
           <td>{{ identifierConfigsByKey[name]?.label ?? name }}</td>
           <td>{{ item }}</td>
-          <td v-if="!isAdmin">
-            <button
-              v-if="name !== 'ocaid'"
-              class="form-control"
-              @click="removeIdentifier(name, idx)"
-            >
-              Remove
-            </button>
-          </td>
-          <td v-else>
+          <td>
             <button
               class="form-control"
-              @click="removeIdentifier(name, idx)"
+              :disabled="!isAdmin && name === 'ocaid'"
+              :title="!isAdmin && name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
             >
               Remove
             </button>
@@ -173,6 +167,7 @@ export default {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
+            isAdmin: false,
         }
     },
 
@@ -190,14 +185,11 @@ export default {
         identifierConfigsByKey: function() {
             return Object.fromEntries(this.idConfigs.map(e => [e.name, e]));
         },
-        isAdmin: function() {
-            return this.admin.toLowerCase() === 'true';
-        },
         saveIdentifiersAsList: function() {
             return this.multiple.toLowerCase() === 'true';
         },
         setButtonEnabled: function(){
-            return this.selectedIdentifier !== '' && this.inputValue !== '';
+            return this.selectedIdentifier !== '' && this.inputValue !== '' && (this.isAdmin || this.selectedIdentifier !== 'ocaid');
         },
         hasPopularIds: function() {
             return Object.keys(this.popularIds).length !== 0;
@@ -215,6 +207,7 @@ export default {
             },
     },
     created: function(){
+        this.isAdmin = this.admin.toLowerCase() === 'true';
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
         if (this.assignedIdentifiers.length === 0) {
             this.assignedIdentifiers = {}
