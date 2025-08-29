@@ -9,6 +9,7 @@ import web
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+from openlibrary.core import lending
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -182,6 +183,18 @@ class DataProcessor:
             for a in w.get('authors', [])
         ]
         self.authors = get_many_as_dict(author_keys)
+        
+        # Collect all ocaids for bulk availability request
+        ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
+        
+        # Make bulk availability request if we have ocaids
+        self.availability_map = {}
+        if ocaids:
+            try:
+                self.availability_map = lending.get_availability('identifier', ocaids)
+            except Exception:
+                # Fall back to individual calls if bulk API fails
+                self.availability_map = {}
 
         return {k: self.process_doc(doc) for k, doc in result.items()}
 
@@ -313,7 +326,12 @@ class DataProcessor:
 
         def ebook(doc):
             itemid = doc['ocaid']
-            availability = get_ia_availability(itemid)
+            # Use bulk availability data if available, otherwise fall back to individual call
+            availability_data = self.availability_map.get(itemid)
+            if availability_data:
+                availability = map_availability_to_legacy_contract(availability_data)
+            else:
+                availability = get_ia_availability(itemid)
 
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
@@ -378,8 +396,11 @@ def get_authors(docs):
 
 
 def process_result_for_details(result):
-    def f(bib_key, doc):
-        d = process_doc_for_viewapi(bib_key, doc)
+    def f(bib_key, doc, availability_map):
+        # Get availability for this document's ocaid
+        ocaid = doc.get('ocaid')
+        availability = availability_map.get(ocaid) if ocaid else None
+        d = process_doc_for_viewapi(bib_key, doc, availability)
 
         if 'authors' in doc:
             doc['authors'] = [author_dict[a['key']] for a in doc['authors']]
@@ -388,11 +409,41 @@ def process_result_for_details(result):
         return d
 
     author_dict = get_authors(result.values())
-    return {k: f(k, doc) for k, doc in result.items()}
+    
+    # Collect all ocaids for bulk availability request
+    ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
+    
+    # Make bulk availability request if we have ocaids
+    availability_map = {}
+    if ocaids:
+        try:
+            availability_map = lending.get_availability('identifier', ocaids)
+        except Exception:
+            # Fall back to individual calls if bulk API fails
+            availability_map = {}
+    
+    return {k: f(k, doc, availability_map) for k, doc in result.items()}
 
 
 def process_result_for_viewapi(result):
-    return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
+    # Collect all ocaids for bulk availability request
+    ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
+    
+    # Make bulk availability request if we have ocaids
+    availability_map = {}
+    if ocaids:
+        try:
+            availability_map = lending.get_availability('identifier', ocaids)
+        except Exception:
+            # Fall back to individual calls if bulk API fails
+            availability_map = {}
+    
+    return {
+        k: process_doc_for_viewapi(
+            k, doc, availability_map.get(doc.get('ocaid'))
+        ) 
+        for k, doc in result.items()
+    }
 
 
 def get_ia_availability(itemid):
@@ -406,11 +457,38 @@ def get_ia_availability(itemid):
         return 'full'
 
 
-def process_doc_for_viewapi(bib_key, page):
+def map_availability_to_legacy_contract(availability_data):
+    """
+    Map bulk availability API response to legacy contract values.
+    
+    Args:
+        availability_data: AvailabilityStatusV2 dict from bulk API
+        
+    Returns:
+        str: One of 'borrow', 'restricted', 'full', or 'noview' for missing data
+    """
+    if not availability_data:
+        return 'noview'
+    
+    # Apply the same logic as get_ia_availability but using bulk API fields
+    if availability_data.get('is_lendable'):
+        return 'borrow'
+    elif availability_data.get('is_printdisabled'):
+        return 'restricted'
+    else:
+        return 'full'
+
+
+def process_doc_for_viewapi(bib_key, page, availability=None):
     url = get_url(page)
 
     if 'ocaid' in page:
-        preview = get_ia_availability(page['ocaid'])
+        if availability is not None:
+            # Use provided availability data from bulk API
+            preview = map_availability_to_legacy_contract(availability)
+        else:
+            # Fallback to individual API call for backward compatibility
+            preview = get_ia_availability(page['ocaid'])
         preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
