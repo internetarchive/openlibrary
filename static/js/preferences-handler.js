@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAllCarousels();
     }
   }
-  
+
   document.querySelectorAll('.locale-options').forEach(select => {
     select.addEventListener("change", (e) => {
       selectedLang = select.value || 'en';

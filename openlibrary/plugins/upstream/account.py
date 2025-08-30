@@ -758,6 +758,7 @@ class account_notifications(delegate.page):
         )
         web.seeother("/account")
 
+
 # Add a POST redirect for prefs from global filter
 class account_preferences(delegate.page):
     path = "account/preferences"
@@ -768,9 +769,9 @@ class account_preferences(delegate.page):
         prefs = {
             'mode': d.get('mode', 'all'),
             'language': d.get('language', 'en'),
-            'date': d.get('date', [1900, 2025])
+            'date': d.get('date', [1900, 2025]),
         }
-        
+
         # Save to localStorage?
 
         expires = 3600 * 24 * 365
@@ -781,7 +782,10 @@ class account_preferences(delegate.page):
         if d.get('redirect', True):
             raise web.seeother("/account")
         else:
-            return delegate.RawText(json.dumps({'status': 'ok'}), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({'status': 'ok'}), content_type="application/json"
+            )
+
 
 class account_lists(delegate.page):
     path = "/account/lists"
@@ -1350,4 +1354,3 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
         'limit': limit,
         'page': page,
     }
-
