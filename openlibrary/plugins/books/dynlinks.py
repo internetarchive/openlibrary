@@ -8,7 +8,6 @@ import web
 
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
-from openlibrary.core import ia
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -313,7 +312,7 @@ class DataProcessor:
 
         def ebook(doc):
             itemid = doc['ocaid']
-            availability = get_ia_availability(itemid)
+            availability = doc.get('preview')
 
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
@@ -377,6 +376,39 @@ def get_authors(docs):
     return author_dict
 
 
+def add_availability(books):
+    from openlibrary.plugins.worksearch.search import get_solr
+    availability_to_preview = {
+        'printdisabled': 'restricted',
+        'borrowable': 'borrow',
+        'public': 'full',
+    }
+    keys_to_availability = {}
+
+    # If input is a dict (bibkey -> book dict):
+    if isinstance(books, dict):
+        docs = list(books.values())
+    else:
+        docs = books
+
+    keys = [doc['key'] for doc in docs if 'key' in doc]
+    solr_docs = get_solr().select(
+        "key:(%s)" % " OR ".join(f'"{key}"' for key in keys),
+        fields=['key', 'ebook_access'],
+        rows=len(keys),
+        fq='type:edition',
+    )['docs']
+
+    keys_to_availability = {
+        doc['key']: doc.get('ebook_access', 'noview') for doc in solr_docs
+    }
+
+    for doc in docs:
+        ebook_access = keys_to_availability.get(doc['key'], 'noview')
+        doc['preview'] = availability_to_preview.get(ebook_access, 'noview')
+    return books
+
+
 def process_result_for_details(result):
     def f(bib_key, doc):
         d = process_doc_for_viewapi(bib_key, doc)
@@ -395,22 +427,11 @@ def process_result_for_viewapi(result):
     return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
-def get_ia_availability(itemid):
-    collections = ia.get_metadata(itemid).get('collection', [])
-
-    if 'inlibrary' in collections:
-        return 'borrow'
-    elif 'printdisabled' in collections:
-        return 'restricted'
-    else:
-        return 'full'
-
-
 def process_doc_for_viewapi(bib_key, page):
     url = get_url(page)
 
     if 'ocaid' in page:
-        preview = get_ia_availability(page['ocaid'])
+        preview = page.get('preview')
         preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
@@ -529,7 +550,10 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
                 isbns=missed_isbns, high_priority=high_priority
             )
             edition_dicts.update(new_editions)
-        edition_dicts = process_result(edition_dicts, options.get('jscmd'))
+
+        edition_dicts = process_result(
+            add_availability(edition_dicts), options.get('jscmd')
+        )
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()

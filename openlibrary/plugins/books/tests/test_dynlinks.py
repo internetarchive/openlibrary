@@ -13,10 +13,9 @@ import re
 import pytest
 import web
 
-from openlibrary.core import ia
 from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
-
+from openlibrary.plugins.books.dynlinks import add_availability
 
 @pytest.fixture
 def data0(request):
@@ -222,7 +221,7 @@ def monkeypatch_ol(monkeypatch):
     mock.setup_call("isbn_", "1234567890", _return="/books/OL1M")
     mock.setup_call("key", "/books/OL2M", _return="/books/OL2M")
     monkeypatch.setattr(dynlinks, "ol_query", mock)
-
+    web.ctx.path = "/"
     mock = Mock()
     mock.setup_call(["/books/OL1M"], _return=[{"key": "/books/OL1M", "title": "foo"}])
     mock.setup_call(
@@ -232,7 +231,23 @@ def monkeypatch_ol(monkeypatch):
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
+    def mock_add_availability(items):
+        # items might be a list of dicts or keys, adapt as needed
+        # Return mocked availability info
+        for item in items:
+            if item.get('ocaid'):
+                # For example, set 'ebook_access' depending on the key
+                if item.get('key') == '/books/OL1M':
+                    item['preview'] = 'full'
+                elif item.get('key') == '/books/OL2M':
+                    item['preview'] = 'full'
+                elif item.get('key') == '/books/OL9M':
+                    item['preview'] = 'full'
+            else:
+                item['preview'] = 'noview'
+        return items
+
+    monkeypatch.setattr(dynlinks, "add_availability", mock_add_availability)
 
 
 def test_query_keys(monkeypatch):
@@ -272,6 +287,7 @@ def test_process_doc_for_view_api(monkeypatch):
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
     doc['ocaid'] = "ia-foo"
+    doc['preview'] = "full"
     expected_result["preview"] = "full"
     expected_result["preview_url"] = "https://archive.org/details/ia-foo"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
