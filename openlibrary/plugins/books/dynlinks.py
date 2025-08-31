@@ -434,7 +434,11 @@ def process_doc_for_viewapi(bib_key, page):
 
 def add_availability(books):
     """Add availability information from Solr to books data."""
-    availability_to_preview = {'printdisabled': 'restricted', 'borrowable': 'borrow', 'public': 'full'}
+    availability_to_preview = {
+        'printdisabled': 'restricted',
+        'borrowable': 'borrow',
+        'public': 'full',
+    }
     keys_to_availability = {}
 
     # If input is a dict (bibkey -> book dict):
@@ -454,10 +458,12 @@ def add_availability(books):
         "key:(%s)" % " OR ".join(f'"{key}"' for key in keys),
         fields=['key', 'ebook_access'],
         rows=len(keys),
-        fq='type:edition'
+        fq='type:edition',
     )['docs']
 
-    keys_to_availability = {doc['key']: doc.get('ebook_access', 'noview') for doc in solr_docs}
+    keys_to_availability = {
+        doc['key']: doc.get('ebook_access', 'noview') for doc in solr_docs
+    }
 
     for doc in docs:
         ebook_access = keys_to_availability.get(doc['key'], 'noview')
@@ -563,7 +569,9 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
                 isbns=missed_isbns, high_priority=high_priority
             )
             edition_dicts.update(new_editions)
-        edition_dicts = process_result(add_availability(edition_dicts), options.get('jscmd'))
+        edition_dicts = process_result(
+            add_availability(edition_dicts), options.get('jscmd')
+        )
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
