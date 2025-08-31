@@ -374,8 +374,8 @@ def test_add_availability(monkeypatch):
             return {
                 'docs': [
                     {'key': '/books/OL1M', 'ebook_access': 'borrowable'},
-                    {'key': '/books/OL2M', 'ebook_access': 'printdisabled'},
-                    {'key': '/books/OL3M', 'ebook_access': 'public'},
+                    {'key': '/books/OL2M', 'ebook_access': 'public'},
+                    {'key': '/books/OL3M', 'ebook_access': 'printdisabled'},
                     {'key': '/books/OL4M'},  # No ebook_access field
                 ]
             }
