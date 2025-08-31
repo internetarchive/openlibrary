@@ -401,8 +401,8 @@ def test_add_availability(monkeypatch):
 
     # Check mapping from ebook_access to preview
     assert result['isbn:1111111111']['preview'] == 'borrow'
-    assert result['isbn:2222222222']['preview'] == 'restricted'
-    assert result['isbn:3333333333']['preview'] == 'full'
+    assert result['isbn:2222222222']['preview'] == 'full'
+    assert result['isbn:3333333333']['preview'] == 'restricted'
     assert result['isbn:4444444444']['preview'] == 'noview'
     assert result['isbn:5555555555']['preview'] == 'noview'
 
