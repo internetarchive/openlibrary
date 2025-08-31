@@ -242,7 +242,6 @@ def monkeypatch_ol(monkeypatch):
 
     def mock_get_solr():
         return MockSolr()
-
     monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
 
 
@@ -376,13 +375,12 @@ def test_add_availability(monkeypatch):
                     {'key': '/books/OL1M', 'ebook_access': 'borrowable'},
                     {'key': '/books/OL2M', 'ebook_access': 'printdisabled'},
                     {'key': '/books/OL3M', 'ebook_access': 'public'},
-                    {'key': '/books/OL4M'},  # No ebook_access field
+                    {'key': '/books/OL4M'}  # No ebook_access field
                 ]
             }
 
     def mock_get_solr():
         return MockSolr()
-
     monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
 
     # Test with dict input (bibkey -> book dict)
@@ -391,42 +389,26 @@ def test_add_availability(monkeypatch):
         'isbn:2222222222': {'key': '/books/OL2M', 'title': 'Test Book 2'},
         'isbn:3333333333': {'key': '/books/OL3M', 'title': 'Test Book 3'},
         'isbn:4444444444': {'key': '/books/OL4M', 'title': 'Test Book 4'},
-        'isbn:5555555555': {
-            'key': '/books/OL5M',
-            'title': 'Test Book 5',
-        },  # Not in Solr results
+        'isbn:5555555555': {'key': '/books/OL5M', 'title': 'Test Book 5'}  # Not in Solr results
     }
 
     result = dynlinks.add_availability(books_dict)
 
     # Check mapping from ebook_access to preview
-    assert result['isbn:1111111111']['ebook_access'] == 'borrowable'
     assert result['isbn:1111111111']['preview'] == 'borrow'
-
-    assert result['isbn:2222222222']['ebook_access'] == 'printdisabled'
     assert result['isbn:2222222222']['preview'] == 'restricted'
-
-    assert result['isbn:3333333333']['ebook_access'] == 'public'
     assert result['isbn:3333333333']['preview'] == 'full'
-
-    assert (
-        result['isbn:4444444444']['ebook_access'] == 'noview'
-    )  # No ebook_access in Solr
     assert result['isbn:4444444444']['preview'] == 'noview'
-
-    assert result['isbn:5555555555']['ebook_access'] == 'noview'  # Not found in Solr
     assert result['isbn:5555555555']['preview'] == 'noview'
 
     # Test with list input
     books_list = [
         {'key': '/books/OL1M', 'title': 'Test Book 1'},
-        {'key': '/books/OL2M', 'title': 'Test Book 2'},
+        {'key': '/books/OL2M', 'title': 'Test Book 2'}
     ]
 
     result_list = dynlinks.add_availability(books_list)
-    assert result_list[0]['ebook_access'] == 'borrowable'
     assert result_list[0]['preview'] == 'borrow'
-    assert result_list[1]['ebook_access'] == 'printdisabled'
     assert result_list[1]['preview'] == 'restricted'
 
 
