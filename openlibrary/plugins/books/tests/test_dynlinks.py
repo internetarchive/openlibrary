@@ -418,6 +418,7 @@ def test_add_availability(monkeypatch):
     assert result_list[1]['preview'] == 'full'
     assert result_list[2]['preview'] == 'restricted'
 
+
 def test_isbnx(monkeypatch):
     site = mock_infobase.MockSite()
     site.save(
