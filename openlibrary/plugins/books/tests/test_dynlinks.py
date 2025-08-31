@@ -410,12 +410,13 @@ def test_add_availability(monkeypatch):
     books_list = [
         {'key': '/books/OL1M', 'title': 'Test Book 1'},
         {'key': '/books/OL2M', 'title': 'Test Book 2'},
+        {'key': '/books/OL3M', 'title': 'Test Book 3'},
     ]
 
     result_list = dynlinks.add_availability(books_list)
     assert result_list[0]['preview'] == 'borrow'
-    assert result_list[1]['preview'] == 'restricted'
-
+    assert result_list[1]['preview'] == 'full'
+    assert result_list[2]['preview'] == 'restricted'
 
 def test_isbnx(monkeypatch):
     site = mock_infobase.MockSite()
@@ -426,7 +427,7 @@ def test_isbnx(monkeypatch):
             "isbn_10": ["123456789X"],
         }
     )
-
+    site.path = "/"
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
     json_data = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = json.loads(json_data)
