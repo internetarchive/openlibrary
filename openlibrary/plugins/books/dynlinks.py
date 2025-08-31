@@ -313,9 +313,7 @@ class DataProcessor:
                 break
 
         def ebook(doc):
-            itemid = doc['ocaid']
-            availability = get_ia_availability(itemid)
-
+            availability = doc.pop('preview')
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
                 "availability": availability,
@@ -396,22 +394,11 @@ def process_result_for_viewapi(result):
     return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
-def get_ia_availability(itemid):
-    collections = ia.get_metadata(itemid).get('collection', [])
-
-    if 'inlibrary' in collections:
-        return 'borrow'
-    elif 'printdisabled' in collections:
-        return 'restricted'
-    else:
-        return 'full'
-
-
 def process_doc_for_viewapi(bib_key, page):
     url = get_url(page)
 
     if 'ocaid' in page:
-        preview = get_ia_availability(page['ocaid'])
+        preview = page.pop('preview')
         preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
