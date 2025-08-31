@@ -428,8 +428,8 @@ def test_isbnx(monkeypatch):
             "isbn_10": ["123456789X"],
         }
     )
-    site.path = "/"
-    monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    web.ctx.site = site
+    web.ctx.path = "/"   # make sure .path exists
     json_data = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = json.loads(json_data)
     assert list(d) == ["isbn:123456789X"]
