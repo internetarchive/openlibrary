@@ -434,10 +434,10 @@ def process_doc_for_viewapi(bib_key, page):
 
 def add_availability(books):
     """Add availability information from Solr to books data.
-    
+
     Args:
         books: Either a dict (bibkey -> book dict) or list of book dicts
-        
+
     Returns:
         books: Same structure with ebook_access and preview fields added
     """
@@ -457,7 +457,7 @@ def add_availability(books):
             doc['ebook_access'] = 'noview'
             doc['preview'] = 'noview'
         return books
-        
+
     solr_docs = get_solr().select(
         "key:(%s)" % " OR ".join(f'"{key}"' for key in keys),
         fields=['key', 'ebook_access'],

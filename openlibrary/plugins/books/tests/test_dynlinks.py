@@ -233,14 +233,15 @@ def monkeypatch_ol(monkeypatch):
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
     monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
-    
+
     # Mock get_solr for add_availability function
     class MockSolr:
         def select(self, query, fields=None, rows=None, fq=None):
             # Return mock Solr response - empty for most tests to maintain existing behavior
             return {'docs': []}
-    
-    mock_get_solr = lambda: MockSolr()
+
+    def mock_get_solr():
+        return MockSolr()
     monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
 
 
@@ -365,22 +366,23 @@ def test_dynlinks(monkeypatch):
 
 def test_add_availability(monkeypatch):
     """Test the add_availability function with various ebook_access values."""
-    
+
     # Mock Solr to return test data
     class MockSolr:
         def select(self, query, fields=None, rows=None, fq=None):
             return {
                 'docs': [
                     {'key': '/books/OL1M', 'ebook_access': 'borrowable'},
-                    {'key': '/books/OL2M', 'ebook_access': 'printdisabled'}, 
+                    {'key': '/books/OL2M', 'ebook_access': 'printdisabled'},
                     {'key': '/books/OL3M', 'ebook_access': 'public'},
                     {'key': '/books/OL4M'}  # No ebook_access field
                 ]
             }
-    
-    mock_get_solr = lambda: MockSolr()
+
+    def mock_get_solr():
+        return MockSolr()
     monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
-    
+
     # Test with dict input (bibkey -> book dict)
     books_dict = {
         'isbn:1111111111': {'key': '/books/OL1M', 'title': 'Test Book 1'},
@@ -389,31 +391,31 @@ def test_add_availability(monkeypatch):
         'isbn:4444444444': {'key': '/books/OL4M', 'title': 'Test Book 4'},
         'isbn:5555555555': {'key': '/books/OL5M', 'title': 'Test Book 5'}  # Not in Solr results
     }
-    
+
     result = dynlinks.add_availability(books_dict)
-    
+
     # Check mapping from ebook_access to preview
     assert result['isbn:1111111111']['ebook_access'] == 'borrowable'
     assert result['isbn:1111111111']['preview'] == 'borrow'
-    
+
     assert result['isbn:2222222222']['ebook_access'] == 'printdisabled'
     assert result['isbn:2222222222']['preview'] == 'restricted'
-    
+
     assert result['isbn:3333333333']['ebook_access'] == 'public'
     assert result['isbn:3333333333']['preview'] == 'full'
-    
+
     assert result['isbn:4444444444']['ebook_access'] == 'noview'  # No ebook_access in Solr
     assert result['isbn:4444444444']['preview'] == 'noview'
-    
+
     assert result['isbn:5555555555']['ebook_access'] == 'noview'  # Not found in Solr
     assert result['isbn:5555555555']['preview'] == 'noview'
-    
+
     # Test with list input
     books_list = [
         {'key': '/books/OL1M', 'title': 'Test Book 1'},
         {'key': '/books/OL2M', 'title': 'Test Book 2'}
     ]
-    
+
     result_list = dynlinks.add_availability(books_list)
     assert result_list[0]['ebook_access'] == 'borrowable'
     assert result_list[0]['preview'] == 'borrow'
