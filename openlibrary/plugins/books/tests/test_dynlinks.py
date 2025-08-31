@@ -234,12 +234,14 @@ def monkeypatch_ol(monkeypatch):
 
     monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
     
-    # Mock lending.get_availability to return empty dict (simulates API failure/unavailable)
-    # This ensures tests fall back to the individual get_ia_availability calls
-    mock_lending = type('MockLending', (), {
-        'get_availability': lambda id_type, ids: {}
-    })()
-    monkeypatch.setattr(dynlinks, "lending", mock_lending)
+    # Mock get_solr for add_availability function
+    class MockSolr:
+        def select(self, query, fields=None, rows=None, fq=None):
+            # Return mock Solr response - empty for most tests to maintain existing behavior
+            return {'docs': []}
+    
+    mock_get_solr = lambda: MockSolr()
+    monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
 
 
 def test_query_keys(monkeypatch):
@@ -361,87 +363,62 @@ def test_dynlinks(monkeypatch):
     assert json.loads(js) == expected_result
 
 
-def test_bulk_availability_processing(monkeypatch):
-    """Test that bulk availability processing works correctly."""
-    monkeypatch_ol(monkeypatch)
+def test_add_availability(monkeypatch):
+    """Test the add_availability function with various ebook_access values."""
     
-    # Mock lending.get_availability to return test data
-    def mock_get_availability(id_type, ids):
-        return {
-            'test-borrow': {
-                'is_lendable': True,
-                'is_printdisabled': False,
-                'status': 'borrow_available'
-            },
-            'test-restricted': {
-                'is_lendable': False,
-                'is_printdisabled': True,
-                'status': 'open'
-            },
-            'test-full': {
-                'is_lendable': False,
-                'is_printdisabled': False,
-                'status': 'open'
+    # Mock Solr to return test data
+    class MockSolr:
+        def select(self, query, fields=None, rows=None, fq=None):
+            return {
+                'docs': [
+                    {'key': '/books/OL1M', 'ebook_access': 'borrowable'},
+                    {'key': '/books/OL2M', 'ebook_access': 'printdisabled'}, 
+                    {'key': '/books/OL3M', 'ebook_access': 'public'},
+                    {'key': '/books/OL4M'}  # No ebook_access field
+                ]
             }
-        }
     
-    mock_lending = type('MockLending', (), {
-        'get_availability': mock_get_availability
-    })()
-    monkeypatch.setattr(dynlinks, "lending", mock_lending)
+    mock_get_solr = lambda: MockSolr()
+    monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
     
-    # Test data with multiple items having different ocaids
-    test_result = {
-        "isbn:1111111111": {
-            "key": "/books/OL1M",
-            "title": "Test Book 1",
-            "ocaid": "test-borrow"
-        },
-        "isbn:2222222222": {
-            "key": "/books/OL2M", 
-            "title": "Test Book 2",
-            "ocaid": "test-restricted"
-        },
-        "isbn:3333333333": {
-            "key": "/books/OL3M",
-            "title": "Test Book 3",
-            "ocaid": "test-full"
-        },
-        "isbn:4444444444": {
-            "key": "/books/OL4M",
-            "title": "Test Book 4"
-            # No ocaid
-        }
+    # Test with dict input (bibkey -> book dict)
+    books_dict = {
+        'isbn:1111111111': {'key': '/books/OL1M', 'title': 'Test Book 1'},
+        'isbn:2222222222': {'key': '/books/OL2M', 'title': 'Test Book 2'},
+        'isbn:3333333333': {'key': '/books/OL3M', 'title': 'Test Book 3'},
+        'isbn:4444444444': {'key': '/books/OL4M', 'title': 'Test Book 4'},
+        'isbn:5555555555': {'key': '/books/OL5M', 'title': 'Test Book 5'}  # Not in Solr results
     }
     
-    # Test the bulk processing function
-    result = dynlinks.process_result_for_viewapi(test_result)
+    result = dynlinks.add_availability(books_dict)
     
-    # Verify correct availability mapping
-    assert result["isbn:1111111111"]["preview"] == "borrow"
-    assert result["isbn:2222222222"]["preview"] == "restricted"
-    assert result["isbn:3333333333"]["preview"] == "full"
-    assert result["isbn:4444444444"]["preview"] == "noview"
-
-
-def test_availability_mapping():
-    """Test the availability mapping function."""
+    # Check mapping from ebook_access to preview
+    assert result['isbn:1111111111']['ebook_access'] == 'borrowable'
+    assert result['isbn:1111111111']['preview'] == 'borrow'
     
-    # Test lendable item
-    borrow_data = {'is_lendable': True, 'is_printdisabled': False}
-    assert dynlinks.map_availability_to_legacy_contract(borrow_data) == 'borrow'
+    assert result['isbn:2222222222']['ebook_access'] == 'printdisabled'
+    assert result['isbn:2222222222']['preview'] == 'restricted'
     
-    # Test printdisabled item  
-    restricted_data = {'is_lendable': False, 'is_printdisabled': True}
-    assert dynlinks.map_availability_to_legacy_contract(restricted_data) == 'restricted'
+    assert result['isbn:3333333333']['ebook_access'] == 'public'
+    assert result['isbn:3333333333']['preview'] == 'full'
     
-    # Test open item
-    full_data = {'is_lendable': False, 'is_printdisabled': False}
-    assert dynlinks.map_availability_to_legacy_contract(full_data) == 'full'
+    assert result['isbn:4444444444']['ebook_access'] == 'noview'  # No ebook_access in Solr
+    assert result['isbn:4444444444']['preview'] == 'noview'
     
-    # Test missing data
-    assert dynlinks.map_availability_to_legacy_contract(None) == 'noview'
-    assert dynlinks.map_availability_to_legacy_contract({}) == 'noview'
+    assert result['isbn:5555555555']['ebook_access'] == 'noview'  # Not found in Solr
+    assert result['isbn:5555555555']['preview'] == 'noview'
+    
+    # Test with list input
+    books_list = [
+        {'key': '/books/OL1M', 'title': 'Test Book 1'},
+        {'key': '/books/OL2M', 'title': 'Test Book 2'}
+    ]
+    
+    result_list = dynlinks.add_availability(books_list)
+    assert result_list[0]['ebook_access'] == 'borrowable'
+    assert result_list[0]['preview'] == 'borrow'
+    assert result_list[1]['ebook_access'] == 'printdisabled'
+    assert result_list[1]['preview'] == 'restricted'
 
 
 def test_isbnx(monkeypatch):

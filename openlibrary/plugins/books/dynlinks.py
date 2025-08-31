@@ -9,10 +9,10 @@ import web
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
-from openlibrary.core import lending
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.plugins.worksearch.search import get_solr
 
 # Import from manage-imports, but get around hyphen problem.
 imports_module = "scripts.manage-imports"
@@ -183,18 +183,6 @@ class DataProcessor:
             for a in w.get('authors', [])
         ]
         self.authors = get_many_as_dict(author_keys)
-        
-        # Collect all ocaids for bulk availability request
-        ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
-        
-        # Make bulk availability request if we have ocaids
-        self.availability_map = {}
-        if ocaids:
-            try:
-                self.availability_map = lending.get_availability('identifier', ocaids)
-            except Exception:
-                # Fall back to individual calls if bulk API fails
-                self.availability_map = {}
 
         return {k: self.process_doc(doc) for k, doc in result.items()}
 
@@ -326,12 +314,7 @@ class DataProcessor:
 
         def ebook(doc):
             itemid = doc['ocaid']
-            # Use bulk availability data if available, otherwise fall back to individual call
-            availability_data = self.availability_map.get(itemid)
-            if availability_data:
-                availability = map_availability_to_legacy_contract(availability_data)
-            else:
-                availability = get_ia_availability(itemid)
+            availability = get_ia_availability(itemid)
 
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
@@ -396,11 +379,8 @@ def get_authors(docs):
 
 
 def process_result_for_details(result):
-    def f(bib_key, doc, availability_map):
-        # Get availability for this document's ocaid
-        ocaid = doc.get('ocaid')
-        availability = availability_map.get(ocaid) if ocaid else None
-        d = process_doc_for_viewapi(bib_key, doc, availability)
+    def f(bib_key, doc):
+        d = process_doc_for_viewapi(bib_key, doc)
 
         if 'authors' in doc:
             doc['authors'] = [author_dict[a['key']] for a in doc['authors']]
@@ -409,41 +389,11 @@ def process_result_for_details(result):
         return d
 
     author_dict = get_authors(result.values())
-    
-    # Collect all ocaids for bulk availability request
-    ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
-    
-    # Make bulk availability request if we have ocaids
-    availability_map = {}
-    if ocaids:
-        try:
-            availability_map = lending.get_availability('identifier', ocaids)
-        except Exception:
-            # Fall back to individual calls if bulk API fails
-            availability_map = {}
-    
-    return {k: f(k, doc, availability_map) for k, doc in result.items()}
+    return {k: f(k, doc) for k, doc in result.items()}
 
 
 def process_result_for_viewapi(result):
-    # Collect all ocaids for bulk availability request
-    ocaids = [doc.get('ocaid') for doc in result.values() if doc.get('ocaid')]
-    
-    # Make bulk availability request if we have ocaids
-    availability_map = {}
-    if ocaids:
-        try:
-            availability_map = lending.get_availability('identifier', ocaids)
-        except Exception:
-            # Fall back to individual calls if bulk API fails
-            availability_map = {}
-    
-    return {
-        k: process_doc_for_viewapi(
-            k, doc, availability_map.get(doc.get('ocaid'))
-        ) 
-        for k, doc in result.items()
-    }
+    return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
 def get_ia_availability(itemid):
@@ -457,38 +407,11 @@ def get_ia_availability(itemid):
         return 'full'
 
 
-def map_availability_to_legacy_contract(availability_data):
-    """
-    Map bulk availability API response to legacy contract values.
-    
-    Args:
-        availability_data: AvailabilityStatusV2 dict from bulk API
-        
-    Returns:
-        str: One of 'borrow', 'restricted', 'full', or 'noview' for missing data
-    """
-    if not availability_data:
-        return 'noview'
-    
-    # Apply the same logic as get_ia_availability but using bulk API fields
-    if availability_data.get('is_lendable'):
-        return 'borrow'
-    elif availability_data.get('is_printdisabled'):
-        return 'restricted'
-    else:
-        return 'full'
-
-
-def process_doc_for_viewapi(bib_key, page, availability=None):
+def process_doc_for_viewapi(bib_key, page):
     url = get_url(page)
 
     if 'ocaid' in page:
-        if availability is not None:
-            # Use provided availability data from bulk API
-            preview = map_availability_to_legacy_contract(availability)
-        else:
-            # Fallback to individual API call for backward compatibility
-            preview = get_ia_availability(page['ocaid'])
+        preview = get_ia_availability(page['ocaid'])
         preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
@@ -507,6 +430,47 @@ def process_doc_for_viewapi(bib_key, page, availability=None):
         )
 
     return d
+
+
+def add_availability(books):
+    """Add availability information from Solr to books data.
+    
+    Args:
+        books: Either a dict (bibkey -> book dict) or list of book dicts
+        
+    Returns:
+        books: Same structure with ebook_access and preview fields added
+    """
+    availability_to_preview = {'printdisabled': 'restricted', 'borrowable': 'borrow', 'public': 'full'}
+    keys_to_availability = {}
+
+    # If input is a dict (bibkey -> book dict):
+    if isinstance(books, dict):
+        docs = list(books.values())
+    else:
+        docs = books
+
+    keys = [doc['key'] for doc in docs if 'key' in doc]
+    if not keys:
+        # Add default values if no keys found
+        for doc in docs:
+            doc['ebook_access'] = 'noview'
+            doc['preview'] = 'noview'
+        return books
+        
+    solr_docs = get_solr().select(
+        "key:(%s)" % " OR ".join(f'"{key}"' for key in keys),
+        fields=['key', 'ebook_access'],
+        rows=len(keys),
+        fq='type:edition'
+    )['docs']
+
+    keys_to_availability = {doc['key']: doc.get('ebook_access', 'noview') for doc in solr_docs}
+
+    for doc in docs:
+        doc['ebook_access'] = keys_to_availability.get(doc['key'], 'noview')
+        doc['preview'] = availability_to_preview.get(doc['ebook_access'], 'noview')
+    return books
 
 
 def format_result(result: dict, options: web.storage) -> str:
@@ -607,7 +571,7 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
                 isbns=missed_isbns, high_priority=high_priority
             )
             edition_dicts.update(new_editions)
-        edition_dicts = process_result(edition_dicts, options.get('jscmd'))
+        edition_dicts = process_result(add_availability(edition_dicts), options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
