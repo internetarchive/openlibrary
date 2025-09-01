@@ -5478,7 +5478,7 @@ msgid "Or, use a cover from %s"
 msgstr ""
 
 #: covers/external_image.html
-msgid "Already Uploaded"
+msgid "Uploaded"
 msgstr ""
 
 #: covers/manage.html
