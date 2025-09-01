@@ -378,6 +378,7 @@ def get_authors(docs):
 
 def add_availability(books):
     from openlibrary.plugins.worksearch.search import get_solr
+
     availability_to_preview = {
         'printdisabled': 'restricted',
         'borrowable': 'borrow',

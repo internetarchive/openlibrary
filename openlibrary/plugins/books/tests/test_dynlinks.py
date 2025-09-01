@@ -15,7 +15,7 @@ import web
 
 from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
-from openlibrary.plugins.books.dynlinks import add_availability
+
 
 @pytest.fixture
 def data0(request):
@@ -237,11 +237,11 @@ def monkeypatch_ol(monkeypatch):
         for item in items:
             if item.get('ocaid'):
                 # For example, set 'ebook_access' depending on the key
-                if item.get('key') == '/books/OL1M':
-                    item['preview'] = 'full'
-                elif item.get('key') == '/books/OL2M':
-                    item['preview'] = 'full'
-                elif item.get('key') == '/books/OL9M':
+                if (
+                    item.get('key') == '/books/OL1M'
+                    or item.get('key') == '/books/OL2M'
+                    or item.get('key') == '/books/OL9M'
+                ):
                     item['preview'] = 'full'
             else:
                 item['preview'] = 'noview'
