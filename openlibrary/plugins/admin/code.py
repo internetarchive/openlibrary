@@ -236,7 +236,7 @@ class _reload(delegate.page):
 
         from infogami.plugins.wikitemplates import (  # noqa: PLC0415
             code as wikitemplates,
-        )  # noqa: PLC0415, RUF100
+        )
 
         wikitemplates.load_all()
 
