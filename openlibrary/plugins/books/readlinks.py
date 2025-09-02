@@ -59,7 +59,7 @@ def get_solr_fields_for_works(
     wkeys: list[str],
     clip_limit: int | None = None,
 ) -> dict[str, list[str]]:
-    from openlibrary.plugins.worksearch.search import get_solr
+    from openlibrary.plugins.worksearch.search import get_solr  # noqa: PLC0415
 
     docs = get_solr().get_many(wkeys, fields=['key', field])
     return {doc['key']: doc.get(field, [])[:clip_limit] for doc in docs}

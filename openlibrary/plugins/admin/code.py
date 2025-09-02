@@ -234,11 +234,13 @@ class _reload(delegate.page):
                 web.ctx.fullpath, "Permission denied to reload templates/macros."
             )
 
-        from infogami.plugins.wikitemplates import code as wikitemplates
+        from infogami.plugins.wikitemplates import (  # noqa: PLC0415
+            code as wikitemplates,
+        )  # noqa: PLC0415, RUF100
 
         wikitemplates.load_all()
 
-        from openlibrary.plugins.upstream import code as upstream
+        from openlibrary.plugins.upstream import code as upstream  # noqa: PLC0415
 
         upstream.reload()
         return delegate.RawText("done")
@@ -758,7 +760,7 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import debugpy  # noqa: T100
+        import debugpy  # noqa: PLC0415, T100
 
         # Allow other computers to attach to ptvsd at this IP address and port.
         web.debug("Enabling debugger attachment")
@@ -872,7 +874,7 @@ def setup():
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page("/admin/pd", pd_dashboard)
 
-    from openlibrary.plugins.admin import mem
+    from openlibrary.plugins.admin import mem  # noqa: PLC0415
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
         register_admin_page('/admin' + p.path, p)
@@ -881,7 +883,7 @@ def setup():
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
 
-    from openlibrary.plugins.admin import graphs
+    from openlibrary.plugins.admin import graphs  # noqa: PLC0415
 
     graphs.setup()
 

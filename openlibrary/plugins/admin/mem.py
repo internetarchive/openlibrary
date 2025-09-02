@@ -25,7 +25,7 @@ class Object:
     def repr(self):
         try:
             if isinstance(self.obj, (dict, web.threadeddict)):
-                from infogami.infobase.utils import prepr
+                from infogami.infobase.utils import prepr  # noqa: PLC0415
 
                 return prepr(self.obj)
             else:

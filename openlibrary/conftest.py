@@ -82,12 +82,12 @@ def render_template(request):
 
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
-    from openlibrary.plugins import ol_infobase
+    from openlibrary.plugins import ol_infobase  # noqa: PLC0415
 
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    from openlibrary.plugins.openlibrary import code
+    from openlibrary.plugins.openlibrary import code  # noqa: PLC0415
 
     web.config.db_parameters = {}
     code.setup_template_globals()

@@ -260,7 +260,10 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
+        from openlibrary.plugins.worksearch.code import (  # noqa: RUF100, PLC0415
+            WorkSearchScheme,
+            run_solr_query,
+        )
 
         subject_type = self.name
         path = web.lstrips(key, self.prefix)

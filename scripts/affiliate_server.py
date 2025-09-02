@@ -742,7 +742,7 @@ def start_server():
 
 def start_gunicorn_server():
     """Starts the affiliate server using gunicorn server."""
-    from gunicorn.app.base import Application
+    from gunicorn.app.base import Application  # noqa: PLC0415
 
     configfile = sys.argv.pop(1)
 
@@ -784,9 +784,9 @@ def runfcgi(func, addr=('localhost', 8000)):
 
     mode = config.pop("mode", None)
     if mode == "prefork":
-        import flup.server.fcgi_fork as flups
+        import flup.server.fcgi_fork as flups  # noqa: PLC0415
     else:
-        import flup.server.fcgi as flups
+        import flup.server.fcgi as flups  # noqa: PLC0415
 
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 

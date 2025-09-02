@@ -216,7 +216,7 @@ class routes(delegate.page):
                     return obj.__module__ + '.' + obj.__name__
                 return super().default(obj)
 
-        from openlibrary import code
+        from openlibrary import code  # noqa: PLC0415
 
         return '<pre>%s</pre>' % json.dumps(
             code.delegate.pages,
@@ -248,7 +248,7 @@ class addbook(delegate.page):
         return render.edit(page, self.path, 'Add Book')
 
     def POST(self):
-        from infogami.core.code import edit
+        from infogami.core.code import edit  # noqa: PLC0415
 
         key = web.ctx.site.new_key('/type/edition')
         web.ctx.path = key
@@ -319,7 +319,6 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -743,8 +742,11 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
 
             # Perform import, if possible
-            from openlibrary import accounts
-            from openlibrary.plugins.importapi.code import BookImportError, ia_importapi
+            from openlibrary import accounts  # noqa: PLC0415
+            from openlibrary.plugins.importapi.code import (  # noqa: PLC0415
+                BookImportError,
+                ia_importapi,
+            )
 
             with accounts.RunAs('ImportBot'):
                 try:
@@ -771,7 +773,7 @@ class rdf(delegate.mode):
         if not page:
             raise web.notfound('')
         else:
-            from infogami.utils import template
+            from infogami.utils import template  # noqa: PLC0415
 
             try:
                 result = template.typetemplate('rdf')(page)
@@ -795,7 +797,7 @@ class opds(delegate.mode):
         if not page:
             raise web.notfound('')
         else:
-            from openlibrary.plugins.openlibrary import opds
+            from openlibrary.plugins.openlibrary import opds  # noqa: PLC0415
 
             try:
                 result = opds.OPDSEntry(page).to_string()
@@ -819,7 +821,7 @@ class marcxml(delegate.mode):
         if page is None or page.type.key != '/type/edition':
             raise web.notfound('')
         else:
-            from infogami.utils import template
+            from infogami.utils import template  # noqa: PLC0415
 
             try:
                 result = template.typetemplate('marcxml')(page)
@@ -1158,7 +1160,7 @@ def internalerror():
     increment_error_count('ol.internal-errors-segmented')
 
     # TODO: move this to plugins\openlibrary\sentry.py
-    from openlibrary.plugins.openlibrary.sentry import sentry
+    from openlibrary.plugins.openlibrary.sentry import sentry  # noqa: PLC0415
 
     sentry_event_id: str | None = None
     if sentry.enabled:
@@ -1186,7 +1188,7 @@ class memory(delegate.page):
     path = '/debug/memory'
 
     def GET(self):
-        import guppy
+        import guppy  # noqa: PLC0415
 
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
@@ -1264,7 +1266,7 @@ def setup_template_globals():
     # must be imported here, otherwise silently messes up infogami's import execution
     # order, resulting in random errors like the the /account/login.json endpoint
     # defined in accounts.py being ignored, and using the infogami endpoint instead.
-    from openlibrary.book_providers import (
+    from openlibrary.book_providers import (  # noqa: PLC0415
         get_best_edition,
         get_book_provider,
         get_book_provider_by_name,
@@ -1320,14 +1322,14 @@ def setup_template_globals():
 
 
 def setup_context_defaults():
-    from infogami.utils import context
+    from infogami.utils import context  # noqa: PLC0415
 
     context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
 def setup():
-    from openlibrary.plugins.importapi import import_ui
-    from openlibrary.plugins.openlibrary import (
+    from openlibrary.plugins.importapi import import_ui  # noqa: PLC0415
+    from openlibrary.plugins.openlibrary import (  # noqa: PLC0415
         authors,
         borrow_home,
         design,
@@ -1352,7 +1354,7 @@ def setup():
     partials.setup()
     import_ui.setup()
 
-    from openlibrary.plugins.openlibrary import (
+    from openlibrary.plugins.openlibrary import (  # noqa: PLC0415
         api,  # noqa: F401 side effects may be needed
         librarian_dashboard,  # noqa: F401 import required
     )
@@ -1360,7 +1362,7 @@ def setup():
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get('dev_instance') is True:
-        from openlibrary.plugins.openlibrary import dev_instance
+        from openlibrary.plugins.openlibrary import dev_instance  # noqa: PLC0415
 
         dev_instance.setup()
 

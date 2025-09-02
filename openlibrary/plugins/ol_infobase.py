@@ -26,8 +26,8 @@ logger = logging.getLogger("infobase.ol")
 
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore, server
-    from infogami.infobase import logger as infobase_logger
+    from infogami.infobase import common, dbstore, server  # noqa: PLC0415
+    from infogami.infobase import logger as infobase_logger  # noqa: PLC0415
 
     dbstore.default_schema = schema.get_schema()
 
@@ -109,7 +109,7 @@ class _inspect:
     def GET(self):
         sys.modules.pop("_inspect", None)
         try:
-            import _inspect
+            import _inspect  # noqa: PLC0415
 
             return _inspect.inspect()
         except Exception:
@@ -269,7 +269,7 @@ class most_recent:
 class clear_cache:
     @server.jsonify
     def POST(self, sitename):
-        from infogami.infobase import cache
+        from infogami.infobase import cache  # noqa: PLC0415
 
         cache.global_cache.clear()
         return {'done': True}

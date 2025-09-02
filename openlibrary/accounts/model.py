@@ -476,7 +476,7 @@ class OpenLibraryAccount(Account):
         ol_account = cls.get_by_email(email)
 
         # Update user preferences; reading log public by default
-        from openlibrary.accounts import RunAs
+        from openlibrary.accounts import RunAs  # noqa: PLC0415
 
         with RunAs(username):
             ol_account.get_user().save_preferences({'public_readlog': 'yes'})
@@ -708,7 +708,7 @@ class InternetArchiveAccount(web.storage):
         """
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
         """
-        from openlibrary.core import lending
+        from openlibrary.core import lending  # noqa: PLC0415
 
         url = xauth_url or lending.config_ia_xauth_api_url
         params = {'op': op}
@@ -748,7 +748,7 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def s3auth(cls, access_key: str, secret_key: str):
         """Authenticates an Archive.org user based on s3 keys"""
-        from openlibrary.core import lending
+        from openlibrary.core import lending  # noqa: PLC0415
 
         url = lending.config_ia_s3_auth_url
 

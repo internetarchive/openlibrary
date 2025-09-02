@@ -345,7 +345,7 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
+        from ..plugins.upstream import borrow  # noqa: PLC0415
 
         return borrow.get_edition_loans(self)
 
@@ -1059,7 +1059,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow  # noqa: F401 side effects may be needed
+        from ..plugins.upstream import borrow  # noqa: F401, PLC0415
 
         loans = (
             lending.get_cached_loans_of_user(self.key)
@@ -1241,7 +1241,7 @@ class Tag(Thing):
         key = web.ctx.site.new_key('/type/tag')
         tag['key'] = key
 
-        from openlibrary.accounts import RunAs
+        from openlibrary.accounts import RunAs  # noqa: PLC0415
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
@@ -1304,7 +1304,7 @@ def register_models():
 
 def register_types():
     """Register default types for various path patterns used in OL."""
-    from infogami.utils import types
+    from infogami.utils import types  # noqa: PLC0415
 
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')

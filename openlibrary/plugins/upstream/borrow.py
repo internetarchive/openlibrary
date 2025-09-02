@@ -124,7 +124,7 @@ class borrow(delegate.page):
         if not edition:
             raise web.notfound()
 
-        from openlibrary.book_providers import get_book_provider
+        from openlibrary.book_providers import get_book_provider  # noqa: PLC0415
 
         if action == 'locate':
             raise web.seeother(edition.get_worldcat_url())
@@ -157,7 +157,7 @@ class borrow(delegate.page):
         response = lending.get_availability('identifier', [edition.ocaid])
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
-            from openlibrary.plugins.openlibrary.code import is_bot
+            from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
 
             if not is_bot():
                 stats.increment('ol.loans.openaccess')
