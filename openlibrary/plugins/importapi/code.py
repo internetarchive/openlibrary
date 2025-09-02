@@ -144,9 +144,7 @@ def supplement_rec_with_import_item_metadata(
 
     Changes `rec` in place.
     """
-    from openlibrary.core.imports import (  # noqa: PLC0415
-        ImportItem,
-    )  # Evade circular import.  # noqa: PLC0415, RUF100
+    from openlibrary.core.imports import ImportItem  # noqa: PLC0415 no circular import
 
     import_fields = [
         'authors',
