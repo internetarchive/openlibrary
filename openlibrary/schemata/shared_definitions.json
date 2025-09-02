@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Open Library Shared Schema Definitions",
+
+  "author": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [ "key" ],
+    "properties": {
+      "key": { "$ref": "#author_key" }
+    }
+  },
+  "author_key": {
+    "type": "string",
+    "pattern": "^/authors/OL[0-9]+A$"
+  },
+  "edition_key": {
+    "type": "string",
+    "pattern": "^/books/OL[0-9]+M$"
+  },
+  "internal_datetime": {
+    "type": "object",
+    "required": [ "type", "value" ],
+    "additionalProperties": false,
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": ["/type/datetime"]
+      },
+      "value": { "type": "string" }
+    }
+  },
+  "language_code": {
+    "type": "string",
+    "pattern": "^[a-z]{3}$",
+    "description": "The MARC21 language code. See https://www.loc.gov/marc/languages/language_code.html",
+    "examples": ["eng", "fre", "ger", "tha"]
+  },
+  "lc_classification": {
+    "type": "string",
+    "description": "The Library of Congress Classification number. See https://www.loc.gov/catdir/cpso/lcc.html We include the imprint date as the last four digits.",
+    "examples": ["BS571.5 .S68 1995", "Z673.D62 C65 1994"]
+  },
+  "link": {
+    "type": "object",
+    "required": [ "url", "title" ],
+    "additionalProperties": false,
+    "properties": {
+      "url":   { "type": "string" },
+      "title": { "type": "string" },
+      "type": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key"],
+        "properties": {
+          "key": {
+              "enum": ["/type/link"]
+          }
+        }
+      }
+    }
+  },
+  "publish_country": {
+    "type": "string",
+    "pattern": "^[a-z]{2,3}$",
+    "description": "The MARC21 country code. See https://www.loc.gov/marc/countries/cou_home.html",
+    "examples": ["enk", "gw", "flu"]
+  },
+  "string_array": {
+    "type": "array",
+    "items": { "type": "string" }
+  },
+  "text_block": {
+    "type": "object",
+    "required": [ "type", "value" ],
+    "additionalProperties": false,
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": ["/type/text"]
+      },
+      "value": { "type": "string" }
+    }
+  },
+  "work_key": {
+    "type": "string",
+    "pattern": "^/works/OL[0-9]+W$"
+  }
+}
