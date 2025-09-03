@@ -125,7 +125,7 @@ def compose_ia_url(
 
     Returns None if we get an empty query
     """
-    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
+    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS  # noqa: PLC0415
 
     query = CAROUSELS_PRESETS.get(query, query)
     q = 'openlibrary_work:(*)'
@@ -341,7 +341,7 @@ class AvailabilityStatusV2(AvailabilityStatus):
 def get_ebook_access_availability(
     ocaid: str, ebook_access: EbookAccess
 ) -> AvailabilityStatusV2:
-    from openlibrary.book_providers import EbookAccess
+    from openlibrary.book_providers import EbookAccess  # noqa: PLC0415
 
     status: Literal["borrow_available", "borrow_unavailable", "open", "error"] = "error"
     if ebook_access == EbookAccess.BORROWABLE:
@@ -487,7 +487,7 @@ def get_availability(
 
 def get_ocaid(item: dict) -> str | None:
     # Circular import otherwise
-    from ..book_providers import is_non_ia_ocaid
+    from ..book_providers import is_non_ia_ocaid  # noqa: PLC0415
 
     possible_fields = [
         'ocaid',  # In editions
@@ -542,8 +542,8 @@ def add_availability(
     :param items: items with fields containing ocaids
     """
     if mode == "identifier":
-        from openlibrary.book_providers import EbookAccess
-        from openlibrary.plugins.openlibrary.code import is_bot
+        from openlibrary.book_providers import EbookAccess  # noqa: PLC0415
+        from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
 
         if is_bot() and items and 'ebook_access' in items[0]:
             for item in items:
@@ -692,7 +692,7 @@ def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
 
     Returns [] if user has no waitingloans.
     """
-    from .waitinglist import WaitingLoan
+    from .waitinglist import WaitingLoan  # noqa: PLC0415
 
     if "site" not in web.ctx:
         delegate.fakeload()

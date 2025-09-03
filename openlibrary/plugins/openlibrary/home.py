@@ -48,7 +48,7 @@ def get_homepage(devmode):
 
 
 def get_cached_homepage():
-    from openlibrary.plugins.openlibrary.code import is_bot
+    from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
 
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
@@ -79,7 +79,7 @@ def get_cached_homepage():
 # thread, so all the web.* stuff is correct. The inner function is executed on the
 # other thread, so all the web.* stuff will be dummy.
 def caching_prethread():
-    from openlibrary.plugins.openlibrary.code import is_bot
+    from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
 
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang

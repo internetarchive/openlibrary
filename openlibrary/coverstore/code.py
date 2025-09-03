@@ -283,7 +283,7 @@ class cover:
 
         web.header('Content-Type', 'image/jpeg')
         try:
-            from openlibrary.coverstore import archive
+            from openlibrary.coverstore import archive  # noqa: PLC0415
 
             if d.id >= 8_000_000 and d.uploaded:
                 return web.found(
@@ -497,7 +497,7 @@ class delete:
 def render_list_preview_image(lst_key: str):
     """This function takes a list of five books and puts their covers in the correct
     locations to create a new image for social-card"""
-    from openlibrary.core.lists.model import List
+    from openlibrary.core.lists.model import List  # noqa: PLC0415
 
     lst = cast(List, web.ctx.site.get(lst_key))
     five_covers = itertools.islice(
