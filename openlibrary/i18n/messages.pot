@@ -5477,10 +5477,6 @@ msgstr ""
 msgid "Or, use a cover from %s"
 msgstr ""
 
-#: covers/external_image.html
-msgid "Uploaded"
-msgstr ""
-
 #: covers/manage.html
 msgid ""
 "You can drag and drop thumbnails to reorder, or into the trash to delete "

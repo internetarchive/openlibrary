@@ -13,8 +13,6 @@ $def with (action, url_status_array, source_name)
                     </a>
                     $if not url_status['uploaded']:
                         <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url_status['url']">$_("Upload Image")</button>
-                    $else:
-                        <button type="submit" class="cta-btn cta-btn--vanilla" disabled>$_("Uploaded")</button>
                 </div>
     </div>
 </form>
