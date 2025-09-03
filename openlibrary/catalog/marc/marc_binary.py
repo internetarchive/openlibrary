@@ -136,9 +136,6 @@ class MarcBinary(MarcBase):
             if want and tag not in want:
                 continue
             if tag.startswith('00'):
-                # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
-                if tag == '008' and line == b'':
-                    continue
                 assert line[-1] == b'\x1e'[0]
                 # Tag contents should be strings in utf-8 by this point
                 # if not, the MARC is corrupt in some way. Attempt to rescue
