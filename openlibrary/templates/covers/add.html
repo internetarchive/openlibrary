@@ -81,7 +81,10 @@ $#    </div>
 $#</form>
 
 $if doc.type.key == "/type/edition" and doc.ocaid:
-    $ existing_url = set(image.info().get('source_url', '') for image in doc.get_covers())
+    $ existing_url = set(
+    $     image.info().get('source_url', '') if image.info() else ''
+    $     for image in doc.get_covers()
+    $ )
 
     $ img_url_cover = "https://archive.org/download/%s/page/cover" % doc.ocaid
     $ img_url_title = "https://archive.org/download/%s/page/title" % doc.ocaid
