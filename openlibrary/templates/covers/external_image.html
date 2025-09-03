@@ -7,12 +7,12 @@ $if set(image_urls) - existing_urls:
         </div>
         <div class="input-container">
             $for url in image_urls:
-                $if url and not url in existing_urls:
+                $if url and not (url in existing_urls):
                     <div class="input">
-                        <a href="$url_status['url']" target="_blank">
-                            <img class="ol-cover-form--external_image" src="$url_status['url']" style="height: 200px" alt="" />
+                        <a href="$url" target="_blank">
+                            <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
                         </a>
-                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url_status['url']">$_("Upload Image")</button>
+                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
                     </div>
         </div>
     </form>
