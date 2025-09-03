@@ -7,14 +7,14 @@ $def with (action, url_status, source_name)
     <div class="input-container">
         $for url, status in url_status.items():
             $if url:
-                    <div class="input">
-                        <a href="$url" target="_blank">
-                            <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
-                        </a>
-                        $if not status:
-                            <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
-                        $else:
-                            <button type="submit" class="cta-btn cta-btn--vanilla" disabled>$_("Uploaded")</button>
-                    </div>
+                <div class="input">
+                    <a href="$url" target="_blank">
+                        <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
+                    </a>
+                    $if not status:
+                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
+                    $else:
+                        <button type="submit" class="cta-btn cta-btn--vanilla" disabled>$_("Uploaded")</button>
+                </div>
     </div>
 </form>
