@@ -8,14 +8,14 @@ const totalRequests = new Counter('total_http_requests');
 
 const config = {
     old_api: {
-        baseUrl: 'http://localhost:8080',
+        baseUrl: 'https://testing.openlibrary.org',
     },
     new_api: {
-        baseUrl: 'http://localhost:18080',
+        baseUrl: 'https://testing.openlibrary.org/_fast',
     },
 };
 
-const test_duration = 5;
+const test_duration = 60;
 const delayBetweenScenarios = 5;
 
 let total_duration = -1;
@@ -53,8 +53,19 @@ export const options = {
         [`http_req_duration{endpoint:${s},version:fastapi}`, ['p(95)<2000']],
         [`http_req_duration{endpoint:${s},version:_web.py}`, ['p(95)<2000']],
     ])),
-    summaryTrendStats: ['avg', 'min', 'max', 'p(95)', 'p(99)', 'count'],
+    summaryTrendStats: ['avg', 'min', 'max', 'med', 'p(95)', 'p(99)', 'count'],
 };
+
+function generateRandomString(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
 
 export function genric_function(endpoint, label, legacy) {
     const tags = { version: legacy ? '_web.py' : 'fastapi', endpoint: label, };
@@ -64,8 +75,8 @@ export function genric_function(endpoint, label, legacy) {
     totalRequests.add(1, tags);
 }
 
-export function old_search_works_json() { genric_function('search.json?q=mark&mode=everything', 'search_works_json', true); }
-export function new_search_works_json() { genric_function('search.json?q=mark&mode=everything', 'search_works_json', false); }
+export function old_search_works_json() { genric_function(`search.json?q=${generateRandomString(5)}&mode=everything`, 'search_works_json', true); }
+export function new_search_works_json() { genric_function(`search.json?q=${generateRandomString(5)}&mode=everything`, 'search_works_json', false); }
 
 export function old_languages_json() { genric_function('languages.json', 'languages_json', true); }
 export function new_languages_json() { genric_function('languages.json', 'languages_json', false); }
