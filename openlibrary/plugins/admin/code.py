@@ -255,6 +255,7 @@ class any:
 class ExpiredTokenError(Exception):
     pass
 
+
 def verify_hmac(digest, msg, key_prefix, delimiter=":"):
     # Current time, in seconds
     current_time = time.time()
@@ -276,9 +277,7 @@ def verify_hmac(digest, msg, key_prefix, delimiter=":"):
     mac = ''
     if key:
         mac = hmac.new(
-            key.encode('utf-8'),
-            msg.encode('utf-8'),
-            hashlib.md5
+            key.encode('utf-8'), msg.encode('utf-8'), hashlib.md5
         ).hexdigest()
 
     result = hmac.compare_digest(mac, digest)
@@ -306,17 +305,25 @@ class sync_ia_ol(delegate.page):
         op, ocaid, _ = msg.split(":")
 
         if not op or not ocaid:
-            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
+            raise web.HTTPError(
+                "400 Bad Request", data=json.dumps({"error": "Invalid inputs"})
+            )
 
         # Fetch affected editions
-        if not (edition_keys := web.ctx.site.things({"type": '/type/edition', "ocaid": ocaid})):
+        if not (
+            edition_keys := web.ctx.site.things(
+                {"type": '/type/edition', "ocaid": ocaid}
+            )
+        ):
             raise web.HTTPError("404 Not Found")
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
         if len(editions) > 1:
             raise web.HTTPError(
                 "409 Conflict",
-                data=json.dumps({"error": "Multiple editions associated with given ocaid"})
+                data=json.dumps(
+                    {"error": "Multiple editions associated with given ocaid"}
+                ),
             )
 
         edition = editions[0]
@@ -332,9 +339,10 @@ class sync_ia_ol(delegate.page):
                     self.update_marc(edition, new_marc)
                 case _:
                     raise ValueError(f"Unknown operation : {op}")
-        except (NotImplementedError, ValueError) as e:
-            raise web.HTTPError("400 Bad Request",
-                data=json.dumps({"error": f"Unrecognized operation : {op}"})
+        except (NotImplementedError, ValueError):
+            raise web.HTTPError(
+                "400 Bad Request",
+                data=json.dumps({"error": f"Unrecognized operation : {op}"}),
             )
 
         return delegate.RawText(json.dumps({"status": "ok"}))
@@ -345,7 +353,7 @@ class sync_ia_ol(delegate.page):
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
 
     def update_marc(self, edition, new_marc):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class people:
