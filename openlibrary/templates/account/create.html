@@ -75,12 +75,14 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.username, suffix=str(screenname_url()))
             $:field(form.password)
 
-            <div class="ol-signup-form__checkbox">
-                $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
-            </div>
-            <div id="rpd-checkbox" class="ol-signup-form__checkbox">
+           <div class="ol-signup-form__checkbox">
+             <input type="checkbox" id="ia_newsletter" name="ia_newsletter" value="1" />
+              <label for="ia_newsletter">$_("Sign me up for IA newsletters")</label>
+              </div>
+              <div id="rpd-checkbox" class="ol-signup-form__checkbox">
                 $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
             </div>
+
             <div id="pda-selector" class="ol-signup-form__select hidden">
                 <div class="ol-signup-form__error" id="pd_programMessage"></div>
                 <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')">
