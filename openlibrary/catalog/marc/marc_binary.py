@@ -136,7 +136,8 @@ class MarcBinary(MarcBase):
             if want and tag not in want:
                 continue
             if tag.startswith('00'):
-                assert line[-1] == b'\x1e'[0]
+                if not line or line[-1] != b'\x1e'[0]:
+                    raise BadMARC('Corrupt control field found')
                 # Tag contents should be strings in utf-8 by this point
                 # if not, the MARC is corrupt in some way. Attempt to rescue
                 # using 'replace' error handling. We don't want to change offsets
