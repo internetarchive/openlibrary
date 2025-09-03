@@ -234,6 +234,17 @@ def monkeypatch_ol(monkeypatch):
 
     monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
 
+    # Mock get_solr for add_availability function
+    class MockSolr:
+        def select(self, query, fields=None, rows=None, fq=None):
+            # Return mock Solr response - empty for most tests to maintain existing behavior
+            return {'docs': []}
+
+    def mock_get_solr():
+        return MockSolr()
+
+    monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
+
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -354,6 +365,60 @@ def test_dynlinks(monkeypatch):
     assert json.loads(js) == expected_result
 
 
+def test_add_availability(monkeypatch):
+    """Test the add_availability function with various ebook_access values."""
+
+    # Mock Solr to return test data
+    class MockSolr:
+        def select(self, query, fields=None, rows=None, fq=None):
+            return {
+                'docs': [
+                    {'key': '/books/OL1M', 'ebook_access': 'borrowable'},
+                    {'key': '/books/OL2M', 'ebook_access': 'public'},
+                    {'key': '/books/OL3M', 'ebook_access': 'printdisabled'},
+                    {'key': '/books/OL4M'},  # No ebook_access field
+                ]
+            }
+
+    def mock_get_solr():
+        return MockSolr()
+
+    monkeypatch.setattr(dynlinks, "get_solr", mock_get_solr)
+
+    # Test with dict input (bibkey -> book dict)
+    books_dict = {
+        'isbn:1111111111': {'key': '/books/OL1M', 'title': 'Test Book 1'},
+        'isbn:2222222222': {'key': '/books/OL2M', 'title': 'Test Book 2'},
+        'isbn:3333333333': {'key': '/books/OL3M', 'title': 'Test Book 3'},
+        'isbn:4444444444': {'key': '/books/OL4M', 'title': 'Test Book 4'},
+        'isbn:5555555555': {
+            'key': '/books/OL5M',
+            'title': 'Test Book 5',
+        },  # Not in Solr results
+    }
+
+    result = dynlinks.add_availability(books_dict)
+
+    # Check mapping from ebook_access to preview
+    assert result['isbn:1111111111']['preview'] == 'borrow'
+    assert result['isbn:2222222222']['preview'] == 'full'
+    assert result['isbn:3333333333']['preview'] == 'restricted'
+    assert result['isbn:4444444444']['preview'] == 'noview'
+    assert result['isbn:5555555555']['preview'] == 'noview'
+
+    # Test with list input
+    books_list = [
+        {'key': '/books/OL1M', 'title': 'Test Book 1'},
+        {'key': '/books/OL2M', 'title': 'Test Book 2'},
+        {'key': '/books/OL3M', 'title': 'Test Book 3'},
+    ]
+
+    result_list = dynlinks.add_availability(books_list)
+    assert result_list[0]['preview'] == 'borrow'
+    assert result_list[1]['preview'] == 'full'
+    assert result_list[2]['preview'] == 'restricted'
+
+
 def test_isbnx(monkeypatch):
     site = mock_infobase.MockSite()
     site.save(
@@ -363,8 +428,8 @@ def test_isbnx(monkeypatch):
             "isbn_10": ["123456789X"],
         }
     )
-
-    monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    web.ctx.site = site
+    web.ctx.path = "/"   # make sure .path exists
     json_data = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = json.loads(json_data)
     assert list(d) == ["isbn:123456789X"]
