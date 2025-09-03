@@ -1,18 +1,18 @@
-$def with (action, url_status, source_name)
+$def with (action, url_status_array, source_name)
 
 <form class="ol-cover-form ol-cover-form--external" method="post" enctype="multipart/form-data" action="$action">
     <div class="label">
         <label>$_("Or, use a cover from %s", source_name)</label>
     </div>
     <div class="input-container">
-        $for url, status in url_status.items():
-            $if url:
+        $for url_status in url_status_array:
+            $if url_status['url'] and not url_status['uploaded']:
                 <div class="input">
-                    <a href="$url" target="_blank">
-                        <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
+                    <a href="$url_status['url']" target="_blank">
+                        <img class="ol-cover-form--external_image" src="$url_status['url']" style="height: 200px" alt="" />
                     </a>
-                    $if not status:
-                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>
+                    $if not url_status['uploaded']:
+                        <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url_status['url']">$_("Upload Image")</button>
                     $else:
                         <button type="submit" class="cta-btn cta-btn--vanilla" disabled>$_("Uploaded")</button>
                 </div>

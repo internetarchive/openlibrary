@@ -89,12 +89,13 @@ $if doc.type.key == "/type/edition" and doc.ocaid:
     $ img_url_cover = "https://archive.org/download/%s/page/cover" % doc.ocaid
     $ img_url_title = "https://archive.org/download/%s/page/title" % doc.ocaid
 
-    $ url_status = {
-    $    img_url_cover: img_url_cover in existing_url,
-    $    img_url_title: img_url_title in existing_url
-    $ }
+    $ url_status_array = [
+    $     {"url": img_url_cover, "uploaded": img_url_cover in existing_url},
+    $     {"url": img_url_title, "uploaded": img_url_title in existing_url}
+    $ ]
 
-    $:render_template("covers/external_image", action, url_status, _("Internet Archive"))
+    $if any(not item['uploaded'] for item in url_status_array):
+        $:render_template("covers/external_image", action, url_status_array, _("Internet Archive"))
 
 $if doc.type.key == "/type/author" and data.get('wikidata_images'):
     $ img_url_cover = data.get('wikidata_images')[0]
