@@ -618,9 +618,9 @@ class BatchImportApprove(delegate.page):
             """
             UPDATE import_item
             SET status = 'pending'
-            WHERE batch_id = $1 AND status = 'needs_review';
+            WHERE batch_id = $batch_id AND status = 'needs_review';
             """,
-            (batch_id,),
+            vars=locals(),
         )
 
         return web.found(f"/import/batch/{batch_id}")
