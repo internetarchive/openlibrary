@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Open Library Edition Schema",
+  "type": "object",
+  "required": [
+    "key",
+    "title",
+    "type",
+    "works",
+    "revision",
+    "last_modified"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "key": { "$ref": "shared_definitions.json#/edition_key" },
+    "title":    { "type": "string" },
+    "subtitle": { "type": "string" },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": ["/type/edition"]
+        }
+      }
+    },
+    "authors": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/author" }
+    },
+    "works": { "$ref": "#/definitions/works" },
+    "identifiers": { "$ref": "#/definitions/identifiers" },
+    "isbn_10": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/isbn_10" }
+    },
+    "isbn_13": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/isbn_13" }
+    },
+    "lccn": {
+      "title": "Library of Congress Control Numbers",
+      "description": "Library of Congress Control Numbers, linkable via https://lccn.loc.gov/<lccn>",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{,3}[0-9]+$"
+      }
+    },
+    "ocaid": {
+      "title": "Internet Archive OCAID",
+      "description": "Links to the Internet Archive record via https://archive.org/details/<ocaid>",
+      "type": "string",
+      "pattern": "^[^ ]{,50}$"
+    },
+    "oclc_numbers": {
+      "description": "OCLC Online Computer Library Center / WorldCat id, linkable via https://www.worldcat.org/oclc/<oclc_number>",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+$"
+      }
+    },
+    "local_id": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "covers": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/link" }
+    },
+    "languages": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/language" }
+    },
+    "translated_from": {
+      "type": "array",
+      "description": "Translated from original language(s)",
+      "items": { "$ref": "#/definitions/language" }
+    },
+    "translation_of": {
+      "type": "string",
+      "description": "The title of the original language work",
+      "examples": [ "Ai margini del caos" ]
+    },
+    "by_statement": { "type": "string" },
+    "weight": {
+      "type": "string",
+      "examples": [
+        "300 grams",
+        "0.3 kilos",
+        "12 ounces",
+        "1 pounds"
+      ]
+    },
+    "edition_name": {
+      "type": "string",
+      "examples": ["1st ed.", "2000 edition"]
+    },
+    "number_of_pages": { "type": "number" },
+    "pagination": { "type": "string" },
+    "physical_dimensions": {
+      "type": "string",
+      "examples": [
+        "5.4 x 4.7 x 0.2 inches",
+        "21 x 14.8 x 0.8 centimeters"
+      ]
+    },
+    "physical_format": {
+      "type": "string",
+      "examples": [
+        "Paperback",
+        "Hardcover",
+        "Spiral-bound"
+      ]
+    },
+    "copyright_date": {
+      "type": "string",
+      "examples": [
+        "1992"
+      ]
+    },
+    "publish_country": { "$ref": "shared_definitions.json#/publish_country" },
+    "publish_date": {
+      "type": "string",
+      "description": "The publication date in Extended Date/Time Format (EDTF) -- https://www.loc.gov/standards/datetime/",
+      "examples": [
+        "2017",
+        "2017-07",
+        "2017-07-11"
+      ]
+    },
+    "publish_places":      { "$ref": "shared_definitions.json#/string_array" },
+    "publishers":          { "$ref": "shared_definitions.json#/string_array" },
+    "contributions":       { "$ref": "shared_definitions.json#/string_array" },
+    "dewey_decimal_class": { "$ref": "shared_definitions.json#/string_array" },
+    "genres":              { "$ref": "shared_definitions.json#/string_array" },
+    "lc_classifications":  {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/lc_classification" }
+    },
+    "other_titles":        { "$ref": "shared_definitions.json#/string_array" },
+    "series":              { "$ref": "shared_definitions.json#/string_array" },
+    "source_records":      { "$ref": "shared_definitions.json#/string_array" },
+    "subjects":            { "$ref": "shared_definitions.json#/string_array" },
+    "work_titles":         { "$ref": "shared_definitions.json#/string_array" },
+
+    "table_of_contents":   { "type": "array" },
+
+    "description":    { "$ref": "shared_definitions.json#/text_block" },
+    "first_sentence": { "$ref": "shared_definitions.json#/text_block" },
+    "notes":          { "$ref": "shared_definitions.json#/text_block" },
+
+    "revision":        { "type": "number" },
+    "latest_revision": { "type": "number" },
+    "created":         { "$ref": "shared_definitions.json#/internal_datetime" },
+    "last_modified":   { "$ref": "shared_definitions.json#/internal_datetime" }
+  },
+
+  "definitions": {
+    "identifiers": {
+      "type": "object"
+    },
+    "isbn_10": {
+      "type": "string",
+      "pattern": "^([0-9][- ]*){9}[0-9X]$"
+    },
+    "isbn_13": {
+      "type": "string",
+      "pattern": "^([0-9][- ]*){13}$"
+    },
+    "works": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [ "key" ],
+        "properties": {
+          "key": { "$ref": "shared_definitions.json#/work_key" }
+        }
+      }
+    },
+    "language": {
+      "type": "object",
+      "required": [ "key" ],
+      "additionalProperties": false,
+      "description": "A type based on the list of MARC21 language codes. See https://www.loc.gov/marc/languages/",
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^/languages/[a-z]{3}$",
+	  "examples": [ "/languages/eng", "/languages/ger" ]
+        }
+      }
+    }
+  }
+}
