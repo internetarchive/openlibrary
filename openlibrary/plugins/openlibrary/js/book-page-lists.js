@@ -44,6 +44,8 @@ export function initListsSection(elem) {
                         }
                         // Initialize private buttons after content is loaded
                         initPrivateButtonsAfterLoad(listSection)
+                        const followForms = listSection.querySelectorAll('.follow-form');
+                        initAsyncFollowing(elem, followForms)
                     })
             }
         })
@@ -80,4 +82,63 @@ async function fetchPartials(workId, editionId) {
     }
 
     return fetch(buildPartialsUrl('BPListsSection', params));
+}
+async function initAsyncFollowing(elem, followForms) {
+    followForms.forEach(form => {
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const url = form.action;
+            console.log('url:', form.action);
+            const formData = new FormData(form);
+            const publisherField = form.querySelector('input[name=publisher]');
+            const publisher = publisherField.value;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData)
+            })
+                .then(resp => {
+                    if (!resp.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    followForms.forEach(followForm => {
+                        const publisherField = followForm.querySelector('input[name=publisher]');
+                        if (publisherField.value === publisher) {
+                            const followButton = followForm.querySelector('button');
+                            const i18nStrings = JSON.parse(followButton.dataset.i18n)
+                            console.log(i18nStrings)
+                            console.log(followButton);
+                            followButton.disabled = true;
+                            if (followButton.classList.contains('cta-btn--delete')) {
+                                followButton.classList.remove('cta-btn--delete');
+                                followButton.classList.add('cta-btn--primary');
+                                followButton.innerText = i18nStrings.follow 
+                            }
+                            else {
+                                followButton.classList.remove('cta-btn--primary');
+                                followButton.classList.add('cta-btn--delete');
+                                followButton.innerText = i18nStrings.unfollow 
+                            }
+                            const stateInput = elem.querySelector('input[name=state]');
+                            stateInput.value = 1 - stateInput.value;
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
+                })
+                .finally(() => {
+                    followForms.forEach(followForm => {
+                        const publisherField = followForm.querySelector('input[name=publisher]');
+                        if (publisherField.value === publisher) {
+                            const followButton = followForm.querySelector('button');
+                            followButton.disabled = false;
+                        }
+                    });
+                });
+        });
+    });
 }
