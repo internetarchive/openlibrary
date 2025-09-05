@@ -88,7 +88,6 @@ async function initAsyncFollowing(elem, followForms) {
         form.addEventListener('submit', async e => {
             e.preventDefault();
             const url = form.action;
-            console.log('url:', form.action);
             const formData = new FormData(form);
             const publisherField = form.querySelector('input[name=publisher]');
             const publisher = publisherField.value;
@@ -108,8 +107,6 @@ async function initAsyncFollowing(elem, followForms) {
                         if (publisherField.value === publisher) {
                             const followButton = followForm.querySelector('button');
                             const i18nStrings = JSON.parse(followButton.dataset.i18n)
-                            console.log(i18nStrings)
-                            console.log(followButton);
                             followButton.disabled = true;
                             if (followButton.classList.contains('cta-btn--delete')) {
                                 followButton.classList.remove('cta-btn--delete');
@@ -127,7 +124,6 @@ async function initAsyncFollowing(elem, followForms) {
                     });
                 })
                 .catch((error) => {
-                    console.log(error);
                     new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
                 })
                 .finally(() => {
