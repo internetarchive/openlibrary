@@ -4,7 +4,6 @@ $ i18n_strings = {
 $   'follow': _('Follow'),
 $   'unfollow': _('Unfollow')
 $ }
-
 $ subscriber = ctx.user and ctx.user.key
 $ custom_request_path = request_path if request_path != '' else request.fullpath
 <div>
@@ -15,10 +14,7 @@ $ custom_request_path = request_path if request_path != '' else request.fullpath
       <input type="hidden" value="$publisher" name="publisher"/>
       <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
-      $if following: 
-        <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)">$_("Unfollow")</button> 
-      $else:
-        <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)" >$_("Follow")</button>
+      <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)">$_("Unfollow" if following else "Follow")</button>
     </form>
   $else:
     <a class="cta-btn cta-btn--primary" href="/account/login?redir_url=$(ctx.path)&action=follow:$(publisher)">$_("Follow")</a>
