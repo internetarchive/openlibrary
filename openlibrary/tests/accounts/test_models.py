@@ -67,7 +67,7 @@ def test_get(mock_web):
     key = "test/test"
     test_username = test_account.username
 
-    retrieved_account = OpenLibraryAccount.get(email=email, test=test)
+    retrieved_account = OpenLibraryAccount.get_by_email(email)
     assert retrieved_account == test_account
 
     mock_site = mock_web.ctx.site
@@ -84,18 +84,18 @@ def test_get(mock_web):
         }
     ]
 
-    retrieved_account = OpenLibraryAccount.get(link=test_username, test=test)
+    retrieved_account = OpenLibraryAccount.get_by_link(test_username)
     assert retrieved_account
     retrieved_username = get_username(retrieved_account)
     assert retrieved_username == test_username
 
     mock_site.store.values.return_value[0]["name"] = "username"
 
-    retrieved_account = OpenLibraryAccount.get(username=test_username, test=test)
+    retrieved_account = OpenLibraryAccount.get_by_username(test_username)
     assert retrieved_account
     retrieved_username = get_username(retrieved_account)
     assert retrieved_username == test_username
 
     key = f'test/{retrieved_username}'
-    retrieved_account = OpenLibraryAccount.get(key=key, test=test)
+    retrieved_account = OpenLibraryAccount.get_by_key(key)
     assert retrieved_account
