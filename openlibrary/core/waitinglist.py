@@ -52,7 +52,7 @@ class WaitingLoan(dict):
         userid = self["userid"]
         username = ""
         if userid.startswith('@'):
-            account = OpenLibraryAccount.get_or_raise(link=userid)
+            account = OpenLibraryAccount.get_or_raise(userid, 'link')
             username = account.username
         elif userid.startswith('ol:'):
             username = userid[len("ol:") :]
@@ -119,7 +119,7 @@ class WaitingLoan(dict):
         user_key = kw['user_key']
         itemname = kw.get('itemname', '')
         if not itemname:
-            account = OpenLibraryAccount.get_or_raise(key=user_key)
+            account = OpenLibraryAccount.get_or_raise(user_key, 'key')
             itemname = account.itemname
         _wl_api.join_waitinglist(kw['identifier'], itemname)
         return cls.find(user_key, kw['identifier'], itemname=itemname)
@@ -133,7 +133,7 @@ class WaitingLoan(dict):
         Returns None if there is no such waiting loan.
         """
         if not itemname:
-            account = OpenLibraryAccount.get_or_raise(key=user_key)
+            account = OpenLibraryAccount.get_or_raise(user_key, 'key')
             itemname = account.itemname
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
@@ -183,7 +183,7 @@ def get_waitinglist_size(book_key: str) -> int:
 def get_waitinglist_for_user(user_key: str) -> list[WaitingLoan]:
     """Returns the list of records for all the books that a user is waiting for."""
     waitlist = []
-    account = OpenLibraryAccount.get_or_raise(key=user_key)
+    account = OpenLibraryAccount.get_or_raise(user_key, 'key')
     if account.itemname:
         waitlist.extend(WaitingLoan.query(userid=account.itemname))
     waitlist.extend(WaitingLoan.query(userid=lending.userkey2userid(user_key)))

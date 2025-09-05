@@ -557,7 +557,7 @@
     </fieldType>
 
     <!-- A text field that applies standard title sorting conventions to its content -->
-    <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
+    <fieldType name="text_title_sort" class="solr.SortableTextField" sortMissingLast="false" omitNorms="true">
       <analyzer>
         <tokenizer name="keyword" />
         <filter name="trim" />
