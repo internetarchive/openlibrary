@@ -91,6 +91,12 @@ async function initAsyncFollowing(elem, followForms) {
             const formData = new FormData(form);
             const publisherField = form.querySelector('input[name=publisher]');
             const publisher = publisherField.value;
+            const followButtonRefs = []
+            followForms.forEach(followForm => {
+                const followButton = followForm.querySelector('button');
+                followButton.disabled = true;
+                followButtonRefs.push(followButton)
+            });
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -107,7 +113,6 @@ async function initAsyncFollowing(elem, followForms) {
                         if (publisherField.value === publisher) {
                             const followButton = followForm.querySelector('button');
                             const i18nStrings = JSON.parse(followButton.dataset.i18n)
-                            followButton.disabled = true;
                             if (followButton.classList.contains('cta-btn--delete')) {
                                 followButton.classList.remove('cta-btn--delete');
                                 followButton.classList.add('cta-btn--primary');
@@ -127,13 +132,9 @@ async function initAsyncFollowing(elem, followForms) {
                     new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
                 })
                 .finally(() => {
-                    followForms.forEach(followForm => {
-                        const publisherField = followForm.querySelector('input[name=publisher]');
-                        if (publisherField.value === publisher) {
-                            const followButton = followForm.querySelector('button');
-                            followButton.disabled = false;
-                        }
-                    });
+                   followButtonRefs.forEach(followButtonRef => {
+                      followButtonRef.disabled = false
+                   }) 
                 });
         });
     });

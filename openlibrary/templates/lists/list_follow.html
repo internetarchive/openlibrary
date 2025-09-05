@@ -21,19 +21,20 @@ $def list_card(list, owner, own_list):
                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
                $else:
                    $ img_url = '/images/icons/avatar_book-sm.png'
-               <img src="$img_url" loading="lazy" width="80"/>
+               <img src="$img_url" alt="$_('Cover of book')" loading="lazy" width="80"/>
         </a>
 
         <!-- Bottom section: owner info or community label -->
         $if owner:
             <div class="list-follow-card__bottom">
                 <div class="list-follow-card__user">
+
+                            $ owner_username = owner.key.split('/')[-1]
                     <a href="$owner.key">
-                        <img src="$(owner.key)/avatar" />
+                        <img src="$(owner.key)/avatar" alt="$_('Avatar of the owner of the list')" />
                     </a>
                     <div class="list-follow-card__username">
                         $if not own_list:
-                            $ owner_username = owner.key.split('/')[-1]
                             <a class="list-follow-card__username-link" href="$owner.key" title="$owner_username">
                                 @${owner_username}
                             </a>
@@ -45,7 +46,6 @@ $def list_card(list, owner, own_list):
                 </div>
                 <div class="list-follow-card__follow-button">
                     $if not own_list:
-                        $ owner_username = owner.key.split('/')[-1]
                         $ owner_account = get_user_object(owner_username)
                         $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
                         $ settings = owner_account.get_users_settings()
