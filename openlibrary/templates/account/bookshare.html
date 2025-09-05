@@ -1,0 +1,102 @@
+$def with (pd_org=None, auth_url='', error='')
+
+$# Template for Bookshare OAuth qualification flow
+
+$var title: $_("Bookshare Account Verification")
+
+<div class="ol-page-bookshare">
+    <div id="contentHead">
+        <h1>$_("Verify Your Bookshare Account")</h1>
+    </div>
+
+    <div id="contentBody">
+        $if error:
+            <div class="flash-messages">
+                <div class="flash error">
+                    <strong>$_("Error:"):</strong> $error
+                </div>
+            </div>
+
+        <div class="bookshare-verification">
+            <p>$_("To complete your print disability access request, please verify your Bookshare account.")</p>
+            
+            <div class="bookshare-info">
+                <h3>$_("About Bookshare")</h3>
+                <p>$_("Bookshare is the world's largest accessible digital library for people with reading barriers. By verifying your Bookshare account, you can automatically qualify for print disability access on Open Library.")</p>
+                
+                <ul>
+                    <li>$_("Instant qualification - no manual review needed")</li>
+                    <li>$_("Secure OAuth connection")</li>
+                    <li>$_("Access to Open Library's print disability collection")</li>
+                </ul>
+            </div>
+
+            $if auth_url:
+                <div class="bookshare-auth">
+                    <a href="$auth_url" class="cta-btn cta-btn--available">
+                        $_("Connect with Bookshare")
+                    </a>
+                    <p class="note">$_("You'll be redirected to Bookshare.org to authorize the connection.")</p>
+                </div>
+            $else:
+                <div class="bookshare-error">
+                    <p>$_("Bookshare OAuth is not currently configured. Please contact support.")</p>
+                </div>
+
+            <div class="bookshare-alternatives">
+                <h3>$_("Don't have a Bookshare account?")</h3>
+                <p>$_("You can still request print disability access through other qualifying programs or documentation.")</p>
+                <a href="/account/create?pda=unqualified">$_("Continue with manual verification")</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.ol-page-bookshare {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.bookshare-verification {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.bookshare-info {
+    margin: 20px 0;
+}
+
+.bookshare-info ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.bookshare-auth {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.bookshare-auth .note {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.bookshare-alternatives {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.bookshare-error {
+    background: #fee;
+    border: 1px solid #fcc;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+</style>
