@@ -15,8 +15,8 @@ $ custom_request_path = request_path if request_path != '' else request.fullpath
       <input type="hidden" value="$publisher" name="publisher"/>
       <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
-      $if following: 
-        <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)">$_("Unfollow")</button> 
+      $if following:
+        <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)">$_("Unfollow")</button>
       $else:
         <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)" >$_("Follow")</button>
     </form>
