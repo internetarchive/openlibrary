@@ -778,11 +778,6 @@ msgstr ""
 msgid "added to"
 msgstr ""
 
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
-
 #: SearchResultsWork.html type/work/editions.html
 #, python-format
 msgid "First published in %(year)s"
