@@ -292,12 +292,12 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
-#: Follow.html
-msgid "UnfollowFollow"
-msgstr ""
-
 #: Follow.html lists/list_follow.html
 msgid "Follow"
+msgstr ""
+
+#: Follow.html
+msgid "Unfollow"
 msgstr ""
 
 #: FormatExpiry.html
