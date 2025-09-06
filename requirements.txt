@@ -11,7 +11,7 @@ git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382
 gunicorn==23.0.0
 httpx==0.24.1
 ijson==3.2.3
-internetarchive==3.5.0
+internetarchive==5.5.1
 isbnlib==3.10.14
 luqum==0.11.0
 lxml==4.9.4
