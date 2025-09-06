@@ -865,8 +865,7 @@ class User(models.User):
         )
 
     def get_users_settings(self):
-        settings = web.ctx.site.get('%s/preferences' % self.key)
-        return settings.dict().get('notifications') if settings else {}
+        return self.preferences()
 
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
