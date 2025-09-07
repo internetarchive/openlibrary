@@ -17,7 +17,7 @@ def archive_url(url, access_key=None, secret_key=None):
         url: URL to archive
         access_key: IA access key (optional, uses config/env)
         secret_key: IA secret key (optional, uses config/env)
-    
+
     Returns:
         Job ID on success, error string on failure
     """
@@ -41,9 +41,9 @@ def archive_url(url, access_key=None, secret_key=None):
         "Authorization": f"LOW {access_key}:{secret_key}",
         "Accept": "application/json",
     }
-    
+
     data = {"url": url}
-    
+
     try:
         response = requests.post(
             "https://web.archive.org/save", headers=headers, data=data, timeout=30
