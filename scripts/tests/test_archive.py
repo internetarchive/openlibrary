@@ -6,29 +6,30 @@
 
 import os
 import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from openlibrary.core.archive import archive_url
 
 # Test URLs source : https://colab.research.google.com/drive/1y7c4n34N6oahlMjImDfG1QzembHWUJW4#scrollTo=g4YZshpc_ICP
 urls = [
-"https://www.atsdr.cdc.gov/place-health/php/svi/index.html",
-"https://nida.nih.gov/nidamed-medical-health-professionals/health-professions-education/words-matter-terms-to-use-avoid-when-talking-about-addiction",
-"https://www.cdc.gov/health-equity/index.html", 
-"https://www.cdc.gov/health-equity-chronic-disease/index.html",
-"https://www.cdc.gov/pcd/issues/2020/20_0350.htm",
-"https://www.cdc.gov/pcd/issues/2020/20_0317.htm",
-"https://www.cdc.gov/pcd/collections/Public_Health_and_Pharmacy.htm",
-"https://hdsbpc.cdc.gov/s/article/Implementation-Considerations-for-Collaborative-Drug-Therapy-Management",
-"https://www.cdc.gov/nchs/nsfg/nsfg-questionnaires.htm",
-"https://www.ncei.noaa.gov/access"
-"https://community.purpleair.com/t/purpleair-data-download-tool/3787",
-"https://www.cdc.gov/health-equity/",
-"https://minorityhealth.hhs.gov/minority-population-profiles",
-"https://aspe.hhs.gov/topics/health-health-care",
-"https://odphp.health.gov/healthypeople"
-
+    "https://www.atsdr.cdc.gov/place-health/php/svi/index.html",
+    "https://nida.nih.gov/nidamed-medical-health-professionals/health-professions-education/words-matter-terms-to-use-avoid-when-talking-about-addiction",
+    "https://www.cdc.gov/health-equity/index.html",
+    "https://www.cdc.gov/health-equity-chronic-disease/index.html",
+    "https://www.cdc.gov/pcd/issues/2020/20_0350.htm",
+    "https://www.cdc.gov/pcd/issues/2020/20_0317.htm",
+    "https://www.cdc.gov/pcd/collections/Public_Health_and_Pharmacy.htm",
+    "https://hdsbpc.cdc.gov/s/article/Implementation-Considerations-for-Collaborative-Drug-Therapy-Management",
+    "https://www.cdc.gov/nchs/nsfg/nsfg-questionnaires.htm",
+    "https://www.ncei.noaa.gov/access"
+    "https://community.purpleair.com/t/purpleair-data-download-tool/3787",
+    "https://www.cdc.gov/health-equity/",
+    "https://minorityhealth.hhs.gov/minority-population-profiles",
+    "https://aspe.hhs.gov/topics/health-health-care",
+    "https://odphp.health.gov/healthypeople",
 ]
+
 
 def main():
     if len(sys.argv) > 1:
@@ -36,7 +37,7 @@ def main():
         url = sys.argv[1]
         print(f"Archiving: {url}")
         result = archive_url(url)
-        
+
         if result.startswith('spn2-'):
             print("SUCCESS - URL archived!")
             print(f"Job ID: {result}")
@@ -54,13 +55,13 @@ def main():
         # Archive test URLs
         print(f"Archiving {len(urls)} URLs...")
         result = archive_url(urls[0])  # Test first URL to check credentials
-        
+
         if result == "NO_CREDENTIALS":
             print("No credentials found!")
             print("Set IA_ACCESS_KEY and IA_SECRET_KEY environment variables")
             print("Get them from: https://archive.org/account/s3.php")
             return
-        
+
         # Test all URLs
         success_count = 0
         skipped_count = 0
@@ -77,7 +78,7 @@ def main():
             else:
                 status = f"FAILED ({result})"
                 wayback_url = ""
-            
+
             print(f"{i:2d}. {status}")
             print(f"    URL: {url}")
             if result.startswith('spn2-'):
@@ -85,8 +86,11 @@ def main():
             if wayback_url:
                 print(f"    View: {wayback_url}")
             print()
-        
-        print(f"Summary: {success_count} archived, {skipped_count} skipped, {len(urls) - success_count - skipped_count} failed")
+
+        print(
+            f"Summary: {success_count} archived, {skipped_count} skipped, {len(urls) - success_count - skipped_count} failed"
+        )
+
 
 if __name__ == "__main__":
     main()
