@@ -5,9 +5,11 @@ import os
 import requests
 
 try:
-    from infogami import config
+    import infogami as _infogami
 except ImportError:
-    config = None
+    _infogami = None  # type: ignore[assignment]
+
+config = getattr(_infogami, "config", None)
 
 
 def archive_url(url, access_key=None, secret_key=None):
@@ -53,5 +55,5 @@ def archive_url(url, access_key=None, secret_key=None):
             return result.get('job_id', f"ERROR_NO_JOB_ID_{response.status_code}")
         else:
             return f"ERROR_HTTP_{response.status_code}"
-    except Exception as e:
+    except (requests.RequestException, ValueError) as e:
         return f"ERROR_EXCEPTION_{str(e)[:50]}"
