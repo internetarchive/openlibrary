@@ -1,10 +1,30 @@
 <template>
-  <div class="identifiers wrapper" role="table">
-  <div id="identifiers-form" class="identifiers-table" role="row">
-      <select v-model="selectedIdentifier" class="form-control cell1" name="name">
-        <option disabled value="">Select one</option>
+  <div
+    class="identifiers wrapper"
+    role="table"
+  >
+    <div
+      id="identifiers-form"
+      class="identifiers-table"
+      role="row"
+    >
+      <select
+        v-model="selectedIdentifier"
+        class="form-control cell1"
+        name="name"
+      >
+        <option
+          disabled
+          value=""
+        >
+          Select one
+        </option>
         <template v-if="hasPopularIds">
-          <option v-for="entry in popularIds" :key="entry.name" :value="entry.name">
+          <option
+            v-for="entry in popularIds"
+            :key="entry.name"
+            :value="entry.name"
+          >
             {{ entry.label }}
           </option>
           <template v-if="hasPopularIds">
@@ -33,7 +53,10 @@
           {{ idConfig.label }}
         </option>
       </select>
-      <div class="cell2" role="cell">
+      <div
+        class="cell2"
+        role="cell"
+      >
         <input
           id="id-value"
           v-model.trim="inputValue"
@@ -43,7 +66,10 @@
           @keyup.enter="setIdentifier"
         >
       </div>
-      <div class="cell3" role="cell">
+      <div
+        class="cell3"
+        role="cell"
+      >
         <button
           class="form-control"
           name="set"
@@ -57,12 +83,27 @@
 
     <template v-for="(value, name) in assignedIdentifiers">
       <div
-        v-if="value && !saveIdentifiersAsList" class="assigned-identifiers-table"
-        :key="name" role="row"
+        v-if="value && !saveIdentifiersAsList"
+        :key="name"
+        class="assigned-identifiers-table"
+        role="row"
       >
-        <div class="identifier-name" role="rowheader">{{ identifierConfigsByKey[name]?.label ?? name }}</div>
-        <div class="identifier-value" role="cell">{{ value }}</div>
-        <div class="remove-button" role="cell">
+        <div
+          class="identifier-name"
+          role="rowheader"
+        >
+          {{ identifierConfigsByKey[name]?.label ?? name }}
+        </div>
+        <div
+          class="identifier-value"
+          role="cell"
+        >
+          {{ value }}
+        </div>
+        <div
+          class="remove-button"
+          role="cell"
+        >
           <button
             class="form-control"
             @click="removeIdentifier(name)"
@@ -78,9 +119,22 @@
           class="assigned-identifiers-table"
           role="row"
         >
-          <div class="identifier-name" role="rowheader">{{ identifierConfigsByKey[name]?.label ?? name }}</div>
-          <div class="identifier-value" role="cell">{{ item }}</div>
-          <div class="remove-button" role="cell">
+          <div
+            class="identifier-name"
+            role="rowheader"
+          >
+            {{ identifierConfigsByKey[name]?.label ?? name }}
+          </div>
+          <div
+            class="identifier-value"
+            role="cell"
+          >
+            {{ item }}
+          </div>
+          <div
+            class="remove-button"
+            role="cell"
+          >
             <button
               class="form-control"
               :disabled="!isAdmin && name === 'ocaid'"
@@ -310,7 +364,7 @@ export default {
 <style lang="less">
 // This and .form-control ensure that select, input, and buttons are the same height
 select.form-control {
-  height: calc(2.25rem + 2px); 
+  height: calc(2.25rem + 2px);
 }
 .wrapper {
   display: inline-block;
@@ -327,7 +381,7 @@ select.form-control {
 }
 .assigned-identifiers-table {
   display: grid;
-  grid-template-columns: 60% auto auto; 
+  grid-template-columns: 60% auto auto;
   gap: 4px;
   align-items: center;
   margin-top: 4px;
@@ -347,7 +401,7 @@ select.form-control {
 @media (max-width: 855px) {
   .identifiers-table {
     grid-template-columns: 1fr auto;
-    grid-template-areas: 
+    grid-template-areas:
       "cell1 cell1"
       "cell2 cell3";
   }
@@ -356,7 +410,7 @@ select.form-control {
   .cell3 { grid-area: cell3; }
   .assigned-identifiers-table {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 
+    grid-template-areas:
       "identifier-name remove-button"
       "identifier-value remove-button";
   }
