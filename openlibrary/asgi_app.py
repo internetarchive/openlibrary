@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 
-import web  # type: ignore
 import yaml  # type: ignore
 from fastapi import FastAPI
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -12,11 +11,6 @@ logger = logging.getLogger("openlibrary.asgi_app")
 
 
 # ---- Legacy loader (mirrors scripts/openlibrary-server) --------------------
-
-
-def _setup_env() -> None:
-    os.environ.setdefault("PYTHON_EGG_CACHE", "/tmp/.python-eggs")
-    os.environ.setdefault("REAL_SCRIPT_NAME", "")
 
 
 def _https_middleware(app):
@@ -56,23 +50,12 @@ def _load_legacy_wsgi(ol_config_file: str):
 
     # Finish infogami setup and build WSGI app with middleware + static handler
     infogami._setup()
-    wsgi_app = _get_wsgi_app()
-    wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
-    return wsgi_app
-
-
-def _get_wsgi_app():
-    from infogami import config  # type: ignore
-    from infogami.utils import delegate  # type: ignore
-
-    return delegate.app.wsgifunc(*config.middleware)
 
 
 # ---- FastAPI app -----------------------------------------------------------
 
 
 def create_app() -> FastAPI:
-    _setup_env()
 
     ol_config = os.environ.get("OL_CONFIG", "/openlibrary/conf/openlibrary.yml")
     try:
