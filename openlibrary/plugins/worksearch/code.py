@@ -1096,6 +1096,67 @@ def rewrite_list_query(q, page, offset, limit):
     return q, page, offset, limit
 
 
+@dataclass(frozen=True)
+class PreparedQuery:
+    """A container for a query that has been prepared for Solr."""
+
+    query: dict
+    page: int
+    offset: int
+    limit: int
+
+
+def _process_solr_response(response, fields: str) -> dict:
+    """
+    Handles the post-processing of the Solr response, which is common
+    to both sync and async versions.
+    """
+    processed_response = response.raw_resp['response']
+
+    # For backward compatibility
+    processed_response['num_found'] = processed_response['numFound']
+
+    if fields == '*' or 'availability' in fields:
+        docs_for_availability = [
+            (
+                work['editions']['docs'][0]
+                if work.get('editions', {}).get('docs')
+                else work
+            )
+            for work in processed_response.get('docs', [])
+        ]
+        add_availability(docs_for_availability)
+
+    return processed_response
+
+
+def _prepare_solr_query(
+    query: dict, page: int, offset: int, limit: int
+) -> PreparedQuery:
+    """
+    Prepares the query by making a deep copy and rewriting list queries,
+    returning a structured dataclass.
+    """
+    # Ensure we don't mutate the `query` passed in by reference
+    prepared_query_dict = copy.deepcopy(query)
+    prepared_query_dict['wt'] = 'json'
+
+    # Deal with special /lists/ key queries
+    q_val, new_page, new_offset, new_limit = rewrite_list_query(
+        prepared_query_dict.get('q', ''), page, offset, limit
+    )
+    prepared_query_dict['q'] = q_val
+
+    return PreparedQuery(
+        query=prepared_query_dict,
+        page=new_page,
+        offset=new_offset,
+        limit=new_limit,
+    )
+
+
+# Note: these could share an "implementation" to keep a common interface but it creates a lot more complexity
+# Warning: when changing this please also change the sync version
 @public
 async def async_work_search(
     query: dict,
@@ -1108,47 +1169,25 @@ async def async_work_search(
     spellcheck_count: int | None = None,
     query_label: QueryLabel = 'UNLABELLED',
 ) -> dict:
-    """
-    :param sort: key of SORTS dict at the top of this file
-    """
-    # Ensure we don't mutate the `query` passed in by reference
-    query = copy.deepcopy(query)
-    query['wt'] = 'json'
+    prepared = _prepare_solr_query(query, page, offset, limit)
 
-    # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_query(
-        query['q'], page, offset, limit
-    )
     resp = await async_run_solr_query(
         WorkSearchScheme(),
-        query,
-        rows=limit,
-        page=page,
+        prepared.query,
+        rows=prepared.limit,
+        page=prepared.page,
         sort=sort,
-        offset=offset,
+        offset=prepared.offset,
         fields=fields,
         facet=facet,
         spellcheck_count=spellcheck_count,
         query_label=query_label,
     )
-    response = resp.raw_resp['response']
 
-    # backward compatibility
-    response['num_found'] = response['numFound']
-    if fields == '*' or 'availability' in fields:
-        add_availability(
-            [
-                (
-                    work['editions']['docs'][0]
-                    if work.get('editions', {}).get('docs')
-                    else work
-                )
-                for work in response['docs']
-            ]
-        )
-    return response
+    return _process_solr_response(resp, fields)
 
 
+# Warning: when changing this please also change the async version
 @public
 def work_search(
     query: dict,
@@ -1161,45 +1200,22 @@ def work_search(
     spellcheck_count: int | None = None,
     query_label: QueryLabel = 'UNLABELLED',
 ) -> dict:
-    """
-    :param sort: key of SORTS dict at the top of this file
-    """
-    # Ensure we don't mutate the `query` passed in by reference
-    query = copy.deepcopy(query)
-    query['wt'] = 'json'
+    prepared = _prepare_solr_query(query, page, offset, limit)
 
-    # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_query(
-        query['q'], page, offset, limit
-    )
     resp = run_solr_query(
         WorkSearchScheme(),
-        query,
-        rows=limit,
-        page=page,
+        prepared.query,
+        rows=prepared.limit,
+        page=prepared.page,
         sort=sort,
-        offset=offset,
+        offset=prepared.offset,
         fields=fields,
         facet=facet,
         spellcheck_count=spellcheck_count,
         query_label=query_label,
     )
-    response = resp.raw_resp['response']
 
-    # backward compatibility
-    response['num_found'] = response['numFound']
-    if fields == '*' or 'availability' in fields:
-        add_availability(
-            [
-                (
-                    work['editions']['docs'][0]
-                    if work.get('editions', {}).get('docs')
-                    else work
-                )
-                for work in response['docs']
-            ]
-        )
-    return response
+    return _process_solr_response(resp, fields)
 
 
 class search_json(delegate.page):
