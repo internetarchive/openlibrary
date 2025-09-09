@@ -13,6 +13,11 @@ logger = logging.getLogger("openlibrary.asgi_app")
 # ---- Legacy loader (mirrors scripts/openlibrary-server) --------------------
 
 
+def _setup_env() -> None:
+    os.environ.setdefault("PYTHON_EGG_CACHE", "/tmp/.python-eggs")
+    os.environ.setdefault("REAL_SCRIPT_NAME", "")
+
+
 def _https_middleware(app):
     def wrapper(environ, start_response):
         if environ.get("HTTP_X_SCHEME") == "https":
@@ -56,6 +61,7 @@ def _load_legacy_wsgi(ol_config_file: str):
 
 
 def create_app() -> FastAPI:
+    _setup_env()
 
     ol_config = os.environ.get("OL_CONFIG", "/openlibrary/conf/openlibrary.yml")
     try:
