@@ -1,4 +1,3 @@
-import asyncio
 import copy
 import functools
 import itertools
@@ -155,12 +154,10 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = asyncio.run(
-            get_solr().async_raw_request(
-                solr_path,
-                urlencode(params),
-                _timeout=_timeout,
-            )
+        response = get_solr().raw_request(
+            solr_path,
+            urlencode(params),
+            _timeout=_timeout,
         )
     except requests.HTTPError:
         logger.exception("Failed solr query")

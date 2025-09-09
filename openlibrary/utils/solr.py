@@ -1,7 +1,9 @@
 """Python library for accessing Solr"""
 
+import asyncio
 import logging
 import re
+import threading
 from collections.abc import Callable, Iterable
 from typing import TypeVar
 from urllib.parse import urlencode, urlsplit
@@ -26,6 +28,27 @@ class Solr:
         self.session = requests.Session()
         self.httpx_session = httpx.AsyncClient()
 
+        # Start a persistent event loop in a background thread.
+        # This avoids creating/destroying a loop on every call to select().
+        self._loop = asyncio.new_event_loop()
+        self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
+        self._thread.start()
+
+    def close(self):
+        """
+        Gracefully shuts down the background event loop and the httpx session.
+        This method should be called when the Solr instance is no longer needed.
+        """
+        if self._thread.is_alive():
+            # Schedule the closing of the httpx session in the event loop
+            asyncio.run_coroutine_threadsafe(
+                self.httpx_session.aclose(), self._loop
+            ).result()
+            # Stop the loop
+            self._loop.call_soon_threadsafe(self._loop.stop)
+            # Wait for the thread to terminate (optional, but good practice)
+            self._thread.join()
+
     def escape(self, query):
         r"""Escape special characters in the query string
 
@@ -34,8 +57,8 @@ class Solr:
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
-        pattern = "([%s])" % re.escape(chars)
-        return web.re_compile(pattern).sub(r'\\\1', query)
+        pattern = re.compile("([%s])" % re.escape(chars))
+        return pattern.sub(r'\\\1', query)
 
     def get(
         self,
@@ -130,11 +153,20 @@ class Solr:
                 else:
                     name = f
                 params['facet.field'].append(name)
-        json_data = self.raw_request(
+
+        # MODIFICATION: Instead of asyncio.run(), submit the coroutine to the
+        # background event loop and wait for its result.
+        coro = self.async_raw_request(
             'select',
             urlencode(params, doseq=True),
             _timeout=_timeout,
-        ).json()
+        )
+        # run_coroutine_threadsafe returns a future. .result() waits for completion.
+        future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        # The result of the coroutine is an httpx.Response object. We need its JSON content.
+        response = future.result()
+        json_data = response.json()
+
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
