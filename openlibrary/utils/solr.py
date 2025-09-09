@@ -158,7 +158,7 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        # MODIFICATION: Instead of asyncio.run(), submit the coroutine to the
+        # Instead of asyncio.run(), submit the coroutine to the
         # background event loop and wait for its result.
         coro = self.async_raw_request(
             'select',
