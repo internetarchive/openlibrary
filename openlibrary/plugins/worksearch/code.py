@@ -232,7 +232,7 @@ QueryLabel = Literal[
 ]
 
 
-async def async_run_solr_query(  # noqa: PLR0912
+def _prepare_solr_query_params(
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -245,9 +245,9 @@ async def async_run_solr_query(  # noqa: PLR0912
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     query_label: QueryLabel = 'UNLABELLED',
-):
+) -> list[tuple[str, Any]]:
     """
-    :param param: dict of query parameters
+    Prepares the list of parameters for a Solr query, encapsulating the business logic.
     """
     param = param or {}
 
@@ -336,12 +336,21 @@ async def async_run_solr_query(  # noqa: PLR0912
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
 
-    url = f'{solr_select_url}?{urlencode(params)}'
-    start_time = time.time()
-    response = await async_execute_solr_query(solr_select_url, params)
+    return params, fields
+
+
+def _process_solr_response_and_enrich(
+    response: Response | None,
+    scheme: SearchScheme,
+    fields: list[str],
+    sort: str | None,
+    url: str,
+    duration: float,
+) -> 'SearchResponse':
+    """
+    Processes the Solr response, enriches it, and returns a SearchResponse object.
+    """
     solr_result = response.json() if response is not None else None
-    end_time = time.time()
-    duration = end_time - start_time
 
     if safeget(lambda: solr_result['response']['docs']):
         non_solr_fields = set(fields) & scheme.non_solr_fields
@@ -351,123 +360,46 @@ async def async_run_solr_query(  # noqa: PLR0912
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
-def run_solr_query(  # noqa: PLR0912
+def run_solr_query(
     scheme: SearchScheme,
     param: dict | None = None,
-    rows=100,
-    page=1,
-    sort: str | None = None,
-    spellcheck_count=None,
-    offset=None,
-    fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
-    allowed_filter_params: set[str] | None = None,
-    extra_params: list[tuple[str, Any]] | None = None,
-    query_label: QueryLabel = 'UNLABELLED',
-):
+    **kwargs,
+) -> 'SearchResponse':
     """
-    :param param: dict of query parameters
+    Builds and executes a synchronous Solr query.
     """
-    param = param or {}
-
-    if not fields:
-        fields = []
-    elif isinstance(fields, str):
-        fields = fields.split(',')
-
-    # use page when offset is not specified
-    if offset is None:
-        offset = rows * (page - 1)
-
-    params = [
-        *(('fq', subquery) for subquery in scheme.universe),
-        ('start', offset),
-        ('rows', rows),
-        ('ol.label', query_label),
-        ('wt', param.get('wt', 'json')),
-    ] + (extra_params or [])
-
-    if spellcheck_count is None:
-        spellcheck_count = default_spellcheck_count
-
-    if spellcheck_count:
-        params.append(('spellcheck', 'true'))
-        params.append(('spellcheck.count', spellcheck_count))
-
-    facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
-    if facet and facet_fields:
-        params.append(('facet', 'true'))
-        for facet in facet_fields:  # noqa: PLR1704
-            if isinstance(facet, str):
-                params.append(('facet.field', facet))
-            elif isinstance(facet, dict):
-                params.append(('facet.field', facet['name']))
-                if 'sort' in facet:
-                    params.append((f'f.{facet["name"]}.facet.sort', facet['sort']))
-                if 'limit' in facet:
-                    params.append((f'f.{facet["name"]}.facet.limit', facet['limit']))
-            else:
-                # Should never get here
-                raise ValueError(f'Invalid facet type: {facet}')
-
-    facet_params = (allowed_filter_params or set(scheme.facet_fields)) & set(param)
-    for (field, value), rewrite in scheme.facet_rewrites.items():
-        if param.get(field) == value:
-            if field in facet_params:
-                facet_params.remove(field)
-            params.append(('fq', rewrite() if callable(rewrite) else rewrite))
-
-    for field in facet_params:
-        if field == 'author_facet':
-            field = 'author_key'
-        values = param[field]
-        params += [('fq', f'{field}:"{val}"') for val in values if val]
-
-    # Many fields in solr use the convention of `*_facet` both
-    # as a facet key and as the explicit search query key.
-    # Examples being publisher_facet, subject_facet?
-    # `author_key` & `author_facet` is an example of a mismatch that
-    # breaks this rule. This code makes it so, if e.g. `author_facet` is used where
-    # `author_key` is intended, both will be supported (and vis versa)
-    # This "doubling up" has no real performance implication
-    # but does fix cases where the search query is different than the facet names
-    q = None
-    if param.get('q'):
-        q = scheme.process_user_query(param['q'])
-
-    if params_q := scheme.build_q_from_params(param):
-        q = f'{q} {params_q}' if q else params_q
-
-    if q:
-        solr_fields = (
-            set(fields or scheme.default_fetched_fields) - scheme.non_solr_fields
-        )
-        if 'editions' in solr_fields:
-            solr_fields.remove('editions')
-            solr_fields.add('editions:[subquery]')
-        if ed_sort := param.get('editions.sort'):
-            params.append(
-                ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
-            )
-        params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields, params)
-
-    if sort:
-        params.append(('sort', scheme.process_user_sort(sort)))
+    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
     response = execute_solr_query(solr_select_url, params)
-    solr_result = response.json() if response is not None else None
     end_time = time.time()
     duration = end_time - start_time
 
-    if safeget(lambda: solr_result['response']['docs']):
-        non_solr_fields = set(fields) & scheme.non_solr_fields
-        if non_solr_fields:
-            scheme.add_non_solr_fields(non_solr_fields, solr_result)
+    return _process_solr_response_and_enrich(
+        response, scheme, fields, kwargs.get('sort'), url, duration
+    )
 
-    return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
+
+async def async_run_solr_query(
+    scheme: SearchScheme,
+    param: dict | None = None,
+    **kwargs,
+) -> 'SearchResponse':
+    """
+    Builds and executes an asynchronous Solr query.
+    """
+    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
+
+    url = f'{solr_select_url}?{urlencode(params)}'
+    start_time = time.time()
+    response = await async_execute_solr_query(solr_select_url, params)
+    end_time = time.time()
+    duration = end_time - start_time
+
+    return _process_solr_response_and_enrich(
+        response, scheme, fields, kwargs.get('sort'), url, duration
+    )
 
 
 @dataclass
@@ -1106,7 +1038,7 @@ class PreparedQuery:
     limit: int
 
 
-def _process_solr_response(response, fields: str) -> dict:
+def _process_solr_search_response(response, fields: str) -> dict:
     """
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
@@ -1130,7 +1062,7 @@ def _process_solr_response(response, fields: str) -> dict:
     return processed_response
 
 
-def _prepare_solr_query(
+def _prepare_work_search_query(
     query: dict, page: int, offset: int, limit: int
 ) -> PreparedQuery:
     """
@@ -1169,7 +1101,7 @@ def work_search(
     spellcheck_count: int | None = None,
     query_label: QueryLabel = 'UNLABELLED',
 ) -> dict:
-    prepared = _prepare_solr_query(query, page, offset, limit)
+    prepared = _prepare_work_search_query(query, page, offset, limit)
 
     resp = run_solr_query(
         WorkSearchScheme(),
@@ -1184,7 +1116,7 @@ def work_search(
         query_label=query_label,
     )
 
-    return _process_solr_response(resp, fields)
+    return _process_solr_search_response(resp, fields)
 
 
 # Warning: when changing this please also change the sync version
@@ -1200,7 +1132,7 @@ async def async_work_search(
     spellcheck_count: int | None = None,
     query_label: QueryLabel = 'UNLABELLED',
 ) -> dict:
-    prepared = _prepare_solr_query(query, page, offset, limit)
+    prepared = _prepare_work_search_query(query, page, offset, limit)
 
     resp = await async_run_solr_query(
         WorkSearchScheme(),
@@ -1215,7 +1147,7 @@ async def async_work_search(
         query_label=query_label,
     )
 
-    return _process_solr_response(resp, fields)
+    return _process_solr_search_response(resp, fields)
 
 
 class search_json(delegate.page):
