@@ -22,19 +22,13 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   fast_web:
-    profiles: ["ol-web0", "ol-web1", "ol-web2"]
+    profiles: ["ol-fast_web0", "ol-fast_web1", "ol-fast_web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500 #todo: probably should increase max requests
+      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Note this won't work with uv pip, because uv makes a network request
-      - BEFORE_START=pip install -e /booklending_utils
-    volumes:
-      - ../booklending_utils:/booklending_utils
-      - ../olsystem:/olsystem
-      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
     # Disabled while we're updating our version of solr, otherwise it'll pull down the new image!

@@ -30,24 +30,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    ports:
-      # Debugger
-      # - 3000:3000
     volumes:
-      # Persistent volume mount for installed git submodules
-      - ol-vendor:/openlibrary/vendor
-      # Persistent volume mount for generated css and js
-      - ol-build:/openlibrary/static/build
-      # Persistent volume mount for node_modules
-      - ol-nodemodules:/openlibrary/node_modules
-      # The above volume mounts are required so that the local dev bind mount below
-      # does not clobber the data generated inside the image / container
       - .:/openlibrary
-    environment:
-      - LOCAL_DEV=true
-    depends_on:
-      - db
-      - infobase
 
   solr:
     ports:
