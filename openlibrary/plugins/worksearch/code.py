@@ -1156,37 +1156,6 @@ def _prepare_solr_query(
 
 
 # Note: these could share an "implementation" to keep a common interface but it creates a lot more complexity
-# Warning: when changing this please also change the sync version
-@public
-async def async_work_search(
-    query: dict,
-    sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
-    limit: int = 100,
-    fields: str = '*',
-    facet: bool = True,
-    spellcheck_count: int | None = None,
-    query_label: QueryLabel = 'UNLABELLED',
-) -> dict:
-    prepared = _prepare_solr_query(query, page, offset, limit)
-
-    resp = await async_run_solr_query(
-        WorkSearchScheme(),
-        prepared.query,
-        rows=prepared.limit,
-        page=prepared.page,
-        sort=sort,
-        offset=prepared.offset,
-        fields=fields,
-        facet=facet,
-        spellcheck_count=spellcheck_count,
-        query_label=query_label,
-    )
-
-    return _process_solr_response(resp, fields)
-
-
 # Warning: when changing this please also change the async version
 @public
 def work_search(
@@ -1203,6 +1172,37 @@ def work_search(
     prepared = _prepare_solr_query(query, page, offset, limit)
 
     resp = run_solr_query(
+        WorkSearchScheme(),
+        prepared.query,
+        rows=prepared.limit,
+        page=prepared.page,
+        sort=sort,
+        offset=prepared.offset,
+        fields=fields,
+        facet=facet,
+        spellcheck_count=spellcheck_count,
+        query_label=query_label,
+    )
+
+    return _process_solr_response(resp, fields)
+
+
+# Warning: when changing this please also change the sync version
+@public
+async def async_work_search(
+    query: dict,
+    sort: str | None = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int | None = None,
+    query_label: QueryLabel = 'UNLABELLED',
+) -> dict:
+    prepared = _prepare_solr_query(query, page, offset, limit)
+
+    resp = await async_run_solr_query(
         WorkSearchScheme(),
         prepared.query,
         rows=prepared.limit,
