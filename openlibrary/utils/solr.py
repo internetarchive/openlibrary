@@ -160,14 +160,13 @@ class Solr:
 
         # Instead of asyncio.run(), submit the coroutine to the
         # background event loop and wait for its result.
-        coro = self.async_raw_request(
+        coro = self.raw_request(
             'select',
             urlencode(params, doseq=True),
             _timeout=_timeout,
         )
         # run_coroutine_threadsafe returns a future. .result() waits for completion.
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-        # The result of the coroutine is an httpx.Response object. We need its JSON content.
         response = future.result()
         json_data = response.json()
 
@@ -175,7 +174,7 @@ class Solr:
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    async def async_raw_request(
+    async def raw_request(
         self,
         path_or_url: str,
         payload: str,
@@ -206,40 +205,6 @@ class Solr:
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
             return await self.httpx_session.post(
-                url, data=payload, headers=headers, timeout=timeout
-            )
-
-    def raw_request(
-        self,
-        path_or_url: str,
-        payload: str,
-        _timeout: int | None = None,
-    ) -> requests.Response:
-        if path_or_url.startswith("http"):
-            # TODO: Should this only take a path, not a full url? Would need to
-            # update worksearch.code.execute_solr_query accordingly.
-            url = path_or_url
-        else:
-            url = f'{self.base_url}/{path_or_url.lstrip("/")}'
-
-        if _timeout is not None:
-            timeout = _timeout
-        else:
-            timeout = 10
-
-        # switch to POST request when the payload is too big.
-        # XXX: would it be a good idea to switch to POST always?
-        if len(payload) < 500:
-            sep = '&' if '?' in url else '?'
-            url = url + sep + payload
-            logger.info("solr request: %s", url)
-            return self.session.get(url, timeout=timeout)
-        else:
-            logger.info("solr request: %s ...", url)
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-            }
-            return self.session.post(
                 url, data=payload, headers=headers, timeout=timeout
             )
 

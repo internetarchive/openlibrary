@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -154,11 +155,17 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(
+        # Instead of asyncio.run(), submit the coroutine to the
+        # background event loop and wait for its result.
+        solr_instance = get_solr()
+        coro = solr_instance.raw_request(
             solr_path,
             urlencode(params),
             _timeout=_timeout,
         )
+        # run_coroutine_threadsafe returns a future. .result() waits for completion.
+        future = asyncio.run_coroutine_threadsafe(coro, solr_instance._loop)
+        response = future.result()
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
@@ -179,7 +186,7 @@ async def async_execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = await get_solr().async_raw_request(
+        response = await get_solr().raw_request(
             solr_path,
             urlencode(params),
             _timeout=_timeout,
