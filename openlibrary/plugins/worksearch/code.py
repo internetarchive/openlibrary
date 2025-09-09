@@ -247,6 +247,7 @@ def _prepare_solr_query_params(
     query_label: QueryLabel = 'UNLABELLED',
 ) -> list[tuple[str, Any]]:
     """
+    :param param: dict of query parameters
     Prepares the list of parameters for a Solr query, encapsulating the business logic.
     """
     param = param or {}

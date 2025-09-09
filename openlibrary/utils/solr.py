@@ -28,6 +28,10 @@ class Solr:
         self.session = requests.Session()
         self.httpx_session = httpx.AsyncClient()
 
+        # We'd love to move this up a level to like worksearch but it's not
+        # easy to do so because worksearch has many nested webpy calls that reply on env variables not setup when calling from a thread.
+        # Basically, in the ideal world this code is all async and we push the sync code up a level.
+
         # Start a persistent event loop in a background thread.
         # This avoids creating/destroying a loop on every call to select().
         self._loop = asyncio.new_event_loop()
