@@ -6,7 +6,6 @@ import os
 import web  # type: ignore
 import yaml  # type: ignore
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -48,9 +47,10 @@ def _load_legacy_wsgi(ol_config_file: str):
     # Configure infobase from YAML reference in openlibrary.yml
     if config.get("infobase_config_file"):
         base_dir = os.path.dirname(ol_config_file)
-        path = os.path.join(base_dir, config.infobase_config_file)
+        # TODO: fix the types here
+        path = os.path.join(base_dir, config.infobase_config_file)  # type: ignore[attr-defined]
         with open(path) as f:
-            config.infobase = yaml.safe_load(f)
+            config.infobase = yaml.safe_load(f)  # type: ignore[attr-defined]
 
     config.middleware.append(_https_middleware)
 
@@ -82,9 +82,7 @@ def create_app() -> FastAPI:
         logger.exception("Failed to initialize legacy WSGI app")
         raise
 
-    app = FastAPI(title="OpenLibrary ASGI", version="1.0")
-    # This serves our css/js files
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
 
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
@@ -94,18 +92,9 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    # Mount authors router
-    from openlibrary.fastapi.authors import router as authors_router  # type: ignore
-    from openlibrary.fastapi.coauthors import router as coauthors_router  # type: ignore
-    from openlibrary.fastapi.languages import router as languages_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
-    from openlibrary.fastapi.works import router as works_router  # type: ignore
 
-    app.include_router(authors_router)
-    app.include_router(coauthors_router)
-    app.include_router(languages_router)
     app.include_router(search_router)
-    app.include_router(works_router)
 
     return app
 
