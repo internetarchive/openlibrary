@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -154,10 +155,12 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = get_solr().raw_request(
-            solr_path,
-            urlencode(params),
-            _timeout=_timeout,
+        response = asyncio.run(
+            get_solr().async_raw_request(
+                solr_path,
+                urlencode(params),
+                _timeout=_timeout,
+            )
         )
     except requests.HTTPError:
         logger.exception("Failed solr query")
@@ -363,12 +366,34 @@ def _process_solr_response_and_enrich(
 def run_solr_query(
     scheme: SearchScheme,
     param: dict | None = None,
-    **kwargs,
+    rows=100,
+    page=1,
+    sort: str | None = None,
+    spellcheck_count=None,
+    offset=None,
+    fields: str | list[str] | None = None,
+    facet: bool | Iterable[str] = True,
+    allowed_filter_params: set[str] | None = None,
+    extra_params: list[tuple[str, Any]] | None = None,
+    query_label: QueryLabel = 'UNLABELLED',
 ) -> 'SearchResponse':
     """
     Builds and executes a synchronous Solr query.
     """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
+    params, fields = _prepare_solr_query_params(
+        scheme,
+        param,
+        rows=rows,
+        page=page,
+        sort=sort,
+        spellcheck_count=spellcheck_count,
+        offset=offset,
+        fields=fields,
+        facet=facet,
+        allowed_filter_params=allowed_filter_params,
+        extra_params=extra_params,
+        query_label=query_label,
+    )
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
@@ -377,7 +402,7 @@ def run_solr_query(
     duration = end_time - start_time
 
     return _process_solr_response_and_enrich(
-        response, scheme, fields, kwargs.get('sort'), url, duration
+        response, scheme, fields, sort, url, duration
     )
 
 
