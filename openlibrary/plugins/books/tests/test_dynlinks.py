@@ -9,16 +9,16 @@ data9: This contains OL9A, OL9M and OL9W with interconnections and almost all fi
 
 import json
 import re
+from typing import cast
 
-import pytest
 import web
 
 from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.solr import Solr
 
 
-@pytest.fixture
-def data0(request):
+def build_data0():
     return {
         "/books/OL0M": {"key": "/books/OL0M", "title": "book-0"},
         "/authors/OL0A": {"key": "/authors/OL0A", "name": "author-0"},
@@ -34,8 +34,7 @@ def data0(request):
     }
 
 
-@pytest.fixture
-def data1(request):
+def build_data1():
     return {
         "/books/OL1M": {
             "key": "/books/OL1M",
@@ -51,8 +50,7 @@ def data1(request):
     }
 
 
-@pytest.fixture
-def data9(request):
+def build_data9():
     return {
         "/authors/OL9A": {"key": "/authors/OL9A", "name": "Mark Twain"},
         "/works/OL9W": {
@@ -221,7 +219,7 @@ def monkeypatch_ol(monkeypatch):
     mock.setup_call("isbn_", "1234567890", _return="/books/OL1M")
     mock.setup_call("key", "/books/OL2M", _return="/books/OL2M")
     monkeypatch.setattr(dynlinks, "ol_query", mock)
-    web.ctx.path = "/"
+
     mock = Mock()
     mock.setup_call(["/books/OL1M"], _return=[{"key": "/books/OL1M", "title": "foo"}])
     mock.setup_call(
@@ -231,23 +229,13 @@ def monkeypatch_ol(monkeypatch):
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    def mock_add_availability(items):
-        # items might be a list of dicts or keys, adapt as needed
-        # Return mocked availability info
-        for item in items:
-            if item.get('ocaid'):
-                # For example, set 'ebook_access' depending on the key
-                if (
-                    item.get('key') == '/books/OL1M'
-                    or item.get('key') == '/books/OL2M'
-                    or item.get('key') == '/books/OL9M'
-                ):
-                    item['preview'] = 'full'
-            else:
-                item['preview'] = 'noview'
-        return items
+    monkeypatch_solr(monkeypatch)
 
-    monkeypatch.setattr(dynlinks, "add_availability", mock_add_availability)
+
+def monkeypatch_solr(monkeypatch):
+    mock_solr = Solr('http://example.com/solr')
+    mock_solr.get_many = lambda *a, **kw: []
+    monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
 
 
 def test_query_keys(monkeypatch):
@@ -277,7 +265,11 @@ def test_process_doc_for_view_api(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
     bib_key = "isbn:1234567890"
-    doc = {"key": "/books/OL1M", "title": "foo"}
+    doc: dynlinks.OpenLibraryEditionWithPreview = {
+        "key": "/books/OL1M",
+        "title": "foo",
+        "preview": "noview",
+    }
     expected_result = {
         "bib_key": "isbn:1234567890",
         "info_url": "https://openlibrary.org/books/OL1M/foo",
@@ -287,8 +279,7 @@ def test_process_doc_for_view_api(monkeypatch):
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
     doc['ocaid'] = "ia-foo"
-    doc['preview'] = "full"
-    expected_result["preview"] = "full"
+    expected_result["preview"] = "noview"
     expected_result["preview_url"] = "https://archive.org/details/ia-foo"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
@@ -299,7 +290,7 @@ def test_process_doc_for_view_api(monkeypatch):
 
 def test_process_result_for_details(monkeypatch):
     assert dynlinks.process_result_for_details(
-        {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
+        {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo", "preview": "noview"}}
     ) == {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
@@ -319,11 +310,12 @@ def test_process_result_for_details(monkeypatch):
     mock.setup_call(["/authors/OL1A"], _return=[OL1A])
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    result = {
+    result: dict[str, dynlinks.OpenLibraryEditionWithPreview] = {
         "isbn:1234567890": {
             "key": "/books/OL1M",
             "title": "foo",
             "authors": [{"key": "/authors/OL1A"}],
+            "preview": "noview",
         }
     }
 
@@ -371,6 +363,7 @@ def test_dynlinks(monkeypatch):
 
 
 def test_isbnx(monkeypatch):
+    monkeypatch_solr(monkeypatch)
     site = mock_infobase.MockSite()
     site.save(
         {
@@ -393,7 +386,7 @@ def test_dynlinks_ia(monkeypatch):
         "OL2M": {
             "bib_key": "OL2M",
             "info_url": "https://openlibrary.org/books/OL2M/bar",
-            "preview": "full",
+            "preview": "noview",
             "preview_url": "https://archive.org/details/ia-bar",
         }
     }
@@ -408,7 +401,7 @@ def test_dynlinks_details(monkeypatch):
         "OL2M": {
             "bib_key": "OL2M",
             "info_url": "https://openlibrary.org/books/OL2M/bar",
-            "preview": "full",
+            "preview": "noview",
             "preview_url": "https://archive.org/details/ia-bar",
             "details": {"key": "/books/OL2M", "title": "bar", "ocaid": "ia-bar"},
         },
@@ -418,12 +411,14 @@ def test_dynlinks_details(monkeypatch):
 
 
 class TestDataProcessor:
-    def test_get_authors0(self, data0):
+    def test_get_authors0(self):
+        data0 = build_data0()
         p = dynlinks.DataProcessor()
         p.authors = data0
         assert p.get_authors(data0['/books/OL0M']) == []
 
-    def test_get_authors1(self, data1):
+    def test_get_authors1(self):
+        data1 = build_data1()
         p = dynlinks.DataProcessor()
         p.authors = data1
         assert p.get_authors(data1['/works/OL1W']) == [
@@ -433,14 +428,21 @@ class TestDataProcessor:
             }
         ]
 
-    def test_process_doc0(self, data0):
+    def test_process_doc0(self):
+        data0 = build_data0()
         p = dynlinks.DataProcessor()
         assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
 
-    def test_process_doc9(self, monkeypatch, data9):
+    def test_process_doc9(self, monkeypatch):
+        data9 = build_data9()
         monkeypatch_ol(monkeypatch)
 
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9
-        assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']
+
+        # Expected to be augmented with the preview field.
+        doc = cast(dynlinks.OpenLibraryEditionWithPreview, data9['/books/OL9M'])
+        doc['preview'] = 'full'
+
+        assert p.process_doc(doc) == data9['result']['data']
