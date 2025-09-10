@@ -136,13 +136,13 @@ async function initAsyncFollowing(followForms) {
                         }
                     });
                 })
-                .catch((error) => {
+                .catch(() => {
                     new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
                 })
                 .finally(() => {
-                   followButtonRefs.forEach(followButtonRef => {
-                      followButtonRef.disabled = false
-                   }) 
+                    followButtonRefs.forEach(followButtonRef => {
+                        followButtonRef.disabled = false
+                    })
                 });
         });
     });
