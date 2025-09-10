@@ -1,0 +1,11 @@
+$def with (books, book_path, dict_path, readonly=False)
+$# :param list[dict] books: need to find proper items to pass in
+
+$#Import for side-effect of defining jsdef functions, again is a placeholder
+$:render_template('jsdef/LazyBookPreview')
+
+$jsdef render_book_autocomplete_item(item):
+
+$jedef render_book(book_path, dict_path, readonly, i, book):
+
+$ config = {'book_path': book_path, 'dict_path': dict_path}
