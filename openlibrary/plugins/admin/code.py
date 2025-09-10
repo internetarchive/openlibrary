@@ -299,7 +299,6 @@ class sync_ia_ol(delegate.page):
         try:
             verify_hmac(digest, msg, "ia_sync")
         except (ValueError, ExpiredTokenError):
-            # XXX : Is this the correct response for this case?
             raise web.HTTPError("401 Unauthorized")
 
         op, ocaid, _ = msg.split(":")
