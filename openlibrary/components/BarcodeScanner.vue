@@ -49,13 +49,18 @@ import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js'
 export default {
     components: { LazyBookCard, SettingsIcon },
     data() {
+        let returnTo = new URLSearchParams(location.search).get('returnTo');
+        // Only allow absolute URLs or root-relative URLs to prevent XSS
+        if (!/^(https?:\/\/|\/)/.test(returnTo)) {
+            returnTo = null;
+        }
         return {
             disableISBNTextButton: false,
             canvasInactive: true,
             lastISBN: null,
             isbnList: [],
             seenISBN: new Set(),
-            returnTo: new URLSearchParams(location.search).get('returnTo'),
+            returnTo,
             BOX_STYLE: {color: 'green', lineWidth: 2},
             RESULT_BOX_STYLE: {color: 'blue', lineWidth: 2},
             RESULT_LINE_STYLE: {color: 'red', lineWidth: 15},
