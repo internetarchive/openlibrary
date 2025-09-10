@@ -11,6 +11,7 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import requests
 import web
+from asyncer import syncify
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -37,21 +38,6 @@ class Solr:
         self._loop = asyncio.new_event_loop()
         self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
         self._thread.start()
-
-    def close(self):
-        """
-        Gracefully shuts down the background event loop and the httpx session.
-        This method should be called when the Solr instance is no longer needed.
-        """
-        if self._thread.is_alive():
-            # Schedule the closing of the httpx session in the event loop
-            asyncio.run_coroutine_threadsafe(
-                self.httpx_session.aclose(), self._loop
-            ).result()
-            # Stop the loop
-            self._loop.call_soon_threadsafe(self._loop.stop)
-            # Wait for the thread to terminate (optional, but good practice)
-            self._thread.join()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -158,16 +144,10 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        # Instead of asyncio.run(), submit the coroutine to the
-        # background event loop and wait for its result.
-        coro = self.raw_request(
-            'select',
-            urlencode(params, doseq=True),
-            _timeout=_timeout,
+        response = syncify(self.raw_request, raise_sync_error=False)(
+            'select', urlencode(params, doseq=True), _timeout=_timeout
         )
-        # run_coroutine_threadsafe returns a future. .result() waits for completion.
-        future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-        response = future.result()
+
         json_data = response.json()
 
         return self._parse_solr_result(

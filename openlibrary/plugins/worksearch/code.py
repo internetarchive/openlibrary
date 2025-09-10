@@ -1,4 +1,3 @@
-import asyncio
 import copy
 import functools
 import itertools
@@ -14,6 +13,7 @@ from unicodedata import normalize
 
 import requests
 import web
+from asyncer import syncify
 from requests import Response
 
 from infogami import config
@@ -155,17 +155,11 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        # Instead of asyncio.run(), submit the coroutine to the
-        # background event loop and wait for its result.
-        solr_instance = get_solr()
-        coro = solr_instance.raw_request(
+        response = syncify(get_solr().raw_request, raise_sync_error=False)(
             solr_path,
             urlencode(params),
             _timeout=_timeout,
         )
-        # run_coroutine_threadsafe returns a future. .result() waits for completion.
-        future = asyncio.run_coroutine_threadsafe(coro, solr_instance._loop)
-        response = future.result()
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
