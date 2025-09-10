@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-
+import { PersistentToast } from './Toast'
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -123,12 +123,12 @@ async function initAsyncFollowing(followForms) {
                             if (followButton.classList.contains('cta-btn--delete')) {
                                 followButton.classList.remove('cta-btn--delete');
                                 followButton.classList.add('cta-btn--primary');
-                                followButton.innerText = i18nStrings.follow 
+                                followButton.innerText = i18nStrings.follow
                             }
                             else {
                                 followButton.classList.remove('cta-btn--primary');
                                 followButton.classList.add('cta-btn--delete');
-                                followButton.innerText = i18nStrings.unfollow 
+                                followButton.innerText = i18nStrings.unfollow
                             }
 
                             const stateInput = followForm.querySelector('input[name=state]');
