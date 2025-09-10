@@ -1,0 +1,26 @@
+{% set show_ol_shell = show_ol_shell | default(true) %}
+
+{# For analytics #}
+{# TODO, we aren't passing in the stats yet #}
+{# {% set stats = stats_summary() %}
+{% set raw_time = stats.get('total', {}).get('time') %}
+{% if raw_time is not none %}
+{% set total_time = raw_time | float * 1000 %}
+{% else %}
+{% set total_time = 0 %}
+{% endif %} #}
+
+{% if show_ol_shell %}
+<div class="clearfix"></div>
+{% endif %}
+
+{% if 'stats' in features and request.args.get('debug') %}
+    {{ render_template("site/stats.html") | safe }}
+{% endif %}
+
+{% if show_ol_shell %}
+    {{ render_template("lib/nav_foot.html", page=page) | safe }}
+{% endif %}
+<script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+<script src="{{url_for('static', path='build/all.js')}}" type="text/javascript"></script>
+<div class="analytics-stats-time-calculator" data-time="$total_time"></div>
