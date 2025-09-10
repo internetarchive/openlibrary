@@ -44,8 +44,9 @@ export function initListsSection(elem) {
                         }
                         // Initialize private buttons after content is loaded
                         initPrivateButtonsAfterLoad(listSection)
+
                         const followForms = listSection.querySelectorAll('.follow-form');
-                        initAsyncFollowing(elem, followForms)
+                        initAsyncFollowing(followForms)
                     })
             }
         })
@@ -83,7 +84,8 @@ async function fetchPartials(workId, editionId) {
 
     return fetch(buildPartialsUrl('BPListsSection', params));
 }
-async function initAsyncFollowing(elem, followForms) {
+
+async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
         form.addEventListener('submit', async e => {
             e.preventDefault();
@@ -92,11 +94,13 @@ async function initAsyncFollowing(elem, followForms) {
             const publisherField = form.querySelector('input[name=publisher]');
             const publisher = publisherField.value;
             const followButtonRefs = []
+
             followForms.forEach(followForm => {
                 const followButton = followForm.querySelector('button');
                 followButton.disabled = true;
                 followButtonRefs.push(followButton)
             });
+
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -108,11 +112,14 @@ async function initAsyncFollowing(elem, followForms) {
                     if (!resp.ok) {
                         throw new Error('Network response was not ok');
                     }
+
                     followForms.forEach(followForm => {
                         const publisherField = followForm.querySelector('input[name=publisher]');
+
                         if (publisherField.value === publisher) {
                             const followButton = followForm.querySelector('button');
                             const i18nStrings = JSON.parse(followButton.dataset.i18n)
+
                             if (followButton.classList.contains('cta-btn--delete')) {
                                 followButton.classList.remove('cta-btn--delete');
                                 followButton.classList.add('cta-btn--primary');
@@ -123,7 +130,8 @@ async function initAsyncFollowing(elem, followForms) {
                                 followButton.classList.add('cta-btn--delete');
                                 followButton.innerText = i18nStrings.unfollow 
                             }
-                            const stateInput = elem.querySelector('input[name=state]');
+
+                            const stateInput = followForm.querySelector('input[name=state]');
                             stateInput.value = 1 - stateInput.value;
                         }
                     });
