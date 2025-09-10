@@ -28,6 +28,7 @@ $ i18n_strings = {
             <div class="label">
                 <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
+            $:render_template("books/book-autocomplete")
             <div class="input">
                 <input type="text" id="title" name="book_title" value="$(work and work.title)" class="title" required/>
             </div>
