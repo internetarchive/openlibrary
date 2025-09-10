@@ -10,7 +10,7 @@
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
-Are you looking to get started? [This is the guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) you are looking for. You may wish to learn more about [Google Summer of Code (GSoC)?](https://github.com/internetarchive/openlibrary/wiki/Google-Summer-of-Code) or [Hacktoberfest](https://github.com/internetarchive/openlibrary/wiki/Hacktoberfest).
+Looking to get started? Check out our Getting Started Guide. You may also be interested in learning more about Google Summer of Code (GSoC) or Hacktoberfest.
 
 ## Table of Contents
    - [Overview](#overview)
@@ -40,7 +40,7 @@ Here's a quick public tour of Open Library to get you familiar with the service 
 
 ## Installation
 
-Run `docker compose up` and visit http://localhost:8080
+Run docker compose up and then visit http://localhost:8080.
 
 Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
@@ -78,7 +78,7 @@ If you want to dive into the source code for Infogami, see the [Infogami repo](h
 
 ## Running tests
 
-Open Library tests can be run using docker. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
+Open Library tests can be run using Docker. Please refer to our Testing Guide for more details.
 
 ```
 docker compose run --rm home make test
