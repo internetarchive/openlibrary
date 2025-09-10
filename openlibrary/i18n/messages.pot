@@ -300,6 +300,10 @@ msgstr ""
 msgid "Unfollow"
 msgstr ""
 
+#: Follow.html
+msgid "UnfollowFollow"
+msgstr ""
+
 #: FormatExpiry.html
 msgid "Expires"
 msgstr ""
@@ -6301,6 +6305,14 @@ msgstr ""
 
 #: lists/home.html lists/showcase.html lists/widget.html
 msgid "See all"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Cover of book"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Avatar of the owner of the list"
 msgstr ""
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
