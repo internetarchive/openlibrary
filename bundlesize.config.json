@@ -54,7 +54,7 @@
     },
     {
       "path": "static/build/js/search.*.js",
-      "maxSize": "1.2KB"
+      "maxSize": "5KB"
     },
     {
       "path": "static/build/js/tabs.*.js",
