@@ -103,7 +103,7 @@ log_recent_bot_traffic() {
     OTHER_BOTS_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
         grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        obfi_top_bots -v | \
+        obfi_grep_bots -v | \
         wc -l
     )
 
@@ -115,6 +115,7 @@ log_recent_bot_traffic() {
     NON_BOT_TRAFFIC_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
+        obfi_grep_bots -v | \
         wc -l
     )
 
