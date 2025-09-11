@@ -553,56 +553,51 @@ class TestCoverSelection:
         work = make_work()
         # Work has no cover
         work['covers'] = []
-        
+
         # Create editions with different languages
         russian_edition = make_edition(work, key="/books/OL1M", covers=[12345])
         russian_edition['languages'] = [{'key': '/languages/rus'}]
-        
+
         english_edition = make_edition(work, key="/books/OL2M", covers=[67890])
         english_edition['languages'] = [{'key': '/languages/eng'}]
-        
+
         # Test with Russian edition first in list
         wsb = make_work_solr_builder(
-            work=work,
-            editions=[russian_edition, english_edition]
+            work=work, editions=[russian_edition, english_edition]
         )
-        
+
         # Should select English cover even though Russian comes first
         assert wsb.cover_i == 67890
-    
+
     def test_fallback_to_non_english_cover(self):
         """Test fallback when no English edition has a cover."""
         work = make_work()
         work['covers'] = []
-        
+
         # French edition with cover
         french_edition = make_edition(work, key="/books/OL3M", covers=[11111])
         french_edition['languages'] = [{'key': '/languages/fre'}]
-        
+
         # English edition without cover
         english_edition = make_edition(work, key="/books/OL4M", covers=[])
         english_edition['languages'] = [{'key': '/languages/eng'}]
-        
+
         wsb = make_work_solr_builder(
-            work=work,
-            editions=[french_edition, english_edition]
+            work=work, editions=[french_edition, english_edition]
         )
-        
+
         # Should fallback to French cover since English has none
         assert wsb.cover_i == 11111
-    
+
     def test_work_cover_takes_precedence(self):
         """Test that work-level covers take precedence over edition covers."""
         work = make_work()
         work['covers'] = [99999]  # Work has its own cover
-        
+
         english_edition = make_edition(work, key="/books/OL2M", covers=[67890])
         english_edition['languages'] = [{'key': '/languages/eng'}]
-        
-        wsb = make_work_solr_builder(
-            work=work,
-            editions=[english_edition]
-        )
-        
+
+        wsb = make_work_solr_builder(work=work, editions=[english_edition])
+
         # Should use work cover, not edition cover
         assert wsb.cover_i == 99999

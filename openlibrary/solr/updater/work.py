@@ -570,19 +570,21 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             return work_cover_id
 
         # If no work cover, prioritize English language editions for cover selection
-        editions_with_covers = [ed for ed in self._solr_editions if ed.cover_i is not None]
-        
+        editions_with_covers = [
+            ed for ed in self._solr_editions if ed.cover_i is not None
+        ]
+
         if not editions_with_covers:
             return None
-        
+
         # First try to find an English edition with a cover
         english_edition_cover = next(
             (ed.cover_i for ed in editions_with_covers if 'eng' in ed.language), None
         )
-        
+
         if english_edition_cover:
             return english_edition_cover
-        
+
         # If no English edition has a cover, fall back to the first available cover
         return editions_with_covers[0].cover_i
 
