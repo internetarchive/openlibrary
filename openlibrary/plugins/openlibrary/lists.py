@@ -594,7 +594,7 @@ class list_seeds(delegate.page):
             raise web.HTTPError(
                 "403 Forbidden",
                 {"Content-Type": "application/json"},
-                data=json.dumps({"message": "Permission denied."})
+                data=json.dumps({"message": "Permission denied."}),
             )
 
         data = formats.load(web.data(), self.encoding)
