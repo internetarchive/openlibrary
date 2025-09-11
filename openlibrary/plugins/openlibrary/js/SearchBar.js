@@ -183,7 +183,7 @@ export class SearchBar {
             this.facet.write(urlParams.facet);
         }
 
-        if (urlParams.q && window.location.pathname.match(/^\/search/)) {
+        if (urlParams.q && this.getCurUrl().pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
             if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
@@ -401,6 +401,14 @@ export class SearchBar {
         } else {
             this.facet.write(newFacet);
         }
+    }
+
+    /**
+     * For testing purposes, wraps window.location
+     * @returns {URL} The current URL
+     */
+    getCurUrl() {
+        return window.location;
     }
 
     /**
