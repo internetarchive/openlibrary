@@ -50,20 +50,20 @@ describe('URL Matchers', () => {
         });
 
         test('does not match other URLs', () => {
-            expect(matchStaticImages(_u('https://openlibrary.org/static/build/4290.a0ae80aacde14696d322.js'))).toBe(false);
+            expect(matchStaticImages(_u('https://openlibrary.org/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(false);
             expect(matchStaticImages(_u('https://covers.openlibrary.org/w/id/14348537-L.jpg'))).toBe(false);
         });
     });
 
     describe('matchStaticBuild', () => {
         test('matches static build files', () => {
-            expect(matchStaticBuild(_u('https://openlibrary.org/static/build/4290.a0ae80aacde14696d322.js'))).toBe(true);
-            expect(matchStaticBuild(_u('https://testing.openlibrary.org/static/build/page-book.css?v=097b69dc350c972d96da0c70cebe7b75'))).toBe(true);
+            expect(matchStaticBuild(_u('https://openlibrary.org/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(true);
+            expect(matchStaticBuild(_u('https://testing.openlibrary.org/static/build/css/page-book.css?v=097b69dc350c972d96da0c70cebe7b75'))).toBe(true);
         });
 
         test('does not match localhost or gitpod URLs', () => {
-            expect(matchStaticBuild(_u('http://localhost:8080/static/build/4290.a0ae80aacde14696d322.js'))).toBe(false);
-            expect(matchStaticBuild(_u('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/4290.a0ae80aacde14696d322.js'))).toBe(false);
+            expect(matchStaticBuild(_u('http://localhost:8080/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(false);
+            expect(matchStaticBuild(_u('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(false);
         });
     });
 

@@ -6,7 +6,7 @@ const
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
     // output.path.
-    distDir = path.resolve(__dirname, 'static/build');
+    distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/js');
 
 module.exports = {
     // Fail on the first build error instead of tolerating it for prod builds. This seems to
