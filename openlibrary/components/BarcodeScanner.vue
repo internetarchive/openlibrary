@@ -219,7 +219,7 @@ export default {
             if (this.returnTo) {
                 // Check if domain is the same as the current domain to prevent
                 // open redirects.
-                if (!this.returnTo.startsWith('/') || this.returnTo.startsWith(window.location.origin)) {
+                if (!this.returnTo.startsWith('/')) {
                     window.alert(`Redirecting to ${this.returnTo.replace('$$$', isbn)}`);
                 }
                 location = this.returnTo.replace('$$$', isbn);
