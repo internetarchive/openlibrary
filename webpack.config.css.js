@@ -6,7 +6,7 @@ const path = require('path');
 const glob = require('glob');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const LessPluginCleanCss = require('less-plugin-clean-css');
-const distDir = path.resolve(__dirname, 'static/build/css');
+const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
 
 // Find all Less files matching static/css/page-*.less
 const lessFiles = glob.sync('./static/css/page-*.less');
