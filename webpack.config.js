@@ -83,7 +83,7 @@ module.exports = {
         path: distDir,
         // base path for build products when referenced from production
         // (see https://webpack.js.org/guides/public-path/)
-        publicPath: '/static/build/',
+        publicPath: '/static/build/js/',
 
         // Store outputs per module in files named after the modules. For the JavaScript entry
         // itself, append .js to each ResourceLoader module entry name.
