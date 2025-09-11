@@ -59,6 +59,17 @@
       border: 5px solid @orange;
       outline: 0;
     }
+
+    // bookcovers should have opacity to fade in
+    // Note: head.html has no-js styles to override this
+    .bookcover {
+      opacity: 1;
+      transition: opacity 0.5s ease-in-out;
+    }
+    // when we have the loading-gradient the book-cover is opacity 0 for the transition, this is removed via js
+    .loading-gradient .bookcover {
+      opacity: 0;
+    }
   }
 
   &.carousel--grid .carousel__item {
@@ -111,10 +122,6 @@
       }
     }
   }
-}
-
-.carousel__item .slick-loading {
-  opacity: 0;
 }
 
 /**

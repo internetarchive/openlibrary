@@ -105,3 +105,24 @@ div.head {
 a.nostyle {
   color: inherit;
 }
+
+.loading-gradient {
+  // stylelint-disable-next-line color-no-hex
+  background: linear-gradient(to right, #dddddd 8%, #eeeeee 18%, #dddddd 33%);
+  background-size: 1000px 100%; /* Make the gradient wider than the element */
+  animation-name: shimmer;
+  animation-duration: 5s;
+  animation-timing-function: linear;
+  animation-iteration-count: 10;
+  border-radius: 4px;
+  color: transparent; // so we don't see the image alt text while loading
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0; /* Start the gradient off-screen to the left */
+  }
+  100% {
+    background-position: 1000px 0; /* Move the gradient across to the right */
+  }
+}

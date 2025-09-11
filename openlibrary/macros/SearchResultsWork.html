@@ -68,8 +68,9 @@ $code:
       <a href="$work_edition_url">
 	<img
           itemprop="image"
+          class="loading-gradient"
           src="$cover"
-          alt="$_('Cover of: %(title)s', title=full_title)"
+          alt=""
           title="$_('Cover of: %(title)s', title=full_title)"
           $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
 	  /></a>
@@ -120,7 +121,7 @@ $code:
               <span class="preview-covers $blur_preview">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+                    <img class="loading-gradient" width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="" />
                   </a>
               </span>
           <span class="resultDetails">

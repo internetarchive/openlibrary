@@ -46,7 +46,7 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
     <span class="fsi__book-cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
       <a data-ol-link-track="SearchInsideSuggestion|BookClick" href="$work_edition_url">
-        <img class="fsi__book-cover-img $blur_cover"
+        <img class="fsi__book-cover-img $blur_cover loading-gradient"
               itemprop="image"
               src="$cover"
               alt="$_('Cover of: %(title)s', title=full_title)"

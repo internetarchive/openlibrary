@@ -2,6 +2,7 @@
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.less';
 import { buildPartialsUrl } from  '../utils.js';
+import { initLoadingGradient } from '../loading-gradient.js';
 
 /**
  * @typedef {Object} CarouselConfig
@@ -79,6 +80,10 @@ export class Carousel {
                 }))
         });
 
+        this._initPreloadNextImagesOnHover();
+        // we need to init once the carousel is loaded not just when page loads
+        initLoadingGradient();
+
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
         this.$container.on('click', '.slick-next', (ev) => {
@@ -106,7 +111,7 @@ export class Carousel {
         const loadMore = this.loadMore;
         if (loadMore && loadMore.queryType) {
             // Bind an action listener to this carousel on resize or advance
-            this.$container.on('afterChange', (_ev, _slick, curSlide) => {
+            this.$container.on('afterChange', async (_ev, _slick, curSlide) => {
                 const totalSlides = this.slick.$slides.length;
                 const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
@@ -121,8 +126,14 @@ export class Carousel {
                         loadMore.page = totalSlides;
                     }
 
-                    this.fetchPartials();
+                    await this.fetchPartials();
+                    // This is needed for books that aren't in the dom on page load (3-4 pages into the carousel)
+                    initLoadingGradient();
                 }
+
+                // Always preload the next page after a page is loaded so things move fast
+                // We don't do this on inital load to make it faster, instead the first time is handled by the mouseenter event
+                this._preloadNextPageImages();
             });
 
             document.addEventListener('filter', (ev) => {
@@ -142,7 +153,59 @@ export class Carousel {
         }
     }
 
-    fetchPartials() {
+    _initPreloadNextImagesOnHover() {
+        // Pre-load next page of slides on "Next" arrow hover
+        this.$container.on('mouseenter', '.slick-next', () => {
+            this._preloadNextPageImages();
+        });
+    }
+
+    /**
+     * Preloads all images on the next "page" of slides.
+     */
+    _preloadNextPageImages() {
+        const slick = this.slick;
+        if (!slick) return;
+
+        const current = slick.currentSlide;
+        const toScroll = slick.options.slidesToScroll;
+        const slideCount = slick.slideCount;
+        const nextPageIndex = current + toScroll;
+
+        for (let i = 0; i < toScroll; i++) {
+            const targetIndex = nextPageIndex + i;
+            if (targetIndex < slideCount) {
+                this._preloadImageForSlide(targetIndex);
+            }
+        }
+    }
+
+    /**
+     * Finds an image in a specific slide and triggers its load by moving
+     * the URL from 'data-lazy' to 'src'.
+     * @param {number} slideIndex The index of the slide to preload.
+     */
+    _preloadImageForSlide(slideIndex) {
+        // Find the slide using the data-slick-index attribute
+        const $slide = this.$container.find(`.slick-slide[data-slick-index="${slideIndex}"]`);
+        // Find an image inside that hasn't been loaded yet
+        const $img = $slide.find('img[data-lazy]');
+
+        // If a lazy image exists...
+        if ($img.length) {
+            const lazySrc = $img.attr('data-lazy');
+            if (lazySrc) {
+                // By setting the 'src', the browser starts downloading the image.
+                // Slick's lazy loader will see the 'src' is set and won't try to load it again.
+                $img.attr('src', lazySrc);
+                // We can optionally remove the data-lazy attribute now
+                $img.removeAttr('data-lazy');
+            }
+        }
+    }
+
+
+    async fetchPartials() {
         const loadMore = this.loadMore
         const url = buildPartialsUrl('CarouselLoadMore', {
             queryType: loadMore.queryType,
@@ -158,17 +221,17 @@ export class Carousel {
             ...loadMore.extraParams
         });
         this.appendLoadingSlide();
-        $.ajax({url: url, type: 'GET'})
-            .then((results) => {
-                this.removeLoadingSlide();
-                const cards = results.partials || []
-                cards.forEach(card => this.slick.addSlide(card))
 
-                if (!cards.length) {
-                    loadMore.allDone = true;
-                }
-                loadMore.locked = false;
-            })
+        const results = await $.ajax({ url: url, type: 'GET' });
+
+        this.removeLoadingSlide();
+        const cards = results.partials || [];
+        cards.forEach(card => this.slick.addSlide(card));
+
+        if (!cards.length) {
+            loadMore.allDone = true;
+        }
+        loadMore.locked = false;
     }
 
     clearCarousel() {
