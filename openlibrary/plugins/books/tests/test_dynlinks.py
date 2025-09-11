@@ -9,6 +9,7 @@ data9: This contains OL9A, OL9M and OL9W with interconnections and almost all fi
 
 import json
 import re
+from collections.abc import Callable, Iterable
 from typing import cast
 
 import web
@@ -214,10 +215,11 @@ class Mock:
         self.calls.append(call)
 
 
-def monkeypatch_ol(monkeypatch):
+def monkeypatch_ol(monkeypatch, solr_overrides: list[dict] | None = None):
     mock = Mock()
     mock.setup_call("isbn_", "1234567890", _return="/books/OL1M")
     mock.setup_call("key", "/books/OL2M", _return="/books/OL2M")
+    mock.setup_call("ocaid", "ia-bar", _return="/books/OL2M")
     monkeypatch.setattr(dynlinks, "ol_query", mock)
 
     mock = Mock()
@@ -229,12 +231,20 @@ def monkeypatch_ol(monkeypatch):
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    monkeypatch_solr(monkeypatch)
+    monkeypatch_solr(monkeypatch, solr_overrides)
 
 
-def monkeypatch_solr(monkeypatch):
-    mock_solr = Solr('http://example.com/solr')
-    mock_solr.get_many = lambda *a, **kw: []
+def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
+    class FakeSolr(Solr):
+        def get_many[T](
+            self,
+            keys: Iterable[str],
+            fields: Iterable[str] | None = None,
+            doc_wrapper: Callable[[dict], T] = web.storage,
+        ) -> list[T]:
+            return [doc for doc in (solr_overrides or []) if doc['key'] in set(keys)]  # type: ignore
+
+    mock_solr = FakeSolr("http://fake-solr:8983/solr/ol")
     monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
 
 
@@ -359,6 +369,40 @@ def test_dynlinks(monkeypatch):
     assert json.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
+    assert json.loads(js) == expected_result
+
+
+def test_dynlinks_public(monkeypatch):
+    monkeypatch_ol(
+        monkeypatch,
+        solr_overrides=[
+            {
+                "key": "/books/OL2M",
+                "ebook_access": "public",
+            },
+        ],
+    )
+
+    expected_result = {
+        "OCAID:ia-bar": {
+            "bib_key": "OCAID:ia-bar",
+            "info_url": "https://openlibrary.org/books/OL2M/bar",
+            "preview": "full",
+            "preview_url": "https://archive.org/details/ia-bar",
+        }
+    }
+
+    js = dynlinks.dynlinks(["OCAID:ia-bar"], {})
+    match = re.match('^var _OLBookInfo = ({.*});$', js)
+    assert match is not None
+    assert json.loads(match.group(1)) == expected_result
+
+    js = dynlinks.dynlinks(["OCAID:ia-bar"], {"callback": "func"})
+    match = re.match('^({.*})$', js)
+    assert match is not None
+    assert json.loads(match.group(1)) == expected_result
+
+    js = dynlinks.dynlinks(["OCAID:ia-bar"], {"format": "json"})
     assert json.loads(js) == expected_result
 
 

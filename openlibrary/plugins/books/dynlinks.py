@@ -452,8 +452,8 @@ def add_availability(
     keys_to_solr_doc = {doc['key']: doc for doc in solr_docs}
 
     result = cast(dict[str, OpenLibraryEditionWithPreview], editions_map)
-    for key, doc in result.items():
-        solr_doc = keys_to_solr_doc.get(key)
+    for doc in result.values():
+        solr_doc = keys_to_solr_doc.get(doc['key'])
         if solr_doc and (ebook_access := solr_doc.get('ebook_access')):
             doc['preview'] = availability_to_preview.get(ebook_access) or 'noview'
         else:
