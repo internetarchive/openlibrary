@@ -176,6 +176,8 @@ class TestParse:
         <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
           <subfield code="a">Rein, Wilhelm,</subfield>
           <subfield code="d">1809-1865.</subfield>
+          <subfield code="0">(uri) http://id.loc.gov/authorities/names/no2003007242</subfield>
+          <subfield code="0">(uri) http://viaf.org/viaf/sourceID/LC|no2003007242</subfield>
         </datafield>"""
         test_field = DataField(
             None,
@@ -190,3 +192,4 @@ class TestParse:
         assert result['birth_date'] == '1809'
         assert result['death_date'] == '1865'
         assert result['entity_type'] == 'person'
+        assert result['remote_ids'] == {'lc_naf': 'no2003007242'}

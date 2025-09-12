@@ -25,6 +25,7 @@ re_bad_char = re.compile('\ufffd')
 re_date = re.compile(r'^[0-9]+u*$')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
+re_lcnaf = re.compile(r'.*id.loc.gov/authorities/names/(n\w*\d)')
 re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.IGNORECASE)
 re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
@@ -463,7 +464,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
     and returns an author import dict.
     """
     author: dict[str, Any] = {}
-    contents = field.get_contents('abcde46')
+    contents = field.get_contents('abcde046')
     if 'a' not in contents and 'c' not in contents:
         # Should have at least a name or title.
         return author
@@ -486,6 +487,10 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict[str, Any]
         del author['personal_name']  # DRY names
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
+    if '0' in contents:  # Authority record control number or standard number
+        for value in contents['0']:
+            if m := re_lcnaf.match(value):
+                author['remote_ids'] = {'lc_naf': m.group(1)}
     if '6' in contents:  # noqa: SIM102 - alternate script name exists
         if (link := field.rec.get_linkage(tag, contents['6'][0])) and (
             name := link.get_subfield_values('a')
