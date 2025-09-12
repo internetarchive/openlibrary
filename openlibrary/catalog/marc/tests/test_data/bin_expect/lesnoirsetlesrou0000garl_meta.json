@@ -14,13 +14,15 @@
       "birth_date": "1969",
       "name": "Garlini, Alberto",
       "role": "Author",
-      "entity_type": "person"
+      "entity_type": "person",
+      "remote_ids": {"isni": "0000000039415773"}
     },
     {
       "birth_date": "1971",
       "name": "Raynaud, Vincent",
       "role": "Translator",
-      "entity_type": "person"
+      "entity_type": "person",
+      "remote_ids": {"isni": "0000000121358771"}
     }
   ],
   "oclc_numbers": [
