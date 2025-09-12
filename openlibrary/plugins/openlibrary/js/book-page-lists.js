@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-
+import { PersistentToast } from './Toast'
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -44,6 +44,9 @@ export function initListsSection(elem) {
                         }
                         // Initialize private buttons after content is loaded
                         initPrivateButtonsAfterLoad(listSection)
+
+                        const followForms = listSection.querySelectorAll('.follow-form');
+                        initAsyncFollowing(followForms)
                     })
             }
         })
@@ -80,4 +83,67 @@ async function fetchPartials(workId, editionId) {
     }
 
     return fetch(buildPartialsUrl('BPListsSection', params));
+}
+
+async function initAsyncFollowing(followForms) {
+    followForms.forEach(form => {
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const url = form.action;
+            const formData = new FormData(form);
+            const publisherField = form.querySelector('input[name=publisher]');
+            const publisher = publisherField.value;
+            const followButtonRefs = []
+
+            followForms.forEach(followForm => {
+                const followButton = followForm.querySelector('button');
+                followButton.disabled = true;
+                followButtonRefs.push(followButton)
+            });
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData)
+            })
+                .then(resp => {
+                    if (!resp.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    followForms.forEach(followForm => {
+                        const publisherField = followForm.querySelector('input[name=publisher]');
+
+                        if (publisherField.value === publisher) {
+                            const followButton = followForm.querySelector('button');
+                            const i18nStrings = JSON.parse(followButton.dataset.i18n)
+
+                            if (followButton.classList.contains('cta-btn--delete')) {
+                                followButton.classList.remove('cta-btn--delete');
+                                followButton.classList.add('cta-btn--primary');
+                                followButton.innerText = i18nStrings.follow
+                            }
+                            else {
+                                followButton.classList.remove('cta-btn--primary');
+                                followButton.classList.add('cta-btn--delete');
+                                followButton.innerText = i18nStrings.unfollow
+                            }
+
+                            const stateInput = followForm.querySelector('input[name=state]');
+                            stateInput.value = 1 - stateInput.value;
+                        }
+                    });
+                })
+                .catch(() => {
+                    new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
+                })
+                .finally(() => {
+                    followButtonRefs.forEach(followButtonRef => {
+                        followButtonRef.disabled = false
+                    })
+                });
+        });
+    });
 }
