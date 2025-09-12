@@ -1,13 +1,17 @@
 """Python library for accessing Solr"""
 
+import asyncio
 import logging
 import re
+import threading
 from collections.abc import Callable, Iterable
 from typing import TypeVar
 from urllib.parse import urlencode, urlsplit
 
+import httpx
 import requests
 import web
+from asyncer import syncify
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -23,6 +27,17 @@ class Solr:
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
         self.session = requests.Session()
+        self.httpx_session = httpx.AsyncClient()
+
+        # We'd love to move this up a level to like worksearch but it's not
+        # easy to do so because worksearch has many nested webpy calls that reply on env variables not setup when calling from a thread.
+        # Basically, in the ideal world this code is all async and we push the sync code up a level.
+
+        # Start a persistent event loop in a background thread.
+        # This avoids creating/destroying a loop on every call to select().
+        self._loop = asyncio.new_event_loop()
+        self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
+        self._thread.start()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -32,8 +47,8 @@ class Solr:
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
-        pattern = "([%s])" % re.escape(chars)
-        return web.re_compile(pattern).sub(r'\\\1', query)
+        pattern = re.compile("([%s])" % re.escape(chars))
+        return pattern.sub(r'\\\1', query)
 
     def get(
         self,
@@ -129,21 +144,22 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        json_data = self.raw_request(
-            'select',
-            urlencode(params, doseq=True),
-            _timeout=_timeout,
-        ).json()
+        response = syncify(self.raw_request, raise_sync_error=False)(
+            'select', urlencode(params, doseq=True), _timeout=_timeout
+        )
+
+        json_data = response.json()
+
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    def raw_request(
+    async def raw_request(
         self,
         path_or_url: str,
         payload: str,
         _timeout: int | None = None,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         if path_or_url.startswith("http"):
             # TODO: Should this only take a path, not a full url? Would need to
             # update worksearch.code.execute_solr_query accordingly.
@@ -162,13 +178,13 @@ class Solr:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
             logger.info("solr request: %s", url)
-            return self.session.get(url, timeout=timeout)
+            return await self.httpx_session.get(url, timeout=timeout)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            return self.session.post(
+            return await self.httpx_session.post(
                 url, data=payload, headers=headers, timeout=timeout
             )
 
