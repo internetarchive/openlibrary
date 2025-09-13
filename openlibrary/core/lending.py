@@ -4,11 +4,13 @@ from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import datetime
 import logging
+import os
 import time
 import uuid
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
+import httpx
 import requests
 import web
 from simplejson.errors import JSONDecodeError
@@ -198,10 +200,22 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
+    timeout = 2 if os.getenv('LOCAL_DEV') else 5
     try:
-        response = requests.post(url + params, data=s3_keys)
+        response = httpx.post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
-    except requests.HTTPError:
+    except httpx.TimeoutException:
+        if os.getenv('LOCAL_DEV'):
+            print(
+                "Request timed out in LOCAL_DEV environment. Returning empty dictionary."
+            )
+            return {}
+        else:
+            print(
+                "Request timed out in non-LOCAL_DEV environment. Re-raising the exception."
+            )
+            raise  # Re-raise the timeout exception if not in LOCAL_DEV
+    except httpx.HTTPError:
         pass  # TODO: Handle unexpected responses from the availability server.
     try:
         data = response.json().get('lending_status', {})
