@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
         Author,
         Edition,
+        SourceRecord,
         Work,
     )
 
@@ -164,6 +165,13 @@ def render_template(name: str, *a, **kw) -> TemplateResult:
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
+
+
+@public
+def get_source_record(record_id: str) -> 'SourceRecord':
+    from openlibrary.plugins.upstream.models import SourceRecord
+
+    return SourceRecord.from_record_id(record_id)
 
 
 def kebab_case(upper_camel_case: str) -> str:
@@ -589,16 +597,17 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
         "add publisher and source",
     ]
 
-    if v.key.startswith('/books/') and not v.get('machine_comment'):
-        thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if (thing.source_records and v.revision == 1) or (
-            v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
-        ):
-            marc = thing.source_records[-1]
-            if marc.startswith('marc:'):
-                v.machine_comment = marc[len("marc:") :]  # type: ignore [attr-defined]
-            else:
-                v.machine_comment = marc  # type: ignore [attr-defined]
+    if v.key.startswith('/books/'):
+        if v.get('machine_comment'):
+            # Prefix with marc:
+            v.machine_comment = "marc:" + v.machine_comment  # type: ignore [attr-defined]
+        else:
+            # Get the last source record field
+            thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
+            if (thing.source_records and v.revision == 1) or (
+                v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
+            ):
+                v.machine_comment = thing.source_records[-1]  # type: ignore [attr-defined]
     return v
 
 

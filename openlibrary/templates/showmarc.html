@@ -6,8 +6,7 @@ $if format == 'raw':
     $var content_type: application/marc
     $var rawtext = record.data
 
-$ get_source_record = render_template("history/sources").get_source_record
-$ source_record = get_source_record("%s:%s:%s" % (filename, begin, length))
+$ source_record = get_source_record("marc:%s:%s:%s" % (filename, begin, length))
 $ title = "MARC Record from " + source_record.source_name
 $ next_url = "../%s:%s:5" % (filename, begin + length)
 
