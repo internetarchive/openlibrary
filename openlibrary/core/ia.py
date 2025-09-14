@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import os
 from collections.abc import Callable, Generator
 from urllib.parse import urlencode
 
@@ -10,7 +11,7 @@ import web
 
 from infogami import config
 from infogami.utils import stats
-from openlibrary.core import cache
+from openlibrary.core import cache, lending
 
 logger = logging.getLogger('openlibrary.ia')
 
@@ -40,6 +41,61 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
         logger.exception(f'Exception occurred accessing {url}.')
     stats.end()
     return api_response
+
+
+def save_page_now(
+    url: str, access_key: str | None = None, secret_key: str | None = None
+) -> str:
+    """Archive a URL using the Internet Archive Save Page Now API.
+
+    Returns job_id on success, or an error string like "NO_CREDENTIALS",
+    "ERROR_HTTP_<code>", or "ERROR_EXCEPTION_<msg>" on failure.
+    """
+    if not access_key or not secret_key:
+        access_key, secret_key = get_spn_s3_keys(access_key, secret_key)
+
+    if not access_key or not secret_key:
+        return "NO_CREDENTIALS"
+
+    headers = {
+        "Authorization": f"LOW {access_key}:{secret_key}",
+        "Accept": "application/json",
+    }
+    data = {"url": url}
+
+    try:
+        r = session.post(
+            "https://web.archive.org/save", headers=headers, data=data, timeout=30
+        )
+        if r.status_code == 200:
+            try:
+                result = r.json()
+            except ValueError:
+                return f"ERROR_NO_JOB_ID_{r.status_code}"
+            return result.get('job_id', f"ERROR_NO_JOB_ID_{r.status_code}")
+        else:
+            return f"ERROR_HTTP_{r.status_code}"
+    except (requests.RequestException, ValueError) as e:
+        return f"ERROR_EXCEPTION_{str(e)[:50]}"
+
+
+def get_spn_s3_keys(
+    access_key: str | None = None, secret_key: str | None = None
+) -> tuple[str | None, str | None]:
+    """Resolve S3 creds for Save Page Now.
+    TODO: Confirm single source of truth for SPN credentials and update this resolver accordingly.
+    """
+    if access_key and secret_key:
+        return access_key, secret_key
+
+    s3 = getattr(lending, 'config_ia_ol_xauth_s3', None)
+    if not s3 and hasattr(config, 'get'):
+        s3 = config.get('ia_ol_xauth_s3')
+    s3 = s3 or {}
+
+    access_key = access_key or s3.get('s3_key') or os.environ.get('IA_ACCESS_KEY')
+    secret_key = secret_key or s3.get('s3_secret') or os.environ.get('IA_SECRET_KEY')
+    return access_key, secret_key
 
 
 def get_metadata_direct(
