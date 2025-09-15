@@ -588,7 +588,7 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
-        from openlibrary.book_providers import get_solr_keys
+        from openlibrary.book_providers import get_solr_keys  # noqa: PLC0415
 
         fields = [
             "key",
@@ -709,7 +709,9 @@ class Work(models.Work):
         edition_keys = []
         if ebooks_only:
             if self._solr_data:
-                from openlibrary.book_providers import get_book_providers
+                from openlibrary.book_providers import (  # noqa: PLC0415
+                    get_book_providers,
+                )
 
                 # Always use solr data whether it's up to date or not
                 # to determine which providers this book has

@@ -514,7 +514,7 @@ class ZipManager:
 
 
 def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):
-    from openlibrary.coverstore.server import load_config
+    from openlibrary.coverstore.server import load_config  # noqa: PLC0415
 
     load_config(openlibrary_yml)
     load_config(coverstore_yml)

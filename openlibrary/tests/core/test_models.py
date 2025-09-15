@@ -153,9 +153,9 @@ class TestWork:
         work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
         work4 = {"key": work4_key, "type": type_work}
 
-        import web
+        import web  # noqa: PLC0415
 
-        from openlibrary.mocks import mock_infobase
+        from openlibrary.mocks import mock_infobase  # noqa: PLC0415
 
         site = mock_infobase.MockSite()
         site.save(web.storage(work1))

@@ -376,7 +376,7 @@ class GetText:
         return value
 
     def __getattr__(self, key):
-        from infogami.utils.i18n import strings
+        from infogami.utils.i18n import strings  # noqa: PLC0415
 
         # for backward-compatability
         return strings.get('', key)
