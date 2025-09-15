@@ -206,13 +206,13 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
         response.raise_for_status()
     except httpx.TimeoutException:
         if os.getenv('LOCAL_DEV'):
-            print(
-                "Request timed out in LOCAL_DEV environment. Returning empty dictionary."
+            logger.warning(
+                "Availability request timed out in LOCAL_DEV environment. Returning empty dictionary."
             )
             return {}
         else:
-            print(
-                "Request timed out in non-LOCAL_DEV environment. Re-raising the exception."
+            logger.error(
+                "Availability request timed out in non-LOCAL_DEV environment. Re-raising the exception."
             )
             raise  # Re-raise the timeout exception if not in LOCAL_DEV
     except httpx.HTTPError:
