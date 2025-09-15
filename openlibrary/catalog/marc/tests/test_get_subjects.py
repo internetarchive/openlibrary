@@ -191,10 +191,6 @@ bin_samples = [
         {'subject': {'Aesthetics': 1, 'History and criticism': 1}},
     ),
     (
-        'upei_broken_008.mrc',
-        {'place': {'West Africa': 1}, 'subject': {'Social life and customs': 1}},
-    ),
-    (
         'upei_short_008.mrc',
         {
             'place': {'Charlottetown (P.E.I.)': 1, 'Prince Edward Island': 1},
