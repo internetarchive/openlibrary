@@ -1,2 +1,2 @@
 SELECT count(*)
-FROM "test"
+FROM test

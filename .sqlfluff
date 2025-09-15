@@ -1,0 +1,8 @@
+[sqlfluff]
+dialect = postgres
+exclude_rules = L031
+templater = jinja
+max_line_length = 120
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = consistent
