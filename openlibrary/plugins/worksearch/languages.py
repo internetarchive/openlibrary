@@ -80,6 +80,7 @@ def get_all_language_counts(
         # See https://openlibrary.org/query.json?type=/type/language&limit=1000
         facet_limit=1_000,
         _timeout=30,  # This query can be rather slow
+        _pass_time_allowed=False,  # Let this long-running query complete solr-side
     )
     return [
         (f'/languages/{row.value}', row.count) for row in result['facets']['language']

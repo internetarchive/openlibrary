@@ -19,7 +19,7 @@
         "eslint-plugin-vue"
       ],
       "groupName": "eslint",
-      "automerge": true
+      "automerge": false
     },
     {
       "matchPackageNames": [
@@ -32,10 +32,10 @@
         "prettier",
         "postcss-less"
       ],
-      "automerge": true
+      "automerge": false
     },
     {
-      "automerge": true,
+      "automerge": false,
       "matchPackageNames": [
         "mypy",
         "pytest",
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "automerge": true,
+      "automerge": false,
       "matchPackageNames": [
         "/^actions//"
       ]

@@ -62,8 +62,12 @@ log_workers_cur_fn() {
     for pid in $(ps aux | grep -E 'openlibrary-server|coverstore-server' | grep -v 'grep' | awk '{print $2}'); do
         echo "$pid $(py_spy_cur_fn $pid)";
     done 2>/dev/null \
-        | awk '{print $2}' \
-        | awk '{if ($1 ~ /^(connect|sleep|wait|getaddrinfo|create_connection|get_availability|get_api_response)$/) print $1; else print "other"}' \
+        | awk '{$1=""; print}' \
+        | awk '{
+            if ($2 ~ /solr\.py/) print "solr_py";
+            else if ($1 ~ /^(connect|sleep|wait|getaddrinfo|create_connection|get_availability|get_api_response)$/) print $1;
+            else print "other"
+        }' \
         | sort \
         | uniq -c \
         | awk -v date=$(date +%s) -v bucket="$BUCKET" '{print bucket "." $2 " " $1 " " date}' \
@@ -103,7 +107,7 @@ log_recent_bot_traffic() {
     OTHER_BOTS_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
         grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        obfi_top_bots -v | \
+        obfi_grep_bots -v | \
         wc -l
     )
 
@@ -115,6 +119,7 @@ log_recent_bot_traffic() {
     NON_BOT_TRAFFIC_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
+        obfi_grep_bots -v | \
         wc -l
     )
 

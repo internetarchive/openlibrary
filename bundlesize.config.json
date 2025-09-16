@@ -1,67 +1,67 @@
 {
   "files": [
     {
-      "path": "static/build/editions-table.*.js",
+      "path": "static/build/js/editions-table.*.js",
       "maxSize": "33KB"
     },
     {
-      "path": "static/build/graphs.*.js",
+      "path": "static/build/js/graphs.*.js",
       "maxSize": "19KB"
     },
     {
-      "path": "static/build/markdown-editor.*.js",
+      "path": "static/build/js/markdown-editor.*.js",
       "maxSize": "13KB"
     },
     {
-      "path": "static/build/carousel.*.js",
+      "path": "static/build/js/carousel.*.js",
       "maxSize": "6KB"
     },
     {
-      "path": "static/build/covers.*.js",
+      "path": "static/build/js/covers.*.js",
       "maxSize": "8KB"
     },
     {
-      "path": "static/build/add-book.*.js",
+      "path": "static/build/js/add-book.*.js",
       "maxSize": "4KB"
     },
     {
-      "path": "static/build/readmore.*.js",
+      "path": "static/build/js/readmore.*.js",
       "maxSize": "3KB"
     },
     {
-      "path": "static/build/modal-links.*.js",
+      "path": "static/build/js/modal-links.*.js",
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/user-website.*.js",
+      "path": "static/build/js/user-website.*.js",
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/signup.*.js",
+      "path": "static/build/js/signup.*.js",
       "maxSize": "2KB"
     },
     {
-      "path": "static/build/readinglog-stats.*.js",
+      "path": "static/build/js/readinglog-stats.*.js",
       "maxSize": "137KB"
     },
     {
-      "path": "static/build/goodreads-import.*.js",
+      "path": "static/build/js/goodreads-import.*.js",
       "maxSize": "2KB"
     },
     {
-      "path": "static/build/admin.*.js",
+      "path": "static/build/js/admin.*.js",
       "maxSize": "1.3KB"
     },
     {
-      "path": "static/build/search.*.js",
-      "maxSize": "1.2KB"
-    },
-    {
-      "path": "static/build/tabs.*.js",
+      "path": "static/build/js/search.*.js",
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/all.js",
+      "path": "static/build/js/tabs.*.js",
+      "maxSize": "5KB"
+    },
+    {
+      "path": "static/build/js/all.js",
       "maxSize": "130KB"
     },
     {

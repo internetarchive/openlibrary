@@ -14,6 +14,9 @@ logger = logging.getLogger("openlibrary.logger")
 
 T = TypeVar('T')
 
+DEFAULT_SOLR_TIMEOUT_SECONDS = 10
+DEFAULT_PASS_TIME_ALLOWED = True
+
 
 class Solr:
     def __init__(self, base_url):
@@ -93,7 +96,8 @@ class Solr:
         start=None,
         doc_wrapper=None,
         facet_wrapper=None,
-        _timeout=None,
+        _timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+        _pass_time_allowed=DEFAULT_PASS_TIME_ALLOWED,
         **kw,
     ):
         """Execute a solr query.
@@ -133,6 +137,7 @@ class Solr:
             'select',
             urlencode(params, doseq=True),
             _timeout=_timeout,
+            _pass_time_allowed=_pass_time_allowed,
         ).json()
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
@@ -142,8 +147,16 @@ class Solr:
         self,
         path_or_url: str,
         payload: str,
-        _timeout: int | None = None,
+        _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
+        _pass_time_allowed: bool = True,
     ) -> requests.Response:
+        """
+        :param _pass_time_allowed: If False, solr will continue processing the query
+            server-side even if the client has timed out. This is useful for when
+            you want a long-running query to complete and populate Solr's caches,
+            which will result in subsequent requests for that same query to possibly
+            not time out.
+        """
         if path_or_url.startswith("http"):
             # TODO: Should this only take a path, not a full url? Would need to
             # update worksearch.code.execute_solr_query accordingly.
@@ -151,10 +164,11 @@ class Solr:
         else:
             url = f'{self.base_url}/{path_or_url.lstrip("/")}'
 
-        if _timeout is not None:
-            timeout = _timeout
-        else:
-            timeout = 10
+        if _timeout is not None and _pass_time_allowed:
+            if '?' in url:
+                url += f'&timeAllowed={_timeout * 1000}'
+            else:
+                url += f'?timeAllowed={_timeout * 1000}'
 
         # switch to POST request when the payload is too big.
         # XXX: would it be a good idea to switch to POST always?
@@ -162,14 +176,14 @@ class Solr:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
             logger.info("solr request: %s", url)
-            return self.session.get(url, timeout=timeout)
+            return self.session.get(url, timeout=_timeout)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
             return self.session.post(
-                url, data=payload, headers=headers, timeout=timeout
+                url, data=payload, headers=headers, timeout=_timeout
             )
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):

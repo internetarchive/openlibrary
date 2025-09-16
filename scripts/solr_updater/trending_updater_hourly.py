@@ -219,7 +219,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
             "fl": ",".join(solr_fields),
             "sort": "key asc",
         },
-        _timeout=10_000,  # Increase timeout for large datasets
+        _timeout=None,  # No timeout for large datasets
     )
     assert resp
     data = resp.json()
@@ -235,7 +235,7 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
                 "fl": ",".join(solr_fields),
                 "sort": "key asc",
             },
-            _timeout=10_000,  # Increase timeout for large datasets
+            _timeout=None,  # No timeout for large datasets
         )
         assert resp
         data = resp.json()
