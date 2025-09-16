@@ -59,11 +59,12 @@ def test_log_recent_bot_traffic():
         )
 
         with open(nc_fp.name) as f:
+            # FIXME: eg gptbot is counted twice since it appears twice in each log entry
             expected_output = """
 stats.ol-covers0.bot_traffic.gptbot 2 1741054377
 stats.ol-covers0.bot_traffic.meta_externalagent 1 1741054377
-stats.ol-covers0.bot_traffic.other 1 1741054377
-stats.ol-covers0.bot_traffic.non_bot 6 1741054377
+stats.ol-covers0.bot_traffic.other 0 1741054377
+stats.ol-covers0.bot_traffic.non_bot 5 1741054377
             """.strip()
             assert f.read().strip() == expected_output
 

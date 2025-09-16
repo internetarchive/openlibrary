@@ -901,39 +901,25 @@ class User(Thing):
     def get_username(self) -> str:
         return self.key.split("/")[-1]
 
-    def preferences(self, use_store: bool = False):
+    def preferences(self):
+        def query_store(_key):
+            return web.ctx.site.store.get(_key)
+
+        def query_fallback(_key):
+            results = web.ctx.site.get(_key)
+            return results and results.dict().get('notifications')
+
         key = f"{self.key}/preferences"
-        if use_store:
-            prefs = web.ctx.site.store.get(key)
-            return prefs or self.get_default_preferences()
 
-        prefs = web.ctx.site.get(key)
-        return (
-            prefs and prefs.dict().get('notifications')
-        ) or self.get_default_preferences()
+        return query_store(key) or query_fallback(key) or self.get_default_preferences()
 
-    def save_preferences(
-        self, new_prefs, msg='updating user preferences', use_store: bool = False
-    ) -> None:
+    def save_preferences(self, new_prefs) -> None:
         key = f'{self.key}/preferences'
-        if use_store:
-            old_prefs = self.preferences(use_store=use_store)
-            old_prefs.update(new_prefs)
-            old_prefs['_rev'] = None
-            old_prefs['type'] = 'preferences'
-            web.ctx.site.store[key] = old_prefs
-        else:
-            old_prefs = web.ctx.site.get(key)
-            prefs = (old_prefs and old_prefs.dict()) or {
-                'key': key,
-                'type': {'key': '/type/object'},
-            }
-            if 'notifications' not in prefs:
-                prefs['notifications'] = self.get_default_preferences()
-            prefs['notifications'].update(new_prefs)
-            web.ctx.site.save(prefs, msg)
-            # Save a copy of the patron's preferences to the store
-            self.save_preferences(new_prefs, msg=msg, use_store=True)
+        prefs = self.preferences()
+        prefs.update(new_prefs)
+        prefs['_rev'] = None
+        prefs['type'] = 'preferences'
+        web.ctx.site.store[key] = prefs
 
     def is_usergroup_member(self, usergroup: str) -> bool:
         if not usergroup.startswith('/usergroup/'):

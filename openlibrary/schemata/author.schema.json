@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Open Library Author Schema",
+  "type": "object",
+  "required": [
+    "key",
+    "name",
+    "type",
+    "revision",
+    "last_modified"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "key": { "$ref": "shared_definitions.json#/author_key" },
+    "name":    { "type": "string" },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": ["/type/author"]
+        }
+      }
+    },
+    "alternate_names": { "$ref": "shared_definitions.json#/string_array" },
+    "bio":  { "$ref": "shared_definitions.json#/text_block" },
+    "birth_date": { "type": "string" },
+    "death_date": { "type": "string" },
+    "date": { "type": "string" },
+    "entity_type": {
+      "type": "string",
+      "enum": ["person", "org", "event"]
+    },
+    "fuller_name": { "type": "string" },
+    "personal_name": { "type": "string" },
+    "title": { "type": "string" },
+    "photos": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/link" }
+    },
+    "remote_ids": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "wikidata": {
+          "type": "string",
+          "pattern": "^Q[0-9]+$"
+        },
+        "viaf": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "revision":        { "type": "number" },
+    "latest_revision": { "type": "number" },
+    "created":         { "$ref": "shared_definitions.json#/internal_datetime" },
+    "last_modified":   { "$ref": "shared_definitions.json#/internal_datetime" }
+  }
+}

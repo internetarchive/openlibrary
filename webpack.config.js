@@ -6,7 +6,7 @@ const
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
     // output.path.
-    distDir = path.resolve(__dirname, 'static/build');
+    distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/js');
 
 module.exports = {
     // Fail on the first build error instead of tolerating it for prod builds. This seems to
@@ -83,7 +83,7 @@ module.exports = {
         path: distDir,
         // base path for build products when referenced from production
         // (see https://webpack.js.org/guides/public-path/)
-        publicPath: '/static/build/',
+        publicPath: '/static/build/js/',
 
         // Store outputs per module in files named after the modules. For the JavaScript entry
         // itself, append .js to each ResourceLoader module entry name.
@@ -91,11 +91,6 @@ module.exports = {
 
         // This option determines the name of **non-entry** chunk files.
         chunkFilename: '[name].[contenthash].js',
-
-        // Expose the module.exports of each module entry chunk through the global
-        // ol (open library)
-        library: ['ol'],
-        libraryTarget: 'this'
     },
 
     // Accurate source maps at the expense of build time.
