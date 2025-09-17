@@ -1,14 +1,27 @@
-$def with (readonly=False)
-$# :param list[dict] books: need to find proper items to pass in
+$def with (works, work_path, dict_path, readonly=False)
 
-$# Import for side-effect of defining jsdef functions, again is a placeholder
-$:render_template('jsdef/LazyBookPreview')
+$:render_template('jsdef/LazyWorkPreview', None)
 
 $jsdef render_work_autocomplete_item(item):
     $if item.key =="__new__":
         <div class="ac_work ac_addnew" title="$_('Add a new book')">
-            <span> class="action"$_("Create a new record for") </span>
+            <span class="action">$_("Create a new record for") </span>
             <span class="name">$item.name</span>
         </div>
     $else:
         $:render_lazy_work_preview(item)
+
+$jsdef render_work(work_path, dict_path, readonly, i, work):
+    <div class="input ac-input mia_input">
+        <div class="mia__reorder">≡</div>
+        <input class="ac-input__visible" name="$name_path--$i" type="text" value="$work.title" $cond(readonly, 'readonly, ''')>
+        <input class="ac-input__value" name="$dict_path--$i--author--key" type="hidden" value="$work.key" />
+        <a class="mia_remove" href="javascript:;" title="$_('Remove this work')">[&times;</a>&nbsp;
+    </div>
+
+$ config = {'work_path': work_path, 'dict_path': dict_path}
+<div class="multi-input-autocomplete multi-input-autocomplete--author" data-config="$dumps(config)">
+    $for work in (works or [storage(name="", key="")]):
+        $:render_work_field(i, work)
+    <a href="javascript:;" class="mia_add">$_("Add another book?")</a>
+</div>
