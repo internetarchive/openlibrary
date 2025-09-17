@@ -88,6 +88,7 @@
               class="form-control"
               :disabled="!isAdmin && name === 'ocaid'"
               :title="!isAdmin && name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
+              @click="removeIdentifier(name, idx)"
             >
               Remove
             </button>
