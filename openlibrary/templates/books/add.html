@@ -26,7 +26,7 @@ $ i18n_strings = {
     <form method="post" action="" id="addbook" class="olform addbook1" name="edit" data-i18n="$json_encode(i18n_strings)">
         <div class="formElement">
             <div class="label">
-                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle. We\'ll do a live check to see if we already know this book.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             $:render_template("books/works-autocomplete", readonly=work is not None)
             <div class="input">
