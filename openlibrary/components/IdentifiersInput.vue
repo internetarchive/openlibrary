@@ -167,8 +167,7 @@ export default {
         return {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
-            assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
-            isAdmin: false,
+            assignedIdentifiers: {} // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
         }
     },
 
@@ -194,6 +193,9 @@ export default {
         },
         hasPopularIds: function() {
             return Object.keys(this.popularIds).length !== 0;
+        },
+        isAdmin: function() {
+            return this.admin.toLowerCase() === 'true';
         }
     },
     watch: {
@@ -208,7 +210,6 @@ export default {
             },
     },
     created: function(){
-        this.isAdmin = this.admin.toLowerCase() === 'true';
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
         if (this.assignedIdentifiers.length === 0) {
             this.assignedIdentifiers = {}
