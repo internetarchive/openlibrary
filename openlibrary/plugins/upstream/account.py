@@ -33,6 +33,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
+from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -452,6 +453,59 @@ class account_login_json(delegate.page):
             from infogami.plugins.api.code import login as infogami_login
 
             infogami_login().POST()
+
+
+class otp_service_issue(delegate.page):
+    path = "/account/otp/issue"
+
+    def POST(self):
+        """
+        >>> requests.get("https://staging.openlibrary.org/account/otp/issue", data={"email": "email@example.com", "ip": "127.0.0.1"})
+        """
+        web.header('Content-Type', 'application/json')
+        i = web.input(email="", ip="", challenge_url="", sendmail='true')
+        required_keys = ("email", "ip", "service_ip")
+        i.email = i.email.replace(" ", "+").lower()
+        i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
+        if missing_fields := [k for k in required_keys if not getattr(i, k)]:
+            return delegate.RawText(json.dumps({
+                "error": "missing_keys",
+                "missing_keys": missing_fields
+            }))
+
+        # Challenge currently does not work due to Firewall/Proxy limitations
+        if i.challenge_url and not OTP.verify_service(i.service_ip, i.challenge_url):
+            return delegate.RawText(json.dumps({"error": "challenge_failed"}))
+        if error := OTP.is_ratelimited(service_ip=i.service_ip, email=i.email, ip=i.ip):
+            return delegate.RawText(json.dumps(error))
+
+        otp = OTP.generate(i.service_ip, i.email, i.ip)
+        if i.sendmail.lower() == 'true':
+            web.sendmail(
+                config.from_address,
+                i.email,
+                subject="Your One Time Password",
+                message=web.safestr(f"Your one time password is: {otp.upper()}"),
+            )
+        return delegate.RawText(json.dumps({"success": "issued"}))
+
+class otp_service_redeem(delegate.page):
+    path = "/account/otp/redeem"
+
+    def POST(self):
+        web.header('Content-Type', 'application/json')
+        required_keys = ("email", "ip", "service_ip", "otp")
+        i = web.input(email="", ip="", otp="")
+        i.email = i.email.replace(" ", "+").lower()
+        i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
+        if missing_fields := [k for k in required_keys if not getattr(i, k)]:
+            return delegate.RawText(json.dumps({
+                "error": "missing_keys",
+                "missing_keys": missing_fields
+            }))
+        if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
+            return delegate.RawText(json.dumps({"success": "redeemed"}))
+        return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
 
 
 class account_login(delegate.page):
