@@ -87,7 +87,7 @@ def setup(config):
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
-    global config_ia_domain, config_fts_context
+    global config_ia_domain, config_otp_seed, config_fts_context
 
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_domain = config.get('ia_base_url', 'https://archive.org')
