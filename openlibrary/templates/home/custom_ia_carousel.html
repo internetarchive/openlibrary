@@ -1,4 +1,4 @@
-$def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False, user_lang_only=False)
+$def with(title, key, query='', subject='', sorts='', limit=None, min_books=7, test=False, compact_mode=False, user_lang_only=False, safe_mode=True)
 
 $code:
   if user_lang_only:
@@ -6,8 +6,8 @@ $code:
     user_lang= convert_iso_to_marc(web_lang)
     if user_lang and user_lang in get_populated_languages():
       query = query + ' language:' + user_lang
-  title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
-  books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit) if not test else []
+  title_url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False, safe_mode=safe_mode)
+  books = generic_carousel(query=query, subject=subject, sorts=sorts, limit=limit, safe_mode=safe_mode) if not test else []
   sorts = ','.join(sorts) if sorts else ''
   load_more_config = {
     "queryType": "BROWSE",

@@ -129,7 +129,9 @@ class random_book(delegate.page):
         raise web.seeother(random.choice(keys))
 
 
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
+def get_ia_carousel_books(
+    query=None, subject=None, sorts=None, limit=None, safe_mode=True
+):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -142,6 +144,7 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
         subject=subject,
         sorts=sorts,
         query=query,
+        safe_mode=safe_mode,
     )
     formatted_books = [
         format_book_data(book, False) for book in books if book != 'error'
@@ -197,6 +200,7 @@ def generic_carousel(
     sorts=None,
     limit=None,
     timeout=None,
+    safe_mode=True,
 ):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
@@ -209,6 +213,7 @@ def generic_carousel(
         subject=subject,
         sorts=sorts,
         limit=limit,
+        safe_mode=safe_mode,
     )
     if not books:
         books = cached_ia_carousel_books.update(
@@ -216,6 +221,7 @@ def generic_carousel(
             subject=subject,
             sorts=sorts,
             limit=limit,
+            safe_mode=safe_mode,
         )[0]
     return storify(books) if books else books
 

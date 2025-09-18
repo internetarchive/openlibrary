@@ -177,6 +177,7 @@ class CarouselCardPartial(PartialDataHandler):
             subject=subject,
             sorts=sorts,
             advanced=True,
+            safe_mode=True,
         )
         results = get_available(url=url)
         return results if "error" not in results else []
