@@ -7,7 +7,7 @@ from enum import Enum
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
-        
+
 import requests
 import web
 
@@ -401,7 +401,7 @@ def _notify_on_rpd_verification(ol_account, org):
             }
         )
 
-        
+
 def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount) -> None:
     ol_account.get_user().save_preferences({"rpd": PDRequestStatus.FULFILLED.value})
 
@@ -462,13 +462,12 @@ class otp_service_issue(delegate.page):
         i = web.input(email="", ip="", challenge_url="", sendmail='')
         required_keys = ("email", "ip", "service_ip", "challenge_url")
         i.email = i.email.replace(" ", "+").lower()
-        i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')        
+        i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({
-                "error": "missing_keys",
-                "missing_keys": missing_fields
-            }))
-        
+            return delegate.RawText(
+                json.dumps({"error": "missing_keys", "missing_keys": missing_fields})
+            )
+
         if not OTP.verify_service(i.service_ip, i.challenge_url):
             return delegate.RawText(json.dumps({"error": "challenge_failed"}))
         if error := OTP.is_ratelimited(service_ip=i.service_ip, email=i.email, ip=i.ip):
@@ -484,6 +483,7 @@ class otp_service_issue(delegate.page):
             )
         return delegate.RawText(json.dumps({"success": {"otp": otp}}))
 
+
 class otp_service_redeem(delegate.page):
     path = "/account/otp/redeem"
 
@@ -494,13 +494,14 @@ class otp_service_redeem(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({
-                "error": "missing_keys",
-                "missing_keys": missing_fields
-            }))
+            return delegate.RawText(
+                json.dumps({"error": "missing_keys", "missing_keys": missing_fields})
+            )
         if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
             return delegate.RawText(json.dumps({"success": f"{i.otp}"}))
-        raise web.HTTPError({"error": "otp_mismatch"}, {"Content-Type": "application/json"})
+        raise web.HTTPError(
+            {"error": "otp_mismatch"}, {"Content-Type": "application/json"}
+        )
 
 
 class account_login(delegate.page):
