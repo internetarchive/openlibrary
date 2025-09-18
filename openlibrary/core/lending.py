@@ -116,7 +116,7 @@ def compose_ia_url(
     sorts=None,
     advanced: bool = True,
     rate_limit_exempt: bool = True,
-    safe_mode: bool = False
+    safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for

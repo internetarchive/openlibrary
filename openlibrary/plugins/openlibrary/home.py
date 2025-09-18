@@ -129,7 +129,9 @@ class random_book(delegate.page):
         raise web.seeother(random.choice(keys))
 
 
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None, safe_mode=True):
+def get_ia_carousel_books(
+    query=None, subject=None, sorts=None, limit=None, safe_mode=True
+):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
