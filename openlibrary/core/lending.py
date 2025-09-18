@@ -72,6 +72,7 @@ config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
 config_ia_loan_api_developer_key = None
+config_otp_seed = None
 config_http_request_timeout = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
@@ -102,6 +103,7 @@ def setup(config):
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_users_loan_history = config.get('ia_users_loan_history')
     config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
+    config_otp_seed = config.get('otp_seed')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
     config_fts_context = config.get('fts_context')

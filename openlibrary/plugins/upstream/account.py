@@ -7,7 +7,7 @@ from enum import Enum
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
-
+        
 import requests
 import web
 
@@ -32,6 +32,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
+from openlibrary.core.auth import TimedOneTimePassword
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -400,7 +401,7 @@ def _notify_on_rpd_verification(ol_account, org):
             }
         )
 
-
+        
 def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount) -> None:
     ol_account.get_user().save_preferences({"rpd": PDRequestStatus.FULFILLED.value})
 
@@ -451,7 +452,52 @@ class account_login_json(delegate.page):
             from infogami.plugins.api.code import login as infogami_login
 
             infogami_login().POST()
+            
+class otp_service_redeem(delegate.page):
+    path = "/account/otp/redeem"
 
+    def POST(self):
+        web.header('Content-Type', 'application/json')
+        required_keys = ("email", "ip", "client", "otp")
+        i = web.input(email="", ip="", otp="")
+        i.email.replace(" ", "+")
+        i.client = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
+        if missing_fields := (k for k in required_keys if not getattr(i, k)):
+            return delegate.RawText(json.dumps({
+                "error": "missing_keys",
+                "missing_keys": missing_keys
+            }))
+        if TimedOneTimePassword.is_valid(i.email, i.ip, i.client, i.otp):
+            return delegate.RawText(json.dumps({"success": f"{i.otp}"}))
+        return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
+
+class otp_service_issue(delegate.page):
+    path = "/account/otp/issue"
+
+    def POST(self):
+        web.header('Content-Type', 'application/json')
+        i = web.input(email='', ip='', sendmail=False)
+        required_keys = ("email", "ip", "client")
+        i.email = i.email.replace(" ", "+").lower()
+        i.client = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
+        if missing_fields := (k for k in required_keys if not getattr(i, k)):
+            return delegate.RawText(json.dumps({
+                "error": "missing_keys",
+                "missing_keys": missing_keys
+            }))
+                
+        if error := is_ratelimited(client=i.client, email=i.email, ip=i.ip):
+            return delegate.RawText(json.dumps(error))
+
+        otp = self.generate(i.email, i.ip, i.client)
+        if i.sendmail == 'true':
+            web.sendmail(
+                config.from_address,
+                i.email,
+                subject="Your One Time Password",
+                message=web.safestr(f"Your one time password is: {i.otp}"),
+            )
+        return delegate.RawText(json.dumps({"success": {"otp": otp}}))
 
 class account_login(delegate.page):
     """Account login.
