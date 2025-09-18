@@ -9,12 +9,13 @@ import uuid
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
+import infogami
 import requests
 import web
-from simplejson.errors import JSONDecodeError
-
 from infogami.utils import delegate
 from infogami.utils.view import public
+from simplejson.errors import JSONDecodeError
+
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
@@ -196,16 +197,24 @@ def get_cached_groundtruth_availability(ocaid):
 def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
+    # In development environment, skip external API calls to prevent failures
+    # when archive.org is down
+    if infogami.config.get('dev_instance'):
+        data = {}
+        data['__src__'] = 'core.models.lending.get_groundtruth_availability'
+        return data
+
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
     try:
         response = requests.post(url + params, data=s3_keys)
         response.raise_for_status()
-    except requests.HTTPError:
+    except (requests.HTTPError, requests.exceptions.ConnectionError):
         pass  # TODO: Handle unexpected responses from the availability server.
     try:
         data = response.json().get('lending_status', {})
-    except JSONDecodeError:
+    except (JSONDecodeError, NameError):
+        # NameError can occur if response is not defined due to connection error
         data = {}
     # For debugging
     data['__src__'] = 'core.models.lending.get_groundtruth_availability'
