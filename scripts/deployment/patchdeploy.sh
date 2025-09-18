@@ -6,7 +6,7 @@
 if [[ -z "$1" || "$1" == "--help" ]]; then
     echo "This script applies a patch from a GitHub PR to the Open Library servers."
     echo ""
-    echo "Usage: $0 <pr_number>"
+    echo "Usage: $0 <pr_number|patch_url>"
     echo ""
     echo "Environment variables:"
     echo "  SERVERS=ol-web0 ol-web1 ol-web2  List of servers to apply the patch to."
@@ -17,6 +17,8 @@ if [[ -z "$1" || "$1" == "--help" ]]; then
     echo "  APPLY_OPTIONS=''                 Options to pass to git apply. E.g. use -R to"
     echo "                                   un-apply a patch. See 'git apply --help' for options."
     echo "  RESET=''                         If 'true', resets the container before applying the patch."
+    echo "  MAKE=''                          If specified, runs the provided 'make' commands inside the container."
+    echo "                                   E.g. MAKE='js css components' to rebuild all front-end assets."
     exit 1
 fi
 
@@ -53,6 +55,11 @@ for host in $SERVERS; do
     TMP_OUTPUT_FILE=$(mktemp)
     STATUS=0
     if [ "$PATCH_ON" == "host" ]; then
+        if [ -n "$MAKE" ]; then
+            echo "Error: MAKE is not supported when PATCH_ON is set to host."
+            exit 1
+        fi
+
         echo -n "  $host ... "
         ssh ${host}.us.archive.org "
             set -e
@@ -83,11 +90,18 @@ for host in $SERVERS; do
         fi
 
         echo -n " applying patch ... "
+        MAKE_CMD=""
+        if [ -n "$MAKE" ]; then
+            MAKE_CMD="make $MAKE"
+        fi
+
         ssh ${host}.us.archive.org "
+            set -e
             export COMPOSE_FILE='/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml'
             export HOSTNAME=\$HOSTNAME
             docker compose exec ${SERVICE} bash -c '
                 HTTPS_PROXY=${PROXY} curl -sL ${PATCH_URL} | git apply $APPLY_OPTIONS
+                $MAKE_CMD
             ' 2>&1
         " > $TMP_OUTPUT_FILE
 
