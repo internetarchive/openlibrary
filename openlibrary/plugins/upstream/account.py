@@ -553,6 +553,7 @@ class account_login(delegate.page):
             has_special_access = audit.get('special_access')
             if (
                 has_special_access
+                and ol_account.get_user().preferences().get('pda', '')
                 and ol_account.get_user().preferences().get('rpd')
                 != PDRequestStatus.FULFILLED.value
             ):
