@@ -2697,11 +2697,15 @@ msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
 
 #: account/mybooks.html
-msgid "No books are on this shelf"
+msgid "No items are on this shelf"
 msgstr ""
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Loans"
+msgstr ""
+
+#: account/mybooks.html
+msgid "Activity Feed"
 msgstr ""
 
 #: account/mybooks.html type/user/view.html
