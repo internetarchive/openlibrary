@@ -220,7 +220,6 @@ class routes(delegate.page):
 
         return '<pre>%s</pre>' % json.dumps(
             code.delegate.pages,
-            sort_keys=True,
             cls=ModulesToStr,
             indent=4,
             separators=(',', ': '),
