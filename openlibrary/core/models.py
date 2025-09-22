@@ -955,6 +955,9 @@ class User(Thing):
     def is_read_only(self) -> bool:
         return self.is_usergroup_member('/usergroup/read-only')
 
+    def is_curator(self) -> bool:
+        return self.is_usergroup_member('/usergroup/curators')
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 
