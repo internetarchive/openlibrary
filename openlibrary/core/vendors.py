@@ -408,6 +408,7 @@ def _get_amazon_metadata(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
+    timeout: float = 2.0,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -440,7 +441,8 @@ def _get_amazon_metadata(
         priority = "true" if high_priority else "false"
         stage = "true" if stage_import else "false"
         r = requests.get(
-            f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}'
+            f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}',
+            timeout=timeout
         )
         r.raise_for_status()
         if data := r.json().get('hit'):
