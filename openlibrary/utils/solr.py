@@ -68,13 +68,14 @@ class Solr:
         fields: Iterable[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> list[T]:
-        if not keys:
+        ids = list(keys)
+        if not ids:
             return []
-        logger.info(f"solr /get: {keys}, {fields}")
+        logger.info(f"solr /get: {ids}, {fields}")
         resp = self.session.post(
             f"{self.base_url}/get",
             data={
-                'ids': ','.join(keys),
+                'ids': ','.join(ids),
                 **({'fl': ','.join(fields)} if fields else {}),
             },
         ).json()
