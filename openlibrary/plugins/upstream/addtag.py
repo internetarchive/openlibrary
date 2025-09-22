@@ -95,7 +95,7 @@ class addtag(delegate.page):
         """
         Returns True if the given user can create a new Tag
         """
-        return (user and user.is_admin()) or user.is_curator()
+        return user and (user.is_admin() or user.is_curator())
 
     def POST(self):
         i = web.input(
