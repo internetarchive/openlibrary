@@ -358,6 +358,28 @@ export function initAuthorMultiInputAutocomplete() {
     });
 }
 
+export function initAddWorkMultiInputAutocomplete() {
+    initAutocomplete();
+    getJqueryElements('multi-input-autocomplete--add-work').forEach(jqueryElement => {
+        /* Values in the html passed from Python code */
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_multi_input_autocomplete(
+            render_add_work,
+            {
+                endpoint: '/works/_autocomplete',
+                addnew: query => !/OL\d+A/i.test(query),
+                sortable: true,
+            },
+            {
+                minChars: 2,
+                max: 11,
+                matchSubset: false,
+                autoFill: true,
+                formatItem: render_add_work_autocomplete_item
+            });
+    });
+}
+
 export function initSubjectsAutocomplete() {
     initAutocomplete();
     getJqueryElements('.csv-autocomplete--subjects').forEach(jqueryElement => {
