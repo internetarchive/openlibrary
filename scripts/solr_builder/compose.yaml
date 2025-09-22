@@ -62,6 +62,7 @@ services:
         -Dsolr.autoSoftCommit.maxTime=60000
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
+      - SOLR_MODULES=analysis-extras
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     volumes:
