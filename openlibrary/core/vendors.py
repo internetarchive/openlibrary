@@ -442,7 +442,7 @@ def _get_amazon_metadata(
         stage = "true" if stage_import else "false"
         r = requests.get(
             f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}',
-            timeout=timeout
+            timeout=timeout,
         )
         r.raise_for_status()
         if data := r.json().get('hit'):
