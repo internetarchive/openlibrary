@@ -4414,8 +4414,10 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html
-msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+#: books/add.html
+msgid ""
+"Use <b><i>Title: Subtitle</i></b> to add a subtitle. We'll do a live "
+"check to see if we already know this book."
 msgstr ""
 
 #: books/add.html books/edit.html type/author/edit.html
@@ -4503,11 +4505,11 @@ msgstr ""
 msgid "Add this book now"
 msgstr ""
 
-#: books/author-autocomplete.html
+#: books/author-autocomplete.html books/works-autocomplete.html
 msgid "Add a new author"
 msgstr ""
 
-#: books/author-autocomplete.html
+#: books/author-autocomplete.html books/works-autocomplete.html
 msgid "Create a new record for"
 msgstr ""
 
@@ -4515,7 +4517,7 @@ msgstr ""
 msgid "Remove this author"
 msgstr ""
 
-#: books/author-autocomplete.html
+#: books/author-autocomplete.html books/works-autocomplete.html
 msgid "Add another author?"
 msgstr ""
 
@@ -4729,6 +4731,10 @@ msgid "This Work"
 msgstr ""
 
 #: books/edit.html
+msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+msgstr ""
+
+#: books/edit.html
 msgid ""
 "You can search by author name (like <em>j k rowling</em>) or by Open "
 "Library ID (like <a href=\"/authors/OL23919A\" "
@@ -4775,6 +4781,10 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/edit/edition.html books/works-autocomplete.html
+msgid "Remove this work"
 msgstr ""
 
 #: books/edit/about.html
@@ -4843,10 +4853,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Remove this language"
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Remove this work"
 msgstr ""
 
 #: books/edit/edition.html
