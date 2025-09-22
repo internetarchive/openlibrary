@@ -71,7 +71,7 @@ class Solr:
         ids = list(keys)
         if not ids:
             return []
-        logger.info(f"solr /get: {keys}, {fields}")
+        logger.info(f"solr /get: {ids}, {fields}")
         resp = self.session.post(
             f"{self.base_url}/get",
             data={
