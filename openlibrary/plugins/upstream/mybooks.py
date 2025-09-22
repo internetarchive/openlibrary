@@ -92,7 +92,9 @@ class mybooks_home(delegate.page):
             'want-to-read': want_to_read,
             'currently-reading': currently_reading,
             'already-read': already_read,
+            'activity-feed': PubSub.get_feed(mb.username, limit=10),
         }
+
         return render['account/mybooks'](
             mb.user,
             docs,
