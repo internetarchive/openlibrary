@@ -333,6 +333,28 @@ class Account(web.storage):
         self._save()
 
     def anonymize(self, test=False):
+        if not test:
+            patron = self.get_user()
+            email = self.email
+            username = self.username
+
+            # Remove patron from all usergroups:
+            for grp in patron.usergroups:
+                grp.remove_user(patron.key)
+
+            # Clear patron's profile page:
+            data = {'key': patron.key, 'type': '/type/delete'}
+            patron.set_data(data)
+
+            # Remove account information from store:
+            del web.ctx.site.store[f'account/{username}']
+            del web.ctx.site.store[f'account/{username}/verify']
+            del web.ctx.site.store[f'account/{username}/password']
+            del web.ctx.site.store[f'account-email/{email}']
+            del web.ctx.site.store[f'account-email/{email.lower()}']
+            # Delete preferences:
+            del web.ctx.site.store[f'/people/{username}/preferences']
+
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
         uuid = (
@@ -364,29 +386,6 @@ class Account(web.storage):
         results['bestbooks_count'] = Bestbook.update_username(
             self.username, new_username, _test=test
         )
-
-        if not test:
-            patron = self.get_user()
-            email = self.email
-            username = self.username
-
-            # Remove patron from all usergroups:
-            for grp in patron.usergroups:
-                grp.remove_user(patron.key)
-
-            # Set preferences to default:
-            patron.save_preferences({'updates': 'no', 'public_readlog': 'no'})
-
-            # Clear patron's profile page:
-            data = {'key': patron.key, 'type': '/type/delete'}
-            patron.set_data(data)
-
-            # Remove account information from store:
-            del web.ctx.site.store[f'account/{username}']
-            del web.ctx.site.store[f'account/{username}/verify']
-            del web.ctx.site.store[f'account/{username}/password']
-            del web.ctx.site.store[f'account-email/{email}']
-            del web.ctx.site.store[f'account-email/{email.lower()}']
 
         return results
 

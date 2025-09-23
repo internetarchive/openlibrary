@@ -64,11 +64,13 @@ export function less(header, start_facet_count, facet_inc) {
  *
  * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
  */
-export function initSearchFacets(facetsElem) {
+export async function initSearchFacets(facetsElem) {
     const asyncLoad = facetsElem.dataset.asyncLoad
 
     if (asyncLoad) {
         const param = JSON.parse(facetsElem.dataset.param)
+        await whenVisible(facetsElem);
+
         fetchPartials(param)
             .then((data) => {
                 if (data.activeFacets) {
@@ -154,4 +156,38 @@ function createElementFromMarkup(markup) {
     const template = document.createElement('template')
     template.innerHTML = markup
     return template.content.children[0]
+}
+
+
+/**
+ * Waits until the given element is visible in the viewport, then resolves.
+ *
+ * @param {HTMLElement} elem
+ * @param {IntersectionObserverInit} options
+ * @returns {Promise<void>}
+ */
+async function whenVisible(elem, options = {}) {
+    return new Promise((resolve) => {
+        const intersectionObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return
+                    }
+
+                    // Stop observing once the element is visible
+                    observer.unobserve(entry.target)
+                    observer.disconnect()
+                    resolve()
+                })
+            },
+            Object.assign({
+                root: null,
+                rootMargin: '200px',
+                threshold: 0
+            }, options)
+        )
+
+        intersectionObserver.observe(elem);
+    });
 }

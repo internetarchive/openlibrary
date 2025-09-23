@@ -42,6 +42,10 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.utils.solr import (
+    DEFAULT_PASS_TIME_ALLOWED,
+    DEFAULT_SOLR_TIMEOUT_SECONDS,
+)
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -145,7 +149,8 @@ def process_facet_counts(
 def execute_solr_query(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
-    _timeout: int | None = None,
+    _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
+    _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
 ) -> Response | None:
     url = solr_path
     if params:
@@ -158,6 +163,7 @@ def execute_solr_query(
             solr_path,
             urlencode(params),
             _timeout=_timeout,
+            _pass_time_allowed=_pass_time_allowed,
         )
     except requests.HTTPError:
         logger.exception("Failed solr query")

@@ -20,14 +20,16 @@
       "birth_date": "1914",
       "death_date": "1998",
       "name": "林屋 辰三郎",
-      "entity_type": "person"
+      "entity_type": "person",
+      "remote_ids": {"lc_naf": "n81047233"}
     },
     {
       "alternate_names": [
           "Yokoi, Kiyoshi"
       ],
       "name": "横井 清.",
-      "entity_type": "person"
+      "entity_type": "person",
+      "remote_ids": {"lc_naf": "n81089234"}
     },
     {
       "alternate_names": [
@@ -36,7 +38,8 @@
       "birth_date": "1940",
       "death_date": "1960",
       "name": "楢林 忠男",
-      "entity_type": "person"
+      "entity_type": "person",
+      "remote_ids": {"lc_naf": "n85206624"}
     }
   ],
   "subjects": [
