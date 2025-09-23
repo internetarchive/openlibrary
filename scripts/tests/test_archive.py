@@ -5,7 +5,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from openlibrary.core.ia import save_page_now, get_ia_s3_keys
+from openlibrary.core.ia import get_ia_s3_keys, save_page_now
 
 # Live URLs (integration). Will be called only when creds are present.
 URLS = [

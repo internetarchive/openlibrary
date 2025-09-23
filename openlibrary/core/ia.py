@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import os
 from collections.abc import Callable, Generator
 from urllib.parse import urlencode
 
@@ -11,7 +10,7 @@ import web
 
 from infogami import config
 from infogami.utils import stats
-from openlibrary.core import cache, lending
+from openlibrary.core import cache
 
 logger = logging.getLogger('openlibrary.ia')
 
@@ -83,6 +82,7 @@ def get_ia_s3_keys() -> tuple[str | None, str | None]:
     """Resolve IA S3 creds via internetarchive session only."""
     try:
         import internetarchive as ia
+
         sess = ia.get_session()
         return getattr(sess, 'access_key', None), getattr(sess, 'secret_key', None)
     except Exception:
