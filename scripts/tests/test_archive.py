@@ -5,7 +5,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from openlibrary.core.ia import save_page_now
+from openlibrary.core.ia import save_page_now, get_ia_s3_keys
 
 # Live URLs (integration). Will be called only when creds are present.
 URLS = [
@@ -21,9 +21,10 @@ URLS = [
 ]
 
 
+_access, _secret = get_ia_s3_keys()
 requires_creds = pytest.mark.skipif(
-    not (os.environ.get("IA_ACCESS_KEY") and os.environ.get("IA_SECRET_KEY")),
-    reason="IA_ACCESS_KEY / IA_SECRET_KEY not set; skipping live SPN tests",
+    not (_access and _secret),
+    reason="IA credentials not available via internetarchive session/config; skipping live SPN tests",
 )
 
 

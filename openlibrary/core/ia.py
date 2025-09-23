@@ -52,7 +52,7 @@ def save_page_now(
     "ERROR_HTTP_<code>", or "ERROR_EXCEPTION_<msg>" on failure.
     """
     if not access_key or not secret_key:
-        access_key, secret_key = get_spn_s3_keys(access_key, secret_key)
+        access_key, secret_key = get_ia_s3_keys()
 
     if not access_key or not secret_key:
         return "NO_CREDENTIALS"
@@ -79,23 +79,14 @@ def save_page_now(
         return f"ERROR_EXCEPTION_{str(e)[:50]}"
 
 
-def get_spn_s3_keys(
-    access_key: str | None = None, secret_key: str | None = None
-) -> tuple[str | None, str | None]:
-    """Resolve S3 creds for Save Page Now.
-    TODO: Confirm single source of truth for SPN credentials and update this resolver accordingly.
-    """
-    if access_key and secret_key:
-        return access_key, secret_key
-
-    s3 = getattr(lending, 'config_ia_ol_xauth_s3', None)
-    if not s3 and hasattr(config, 'get'):
-        s3 = config.get('ia_ol_xauth_s3')
-    s3 = s3 or {}
-
-    access_key = access_key or s3.get('s3_key') or os.environ.get('IA_ACCESS_KEY')
-    secret_key = secret_key or s3.get('s3_secret') or os.environ.get('IA_SECRET_KEY')
-    return access_key, secret_key
+def get_ia_s3_keys() -> tuple[str | None, str | None]:
+    """Resolve IA S3 creds via internetarchive session only."""
+    try:
+        import internetarchive as ia
+        sess = ia.get_session()
+        return getattr(sess, 'access_key', None), getattr(sess, 'secret_key', None)
+    except Exception:
+        return None, None
 
 
 def get_metadata_direct(
