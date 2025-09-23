@@ -7,9 +7,9 @@ from urllib.parse import urlencode
 
 import requests
 import web
-
 from infogami import config
 from infogami.utils import stats
+
 from openlibrary.core import cache
 
 logger = logging.getLogger('openlibrary.ia')
@@ -80,13 +80,14 @@ def save_page_now(
 
 def get_ia_s3_keys() -> tuple[str | None, str | None]:
     """Resolve IA S3 creds via internetarchive session only."""
-    try:
-        import internetarchive as ia
+    import internetarchive as ia
 
-        sess = ia.get_session()
-        return getattr(sess, 'access_key', None), getattr(sess, 'secret_key', None)
+    try:
+        session = ia.get_session()
     except Exception:
+        logger.exception("Failed to initialize internetarchive session")
         return None, None
+    return getattr(session, 'access_key', None), getattr(session, 'secret_key', None)
 
 
 def get_metadata_direct(
