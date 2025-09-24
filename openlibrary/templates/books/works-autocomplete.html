@@ -1,8 +1,8 @@
-$def with (work)
+$def with (works)
 
 $:render_template('jsdef/LazyWorkPreview', None)
 
-$jsdef render_add_work_autocomplete_item(item):
+$jsdef render_work_autocomplete_item(item):
     $if item.key == "__new__":
         <div class="ac_author ac_addnew" title="$_('Add a new author')">
             <span class="action">$_("Create a new record for") </span>
@@ -11,7 +11,7 @@ $jsdef render_add_work_autocomplete_item(item):
     $else:
         $:render_lazy_work_preview(item)
 
-$jsdef render_add_work(i, work):
+$jsdef render_work_field(i, work):
     <div class="input ac-input mia__input">
         <div class="mia__reorder">≡</div>
         <input class="ac-input__visible" name="works--$i" type="text" value="$work.key.split('/')[-1]"/>
@@ -19,8 +19,8 @@ $jsdef render_add_work(i, work):
         <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[&times;]</a>&nbsp;
     </div>
 
-<div class="multi-input-autocomplete multi-input-autocomplete--author" >
+<div class="multi-input-autocomplete multi-input-autocomplete--works">
     $for work in (works or [storage(name="", key="")]):
-        $:render_author(loop.index0, author)
-    <a href="javascript:;" class="mia__add">$_("Add another author?")</a>
+        $:render_work_field(loop.index0, work)
+    <a href="javascript:;" class="mia__add">$_("Add another book?")</a>
 </div>
