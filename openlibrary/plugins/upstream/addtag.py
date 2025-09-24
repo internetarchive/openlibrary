@@ -95,7 +95,7 @@ class addtag(delegate.page):
         """
         Returns True if the given user can create a new Tag
         """
-        return user and user.is_admin()
+        return user and (user.is_admin() or user.is_curator())
 
     def POST(self):
         i = web.input(
@@ -212,7 +212,7 @@ class tag_edit(delegate.page):
         if not (patron := get_current_user()):
             return False
 
-        is_in_permitted_group = patron.is_admin()
+        is_in_permitted_group = patron.is_admin() or patron.is_curator()
         is_deputy = patron.key == tag.get("deputy", None)
 
         if is_in_permitted_group:
