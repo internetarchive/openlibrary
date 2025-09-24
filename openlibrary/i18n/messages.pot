@@ -4517,7 +4517,7 @@ msgstr ""
 msgid "Remove this author"
 msgstr ""
 
-#: books/author-autocomplete.html books/works-autocomplete.html
+#: books/author-autocomplete.html
 msgid "Add another author?"
 msgstr ""
 
@@ -4785,6 +4785,10 @@ msgstr ""
 
 #: books/edit/edition.html books/works-autocomplete.html
 msgid "Remove this work"
+msgstr ""
+
+#: books/works-autocomplete.html
+msgid "Add another book?"
 msgstr ""
 
 #: books/edit/about.html
