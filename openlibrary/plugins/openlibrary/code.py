@@ -687,7 +687,9 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
+            if ed := Edition.from_isbn(
+                isbn_or_asin=isbn, high_priority=high_priority, allow_import=False
+            ):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
