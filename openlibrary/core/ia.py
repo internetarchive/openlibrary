@@ -79,15 +79,9 @@ def save_page_now(
 
 
 def get_ia_s3_keys() -> tuple[str | None, str | None]:
-    """Resolve IA S3 creds via internetarchive session only."""
-    import internetarchive as ia
-
-    try:
-        session = ia.get_session()
-    except Exception:
-        logger.exception("Failed to initialize internetarchive session")
-        return None, None
-    return getattr(session, 'access_key', None), getattr(session, 'secret_key', None)
+    """Resolve IA S3 creds via infogami config."""
+    spn_config = config.get("ol_spn_api_s3", {})
+    return spn_config.get("s3_key"), spn_config.get("s3_secret")
 
 
 def get_metadata_direct(
