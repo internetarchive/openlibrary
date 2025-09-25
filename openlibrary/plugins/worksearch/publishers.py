@@ -19,7 +19,11 @@ class publishers(subjects.subjects):
 
     def GET(self, key):
         key = key.replace("_", " ")
-        page = subjects.get_subject(key, details=True)
+        page = subjects.get_subject(
+            key,
+            details=True,
+            request_label='SUBJECT_ENGINE_PAGE',
+        )
 
         if not page or page.work_count == 0:
             web.ctx.status = "404 Not Found"

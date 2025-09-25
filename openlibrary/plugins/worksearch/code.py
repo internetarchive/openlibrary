@@ -201,6 +201,9 @@ SolrRequestLabel = Literal[
     'BOOK_SEARCH_API',
     'BOOK_SEARCH_FACETS',
     'BOOK_CAROUSEL',
+    # Subject, publisher pages
+    'SUBJECT_ENGINE_PAGE',
+    'SUBJECT_ENGINE_API',
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     'EDITION_MATCH',

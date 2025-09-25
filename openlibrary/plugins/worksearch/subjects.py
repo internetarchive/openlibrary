@@ -11,6 +11,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
+from openlibrary.plugins.worksearch.code import SolrRequestLabel
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 
@@ -35,6 +36,7 @@ class subjects(delegate.page):
             details=True,
             filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
             sort=web.input(sort='readinglog').sort,
+            request_label='SUBJECT_ENGINE_PAGE',
         )
 
         delegate.context.setdefault('cssfile', 'subject')
@@ -80,6 +82,7 @@ class subjects(delegate.page):
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
     encoding = 'json'
+    solr_label: SolrRequestLabel = 'SUBJECT_ENGINE_API'
 
     @jsonapi
     def GET(self, key):
@@ -122,6 +125,7 @@ class subjects_json(delegate.page):
             limit=i.limit,
             sort=i.sort,
             details=i.details.lower() == 'true',
+            request_label='SUBJECT_ENGINE_API',
             **filters,
         )
         if i.has_fulltext == 'true':
@@ -162,6 +166,7 @@ def get_subject(
     offset=0,
     sort='editions',
     limit=DEFAULT_RESULTS,
+    request_label: SolrRequestLabel = 'UNLABELLED',
     **filters,
 ) -> Subject:
     """Returns data related to a subject.
@@ -230,6 +235,7 @@ def get_subject(
         offset=offset,
         sort=sort,
         limit=limit,
+        request_label=request_label,
         **filters,
     )
 
@@ -249,6 +255,7 @@ class SubjectEngine:
         offset=0,
         limit=DEFAULT_RESULTS,
         sort='new',
+        request_label: SolrRequestLabel = 'UNLABELLED',
         **filters,
     ):
         # Circular imports are everywhere -_-
@@ -272,6 +279,7 @@ class SubjectEngine:
                 ),
                 **filters,
             },
+            request_label=request_label,
             offset=offset,
             rows=limit,
             sort=sort,
