@@ -95,6 +95,15 @@ async def monitor_solr():
     )
 
 
+@limit_server(["ol-home0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_solr_updater():
+    from scripts.monitoring.solr_updater_monitor import monitor_solr_updater
+
+    await monitor_solr_updater()
+    await monitor_solr_updater(solr_next=True)
+
+
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
 async def monitor_empty_homepage():
