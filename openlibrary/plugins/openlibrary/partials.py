@@ -238,7 +238,7 @@ class SearchFacetsPartial(PartialDataHandler):
             rows=0,
             spellcheck_count=3,
             facet=True,
-            query_label='BOOK_SEARCH_FACETS',
+            request_label='BOOK_SEARCH_FACETS',
         )
 
         sidebar = render_template(

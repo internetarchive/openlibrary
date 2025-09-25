@@ -195,7 +195,7 @@ def get_remembered_layout():
     return 'details'
 
 
-QueryLabel = Literal[
+SolrRequestLabel = Literal[
     'UNLABELLED',
     'BOOK_SEARCH',
     'BOOK_SEARCH_API',
@@ -225,7 +225,7 @@ def run_solr_query(  # noqa: PLR0912
     facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
-    query_label: QueryLabel = 'UNLABELLED',
+    request_label: SolrRequestLabel = 'UNLABELLED',
 ):
     """
     :param param: dict of query parameters
@@ -245,7 +245,7 @@ def run_solr_query(  # noqa: PLR0912
         *(('fq', subquery) for subquery in scheme.universe),
         ('start', offset),
         ('rows', rows),
-        ('ol.label', query_label),
+        ('ol.label', request_label),
         ('wt', param.get('wt', 'json')),
     ] + (extra_params or [])
 
@@ -388,7 +388,7 @@ def do_search(
     rows=100,
     facet=False,
     spellcheck_count=None,
-    query_label: QueryLabel = 'UNLABELLED',
+    request_label: SolrRequestLabel = 'UNLABELLED',
 ):
     """
     :param param: dict of search url parameters
@@ -419,7 +419,7 @@ def do_search(
         spellcheck_count,
         fields=list(fields),
         facet=facet,
-        query_label=query_label,
+        request_label=request_label,
     )
 
 
@@ -619,7 +619,7 @@ class search(delegate.page):
                 page,
                 rows=rows,
                 spellcheck_count=3,
-                query_label='BOOK_SEARCH',
+                request_label='BOOK_SEARCH',
             )
         else:
             search_response = SearchResponse(
@@ -750,7 +750,7 @@ class list_search(delegate.page):
     def get_results(
         self,
         req: ListSearchRequest,
-        query_label: Literal['LIST_SEARCH', 'LIST_SEARCH_API'],
+        request_label: Literal['LIST_SEARCH', 'LIST_SEARCH_API'],
     ):
         return run_solr_query(
             ListSearchScheme(),
@@ -759,7 +759,7 @@ class list_search(delegate.page):
             rows=req.limit,
             fields=req.fields,
             sort=req.sort,
-            query_label=query_label,
+            request_label=request_label,
         )
 
 
@@ -808,13 +808,15 @@ class subject_search(delegate.page):
     path = '/search/subjects'
 
     def GET(self):
-        get_results = functools.partial(self.get_results, query_label='SUBJECT_SEARCH')
+        get_results = functools.partial(
+            self.get_results, request_label='SUBJECT_SEARCH'
+        )
         return render_template('search/subjects', get_results)
 
     def get_results(
         self,
         q,
-        query_label: Literal['SUBJECT_SEARCH', 'SUBJECT_SEARCH_API'],
+        request_label: Literal['SUBJECT_SEARCH', 'SUBJECT_SEARCH_API'],
         offset=0,
         limit=100,
     ):
@@ -824,7 +826,7 @@ class subject_search(delegate.page):
             offset=offset,
             rows=limit,
             sort='work_count desc',
-            query_label=query_label,
+            request_label=request_label,
         )
 
         return response
@@ -842,7 +844,7 @@ class subject_search_json(subject_search):
 
         response = self.get_results(
             i.q,
-            query_label='SUBJECT_SEARCH_API',
+            request_label='SUBJECT_SEARCH_API',
             offset=offset,
             limit=limit,
         )
@@ -861,13 +863,13 @@ class author_search(delegate.page):
     path = '/search/authors'
 
     def GET(self):
-        get_results = functools.partial(self.get_results, query_label='AUTHOR_SEARCH')
+        get_results = functools.partial(self.get_results, request_label='AUTHOR_SEARCH')
         return render_template('search/authors', get_results)
 
     def get_results(
         self,
         q,
-        query_label: Literal['AUTHOR_SEARCH', 'AUTHOR_SEARCH_API'],
+        request_label: Literal['AUTHOR_SEARCH', 'AUTHOR_SEARCH_API'],
         offset=0,
         limit=100,
         fields='*',
@@ -880,7 +882,7 @@ class author_search(delegate.page):
             rows=limit,
             fields=fields,
             sort=sort,
-            query_label=query_label,
+            request_label=request_label,
         )
 
         return resp
@@ -898,7 +900,7 @@ class author_search_json(author_search):
 
         response = self.get_results(
             i.q,
-            query_label='AUTHOR_SEARCH_API',
+            request_label='AUTHOR_SEARCH_API',
             offset=offset,
             limit=limit,
             fields=i.fields,
@@ -968,7 +970,7 @@ def work_search(
     fields: str = '*',
     facet: bool = True,
     spellcheck_count: int | None = None,
-    query_label: QueryLabel = 'UNLABELLED',
+    request_label: SolrRequestLabel = 'UNLABELLED',
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
@@ -991,7 +993,7 @@ def work_search(
         fields=fields,
         facet=facet,
         spellcheck_count=spellcheck_count,
-        query_label=query_label,
+        request_label=request_label,
     )
     response = resp.raw_resp['response']
 
@@ -1065,7 +1067,7 @@ class search_json(delegate.page):
             # so disable it. This makes it much faster.
             facet=False,
             spellcheck_count=spellcheck_count,
-            query_label='BOOK_SEARCH_API',
+            request_label='BOOK_SEARCH_API',
         )
         response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
         response['q'] = q
