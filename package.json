@@ -63,7 +63,7 @@
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
     "sinon": "20.0.0",
-    "slick-carousel": "1.6.0",
+    "slick-carousel": "1.8.1",
     "style-loader": "^4.0.0",
     "stylelint": "^16.22.0",
     "stylelint-declaration-strict-value": "1.10.11",
