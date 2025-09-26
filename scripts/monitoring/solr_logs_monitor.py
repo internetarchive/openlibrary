@@ -58,6 +58,20 @@ class RequestLogEntry(SolrLogEntry):
                 params[key] = value
         return params
 
+    def get_request_label(self) -> str:
+        params = self.parse_params()
+        label = params.get('ol.label')
+        if not label or label == 'UNLABELLED':
+            return {
+                '/select': 'UNLABELLED_SELECT',
+                '/update': 'UNLABELLED_UPDATE',
+                '/get': 'UNLABELLED_GET',
+                '/query': 'UNLABELLED_QUERY',
+            }.get(self.path, 'UNLABELLED')
+
+        assert isinstance(label, str)
+        return label
+
     @staticmethod
     def parse_log_entry(match: re.Match) -> 'RequestLogEntry':
         fields = {
@@ -277,20 +291,11 @@ def main(
                     )
                 )
 
-            def get_default_for_path(path: str) -> str:
-                return {
-                    '/select': 'UNLABELLED_SELECT',
-                    '/update': 'UNLABELLED_UPDATE',
-                    '/get': 'UNLABELLED_GET',
-                }.get(path, 'UNLABELLED')
-
             # .{query_label}.count           <count>
             # .{query_label}.time.{duration} <count>
             count_by_query_label = Counter(
                 (
-                    entry.parse_params().get(
-                        'ol.label', get_default_for_path(entry.path)
-                    ),
+                    entry.get_request_label(),
                     standard_duration_blocks(entry.qtime),
                 )
                 for entry in minute_log_lines
