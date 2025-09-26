@@ -472,10 +472,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 <ul class="source-records">
                   $ get_source_html = render_template("history/sources").get_source_html
                   $for source_record in source_records:
-                    $ source_html = get_source_html(source_record)
-                    $ record = [s+'</a>' for s in source_html.split('</a>') if s]
-                    $for link in record:
-                      <li>$:link</li>
+                    <li>$:get_source_html(source_record)</li>
                 </ul>
               </div>
           $if work:
