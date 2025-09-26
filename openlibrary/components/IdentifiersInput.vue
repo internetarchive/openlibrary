@@ -74,8 +74,8 @@
 
     <template v-for="(value, name) in assignedIdentifiers">
       <div
-        v-if="value && !saveIdentifiersAsList"
-        :key="name"
+        v-for="(item, idx) in (saveIdentifiersAsList ? value : [value])"
+        :key="name + idx"
         class="assigned-identifiers-table"
         role="row"
       >
@@ -89,7 +89,7 @@
           class="identifier-value"
           role="cell"
         >
-          {{ value }}
+          {{ item }}
         </div>
         <div
           class="remove-button"
@@ -97,46 +97,14 @@
         >
           <button
             class="form-control"
-            @click="removeIdentifier(name)"
+            :disabled="!isAdmin && name === 'ocaid'"
+            :title="!isAdmin && name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
+            @click="removeIdentifier(name, idx)"
           >
             Remove
           </button>
         </div>
       </div>
-      <template v-else-if="value && saveIdentifiersAsList">
-        <div
-          v-for="(item, idx) in value"
-          :key="name + idx"
-          class="assigned-identifiers-table"
-          role="row"
-        >
-          <div
-            class="identifier-name"
-            role="rowheader"
-          >
-            {{ identifierConfigsByKey[name]?.label ?? name }}
-          </div>
-          <div
-            class="identifier-value"
-            role="cell"
-          >
-            {{ item }}
-          </div>
-          <div
-            class="remove-button"
-            role="cell"
-          >
-            <button
-              class="form-control"
-              :disabled="!isAdmin && name === 'ocaid'"
-              :title="!isAdmin && name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
-              @click="removeIdentifier(name, idx)"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
-      </template>
     </template>
   </div>
 </template>
