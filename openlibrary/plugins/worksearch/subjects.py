@@ -11,9 +11,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
-from openlibrary.plugins.worksearch.code import SolrRequestLabel
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
+from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
 

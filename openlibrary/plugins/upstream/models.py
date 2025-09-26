@@ -603,7 +603,7 @@ class Work(models.Work):
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)
         try:
-            return solr.get(self.key, fields=fields)
+            return solr.get(self.key, fields=fields, request_label='GET_WORK_SOLR_DATA')
         except Exception:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None

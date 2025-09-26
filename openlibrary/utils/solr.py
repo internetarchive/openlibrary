@@ -3,7 +3,7 @@
 import logging
 import re
 from collections.abc import Callable, Iterable
-from typing import TypeVar
+from typing import Literal, TypeVar
 from urllib.parse import urlencode, urlsplit
 
 import requests
@@ -16,6 +16,29 @@ T = TypeVar('T')
 
 DEFAULT_SOLR_TIMEOUT_SECONDS = 10
 DEFAULT_PASS_TIME_ALLOWED = True
+
+
+SolrRequestLabel = Literal[
+    'UNLABELLED',
+    'BOOK_SEARCH',
+    'BOOK_SEARCH_API',
+    'BOOK_SEARCH_FACETS',
+    'BOOK_CAROUSEL',
+    # /get endpoint
+    'GET_WORK_SOLR_DATA',
+    # Subject, publisher pages
+    'SUBJECT_ENGINE_PAGE',
+    'SUBJECT_ENGINE_API',
+    # Used for the internal request made by solr to choose the best edition
+    # during a normal book search
+    'EDITION_MATCH',
+    'LIST_SEARCH',
+    'LIST_SEARCH_API',
+    'SUBJECT_SEARCH',
+    'SUBJECT_SEARCH_API',
+    'AUTHOR_SEARCH',
+    'AUTHOR_SEARCH_API',
+]
 
 
 class Solr:
@@ -43,6 +66,7 @@ class Solr:
         key: str,
         fields: list[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
+        request_label: SolrRequestLabel = 'UNLABELLED',
     ) -> T | None:
         """Get a specific item from solr"""
         logger.info(f"solr /get: {key}, {fields}")
@@ -56,6 +80,7 @@ class Solr:
                     if fields
                     else {}
                 ),
+                'ol.label': request_label,
             },
         ).json()
 

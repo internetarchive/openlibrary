@@ -45,6 +45,7 @@ from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
+    SolrRequestLabel,
 )
 
 logger = logging.getLogger("openlibrary.worksearch")
@@ -193,27 +194,6 @@ def get_remembered_layout():
         return cookie_value
 
     return 'details'
-
-
-SolrRequestLabel = Literal[
-    'UNLABELLED',
-    'BOOK_SEARCH',
-    'BOOK_SEARCH_API',
-    'BOOK_SEARCH_FACETS',
-    'BOOK_CAROUSEL',
-    # Subject, publisher pages
-    'SUBJECT_ENGINE_PAGE',
-    'SUBJECT_ENGINE_API',
-    # Used for the internal request made by solr to choose the best edition
-    # during a normal book search
-    'EDITION_MATCH',
-    'LIST_SEARCH',
-    'LIST_SEARCH_API',
-    'SUBJECT_SEARCH',
-    'SUBJECT_SEARCH_API',
-    'AUTHOR_SEARCH',
-    'AUTHOR_SEARCH_API',
-]
 
 
 def run_solr_query(  # noqa: PLR0912
