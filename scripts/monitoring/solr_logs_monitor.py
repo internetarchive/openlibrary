@@ -42,7 +42,12 @@ class RequestLogEntry(SolrLogEntry):
     def parse_params(self) -> dict[str, str | list[str]]:
         params: dict[str, str | list[str]] = {}
         for kvp in self.params[1:-1].split('&'):
-            key, value = kvp.split('=', 1)
+            parts = kvp.split('=', 1)
+            if len(parts) != 2:
+                print(f"Warning: unexpected params format: {self.params}")
+                continue
+
+            key, value = parts
             if key in params:
                 existing_value = params[key]
                 if isinstance(existing_value, list):
