@@ -272,16 +272,24 @@ def main(
                     )
                 )
 
+            def get_default_for_path(path: str) -> str:
+                return {
+                    '/select': 'UNLABELLED_SELECT',
+                    '/update': 'UNLABELLED_UPDATE',
+                    '/get': 'UNLABELLED_GET',
+                }.get(path, 'UNLABELLED')
+
             # .{query_label}.count           <count>
             # .{query_label}.time.{duration} <count>
-
             count_by_query_label = Counter(
                 (
-                    entry.parse_params().get('ol.label', 'UNLABELLED'),
+                    entry.parse_params().get(
+                        'ol.label', get_default_for_path(entry.path)
+                    ),
                     standard_duration_blocks(entry.qtime),
                 )
                 for entry in minute_log_lines
-                if isinstance(entry, RequestLogEntry) and entry.path == '/select'
+                if isinstance(entry, RequestLogEntry)
             )
 
             for (query_label, duration), count in count_by_query_label.items():
