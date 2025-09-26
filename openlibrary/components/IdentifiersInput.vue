@@ -21,27 +21,18 @@
         </option>
         <template v-if="hasPopularIds">
           <option
-            v-for="entry in popularIds"
+            v-for="entry in popularIds.filter(e => isAdmin || e.name !== 'ocaid')"
             :key="entry.name"
             :value="entry.name"
           >
             {{ entry.label }}
           </option>
-          <template v-if="hasPopularIds">
-            <option
-              v-for="entry in popularIds.filter(e => isAdmin || e.name !== 'ocaid')"
-              :key="entry.name"
-              :value="entry.name"
-            >
-              {{ entry.label }}
-            </option>
-            <option
-              disabled
-              value=""
-            >
-              ---
-            </option>
-          </template>
+          <option
+            disabled
+            value=""
+          >
+            ---
+          </option>
         </template>
         <option
           v-for="idConfig in identifierConfigsByKey"
