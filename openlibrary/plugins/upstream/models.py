@@ -528,6 +528,7 @@ class Author(models.Author):
             has_fulltext=i.mode == "ebooks",
             query=q,
             facet=True,
+            request_label='AUTHOR_BOOKS_PAGE',
         )
 
     def get_work_count(self):

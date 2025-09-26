@@ -626,6 +626,7 @@ def works_by_author(
     facet=False,
     has_fulltext=False,
     query: str | None = None,
+    request_label: SolrRequestLabel = 'UNLABELLED',
 ):
     param = {'q': query or '*:*'}
     if has_fulltext:
@@ -646,6 +647,7 @@ def works_by_author(
                 "time_facet",
             ]
         ),
+        request_label=request_label,
         fields=list(
             WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
         ),

@@ -24,6 +24,7 @@ SolrRequestLabel = Literal[
     'BOOK_SEARCH_API',
     'BOOK_SEARCH_FACETS',
     'BOOK_CAROUSEL',
+    'AUTHOR_BOOKS_PAGE',
     # /get endpoint
     'GET_WORK_SOLR_DATA',
     # Subject, publisher pages
