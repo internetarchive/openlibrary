@@ -2,7 +2,8 @@
 
 import json
 import logging
-from typing import Literal
+from dataclasses import dataclass
+from typing import Literal, override
 
 import web
 
@@ -140,7 +141,15 @@ class language_search(delegate.page):
         return [process(p) for p in language_facets]
 
 
+@dataclass
 class LanguageEngine(subjects.SubjectEngine):
+    name: str = "language"
+    key: str = "languages"
+    prefix: str = "/languages/"
+    facet: str = "language"
+    facet_key: str = "language"
+
+    @override
     def normalize_key(self, key):
         return key
 
@@ -160,13 +169,4 @@ class LanguageEngine(subjects.SubjectEngine):
 
 
 def setup():
-    subjects.SUBJECTS.append(
-        subjects.SubjectMeta(
-            name="language",
-            key="languages",
-            prefix="/languages/",
-            facet="language",
-            facet_key="language",
-            Engine=LanguageEngine,
-        )
-    )
+    subjects.SUBJECTS.append(LanguageEngine())

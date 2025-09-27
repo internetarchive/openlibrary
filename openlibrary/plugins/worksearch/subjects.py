@@ -13,8 +13,9 @@ from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
+from openlibrary.utils.solr import SolrRequestLabel
 
-__all__ = ["SubjectEngine", "SubjectMeta", "get_subject"]
+__all__ = ["SubjectEngine", "get_subject"]
 
 
 DEFAULT_RESULTS = 12
@@ -35,6 +36,7 @@ class subjects(delegate.page):
             details=True,
             filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
             sort=web.input(sort='readinglog').sort,
+            request_label='SUBJECT_ENGINE_PAGE',
         )
 
         delegate.context.setdefault('cssfile', 'subject')
@@ -80,6 +82,7 @@ class subjects(delegate.page):
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
     encoding = 'json'
+    solr_label: SolrRequestLabel = 'SUBJECT_ENGINE_API'
 
     @jsonapi
     def GET(self, key):
@@ -122,6 +125,7 @@ class subjects_json(delegate.page):
             limit=i.limit,
             sort=i.sort,
             details=i.details.lower() == 'true',
+            request_label='SUBJECT_ENGINE_API',
             **filters,
         )
         if i.has_fulltext == 'true':
@@ -162,6 +166,7 @@ def get_subject(
     offset=0,
     sort='editions',
     limit=DEFAULT_RESULTS,
+    request_label: SolrRequestLabel = 'UNLABELLED',
     **filters,
 ) -> Subject:
     """Returns data related to a subject.
@@ -219,20 +224,30 @@ def get_subject(
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    EngineClass = next(
-        (d.Engine for d in SUBJECTS if key.startswith(d.prefix)), SubjectEngine
-    )
-    return EngineClass().get_subject(
+    engine = next((e for e in SUBJECTS if key.startswith(e.prefix)), None)
+
+    if not engine:
+        raise NotImplementedError(f"No SubjectEngine for key: {key}")
+
+    return engine.get_subject(
         key,
         details=details,
         offset=offset,
         sort=sort,
         limit=limit,
+        request_label=request_label,
         **filters,
     )
 
 
+@dataclass
 class SubjectEngine:
+    name: str
+    key: str
+    prefix: str
+    facet: str
+    facet_key: str
+
     def get_subject(
         self,
         key,
@@ -240,14 +255,14 @@ class SubjectEngine:
         offset=0,
         limit=DEFAULT_RESULTS,
         sort='new',
+        request_label: SolrRequestLabel = 'UNLABELLED',
         **filters,
     ):
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
 
-        meta = self.get_meta(key)
-        subject_type = meta.name
-        path = web.lstrips(key, meta.prefix)
+        subject_type = self.name
+        path = web.lstrips(key, self.prefix)
         name = path.replace("_", " ")
 
         unescaped_filters = {}
@@ -258,12 +273,13 @@ class SubjectEngine:
             WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
-                    {meta.facet_key: self.normalize_key(path)},
+                    {self.facet_key: self.normalize_key(path)},
                     unescaped=unescaped_filters,
                     phrase=True,
                 ),
                 **filters,
             },
+            request_label=request_label,
             offset=offset,
             rows=limit,
             sort=sort,
@@ -313,7 +329,7 @@ class SubjectEngine:
             name=name,
             subject_type=subject_type,
             solr_query=query_dict_to_str(
-                {meta.facet_key: self.normalize_key(path)},
+                {self.facet_key: self.normalize_key(path)},
                 phrase=True,
             ),
             work_count=result.num_found,
@@ -357,26 +373,13 @@ class SubjectEngine:
             ]
 
             # strip self from subjects and use that to find exact name
-            for i, s in enumerate(subject[meta.key]):
+            for i, s in enumerate(subject[self.key]):
                 if "key" in s and s.key.lower() == key.lower():
                     subject.name = s.name
-                    subject[meta.key].pop(i)
+                    subject[self.key].pop(i)
                     break
 
         return subject
-
-    def get_meta(self, key) -> 'SubjectMeta':
-        prefix = self.parse_key(key)[0]
-        meta = next((d for d in SUBJECTS if d.prefix == prefix), None)
-        assert meta is not None, "Invalid subject key: {key}"
-        return meta
-
-    def parse_key(self, key):
-        """Returns prefix and path from the key."""
-        for d in SUBJECTS:
-            if key.startswith(d.prefix):
-                return d.prefix, key[len(d.prefix) :]
-        return None, None
 
     def normalize_key(self, key):
         return str_to_key(key).lower()
@@ -391,10 +394,10 @@ class SubjectEngine:
         elif facet == "author_key":
             return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
-            meta = next((d for d in SUBJECTS if d.facet == facet), None)
-            assert meta is not None, "Invalid subject facet: {facet}"
+            engine = next((d for d in SUBJECTS if d.facet == facet), None)
+            assert engine is not None, "Invalid subject facet: {facet}"
             return web.storage(
-                key=meta.prefix + str_to_key(value).replace(" ", "_"),
+                key=engine.prefix + str_to_key(value).replace(" ", "_"),
                 name=value,
                 count=count,
             )
@@ -433,39 +436,29 @@ class SubjectEngine:
         )
 
 
-@dataclass
-class SubjectMeta:
-    name: str
-    key: str
-    prefix: str
-    facet: str
-    facet_key: str
-    Engine: type['SubjectEngine'] = SubjectEngine
-
-
 SUBJECTS = [
-    SubjectMeta(
+    SubjectEngine(
         name="person",
         key="people",
         prefix="/subjects/person:",
         facet="person_facet",
         facet_key="person_key",
     ),
-    SubjectMeta(
+    SubjectEngine(
         name="place",
         key="places",
         prefix="/subjects/place:",
         facet="place_facet",
         facet_key="place_key",
     ),
-    SubjectMeta(
+    SubjectEngine(
         name="time",
         key="times",
         prefix="/subjects/time:",
         facet="time_facet",
         facet_key="time_key",
     ),
-    SubjectMeta(
+    SubjectEngine(
         name="subject",
         key="subjects",
         prefix="/subjects/",

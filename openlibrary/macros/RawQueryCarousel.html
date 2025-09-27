@@ -60,7 +60,7 @@ $else:
       if has_fulltext_only:
         params['has_fulltext'] = 'true'
 
-      results = work_search(params, fields = ",".join(fields), sort=sort, limit=limit, facet=False, query_label='BOOK_CAROUSEL')
+      results = work_search(params, fields = ",".join(fields), sort=sort, limit=limit, facet=False, request_label='BOOK_CAROUSEL')
       books = [storage(b) for b in (results.get('docs', []))]
       load_more = {
         "queryType": "SEARCH",
