@@ -309,7 +309,7 @@ class DataProvider:
 
 class LegacyDataProvider(DataProvider):
     def __init__(self):
-        from openlibrary.catalog.utils.query import query_iter, withKey
+        from openlibrary.catalog.utils.query import query_iter, withKey  # noqa: PLC0415
 
         super().__init__()
         self._query_iter = query_iter
@@ -433,8 +433,8 @@ class BetterDataProvider(LegacyDataProvider):
 
         self.edition_keys_of_works_cache: dict[str, list[str]] = {}
 
-        import infogami
-        from infogami.utils import delegate
+        import infogami  # noqa: PLC0415
+        from infogami.utils import delegate  # noqa: PLC0415
 
         # web.ctx might not be defined at this time -_-
         self.get_site = lambda: site or web.ctx.site
@@ -443,7 +443,7 @@ class BetterDataProvider(LegacyDataProvider):
             infogami._setup()
             delegate.fakeload()
 
-            from openlibrary.core.db import get_db
+            from openlibrary.core.db import get_db  # noqa: PLC0415
 
             self.db: DB = get_db()
         else:

@@ -243,7 +243,10 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
+        from openlibrary.plugins.worksearch.code import (  # noqa: RUF100, PLC0415
+            WorkSearchScheme,
+            run_solr_query,
+        )
 
         meta = self.get_meta(key)
         subject_type = meta.name

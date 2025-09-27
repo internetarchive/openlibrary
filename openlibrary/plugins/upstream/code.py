@@ -386,12 +386,12 @@ def setup():
     checkins.setup()
     yearly_reading_goals.setup()
 
-    from openlibrary.plugins.upstream import data, jsdef
+    from openlibrary.plugins.upstream import data, jsdef  # noqa: PLC0415
 
     data.setup()
 
     # setup template globals
-    from openlibrary.i18n import gettext_territory, ugettext, ungettext
+    from openlibrary.i18n import gettext_territory, ugettext, ungettext  # noqa: PLC0415
 
     web.template.Template.globals.update(
         {

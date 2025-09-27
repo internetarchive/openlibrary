@@ -250,7 +250,7 @@ class Reindexer:
     def __init__(self, db):
         self.db = db
 
-        import openlibrary.plugins.openlibrary.schema
+        import openlibrary.plugins.openlibrary.schema  # noqa: PLC0415
 
         self.schema = openlibrary.plugins.openlibrary.schema.get_schema()
         self.noindex = {
