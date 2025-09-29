@@ -32,7 +32,6 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
-from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
@@ -230,38 +229,6 @@ class Thing(client.Thing):
             "l": self._get_lists_cached(),
         }
 
-    def _get_lists_solr(self, limit: int = 50, offset: int = 0, sort: bool = True):
-        # Fetches and caches the lists through Solr, rather than through the DB.
-        # Caching the default case
-        from openlibrary.core.lists.model import List
-
-        if limit == 50 and offset == 0:
-            docs = self._get_lists_solr_cached()
-        else:
-            docs = self._get_lists_solr_uncached(limit=limit, offset=offset)
-        lists = [List(key=doc["key"], site=web.ctx.site) for doc in docs]
-
-        return lists
-
-    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
-    def _get_lists_solr_cached(self):
-        return self.get_lists_solr_uncached()
-
-    def _get_lists_solr_uncached(self, limit: int = 100, offset: int = 0) -> list[str]:
-        from openlibrary.plugins.worksearch.code import run_solr_query
-
-        filter_query = "seed_count: [2 TO *]"
-        response = run_solr_query(
-            param={"q": f'seed: \"{self.key}\"'},
-            scheme=ListSearchScheme(),
-            rows=limit,
-            fields=["key", "name", "seed"],
-            offset=offset,
-            extra_params=[('fq', filter_query)],
-        )
-        logger.warning(f'response is {response.docs}')
-        return response.docs
-
 
 class ThingReferenceDict(TypedDict):
     key: ThingKey
@@ -298,9 +265,6 @@ class Edition(Thing):
 
     def get_lists(self, limit: int = 50, offset: int = 0, sort: bool = True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-
-    def get_lists_solr(self, limit: int = 50, offset: int = 0, sort: bool = True):
-        return self._get_lists_solr(limit=limit, offset=offset, sort=sort)
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.

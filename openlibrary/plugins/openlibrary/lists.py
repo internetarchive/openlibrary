@@ -943,6 +943,31 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
 
 
+@public
+@cache.memoize(engine="memcache", key='booklists')
+def get_book_lists(work_key: str, edition_key: str):
+    # Fetches and caches the lists through Solr, rather than through the DB.
+    from openlibrary.core.lists.model import List
+    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+
+    filter_query = "seed_count:[2 TO *] OR (NOT seed_count:*)"
+    response = run_solr_query(
+        param={"q": f'seed: ("{work_key}" OR "{edition_key})'},
+        scheme=ListSearchScheme(),
+        rows=100,
+        fields=["key", "name", "seed"],
+        offset=0,
+        extra_params=[('fq', filter_query)],
+        query_label="LIST_CAROUSEL",
+    )
+    lists = cast(
+        list[List], web.ctx.site.get_many([doc["key"] for doc in response.docs])
+    )
+
+    return lists
+
+
 class lists_preview(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/preview.png"
 

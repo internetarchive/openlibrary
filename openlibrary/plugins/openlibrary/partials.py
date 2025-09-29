@@ -11,7 +11,7 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.lists import get_user_lists
+from openlibrary.plugins.openlibrary.lists import get_book_lists, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import (
@@ -305,9 +305,7 @@ class BookPageListsPartial(PartialDataHandler):
         edition = (edition_id and web.ctx.site.get(edition_id)) or None
 
         # Do checks and render
-        has_lists = (work and work.get_lists_solr(limit=1)) or (
-            edition and edition.get_lists_solr(limit=1)
-        )
+        has_lists = get_book_lists(work_id, edition_id)
         results["hasLists"] = bool(has_lists)
 
         if not has_lists:
