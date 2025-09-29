@@ -198,6 +198,7 @@ QueryLabel = Literal[
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     'EDITION_MATCH',
+    'LIST_CAROUSEL',
     'LIST_SEARCH',
     'LIST_SEARCH_API',
     'SUBJECT_SEARCH',
@@ -737,9 +738,7 @@ class list_search(delegate.page):
         req = ListSearchRequest.from_web_input(web.input(api='next'))
         # Can't set fields when rendering html
         req.fields = 'key'
-        logger.warning("SEARCH QUERY FORMAT")
-        logger.warning(req)
-        resp = self.get_results(req)
+        resp = self.get_results(req, 'LIST_SEARCH')
         lists = list(web.ctx.site.get_many([doc['key'] for doc in resp.docs]))
         return render_template('search/lists.html', req, resp, lists)
 
