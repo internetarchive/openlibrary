@@ -65,6 +65,8 @@ services:
       - SOLR_MODULES=analysis-extras
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+      # This might overwrite the above?
+      - SOLR_HEAP=8g
     volumes:
       - solr-data:/var/solr
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
