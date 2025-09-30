@@ -34,7 +34,10 @@ services:
     environment:
       # This is optimized for bulk loading, but should be shortened for production
       # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
-      - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoCommit.maxTime=3600000
+        -Dsolr.environment=test
       - SOLR_MODULES=analysis-extras
       - SOLR_JAVA_MEM=-Xms3g -Xmx3g
     ports:
@@ -58,10 +61,12 @@ services:
     expose:
       - 8983
     environment:
+      # Keep in sync with compose.production.yaml
       - SOLR_OPTS=
         -Dsolr.autoSoftCommit.maxTime=60000
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=stage
       - SOLR_MODULES=analysis-extras
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
