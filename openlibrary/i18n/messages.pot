@@ -999,12 +999,12 @@ msgstr ""
 msgid "WorldCat"
 msgstr ""
 
-#: databarDiff.html databarEdit.html
+#: databarDiff.html
 msgid "View the editing history of this page"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarTemplate.html databarView.html lib/history.html
+#: openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
 
