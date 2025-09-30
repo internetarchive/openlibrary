@@ -177,6 +177,7 @@ class CarouselCardPartial(PartialDataHandler):
             subject=subject,
             sorts=sorts,
             advanced=True,
+            safe_mode=True,
         )
         results = get_available(url=url)
         return results if "error" not in results else []
@@ -238,7 +239,7 @@ class SearchFacetsPartial(PartialDataHandler):
             rows=0,
             spellcheck_count=3,
             facet=True,
-            query_label='BOOK_SEARCH_FACETS',
+            request_label='BOOK_SEARCH_FACETS',
         )
 
         sidebar = render_template(

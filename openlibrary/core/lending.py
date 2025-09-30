@@ -116,6 +116,7 @@ def compose_ia_url(
     sorts=None,
     advanced: bool = True,
     rate_limit_exempt: bool = True,
+    safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
@@ -153,6 +154,9 @@ def compose_ia_url(
         q += " AND " + query
     if subject:
         q += " AND openlibrary_subject:" + subject
+
+    if safe_mode:
+        q += " AND !collection:(no-preview)"
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -244,6 +248,7 @@ def get_available(
     query=None,
     sorts=None,
     url=None,
+    safe_mode=False,
 ):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
@@ -260,6 +265,7 @@ def get_available(
         subject=subject,
         query=query,
         sorts=sorts,
+        safe_mode=safe_mode,
     )
     if not url:
         logger.error(
