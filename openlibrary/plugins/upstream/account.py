@@ -53,7 +53,7 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Work
+    from openlibrary.plugins.upstream.models import Work, User
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -903,7 +903,7 @@ class PatronExport(ABC):
         return work
 
     @property
-    def user(self) -> "User":
+    def user(self) -> "User" or None:
         return accounts.get_current_user()
 
     @property
@@ -953,7 +953,7 @@ class ReadingLogExport(PatronExport):
 
     def get_data(self) -> list:
         def get_subjects(
-                work: "Work",
+                work: Work,
                 subject_type: SubjectType = "subject",
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
@@ -981,7 +981,7 @@ class ReadingLogExport(PatronExport):
                 "Edition ID": edition_id,
                 "Edition Count": work.edition_count,
                 "Bookshelf": bookshelf_map[work.get_users_read_status(username)],
-                "My Ratings": work.get_users_rating(username),
+                "My Ratings": work.get_users_rating(username) or "",
                 "Ratings Average": ratings_average,
                 "Ratings Count": ratings_count,
                 "Has Ebook": work.has_ebook(),
@@ -1073,17 +1073,17 @@ class ListExport(PatronExport):
         with elapsed_time("user.get_lists()"):
             lists = self.user.get_lists(limit=1000)
         with elapsed_time("generate_list_overview()"):
-            for l in lists:
-                last_updated = l.last_modified or ""
+            for li in lists:
+                last_updated = li.last_modified or ""
                 if isinstance(last_updated, datetime):
                     last_updated = last_updated.strftime(self.date_format)
-                for seed in l.seeds:
+                for seed in li.seeds:
                     result.append({
-                        "List ID": l.key.split("/")[-1],
-                        "List Name": l.name or "",
-                        "List Description": l.description or "",
+                        "List ID": li.key.split("/")[-1],
+                        "List Name": li.name or "",
+                        "List Description": li.description or "",
                         "Entry": seed if isinstance(seed, str) else seed.key,
-                        "Created On": l.created.strftime(self.date_format),
+                        "Created On": li.created.strftime(self.date_format),
                         "Last Updated": last_updated,
                     })
         return result
@@ -1128,7 +1128,6 @@ class RatingExport(PatronExport):
 
 class export_books(delegate.page):
     path = "/account/export"
-    date_format = '%Y-%m-%d %H:%M:%S'
 
     @require_login
     def GET(self):
@@ -1142,7 +1141,7 @@ class export_books(delegate.page):
         return delegate.RawText(data, content_type="text/csv")
 
     def get_export(self, export_type: str) -> PatronExport:
-        export = None
+        export: PatronExport | None = None
 
         match export_type:
             case "reading_log":
