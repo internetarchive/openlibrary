@@ -94,7 +94,7 @@ async function initAsyncFollowing(followForms) {
             const submitButton = form.querySelector('button[type=submit]')
             const stateInput = form.querySelector('input[name=state]')
 
-            const isFollowRequest = stateInput.value === "0"
+            const isFollowRequest = stateInput.value === '0'
             const i18nStrings = JSON.parse(submitButton.dataset.i18n)
             submitButton.disabled = true
 
@@ -112,7 +112,7 @@ async function initAsyncFollowing(followForms) {
                     submitButton.classList.toggle('cta-btn--primary')
                     submitButton.classList.toggle('cta-btn--delete')
                     submitButton.textContent = isFollowRequest ? i18nStrings.unfollow : i18nStrings.follow
-                    stateInput.value = isFollowRequest ? "1" : "0"
+                    stateInput.value = isFollowRequest ? '1' : '0'
                 })
                 .catch(() => {
                     new PersistentToast(i18nStrings.errorMsg).show();

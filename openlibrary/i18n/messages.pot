@@ -301,6 +301,10 @@ msgid "Unfollow"
 msgstr ""
 
 #: Follow.html
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
+#: Follow.html
 msgid "UnfollowFollow"
 msgstr ""
 
