@@ -91,17 +91,14 @@ async function initAsyncFollowing(followForms) {
             e.preventDefault();
             const url = form.action;
             const formData = new FormData(form);
-            const publisherField = form.querySelector('input[name=publisher]');
-            const publisher = publisherField.value;
-            const followButtonRefs = []
+            const submitButton = form.querySelector('button[type=submit]')
+            const stateInput = form.querySelector('input[name=state]')
 
-            followForms.forEach(followForm => {
-                const followButton = followForm.querySelector('button');
-                followButton.disabled = true;
-                followButtonRefs.push(followButton)
-            });
+            const isFollowRequest = stateInput.value === "0"
+            const i18nStrings = JSON.parse(submitButton.dataset.i18n)
+            submitButton.disabled = true
 
-            fetch(url, {
+            await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -112,37 +109,16 @@ async function initAsyncFollowing(followForms) {
                     if (!resp.ok) {
                         throw new Error('Network response was not ok');
                     }
-
-                    followForms.forEach(followForm => {
-                        const publisherField = followForm.querySelector('input[name=publisher]');
-
-                        if (publisherField.value === publisher) {
-                            const followButton = followForm.querySelector('button');
-                            const i18nStrings = JSON.parse(followButton.dataset.i18n)
-
-                            if (followButton.classList.contains('cta-btn--delete')) {
-                                followButton.classList.remove('cta-btn--delete');
-                                followButton.classList.add('cta-btn--primary');
-                                followButton.innerText = i18nStrings.follow
-                            }
-                            else {
-                                followButton.classList.remove('cta-btn--primary');
-                                followButton.classList.add('cta-btn--delete');
-                                followButton.innerText = i18nStrings.unfollow
-                            }
-
-                            const stateInput = followForm.querySelector('input[name=state]');
-                            stateInput.value = 1 - stateInput.value;
-                        }
-                    });
+                    submitButton.classList.toggle('cta-btn--primary')
+                    submitButton.classList.toggle('cta-btn--delete')
+                    submitButton.textContent = isFollowRequest ? i18nStrings.unfollow : i18nStrings.follow
+                    stateInput.value = isFollowRequest ? "1" : "0"
                 })
                 .catch(() => {
-                    new PersistentToast('Failed to update followers.  Please try again in a few moments.').show();
+                    new PersistentToast(i18nStrings.errorMsg).show();
                 })
                 .finally(() => {
-                    followButtonRefs.forEach(followButtonRef => {
-                        followButtonRef.disabled = false
-                    })
+                    submitButton.disabled = false
                 });
         });
     });
