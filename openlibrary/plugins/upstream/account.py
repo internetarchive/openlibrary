@@ -53,7 +53,7 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Work, User
+    from openlibrary.plugins.upstream.models import User, Work
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -882,7 +882,6 @@ class PatronExport(ABC):
 
         return csv_output
 
-
     @staticmethod
     def get_work_from_id(work_id: str) -> "Work":
         """
@@ -953,8 +952,8 @@ class ReadingLogExport(PatronExport):
 
     def get_data(self) -> list:
         def get_subjects(
-                work: Work,
-                subject_type: SubjectType = "subject",
+            work: Work,
+            subject_type: SubjectType = "subject",
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
@@ -973,25 +972,28 @@ class ReadingLogExport(PatronExport):
 
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
-            result.append({
-                "Work ID": work_id,
-                "Title": work.title,
-                "Authors": " | ".join(work.get_author_names()),
-                "First Publish Year": work.first_publish_year,
-                "Edition ID": edition_id,
-                "Edition Count": work.edition_count,
-                "Bookshelf": bookshelf_map[work.get_users_read_status(username)],
-                "My Ratings": work.get_users_rating(username) or "",
-                "Ratings Average": ratings_average,
-                "Ratings Count": ratings_count,
-                "Has Ebook": work.has_ebook(),
-                "Subjects": get_subjects(work=work, subject_type="subject"),
-                "Subject People": get_subjects(work=work, subject_type="person"),
-                "Subject Places": get_subjects(work=work, subject_type="place"),
-                "Subject Times": get_subjects(work=work, subject_type="time"),
-            })
+            result.append(
+                {
+                    "Work ID": work_id,
+                    "Title": work.title,
+                    "Authors": " | ".join(work.get_author_names()),
+                    "First Publish Year": work.first_publish_year,
+                    "Edition ID": edition_id,
+                    "Edition Count": work.edition_count,
+                    "Bookshelf": bookshelf_map[work.get_users_read_status(username)],
+                    "My Ratings": work.get_users_rating(username) or "",
+                    "Ratings Average": ratings_average,
+                    "Ratings Count": ratings_count,
+                    "Has Ebook": work.has_ebook(),
+                    "Subjects": get_subjects(work=work, subject_type="subject"),
+                    "Subject People": get_subjects(work=work, subject_type="person"),
+                    "Subject Places": get_subjects(work=work, subject_type="place"),
+                    "Subject Times": get_subjects(work=work, subject_type="time"),
+                }
+            )
 
         return result
+
 
 class BookNoteExport(PatronExport):
 
@@ -1013,12 +1015,14 @@ class BookNoteExport(PatronExport):
         notes = Booknotes.select_all_by_username(username)
         result = []
         for note in notes:
-            result.append({
-                "Work ID": f"OL{note['work_id']}W",
-                "Edition ID": f"OL{note['edition_id']}M",
-                "Note": note["notes"],
-                "Created On": note['created'].strftime(self.date_format),
-            })
+            result.append(
+                {
+                    "Work ID": f"OL{note['work_id']}W",
+                    "Edition ID": f"OL{note['edition_id']}M",
+                    "Note": note["notes"],
+                    "Created On": note['created'].strftime(self.date_format),
+                }
+            )
         return result
 
 
@@ -1042,12 +1046,14 @@ class ReviewExport(PatronExport):
         observations = Observations.select_all_by_username(username)
         result = []
         for o in observations:
-            result.append({
-                "Work ID": f"OL{o['work_id']}W",
-                "Review Category": o["observation_type"],
-                "Review Value": o["observation_value"],
-                "Created On": o["created"].strftime(self.date_format),
-            })
+            result.append(
+                {
+                    "Work ID": f"OL{o['work_id']}W",
+                    "Review Category": o["observation_type"],
+                    "Review Value": o["observation_value"],
+                    "Created On": o["created"].strftime(self.date_format),
+                }
+            )
         return result
 
 
@@ -1078,14 +1084,16 @@ class ListExport(PatronExport):
                 if isinstance(last_updated, datetime):
                     last_updated = last_updated.strftime(self.date_format)
                 for seed in li.seeds:
-                    result.append({
-                        "List ID": li.key.split("/")[-1],
-                        "List Name": li.name or "",
-                        "List Description": li.description or "",
-                        "Entry": seed if isinstance(seed, str) else seed.key,
-                        "Created On": li.created.strftime(self.date_format),
-                        "Last Updated": last_updated,
-                    })
+                    result.append(
+                        {
+                            "List ID": li.key.split("/")[-1],
+                            "List Name": li.name or "",
+                            "List Description": li.description or "",
+                            "Entry": seed if isinstance(seed, str) else seed.key,
+                            "Created On": li.created.strftime(self.date_format),
+                            "Last Updated": last_updated,
+                        }
+                    )
         return result
 
 
@@ -1115,14 +1123,16 @@ class RatingExport(PatronExport):
             if edition_id := rating.get("edition_id", ""):
                 edition_id = f"OL{edition_id}M"
             work = self.get_work_from_id(work_id)
-            result.append({
-                "Work ID": work_id,
-                "Edition ID": edition_id,
-                "Title": work.title,
-                "Author(s)": " | ".join(work.get_author_names()),
-                "Rating": rating["rating"],
-                "Created On": rating["created"].strftime(self.date_format),
-            })
+            result.append(
+                {
+                    "Work ID": work_id,
+                    "Edition ID": edition_id,
+                    "Title": work.title,
+                    "Author(s)": " | ".join(work.get_author_names()),
+                    "Rating": rating["rating"],
+                    "Created On": rating["created"].strftime(self.date_format),
+                }
+            )
         return result
 
 
