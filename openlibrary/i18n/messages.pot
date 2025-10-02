@@ -305,10 +305,6 @@ msgstr ""
 msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
-#: Follow.html
-msgid "UnfollowFollow"
-msgstr ""
-
 #: FormatExpiry.html
 msgid "Expires"
 msgstr ""
