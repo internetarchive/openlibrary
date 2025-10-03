@@ -42,7 +42,12 @@ class RequestLogEntry(SolrLogEntry):
     def parse_params(self) -> dict[str, str | list[str]]:
         params: dict[str, str | list[str]] = {}
         for kvp in self.params[1:-1].split('&'):
-            key, value = kvp.split('=', 1)
+            parts = kvp.split('=', 1)
+            if len(parts) != 2:
+                print(f"Warning: unexpected params format: {self.params}")
+                continue
+
+            key, value = parts
             if key in params:
                 existing_value = params[key]
                 if isinstance(existing_value, list):
@@ -52,6 +57,20 @@ class RequestLogEntry(SolrLogEntry):
             else:
                 params[key] = value
         return params
+
+    def get_request_label(self) -> str:
+        params = self.parse_params()
+        label = params.get('ol.label')
+        if not label or label == 'UNLABELLED':
+            return {
+                '/select': 'UNLABELLED_SELECT',
+                '/update': 'UNLABELLED_UPDATE',
+                '/get': 'UNLABELLED_GET',
+                '/query': 'UNLABELLED_QUERY',
+            }.get(self.path, 'UNLABELLED')
+
+        assert isinstance(label, str)
+        return label
 
     @staticmethod
     def parse_log_entry(match: re.Match) -> 'RequestLogEntry':
@@ -274,14 +293,13 @@ def main(
 
             # .{query_label}.count           <count>
             # .{query_label}.time.{duration} <count>
-
             count_by_query_label = Counter(
                 (
-                    entry.parse_params().get('ol.label', 'UNLABELLED'),
+                    entry.get_request_label(),
                     standard_duration_blocks(entry.qtime),
                 )
                 for entry in minute_log_lines
-                if isinstance(entry, RequestLogEntry) and entry.path == '/select'
+                if isinstance(entry, RequestLogEntry)
             )
 
             for (query_label, duration), count in count_by_query_label.items():

@@ -2,7 +2,7 @@ $def with (page)
 
 $var title: $page.name
 
-$ can_add_tag = ctx.user and (ctx.user.is_admin())
+$ can_add_tag = ctx.user and (ctx.user.is_admin() or ctx.user.is_curator())
 $ has_tag = 'tag' in page
 $ q = query_param('q')
 

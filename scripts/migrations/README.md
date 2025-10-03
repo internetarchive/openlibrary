@@ -2,7 +2,7 @@
 
 Scripts found in this directory are meant to support a one-time task (such as a data migration), and likely __do not__ require long-term maintenance.
 
-## `ananymous_store_remediation.py`
+## `anonymous_store_remediation.py`
 
 Created as a follow-up to [issue #11024](https://github.com/internetarchive/openlibrary/pull/11024), this script identifies and removes any remaining `account-email` store entries that are associated with anonymized accounts.
 
@@ -14,3 +14,7 @@ This script was created in support of [issue #10887](https://github.com/internet
 
 Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes
 a subset of existing preferences to the store.
+
+## `update_legacy_preferences.py`
+
+Created in support of [issue #11009](https://github.com/internetarchive/openlibrary/issues/11009).  When executed, this will update all legacy preference objects, removing `pda` and `rpd` key-value pairs.
