@@ -27,9 +27,9 @@ def setup_env():
 
 
 def load_infogami(config_file):
-    import infogami
-    from infogami import config
-    from infogami.utils import delegate  # noqa: F401 side effects may be needed
+    import infogami  # noqa: PLC0415
+    from infogami import config  # noqa: PLC0415
+    from infogami.utils import delegate  # noqa: F401, PLC0415
 
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
@@ -43,7 +43,7 @@ def setup_infobase_config(config_file):
     """Reads the infoabse config file and assign it to config.infobase.
     The config_file is used as base to resolve relative path, if specified in the config.
     """
-    from infogami import config
+    from infogami import config  # noqa: PLC0415
 
     if config.get("infobase_config_file"):
         dir = os.path.dirname(config_file)
@@ -63,7 +63,7 @@ class OLWSGIServer(Application):
     def load(self):
         load_infogami(self.config_file)
 
-        import infogami
+        import infogami  # noqa: PLC0415
 
         infogami._setup()
         wsgi_app = self.get_wsgi_app()
@@ -72,8 +72,8 @@ class OLWSGIServer(Application):
         return wsgi_app
 
     def get_wsgi_app(self):
-        from infogami import config
-        from infogami.utils import delegate
+        from infogami import config  # noqa: PLC0415
+        from infogami.utils import delegate  # noqa: PLC0415
 
         return delegate.app.wsgifunc(*config.middleware)
 
