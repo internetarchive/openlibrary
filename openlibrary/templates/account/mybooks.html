@@ -12,22 +12,30 @@ $def year_span(year, use_local_year=False):
 
   $code:
       def compact_carousel(data):
-          key, title, url = data
-          # Check if the key exists to prevent errors
-          if key not in mybooks:
-              return None
-          books = mybooks[key].docs
-          count = mybooks[key].total_results
-          return render_template("books/custom_carousel", **{
-              "books": books,
-              "title": "%s (%d)" % (title, count),
-              "url": url,
-              "key": key,
-              "min_books": 1,
-              "load_more": None,
-              "compact_mode": True,
-              "test": False
-          }) if books else None
+        key, title, url = data
+        # Check if the key exists to prevent errors
+        if key not in mybooks:
+            return None
+        
+        # Handle both list and object with .docs attribute
+        mybooks_data = mybooks[key]
+        if isinstance(mybooks_data, list):
+            books = mybooks_data
+            count = len(mybooks_data)
+        else:
+            books = mybooks_data.docs
+            count = mybooks_data.total_results
+        
+        return render_template("books/custom_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
 
   $def empty_carousel(data):
     $ key, title, url = data
@@ -64,8 +72,16 @@ $code:
         # Check if the key exists to prevent errors
         if key not in mybooks:
             return None
-        books = mybooks[key].docs
-        count = mybooks[key].total_results
+        
+        # Handle both list and object with .docs attribute
+        mybooks_data = mybooks[key]
+        if isinstance(mybooks_data, list):
+            books = mybooks_data
+            count = len(mybooks_data)
+        else:
+            books = mybooks_data.docs
+            count = mybooks_data.total_results
+        
         return render_template("books/mobile_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
