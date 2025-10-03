@@ -44,9 +44,7 @@ def query_single_thing(db, typ, start, end):
     except IndexError:
         raise InvalidType(f"No id for type '/type/{typ} in the database")
 
-    # FIXED: Use parameterized query instead of string formatting
     q2 = "SELECT count(*) as count FROM thing WHERE type=$type_id AND created >= $start_date AND created < $end_date"
-    # Pass variables as a dictionary to safely substitute them
     result = db.query(q2, vars={'type_id': kid, 'start_date': start, 'end_date': end})
 
     count = result[0].count
