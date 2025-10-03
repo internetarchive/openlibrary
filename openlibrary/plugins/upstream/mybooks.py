@@ -56,6 +56,7 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
+
 def render_template(self, mb):
     # Marshal loans into homogeneous data that carousel can render
     want_to_read, currently_reading, already_read, loans = [], [], [], []
@@ -106,6 +107,7 @@ def render_template(self, mb):
         lists=mb.lists,
         component_times=mb.component_times,
     )
+
 
 class mybooks_notes(delegate.page):
     path = "/people/([^/]+)/books/notes"
