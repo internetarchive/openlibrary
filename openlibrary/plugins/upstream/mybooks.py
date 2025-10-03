@@ -91,25 +91,22 @@ class mybooks_home(delegate.page):
             already_read = web.Storage({"docs": [], "total_results": 0})
         
         # Fetch activity feed data
-        try:
-            activity_feed_raw = PubSub.get_feed(mb.username, limit=10)
-            
-            if activity_feed_raw is None:
-                activity_feed_data = web.Storage({"docs": [], "total_results": 0})
-            elif isinstance(activity_feed_raw, list):
-                activity_feed_data = web.Storage({
-                    "docs": activity_feed_raw,
-                    "total_results": len(activity_feed_raw)
-                })
-            elif hasattr(activity_feed_raw, 'docs') and hasattr(activity_feed_raw, 'total_results'):
-                activity_feed_data = activity_feed_raw
-            else:
-                activity_feed_data = web.Storage({
-                    "docs": [activity_feed_raw] if activity_feed_raw else [],
-                    "total_results": 1 if activity_feed_raw else 0
-                })
-        except Exception:
+        activity_feed_raw = PubSub.get_feed(mb.username, limit=10)
+        
+        if activity_feed_raw is None:
             activity_feed_data = web.Storage({"docs": [], "total_results": 0})
+        elif isinstance(activity_feed_raw, list):
+            activity_feed_data = web.Storage({
+                "docs": activity_feed_raw,
+                "total_results": len(activity_feed_raw)
+            })
+        elif hasattr(activity_feed_raw, 'docs') and hasattr(activity_feed_raw, 'total_results'):
+            activity_feed_data = activity_feed_raw
+        else:
+            activity_feed_data = web.Storage({
+                "docs": [activity_feed_raw] if activity_feed_raw else [],
+                "total_results": 1 if activity_feed_raw else 0
+            })
         
         docs = {
             'loans': loans,
