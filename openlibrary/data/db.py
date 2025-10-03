@@ -85,7 +85,7 @@ def longquery(query, vars, chunk_size=10000):
                 print row
     """
     # DB cursor is valid only in the transaction
-    # Create a new database connection  to avoid this transaction interfere with the application code
+    # Create a new database to avoid this transaction interfere with the application code
     db = web.database(**db_parameters)
     db.printing = False
 
