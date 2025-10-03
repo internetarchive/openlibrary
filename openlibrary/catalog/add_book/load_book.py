@@ -73,6 +73,11 @@ HONORIFC_NAME_EXECPTIONS = frozenset(
 
 
 def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
+    """
+    Returns False if there is no by_statement in rec.
+    Otherwise returns whether author name uses eastern name order.
+    TODO: elaborate on what this actually means, and how it is used.
+    """
     if 'by_statement' not in rec:
         return False
     if 'authors' not in rec:
