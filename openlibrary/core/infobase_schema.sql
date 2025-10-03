@@ -203,7 +203,6 @@ create table edition_str (
 create index edition_str_idx ON edition_str(key_id, value);
 create index edition_str_thing_id_idx ON edition_str(thing_id);
 
-
 create table publisher_boolean (
     thing_id int references thing,
     key_id int references property,
