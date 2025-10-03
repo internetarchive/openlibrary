@@ -16,7 +16,7 @@ $def year_span(year, use_local_year=False):
         # Check if the key exists to prevent errors
         if key not in mybooks:
             return None
-        
+
         # Handle both list and object with .docs attribute
         mybooks_data = mybooks[key]
         if isinstance(mybooks_data, list):
@@ -25,7 +25,7 @@ $def year_span(year, use_local_year=False):
         else:
             books = mybooks_data.docs
             count = mybooks_data.total_results
-        
+
         return render_template("books/custom_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
@@ -72,7 +72,7 @@ $code:
         # Check if the key exists to prevent errors
         if key not in mybooks:
             return None
-        
+
         # Handle both list and object with .docs attribute
         mybooks_data = mybooks[key]
         if isinstance(mybooks_data, list):
@@ -81,7 +81,7 @@ $code:
         else:
             books = mybooks_data.docs
             count = mybooks_data.total_results
-        
+
         return render_template("books/mobile_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
