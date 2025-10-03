@@ -56,56 +56,56 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb):
-        # Marshal loans into homogeneous data that carousel can render
-        want_to_read, currently_reading, already_read, loans = [], [], [], []
+def render_template(self, mb):
+    # Marshal loans into homogeneous data that carousel can render
+    want_to_read, currently_reading, already_read, loans = [], [], [], []
 
-        if mb.me:
-            myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
-            for loan in myloans:
-                # Book will be None if no OL edition exists for the book
-                if book := web.ctx.site.get(loan['book']):
-                    book.loan = loan
-                    loans.docs.append(book)
+    if mb.me:
+        myloans = get_loans_of_user(mb.me.key)
+        loans = web.Storage({"docs": [], "total_results": len(myloans)})
+        # TODO: should do in one web.ctx.get_many fetch
+        for loan in myloans:
+            # Book will be None if no OL edition exists for the book
+            if book := web.ctx.site.get(loan['book']):
+                book.loan = loan
+                loans.docs.append(book)
 
-        if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
-            want_to_read = mb.readlog.get_works(key='want-to-read', **params)
-            currently_reading = mb.readlog.get_works(key='currently-reading', **params)
-            already_read = mb.readlog.get_works(key='already-read', **params)
+    if mb.me or mb.is_public:
+        params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
+        want_to_read = mb.readlog.get_works(key='want-to-read', **params)
+        currently_reading = mb.readlog.get_works(key='currently-reading', **params)
+        already_read = mb.readlog.get_works(key='already-read', **params)
 
-            # Ideally, do all 3 lookups in one add_availability call
-            want_to_read.docs = add_availability(
-                [d for d in want_to_read.docs if d.get('title')]
-            )[:5]
-            currently_reading.docs = add_availability(
-                [d for d in currently_reading.docs if d.get('title')]
-            )[:5]
-            already_read.docs = add_availability(
-                [d for d in already_read.docs if d.get('title')]
-            )[:5]
+        want_to_read.docs = add_availability(
+            [d for d in want_to_read.docs if d.get('title')]
+        )[:5]
+        currently_reading.docs = add_availability(
+            [d for d in currently_reading.docs if d.get('title')]
+        )[:5]
+        already_read.docs = add_availability(
+            [d for d in already_read.docs if d.get('title')]
+        )[:5]
 
-        docs = {
-            'loans': loans,
-            'want-to-read': want_to_read,
-            'currently-reading': currently_reading,
-            'already-read': already_read,
-            'activity-feed': PubSub.get_feed(mb.username, limit=10),
-        }
+    activity_feed_data = PubSub.get_feed(mb.username, limit=10)
 
-        return render['account/mybooks'](
-            mb.user,
-            docs,
-            key=mb.key,
-            public=mb.is_public,
-            owners_page=mb.is_my_page,
-            counts=mb.counts,
-            lists=mb.lists,
-            component_times=mb.component_times,
-        )
+    docs = {
+        'loans': loans,
+        'want-to-read': want_to_read,
+        'currently-reading': currently_reading,
+        'already-read': already_read,
+        'activity-feed': activity_feed_data,
+    }
 
+    return render['account/mybooks'](
+        mb.user,
+        docs,
+        key=mb.key,
+        public=mb.is_public,
+        owners_page=mb.is_my_page,
+        counts=mb.counts,
+        lists=mb.lists,
+        component_times=mb.component_times,
+    )
 
 class mybooks_notes(delegate.page):
     path = "/people/([^/]+)/books/notes"
