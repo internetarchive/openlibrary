@@ -43,10 +43,10 @@ class avatar(delegate.page):
 
 class mybooks_home(delegate.page):
     path = "/people/([^/]+)/books"
-
+    
     def GET(self, username: str) -> TemplateResult:
         """Renders the template for the my books overview page
-
+        
         The other way to get to this page is /account/books which is
         defined in /plugins/account.py account_my_books. But we don't
         need to update that redirect because it already just redirects
@@ -55,58 +55,80 @@ class mybooks_home(delegate.page):
         mb = MyBooksTemplate(username, key='mybooks')
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
-
-def render_template(self, mb):
-    # Marshal loans into homogeneous data that carousel can render
-    want_to_read, currently_reading, already_read, loans = [], [], [], []
-
-    if mb.me:
-        myloans = get_loans_of_user(mb.me.key)
-        loans = web.Storage({"docs": [], "total_results": len(myloans)})
-        # TODO: should do in one web.ctx.get_many fetch
-        for loan in myloans:
-            # Book will be None if no OL edition exists for the book
-            if book := web.ctx.site.get(loan['book']):
-                book.loan = loan
-                loans.docs.append(book)
-
-    if mb.me or mb.is_public:
-        params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
-        want_to_read = mb.readlog.get_works(key='want-to-read', **params)
-        currently_reading = mb.readlog.get_works(key='currently-reading', **params)
-        already_read = mb.readlog.get_works(key='already-read', **params)
-
-        want_to_read.docs = add_availability(
-            [d for d in want_to_read.docs if d.get('title')]
-        )[:5]
-        currently_reading.docs = add_availability(
-            [d for d in currently_reading.docs if d.get('title')]
-        )[:5]
-        already_read.docs = add_availability(
-            [d for d in already_read.docs if d.get('title')]
-        )[:5]
-
-    activity_feed_data = PubSub.get_feed(mb.username, limit=10)
-
-    docs = {
-        'loans': loans,
-        'want-to-read': want_to_read,
-        'currently-reading': currently_reading,
-        'already-read': already_read,
-        'activity-feed': activity_feed_data,
-    }
-
-    return render['account/mybooks'](
-        mb.user,
-        docs,
-        key=mb.key,
-        public=mb.is_public,
-        owners_page=mb.is_my_page,
-        counts=mb.counts,
-        lists=mb.lists,
-        component_times=mb.component_times,
-    )
-
+    
+    def render_template(self, mb):
+        # Marshal loans into homogeneous data that carousel can render
+        want_to_read, currently_reading, already_read, loans = [], [], [], []
+        
+        if mb.me:
+            myloans = get_loans_of_user(mb.me.key)
+            loans = web.Storage({"docs": [], "total_results": len(myloans)})
+            for loan in myloans:
+                if book := web.ctx.site.get(loan['book']):
+                    book.loan = loan
+                    loans.docs.append(book)
+        else:
+            loans = web.Storage({"docs": [], "total_results": 0})
+        
+        if mb.me or mb.is_public:
+            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
+            want_to_read = mb.readlog.get_works(key='want-to-read', **params)
+            currently_reading = mb.readlog.get_works(key='currently-reading', **params)
+            already_read = mb.readlog.get_works(key='already-read', **params)
+            
+            want_to_read.docs = add_availability(
+                [d for d in want_to_read.docs if d.get('title')]
+            )[:5]
+            currently_reading.docs = add_availability(
+                [d for d in currently_reading.docs if d.get('title')]
+            )[:5]
+            already_read.docs = add_availability(
+                [d for d in already_read.docs if d.get('title')]
+            )[:5]
+        else:
+            want_to_read = web.Storage({"docs": [], "total_results": 0})
+            currently_reading = web.Storage({"docs": [], "total_results": 0})
+            already_read = web.Storage({"docs": [], "total_results": 0})
+        
+        # Fetch activity feed data
+        try:
+            activity_feed_raw = PubSub.get_feed(mb.username, limit=10)
+            
+            if activity_feed_raw is None:
+                activity_feed_data = web.Storage({"docs": [], "total_results": 0})
+            elif isinstance(activity_feed_raw, list):
+                activity_feed_data = web.Storage({
+                    "docs": activity_feed_raw,
+                    "total_results": len(activity_feed_raw)
+                })
+            elif hasattr(activity_feed_raw, 'docs') and hasattr(activity_feed_raw, 'total_results'):
+                activity_feed_data = activity_feed_raw
+            else:
+                activity_feed_data = web.Storage({
+                    "docs": [activity_feed_raw] if activity_feed_raw else [],
+                    "total_results": 1 if activity_feed_raw else 0
+                })
+        except Exception:
+            activity_feed_data = web.Storage({"docs": [], "total_results": 0})
+        
+        docs = {
+            'loans': loans,
+            'want-to-read': want_to_read,
+            'currently-reading': currently_reading,
+            'already-read': already_read,
+            'activity-feed': activity_feed_data,
+        }
+        
+        return render['account/mybooks'](
+            mb.user,
+            docs,
+            key=mb.key,
+            public=mb.is_public,
+            owners_page=mb.is_my_page,
+            counts=mb.counts,
+            lists=mb.lists,
+            component_times=mb.component_times,
+        )
 class mybooks_notes(delegate.page):
     path = "/people/([^/]+)/books/notes"
 
