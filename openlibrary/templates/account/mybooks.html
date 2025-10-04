@@ -12,30 +12,42 @@ $def year_span(year, use_local_year=False):
 
   $code:
       def compact_carousel(data):
-          key, title, url = data
-          books = mybooks[key].docs
-          count = mybooks[key].total_results
-          return render_template("books/custom_carousel", **{
-              "books": books,
-              "title": "%s (%d)" % (title, count),
-              "url": url,
-              "key": key,
-              "min_books": 1,
-              "load_more": None,
-              "compact_mode": True,
-              "test": False
-          }) if books else None
+        key, title, url = data
+        # Check if the key exists to prevent errors
+        if key not in mybooks:
+            return None
+
+        # Handle both list and object with .docs attribute
+        mybooks_data = mybooks[key]
+        if isinstance(mybooks_data, list):
+            books = mybooks_data
+            count = len(mybooks_data)
+        else:
+            books = mybooks_data.docs
+            count = mybooks_data.total_results
+
+        return render_template("books/custom_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
 
   $def empty_carousel(data):
     $ key, title, url = data
     <div class="carousel-section-header">
       <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
     </div>
-    <p>$_("No books are on this shelf")</p>
+    <p>$_("No items are on this shelf")</p>
 
   $# Data for carousels
   $ readlog_url = "/people/%s/books/" % username
   $ loans = ["loans", _('My Loans'), "/account/loans"]
+  $ activity_feed = ["activity-feed", _('Activity Feed'), "/people/%s/books/feed" % username]
   $ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
   $ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
   $ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
@@ -43,6 +55,8 @@ $def year_span(year, use_local_year=False):
   $# Render carousels
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
+    $# Render the Activity Feed carousel
+    $:(compact_carousel(activity_feed) or empty_carousel(activity_feed))
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
@@ -55,8 +69,19 @@ $def year_span(year, use_local_year=False):
 $code:
     def mobile_carousel(data):
         key, title, url = data
-        books = mybooks[key].docs
-        count = mybooks[key].total_results
+        # Check if the key exists to prevent errors
+        if key not in mybooks:
+            return None
+
+        # Handle both list and object with .docs attribute
+        mybooks_data = mybooks[key]
+        if isinstance(mybooks_data, list):
+            books = mybooks_data
+            count = len(mybooks_data)
+        else:
+            books = mybooks_data.docs
+            count = mybooks_data.total_results
+
         return render_template("books/mobile_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
@@ -81,6 +106,10 @@ $def empty_mobile_carousel(data):
         <li>
           $# Render carousel
           $:(mobile_carousel(loans) or empty_mobile_carousel(loans))
+        </li>
+        <li>
+          $# Render carousel for Activity Feed
+          $:(mobile_carousel(activity_feed) or empty_mobile_carousel(activity_feed))
         </li>
         <li>
           $ year = current_year()
@@ -177,4 +206,3 @@ $def empty_mobile_carousel(data):
   </div>
   <p></p>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']
-
