@@ -822,6 +822,10 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
+class PatronExportException(Exception):
+    pass
+
+
 class PatronExport(ABC):
     @staticmethod
     def make_export(data: list[dict], fieldnames: list[str]):
@@ -857,8 +861,10 @@ class PatronExport(ABC):
         return work
 
     @property
-    def user(self) -> "User" or None:
-        return accounts.get_current_user()
+    def user(self) -> "User":
+        if not (result := accounts.get_current_user()):
+            raise PatronExportException("Must be logged in to export data.")
+        return result
 
     @property
     def date_format(self):
