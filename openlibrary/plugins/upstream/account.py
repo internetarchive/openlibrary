@@ -822,52 +822,6 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
-def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
-    """
-    Convert the keys of a dict into csv header and format strings for generating a
-    comma separated values string.  This will only be run on the first row of data.
-    >>> csv_header_and_format({"item_zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
-    ('Item Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
-    """
-    return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
-        ",".join(fld.replace("_", " ").title() for fld in row).replace(" Id,", " ID,"),
-        ",".join("{%s}" % field for field in row),
-    )
-
-
-@elapsed_time("csv_string")
-def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None) -> str:
-    """
-    Given a list of dicts, generate comma-separated values where each dict is a row.
-    An optional reformatter function can be provided to transform or enrich each dict.
-    The order and names of the formatter's output dict keys will determine the order
-    and header column titles of the resulting csv string.
-    :param source: An iterable of all the rows that should appear in the csv string.
-    :param formatter: A Callable that accepts a Mapping and returns a dict.
-    >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
-    >>> csv.splitlines()
-    ['Row ID,T W O,Upper', 'a,2,A', 'b,2,B']
-    """
-    if not row_formatter:  # The default formatter reuses the inbound dict unmodified
-
-        def row_formatter(row: Mapping) -> Mapping:
-            return row
-
-    def csv_body() -> Iterable[str]:
-        """
-        On the first row, use csv_header_and_format() to get and yield the csv_header.
-        Then use csv_format to yield each row as a string of comma-separated values.
-        """
-        assert row_formatter, "Placate mypy."
-        for i, row in enumerate(source):
-            if i == 0:  # Only on first row, make header and format from the dict keys
-                csv_header, csv_format = csv_header_and_format(row_formatter(row))
-                yield csv_header
-            yield csv_format.format(**row_formatter(row))
-
-    return '\n'.join(csv_body())
-
-
 class PatronExport(ABC):
     @staticmethod
     def make_export(data: list[dict], fieldnames: list[str]):
