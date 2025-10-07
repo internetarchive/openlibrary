@@ -594,6 +594,33 @@ class WikisourceProvider(AbstractBookProvider):
         ]
 
 
+class BetterWorldBooksProvider(AbstractBookProvider):
+    short_name = 'betterworldbooks'
+    long_name = 'Better World Books'
+    identifier_key = 'betterworldbooks'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+    def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
+        # basically just check if it has an isbn?
+        return (ed_or_solr.get('isbn_10') or []) + (ed_or_solr.get('isbn_13') or [])
+
+    def get_acquisitions(
+        self,
+        ed_or_solr: Edition | dict,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='buy',
+                format='web',
+                price=None,
+                url=f'https://www.betterworldbooks.com/product/detail/{self.get_best_identifier(ed_or_solr)}',
+                provider_name=self.short_name,
+            )
+        ]
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -607,6 +634,8 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
+    # Then link to purchase options
+    BetterWorldBooksProvider(),
 ]
 
 

@@ -327,8 +327,12 @@ class WorkSearchScheme(SearchScheme):
         # Removes the indicator prefix from queries with the 'work field' before appending them to parameters.
         final_work_query = deepcopy(work_q_tree)
         luqum_replace_field(final_work_query, remove_work_prefix)
+        EDITION_ONLY_FIELDS = {'acquisition'}
         try:
-            luqum_remove_field(final_work_query, lambda f: f.startswith('edition.'))
+            luqum_remove_field(
+                final_work_query,
+                lambda f: f.startswith('edition.') or f in EDITION_ONLY_FIELDS,
+            )
         except EmptyTreeError:
             # If the whole tree is removed, we should just search for everything
             final_work_query = luqum_parser('*:*')
@@ -398,6 +402,7 @@ class WorkSearchScheme(SearchScheme):
                 'ia_collection': 'ia_collection',
                 'ia_box_id': 'ia_box_id',
                 'public_scan_b': 'public_scan_b',
+                'acquisition': 'acquisition',
             }
 
             def convert_work_field_to_edition_field(
