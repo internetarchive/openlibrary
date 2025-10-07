@@ -22,6 +22,7 @@ def setup(config_path):
         raise FileNotFoundError(f'No configuration file found at {config_path}')
     load_config(config_path)
     infogami._setup()
+    web.ctx.ip = web.ctx.ip or '127.0.0.1'
 
 
 def fetch_affected_keys() -> list[str]:
