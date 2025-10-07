@@ -11,7 +11,7 @@ import itertools
 import logging
 import re
 import typing
-from collections.abc import Iterable, Sized
+from collections.abc import Iterable, Sequence
 from typing import TypedDict, cast
 
 import httpx
@@ -47,41 +47,7 @@ def is_valid_ocaid(ocaid: str):
     return bool(OCAID_PATTERN.match(ocaid))
 
 
-def batch(items: list, max_batch_len: int):
-    """
-    >>> list(batch([1,2,3,4,5], 2))
-    [[1, 2], [3, 4], [5]]
-    >>> list(batch([], 2))
-    []
-    >>> list(batch([1,2,3,4,5], 3))
-    [[1, 2, 3], [4, 5]]
-    >>> list(batch([1,2,3,4,5], 5))
-    [[1, 2, 3, 4, 5]]
-    >>> list(batch([1,2,3,4,5], 6))
-    [[1, 2, 3, 4, 5]]
-    """
-    start = 0
-    while start < len(items):
-        yield items[start : start + max_batch_len]
-        start += max_batch_len
-
-
-def batch_until_len(items: Iterable[Sized], max_batch_len: int):
-    batch_len = 0
-    batch: list[Sized] = []
-    for item in items:
-        if batch_len + len(item) > max_batch_len and batch:
-            yield batch
-            batch = [item]
-            batch_len = len(item)
-        else:
-            batch.append(item)
-            batch_len += len(item)
-    if batch:
-        yield batch
-
-
-def partition(lst: list, parts: int):
+def partition[T](lst: Sequence[T], parts: int):
     """
     >>> list(partition([1,2,3,4,5,6], 1))
     [[1, 2, 3, 4, 5, 6]]
@@ -137,7 +103,9 @@ class DataProvider:
         self.ia_cache: dict[str, dict | None] = {}
 
     @staticmethod
-    async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
+    async def _get_lite_metadata(
+        ocaids: Sequence[str], _recur_depth=0, _max_recur_depth=3
+    ):
         """
         For bulk fetch, some of the ocaids in Open Library may be bad
         and break archive.org ES fetches. When this happens, we (up to
@@ -161,12 +129,10 @@ class DataProvider:
                         'x-application-id': 'ol-solr',
                     },
                     params={
-                        'q': f"identifier:({' OR '.join(ocaids)})",
+                        'doc_ids': ','.join(ocaids),
                         'rows': len(ocaids),
                         'fl': ','.join(IA_METADATA_FIELDS),
-                        'page': 1,
                         'output': 'json',
-                        'save': 'yes',
                         'service': 'metadata__unlimited',
                     },
                 )
@@ -243,7 +209,7 @@ class DataProvider:
         if invalid_ocaids:
             logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
         valid_ocaids = list(set(ocaids) - invalid_ocaids)
-        batches = list(batch_until_len(valid_ocaids, 3000))
+        batches = list(itertools.batched(valid_ocaids, 250))
         # Start them all async
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
@@ -251,7 +217,7 @@ class DataProvider:
                 self.ia_cache[doc['identifier']] = doc
 
         missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
-        missing_ocaid_batches = list(batch(missing_ocaids, 6))
+        missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6))
         for missing_batch in missing_ocaid_batches:
             # Start them all async
             tasks = [
