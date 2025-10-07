@@ -4505,7 +4505,7 @@ msgstr ""
 msgid "Add this book now"
 msgstr ""
 
-#: books/author-autocomplete.html books/works-autocomplete.html
+#: books/author-autocomplete.html
 msgid "Add a new author"
 msgstr ""
 
@@ -4781,6 +4781,14 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/works-autocomplete.html
+msgid "Add a new work"
+msgstr ""
+
+#: books/works-autocomplete.html
+msgid "Go to the record for this book"
 msgstr ""
 
 #: books/edit/edition.html books/works-autocomplete.html
