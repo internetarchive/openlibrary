@@ -787,10 +787,13 @@ class account_preferences(delegate.page):
 
         # Transform to backend format
         backend_prefs = {
-            'formats': 'has_fulltext' if prefs['mode'] == 'fulltext' else 
-                    'ebook_access' if prefs['mode'] == 'preview' else None,
+            'formats': (
+                'has_fulltext'
+                if prefs['mode'] == 'fulltext'
+                else 'ebook_access' if prefs['mode'] == 'preview' else None
+            ),
             'languages': [prefs['language']],
-            'first_publish_year': prefs['date']
+            'first_publish_year': prefs['date'],
         }
         expires = 3600 * 24 * 365
         web.setcookie('ol_mode', prefs['mode'], expires=expires)
@@ -801,8 +804,8 @@ class account_preferences(delegate.page):
             raise web.seeother("/account")
         else:
             return delegate.RawText(
-                json.dumps({'status': 'ok', 'backend_prefs': backend_prefs}), 
-                content_type="application/json"
+                json.dumps({'status': 'ok', 'backend_prefs': backend_prefs}),
+                content_type="application/json",
             )
 
 
