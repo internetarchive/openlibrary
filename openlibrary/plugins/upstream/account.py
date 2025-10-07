@@ -770,7 +770,15 @@ class account_preferences(delegate.page):
     encoding = "json"
 
     def POST(self):
-        d = json.loads(web.data())
+        logger.info("Received preferences update request")
+        try:
+            raw_data = web.data()
+            logger.info("Raw request data: %s", raw_data)
+            d = json.loads(raw_data)
+            logger.info("Parsed preferences data: %s", d)
+        except Exception as e:
+            logger.error("Failed to process preferences update: %s", str(e))
+            return json.dumps({"error": "Failed to process request"})
         prefs = {
             'mode': d.get('mode', 'all'),
             'language': d.get('language', 'en'),
@@ -784,7 +792,6 @@ class account_preferences(delegate.page):
             'languages': [prefs['language']],
             'first_publish_year': prefs['date']
         }
-
         expires = 3600 * 24 * 365
         web.setcookie('ol_mode', prefs['mode'], expires=expires)
         web.setcookie('ol_lang', prefs['language'], expires=expires)
