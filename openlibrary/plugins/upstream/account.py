@@ -871,7 +871,7 @@ class account_preferences(delegate.page):
         # Transform to backend format
         backend_prefs = {
             'formats': (
-                'has_fulltext_only'
+                'has_fulltext'
                 if prefs['mode'] == 'fulltext'
                 else 'ebook_access' if prefs['mode'] == 'preview' else None
             ),
