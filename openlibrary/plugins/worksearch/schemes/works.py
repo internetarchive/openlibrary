@@ -13,6 +13,7 @@ import web
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     fully_escape_query,
@@ -238,9 +239,15 @@ class WorkSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
-        if field.startswith(('work.', 'edition.')):
+        if field.startswith('work.'):
             return self.is_search_field(field.partition(".")[2])
-        return super().is_search_field(field) or field.startswith('id_')
+        if field.startswith('edition.'):
+            return EditionSearchScheme().is_search_field(field.partition(".")[2])
+        return (
+            super().is_search_field(field)
+            or field.startswith('id_')
+            or EditionSearchScheme().is_search_field(field)
+        )
 
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
