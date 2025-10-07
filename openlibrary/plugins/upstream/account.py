@@ -764,6 +764,41 @@ class account_notifications(delegate.page):
         web.seeother("/account")
 
 
+# Add a POST redirect for prefs from global filter
+class account_preferences(delegate.page):
+    path = "/account/preferences"
+    encoding = "json"
+
+    def POST(self):
+        d = json.loads(web.data())
+        prefs = {
+            'mode': d.get('mode', 'all'),
+            'language': d.get('language', 'en'),
+            'date': d.get('date', [1900, 2025]),
+        }
+
+        # Transform to backend format
+        backend_prefs = {
+            'formats': 'has_fulltext' if prefs['mode'] == 'fulltext' else 
+                    'ebook_access' if prefs['mode'] == 'preview' else None,
+            'languages': [prefs['language']],
+            'first_publish_year': prefs['date']
+        }
+
+        expires = 3600 * 24 * 365
+        web.setcookie('ol_mode', prefs['mode'], expires=expires)
+        web.setcookie('ol_lang', prefs['language'], expires=expires)
+        web.setcookie('ol_date', ",".join(map(str, prefs['date'])), expires=expires)
+
+        if d.get('redirect', True):
+            raise web.seeother("/account")
+        else:
+            return delegate.RawText(
+                json.dumps({'status': 'ok', 'backend_prefs': backend_prefs}), 
+                content_type="application/json"
+            )
+
+
 class account_lists(delegate.page):
     path = "/account/lists"
 

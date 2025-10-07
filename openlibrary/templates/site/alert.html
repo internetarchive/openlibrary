@@ -25,3 +25,81 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
     </div>
   </div>
 </div>
+
+<div id="filter-panel" class="filter-panel hidden" role="region" aria-label="Search Filters">
+  <div class="filter-header">
+    <h2>Filter</h2>
+    <button id="close-filter-panel" class="close-btn" aria-label="Close filter panel">×</button>
+  </div>
+
+  <div class="preference-panel">
+    <label for="global-mode-select">Book Type:</label>
+    <select id="global-mode-select" class="dropdown-menu">
+      <option value="fulltext">Readable only</option>
+      <option value="preview">Readable + Previewable</option>
+      <option value="all">Entire Catalog</option>
+    </select>
+
+    <label for="language-select">Language:</label>
+    <select id="language-select" class="dropdown-menu">
+        <option value="all" data-lang-id="all" title="All Languages">All Languages</option>
+        <option value="en" lang="en" data-lang-id="en" title="English - English">English - English (en)</option>
+        <option value="cs" lang="cs" data-lang-id="cs" title="Czech - Čeština">Czech - Čeština (cs)</option>
+        <option value="de" lang="de" data-lang-id="de" title="German - Deutsch">German - Deutsch (de)</option>
+        <option value="es" lang="es" data-lang-id="es" title="Spanish - Español">Spanish - Español (es)</option>
+        <option value="fr" lang="fr" data-lang-id="fr" title="French - Français">French - Français (fr)</option>
+        <option value="hi" lang="hi" data-lang-id="hi" title="Hindi - हिंदी">Hindi - हिंदी (hi)</option>
+        <option value="hr" lang="hr" data-lang-id="hr" title="Croatian - Hrvatski">Croatian - Hrvatski (hr)</option>
+        <option value="it" lang="it" data-lang-id="it" title="Italian - Italiano">Italian - Italiano (it)</option>
+        <option value="pt" lang="pt" data-lang-id="pt" title="Portuguese - Português">Portuguese - Português (pt)</option>
+        <option value="ro" lang="ro" data-lang-id="ro" title="Romanian - Română">Romanian - Română (ro)</option>
+        <option value="sc" lang="sc" data-lang-id="sc" title="Sardinian - Sardu">Sardinian - Sardu (sc)</option>
+        <option value="te" lang="te" data-lang-id="te" title="Telugu - తెలుగు">Telugu - తెలుగు (te)</option>
+        <option value="uk" lang="uk" data-lang-id="uk" title="Ukrainian - Українська">Ukrainian - Українська (uk)</option>
+        <option value="zh" lang="zh" data-lang-id="zh" title="Chinese - 中文">Chinese - 中文 (zh)</option>
+    </select>
+
+    <label for="global-date-start">Time Period:</label>
+    <div class="time-range-inputs">
+      <input type="number" id="global-date-start" placeholder="From Year" min="1800" max="2025" />
+      <input type="number" id="global-date-end" placeholder="To Year" min="1800" max="2025" />
+    </div>
+
+    <button id="save-preferences-btn" class="save-btn">Save</button>
+  </div>
+</div>
+
+<script type="module">
+  import './static/js/preferences-handler.js';
+
+  const filterTrigger = document.getElementById('filter-panel-trigger');
+  const filterPanel = document.getElementById('filter-panel');
+  const closeButton = document.getElementById('close-filter-panel');
+
+  // Open/close filter panel
+  filterTrigger.addEventListener('click', () => {
+    const isHidden = filterPanel.classList.contains('hidden');
+    filterPanel.classList.toggle('hidden');
+    filterPanel.classList.toggle('show');
+    filterTrigger.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    if (isHidden) {
+      document.getElementById('global-mode-select').focus();
+    }
+  });
+
+  closeButton.addEventListener('click', () => {
+    filterPanel.classList.remove('show');
+    filterPanel.classList.add('hidden');
+    filterTrigger.setAttribute('aria-expanded', 'false');
+    filterTrigger.focus();
+  });
+
+  // Close panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!filterPanel.contains(e.target) && !filterTrigger.contains(e.target)) {
+      filterPanel.classList.remove('show');
+      filterPanel.classList.add('hidden');
+      filterTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>

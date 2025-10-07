@@ -2,6 +2,7 @@
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.less';
 import { buildPartialsUrl } from  '../utils.js';
+import { getGlobalPreferences, mapPreferencesToBackend } from '../../../../../../openlibrary/static/js/preferences.js'
 
 /**
  * @typedef {Object} CarouselConfig
