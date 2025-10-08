@@ -58,7 +58,7 @@ def update_preferences(keys: list[str]) -> list[str]:
             username = key.split('/')[2]
             with RunAs(username):
                 web.ctx.site.save(new_prefs, 'Updating preferences')
-        except infogami.infobase.client.ClientException:
+        except (infogami.infobase.client.ClientException, KeyError, IndexError):
             retry_list.append(key)
 
     return retry_list
@@ -78,20 +78,23 @@ def main(args):
 
     print("Updating preferences in batches of 1,000...")
     batch_count = 1
+    error_cases = []
     while affected_keys and not was_shutdown_requested():
         print(f"  Beginning batch #{batch_count}...")
         cur_batch = affected_keys[:1000]
         affected_keys = affected_keys[1000:]
         keys_to_retry = update_preferences(cur_batch)
-        affected_keys.extend(keys_to_retry)
+        error_cases.extend(keys_to_retry)
         batch_count += 1
         print(f"{len(keys_to_retry)} keys have been added to the retry queue.")
 
+    print("\nAll keys processed")
+    print(f"{len(error_cases)} key(s) could not be updated.")
+    for key in error_cases:
+        print(key)
     if was_shutdown_requested():
         print("Script terminated early due to shutdown request")
         return
-
-    print("All affected preferences have been updated.")
 
 
 def _parse_args():
