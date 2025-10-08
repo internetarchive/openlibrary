@@ -911,7 +911,7 @@ class ReadingLogExport(PatronExport):
 
     def get_data(self) -> list:
         def get_subjects(
-            work: Work,
+            work: "Work",
             subject_type: SubjectType = "subject",
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
