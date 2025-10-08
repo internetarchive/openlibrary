@@ -89,7 +89,7 @@ def main(args):
         print(f"{len(keys_to_retry)} keys have been added to the retry queue.")
 
     print("\nAll keys processed")
-    print(f"{len(error_case)} key(s) could not be updated.")
+    print(f"{len(error_cases)} key(s) could not be updated.")
     for key in error_cases:
         print(key)
     if was_shutdown_requested():
