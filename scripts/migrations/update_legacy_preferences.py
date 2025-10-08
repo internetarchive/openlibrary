@@ -96,6 +96,7 @@ def main(args):
         print("Script terminated early due to shutdown request")
         return
 
+
 def _parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
