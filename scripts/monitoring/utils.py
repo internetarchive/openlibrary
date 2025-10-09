@@ -2,10 +2,23 @@ import fnmatch
 import os
 import subprocess
 from pathlib import Path
+from typing import Literal, overload
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
+@overload
+def bash_run(
+    cmd: str,
+    sources: list[str | Path] | None = None,
+    capture_output: Literal[True] = True,
+) -> str: ...
+@overload
+def bash_run(
+    cmd: str,
+    sources: list[str | Path] | None = None,
+    capture_output: Literal[False] = False,
+) -> None: ...
 def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=False):
     if not sources:
         sources = []
@@ -26,7 +39,7 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
         )
     )
 
-    return subprocess.run(
+    p = subprocess.run(
         [
             "bash",
             "-c",
@@ -37,6 +50,9 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
         capture_output=capture_output,
         text=capture_output if capture_output else None,
     )
+
+    if capture_output:
+        return p.stdout.strip()
 
 
 def limit_server(allowed_servers: list[str], scheduler: AsyncIOScheduler):
