@@ -144,7 +144,7 @@ def supplement_rec_with_import_item_metadata(
 
     Changes `rec` in place.
     """
-    from openlibrary.core.imports import ImportItem  # Evade circular import.
+    from openlibrary.core.imports import ImportItem  # noqa: PLC0415 no circular import
 
     import_fields = [
         'authors',
@@ -804,7 +804,7 @@ class ils_cover_upload:
         except accounts.ClientException:
             raise self.auth_failed("Invalid credentials")
 
-        from openlibrary.plugins.upstream import covers
+        from openlibrary.plugins.upstream import covers  # noqa: PLC0415
 
         add_cover = covers.add_cover()
 
