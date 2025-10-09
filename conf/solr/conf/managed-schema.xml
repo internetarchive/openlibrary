@@ -194,6 +194,9 @@
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
     <field name="time_key" type="string" stored="false" multiValued="true"/>
 
+    <!-- only on edition -->
+    <field name="acquisition" type="string" multiValued="true"/>
+
     <!-- Ratings -->
     <field name="ratings_average" type="pfloat"/>
     <field name="ratings_sortable" type="pfloat"/>
