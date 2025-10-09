@@ -1,17 +1,109 @@
 /* Styles for the yearly reading goal form */
 .goal-form {
   font-size: @font-size-title-medium;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
 
-  button {
-    display: inline-block;
-    width: fit-content;
-    margin-left: 10px;
+  &__question {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+
+    span {
+      font-weight: 500;
+    }
   }
 
-  input {
-    width: 5em;
-    padding: 10px;
-    font-size: @font-size-title-medium;
+  &__learn-more {
+    font-size: @font-size-label-small;
+    color: @dark-grey;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__input-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    padding-right: 5px;
+    width: 100%;
+
+    input {
+      width: 100px;
+      padding: 10px 14px;
+      font-size: @font-size-label-large;
+      text-align: center;
+      border: 2px solid @lighter-grey;
+      border-radius: 4px;
+      outline: none;
+
+      &:focus {
+        border-color: @primary-blue;
+        box-shadow: 0 0 0 2px fade(@primary-blue, 20%);
+      }
+    }
+
+    button {
+      display: inline-block;
+      width: fit-content;
+      margin: 0;
+      padding: 9px 20px;
+      font-size: @font-size-label-large;
+    }
+  }
+
+  &__submit-section {
+    // This section is no longer needed as button is moved to input section
+    display: none;
+  }
+
+  &__note {
+    margin: 0;
+    color: @dark-grey;
+    font-size: @font-size-label-small;
+    text-align: center;
+  }
+}
+
+// Responsive design for smaller screens
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  .goal-form {
+    gap: 12px;
+
+    &__question {
+      gap: 8px;
+
+      span {
+        font-size: @font-size-label-medium;
+      }
+    }
+
+    &__input-section {
+      gap: 12px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 15px;
+
+      input {
+        width: 80px;
+        padding: 8px 12px;
+        font-size: @font-size-label-medium;
+      }
+
+      button {
+        padding: 8px 16px;
+        font-size: @font-size-label-medium;
+      }
+    }
   }
 }
 
