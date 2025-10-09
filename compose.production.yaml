@@ -22,8 +22,7 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    # Disabled while we're updating our version of solr, otherwise it'll pull down the new image!
-    profiles: ["ol-never"]
+    profiles: ["ol-solr0"]
     environment:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
