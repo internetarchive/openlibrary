@@ -1,0 +1,55 @@
+{# {% set is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin()) %} #}
+
+{# {% if edit_view %}
+    {% set wikidata = page.wikidata(bust_cache=True, fetch_missing=True) %}
+{% else %} #}
+{# This is bad practice to fetch missing here instead of async #}
+{% set wikidata = page.wikidata(fetch_missing=True) %}
+{# {% endif %} #}
+
+{% macro render_infobox_row(label, itemprop, value) %}
+    {% if value %}
+        <tr>
+            <td><strong>{{ label }}</strong></td>
+            <td><span itemprop="{{ itemprop }}">{{ value }}</span></td>
+        </tr>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_social_icon(url, icon_url, title) %}
+    {% set title_without_space = title|replace(' ', '_') %}
+    {# TODO: Things like { _('View on %(site)s', site=title) }} don't work with the cur function #}
+    <a href="{{ url }}" title="View on {{ title }}" data-ol-link-track="AuthorInfoboxSocialLink|{{ title_without_space }}">
+        <img class="profile-icon" src="{{ icon_url }}" alt="">
+    </a>
+{% endmacro %}
+
+<div class="infobox">
+    <div class="illustration">
+        {{ render_template("covers/author_photo.html", page) | safe }}
+        {# {{ render_template("covers/change.html", page) | safe }} #}
+    </div>
+    <p class="short-description">
+        {% if wikidata %}
+            {{ wikidata.get_description('en') }}
+        {% endif %}
+    </p>
+    <table>
+        {% if page.birth_date or page.death_date %}
+            {{ render_infobox_row(_("Born"), 'birthDate', page.birth_date) }}
+            {{ render_infobox_row(_("Died"), 'deathDate', page.death_date) }}
+        {% elif page.date %}
+            {{ render_infobox_row(_("Date"), '', page.date) }}
+        {% endif %}
+    </table>
+    {% if wikidata %}
+        <hr>
+        <div class="profile-icon-container">
+        {# TODO: i18n.get_locale() isn't working here #}
+            {% set social_profiles = wikidata.get_external_profiles('en') %}
+            {% for profile in social_profiles %}
+                {{ render_social_icon(profile['url'], profile['icon_url'], profile['label']) }}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
