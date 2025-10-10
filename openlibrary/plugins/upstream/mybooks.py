@@ -63,12 +63,12 @@ class mybooks_home(delegate.page):
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
             loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
-                # Book will be None if no OL edition exists for the book
                 if book := web.ctx.site.get(loan['book']):
                     book.loan = loan
                     loans.docs.append(book)
+        else:
+            loans = web.Storage({"docs": [], "total_results": 0})
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
@@ -76,7 +76,6 @@ class mybooks_home(delegate.page):
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
 
-            # Ideally, do all 3 lookups in one add_availability call
             want_to_read.docs = add_availability(
                 [d for d in want_to_read.docs if d.get('title')]
             )[:5]
@@ -86,13 +85,40 @@ class mybooks_home(delegate.page):
             already_read.docs = add_availability(
                 [d for d in already_read.docs if d.get('title')]
             )[:5]
+        else:
+            want_to_read = web.Storage({"docs": [], "total_results": 0})
+            currently_reading = web.Storage({"docs": [], "total_results": 0})
+            already_read = web.Storage({"docs": [], "total_results": 0})
+
+        # Fetch activity feed data
+        activity_feed_raw = PubSub.get_feed(mb.username, limit=10)
+
+        if activity_feed_raw is None:
+            activity_feed_data = web.Storage({"docs": [], "total_results": 0})
+        elif isinstance(activity_feed_raw, list):
+            activity_feed_data = web.Storage(
+                {"docs": activity_feed_raw, "total_results": len(activity_feed_raw)}
+            )
+        elif hasattr(activity_feed_raw, 'docs') and hasattr(
+            activity_feed_raw, 'total_results'
+        ):
+            activity_feed_data = activity_feed_raw
+        else:
+            activity_feed_data = web.Storage(
+                {
+                    "docs": [activity_feed_raw] if activity_feed_raw else [],
+                    "total_results": 1 if activity_feed_raw else 0,
+                }
+            )
 
         docs = {
             'loans': loans,
             'want-to-read': want_to_read,
             'currently-reading': currently_reading,
             'already-read': already_read,
+            'activity-feed': activity_feed_data,
         }
+
         return render['account/mybooks'](
             mb.user,
             docs,

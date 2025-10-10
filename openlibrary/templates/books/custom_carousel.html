@@ -46,7 +46,8 @@ $if test or (books and len(books) >= min_books):
           $for index, book in enumerate(books or []):
               $ lazy_load = index > 5
               $ editions = book.get('editions', {})
-              $ book2 = storage(book if not editions else editions[0] if isinstance(editions, list) else editions.get('docs', [None])[0])
+              $ editions_docs = editions.get('docs', []) if isinstance(editions, dict) else (editions if isinstance(editions, list) else [])
+              $ book2 = storage(editions_docs[0] if editions_docs else book)
               $ book2['authors'] = book['authors'] if 'authors' in book else []
               $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
         </div>
