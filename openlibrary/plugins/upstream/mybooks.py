@@ -104,10 +104,12 @@ class mybooks_home(delegate.page):
         ):
             activity_feed_data = activity_feed_raw
         else:
-            activity_feed_data = web.Storage({
-                "docs": [activity_feed_raw] if activity_feed_raw else [],
-                "total_results": 1 if activity_feed_raw else 0
-            })
+            activity_feed_data = web.Storage(
+                {
+                    "docs": [activity_feed_raw] if activity_feed_raw else [],
+                    "total_results": 1 if activity_feed_raw else 0,
+                }
+            )
 
         docs = {
             'loans': loans,
@@ -127,6 +129,7 @@ class mybooks_home(delegate.page):
             lists=mb.lists,
             component_times=mb.component_times,
         )
+
 
 class mybooks_notes(delegate.page):
     path = "/people/([^/]+)/books/notes"

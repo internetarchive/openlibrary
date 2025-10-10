@@ -52,7 +52,7 @@ $def year_span(year, use_local_year=False):
             work = activity.get('work') if isinstance(activity, dict) else getattr(activity, 'work', None)
             if work:
                 books.append(work)
-        
+
         return render_template("books/custom_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
@@ -135,7 +135,7 @@ $code:
             work = activity.get('work') if isinstance(activity, dict) else getattr(activity, 'work', None)
             if work:
                 books.append(work)
-        
+
         return render_template("books/mobile_carousel", **{
             "books": books,
             "title": "%s (%d)" % (title, count),
