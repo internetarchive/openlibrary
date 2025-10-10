@@ -37,6 +37,33 @@ $def year_span(year, use_local_year=False):
             "test": False
         }) if books else None
 
+      def compact_carousel_activity_feed(data):
+        key, title, url = data
+        if key not in mybooks:
+            return None
+
+        mybooks_data = mybooks[key]
+        activities = mybooks_data.docs if hasattr(mybooks_data, 'docs') else mybooks_data
+        count = mybooks_data.total_results if hasattr(mybooks_data, 'total_results') else len(activities)
+
+        # Extract work objects from activities
+        books = []
+        for activity in activities:
+            work = activity.get('work') if isinstance(activity, dict) else getattr(activity, 'work', None)
+            if work:
+                books.append(work)
+        
+        return render_template("books/custom_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
+
   $def empty_carousel(data):
     $ key, title, url = data
     <div class="carousel-section-header">
@@ -56,7 +83,7 @@ $def year_span(year, use_local_year=False):
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
     $# Render the Activity Feed carousel
-    $:(compact_carousel(activity_feed) or empty_carousel(activity_feed))
+    $:(compact_carousel_activity_feed(activity_feed) or empty_carousel(activity_feed))
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
@@ -93,6 +120,33 @@ $code:
             "test": False
         }) if books else None
 
+    def mobile_carousel_activity_feed(data):
+        key, title, url = data
+        if key not in mybooks:
+            return None
+
+        mybooks_data = mybooks[key]
+        activities = mybooks_data.docs if hasattr(mybooks_data, 'docs') else mybooks_data
+        count = mybooks_data.total_results if hasattr(mybooks_data, 'total_results') else len(activities)
+
+        # Extract work objects from activities
+        books = []
+        for activity in activities:
+            work = activity.get('work') if isinstance(activity, dict) else getattr(activity, 'work', None)
+            if work:
+                books.append(work)
+        
+        return render_template("books/mobile_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
+
 $def empty_mobile_carousel(data):
     $ key, title, url = data
     <div class="carousel-section-header">
@@ -109,7 +163,7 @@ $def empty_mobile_carousel(data):
         </li>
         <li>
           $# Render carousel for Activity Feed
-          $:(mobile_carousel(activity_feed) or empty_mobile_carousel(activity_feed))
+          $:(mobile_carousel_activity_feed(activity_feed) or empty_mobile_carousel(activity_feed))
         </li>
         <li>
           $ year = current_year()
