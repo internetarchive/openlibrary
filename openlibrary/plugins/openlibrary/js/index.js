@@ -96,7 +96,7 @@ jQuery(function () {
         edition ||
         autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
-        addRowButton || roles || classifications ||
+        addRowButton || roles || classifications || followForms ||
         excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
@@ -118,6 +118,9 @@ jQuery(function () {
                 }
                 if (roles) {
                     module.initRoleValidation();
+                }
+                if (followForms) {
+                    module.initAsyncFollowing(followForms);
                 }
                 if (classifications) {
                     module.initClassificationValidation();
@@ -544,9 +547,18 @@ jQuery(function () {
 
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section')
-    if (listSection) {
+    const followForms = document.querySelectorAll('.follow-form');
+
+    if (listSection || followForms.length) {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
-            .then(module => module.initListsSection(listSection))
+            .then(module => {
+                if (listSection) {
+                    module.initListsSection(listSection);
+                }
+                if (followForms.length) {
+                    module.initAsyncFollowing(followForms);
+                }
+            })
     }
 
     // Generalized carousel lazy-loading
