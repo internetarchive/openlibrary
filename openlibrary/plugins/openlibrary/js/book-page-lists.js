@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-import { initAsyncFollowing } from './initAsyncFollowing'
+import { initAsyncFollowing } from './following'
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
