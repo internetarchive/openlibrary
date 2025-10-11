@@ -1,0 +1,31 @@
+/* Clamp list-follow card notes/descriptions to prevent overflow */
+.list-follow-card .card-note,
+.list-follow-card .list-note,
+.list-follow-card .notes,
+.list-follow-card .description,
+.list-follow-card .list-follow-card__note,
+.list-follow-card .list-follow-card__description,
+.list-follow-card .list-follow-card__subtitle,
+.list-follow-card__subtitle,
+.list-follow-card__description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;       /* show max 3 lines */
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  max-height: calc(1.2em * 3);
+  line-height: 1.2em;
+}
+
+/* Ensure the card is a vertical flex container */
+.list-follow-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Prevent bottom elements from stretching the card */
+.list-follow-card .list-follow-card__bottom,
+.list-follow-card .list-follow-card__covers {
+  flex-shrink: 0;
+}
