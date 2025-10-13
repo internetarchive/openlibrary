@@ -2546,7 +2546,7 @@ msgid "Download a copy of your reading log."
 msgstr ""
 
 #: account/import.html
-msgid "What is this?"
+msgid "What is a reading log?"
 msgstr ""
 
 #: account/import.html
