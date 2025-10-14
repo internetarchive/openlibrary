@@ -7,7 +7,7 @@ $def with (goal=None, year=None, update=False)
     <input type="hidden" name="is_update" value="true">
 
   <div class="goal-form__question">
-    <span>$_("How many books would you like to read this year?")</span>
+    <span id="yearly-goal-prompt">$_("How many books would you like to read this year?")</span>
     $if not goal:
       <a class="goal-form__learn-more" href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library" target="_blank">$_('Learn More')</a>
   </div>
@@ -18,7 +18,7 @@ $def with (goal=None, year=None, update=False)
   <div class="goal-form__input-section">
     $ goal_value = goal if goal else ''
     $ min_value = 0 if goal else 1
-    <input type="number" name="goal" min="$min_value" step="1" value="$goal_value" max="10000" required>
+    <input type="number" name="goal" min="$min_value" step="1" value="$goal_value" max="10000" aria-labelledby="yearly-goal-prompt" required>
     <button class="cta-btn cta-btn--shell reading-goal-submit-button" type="submit" data-ol-link-track="YearlyReadingGoals|SubmitGoal">$_("Submit")</button>
   </div>
 </form>
