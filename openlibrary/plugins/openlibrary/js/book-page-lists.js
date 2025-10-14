@@ -1,5 +1,5 @@
 import { buildPartialsUrl } from './utils'
-import { initAsyncFollowing } from './following'
+
 /**
  * Initializes lazy-loading the "Lists" section of Open Library book pages.
  *
@@ -44,9 +44,6 @@ export function initListsSection(elem) {
                         }
                         // Initialize private buttons after content is loaded
                         initPrivateButtonsAfterLoad(listSection)
-
-                        const followForms = listSection.querySelectorAll('.follow-form');
-                        initAsyncFollowing(followForms)
                     })
             }
         })
