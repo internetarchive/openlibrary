@@ -544,21 +544,16 @@ jQuery(function () {
 
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section')
-    const followForms = document.querySelectorAll('.follow-form');
-
-    if (listSection || followForms.length) {
+    if (listSection) {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
-            .then(module => {
-                if (listSection) {
-                    module.initListsSection(listSection);
-                }
-                if (followForms.length) {
-                    import(/* webpackChunkName: "following" */ './following')
-                        .then(module => {
-                            module.initAsyncFollowing(followForms)
-                        })
-                }
-            })
+            .then(module => module.initListsSection(listSection))
+    }
+
+    // Initialize follow forms lazily
+    const followForms = document.querySelectorAll('.follow-form');
+    if (followForms.length) {
+        import(/* webpackChunkName: "following" */ './following')
+            .then(module => module.initAsyncFollowing(followForms))
     }
 
     // Generalized carousel lazy-loading
