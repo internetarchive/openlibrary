@@ -96,7 +96,7 @@ jQuery(function () {
         edition ||
         autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
-        addRowButton || roles || classifications || followForms ||
+        addRowButton || roles || classifications ||
         excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
@@ -118,9 +118,6 @@ jQuery(function () {
                 }
                 if (roles) {
                     module.initRoleValidation();
-                }
-                if (followForms) {
-                    module.initAsyncFollowing(followForms);
                 }
                 if (classifications) {
                     module.initClassificationValidation();
