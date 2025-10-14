@@ -553,7 +553,10 @@ jQuery(function () {
                     module.initListsSection(listSection);
                 }
                 if (followForms.length) {
-                    module.initAsyncFollowing(followForms);
+                    import(/* webpackChunkName: "following" */ './following')
+                        .then(module => {
+                            module.initAsyncFollowing(followForms)
+                        })
                 }
             })
     }
