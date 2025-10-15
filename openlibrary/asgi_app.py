@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 
-import yaml  # type: ignore
+import yaml
 from fastapi import FastAPI
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -63,7 +64,8 @@ def _load_legacy_wsgi(ol_config_file: str):
 def create_app() -> FastAPI:
     _setup_env()
 
-    ol_config = os.environ.get("OL_CONFIG", "/openlibrary/conf/openlibrary.yml")
+    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
+    ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
     try:
         # We still call this even though we don't use it because of the side effects
         legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
