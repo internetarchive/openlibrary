@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "head.html.jinja" %}
+    <title>{% block title %}Open Library{% endblock %}</title>
+</head>
+<body>
+    {% block body %}{% endblock %}
+    {% include "footer.html.jinja" %}
+</body>
+</html>
