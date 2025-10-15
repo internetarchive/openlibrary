@@ -17,7 +17,7 @@ from requests import Response
 
 from infogami import config
 from infogami.infobase.client import storify
-from infogami.utils import delegate, stats
+from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
@@ -154,26 +154,9 @@ def execute_solr_query(
     _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
 ) -> Response | None:
-    url = solr_path
-    if params:
-        url += '&' if '?' in url else '?'
-        url += urlencode(params)
-
-    stats.begin("solr", url=url)
-    try:
-        # A note for future folks working to move async further up the stack.
-        # If you try to start making worksearch async you'll find that there are
-        # web.py variables in the global context that aren't available to the thread that the
-        # async code runs on. So we'll need to refactor the code to make it compatible.
-        response = async_bridge.run(
-            get_solr().raw_request(solr_path, urlencode(params), _timeout=_timeout)
-        )
-    except requests.HTTPError:
-        logger.exception("Failed solr query")
-        return None
-    finally:
-        stats.end()
-    return response
+    return async_bridge.run(
+        async_execute_solr_query(solr_path, params, _timeout, _pass_time_allowed)
+    )
 
 
 async def async_execute_solr_query(
@@ -187,7 +170,6 @@ async def async_execute_solr_query(
         url += '&' if '?' in url else '?'
         url += urlencode(params)
 
-    stats.begin("solr", url=url)
     try:
         response = await get_solr().raw_request(
             solr_path,
@@ -198,8 +180,6 @@ async def async_execute_solr_query(
     except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
-    finally:
-        stats.end()
     return response
 
 
