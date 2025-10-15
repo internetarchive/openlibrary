@@ -41,6 +41,7 @@ services:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
+      - ../olsystem:/olsystem
       - .:/openlibrary
 
 
