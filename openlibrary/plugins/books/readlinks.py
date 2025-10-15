@@ -297,7 +297,7 @@ class ReadProcessor:
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
 
-        self.docs = dynlinks.query_docs(bib_keys)
+        self.docs = dynlinks.add_availability(dynlinks.query_docs(bib_keys))
         if not self.options.get('no_details'):
             self.detailss = dynlinks.process_result_for_details(self.docs)
         else:
@@ -332,7 +332,12 @@ class ReadProcessor:
 
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
-        self.iaid_to_ed = {ed['ocaid']: ed for ed in eds.values()}
+        self.iaid_to_ed = {
+            ocaid: ed
+            for ed in eds.values()
+            # Should always have an ocaid
+            if (ocaid := ed.get('ocaid'))
+        }
 
         result = {}
         for r in requests:

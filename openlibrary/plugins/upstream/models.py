@@ -528,6 +528,7 @@ class Author(models.Author):
             has_fulltext=i.mode == "ebooks",
             query=q,
             facet=True,
+            request_label='AUTHOR_BOOKS_PAGE',
         )
 
     def get_work_count(self):
@@ -603,7 +604,7 @@ class Work(models.Work):
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)
         try:
-            return solr.get(self.key, fields=fields)
+            return solr.get(self.key, fields=fields, request_label='GET_WORK_SOLR_DATA')
         except Exception:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
@@ -865,8 +866,7 @@ class User(models.User):
         )
 
     def get_users_settings(self):
-        settings = web.ctx.site.get('%s/preferences' % self.key)
-        return settings.dict().get('notifications') if settings else {}
+        return self.preferences()
 
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):

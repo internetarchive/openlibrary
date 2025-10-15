@@ -17,10 +17,6 @@ identifiers:
     name: amazon
     notes: ASIN
     url: https://www.amazon.com/gp/product/@@@
--   label: Anna's Archive
-    name: annas_archive
-    notes: Should be the number after md5/ in the link
-    url: https://annas-archive.org/md5/@@@
 -   label: Association for the Blind of Western Australia
     name: abwa_bibliographic_number
     notes: ''

@@ -13,12 +13,11 @@ describe('SearchBar', () => {
         </div>`;
 
     describe('initFromUrlParams', () => {
-        delete window.location
-        window.location = new URL('https://openlibrary.org/search')
-
+        /** @type {SearchBar} */
         let sb;
         beforeEach(() => {
             sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+            sinon.stub(sb, 'getCurUrl').returns(new URL('https://openlibrary.org/search'));
         });
         afterEach(() => localStorage.clear());
         test('Does not throw on empty params', () => {

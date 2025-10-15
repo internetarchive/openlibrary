@@ -220,7 +220,6 @@ class routes(delegate.page):
 
         return '<pre>%s</pre>' % json.dumps(
             code.delegate.pages,
-            sort_keys=True,
             cls=ModulesToStr,
             indent=4,
             separators=(',', ': '),
@@ -464,7 +463,7 @@ class serviceworker(delegate.page):
 
     def GET(self):
         web.header('Content-Type', 'text/javascript')
-        return web.ok(open('static/build/sw.js').read())
+        return web.ok(open('static/build/js/sw.js').read())
 
 
 class assetlinks(delegate.page):
@@ -687,7 +686,9 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
+            if ed := Edition.from_isbn(
+                isbn_or_asin=isbn, high_priority=high_priority, allow_import=False
+            ):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
