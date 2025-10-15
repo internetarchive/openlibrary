@@ -9,6 +9,9 @@ import yaml
 from fastapi import FastAPI
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+import infogami
+from openlibrary.utils.sentry import Sentry, init_sentry
+
 logger = logging.getLogger("openlibrary.asgi_app")
 
 
@@ -61,6 +64,8 @@ def _load_legacy_wsgi(ol_config_file: str):
 
 # ---- FastAPI app -----------------------------------------------------------
 
+sentry: Sentry | None = None
+
 
 def create_app() -> FastAPI:
     _setup_env()
@@ -73,6 +78,12 @@ def create_app() -> FastAPI:
     try:
         # We still call this even though we don't use it because of the side effects
         legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
+
+        global sentry
+        if sentry is not None:
+            return
+        sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+
     except Exception:
         logger.exception("Failed to initialize legacy WSGI app")
         raise
