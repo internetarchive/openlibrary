@@ -337,7 +337,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-home0"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
