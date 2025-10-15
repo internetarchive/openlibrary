@@ -26,6 +26,13 @@ services:
       - db
       - infobase
 
+  fast_web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    volumes:
+      - .:/openlibrary
+
   solr:
     environment:
       # See compose.yaml for docs

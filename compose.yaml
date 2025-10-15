@@ -16,6 +16,22 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  fast_web:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+    command: docker/ol-web-fastapi-start.sh
+    ports:
+      - ${FAST_WEB_PORT:-18080}:8080
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   solr:
     image: solr:9.9.0
     expose:

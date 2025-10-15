@@ -3,6 +3,7 @@
 import datetime
 import json
 from dataclasses import dataclass
+from typing import cast
 
 import web
 
@@ -348,7 +349,9 @@ class SubjectEngine:
             subject.ebook_count = next(
                 (
                     count
-                    for key, count in result.facet_counts["has_fulltext"]
+                    for key, count in cast(  # These are fetched in a different format, we need to fix the types
+                        list[tuple[str, int]], result.facet_counts["has_fulltext"]
+                    )
                     if key == "true"
                 ),
                 0,
@@ -368,7 +371,10 @@ class SubjectEngine:
             current_year = datetime.datetime.utcnow().year
             subject.publishing_history = [
                 [year, count]
-                for year, count in result.facet_counts["publish_year"]
+                for year, count in cast(  # These are fetched in a different format, we need to fix the types
+                    list[tuple[int, int]],
+                    result.facet_counts["publish_year"],
+                )
                 if 1000 < year <= current_year + 1
             ]
 

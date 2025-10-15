@@ -21,6 +21,19 @@ services:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
+  fast_web:
+    profiles: ["ol-never"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    environment:
+      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+    volumes:
+      - ../booklending_utils:/booklending_utils
+      - ../olsystem:/olsystem
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+
   solr:
     profiles: ["ol-solr0"]
     environment:

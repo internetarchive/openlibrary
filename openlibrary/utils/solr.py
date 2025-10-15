@@ -6,8 +6,11 @@ from collections.abc import Callable, Iterable
 from typing import Literal, TypeVar
 from urllib.parse import urlencode, urlsplit
 
+import httpx
 import requests
 import web
+
+from openlibrary.utils.async_utils import async_bridge
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -50,6 +53,7 @@ class Solr:
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
         self.session = requests.Session()
+        self.httpx_session = httpx.AsyncClient()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -59,8 +63,8 @@ class Solr:
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
-        pattern = "([%s])" % re.escape(chars)
-        return web.re_compile(pattern).sub(r'\\\1', query)
+        pattern = re.compile("([%s])" % re.escape(chars))
+        return pattern.sub(r'\\\1', query)
 
     def get(
         self,
@@ -160,23 +164,26 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        json_data = self.raw_request(
-            'select',
-            urlencode(params, doseq=True),
-            _timeout=_timeout,
-            _pass_time_allowed=_pass_time_allowed,
+        json_data = async_bridge.run(
+            self.raw_request(
+                'select',
+                urlencode(params, doseq=True),
+                _timeout=_timeout,
+                _pass_time_allowed=_pass_time_allowed,
+            )
         ).json()
+
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    def raw_request(
+    async def raw_request(
         self,
         path_or_url: str,
         payload: str,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
         _pass_time_allowed: bool = True,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """
         :param _pass_time_allowed: If False, solr will continue processing the query
             server-side even if the client has timed out. This is useful for when
@@ -203,13 +210,13 @@ class Solr:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
             logger.info("solr request: %s", url)
-            return self.session.get(url, timeout=_timeout)
+            return await self.httpx_session.get(url, timeout=_timeout)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            return self.session.post(
+            return await self.httpx_session.post(
                 url, data=payload, headers=headers, timeout=_timeout
             )
 
