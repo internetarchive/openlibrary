@@ -1127,7 +1127,7 @@ async def async_work_search(
     page: int = 1,
     offset: int = 0,
     limit: int = 100,
-    fields: str = '*',
+    fields: str | list[str] = '*',
     facet: bool = True,
     spellcheck_count: int | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
