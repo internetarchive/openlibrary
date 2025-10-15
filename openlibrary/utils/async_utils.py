@@ -19,14 +19,7 @@ class AsyncBridge:
         self._thread.start()
 
     def run(self, coro):
-        try:
-            # Check if we're in an async context
-            asyncio.get_running_loop()
-            # If we are, return the coroutine to be awaited
-            return coro
-        except RuntimeError:
-            # No running loop, we can use asyncio.run()
-            return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
+        return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
 
 
 async_bridge = AsyncBridge()
