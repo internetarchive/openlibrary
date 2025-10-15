@@ -82,3 +82,44 @@ class TestGetAvailability:
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]['params']['identifier'] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+
+class TestGetGroundtruthAvailability:
+    def test_dev_instance_returns_empty(self):
+        """Test that in dev_instance mode, get_groundtruth_availability returns empty data"""
+        with patch("infogami.config.get") as mock_config_get:
+            mock_config_get.return_value = True  # dev_instance = True
+
+            result = lending.get_groundtruth_availability('test_ocaid')
+
+            expected = {'__src__': 'core.models.lending.get_groundtruth_availability'}
+            assert result == expected
+
+    def test_non_dev_instance_handles_connection_error(self):
+        """Test that connection errors are handled gracefully in non-dev mode"""
+        with patch("infogami.config.get") as mock_config_get, \
+             patch("requests.post") as mock_post:
+
+            mock_config_get.return_value = False  # dev_instance = False
+            # Simulate connection error
+            mock_post.side_effect = ConnectionError("Connection refused")
+
+            result = lending.get_groundtruth_availability('test_ocaid')
+
+            expected = {'__src__': 'core.models.lending.get_groundtruth_availability'}
+            assert result == expected
+
+    def test_non_dev_instance_handles_http_error(self):
+        """Test that HTTP errors are handled gracefully in non-dev mode"""
+        with patch("infogami.config.get") as mock_config_get, \
+             patch("requests.post") as mock_post:
+
+            mock_config_get.return_value = False  # dev_instance = False
+            # Simulate HTTP error
+            import requests
+            mock_post.side_effect = requests.HTTPError("Server error")
+
+            result = lending.get_groundtruth_availability('test_ocaid')
+
+            expected = {'__src__': 'core.models.lending.get_groundtruth_availability'}
+            assert result == expected
