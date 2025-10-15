@@ -4,7 +4,6 @@ import logging
 import os
 from pathlib import Path
 
-import pytest
 import yaml
 from fastapi import FastAPI
 from sentry_sdk import set_tag
@@ -72,6 +71,7 @@ def create_app() -> FastAPI:
     _setup_env()
 
     if os.environ.get("CI"):
+        import pytest
         pytest.skip("Skipping in CI", allow_module_level=True)
 
     ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
