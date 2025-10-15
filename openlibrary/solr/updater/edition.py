@@ -293,6 +293,14 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    def acquisition(self) -> list[str]:
+        """Get acquisition methods for the edition."""
+        return [
+            f'{acq.access},{acq.format},{acq.url}'
+            for provider in self._providers
+            for acq in provider.get_acquisitions(self._edition)
+        ]
+
     def build(self) -> SolrDocument:
         """
         Build the solr document for the given edition to store as a nested
@@ -339,6 +347,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'ia_collection': self.ia_collection,
                 'ia_box_id': self.ia_box_id,
                 # Ebook access
+                'acquisition': self.acquisition(),
                 'ebook_access': self.ebook_access.to_solr_str(),
                 'ebook_provider': self.ebook_provider,
                 'has_fulltext': self.has_fulltext,
