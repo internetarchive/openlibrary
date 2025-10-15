@@ -400,7 +400,7 @@ async def async_run_solr_query(
 
 @dataclass
 class SearchResponse:
-    facet_counts: dict[str, tuple[str, str, int]]
+    facet_counts: dict[str, list[tuple[str, str, int]]]
     sort: str
     docs: list
     num_found: int
