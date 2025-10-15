@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
 from openlibrary.plugins.worksearch.code import async_work_search
@@ -11,7 +11,8 @@ router = APIRouter()
 
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(
-    q: str = Query(..., description="The search query."),
+    request: Request,
+    q: str | None = Query("", description="The search query."),
     page: int | None = Query(
         1, ge=1, description="The page number of results to return."
     ),
@@ -29,12 +30,17 @@ async def search_json(
     """
     Performs a search for documents based on the provided query.
     """
+
+    kwargs = dict(request.query_params)
     # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
 
     query = {"q": q, "page": page, "limit": limit}
+    query.update(
+        kwargs
+    )  # This is a hack until we define all the params we expect above.
     response = await async_work_search(
         query,
         sort=sort,
