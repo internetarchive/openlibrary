@@ -72,6 +72,7 @@ def create_app() -> FastAPI:
 
     if os.environ.get("CI"):
         import pytest
+
         pytest.skip("Skipping in CI", allow_module_level=True)
 
     ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
