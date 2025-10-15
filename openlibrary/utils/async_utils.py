@@ -9,7 +9,7 @@ import threading
 # In the ideal world we won't need this as we'll be async all the way down.
 
 # You may be wondering why we don't use syncify from asyncer. The reason is that it just doesn't work.
-# Also, who needs and extra library when these few lines work for us.
+# Also, who needs an extra library when these few lines work for us.
 
 
 class AsyncBridge:
