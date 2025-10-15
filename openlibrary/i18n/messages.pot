@@ -5571,11 +5571,6 @@ msgstr ""
 
 #: home/categories.html
 #, python-format
-msgid "browse %(subject)s books"
-msgstr ""
-
-#: home/categories.html
-#, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
