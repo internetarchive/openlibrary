@@ -148,21 +148,10 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-def execute_solr_query(
-    solr_path: str,
-    params: dict | list[tuple[str, Any]],
-    _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
-    _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
-) -> Response | None:
-    return async_bridge.run(
-        async_execute_solr_query(solr_path, params, _timeout, _pass_time_allowed)
-    )
-
-
 async def async_execute_solr_query(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
-    _timeout: int | None = None,
+    _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
 ) -> httpx.Response | None:
     url = solr_path
@@ -182,6 +171,8 @@ async def async_execute_solr_query(
         return None
     return response
 
+
+execute_solr_query = async_bridge.wrap(async_execute_solr_query)
 
 # Expose this publicly
 public(has_solr_editions_enabled)
