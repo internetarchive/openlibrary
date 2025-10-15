@@ -30,9 +30,9 @@ def _https_middleware(app):
 
 
 def _load_legacy_wsgi(ol_config_file: str):
-    """Create the legacy WSGI application exactly like scripts/openlibrary-server.
+    """Initialize legacy configuration and side-effects as in scripts/openlibrary-server.
 
-    Returns a WSGI callable suitable for wrapping with WSGIMiddleware.
+    This function does not return a WSGI callable; it is called for its side effects only.
     """
     import infogami  # type: ignore
     from infogami import config  # type: ignore
