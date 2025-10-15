@@ -13,7 +13,6 @@ from unicodedata import normalize
 
 import requests
 import web
-from asyncer import syncify
 from requests import Response
 
 from infogami import config
@@ -42,6 +41,7 @@ from openlibrary.plugins.worksearch.schemes.works import (
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 
 logger = logging.getLogger("openlibrary.worksearch")
@@ -155,10 +155,12 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = syncify(get_solr().raw_request, raise_sync_error=False)(
-            solr_path,
-            urlencode(params),
-            _timeout=_timeout,
+        # A note for future folks working to move async further up the stack.
+        # If you try to start making worksearch async you'll find that there are
+        # web.py variables in the global context that aren't available to the thread that the
+        # async code runs on. So we'll need to refactor the code to make it compatible.
+        response = async_bridge.run(
+            get_solr().raw_request(solr_path, urlencode(params), _timeout=_timeout)
         )
     except requests.HTTPError:
         logger.exception("Failed solr query")

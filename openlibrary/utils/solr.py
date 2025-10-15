@@ -1,9 +1,7 @@
 """Python library for accessing Solr"""
 
-import asyncio
 import logging
 import re
-import threading
 from collections.abc import Callable, Iterable
 from typing import TypeVar
 from urllib.parse import urlencode, urlsplit
@@ -11,7 +9,8 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import requests
 import web
-from asyncer import syncify
+
+from openlibrary.utils.async_utils import async_bridge
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -28,16 +27,6 @@ class Solr:
         self.host = urlsplit(self.base_url)[1]
         self.session = requests.Session()
         self.httpx_session = httpx.AsyncClient()
-
-        # We'd love to move this up a level to like worksearch but it's not
-        # easy to do so because worksearch has many nested webpy calls that reply on env variables not setup when calling from a thread.
-        # Basically, in the ideal world this code is all async and we push the sync code up a level.
-
-        # Start a persistent event loop in a background thread.
-        # This avoids creating/destroying a loop on every call to select().
-        self._loop = asyncio.new_event_loop()
-        self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
-        self._thread.start()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -144,8 +133,8 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        response = syncify(self.raw_request, raise_sync_error=False)(
-            'select', urlencode(params, doseq=True), _timeout=_timeout
+        response = async_bridge.run(
+            self.raw_request('select', urlencode(params, doseq=True), _timeout=_timeout)
         )
 
         json_data = response.json()
