@@ -167,8 +167,8 @@ class Bookshelves(db.CommonExtras):
         book records from solr with availability. This will add a 'work' key
         to each item in readinglog_items.
         """
-        from openlibrary.core.lending import add_availability
-        from openlibrary.plugins.worksearch.code import get_solr_works
+        from openlibrary.core.lending import add_availability  # noqa: PLC0415
+        from openlibrary.plugins.worksearch.code import get_solr_works  # noqa: PLC0415
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
@@ -291,7 +291,7 @@ class Bookshelves(db.CommonExtras):
         dummy works, albeit with the correct work_id.
         """
 
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query  # noqa: PLC0415
 
         fetched_keys = {doc["key"] for doc in solr_docs}
         missing_keys = {work for (work, _) in reading_log_keys} - fetched_keys
@@ -403,8 +403,8 @@ class Bookshelves(db.CommonExtras):
             If bookshelf_id is None, return books from all bookshelves.
         :param q: an optional query string to filter the results.
         """
-        from openlibrary.core.models import LoggedBooksData
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.core.models import LoggedBooksData  # noqa: PLC0415
+        from openlibrary.plugins.worksearch.code import run_solr_query  # noqa: PLC0415
 
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
