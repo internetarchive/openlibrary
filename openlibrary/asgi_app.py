@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 from fastapi import FastAPI
+from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
@@ -83,6 +84,7 @@ def create_app() -> FastAPI:
         if sentry is not None:
             return
         sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+        set_tag("fastapi", True)
 
     except Exception:
         logger.exception("Failed to initialize legacy WSGI app")
