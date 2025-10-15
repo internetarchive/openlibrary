@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, cast
 from unicodedata import normalize
 
-import requests
+import httpx
 import web
 from requests import Response
 
@@ -164,7 +164,7 @@ async def async_execute_solr_query(
     params: dict | list[tuple[str, Any]],
     _timeout: int | None = None,
     _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
-) -> Response | None:
+) -> httpx.Response | None:
     url = solr_path
     if params:
         url += '&' if '?' in url else '?'
@@ -177,7 +177,7 @@ async def async_execute_solr_query(
             _timeout=_timeout,
             _pass_time_allowed=_pass_time_allowed,
         )
-    except requests.HTTPError:
+    except httpx.HTTPError:
         logger.exception("Failed solr query")
         return None
     return response
@@ -218,7 +218,7 @@ def _prepare_solr_query_params(
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
-) -> list[tuple[str, Any]]:
+) -> tuple[list[tuple[str, Any]], list[str]]:
     """
     :param param: dict of query parameters
     Prepares the list of parameters for a Solr query, encapsulating the business logic.
