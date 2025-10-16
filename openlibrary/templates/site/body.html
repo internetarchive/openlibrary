@@ -31,7 +31,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       </div>
       $# Announcement banner will only be rendered if announcement and storage_key variables are set.
       $# Be sure to escape any single quotes inside of the announcement HTML string.
-      $ announcement = _("Please help us improve with a <a %s>Survey</a>", 'class="cta-btn cta-btn--available" style="display: inline;" href="_("Learn about the virtual <a %s>Library Leaders Forum</a> happening this month", 'class="cta-btn cta-btn--available" style="display: inline;" href="https://libraryleadersforum.org"')
+      $ announcement = _("Please help us improve with a <a %s>Survey</a>", 'class="cta-btn cta-btn--available" style="display: inline;" href="https://libraryleadersforum.org"')
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
       $ cookie_name = '2025-10-euc'
       $if announcement and cookie_name:
