@@ -32,7 +32,7 @@ class SearchScheme:
     default_fetched_fields: frozenset[str]
     # Fields that should be rewritten
     facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
-    # Lang of user
+    # Language of user
     lang: str
 
     def __init__(self, lang: str | None = None):
