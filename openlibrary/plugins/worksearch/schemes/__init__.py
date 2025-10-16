@@ -3,6 +3,7 @@ from collections.abc import Callable
 from types import MappingProxyType
 
 import luqum.tree
+import web
 from luqum.exceptions import ParseError
 
 from openlibrary.solr.query_utils import (
@@ -31,6 +32,12 @@ class SearchScheme:
     default_fetched_fields: frozenset[str]
     # Fields that should be rewritten
     facet_rewrites: MappingProxyType[tuple[str, str], str | Callable[[], str]]
+    # Lang of user
+    lang: str
+
+    def __init__(self, lang: str | None = None):
+        # Fall back to web.ctx.lang until we move away from it
+        self.lang = lang or web.ctx.lang or 'en'
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
