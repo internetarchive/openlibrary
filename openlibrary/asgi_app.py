@@ -98,9 +98,11 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=["*"],  # Allows all origins
         allow_credentials=False,  # We don't want to allow cookies because then we have to limit origins.
-        allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+        allow_methods=["GET", "OPTIONS"],
         allow_headers=["*"],  # Allows all headers
-        max_age=86400,  # Cache preflight response for 86400 seconds (24 hours)
+        max_age=3600 * 24,  # Cache preflight response for 24 hours
+        # Keep in sync with
+        # https://github.com/internetarchive/openlibrary/blob/1606a0d27d16f1fe64991884002a86d3597d9ecb/openlibrary/plugins/openlibrary/processors.py#L70-L89
     )
 
     # Needed for the staging nginx proxy
