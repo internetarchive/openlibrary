@@ -11,6 +11,7 @@
           v-for="(doc, index) in bookMatch.solrDocs.docs"
           :key="index"
           :doc="doc"
+          :is-primary="index === 0"
         />
       </div>
     </td>

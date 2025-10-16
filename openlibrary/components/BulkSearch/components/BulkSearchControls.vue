@@ -4,6 +4,9 @@
       <p v-if="showColumnHint">
         Please include a header row. Supported columns include: "Title", "Author".
       </p>
+      <p class="bulk-search-instructions">
+        <strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.
+      </p>
 
       <select
         v-model="selectedValue"
@@ -23,7 +26,11 @@
       />
       <br>
       <div class="progressCarousel">
-        <div class="progressCard">
+        <div 
+          ref="step1"
+          class="progressCard"
+          :class="{ activeStep: activeStep === 1 }"
+        >
           <div class="numeral">
             1
           </div>
@@ -63,8 +70,9 @@
           </div>
         </div>
         <div
+          ref="step2"
           class="progressCard"
-          :class="{ progressCardDisabled: matchBooksDisabled}"
+          :class="{ progressCardDisabled: matchBooksDisabled, activeStep: activeStep === 2 }"
         >
           <div class="numeral">
             2
@@ -90,8 +98,9 @@
           </div>
         </div>
         <div
+          ref="step3"
           class="progressCard"
-          :class="{ progressCardDisabled: createListDisabled }"
+          :class="{ progressCardDisabled: createListDisabled, activeStep: activeStep === 3 }"
         >
           <div class="numeral">
             3
@@ -160,6 +169,7 @@ export default {
             loadingMatchedBooks: false,
             matchBooksDisabled: true,
             createListDisabled: true,
+            activeStep: 1,
         }
     },
     computed: {
@@ -184,6 +194,22 @@ export default {
         selectedValue(newValue) {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
+            }
+        },
+        matchBooksDisabled(newValue) {
+            if (!newValue) {
+                this.activeStep = 2;
+                this.$nextTick(() => {
+                    this.$refs.step2?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            }
+        },
+        createListDisabled(newValue) {
+            if (!newValue) {
+                this.activeStep = 3;
+                this.$nextTick(() => {
+                    this.$refs.step3?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
             }
         }
     },
@@ -224,6 +250,15 @@ export default {
 .bulk-search-controls{
     padding:20px;
 }
+
+.bulk-search-instructions {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background-color: #f0f7ff;
+    border-left: 4px solid #0376B8;
+    border-radius: 4px;
+}
+
 label input {
     flex: 1;
 }
@@ -304,6 +339,10 @@ textarea {
 
 .progressCardDisabled{
     opacity:50%;
+}
+
+.activeStep{
+    border: 2px solid #0376B8;
 }
 
 
