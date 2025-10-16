@@ -6,7 +6,10 @@
 @bottom-cover-z-index: 1;
 @cover-overlap: calc((3 * @cover-width - (@card-width - 2 * @cover-padding)) / 2);
 
-.info-card {
+.multi-img-card {
+    a& {
+        text-decoration: none;
+    }
     display: flex;
     flex-direction: column;
 
@@ -19,7 +22,20 @@
     box-shadow: 2px 2px 4px fade(@black, 15%);
 }
 
-.info-card__images{
+.multi-img-card__header {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 0 0 4px 4px;
+    width: 100%;
+    a& {
+      text-decoration: none;
+    }
+}
+
+.multi-img-card__images{
     flex: 1;
     min-height: 1px;
     overflow: clip;
@@ -55,7 +71,7 @@
     }
 }
 
-.info-card__footer {
+.multi-img-card__footer {
     background: @grey-f4f4f4;
     border-radius: 0 0 4px 4px;
     box-shadow: 0 0 4px fade(@black, 25%);
