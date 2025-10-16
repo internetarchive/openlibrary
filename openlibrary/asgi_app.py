@@ -97,7 +97,7 @@ def create_app() -> FastAPI:
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
     # --- Fast routes (mounted within this app) ---
-    @app.get("/_fast/health")
+    @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
