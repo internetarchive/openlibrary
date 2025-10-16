@@ -7290,6 +7290,11 @@ msgstr ""
 msgid "It looks like you're offline."
 msgstr ""
 
+#: site/body.html
+#, python-format
+msgid "Please help us improve with a <a %s>Survey</a>"
+msgstr ""
+
 #: site/neck.html
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
