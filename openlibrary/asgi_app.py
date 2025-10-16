@@ -100,6 +100,7 @@ def create_app() -> FastAPI:
         allow_credentials=False,  # We don't want to allow cookies because then we have to limit origins.
         allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
         allow_headers=["*"],  # Allows all headers
+        max_age=86400,  # Cache preflight response for 86400 seconds (24 hours)
     )
 
     # Needed for the staging nginx proxy
