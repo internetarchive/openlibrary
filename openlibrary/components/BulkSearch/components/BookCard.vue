@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     class="book-card"
     :class="{ 'book-card--primary': isPrimary, 'book-card--secondary': !isPrimary }"
   >
@@ -122,7 +122,7 @@ export default {
 
   &.book-card--secondary {
     opacity: 0.6;
-    
+
     &:hover {
       opacity: 0.8;
     }

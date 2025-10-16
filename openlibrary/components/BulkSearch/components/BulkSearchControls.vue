@@ -26,7 +26,7 @@
       />
       <br>
       <div class="progressCarousel">
-        <div 
+        <div
           ref="step1"
           class="progressCard"
           :class="{ activeStep: activeStep === 1 }"
