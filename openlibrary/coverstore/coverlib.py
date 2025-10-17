@@ -18,7 +18,7 @@ __all__ = ["apply_exif_orientation", "read_file", "read_image", "save_image"]
 
 def apply_exif_orientation(img: Image.Image) -> Image.Image:
     try:
-        return ImageOps.exif_transpose(img) or img
+        return ImageOps.exif_transpose(img)
     except Exception as e:
         logger.warning(f"Failed to apply EXIF orientation: {e}")
         return img
@@ -78,9 +78,9 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
             f.write(data)
 
         img = Image.open(BytesIO(data))
-
+        
         img = apply_exif_orientation(img)
-
+        
         if img.mode != 'RGB':
             img = img.convert('RGB')  # type: ignore[assignment]
 
