@@ -4,79 +4,74 @@ $def render_follow_button(owner_username, is_subscribed):
   $ request = "/people/" + owner_username
   $:macros.Follow(owner_username, following=is_subscribed, request_path=request)
 
-$def list_card(list, owner, own_list):
-    $ has_owner = owner
-    $ cached_info = list.get_patron_showcase()
-    $ count = cached_info["count"]
-    <div class="list-follow-card">
-        <a class="list-follow-card__header" href="$list.get_url()">
-                <div class="list-follow-card__title" title="${cached_info['title']}">$cached_info['title']</div>
-             <div class="list-follow-card__num-books">
-                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
-             </div>
-        </a>
-        <a class="list-follow-card__covers" href="$list.get_url()">
-           $for img_url in cached_info["covers"]:
-               $if img_url:
-                   $ img_url = img_url.replace("-S.jpg", "-M.jpg")
-               $else:
-                   $ img_url = '/images/icons/avatar_book-sm.png'
-               <img src="$img_url" alt="$_('Cover of book')" loading="lazy" width="80"/>
-        </a>
-
-        <!-- Bottom section: owner info or community label -->
-        $if owner:
-            <div class="list-follow-card__bottom">
-                <div class="list-follow-card__user">
-
-                            $ owner_username = owner.key.split('/')[-1]
-                    <a href="$owner.key">
-                        <img src="$(owner.key)/avatar" alt="$_('Avatar of the owner of the list')" />
-                    </a>
-                    <div class="list-follow-card__username">
-                        $if not own_list:
-                            <a class="list-follow-card__username-link" href="$owner.key" title="$owner_username">
-                                @${owner_username}
-                            </a>
-                        $else:
-                            <a class="list-follow-card__username-link" href="$owner.key">
-                                $_('You')
-                            </a>
-                    </div>
-                </div>
-                <div class="list-follow-card__follow-button">
-                    $if not own_list:
-                        $ owner_account = get_user_object(owner_username)
-                        $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
-                        $ settings = owner_account.get_users_settings()
-                        $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
-                        $if is_public:
-                            $:render_follow_button(owner_username, is_subscribed)
-                        $else:
-                            <div title="$_('This patron has not enabled following')">
-                                <button class="list-follow-card__private-button" >
-                                    <span class="pvt-icon">$_('🔒︎')</span>
-                                    <span class="pvt-text">$_('Follow')</span>
-                                </button>
-                            </div>
-                </div>
-            </div>
-        $else:
-            <div class="list-follow-card__bottom-community">
-                <div class="list-follow-card__user">
-                    <img src="/static/images/openlibrary-128x128.png" alt="$_('OpenLibrary Logo')"/>
-                    <div class="list-follow-card__community-label">
-                        <i>$_("Community List")</i>
-                    </div>
-                </div>
-            </div>
+$def render_card_header(list_name, count):
+    <div class="list-follow-card__header">
+        <div class="list-follow-card__title" title="$list_name">$list_name</div>
+        <div class="list-follow-card__num-books">
+            $ungettext("%(count)d book", "%(count)d books", count, count=count)
+        </div>
     </div>
+
+$def render_card_footer(owner, own_list):
+    $if owner:
+        <div class="list-follow-card__bottom">
+            <div class="list-follow-card__user">
+                $ owner_username = owner.key.split('/')[-1]
+                <a href="$owner.key">
+                    <img src="$(owner.key)/avatar" alt="$_('Avatar of the owner of the list')"/>
+                </a>
+                <div class="list-follow-card__username">
+                    $if not own_list:
+                        <a class="list-follow-card__username-link" href="$owner.key" title="$owner_username">
+                            @${owner_username}
+                        </a>
+                    $else:
+                        <a class="list-follow-card__username-link" href="$owner.key">
+                            $_('You')
+                        </a>
+                </div>
+            </div>
+            <div class="list-follow-card__follow-button">
+                $if not own_list:
+                    $ owner_account = get_user_object(owner_username)
+                    $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
+                    $ settings = owner_account.get_users_settings()
+                    $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+                    $if is_public:
+                        $:render_follow_button(owner_username, is_subscribed)
+                    $else:
+                        <div title="$_('This patron has not enabled following')">
+                            <button class="list-follow-card__private-button">
+                                <span class="pvt-icon">$_('🔒︎')</span>
+                                <span class="pvt-text">$_('Follow')</span>
+                            </button>
+                        </div>
+            </div>
+        </div>
+    $else:
+        <div class="list-follow-card__user">
+            <img src="/static/images/openlibrary-128x128.png" alt="$_('OpenLibrary Logo')"/>
+            <div class="list-follow-card__community-label">
+                <i>$_("Community List")</i>
+            </div>
+        </div>
 
 $ count = 0
 $for i, list in enumerate(lists):
     $if count < limit:
-      $ own_list = list.owner and list.owner.key == user_key
-      $ converted = convert_list(list.key)
-      $:list_card(converted, list.owner, own_list)
-      $ count = count + 1
+        $ own_list = list.owner and list.owner.key == user_key
+        $ converted = convert_list(list.key)
 
+        $ cached_info = converted.get_patron_showcase()
+        $ count = cached_info["count"]
+        $ card_header = render_card_header(cached_info['title'], count)
+        $ card_footer = render_card_footer(list.owner, own_list)
+        $ image_urls = []
+        $for img_url in cached_info["covers"]:
+            $if img_url:
+                $image_urls.append(img_url.replace("-S.jpg", "-M.jpg"))
+            $else:
+                $image_urls.append("/images/icons/avatar_book-sm.png")
+
+        $:render_template("cards/multi_image_card", header_html=card_header, image_urls=image_urls, footer_html=card_footer, href=converted.get_url())
+      $ count = count + 1

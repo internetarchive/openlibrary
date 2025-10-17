@@ -1,11 +1,21 @@
-$def with(header_html="", image_urls=[], image_href='', footer_html="")
+$def with(header_html="", image_urls=[], href='', footer_html="")
 
-$def anchor_image_container():
-    <a href="$image_href" class="multi-img-card__images">
+$def anchored_header():
+    <a href="$href" class="multi-img-card__header">
+        $:header_html
+    </a>
+
+$def header():
+    <div class="multi-img-card__header">
+        $:header_html
+    </div>
+
+$def anchored_image_container():
+    <a href="$href" class="multi-img-card__images">
         $:render_images()
     </a>
 
-$def div_image_container():
+$def image_container():
     <div class="multi-img-card__images">
         $:render_images()
     </div>
@@ -15,13 +25,14 @@ $def render_images():
         <img src="$url" loading="lazy" width="80">
 
 <div class="multi-img-card">
-    <div class="multi-img-card__header">
-        $:header_html
-    </div>
-    $if image_href:
-        $:anchor_image_container()
+    $if href:
+        $:anchored_header()
     $else:
-        $:div_image_container()
+        $:header()
+    $if href:
+        $:anchored_image_container()
+    $else:
+        $:image_container()
     <div class="multi-img-card__footer">
         $:footer_html
     </div>
