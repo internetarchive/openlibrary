@@ -347,3 +347,6 @@ identifiers:
     name: infosoup
     notes: e.g. https://infosoup.bibliocommons.com/v2/record/
     url: https://infosoup.bibliocommons.com/v2/record/@@@
+-   label: National Library of Norway (URN:NBN)
+    name: URN:NBN
+    url: https://urn.nb.no/URN:NBN:@@@
