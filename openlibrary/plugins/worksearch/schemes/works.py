@@ -497,7 +497,7 @@ class WorkSearchScheme(SearchScheme):
             for fq in editions_fq:
                 new_params.append(('editions.fq', fq))
 
-            user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
+            user_lang = convert_iso_to_marc(self.lang) or 'eng'
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             # Note that if there is no edition query (because no fields in

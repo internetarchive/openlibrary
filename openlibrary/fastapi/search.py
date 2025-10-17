@@ -52,6 +52,7 @@ async def search_json(
         # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=spellcheck_count,
+        lang=request.state.lang,
     )
 
     # Add extra metadata to the response, similar to the original

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from pathlib import Path
 
-import pytest
 import yaml
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -65,6 +66,50 @@ def _load_legacy_wsgi(ol_config_file: str):
 
 # ---- FastAPI app -----------------------------------------------------------
 
+
+def setup_i18n(app: FastAPI):
+    """Sets up i18n middleware for FastAPI to set request.state.lang based on language preferences.
+    Keep in sync with
+    https://github.com/internetarchive/infogami/blob/58be1edd4cd2c834cf8272993f377afd4777ed8b/infogami/utils/i18n.py#L130-L164
+    """
+
+    def parse_lang_header(request: Request) -> str | None:
+        """Parses HTTP Accept-Language header."""
+        accept_language = request.headers.get('accept-language', '')
+        if not accept_language:
+            return None
+
+        # Split by comma and optional whitespace
+        re_accept_language = re.compile(r',\s*')
+        tokens = re_accept_language.split(accept_language)
+
+        # Take just the language part (e.g., 'en' from 'en-gb;q=0.8')
+        langs = [t[:2] for t in tokens if t and not t.startswith('*')]
+        return langs[0] if langs else None
+
+    def parse_lang_cookie(request: Request) -> str | None:
+        """Parses HTTP_LANG cookie."""
+        return request.cookies.get('HTTP_LANG')
+
+    def parse_query_string(request: Request) -> str | None:
+        """Parses lang query parameter."""
+        return request.query_params.get('lang')
+
+    @app.middleware("http")
+    async def i18n_middleware(request: Request, call_next):
+        """Middleware to set request.state.lang based on language preferences."""
+        lang = (
+            parse_query_string(request)
+            or parse_lang_cookie(request)
+            or parse_lang_header(request)
+            or None
+        )
+        request.state.lang = lang
+
+        response = await call_next(request)
+        return response
+
+
 sentry: Sentry | None = None
 
 
@@ -72,6 +117,8 @@ def create_app() -> FastAPI:
     _setup_env()
 
     if os.environ.get("CI"):
+        import pytest
+
         pytest.skip("Skipping in CI", allow_module_level=True)
 
     ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
@@ -92,11 +139,23 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allows all origins
+        allow_credentials=False,  # We don't want to allow cookies because then we have to limit origins.
+        allow_methods=["GET", "OPTIONS"],
+        max_age=3600 * 24,  # Cache preflight response for 24 hours
+        # Keep in sync with
+        # https://github.com/internetarchive/openlibrary/blob/1606a0d27d16f1fe64991884002a86d3597d9ecb/openlibrary/plugins/openlibrary/processors.py#L70-L89
+    )
+
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
+    setup_i18n(app)
+
     # --- Fast routes (mounted within this app) ---
-    @app.get("/_fast/health")
+    @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
