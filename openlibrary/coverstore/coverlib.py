@@ -13,7 +13,7 @@ from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["read_file", "read_image", "save_image", "apply_exif_orientation"]
+__all__ = ["apply_exif_orientation", "read_file", "read_image", "save_image"]
 
 
 def apply_exif_orientation(img: Image.Image) -> Image.Image:
@@ -78,9 +78,9 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
             f.write(data)
 
         img = Image.open(BytesIO(data))
-        
+
         img = apply_exif_orientation(img)
-        
+
         if img.mode != 'RGB':
             img = img.convert('RGB')  # type: ignore[assignment]
 
