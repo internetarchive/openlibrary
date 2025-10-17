@@ -6,14 +6,22 @@ from io import BytesIO
 from logging import getLogger
 
 import web
-from PIL import Image
+from PIL import Image, ImageOps
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["read_file", "read_image", "save_image"]
+__all__ = ["read_file", "read_image", "save_image", "apply_exif_orientation"]
+
+
+def apply_exif_orientation(img: Image.Image) -> Image.Image:
+    try:
+        return ImageOps.exif_transpose(img) or img
+    except Exception as e:
+        logger.warning(f"Failed to apply EXIF orientation: {e}")
+        return img
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
@@ -70,6 +78,9 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
             f.write(data)
 
         img = Image.open(BytesIO(data))
+        
+        img = apply_exif_orientation(img)
+        
         if img.mode != 'RGB':
             img = img.convert('RGB')  # type: ignore[assignment]
 
