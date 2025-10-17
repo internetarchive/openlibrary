@@ -13,13 +13,13 @@ from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["apply_exif_orientation", "read_file", "read_image", "save_image"]
+__all__ = ["read_file", "read_image", "save_image", "apply_exif_orientation"]
 
 
 def apply_exif_orientation(img: Image.Image) -> Image.Image:
     try:
         return ImageOps.exif_transpose(img)
-    except Exception as e:
+    except (AttributeError, KeyError, OSError, ValueError) as e:
         logger.warning(f"Failed to apply EXIF orientation: {e}")
         return img
 
