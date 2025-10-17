@@ -78,9 +78,9 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
             f.write(data)
 
         img = Image.open(BytesIO(data))
-        
+
         img = apply_exif_orientation(img)
-        
+
         if img.mode != 'RGB':
             img = img.convert('RGB')  # type: ignore[assignment]
 
