@@ -1,5 +1,4 @@
 import asyncio
-import signal
 import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
@@ -23,15 +22,6 @@ class AsyncBridge:
         self._loop = asyncio.new_event_loop()
         self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
         self._thread.start()
-        # Register signal handlers for cleanup
-        signal.signal(signal.SIGTERM, self._handle_shutdown)
-        signal.signal(signal.SIGINT, self._handle_shutdown)
-
-    def _handle_shutdown(self, signum, frame):
-        """Handle shutdown signals to clean up the loop."""
-        if self._loop.is_running():
-            self._loop.call_soon_threadsafe(self._loop.stop)
-            print("AsyncBridge: Event loop closed.")
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
         return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
