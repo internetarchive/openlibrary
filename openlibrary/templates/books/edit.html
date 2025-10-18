@@ -39,7 +39,7 @@ $:macros.HiddenSaveButton("addWork")
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             $if work and work.key:
-                <form method="post" action="$work.url(suffix='/delete', bulk='true')" id="delete-work-and-editions" name="delete-work" onsubmit="return confirm('Delete work and all of its editions?')" style="display: inline;">
+                <form method="post" action="$work.url(suffix='/delete')" id="delete-work-and-editions" name="delete-work" onsubmit="return confirm('Delete work and all of its editions?')" style="display: inline;">
                     <button type="submit" name="_delete_work" value="true" id="delete-work-btn">$_("Delete work and all editions")</button>
                 </form>
             $if edition:

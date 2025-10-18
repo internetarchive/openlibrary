@@ -620,47 +620,12 @@ class public_observations(delegate.page):
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
-    def get_editions_of_work(self, work: Work, bulk: bool = False) -> list[dict]:
-        limit = 1_000  # This is the max limit of the things function
-        all_keys: list = []
-        offset = 0
-
-        while True:
-            keys: list = web.ctx.site.things(
-                {
-                    "type": "/type/edition",
-                    "works": work.key,
-                    "limit": limit,
-                    "offset": offset,
-                }
-            )
-            all_keys.extend(keys)
-            if len(keys) == limit:
-                if not bulk:
-                    raise web.HTTPError(
-                        '400 Bad Request',
-                        data=json.dumps(
-                            {
-                                'error': f'API can only delete {limit} editions per work.',
-                            }
-                        ),
-                        headers={"Content-Type": "application/json"},
-                    )
-                else:
-                    offset += limit
-            else:
-                break
-
-        return web.ctx.site.get_many(all_keys, raw=True)
-
     def POST(self, work_id: str):
         if not can_write():
             return web.HTTPError('403 Forbidden')
 
-        web_input = web.input(comment=None, bulk=False)
+        web_input = web.input(comment=None)
         comment = web_input.get('comment')
-        # Convert bulk parameter to boolean (handles both 'true'/'True' strings and boolean values)
-        bulk = str(web_input.bulk).lower() in ('true', '1', 'yes')
 
         user = accounts.get_current_user()
 
@@ -668,46 +633,67 @@ class work_delete(delegate.page):
         if work is None:
             return web.HTTPError(status='404 Not Found')
 
-        editions: list[dict] = self.get_editions_of_work(work, bulk=bulk)
+        # Fetch and delete editions in batches of 1000
+        limit = 1_000  # This is the max limit of the things function
+        offset = 0
+        batch_num = 0
+        total_deleted = 0
 
-        # Check if super-librarian is required for bulk operations with 1000+ editions
-        if bulk and len(editions) >= 1_000 and not (user and user.is_super_librarian()):
-            raise web.HTTPError(
-                '403 Forbidden',
-                data=json.dumps(
-                    {
-                        'error': 'Only super-librarians can delete works with 1000+ editions.',
-                    }
-                ),
-                headers={"Content-Type": "application/json"},
+        while True:
+            # Fetch batch of edition keys
+            edition_keys: list = web.ctx.site.things(
+                {
+                    "type": "/type/edition",
+                    "works": work.key,
+                    "limit": limit,
+                    "offset": offset,
+                }
             )
 
-        # Batch delete editions in groups of 1000
-        edition_keys = [el.get('key') for el in editions]
-        batch_size = 1_000
-        num_batches = (len(edition_keys) + batch_size - 1) // batch_size
+            if not edition_keys:
+                break
 
-        for batch_num in range(num_batches):
-            start_idx = batch_num * batch_size
-            end_idx = min((batch_num + 1) * batch_size, len(edition_keys))
-            batch_keys = edition_keys[start_idx:end_idx]
+            batch_num += 1
+            total_deleted += len(edition_keys)
 
+            # Check if super-librarian is required for works with 1000+ editions
+            # (Check on first batch when we know there will be more)
+            if batch_num == 1 and len(edition_keys) == limit and not (user and user.is_super_librarian()):
+                raise web.HTTPError(
+                    '403 Forbidden',
+                    data=json.dumps(
+                        {
+                            'error': 'Only super-librarians can delete works with 1000+ editions.',
+                        }
+                    ),
+                    headers={"Content-Type": "application/json"},
+                )
+
+            # Delete this batch of editions
             delete_payload: list[dict] = [
-                {'key': key, 'type': {'key': '/type/delete'}} for key in batch_keys
+                {'key': key, 'type': {'key': '/type/delete'}} for key in edition_keys
             ]
 
-            batch_comment = f"Deleting work and its editions, batch {batch_num + 1}" if num_batches > 1 else comment or "Deleting work and its editions"
+            batch_comment = comment or f"Deleting work and its editions, batch {batch_num}"
             web.ctx.site.save_many(delete_payload, batch_comment)
+
+            # If we got fewer than limit editions, we're done
+            if len(edition_keys) < limit:
+                break
+
+            # Move to next batch
+            offset += limit
 
         # Delete the work itself
         work_delete_payload = [{'key': work.key, 'type': {'key': '/type/delete'}}]
-        final_comment = "Deleting work after removing all editions" if num_batches > 1 else comment or "Deleting work"
+        final_comment = comment or "Deleting work after removing all editions"
         web.ctx.site.save_many(work_delete_payload, final_comment)
 
         return delegate.RawText(
             json.dumps(
                 {
                     'status': 'ok',
+                    'deleted_editions': total_deleted,
                 }
             ),
             content_type="application/json",
