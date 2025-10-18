@@ -104,6 +104,7 @@
   }
   .resultDetails {
     display: block;
+    font-size: @font-size-body-medium;
   }
   .ratingsByline {
     color: @black;
@@ -152,29 +153,27 @@
   }
 }
 
-.srw__subjects a {
-  // Fallback
-  border: 1px solid currentColor;
+.srw__subjects {
+  a {
+    border: 1px solid currentColor; // Fallback
+    border-color: color-mix(in srgb, currentColor 60%, transparent);
 
-  @supports (border: color-mix(in srgb, currentColor 60%, transparent)) {
-    border: 1px solid color-mix(in srgb, currentColor 60%, transparent);
+    display: inline-block;
+    text-decoration: none;
+    font-size: @font-size-label-medium;
+    line-height: @font-size-label-medium;
+    padding: 4px;
+    border-radius: 4px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  display: inline-block;
-  text-decoration: none !important;
-  font-size: 12px;
-  line-height: 12px;
-  padding: 4px;
-  border-radius: 4px;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.srw__subjects em {
-  font-weight: bold;
-  font-style: normal;
+  em {
+    font-weight: bold;
+    font-style: normal;
+  }
 }
 
 .searchResultItem__librarian-extras {

@@ -465,7 +465,7 @@ class SearchResponse:
         highlighting: dict[str, dict[str, list[str]]],
     ) -> dict[str, dict[str, list[str]]] | None:
         """
-        Remove highlight fragment that only contain stop words, and sort by most matches.
+        Remove highlight fragments that only contain stop words, and sort by most matches.
 
         :param highlighting: solr highlighting response. e.g. {'OL123W': {'title': ['<em>title</em>']}}
 
