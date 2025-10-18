@@ -995,21 +995,28 @@ def rewrite_list_query(q, page, offset, limit):
     """
     from openlibrary.core.lists.model import List
 
-    def cached_get_list_book_keys(key, offset, limit):
+    def cached_get_list_book_keys(key: str, offset: int | None, limit: int | None):
+        offset = offset or 0
+        limit = limit or 100
+
         # make cacheable
         if 'env' not in web.ctx:
             delegate.fakeload()
         lst = cast(List, web.ctx.site.get(key))
-        return list(itertools.islice(lst.get_work_keys(), offset or 0, offset + limit))
+        return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
-    if '/lists/' in q:
+    if list_key_match := re.match(r'^(/people/[^/]+)?/lists/OL\d+L', q):
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(
             cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
-        )(q, offset, limit)
+        )(list_key_match.group(0), offset, limit)
 
         # Compose a query for book_keys or fallback special query w/ no results
-        q = f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*"
+        q = re.sub(
+            r'^(/people/[^/]+)?/lists/OL\d+L',
+            f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*",
+            q,
+        )
 
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
