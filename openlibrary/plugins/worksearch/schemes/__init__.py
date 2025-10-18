@@ -37,7 +37,7 @@ class SearchScheme:
 
     def __init__(self, lang: str | None = None):
         # Fall back to web.ctx.lang until we move away from it
-        self.lang = lang or web.ctx.lang or 'en'
+        self.lang = lang or getattr(web.ctx, 'lang', None) or 'en'
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
