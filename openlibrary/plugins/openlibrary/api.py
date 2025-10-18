@@ -659,7 +659,8 @@ class work_delete(delegate.page):
 
         web_input = web.input(comment=None, bulk=False)
         comment = web_input.get('comment')
-        bulk = web_input.bulk
+        # Convert bulk parameter to boolean (handles both 'true'/'True' strings and boolean values)
+        bulk = str(web_input.bulk).lower() in ('true', '1', 'yes')
 
         user = accounts.get_current_user()
 
