@@ -1,6 +1,5 @@
 import { setGlobalPreferences, getGlobalPreferences, onGlobalPreferencesChange, mapPreferencesToBackend, updateAllCarousels } from './preferences.js';
 
-const selectedLang = null;
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-preferences-btn').addEventListener('click', () => {
         const startYear = parseInt(document.getElementById('global-date-start').value) || 1900;
