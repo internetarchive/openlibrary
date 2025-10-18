@@ -120,7 +120,6 @@ $code:
           $if highlighting.get('subject'):
             <br />
             <span class="srw__subjects">
-              $_('Matching subjects:')
               $for subj in highlighting['subject']:
                 $# detect-missing-i18n-skip-line
                 <a href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</a>
