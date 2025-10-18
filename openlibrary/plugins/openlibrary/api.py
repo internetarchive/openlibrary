@@ -10,13 +10,13 @@ from collections import defaultdict
 
 import qrcode
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
     render_template,  # noqa: F401 used for its side effects
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
@@ -658,21 +658,52 @@ class work_delete(delegate.page):
         if not can_write():
             return web.HTTPError('403 Forbidden')
 
-        web_input = web.input(comment=None)
-
+        web_input = web.input(comment=None, bulk=False)
         comment = web_input.get('comment')
+        bulk = web_input.bulk
+
+        user = accounts.get_current_user()
 
         work: Work = web.ctx.site.get(f'/works/{work_id}')
         if work is None:
             return web.HTTPError(status='404 Not Found')
 
         editions: list[dict] = self.get_editions_of_work(work)
-        keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
-        delete_payload: list[dict] = [
-            {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
-        ]
 
-        web.ctx.site.save_many(delete_payload, comment)
+        # Check if super-librarian is required for bulk operations with 1000+ editions
+        if bulk and len(editions) >= 1_000 and not (user and user.is_super_librarian()):
+            raise web.HTTPError(
+                '403 Forbidden',
+                data=json.dumps(
+                    {
+                        'error': 'Only super-librarians can delete works with 1000+ editions.',
+                    }
+                ),
+                headers={"Content-Type": "application/json"},
+            )
+
+        # Batch delete editions in groups of 1000
+        edition_keys = [el.get('key') for el in editions]
+        batch_size = 1_000
+        num_batches = (len(edition_keys) + batch_size - 1) // batch_size
+
+        for batch_num in range(num_batches):
+            start_idx = batch_num * batch_size
+            end_idx = min((batch_num + 1) * batch_size, len(edition_keys))
+            batch_keys = edition_keys[start_idx:end_idx]
+
+            delete_payload: list[dict] = [
+                {'key': key, 'type': {'key': '/type/delete'}} for key in batch_keys
+            ]
+
+            batch_comment = f"Deleting work and its editions, batch {batch_num + 1}" if num_batches > 1 else comment or "Deleting work and its editions"
+            web.ctx.site.save_many(delete_payload, batch_comment)
+
+        # Delete the work itself
+        work_delete_payload = [{'key': work.key, 'type': {'key': '/type/delete'}}]
+        final_comment = "Deleting work after removing all editions" if num_batches > 1 else comment or "Deleting work"
+        web.ctx.site.save_many(work_delete_payload, final_comment)
+
         return delegate.RawText(
             json.dumps(
                 {
