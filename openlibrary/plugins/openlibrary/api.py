@@ -620,8 +620,7 @@ class public_observations(delegate.page):
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
-    def get_editions_of_work(self, work: Work) -> list[dict]:
-        i = web.input(bulk=False)
+    def get_editions_of_work(self, work: Work, bulk: bool = False) -> list[dict]:
         limit = 1_000  # This is the max limit of the things function
         all_keys: list = []
         offset = 0
@@ -637,7 +636,7 @@ class work_delete(delegate.page):
             )
             all_keys.extend(keys)
             if len(keys) == limit:
-                if not i.bulk:
+                if not bulk:
                     raise web.HTTPError(
                         '400 Bad Request',
                         data=json.dumps(
@@ -668,7 +667,7 @@ class work_delete(delegate.page):
         if work is None:
             return web.HTTPError(status='404 Not Found')
 
-        editions: list[dict] = self.get_editions_of_work(work)
+        editions: list[dict] = self.get_editions_of_work(work, bulk=bulk)
 
         # Check if super-librarian is required for bulk operations with 1000+ editions
         if bulk and len(editions) >= 1_000 and not (user and user.is_super_librarian()):
