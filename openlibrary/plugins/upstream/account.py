@@ -792,9 +792,10 @@ class account_preferences(delegate.page):
                 if prefs['mode'] == 'fulltext'
                 else 'ebook_access' if prefs['mode'] == 'preview' else None
             ),
-            'languages': [prefs['language']],
             'first_publish_year': prefs['date'],
         }
+        if prefs['language'] != 'all':
+            backend_prefs['languages'] = [prefs['language']]
         expires = 3600 * 24 * 365
         web.setcookie('ol_mode', prefs['mode'], expires=expires)
         web.setcookie('ol_lang', prefs['language'], expires=expires)
