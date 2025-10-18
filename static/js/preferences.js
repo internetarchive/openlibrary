@@ -3,7 +3,6 @@ const STORAGE_KEY = 'preferences';
 export function getGlobalPreferences() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        console.log('localStorage raw value: ', stored);
         const parsed = JSON.parse(stored) || {};
 
         if (!parsed.global) {
@@ -19,7 +18,6 @@ export function getGlobalPreferences() {
             date: parsed.global?.date || [1900, 2025]
         };
     } catch (e) {
-        console.warn('Failed to parse preferences from localStorage', e);
         return { mode: 'all', language: 'all', date: [1900, 2025] };
     }
 }
@@ -40,7 +38,6 @@ export function mapPreferencesToBackend(prefs) {
 
 export function setGlobalPreferences(prefs) {
     if (!prefs || typeof prefs !== 'object') {
-        console.error('Invalid preferences object');
         return;
     }
     try {
@@ -57,7 +54,7 @@ export function setGlobalPreferences(prefs) {
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
-        console.error('Error setting global preferences', e);
+        // Silently fail if unable to set preferences
     }
 }
 
@@ -68,7 +65,7 @@ export function resetGlobalPreferences() {
         parsed.global = { mode: 'all', language: 'all', date: [1900, 2025] };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
-        console.error('Error resetting global preferences', e);
+        // Silently fail if unable to reset preferences
     }
 }
 
