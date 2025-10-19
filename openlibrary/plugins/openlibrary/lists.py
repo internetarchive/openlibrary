@@ -951,15 +951,15 @@ def get_book_lists(work_key: str, edition_key: str):
     from openlibrary.plugins.worksearch.code import run_solr_query
     from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 
-    filter_query = "seed_count:[2 TO *] OR (NOT seed_count:*)"
+    filter_query = "seed_count:[2 TO *]"
     response = run_solr_query(
-        param={"q": f'seed: ("{work_key}" OR "{edition_key})'},
+        param={"q": f'seed: ("{work_key}" OR "{edition_key}")'},
         scheme=ListSearchScheme(),
         rows=100,
         fields=["key", "name", "seed"],
         offset=0,
         extra_params=[('fq', filter_query)],
-        query_label="LIST_CAROUSEL",
+        request_label="LIST_CAROUSEL",
     )
     lists = cast(
         list[List], web.ctx.site.get_many([doc["key"] for doc in response.docs])
