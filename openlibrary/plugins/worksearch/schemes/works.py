@@ -16,6 +16,7 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     fully_escape_query,
+    luqum_deepcopy,
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
@@ -553,11 +554,22 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', full_work_query))
 
         if highlight:
-            new_params.append(('hl', 'true'))
-            # NOTE: This only applies to the work, really
-            new_params.append(('hl.fl', 'subject'))
-            new_params.append(('hl.q', str(work_q_tree)))
-            new_params.append(('hl.snippets', '10'))
+            highlight_fields = ('subject',)
+            try:
+                # This can throw the EmptyTreeError if nothing remains in the query
+                highlight_query = luqum_deepcopy(work_q_tree)
+                luqum_remove_field(
+                    highlight_query,
+                    lambda f: f not in highlight_fields,
+                )
+                new_params.append(('hl', 'true'))
+                # NOTE: This only applies to the work, really
+                new_params.append(('hl.fl', ','.join(highlight_fields)))
+                new_params.append(('hl.q', str(highlight_query)))
+                new_params.append(('hl.snippets', '10'))
+            except EmptyTreeError:
+                # nothing to highlight
+                pass
 
         if full_ed_query:
             edition_fields = {
