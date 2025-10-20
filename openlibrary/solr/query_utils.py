@@ -297,6 +297,32 @@ def luqum_remove_field(query: Item, predicate: Callable[[str], bool]) -> None:
             luqum_remove_child(sf, parents)
 
 
+def luqum_has_default_field(query: Item) -> bool:
+    """
+    Checks if the given query has a default-field search. Eg "foo field:bar"
+    """
+    return any(
+        all(not isinstance(parent, SearchField) for parent in parents)
+        for word, parents in luqum_traverse(query)
+        if isinstance(word, Word)
+    )
+
+
+def luqum_get_all_fields(query: Item) -> set[str | None]:
+    """
+    Gets all fields used in a luqum query.
+
+    :param query: Passed in the form of a luqum tree
+    :return: Set of field names. `None` represents the default field.
+    """
+    fields = {sf.name for sf, _ in luqum_traverse(query) if isinstance(sf, SearchField)}
+
+    if luqum_has_default_field(query):
+        fields.add(None)
+
+    return fields
+
+
 def luqum_deepcopy(query: Item) -> Item:
     """
     Create a deep copy of a luqum query tree. Lazy implementation, does a re-parse.
