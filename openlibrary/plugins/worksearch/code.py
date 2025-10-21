@@ -1129,11 +1129,12 @@ async def async_work_search(
     facet: bool = True,
     spellcheck_count: int | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    lang: str | None = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
-
+    scheme = WorkSearchScheme(lang=lang)
     resp = await async_run_solr_query(
-        WorkSearchScheme(),
+        scheme,
         prepared.query,
         rows=prepared.limit,
         page=prepared.page,
