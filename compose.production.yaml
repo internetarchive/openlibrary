@@ -22,7 +22,7 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   fast_web:
-    profiles: ["ol-never"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
