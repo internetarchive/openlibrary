@@ -1,12 +1,15 @@
 import hashlib
 import hmac
+import socket
 import string
 import time
-import requests
-import socket, ssl, json
 from urllib.parse import urlparse
+
+import requests
+
 from infogami import config
 from openlibrary.core import cache
+
 
 class TimedOneTimePassword:
 
@@ -26,7 +29,9 @@ class TimedOneTimePassword:
         return base36[:length].lower()
 
     @classmethod
-    def generate(cls, service_ip:str, client_email: str, client_ip: str, ts:int|None = None) -> str:
+    def generate(
+        cls, service_ip: str, client_email: str, client_ip: str, ts: int | None = None
+    ) -> str:
         seed = config.get("otp_seed")
         ts = ts or int(time.time() // 60)
         payload = f"{service_ip}:{client_email}:{client_ip}:{ts}".encode()
@@ -48,13 +53,7 @@ class TimedOneTimePassword:
     @classmethod
     def is_ratelimited(cls, ttl=60, service_ip="", **kwargs):
         def ratelimit_error(key, ttl):
-            return {
-                "error": "ratelimit",
-                "ratelimit": {
-                    "ttl": ttl,
-                    "key": key
-                }
-            }
+            return {"error": "ratelimit", "ratelimit": {"ttl": ttl, "key": key}}
 
         mc = cache.get_memcache()
         # Limit requests to 1 / ttl per client

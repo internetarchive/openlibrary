@@ -468,10 +468,9 @@ class otp_service_issue(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({
-                "error": "missing_keys",
-                "missing_keys": missing_fields
-            }))
+            return delegate.RawText(
+                json.dumps({"error": "missing_keys", "missing_keys": missing_fields})
+            )
 
         # Challenge currently does not work due to Firewall/Proxy limitations
         if i.challenge_url and not OTP.verify_service(i.service_ip, i.challenge_url):
@@ -489,6 +488,7 @@ class otp_service_issue(delegate.page):
             )
         return delegate.RawText(json.dumps({"success": "issued"}))
 
+
 class otp_service_redeem(delegate.page):
     path = "/account/otp/redeem"
 
@@ -499,10 +499,9 @@ class otp_service_redeem(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR')
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({
-                "error": "missing_keys",
-                "missing_keys": missing_fields
-            }))
+            return delegate.RawText(
+                json.dumps({"error": "missing_keys", "missing_keys": missing_fields})
+            )
         if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
             return delegate.RawText(json.dumps({"success": "redeemed"}))
         return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
