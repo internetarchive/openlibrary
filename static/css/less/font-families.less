@@ -1,3 +1,24 @@
+/* PRIMITIVE TOKENS
+- Basic building blocks that define actual font stacks
+- When to use: NEVER use directly in components or pages
+- Purpose: Foundation for semantic and component tokens
+*/
+@family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+  Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+@family-serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+@family-mono: "Lucida Console", "Courier New", monospace;
+
+/* SEMANTIC AND COMPONENT TOKENS */
+@body-family: @family-sans;
+@code-family: @family-mono;
+/*
+Leaving commented out code below to hint at rough directions for future tokens:
+@title-family: @family-serif;
+@subtitle-family: @family-sans;
+@heading-family: @family-sans;
+@subheading-family: @family-sans;
+*/
+
 @georgia_serif-1: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
 @georgia_serif-2: "Georgia", "Times New Roman", serif;
 
@@ -5,21 +26,8 @@
   Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 
 // TODO: Replace with a single variable and rename
-@arial_sans_serif: @default-sans-serif;
-@news_gothic_sans_serif: @default-sans-serif;
-@news_gothic_sans_serif-2: @default-sans-serif;
-@lucida_sans_serif-1: @default-sans-serif;
-@lucida_sans_serif-2: @default-sans-serif;
-@lucida_sans_serif-3: @default-sans-serif;
-@lucida_sans_serif-4: @default-sans-serif;
-@lucida_sans_serif-5: @default-sans-serif;
-@lucida_sans_serif-6: @default-sans-serif;
-@lucida_sans_serif-7: @default-sans-serif;
 @verdana: @default-sans-serif;
 @bahnschrift: @default-sans-serif;
-
-@lucida_console_monospace: "Lucida Console", "Courier New", monospace;
-@monospace: monospace;
 
 @font-size-display-large: 57px;
 @font-size-display-medium: 45px;
