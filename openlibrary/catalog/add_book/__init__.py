@@ -338,7 +338,7 @@ def add_cover(cover_url, ekey, account_key=None):
 
 
 def get_ia_item(ocaid):
-    import internetarchive as ia
+    import internetarchive as ia  # noqa: PLC0415
 
     cfg = {'general': {'secure': False}}
     item = ia.get_item(ocaid, config=cfg)

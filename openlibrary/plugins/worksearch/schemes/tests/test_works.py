@@ -133,7 +133,7 @@ EDITION_KEY_TESTS = {
 
 @pytest.mark.parametrize(('query', 'edQuery'), EDITION_KEY_TESTS.items())
 def test_q_to_solr_params_edition_key(query, edQuery):
-    import web
+    import web  # noqa: PLC0415
 
     web.ctx.lang = 'en'
     s = WorkSearchScheme()

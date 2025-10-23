@@ -343,7 +343,9 @@ class account_create(delegate.page):
                 )
             except OLAuthenticationError as e:
                 f.note = get_login_error(e.__str__())
-                from openlibrary.plugins.openlibrary.sentry import sentry
+                from openlibrary.plugins.openlibrary.sentry import (  # noqa: PLC0415, RUF100
+                    sentry,
+                )
 
                 if sentry.enabled:
                     extra = {'response': e.response} if hasattr(e, 'response') else None
@@ -420,7 +422,7 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import (
+        from openlibrary.plugins.openlibrary.code import (  # noqa: PLC0415
             BadRequest,  # noqa: F401 side effects may be needed
         )
 
@@ -449,7 +451,9 @@ class account_login_json(delegate.page):
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
         # Fallback to infogami user/pass
         else:
-            from infogami.plugins.api.code import login as infogami_login
+            from infogami.plugins.api.code import (  # noqa: PLC0415, RUF100
+                login as infogami_login,
+            )
 
             infogami_login().POST()
 
@@ -587,7 +591,7 @@ class account_logout(delegate.page):
 
     def POST(self):
         clear_cookies()
-        from infogami.core.code import logout as infogami_logout
+        from infogami.core.code import logout as infogami_logout  # noqa: PLC0415
 
         return infogami_logout().POST()
 
@@ -845,7 +849,7 @@ class PatronExport(ABC):
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
         # Can't put at top due to cyclical imports
-        from openlibrary.plugins.upstream.models import Work
+        from openlibrary.plugins.upstream.models import Work  # noqa: PLC0415
 
         work_key = f"/works/{work_id}"
         work: Work = web.ctx.site.get(work_key)
@@ -1175,7 +1179,7 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
-        from openlibrary.core.lending import get_loans_of_user
+        from openlibrary.core.lending import get_loans_of_user  # noqa: PLC0415
 
         user = accounts.get_current_user()
         user.update_loan_status()

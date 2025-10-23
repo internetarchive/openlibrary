@@ -13,7 +13,7 @@ from openlibrary.core.task import oltask
 def setup():
     setup_solr_updater()
 
-    from openlibrary.catalog.utils import query
+    from openlibrary.catalog.utils import query  # noqa: PLC0415
 
     # monkey-patch query to make solr-updater work with-in the process instead of making http requests.
     query.query = ol_query
@@ -32,7 +32,7 @@ class CoverstoreMiddleware:
     def __init__(self, app):
         self.app = app
 
-        from openlibrary.coverstore import code, server
+        from openlibrary.coverstore import code, server  # noqa: PLC0415
 
         server.load_config("conf/coverstore.yml")
         self.coverstore_app = code.app.wsgifunc()
@@ -57,16 +57,16 @@ def ol_get(key):
 
 
 def setup_solr_updater():
-    from infogami import config
+    from infogami import config  # noqa: PLC0415
 
     # solr-updater reads configuration from openlibrary.config.runtime_config
-    from openlibrary import config as olconfig
+    from openlibrary import config as olconfig  # noqa: PLC0415
 
     olconfig.runtime_config = config.__dict__
 
     # The solr-updater makes a http call to the website instead of using the
     # infobase API. It requires setting the host before start using it.
-    from openlibrary.catalog.utils.query import set_query_host
+    from openlibrary.catalog.utils.query import set_query_host  # noqa: PLC0415
 
     dev_instance_url = config.get("dev_instance_url", "http://127.0.0.1:8080/")
     host = web.lstrips(dev_instance_url, "http://").strip("/")
@@ -86,7 +86,7 @@ class process_ebooks(delegate.page):
     path = "/_dev/process_ebooks"
 
     def GET(self):
-        from openlibrary.plugins.worksearch.search import get_solr
+        from openlibrary.plugins.worksearch.search import get_solr  # noqa: PLC0415
 
         result = get_solr().select(
             query='borrowed_b:false', fields=['key', 'lending_edition_s'], limit=100
@@ -111,7 +111,7 @@ class process_ebooks(delegate.page):
 @oltask
 def update_solr(changeset):
     """Updates solr on edit."""
-    from openlibrary.solr import update
+    from openlibrary.solr import update  # noqa: PLC0415
 
     keys = set()
     docs = changeset['docs'] + changeset['old_docs']

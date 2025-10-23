@@ -77,7 +77,7 @@ class trending_books_api(delegate.page):
     encoding = "json"
 
     def GET(self, period="/daily"):
-        from openlibrary.views.loanstats import SINCE_DAYS
+        from openlibrary.views.loanstats import SINCE_DAYS  # noqa: PLC0415
 
         period = period[1:]  # remove slash
         i = web.input(
@@ -139,7 +139,7 @@ class ratings(delegate.page):
 
     @jsonapi
     def GET(self, work_id):
-        from openlibrary.core.ratings import Ratings
+        from openlibrary.core.ratings import Ratings  # noqa: PLC0415
 
         if stats := Ratings.get_work_ratings_summary(work_id):
             return json.dumps(
@@ -287,7 +287,7 @@ class work_bookshelves(delegate.page):
 
     @jsonapi
     def GET(self, work_id):
-        from openlibrary.core.models import Bookshelves
+        from openlibrary.core.models import Bookshelves  # noqa: PLC0415
 
         return json.dumps({'counts': Bookshelves.get_work_summary(work_id)})
 
@@ -306,7 +306,7 @@ class work_bookshelves(delegate.page):
         :rtype: json
         :return: a list of bookshelves_affected
         """
-        from openlibrary.core.models import Bookshelves
+        from openlibrary.core.models import Bookshelves  # noqa: PLC0415
 
         user = accounts.get_current_user()
         i = web.input(
