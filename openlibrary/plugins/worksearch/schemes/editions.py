@@ -31,6 +31,7 @@ class EditionSearchScheme(SearchScheme):
             "publish_year",
             "language",
             "publisher_facet",
+            "acquisition",
         }
     )
     non_solr_fields = frozenset()
