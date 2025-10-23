@@ -38,6 +38,7 @@ SolrRequestLabel = Literal[
     'EDITION_MATCH',
     'LIST_SEARCH',
     'LIST_SEARCH_API',
+    'LIST_CAROUSEL',
     'SUBJECT_SEARCH',
     'SUBJECT_SEARCH_API',
     'AUTHOR_SEARCH',
