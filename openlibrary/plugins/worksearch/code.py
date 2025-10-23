@@ -8,6 +8,7 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal, cast
 from unicodedata import normalize
 
@@ -206,6 +207,7 @@ def _prepare_solr_query_params(
     offset=None,
     fields: str | list[str] | None = None,
     facet: bool | Iterable[str] = True,
+    highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
@@ -296,7 +298,7 @@ def _prepare_solr_query_params(
                 ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
             )
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields, params)
+        params += scheme.q_to_solr_params(q, solr_fields, params, highlight=highlight)
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
@@ -335,6 +337,7 @@ def run_solr_query(
     offset=None,
     fields: str | list[str] | None = None,
     facet: bool | Iterable[str] = True,
+    highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
@@ -352,6 +355,7 @@ def run_solr_query(
         offset=offset,
         fields=fields,
         facet=facet,
+        highlight=highlight,
         allowed_filter_params=allowed_filter_params,
         extra_params=extra_params,
         request_label=request_label,
@@ -389,6 +393,21 @@ async def async_run_solr_query(
     )
 
 
+@functools.cache
+def load_stopwords(lang: str = 'en') -> set[str]:
+    """
+    Load stop words for a given language
+    """
+    try:
+        with Path(f'conf/solr/conf/lang/stopwords_{lang}.txt').open() as f:
+            return {
+                line.strip() for line in f if line.strip() and not line.startswith('#')
+            }
+    except FileNotFoundError:
+        logger.warning(f"Stopwords file not found for language: {lang}")
+        return set()
+
+
 @dataclass
 class SearchResponse:
     facet_counts: dict[str, list[tuple[str, str, int]]]
@@ -397,6 +416,7 @@ class SearchResponse:
     num_found: int
     solr_select: str
     raw_resp: dict = None
+    highlighting: dict[str, dict[str, list[str]]] | None = None
     error: str = None
     time: float = None
     """Seconds to execute the query"""
@@ -419,6 +439,8 @@ class SearchResponse:
                 time=time,
             )
         else:
+            if highlighting := solr_result.get('highlighting'):
+                highlighting = SearchResponse.clean_highlighting(highlighting)
             return SearchResponse(
                 facet_counts=(
                     dict(
@@ -433,9 +455,69 @@ class SearchResponse:
                 raw_resp=solr_result,
                 docs=solr_result['response']['docs'],
                 num_found=solr_result['response']['numFound'],
+                highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
             )
+
+    @staticmethod
+    def clean_highlighting(
+        highlighting: dict[str, dict[str, list[str]]],
+    ) -> dict[str, dict[str, list[str]]] | None:
+        """
+        Remove highlight fragments that only contain stop words, and sort by most matches.
+
+        :param highlighting: solr highlighting response. e.g. {'OL123W': {'title': ['<em>title</em>']}}
+
+        NOTE: This _should_ be handled by solr automatically, but we had to disable stopwords in solr
+        due to a bug. See https://github.com/internetarchive/openlibrary/issues/5393
+
+        >>> highlighting = {'OL123W': {'title': ['<em>title</em>']}}
+        >>> SearchResponse.clean_highlighting(highlighting)
+        {'OL123W': {'title': ['<em>title</em>']}}
+
+        >>> highlighting = {'OL123W': {'title': ['<em>the</em> <em>title</em>']}}
+        >>> SearchResponse.clean_highlighting(highlighting)
+        {'OL123W': {'title': ['<em>the</em> <em>title</em>']}}
+
+        >>> highlighting = {'OL123W': {'title': ['<em>the</em> title']}}
+        >>> SearchResponse.clean_highlighting(highlighting)
+
+        >>> highlighting = {'OL123W': {'title': ['<em>The</em> title', 'a <em>foobar</em>']}}
+        >>> SearchResponse.clean_highlighting(highlighting)
+        {'OL123W': {'title': ['a <em>foobar</em>']}}
+        """
+
+        def get_matches(fragment: str) -> set[str]:
+            # Note: Solr has one wrapping `<em>` per word, even if they are adjacent
+            # Note: The Solr response is correctly html escaped, so there should be
+            # no `<` in between the `<em>` tags since they are escaped to `&lt;`
+            return {word.lower() for word in re.findall(r'<em>([^<]+)</em>', fragment)}
+
+        # For now just to English? In future we might support other languages, but it's unclear
+        # which language to use; the book's language or the user's language?
+        stopwords = load_stopwords('en')
+        for key in list(highlighting):
+            highlights = highlighting[key]
+
+            for field in list(highlights):
+                highlights[field] = [
+                    term for term in highlights[field] if get_matches(term) - stopwords
+                ]
+
+                # Sort by most matches
+                highlights[field].sort(
+                    key=lambda term: len(get_matches(term)), reverse=True
+                )
+
+                # Remove empty
+                if not highlights[field]:
+                    del highlights[field]
+
+            if not highlights:
+                del highlighting[key]
+
+        return highlighting or None
 
 
 def do_search(
@@ -444,6 +526,7 @@ def do_search(
     page=1,
     rows=100,
     facet=False,
+    highlight=False,
     spellcheck_count=None,
     request_label: SolrRequestLabel = 'UNLABELLED',
 ):
@@ -476,6 +559,7 @@ def do_search(
         spellcheck_count,
         fields=list(fields),
         facet=facet,
+        highlight=highlight,
         request_label=request_label,
     )
 
@@ -675,6 +759,7 @@ class search(delegate.page):
                 sort,
                 page,
                 rows=rows,
+                highlight=True,
                 spellcheck_count=3,
                 request_label='BOOK_SEARCH',
             )
@@ -1036,12 +1121,15 @@ class PreparedQuery:
     limit: int
 
 
-def _process_solr_search_response(response, fields: str) -> dict:
+def _process_solr_search_response(response: SearchResponse, fields: str) -> dict:
     """
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
     """
     processed_response = response.raw_resp['response']
+
+    if response.highlighting is not None:
+        processed_response['highlighting'] = response.highlighting
 
     # For backward compatibility
     processed_response['num_found'] = processed_response['numFound']
@@ -1096,6 +1184,7 @@ def work_search(
     limit: int = 100,
     fields: str = '*',
     facet: bool = True,
+    highlight: bool = False,
     spellcheck_count: int | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
 ) -> dict:
@@ -1110,6 +1199,7 @@ def work_search(
         offset=prepared.offset,
         fields=fields,
         facet=facet,
+        highlight=highlight,
         spellcheck_count=spellcheck_count,
         request_label=request_label,
     )
