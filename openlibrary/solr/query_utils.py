@@ -295,3 +295,10 @@ def luqum_remove_field(query: Item, predicate: Callable[[str], bool]) -> None:
     for sf, parents in luqum_traverse(query):
         if isinstance(sf, SearchField) and predicate(sf.name):
             luqum_remove_child(sf, parents)
+
+
+def luqum_deepcopy(query: Item) -> Item:
+    """
+    Create a deep copy of a luqum query tree. Lazy implementation, does a re-parse.
+    """
+    return luqum_parser(str(query))
