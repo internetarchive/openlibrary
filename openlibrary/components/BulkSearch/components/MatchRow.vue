@@ -1,8 +1,12 @@
 <template>
   <tr>
     <td>{{ index + 1 }}</td>
-    <td>{{ bookMatch.extractedBook.title }}</td>
-    <td>{{ bookMatch.extractedBook.author }}</td>
+    <td
+      v-for="(column, colIndex) in columns"
+      :key="colIndex"
+    >
+      {{ bookMatch.extractedBook[column] || '' }}
+    </td>
     <td>
       <div class="bookCards">
         <a
@@ -33,6 +37,7 @@ export default {
     props: {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
+        columns: Array,
         index: Number
     },
     computed: {

@@ -2,7 +2,7 @@
   <div class="bulk-search-controls">
     <div>
       <p v-if="showColumnHint">
-        Please include a header row. Supported columns include: "Title", "Author".
+        Please include a header row. Supported columns include: "Title", "Author", "ISBN".
       </p>
       <p class="bulk-search-instructions">
         <strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.
