@@ -117,7 +117,7 @@ export default {
 
   &.book-card--primary {
     border: 2px solid #0376B8;
-    background: C7E3FC26;
+    background: #C7E3FC26;
   }
 
   &.book-card--secondary {
