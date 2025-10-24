@@ -2546,7 +2546,7 @@ msgid "Download a copy of your reading log."
 msgstr ""
 
 #: account/import.html
-msgid "What is this?"
+msgid "What is a reading log?"
 msgstr ""
 
 #: account/import.html
@@ -5567,11 +5567,6 @@ msgstr ""
 
 #: home/categories.html
 msgid "Browse by Subject"
-msgstr ""
-
-#: home/categories.html
-#, python-format
-msgid "browse %(subject)s books"
 msgstr ""
 
 #: home/categories.html

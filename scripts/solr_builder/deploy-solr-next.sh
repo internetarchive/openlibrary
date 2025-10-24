@@ -18,7 +18,7 @@ fi
 source ./scripts/solr_builder/utils.sh
 
 send_slack_message "#openlibrary-g" "
-    Beep boop! Heads up moving solr from incubation to its production server. Process should take ~1.5 hours.
+    Beep boop! Heads up moving solr from incubation to its production server. Process should take ~3 hours.
     Let me know if you notice any issues! (CC @cdrini)
 "
 
@@ -47,6 +47,7 @@ fi
 # 5. Load ol-solr1 data on ol-solr0
 
 # Require prompt before continuing
+echo "Double check the storage space on $SOLR_PROD_SERVER. You might have to delete the dump from /tmp/solr that was uploaded to IA. You can also double check the md5 before deleting."
 wait_yn "Ready to begin deleting solr?"
 
 ./scripts/solr_builder/restore-solr.sh $SOLR_PROD_SERVER $SOLR_BUILDER_SERVER
@@ -68,5 +69,5 @@ test_all_ol_search # Confirm everything is working
 send_slack_message "#openlibrary-g" "
     Ok, solr moved over, and production now connected to it! Note it's catching up on edits done
     since the start of this, but should be done soon :+1: Let me know if you notice
-    anything off! (cc @cdrini @seabelis)
+    anything off! (cc @cdrini)
 "

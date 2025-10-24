@@ -104,6 +104,7 @@
   }
   .resultDetails {
     display: block;
+    font-size: @font-size-body-medium;
   }
   .ratingsByline {
     color: @black;
@@ -149,6 +150,29 @@
       max-width: 100%;
       max-height: 110px;
     }
+  }
+}
+
+.srw__subjects {
+  a {
+    border: 1px solid currentColor; // Fallback
+    border-color: color-mix(in srgb, currentColor 60%, transparent);
+
+    display: inline-block;
+    text-decoration: none;
+    font-size: @font-size-label-medium;
+    line-height: @font-size-label-medium;
+    padding: 4px;
+    border-radius: 4px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  em {
+    font-weight: bold;
+    font-style: normal;
   }
 }
 
