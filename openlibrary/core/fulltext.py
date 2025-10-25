@@ -2,7 +2,7 @@ import json
 import logging
 from urllib.parse import urlencode
 
-import requests
+import httpx
 import web
 
 from infogami import config
@@ -34,10 +34,10 @@ def fulltext_search_api(params):
 
     logger.debug('URL: ' + search_select)
     try:
-        response = requests.get(search_select, headers=headers, timeout=30)
+        response = httpx.get(search_select, headers=headers, timeout=30)
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError:
+    except httpx.HTTPStatusError:
         return {'error': 'Unable to query search engine'}
     except json.decoder.JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}

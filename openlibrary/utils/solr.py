@@ -7,7 +7,6 @@ from typing import Literal, TypeVar
 from urllib.parse import urlencode, urlsplit
 
 import httpx
-import requests
 import web
 
 from openlibrary.utils.async_utils import async_bridge
@@ -52,8 +51,8 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.session = requests.Session()
-        self.httpx_session = httpx.AsyncClient()
+        self.session = httpx.Client()
+        self.async_session = httpx.AsyncClient()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -112,7 +111,7 @@ class Solr:
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
     def update_in_place(self, request, commit: bool = False):
-        resp = requests.post(
+        resp = self.session.post(
             f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
             json=request,
         ).json()
@@ -210,13 +209,13 @@ class Solr:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
             logger.info("solr request: %s", url)
-            return await self.httpx_session.get(url, timeout=_timeout)
+            return await self.async_session.get(url, timeout=_timeout)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            return await self.httpx_session.post(
+            return await self.async_session.post(
                 url, data=payload, headers=headers, timeout=_timeout
             )
 
