@@ -121,7 +121,9 @@ class CarouselCardPartial(PartialDataHandler):
         return {"partials": [str(template) for template in cards]}
 
     def _has_error(self, search_results) -> bool:
-        return search_results is None or (isinstance(search_results, dict) and 'error' in search_results)
+        return search_results is None or (
+            isinstance(search_results, dict) and 'error' in search_results
+        )
 
     def _make_book_query(self, query_type: str, params: dict) -> list:
         if query_type == "SEARCH":

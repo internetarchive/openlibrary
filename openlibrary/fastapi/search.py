@@ -60,5 +60,7 @@ async def search_json(
 
     json_response = JSONResponse(content=response)
     if 'error' not in response:
-        json_response.headers['Cache-Control'] = f'public, max-age={SEARCH_CACHE_MAX_AGE}'
+        json_response.headers['Cache-Control'] = (
+            f'public, max-age={SEARCH_CACHE_MAX_AGE}'
+        )
     return json_response
