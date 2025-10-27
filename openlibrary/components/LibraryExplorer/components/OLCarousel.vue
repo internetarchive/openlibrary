@@ -265,9 +265,15 @@ export default {
                     cache,
                     signal: this.lastFetchAbortController?.signal,
                 }).then(r => r.json());
-                this.status = 'Loaded';
-                this.results.splice(0, this.results.length, ...r.docs);
-                this.numFound = r.numFound;
+                
+                if (r.error) {
+                    this.error = r.error;
+                    this.status = 'Errored';
+                } else {
+                    this.status = 'Loaded';
+                    this.results.splice(0, this.results.length, ...r.docs);
+                    this.numFound = r.numFound;
+                }
             } catch (e) {
                 this.error = e;
                 this.status = 'Errored';

@@ -89,6 +89,9 @@ class CarouselCardPartial(PartialDataHandler):
         # Do search
         search_results = self._make_book_query(query_type, params)
 
+        if search_results is None or (isinstance(search_results, dict) and 'error' in search_results):
+            return {"partials": [], "error": "Search failed"}
+
         # Render cards
         cards = []
         layout = params.get("layout")
@@ -115,6 +118,7 @@ class CarouselCardPartial(PartialDataHandler):
                 )
             )
 
+        web.header('Cache-Control', 'public, max-age=300')
         return {"partials": [str(template) for template in cards]}
 
     def _make_book_query(self, query_type: str, params: dict) -> list:
@@ -162,6 +166,8 @@ class CarouselCardPartial(PartialDataHandler):
             facet=False,
             offset=page,
         )
+        if 'error' in results:
+            return None
         return results.get("docs", [])
 
     def _do_browse_query(self, params: dict) -> list:

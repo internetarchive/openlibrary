@@ -32,15 +32,12 @@ async def search_json(
     """
 
     kwargs = dict(request.query_params)
-    # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
 
     query = {"q": q, "page": page, "limit": limit}
-    query.update(
-        kwargs
-    )  # This is a hack until we define all the params we expect above.
+    query.update(kwargs)
     response = await async_work_search(
         query,
         sort=sort,
@@ -48,19 +45,18 @@ async def search_json(
         offset=offset,
         limit=limit,
         fields=_fields,
-        # We do not support returning facets from /search.json,
-        # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=spellcheck_count,
         lang=request.state.lang,
     )
 
-    # Add extra metadata to the response, similar to the original
     response['q'] = q
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
 
-    # Reorder keys to have 'docs' at the end, as in the original code
     docs = response.pop('docs', [])
     response['docs'] = docs
 
-    return response
+    json_response = JSONResponse(content=response)
+    if 'error' not in response:
+        json_response.headers['Cache-Control'] = 'public, max-age=300'
+    return json_response

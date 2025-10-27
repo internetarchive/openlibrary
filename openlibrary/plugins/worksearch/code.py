@@ -1126,6 +1126,14 @@ def _process_solr_search_response(response: SearchResponse, fields: str) -> dict
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
     """
+    if response.error or not response.raw_resp:
+        return {
+            'docs': [],
+            'numFound': 0,
+            'num_found': 0,
+            'error': response.error or 'Unknown error',
+        }
+
     processed_response = response.raw_resp['response']
 
     if response.highlighting is not None:
