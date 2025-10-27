@@ -89,7 +89,9 @@ class CarouselCardPartial(PartialDataHandler):
         # Do search
         search_results = self._make_book_query(query_type, params)
 
-        if search_results is None or (isinstance(search_results, dict) and 'error' in search_results):
+        if search_results is None or (
+            isinstance(search_results, dict) and 'error' in search_results
+        ):
             return {"partials": [], "error": "Search failed"}
 
         # Render cards

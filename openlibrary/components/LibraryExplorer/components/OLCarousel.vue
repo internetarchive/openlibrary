@@ -265,7 +265,7 @@ export default {
                     cache,
                     signal: this.lastFetchAbortController?.signal,
                 }).then(r => r.json());
-                
+
                 if (r.error) {
                     this.error = r.error;
                     this.status = 'Errored';
