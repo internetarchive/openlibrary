@@ -20,6 +20,8 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.views.loanstats import get_trending_books
 
+SEARCH_CACHE_MAX_AGE = 300
+
 
 class PartialResolutionError(Exception):
     pass
@@ -82,19 +84,14 @@ class CarouselCardPartial(PartialDataHandler):
         self.i = web.input(params=None)
 
     def generate(self) -> dict:
-        # Determine query type
         params = self.i or {}
         query_type = params.get("queryType", "")
 
-        # Do search
         search_results = self._make_book_query(query_type, params)
 
-        if search_results is None or (
-            isinstance(search_results, dict) and 'error' in search_results
-        ):
+        if self._has_error(search_results):
             return {"partials": [], "error": "Search failed"}
 
-        # Render cards
         cards = []
         layout = params.get("layout")
         key = params.get("key") or ""
@@ -120,8 +117,11 @@ class CarouselCardPartial(PartialDataHandler):
                 )
             )
 
-        web.header('Cache-Control', 'public, max-age=300')
+        web.header('Cache-Control', f'public, max-age={SEARCH_CACHE_MAX_AGE}')
         return {"partials": [str(template) for template in cards]}
+
+    def _has_error(self, search_results) -> bool:
+        return search_results is None or (isinstance(search_results, dict) and 'error' in search_results)
 
     def _make_book_query(self, query_type: str, params: dict) -> list:
         if query_type == "SEARCH":
@@ -169,7 +169,7 @@ class CarouselCardPartial(PartialDataHandler):
             offset=page,
         )
         if 'error' in results:
-            return None
+            return results
         return results.get("docs", [])
 
     def _do_browse_query(self, params: dict) -> list:
@@ -284,10 +284,8 @@ class FullTextSuggestionsPartial(PartialDataHandler):
     def generate(self) -> dict:
         query = self.i.get("data", "")
         data = fulltext_search(query)
-        # Add caching headers only if there were no errors in the search results
         if 'error' not in data:
-            # Cache for 5 minutes (300 seconds)
-            web.header('Cache-Control', 'public, max-age=300')
+            web.header('Cache-Control', f'public, max-age={SEARCH_CACHE_MAX_AGE}')
         hits = data.get('hits', [])
         if not hits['hits']:
             macro = '<div></div>'

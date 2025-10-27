@@ -6,6 +6,8 @@ from fastapi.responses import JSONResponse
 from openlibrary.plugins.worksearch.code import async_work_search
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
+SEARCH_CACHE_MAX_AGE = 300
+
 router = APIRouter()
 
 
@@ -58,5 +60,5 @@ async def search_json(
 
     json_response = JSONResponse(content=response)
     if 'error' not in response:
-        json_response.headers['Cache-Control'] = 'public, max-age=300'
+        json_response.headers['Cache-Control'] = f'public, max-age={SEARCH_CACHE_MAX_AGE}'
     return json_response
