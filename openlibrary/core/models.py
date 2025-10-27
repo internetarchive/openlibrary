@@ -66,7 +66,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = requests.get(url).json()
+            d = requests.get(url, timeout=3).json()
             d['created'] = parse_datetime(d['created'])
             if fetch_author:
                 if d['author'] == 'None':
@@ -74,7 +74,7 @@ class Image:
                 d['author'] = d['author'] and self._site.get(d['author'])
 
             return web.storage(d)
-        except OSError:
+        except (requests.exceptions.RequestException, OSError):
             # coverstore is down
             return None
 
@@ -397,7 +397,10 @@ class Edition(Thing):
 
     @classmethod
     def from_isbn(
-        cls, isbn_or_asin: str, high_priority: bool = False
+        cls,
+        isbn_or_asin: str,
+        high_priority: bool = False,
+        allow_import: bool = False,
     ) -> "Edition | None":
         """
         Attempts to fetch an edition by ISBN or ASIN, or if no edition is found, then
@@ -430,23 +433,28 @@ class Edition(Thing):
                 return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if edition := ImportItem.import_first_staged(identifiers=book_ids):
-            return edition
+        if allow_import:
+            if edition := ImportItem.import_first_staged(identifiers=book_ids):
+                return edition
 
-        # Finally, try to fetch the book data from Amazon + import.
-        # If `high_priority=True`, then the affiliate-server, which `get_amazon_metadata()`
-        # uses, will block + wait until the Product API responds and the result, if any,
-        # is staged in `import_item`.
-        try:
-            id_ = asin or book_ids[0]
-            id_type = "asin" if asin else "isbn"
-            get_amazon_metadata(id_=id_, id_type=id_type, high_priority=high_priority)
-            return ImportItem.import_first_staged(identifiers=book_ids)
-        except requests.exceptions.ConnectionError:
-            logger.exception("Affiliate Server unreachable")
-        except requests.exceptions.HTTPError:
-            logger.exception(f"Affiliate Server: id {id_} not found")
-        return None
+            # Finally, try to fetch the book data from Amazon + import.
+            # If `high_priority=True`, then the affiliate-server, which `get_amazon_metadata()`
+            # uses, will block + wait until the Product API responds and the result, if any,
+            # is staged in `import_item`.
+            try:
+                id_ = asin or book_ids[0]
+                id_type = "asin" if asin else "isbn"
+                get_amazon_metadata(
+                    id_=id_, id_type=id_type, high_priority=high_priority
+                )
+                return ImportItem.import_first_staged(identifiers=book_ids)
+            except requests.exceptions.ConnectionError:
+                logger.exception("Affiliate Server unreachable")
+            except requests.exceptions.HTTPError:
+                logger.exception(f"Affiliate Server: id {id_} not found")
+            return None
+        else:
+            return None
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
@@ -954,6 +962,9 @@ class User(Thing):
 
     def is_read_only(self) -> bool:
         return self.is_usergroup_member('/usergroup/read-only')
+
+    def is_curator(self) -> bool:
+        return self.is_usergroup_member('/usergroup/curators')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.

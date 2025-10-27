@@ -16,16 +16,25 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     // and will hence cause a failed match.
     // Taken from https://github.com/internetarchive/openlibrary/blob/4d880c1bf3e2391dd001c7818052fd639d38ff58/conf/solr/conf/managed-schema.xml#L526
     title = title.replace(/^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )/i, '').trim();
-    let query = `title:"${title}"`;
+    const query = [];
+
+    if (title) {
+        query.push(`title:"${title}"`);
+    }
     if (matchOptions.includeAuthor && author  && author.toLowerCase() !== 'null' && author.toLowerCase() !== 'unknown') {
         const authorParts = author.replace(/^\S+\./, '').trim().split(/\s/);
         const authorLastName = author.includes(',') ? author.replace(/,.*/, '') : authorParts[authorParts.length - 1];
-        query += ` author:${authorLastName}`;
+        query.push(`author:${authorLastName}`);
     }
+
+    if (extractedBook.isbn) {
+        query.push(`isbn:${extractedBook.isbn}`);
+    }
+
     let path = `https://${OL_SEARCH_BASE}/search`;
     if (json) path += '.json';
     const url = `${path}?${new URLSearchParams({
-        q: query,
+        q: query.join(' '),
         mode: 'everything',
         fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,ebook_access',
     })}`;

@@ -16,6 +16,7 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     fully_escape_query,
+    luqum_deepcopy,
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
@@ -305,11 +306,12 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(  # noqa: PLR0915
+    def q_to_solr_params(  # noqa: PLR0915, C901
         self,
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -497,7 +499,7 @@ class WorkSearchScheme(SearchScheme):
             for fq in editions_fq:
                 new_params.append(('editions.fq', fq))
 
-            user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
+            user_lang = convert_iso_to_marc(self.lang) or 'eng'
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             # Note that if there is no edition query (because no fields in
@@ -550,6 +552,24 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', q))
         else:
             new_params.append(('q', full_work_query))
+
+        if highlight:
+            highlight_fields = ('subject',)
+            try:
+                # This can throw the EmptyTreeError if nothing remains in the query
+                highlight_query = luqum_deepcopy(work_q_tree)
+                luqum_remove_field(
+                    highlight_query,
+                    lambda f: f not in highlight_fields,
+                )
+                new_params.append(('hl', 'true'))
+                # NOTE: This only applies to the work, really
+                new_params.append(('hl.fl', ','.join(highlight_fields)))
+                new_params.append(('hl.q', str(highlight_query)))
+                new_params.append(('hl.snippets', '10'))
+            except EmptyTreeError:
+                # nothing to highlight
+                pass
 
         if full_ed_query:
             edition_fields = {

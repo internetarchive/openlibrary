@@ -1,12 +1,13 @@
 //@ts-check
 
 export class ExtractedBook {
-    constructor(title = '', author = '') {
+    constructor(title = '', author = '', isbn = '') {
         /** @type {string} */
         this.title = title;
         /**@type {string} */
         this.author = author;
-
+        /**@type {string} */
+        this.isbn = isbn;
     }
 }
 
@@ -50,7 +51,7 @@ export class RegexExtractor extends AbstractExtractor {
      */
     async run(_extractOptions, text) {
         const data = [...text.matchAll(this.pattern)]
-        const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author))
+        const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author, entry.groups?.isbn))
         const matchedBooks = extractedBooks.map((entry) => new BookMatch(entry, []))
         return matchedBooks
     }
@@ -114,7 +115,7 @@ export class AiExtractor extends AbstractExtractor{
             const data = await resp.json()
             return JSON.parse(data.choices[0].message.content)['books']
                 .map((entry) =>
-                    new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})
+                    new BookMatch(new ExtractedBook(entry?.title, entry?.author, entry?.isbn), {})
                 )
         }
         catch (error) {
@@ -167,7 +168,7 @@ export class TableExtractor extends AbstractExtractor{
         return tableData.rows.map(
             row => new BookMatch(
                 new ExtractedBook(
-                    row[this.titleColumn] || '', row[this.authorColumn] || ''),
+                    row[this.titleColumn] || '', row[this.authorColumn] || '', row['isbn'] || ''),
                 {})
         )
     }

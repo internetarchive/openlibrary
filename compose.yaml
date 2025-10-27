@@ -16,23 +16,44 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  fast_web:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
+    command: docker/ol-web-fastapi-start.sh
+    ports:
+      - ${FAST_WEB_PORT:-18080}:8080
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   solr:
     image: solr:9.9.0
     expose:
       - 8983
     environment:
-      # Soft commit frequently to make sure changes are visible in search
-      # Hard commit less frequently to avoid performance impact, but avoid
-      # having very large transaction log
-      # https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
-      # Enlarge the max boolean clauses so that we can large intersections
-      # between books in reading logs and solr.
-      # Should be in sync with the value in openlibrary/core/bookshelves.py ,
-      # eg key:(/works/OL1W OR /works/OL2W OR ...)
+      # - autoSoftCommit.maxTime: Soft commit frequently to make sure changes are visible in search
+      # - autoCommit.maxTime: Hard commit less frequently to avoid performance impact, but avoid
+      #   having very large transaction log
+      #   https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
+      # - max.booleanClauses: Enlarge the max boolean clauses so that we can large intersections
+      #   between books in reading logs and solr.
+      #   Should be in sync with the value in openlibrary/core/bookshelves.py ,
+      #   eg key:(/works/OL1W OR /works/OL2W OR ...)
+      # - environment: Setting to dev/test/prod/stage adds a tag to the admin interface.
+      #   Useful to distinguish between different solr instances.
+      #
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
       - SOLR_OPTS=
         -Dsolr.autoSoftCommit.maxTime=60000
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=dev
       - SOLR_MODULES=analysis-extras
     volumes:
       - solr-data:/var/solr

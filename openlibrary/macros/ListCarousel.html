@@ -1,4 +1,4 @@
-$def with (list_key, title=None, sort='new', key='', limit=20, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True)
+$def with (list_key, title=None, sort='new', key='', limit=20, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, safe_mode=True)
 
 $# Takes following parameters
 $# * list_key (str) -- A list key e.g. /people/mekBot/lists/OL104041L
@@ -11,5 +11,6 @@ $# * url (str) -- whether to make title a link to url
 $# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
 $# * use_cache (bool) -- Attempt to use cached version if `True`
 $# * lazy (bool) -- Lazy load this carousel when `True`
+$# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
 
-$:macros.QueryCarousel(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url, layout=layout, use_cache=use_cache, lazy=lazy)
+$:macros.QueryCarousel(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url, layout=layout, use_cache=use_cache, lazy=lazy, safe_mode=safe_mode)

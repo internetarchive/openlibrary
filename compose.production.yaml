@@ -21,10 +21,29 @@ services:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
-  solr:
-    # Disabled while we're updating our version of solr, otherwise it'll pull down the new image!
-    profiles: ["ol-never"]
+  fast_web:
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
     environment:
+      - GUNICORN_OPTS= --workers 1 --timeout 300 --max-requests 500
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+    volumes:
+      - ../booklending_utils:/booklending_utils
+      - ../olsystem:/olsystem
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+
+  solr:
+    profiles: ["ol-solr0"]
+    environment:
+      # See compose.yaml for docs
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=prod
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?

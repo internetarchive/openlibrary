@@ -255,7 +255,7 @@ function save_many(items, comment, action, data) {
         '42-data': JSON.stringify(data),
     };
 
-    return fetch(`${CONFIGS.OL_BASE_SAVES}/api/save_many`, {
+    return fetchWithRetry(`${CONFIGS.OL_BASE_SAVES}/api/save_many`, {
         method: 'POST',
         headers,
         body: JSON.stringify(items)
