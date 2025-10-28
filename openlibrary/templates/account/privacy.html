@@ -13,7 +13,7 @@ $var title: $_("Your Privacy on Open Library")
 </div>
 
 $def selected(value, value2):
-    $if value == value2: checked="checked"
+    $if value == value2: checked
 
 $ public_readlog = d.get('public_readlog', 'no')
 $ safe_mode = d.get('safe_mode', 'no')
