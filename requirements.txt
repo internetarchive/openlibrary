@@ -8,6 +8,8 @@ fastapi==0.119.0
 feedparser==6.0.11
 flup-py3==1.0.3
 Genshi==0.7.7
+git+https://github.com/ArchiveLabs/pyopds2.git@a3ccba0ea0bac59d7647830ac2e35fc17958eadd
+git+https://github.com/ArchiveLabs/pyopds2_openlibrary.git@0493f67ba6009e17f9a44b0f11b71f55688b7091
 git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382
 gunicorn==23.0.0
 httpx==0.24.1
