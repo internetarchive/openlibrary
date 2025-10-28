@@ -787,3 +787,20 @@ class bestbook_count(delegate.page):
             work_id=filt.work_id, username=filt.username, topic=filt.topic
         )
         return json.dumps({'count': result})
+
+
+class opds_catalog(delegate.page):
+    path = r"/opds/(catalog|search)"
+
+    @jsonapi
+    def GET(self):
+        from pyopds2_openlibrary import OpenLibraryDataProvider
+
+        i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
+        records, num_found = OpenLibraryDataProvider.search(
+            query=i.query, limit=i.limit
+        )
+        catalog = OpenLibraryDataProvider.create_catalog(
+            publications=[record.to_publication() for record in records]
+        ).model_dump()
+        return json.dumps(catalog)
