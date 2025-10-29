@@ -1,7 +1,8 @@
+import logging
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
 import web
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 
 from openlibrary.catalog.utils import (
     author_dates_match,
@@ -15,6 +16,7 @@ from openlibrary.utils import extract_numeric_id_from_olid, uniq
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
 
+logger = logging.getLogger("openlibrary.catalog.add_book.load_book")
 
 # Sort by descending length to remove the _longest_ match.
 # E.g. remove "señorita" and not "señor", when both match.
@@ -156,7 +158,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
     Searches OL for an author by a range of queries.
     """
 
-    def has_dates(author: "dict | Author") -> bool:
+    def has_dates(author: "dict | Author | AuthorImportDict") -> bool:
         return 'birth_date' in author or 'death_date' in author
 
     def walk_redirects(obj, seen):
@@ -297,7 +299,17 @@ def author_import_record_to_author(
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
-    TypeAdapter(AuthorImportDict).validate_python(author_import_record_dict)
+    try:
+        TypeAdapter(AuthorImportDict).validate_python(author_import_record_dict)
+    except ValidationError as exc:
+        logger.warning(
+            "Author import record failed validation but continuing import flow",
+            extra={
+                "record": author_import_record_dict,
+                "validation_errors": exc.errors(),
+            },
+            exc_info=True,
+        )
     author_import_record = cast(AuthorImportDict, author_import_record_dict)
     if author_import_record.get('entity_type') != 'org' and not eastern:
         do_flip(author_import_record)
