@@ -176,3 +176,16 @@ class PubSub:
             vars={'limit': limit},
         )
         return top_publishers
+
+    @classmethod
+    def is_following(cls, useranme):
+        oldb = db.get_db()
+        query = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM follows
+                WHERE subscriber=$subscriber
+            )
+        """
+        result = oldb.query(query, vars={'subscriber': useranme})
+        return result and result[0].get('exists', False)
