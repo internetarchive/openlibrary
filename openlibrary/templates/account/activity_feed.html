@@ -53,7 +53,7 @@ $def trending_card_footer(shelf_name, occurred_on):
 
                 $if follows_others:
                     $ username = i.get('username')
-                    $ avatar_url = "/person/%s/avatar" % username
+                    $ avatar_url = "/people/%s/avatar" % username
                     $ card_footer_html = activity_card_footer(shelf_name, occurred_on, username)
                 $else:
                     $ card_footer_html = trending_card_footer(shelf_name, occurred_on)
