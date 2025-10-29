@@ -13,15 +13,7 @@ from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = ["apply_exif_orientation", "read_file", "read_image", "save_image"]
-
-
-def apply_exif_orientation(img: Image.Image) -> Image.Image:
-    try:
-        return ImageOps.exif_transpose(img)
-    except (AttributeError, KeyError, OSError, ValueError) as e:
-        logger.warning(f"Failed to apply EXIF orientation: {e}")
-        return img
+__all__ = ["read_file", "read_image", "save_image"]
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
@@ -79,7 +71,12 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
 
         img = Image.open(BytesIO(data))
 
-        img = apply_exif_orientation(img)
+        try:
+            # If the image EXIF contains a rotation, apply it so we get the correctly
+            # oriented image
+            ImageOps.exif_transpose(img, in_place=True)
+        except (AttributeError, KeyError, OSError, ValueError) as e:
+            logger.warning(f"Failed to apply EXIF orientation: {e}")
 
         if img.mode != 'RGB':
             img = img.convert('RGB')  # type: ignore[assignment]
