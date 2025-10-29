@@ -25,8 +25,9 @@ def fulltext_search_api(params):
     headers = {
         "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
         "x-application-id": "openlibrary",
-        "x-search-request-context": config_fts_context,
     }
+    if config_fts_context is not None:
+        headers["x-search-request-context"] = config_fts_context
     if config_ia_ol_metadata_write_s3:
         headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
             **config_ia_ol_metadata_write_s3
