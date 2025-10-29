@@ -98,7 +98,7 @@ def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
 class AuthorImportDict(TypedDict):
     """
     Keys expected in the author import dict.
-    
+
     TODO: Make https://github.com/internetarchive/openlibrary/blob/master/openlibrary/schemata/import.schema.json#L135 consistent with this
     """
 
