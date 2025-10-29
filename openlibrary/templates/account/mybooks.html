@@ -1,4 +1,4 @@
-$def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
+$def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={}, activity_feed=[], follows_others=False)
 
 $ username = user.key.split('/')[-1]
 
@@ -42,7 +42,9 @@ $def year_span(year, use_local_year=False):
 
   $# Render carousels
   $if owners_page:
+    $ feed_url = "%s/books/feed" % user.key
     $:(compact_carousel(loans) or empty_carousel(loans))
+    $:render_template("account/activity_feed", activity_feed, feed_url, follows_others)
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
