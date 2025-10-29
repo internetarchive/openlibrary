@@ -186,5 +186,9 @@ export default {
     margin: 4px 0;
     color: white;
   }
+
+  .title {
+    font-family: monospace;
+  }
 }
 </style>
