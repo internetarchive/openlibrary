@@ -82,7 +82,7 @@ function doFetchAndUpdate(target) {
             }
         })
         .catch(() => {
-            if(loadingIndicator){
+            if (loadingIndicator){
                 loadingIndicator.classList.add('hidden');
             }
             const retryElem = target.querySelector('.lazy-carousel-retry')
