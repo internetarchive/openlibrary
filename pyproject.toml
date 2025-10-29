@@ -31,6 +31,11 @@ module = [
 ]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+# In general, we want to have typed definitions so we are slowly turning it on for a few files.
+module = ["openlibrary.core.wikidata", "openlibrary.core.yearly_reading_goals"]
+disallow_untyped_defs = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
 
@@ -40,7 +45,7 @@ extend-exclude = [
   "./.*",
   "vendor",
 ]
-ignore = [
+lint.ignore = [
   "B007",    # unused-loop-control-variable - not a big deal for us
   "B023",    # function-uses-loop-variable - doesn't matter for our lambdas but it's a good rule
   "B904",    # raise-without-from-inside-except - not sure but it seems fine for now
@@ -63,9 +68,10 @@ ignore = [
     # openlibrary/plugins/upstream/utils.py - unclear but it's huge
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
+  "PLC0415", # import-outside-top-level we really need to turn this on but it's a decently big change
 ]
 line-length = 162
-select = [
+lint.select = [
   "ASYNC",   # flake8-async
   "B",       # flake8-bugbear
   "BLE",     # flake8-blind-except
@@ -126,17 +132,18 @@ select = [
   # "TRY",   # tryceratops
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 28
 
-[tool.ruff.pylint]
+
+[tool.ruff.lint.pylint]
 allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
 max-branches = 23
 max-returns = 14
 max-statements = 70
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
 "openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]
 "openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]

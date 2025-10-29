@@ -27,6 +27,10 @@ class AuthorSearchScheme(SearchScheme):
     sorts = MappingProxyType(
         {
             'work_count desc': 'work_count desc',
+            'name': 'name_str asc',
+            # Birth Year
+            'birth_date asc': 'birth_date asc',
+            'birth_date desc': 'birth_date desc',
             # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
@@ -53,6 +57,7 @@ class AuthorSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         return [
             ('q', q),

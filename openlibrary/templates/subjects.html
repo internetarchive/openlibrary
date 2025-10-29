@@ -2,7 +2,7 @@ $def with (page)
 
 $var title: $page.name
 
-$ can_add_tag = ctx.user and (ctx.user.is_admin())
+$ can_add_tag = ctx.user and (ctx.user.is_admin() or ctx.user.is_curator())
 $ has_tag = 'tag' in page
 $ q = query_param('q')
 
@@ -28,7 +28,7 @@ $ q = query_param('q')
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span><a href="/search?$page.subject_type=$page.name.replace('&','%26')" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
+            <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
         </span>
     </span>
     $if has_tag:
@@ -56,7 +56,7 @@ $ q = query_param('q')
     $if has_tag:
       $:format(sanitize(page.tag.body))
 
-    $:macros.QueryCarousel(query="subject_key:%s" % page.key.split('/')[-1], sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
+    $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>

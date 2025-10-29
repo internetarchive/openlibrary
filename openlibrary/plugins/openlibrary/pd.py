@@ -70,14 +70,29 @@ def make_pd_org_query() -> list:
 def cached_pd_org_query() -> list:
     mc = cache.memcache_memoize(make_pd_org_query, "pd-org-query", timeout=DAY_SECS)
     if not (results := mc() or []):
-        mc(_cache="delete")
+        mc.memcache_delete_by_args()
+        mc()
     return results
 
 
 def get_pd_dashboard_data() -> dict:
+    def calc_totals(_request_data):
+        results = {
+            'requested': 0,
+            'emailed': 0,
+            'fulfilled': 0,
+            'total': 0,
+        }
+        for row in _request_data:
+            results['requested'] += row['requested']
+            results['emailed'] += row['emailed']
+            results['fulfilled'] += row['fulfilled']
+            results['total'] += row['requested'] + row['emailed'] + row['fulfilled']
+        return results
+
     def enrich_data(_request_data):
         for d in _request_data:
-            pda = d['pda']
+            pda = d['qualifying_org']
             d['display_name'] = (
                 "No Qualifying Authority Selected"
                 if pda == "unqualified"
@@ -85,16 +100,11 @@ def get_pd_dashboard_data() -> dict:
             )
 
     request_data = make_pd_request_query()
-    totals = request_data and request_data.pop(0)
+    totals = calc_totals(request_data)
     enrich_data(request_data)
     return {
         "data": request_data,
-        "totals": {
-            'requested': totals['requested'],
-            'emailed': totals['emailed'],
-            'fulfilled': totals['fulfilled'],
-            'total': totals['requested'] + totals['emailed'] + totals['fulfilled'],
-        },
+        "totals": totals,
     }
 
 

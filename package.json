@@ -47,8 +47,8 @@
     "eslint-plugin-vue": "^9.32.0",
     "flot": "0.8.3",
     "isbn3": "1.1.1",
-    "jest": "29.7.0",
-    "jest-environment-jsdom": "29.7.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.13.2",
@@ -65,7 +65,7 @@
     "sinon": "20.0.0",
     "slick-carousel": "1.6.0",
     "style-loader": "^4.0.0",
-    "stylelint": "16.19.1",
+    "stylelint": "^16.22.0",
     "stylelint-declaration-strict-value": "1.10.11",
     "stylelint-prettier": "^5.0.3",
     "svgo": "2.3.1",
@@ -77,7 +77,7 @@
     "vue-web-component-wrapper": "^1.6.11",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
-    "workbox-webpack-plugin": "^7.1.0"
+    "workbox-webpack-plugin": "^7.3.0"
   },
   "jest": {
     "roots": [
@@ -103,9 +103,15 @@
         "statements": 14
       }
     },
-    "collectCoverage": true
+    "collectCoverage": false
   },
   "dependencies": {
     "postcss-less": "^6.0.0"
+  },
+  "overrides": {
+    "@ericblade/quagga2": {
+      "form-data": "4.0.4",
+      "qs": "6.5.3"
+    }
   }
 }

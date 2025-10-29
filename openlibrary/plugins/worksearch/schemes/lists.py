@@ -1,4 +1,3 @@
-# ruff: noqa: RUF012
 # See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
 
 import logging
@@ -27,6 +26,8 @@ class ListSearchScheme(SearchScheme):
             'place_key',
             'time',
             'time_key',
+            'last_modified',
+            'seed_count',
         }
     )
 
@@ -37,7 +38,13 @@ class ListSearchScheme(SearchScheme):
     field_name_map = MappingProxyType({})
     sorts = MappingProxyType(
         {
-            'name asc': 'name asc',  # sort alphabetically
+            'name asc': 'name asc',
+            'last_modified': 'last_modified desc',
+            'last_modified asc': 'last_modified asc',
+            'last_modified desc': 'last_modified desc',
+            'seed_count': 'seed_count desc',
+            'seed_count asc': 'seed_count asc',
+            'seed_count desc': 'seed_count desc',
             # Random (kept from SubjectSearchScheme)
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
@@ -56,6 +63,7 @@ class ListSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         return [
             ('q', q),  # actual query string

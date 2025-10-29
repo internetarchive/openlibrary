@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
 
 $code:
   max_rendered_authors = 9
@@ -66,7 +66,7 @@ $code:
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
       <a href="$work_edition_url">
-	<img
+        <img
           itemprop="image"
           src="$cover"
           alt="$_('Cover of: %(title)s', title=full_title)"
@@ -78,11 +78,11 @@ $code:
     </span>
 
     <div class="details">
-      <div class="resultTitle">
-        <h3 itemprop="name" class="booktitle">
-          <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
-        </h3>
-      </div>
+        <div class="resultTitle">
+          <h3 itemprop="name" class="booktitle">
+            <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
+          </h3>
+        </div>
         <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
           $ authors = None
           $if doc_type == 'infogami_work':
@@ -114,31 +114,43 @@ $code:
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if show_librarian_extras and doc.get('trending_z_score') is not None:
             $:macros.TrendingBadge(doc)
-          $if doc.get('ia'):
-            $if len(doc.get('ia')) > 1:
-              $ blur_preview = "preview-covers--blur" if blur else ""
-              <span class="preview-covers $blur_preview">
-                $for x, i in enumerate(doc.get('ia')[1:10]):
-                  <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
-                  </a>
-              </span>
-          <span class="resultDetails">
-            $if doc.get('first_publish_year'):
-              <span>
-                $_('First published in %(year)s', year=doc.first_publish_year)
-              </span>&mdash;
-            $if doc.get('edition_count'):
-              <span>
-                <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
-              </span>
-            $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
-              <span class="languages">
-                $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
-                $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
-              </span>
-          </span>
         </span>
+
+        $if highlighting:
+          $if highlighting.get('subject'):
+            <br />
+            <span class="srw__subjects">
+              $for subj in highlighting['subject']:
+                $# detect-missing-i18n-skip-line
+                <a href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</a>
+            </span>
+
+        $if doc.get('ia') and len(doc.get('ia')) > 1:
+          <br />
+          $ blur_preview = "preview-covers--blur" if blur else ""
+          <span class="preview-covers $blur_preview">
+            $for x, i in enumerate(doc.get('ia')[1:10]):
+              <a href="$(book_url)?edition=ia:$(urlquote(i))">
+                <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+              </a>
+          </span>
+
+        <span class="resultDetails">
+          $if doc.get('first_publish_year'):
+            <span>
+              $_('First published in %(year)s', year=doc.first_publish_year)
+            </span>&mdash;
+          $if doc.get('edition_count'):
+            <span>
+              <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+            </span>
+          $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
+            <span class="languages">
+              $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
+              $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
+            </span>
+        </span>
+
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
             $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):

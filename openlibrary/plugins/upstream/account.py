@@ -1,6 +1,8 @@
+import csv
+import io
 import json
 import logging
-from collections.abc import Callable, Iterable, Mapping
+from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from math import ceil
@@ -24,6 +26,7 @@ from openlibrary.accounts import (
     InternetArchiveAccount,
     OLAuthenticationError,
     OpenLibraryAccount,
+    RunAs,
     audit_accounts,
     clear_cookies,
     valid_email,
@@ -37,6 +40,7 @@ from openlibrary.core.lending import (
     get_items_and_add_availability,
     s3_loan_api,
 )
+from openlibrary.core.models import SubjectType
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
@@ -48,7 +52,7 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Work
+    from openlibrary.plugins.upstream.models import User, Work
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -171,9 +175,13 @@ class internal_audit(delegate.page):
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
-                result = OpenLibraryAccount.get(
-                    email=i.email, link=i.itemname, username=i.username
-                )
+                result = None
+                if i.itemname:
+                    result = OpenLibraryAccount.get_by_link(i.itemname)
+                elif i.email:
+                    result = OpenLibraryAccount.get_by_email(i.email)
+                elif i.username:
+                    result = OpenLibraryAccount.get_by_username(i.username)
                 if result is None:
                     raise ValueError('Invalid Open Library account email or itemname')
                 result.enc_password = 'REDACTED'
@@ -199,9 +207,9 @@ class account_migration(delegate.page):
             )
         try:
             if i.username:
-                ol_account = OpenLibraryAccount.get(username=i.username)
+                ol_account = OpenLibraryAccount.get_by_username(i.username)
             elif i.email:
-                ol_account = OpenLibraryAccount.get(email=i.email)
+                ol_account = OpenLibraryAccount.get_by_email(i.email)
         except Exception:
             return delegate.RawText(
                 json.dumps({'error': 'bad-account'}), content_type="application/json"
@@ -525,7 +533,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
 
-        if ol_account := OpenLibraryAccount.get(email=email):
+        if ol_account := OpenLibraryAccount.get_by_email(email):
             _set_account_cookies(ol_account, expires)
 
             if web.cookies().get("pda"):
@@ -546,6 +554,7 @@ class account_login(delegate.page):
             has_special_access = audit.get('special_access')
             if (
                 has_special_access
+                and ol_account.get_user().preferences().get('pda', '')
                 and ol_account.get_user().preferences().get('rpd')
                 != PDRequestStatus.FULFILLED.value
             ):
@@ -596,7 +605,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        ol_account = OpenLibraryAccount.get(username=username)
+        ol_account = OpenLibraryAccount.get_by_username(username)
         if ol_account:
             return _("Username unavailable")
 
@@ -606,7 +615,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        ol_account = OpenLibraryAccount.get(email=email)
+        ol_account = OpenLibraryAccount.get_by_email(email)
         if ol_account:
             return _('Email already registered')
 
@@ -670,7 +679,7 @@ class account_ia_email_forgot(delegate.page):
         err = ""
 
         if valid_email(i.email):
-            act = OpenLibraryAccount.get(email=i.email)
+            act = OpenLibraryAccount.get_by_email(i.email)
             if act:
                 if OpenLibraryAccount.authenticate(i.email, i.password) == "ok":
                     ia_act = act.get_linked_ia_account()
@@ -812,99 +821,26 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
-def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
-    """
-    Convert the keys of a dict into csv header and format strings for generating a
-    comma separated values string.  This will only be run on the first row of data.
-    >>> csv_header_and_format({"item_zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
-    ('Item Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
-    """
-    return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
-        ",".join(fld.replace("_", " ").title() for fld in row).replace(" Id,", " ID,"),
-        ",".join("{%s}" % field for field in row),
-    )
+class PatronExportException(Exception):
+    pass
 
 
-@elapsed_time("csv_string")
-def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None) -> str:
-    """
-    Given a list of dicts, generate comma-separated values where each dict is a row.
-    An optional reformatter function can be provided to transform or enrich each dict.
-    The order and names of the formatter's output dict keys will determine the order
-    and header column titles of the resulting csv string.
-    :param source: An iterable of all the rows that should appear in the csv string.
-    :param formatter: A Callable that accepts a Mapping and returns a dict.
-    >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
-    >>> csv.splitlines()
-    ['Row ID,T W O,Upper', 'a,2,A', 'b,2,B']
-    """
-    if not row_formatter:  # The default formatter reuses the inbound dict unmodified
+class PatronExport(ABC):
+    @staticmethod
+    def make_export(data: list[dict], fieldnames: list[str]):
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in data:
+            writer.writerow(row)
 
-        def row_formatter(row: Mapping) -> Mapping:
-            return row
+        csv_output = output.getvalue()
+        output.close()
 
-    def csv_body() -> Iterable[str]:
-        """
-        On the first row, use csv_header_and_format() to get and yield the csv_header.
-        Then use csv_format to yield each row as a string of comma-separated values.
-        """
-        assert row_formatter, "Placate mypy."
-        for i, row in enumerate(source):
-            if i == 0:  # Only on first row, make header and format from the dict keys
-                csv_header, csv_format = csv_header_and_format(row_formatter(row))
-                yield csv_header
-            yield csv_format.format(**row_formatter(row))
+        return csv_output
 
-    return '\n'.join(csv_body())
-
-
-class export_books(delegate.page):
-    path = "/account/export"
-    date_format = '%Y-%m-%d %H:%M:%S'
-
-    @require_login
-    def GET(self):
-        i = web.input(type='')
-        filename = ''
-
-        user = accounts.get_current_user()
-        username = user.key.split('/')[-1]
-
-        if i.type == 'reading_log':
-            data = self.generate_reading_log(username)
-            filename = 'OpenLibrary_ReadingLog.csv'
-        elif i.type == 'book_notes':
-            data = self.generate_book_notes(username)
-            filename = 'OpenLibrary_BookNotes.csv'
-        elif i.type == 'reviews':
-            data = self.generate_reviews(username)
-            filename = 'OpenLibrary_Reviews.csv'
-        elif i.type == 'lists':
-            with elapsed_time("user.get_lists()"):
-                lists = user.get_lists(limit=1000)
-            with elapsed_time("generate_list_overview()"):
-                data = self.generate_list_overview(lists)
-            filename = 'Openlibrary_ListOverview.csv'
-        elif i.type == 'ratings':
-            data = self.generate_star_ratings(username)
-            filename = 'OpenLibrary_Ratings.csv'
-
-        web.header('Content-Type', 'text/csv')
-        web.header('Content-disposition', f'attachment; filename={filename}')
-        return delegate.RawText('' or data, content_type="text/csv")
-
-    def escape_csv_field(self, raw_string: str) -> str:
-        """
-        Formats given CSV field string such that it conforms to definition outlined
-        in RFC #4180.
-
-        Note: We should probably use
-        https://docs.python.org/3/library/csv.html
-        """
-        escaped_string = raw_string.replace('"', '""')
-        return f'"{escaped_string}"'
-
-    def get_work_from_id(self, work_id: str) -> "Work":
+    @staticmethod
+    def get_work_from_id(work_id: str) -> "Work":
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
@@ -922,123 +858,275 @@ class export_books(delegate.page):
             )
         return work
 
-    def generate_reading_log(self, username: str) -> str:
-        bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
+    @property
+    def user(self) -> "User":
+        if not (result := accounts.get_current_user()):
+            raise PatronExportException("Must be logged in to export data.")
+        return result
 
-        def get_subjects(work: "Work", subject_type: str) -> str:
+    @property
+    def date_format(self):
+        return '%Y-%m-%d %H:%M:%S'
+
+    @property
+    @abstractmethod
+    def filename(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def fieldnames(self) -> list[str]:
+        pass
+
+    @abstractmethod
+    def get_data(self) -> list:
+        pass
+
+
+class ReadingLogExport(PatronExport):
+
+    @property
+    def filename(self) -> str:
+        return 'OpenLibrary_ReadingLog.csv'
+
+    @property
+    def fieldnames(self) -> list[str]:
+        return [
+            "Work ID",
+            "Title",
+            "Authors",
+            "First Publish Year",
+            "Edition ID",
+            "Edition Count",
+            "Bookshelf",
+            "My Ratings",
+            "Ratings Average",
+            "Ratings Count",
+            "Has Ebook",
+            "Subjects",
+            "Subject People",
+            "Subject Places",
+            "Subject Times",
+        ]
+
+    def get_data(self) -> list:
+        def get_subjects(
+            work: "Work",
+            subject_type: SubjectType = "subject",
+        ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
-        def format_reading_log(book: dict) -> dict:
-            """
-            Adding, deleting, renaming, or reordering the fields of the dict returned
-            below will automatically be reflected in the CSV that is generated.
-            """
+        bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
+        username = self.user.key.split('/')[-1]
+        books = Bookshelves.iterate_users_logged_books(username)
+        result = []
+        for book in books:
             work_id = f"OL{book['work_id']}W"
-            if edition_id := book.get("edition_id") or "":
+            if edition_id := book.get("edition_id", ""):
                 edition_id = f"OL{edition_id}M"
+
             work = self.get_work_from_id(work_id)
+            if work.type.key == '/type/delete':
+                continue
+
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
-            return {
-                "work_id": work_id,
-                "title": self.escape_csv_field(work.title),
-                "authors": self.escape_csv_field(" | ".join(work.get_author_names())),
-                "first_publish_year": work.first_publish_year,
-                "edition_id": edition_id,
-                "edition_count": work.edition_count,
-                "bookshelf": bookshelf_map[work.get_users_read_status(username)],
-                "my_ratings": work.get_users_rating(username) or "",
-                "ratings_average": ratings_average,
-                "ratings_count": ratings_count,
-                "has_ebook": work.has_ebook(),
-                "subjects": self.escape_csv_field(
-                    get_subjects(work=work, subject_type="subject")
-                ),
-                "subject_people": self.escape_csv_field(
-                    get_subjects(work=work, subject_type="person")
-                ),
-                "subject_places": self.escape_csv_field(
-                    get_subjects(work=work, subject_type="place")
-                ),
-                "subject_times": self.escape_csv_field(
-                    get_subjects(work=work, subject_type="time")
-                ),
-            }
+            result.append(
+                {
+                    "Work ID": work_id,
+                    "Title": work.title,
+                    "Authors": " | ".join(work.get_author_names()),
+                    "First Publish Year": work.first_publish_year,
+                    "Edition ID": edition_id,
+                    "Edition Count": work.edition_count,
+                    "Bookshelf": bookshelf_map[work.get_users_read_status(username)],
+                    "My Ratings": work.get_users_rating(username) or "",
+                    "Ratings Average": ratings_average,
+                    "Ratings Count": ratings_count,
+                    "Has Ebook": work.has_ebook(),
+                    "Subjects": get_subjects(work=work, subject_type="subject"),
+                    "Subject People": get_subjects(work=work, subject_type="person"),
+                    "Subject Places": get_subjects(work=work, subject_type="place"),
+                    "Subject Times": get_subjects(work=work, subject_type="time"),
+                }
+            )
 
-        books = Bookshelves.iterate_users_logged_books(username)
-        return csv_string(books, format_reading_log)
+        return result
 
-    def generate_book_notes(self, username: str) -> str:
-        def format_booknote(booknote: Mapping) -> dict:
-            escaped_note = booknote['notes'].replace('"', '""')
-            return {
-                "work_id": f"OL{booknote['work_id']}W",
-                "edition_id": f"OL{booknote['edition_id']}M",
-                "note": f'"{escaped_note}"',
-                "created_on": booknote['created'].strftime(self.date_format),
-            }
 
-        return csv_string(Booknotes.select_all_by_username(username), format_booknote)
+class BookNoteExport(PatronExport):
 
-    def generate_reviews(self, username: str) -> str:
-        def format_observation(observation: Mapping) -> dict:
-            return {
-                "work_id": f"OL{observation['work_id']}W",
-                "review_category": f'"{observation["observation_type"]}"',
-                "review_value": f'"{observation["observation_value"]}"',
-                "created_on": observation['created'].strftime(self.date_format),
-            }
+    @property
+    def filename(self) -> str:
+        return 'OpenLibrary_BookNotes.csv'
 
+    @property
+    def fieldnames(self) -> list[str]:
+        return [
+            "Work ID",
+            "Edition ID",
+            "Note",
+            "Created On",
+        ]
+
+    def get_data(self) -> list:
+        username = self.user.key.split('/')[-1]
+        notes = Booknotes.select_all_by_username(username)
+        result = []
+        for note in notes:
+            result.append(
+                {
+                    "Work ID": f"OL{note['work_id']}W",
+                    "Edition ID": f"OL{note['edition_id']}M",
+                    "Note": note["notes"],
+                    "Created On": note['created'].strftime(self.date_format),
+                }
+            )
+        return result
+
+
+class ReviewExport(PatronExport):
+
+    @property
+    def filename(self) -> str:
+        return 'OpenLibrary_Reviews.csv'
+
+    @property
+    def fieldnames(self) -> list[str]:
+        return [
+            "Work ID",
+            "Review Category",
+            "Review Value",
+            "Created On",
+        ]
+
+    def get_data(self) -> list:
+        username = self.user.key.split('/')[-1]
         observations = Observations.select_all_by_username(username)
-        return csv_string(observations, format_observation)
+        result = []
+        for o in observations:
+            result.append(
+                {
+                    "Work ID": f"OL{o['work_id']}W",
+                    "Review Category": o["observation_type"],
+                    "Review Value": o["observation_value"],
+                    "Created On": o["created"].strftime(self.date_format),
+                }
+            )
+        return result
 
-    def generate_list_overview(self, lists):
-        row = {
-            "list_id": "",
-            "list_name": "",
-            "list_description": "",
-            "entry": "",
-            "created_on": "",
-            "last_updated": "",
-        }
 
-        def lists_as_csv(lists) -> Iterable[str]:
-            for i, list in enumerate(lists):
-                if i == 0:  # Only on first row, make header and format from dict keys
-                    csv_header, csv_format = csv_header_and_format(row)
-                    yield csv_header
-                row["list_id"] = list.key.split('/')[-1]
-                row["list_name"] = (list.name or '').replace('"', '""')
-                row["list_description"] = (list.description or '').replace('"', '""')
-                row["created_on"] = list.created.strftime(self.date_format)
-                if (last_updated := list.last_modified or "") and isinstance(
-                    last_updated, datetime
-                ):  # placate mypy
+class ListExport(PatronExport):
+
+    @property
+    def filename(self) -> str:
+        return 'Openlibrary_ListOverview.csv'
+
+    @property
+    def fieldnames(self) -> list[str]:
+        return [
+            "List ID",
+            "List Name",
+            "List Description",
+            "Entry",
+            "Created On",
+            "Last Updated",
+        ]
+
+    def get_data(self) -> list:
+        result = []
+        with elapsed_time("user.get_lists()"):
+            lists = self.user.get_lists(limit=1000)
+        with elapsed_time("generate_list_overview()"):
+            for li in lists:
+                last_updated = li.last_modified or ""
+                if isinstance(last_updated, datetime):
                     last_updated = last_updated.strftime(self.date_format)
-                row["last_updated"] = last_updated
-                for seed in list.seeds:
-                    row["entry"] = seed if isinstance(seed, str) else seed.key
-                    yield csv_format.format(**row)
+                for seed in li.seeds:
+                    result.append(
+                        {
+                            "List ID": li.key.split("/")[-1],
+                            "List Name": li.name or "",
+                            "List Description": li.description or "",
+                            "Entry": seed if isinstance(seed, str) else seed.key,
+                            "Created On": li.created.strftime(self.date_format),
+                            "Last Updated": last_updated,
+                        }
+                    )
+        return result
 
-        return "\n".join(lists_as_csv(lists))
 
-    def generate_star_ratings(self, username: str) -> str:
+class RatingExport(PatronExport):
 
-        def format_rating(rating: Mapping) -> dict:
+    @property
+    def filename(self) -> str:
+        return 'OpenLibrary_Ratings.csv'
+
+    @property
+    def fieldnames(self) -> list[str]:
+        return [
+            "Work ID",
+            "Edition ID",
+            "Title",
+            "Author(s)",
+            "Rating",
+            "Created On",
+        ]
+
+    def get_data(self) -> list:
+        username = self.user.key.split('/')[-1]
+        ratings = Ratings.select_all_by_username(username)
+        result = []
+        for rating in ratings:
             work_id = f"OL{rating['work_id']}W"
-            if edition_id := rating.get("edition_id") or "":
+            if edition_id := rating.get("edition_id", ""):
                 edition_id = f"OL{edition_id}M"
             work = self.get_work_from_id(work_id)
-            return {
-                "Work ID": work_id,
-                "Edition ID": edition_id,
-                "Title": self.escape_csv_field(work.title),
-                "Author(s)": self.escape_csv_field(" | ".join(work.get_author_names())),
-                "Rating": f"{rating['rating']}",
-                "Created On": rating['created'].strftime(self.date_format),
-            }
+            result.append(
+                {
+                    "Work ID": work_id,
+                    "Edition ID": edition_id,
+                    "Title": work.title,
+                    "Author(s)": " | ".join(work.get_author_names()),
+                    "Rating": rating["rating"],
+                    "Created On": rating["created"].strftime(self.date_format),
+                }
+            )
+        return result
 
-        return csv_string(Ratings.select_all_by_username(username), format_rating)
+
+class export_books(delegate.page):
+    path = "/account/export"
+
+    @require_login
+    def GET(self):
+        i = web.input(type='')
+
+        export = self.get_export(i.type)
+        data = export.make_export(export.get_data(), export.fieldnames)
+
+        web.header('Content-Type', 'text/csv')
+        web.header('Content-disposition', f'attachment; filename={export.filename}')
+        return delegate.RawText(data, content_type="text/csv")
+
+    def get_export(self, export_type: str) -> PatronExport:
+        export: PatronExport | None = None
+
+        match export_type:
+            case "reading_log":
+                export = ReadingLogExport()
+            case "book_notes":
+                export = BookNoteExport()
+            case "reviews":
+                export = ReviewExport()
+            case "lists":
+                export = ListExport()
+            case "ratings":
+                export = RatingExport()
+            case _:
+                raise KeyError("Unrecognized export type")
+
+        return export
 
 
 def _validate_follows_page(page, per_page, hits):
@@ -1178,10 +1266,6 @@ class account_anonymization_json(delegate.page):
         i = web.input(test='false')
         test = i.test == "true"
 
-        # Validate request origin
-        if not self._validate_headers():
-            raise web.HTTPError("403 Forbidden", {"Content-Type": "application/json"})
-
         # Get S3 keys from request header
         try:
             s3_access, s3_secret = self._parse_auth_header()
@@ -1193,13 +1277,15 @@ class account_anonymization_json(delegate.page):
         if 'error' in xauthn_response:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
-        ol_account = OpenLibraryAccount.get(link=xauthn_response.get('itemname', ''))
+        ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get('itemname', ''))
         if not ol_account:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         try:
-            result = ol_account.anonymize(test=test)
-        except Exception:
+            with RunAs(ol_account.username):
+                result = ol_account.anonymize(test=test)
+        except Exception as e:
+            logger.error(e)
             raise web.HTTPError(
                 "500 Internal Server Error", {"Content-Type": "application/json"}
             )
@@ -1207,15 +1293,6 @@ class account_anonymization_json(delegate.page):
         raise web.HTTPError(
             "200 OK", {"Content-Type": "application/json"}, data=json.dumps(result)
         )
-
-    def _validate_headers(self):
-        origin = web.ctx.env.get('HTTP_ORIGIN') or web.ctx.env.get('HTTP_REFERER')
-        if not origin:
-            return False
-
-        parsed_origin = urlparse(origin)
-        host = parsed_origin.hostname
-        return host == "archive.org" or host.endswith(".archive.org")
 
     def _parse_auth_header(self):
         header_value = web.ctx.env.get("HTTP_AUTHORIZATION", "")
@@ -1241,7 +1318,6 @@ def as_admin(f):
 
 
 def process_goodreads_csv(i):
-    import csv
 
     csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
     csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
@@ -1275,7 +1351,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     items creates pagination and navigation issues. For further discussion,
     see https://github.com/internetarchive/openlibrary/pull/8375.
     """
-    if not (account := OpenLibraryAccount.get(username=mb.username)):
+    if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound(
             "Account for not found for %s" % mb.username, create=False
         )

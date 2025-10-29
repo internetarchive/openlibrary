@@ -1,7 +1,8 @@
 import logging
+import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Generic, Literal, TypedDict, TypeVar, cast, override
+from typing import Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -145,7 +146,7 @@ class IALiteMetadata(TypedDict):
 TProviderMetadata = TypeVar('TProviderMetadata')
 
 
-class AbstractBookProvider(Generic[TProviderMetadata]):
+class AbstractBookProvider[TProviderMetadata]:
     short_name: str
 
     """Human-readable name of the provider, used in the UI."""
@@ -156,6 +157,10 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     see https://openlibrary.org/config/edition
     """
     identifier_key: str | None
+
+    @property
+    def provider_name(self) -> str:
+        return self.identifier_key or self.short_name
 
     def get_olids(self, identifier: str) -> list[str]:
         return web.ctx.site.things(
@@ -271,6 +276,11 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     short_name = 'ia'
     long_name = 'Internet Archive'
     identifier_key = 'ocaid'
+
+    @property
+    @typing.override
+    def provider_name(self) -> str:
+        return 'ia'
 
     @property
     def db_selector(self) -> str:
@@ -648,8 +658,14 @@ def is_non_ia_ocaid(ocaid: str) -> bool:
     return any(provider.is_own_ocaid(ocaid) for provider in providers)
 
 
-def get_book_provider_by_name(short_name: str) -> AbstractBookProvider | None:
-    return next((p for p in PROVIDER_ORDER if p.short_name == short_name), None)
+def get_book_provider_by_name(name: str) -> AbstractBookProvider | None:
+    """
+    :param name: Either the provider's short_name (legacy) or its provider_name
+    """
+    return next(
+        (p for p in PROVIDER_ORDER if name in (p.provider_name, p.short_name)),
+        None,
+    )
 
 
 ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))

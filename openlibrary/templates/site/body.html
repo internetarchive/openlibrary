@@ -22,7 +22,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
   $# don't render test-body-mobile for iframes
-  <div $:('id="test-body-mobile"' if show_ol_shell else '')>
+  <main $:('id="test-body-mobile"' if show_ol_shell else '')>
     $if show_ol_shell:
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages">
@@ -37,4 +37,4 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $if announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
-  </div>
+  </main>

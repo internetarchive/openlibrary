@@ -21,9 +21,29 @@ services:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
+  fast_web:
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    environment:
+      - GUNICORN_OPTS= --workers 1 --timeout 300 --max-requests 500
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+    volumes:
+      - ../booklending_utils:/booklending_utils
+      - ../olsystem:/olsystem
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+
   solr:
     profiles: ["ol-solr0"]
     environment:
+      # See compose.yaml for docs
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=prod
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?
@@ -46,7 +66,8 @@ services:
         max-file: "4"
 
   solr_restarter:
-    profiles: ["ol-solr0"]
+    # Disabled for now ; seemed to be making things worse, and seems no longer needed
+    profiles: ["ol-never"]
     build:
       context: scripts/solr_restarter
       args:
@@ -164,6 +185,9 @@ services:
       - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     expose:
       - 7072
+    ports:
+      # For prometheus logging
+      - 8405:8405
     logging:
       options:
         max-size: "512m"
@@ -313,7 +337,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile

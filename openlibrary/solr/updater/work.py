@@ -475,6 +475,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         )
 
     @property
+    def ebook_provider(self) -> list[str]:
+        return uniq(
+            provider for e in self._solr_editions for provider in e.ebook_provider
+        )
+
+    @property
     def has_fulltext(self) -> bool:
         return any(e.has_fulltext for e in self._solr_editions)
 

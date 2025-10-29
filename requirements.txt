@@ -4,6 +4,7 @@ APScheduler==3.11.0
 Babel==2.12.1
 beautifulsoup4==4.12.2
 eventer==0.1.1
+fastapi==0.119.0
 feedparser==6.0.11
 flup-py3==1.0.3
 Genshi==0.7.7
@@ -24,8 +25,9 @@ python-dateutil==2.8.2
 python-memcached==1.59
 PyYAML==6.0.1
 qrcode==7.4.2
-requests==2.32.2
-sentry-sdk==2.19.2
+requests==2.32.4
+sentry-sdk[fastapi]==2.19.2
 simplejson==3.19.1
 statsd==4.0.1
+uvicorn[standard]==0.30.6
 validate_email==1.3

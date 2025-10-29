@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from collections.abc import Callable, Generator
 from urllib.parse import urlencode
 
 import requests
@@ -57,12 +58,12 @@ def get_metadata_direct(
     return extract_item_metadata(full_json) if only_metadata else full_json
 
 
-get_metadata = cache.memcache_memoize(
+get_metadata: Callable[[str], dict] = cache.memcache_memoize(
     get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS
 )
 
 
-def extract_item_metadata(item_json):
+def extract_item_metadata(item_json: dict) -> dict:
     metadata = process_metadata_dict(item_json.get('metadata', {}))
     if metadata:
         # if any of the files is access restricted, consider it as
@@ -75,7 +76,7 @@ def extract_item_metadata(item_json):
     return metadata
 
 
-def process_metadata_dict(metadata):
+def process_metadata_dict(metadata: dict) -> dict[str, str | list[str] | bool]:
     """Process metadata dict to make sure multi-valued fields like
     collection and external-identifier are always lists.
 
@@ -96,13 +97,13 @@ def process_metadata_dict(metadata):
     return dict(process_item(k, v) for k, v in metadata.items() if v)
 
 
-def locate_item(itemid):
+def locate_item(itemid: str) -> tuple[str | None, str | None]:
     """Returns (hostname, path) for the item."""
     d = get_metadata_direct(itemid, only_metadata=False)
     return d.get('server'), d.get('dir')
 
 
-def edition_from_item_metadata(itemid, metadata):
+def edition_from_item_metadata(itemid: str, metadata: dict) -> 'ItemEdition | None':
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 
@@ -113,9 +114,10 @@ def edition_from_item_metadata(itemid, metadata):
         e = ItemEdition(itemid)
         e.add_metadata(metadata)
         return e
+    return None
 
 
-def get_cover_url(item_id):
+def get_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's cover page."""
     base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
     cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
@@ -124,7 +126,7 @@ def get_cover_url(item_id):
     return base_url + 'default.jpg'
 
 
-def get_fallback_cover_url(item_id):
+def get_fallback_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
@@ -133,13 +135,13 @@ def get_fallback_cover_url(item_id):
     return base_url + 'title.jpg'
 
 
-def get_item_manifest(item_id, item_server, item_path):
+def get_item_manifest(item_id: str, item_server: str, item_path: str) -> dict:
     url = f'https://{item_server}/BookReader/BookReaderJSON.php'
     url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
     return get_api_response(url)
 
 
-def get_item_status(itemid, metadata, **server):
+def get_item_status(itemid: str, metadata: dict, **server) -> str:
     item_server = server.pop('item_server', None)
     item_path = server.pop('item_path', None)
     return ItemEdition.get_item_status(
@@ -150,9 +152,10 @@ def get_item_status(itemid, metadata, **server):
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict."""
 
-    def __init__(self, itemid):
+    def __init__(self, itemid: str) -> None:
         dict.__init__(self)
-        self.itemid = itemid
+        self.itemid: str = itemid
+        self.metadata: dict = {}
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
 
@@ -169,7 +172,13 @@ class ItemEdition(dict):
         )
 
     @classmethod
-    def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
+    def get_item_status(
+        cls,
+        itemid: str,
+        metadata: dict,
+        item_server: str | None = None,
+        item_path: str | None = None,
+    ) -> str:
         """Returns the status of the item related to importing it in OL.
 
         Possible return values are:
@@ -224,7 +233,7 @@ class ItemEdition(dict):
         return "ok"
 
     @classmethod
-    def is_valid_item(cls, itemid, metadata):
+    def is_valid_item(cls, itemid: str, metadata: dict) -> bool:
         """Returns True if the item with metadata can be usable as edition
         in Open Library.
 
@@ -233,7 +242,7 @@ class ItemEdition(dict):
         """
         return cls.get_item_status(itemid, metadata) == 'ok'
 
-    def add_metadata(self, metadata):
+    def add_metadata(self, metadata: dict) -> None:
         self.metadata = metadata
         self.add('title')
         self.add('description', 'description')
@@ -242,7 +251,7 @@ class ItemEdition(dict):
         self.add('date', 'publish_date')
         self.add_isbns()
 
-    def add(self, key, key2=None):
+    def add(self, key: str, key2: str | None = None) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -260,7 +269,7 @@ class ItemEdition(dict):
 
             self[key2] = value
 
-    def add_list(self, key, key2):
+    def add_list(self, key: str, key2: str) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
@@ -269,7 +278,7 @@ class ItemEdition(dict):
                 value = [value]
             self[key2] = value
 
-    def add_isbns(self):
+    def add_isbns(self) -> None:
         isbn_10 = []
         isbn_13 = []
         if isbns := self.metadata.get('isbn'):
@@ -334,7 +343,7 @@ def get_candidates_url(
 def get_candidate_ocaids(
     day: datetime.date,
     marcs: bool = True,
-):
+) -> Generator[str, None, None]:
     """
     Returns a list of identifiers that were finalized on the provided
     day, which may need to be imported into Open Library.

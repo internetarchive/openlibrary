@@ -13,15 +13,18 @@ if [[ -z "$1" || "$1" == "--help" ]]; then
     echo "  PATCH_ON=host|container          Whether to apply the patch on the host or inside"
     echo "                                   the container."
     echo "                                   Default: container unless patching www nginx changes"
-    echo "  CONTAINER=container_name         Default: openlibrary-web-1 for ol-web hosts,"
-    echo "                                   openlibrary-web_nginx-1 for ol-www0"
+    echo "  SERVICE=container_name           Default: web for ol-web hosts, web_nginx for ol-www0"
     echo "  APPLY_OPTIONS=''                 Options to pass to git apply. E.g. use -R to"
     echo "                                   un-apply a patch. See 'git apply --help' for options."
+    echo "  RESET=''                         If 'true', resets the container before applying the patch."
     exit 1
 fi
 
-PR_NUMBER=$1
-PATCH_URL="https://patch-diff.githubusercontent.com/raw/internetarchive/openlibrary/pull/${PR_NUMBER}.diff"
+if [[ "$1" == https* ]]; then
+    PATCH_URL="$1"
+else
+    PATCH_URL="https://patch-diff.githubusercontent.com/raw/internetarchive/openlibrary/pull/${1}.diff"
+fi
 echo "Note: Patch Deploys cannot rebuild js/css"
 echo
 
@@ -30,13 +33,13 @@ SERVERS=${SERVERS:-"ol-web0 ol-web1 ol-web2"}
 PROXY="http://http-proxy.us.archive.org:8080"
 APPLY_OPTIONS=${APPLY_OPTIONS:-""}
 
-echo "Applying patch #${PR_NUMBER} to ${SERVERS}:"
+echo "Applying patch ${PATCH_URL} to ${SERVERS}:"
 
 for host in $SERVERS; do
     # Determine default container name based on host
     if [[ "$host" == "ol-www0" ]]; then
-        CONTAINER=${CONTAINER:-"openlibrary-web_nginx-1"}
-        if [[ "$CONTAINER" == "openlibrary-web_nginx-1" ]]; then
+        SERVICE=${SERVICE:-"web_nginx"}
+        if [[ "$SERVICE" == "web_nginx" ]]; then
             # If deploying nginx configs, must apply only to host
             PATCH_ON=${PATCH_ON:-host}
         else
@@ -44,7 +47,7 @@ for host in $SERVERS; do
         fi
     else
         PATCH_ON=${PATCH_ON:-container}
-        CONTAINER=${CONTAINER:-"openlibrary-web-1"}
+        SERVICE=${SERVICE:-"web"}
     fi
 
     TMP_OUTPUT_FILE=$(mktemp)
@@ -58,20 +61,49 @@ for host in $SERVERS; do
         " > $TMP_OUTPUT_FILE
         STATUS=$?
     else
-        echo -n "  $host $CONTAINER ... "
+        echo -n "  $host / $SERVICE ..."
+
+        if [ "$RESET" == "true" ]; then
+            echo -n " recreating ... "
+            ssh ${host}.us.archive.org "
+                export COMPOSE_FILE='/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml'
+                export HOSTNAME=\$HOSTNAME
+                docker compose up -d --no-deps --force-recreate ${SERVICE} 2>&1
+            " > $TMP_OUTPUT_FILE
+
+            if [ $? -eq 0 ]; then
+                echo -n '✓'
+                rm $TMP_OUTPUT_FILE
+            else
+                echo -n '✗'
+                cat $TMP_OUTPUT_FILE
+                rm $TMP_OUTPUT_FILE
+                exit 1
+            fi
+        fi
+
+        echo -n " applying patch ... "
         ssh ${host}.us.archive.org "
-            docker exec ${CONTAINER} bash -c '
+            export COMPOSE_FILE='/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml'
+            export HOSTNAME=\$HOSTNAME
+            docker compose exec ${SERVICE} bash -c '
                 HTTPS_PROXY=${PROXY} curl -sL ${PATCH_URL} | git apply $APPLY_OPTIONS
             ' 2>&1
         " > $TMP_OUTPUT_FILE
+
         STATUS=$?
     fi
 
     if [ $STATUS -eq 0 ]; then
         rm $TMP_OUTPUT_FILE
 
-        echo -n '✓. Restarting ... '
-        ssh ${host}.us.archive.org "docker restart ${CONTAINER} 2>&1" > $TMP_OUTPUT_FILE
+        echo -n '✓ restarting ... '
+        ssh ${host}.us.archive.org "
+            export COMPOSE_FILE='/opt/openlibrary/compose.yaml:/opt/openlibrary/compose.production.yaml'
+            export HOSTNAME=\$HOSTNAME
+            docker compose restart ${SERVICE} 2>&1
+        " > $TMP_OUTPUT_FILE
+
         if [ $? -eq 0 ]; then
             echo '✓'
             rm $TMP_OUTPUT_FILE

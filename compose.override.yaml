@@ -26,7 +26,23 @@ services:
       - db
       - infobase
 
+  fast_web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    volumes:
+      - .:/openlibrary
+
   solr:
+    environment:
+      # See compose.yaml for docs
+      # For dev, autoSoftCommit is 1s, meaning edits will show up in search after 1s
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=1000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=dev
     ports:
       - 8983:8983
 

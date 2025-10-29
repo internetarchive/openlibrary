@@ -17,10 +17,6 @@ identifiers:
     name: amazon
     notes: ASIN
     url: https://www.amazon.com/gp/product/@@@
--   label: Anna's Archive
-    name: annas_archive
-    notes: Should be the number after md5/ in the link
-    url: https://annas-archive.org/md5/@@@
 -   label: Association for the Blind of Western Australia
     name: abwa_bibliographic_number
     notes: ''
@@ -171,8 +167,8 @@ identifiers:
     url: https://archive.org/details/@@@
 -   label: Internet Speculative Fiction Database
     name: isfdb
-    url: http://www.isfdb.org/cgi-bin/pl.cgi?@@@
-    website: http://www.isfdb.org
+    url: https://www.isfdb.org/cgi-bin/pl.cgi?@@@
+    website: https://www.isfdb.org
 -   label: English Title Short Catalogue Citation Number
     name: etsc
     url: http://estc.bl.uk/@@@
@@ -231,7 +227,7 @@ identifiers:
     website: https://www.worldcat.org
 -   label: OverDrive
     name: overdrive
-    url: https://www.overdrive.com/media/@@@
+    url: https://www.overdrive.com/search?q=@@@
     website: https://www.overdrive.com
 -   label: Paperback Swap
     name: paperback_swap
@@ -351,3 +347,7 @@ identifiers:
     name: infosoup
     notes: e.g. https://infosoup.bibliocommons.com/v2/record/
     url: https://infosoup.bibliocommons.com/v2/record/@@@
+-   label: "National Library of Norway (URN:NBN)"
+    name: "urn_nbn"
+    url: "https://urn.nb.no/URN:NBN:@@@"
+    notes: ""

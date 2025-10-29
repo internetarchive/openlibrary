@@ -3,6 +3,7 @@
 import logging
 import os
 import urllib
+from urllib.parse import quote_plus
 
 import web
 
@@ -174,13 +175,7 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     if thing and thing.type.key == _type:
         title = thing.get(_property) or default_title
-        try:
-            # Explicitly only run for python3 to solve #4033
-            from urllib.parse import quote_plus
-
-            middle = '/' + quote_plus(h.urlsafe(title.strip()))
-        except ImportError:
-            middle = '/' + h.urlsafe(title.strip())
+        middle = '/' + quote_plus(h.urlsafe(title.strip()))
     else:
         middle = ""
 

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Open Library Work Schema",
+  "type": "object",
+  "required": [
+    "key",
+    "title",
+    "type",
+    "revision",
+    "last_modified"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "key": { "$ref": "shared_definitions.json#/work_key" },
+    "title":    { "type": "string" },
+    "subtitle": { "type": "string" },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": ["/type/work"]
+        }
+      }
+    },
+    "authors": {
+      "type": "array",
+      "items": { "$ref": "#definitions/author_role" }
+    },
+    "covers": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/link" }
+    },
+    "id": {
+      "description": "Unsure what this is for, deprecate?",
+      "type": "number"
+     },
+    "lc_classifications":  { "$ref": "shared_definitions.json#/string_array" },
+    "subjects":            { "$ref": "shared_definitions.json#/string_array" },
+
+    "first_publish_date": { "type": "string" },
+
+    "description":    { "$ref": "shared_definitions.json#/text_block" },
+    "notes":          { "$ref": "shared_definitions.json#/text_block" },
+
+    "revision":        { "type": "number" },
+    "latest_revision": { "type": "number" },
+    "created":         { "$ref": "shared_definitions.json#/internal_datetime" },
+    "last_modified":   { "$ref": "shared_definitions.json#/internal_datetime" }
+  },
+  "definitions": {
+    "author_role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "type", "author" ],
+      "properties": {
+        "type": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["key"],
+          "properties": {
+            "key": {
+              "enum": ["/type/author_role"]
+            }
+          }
+        },
+        "author": { "$ref": "shared_definitions.json#/author" },
+        "role":   { "type": "string" },
+        "as":     { "type": "string" }
+      }
+    }
+  }
+}

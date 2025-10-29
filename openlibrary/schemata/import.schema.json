@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Open Library Import Schema",
+  "type": "object",
+  "required": [
+    "title",
+    "source_records",
+    "authors",
+    "publishers",
+    "publish_date"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "title":    { "type": "string" },
+    "subtitle": { "type": "string" },
+    "source_records":   { "$ref": "shared_definitions.json#/string_array" },
+    "publishers":   { "$ref": "shared_definitions.json#/string_array" },
+    "authors": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/import_author" }
+    },
+    "contributor": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/import_contributor"
+      }
+    },
+    "publish_date": {
+      "type": "string",
+      "description": "The publication date in Extended Date/Time Format (EDTF) -- https://www.loc.gov/standards/datetime/",
+      "examples": [
+        "2017",
+        "2017-07",
+        "2017-07-11"
+      ]
+    },
+    "publish_places": { "$ref": "shared_definitions.json#/string_array" },
+    "number_of_pages": { "type": "number" },
+    "pagination": { "type": "string" },
+    "by_statement": { "type": "string" },
+    "description": { "type": "string" },
+    "publish_country": { "$ref": "shared_definitions.json#/publish_country" },
+    "languages": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/language_code" }
+    },
+    "translated_from": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/language_code" }
+    },
+    "translation_of": {
+      "type": "string"
+    },
+    "isbn_10": {
+      "type": "array",
+      "items": { "$ref": "edition.schema.json#/definitions/isbn_10" }
+    },
+    "isbn_13": {
+      "type": "array",
+      "items": { "$ref": "edition.schema.json#/definitions/isbn_13" }
+    },
+    "oclc_numbers": { "$ref": "shared_definitions.json#/string_array" },
+    "lccn": { "$ref": "shared_definitions.json#/string_array" },
+    "lc_classifications": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/lc_classification" }
+    },
+    "dewey_decimal_class": { "$ref": "shared_definitions.json#/string_array" },
+    "notes": { "type": "string" },
+    "edition_name": {
+      "type": "string",
+      "examples": ["1st ed.", "2000 edition"]
+    },
+    "table_of_contents": { "type": "array" },
+    "series": { "$ref": "shared_definitions.json#/string_array" },
+    "subjects": { "$ref": "shared_definitions.json#/string_array" },
+    "subject_times": { "$ref": "shared_definitions.json#/string_array" },
+    "subject_people": { "$ref": "shared_definitions.json#/string_array" },
+    "subject_places": { "$ref": "shared_definitions.json#/string_array" },
+    "contributions": { "$ref": "shared_definitions.json#/string_array" },
+    "work_titles": { "$ref": "shared_definitions.json#/string_array" },
+    "other_titles": { "$ref": "shared_definitions.json#/string_array" },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "shared_definitions.json#/link" }
+    },
+    "physical_format": {
+      "type": "string",
+      "examples": [
+        "Paperback",
+        "Hardcover",
+        "Spiral-bound"
+      ]
+    },
+    "physical_dimensions": {
+      "type": "string",
+      "examples": [
+        "5.4 x 4.7 x 0.2 inches",
+        "21 x 14.8 x 0.8 centimeters"
+      ]
+    },
+    "weight": {
+      "type": "string",
+      "examples": [
+        "300 grams",
+        "0.3 kilos",
+        "12 ounces",
+        "1 pounds"
+      ]
+    },
+    "identifiers": {
+      "type": "object",
+      "patternProperties": {
+        "^\\w+": { "$ref": "shared_definitions.json#/string_array" }
+      },
+      "description": "Unique identifiers used by external sites to identify a book. Used by Open Library to link offsite.",
+      "examples": [
+        {
+            "standard_ebooks": ["leo-tolstoy/what-is-art/aylmer-maude"]
+        },
+        {
+            "project_gutenberg": ["64317"]
+        }
+      ]
+    },
+    "cover": {
+      "type": "string",
+      "description": "URL for an edition's cover",
+      "examples": [
+        "https://www.example.com/images/8.jpeg"
+      ]
+    }
+  },
+  "definitions": {
+    "import_author": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+	  "examples": [
+	    "Hubbard, Freeman H.",
+	    "Joan Miró"
+	  ]
+	},
+	"personal_name": {
+	  "type": "string",
+	  "description": "Can be identical to 'name'. TODO: provide information on the intended difference."
+	},
+	"birth_date": {
+	  "type": "string",
+	  "examples": []
+	},
+	"death_date": {
+	  "type": "string",
+	  "examples": []
+	},
+	"entity_type": {
+	  "type": "string",
+	  "enum": ["person", "org", "event"]
+	},
+	"title": {
+	  "type": "string",
+	  "examples": ["duc d'Otrante"]
+	}
+      }
+    },
+    "import_contributor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "examples": [
+            "Author",
+            "Editor",
+            "Illustrator"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "examples": [
+            "Freeman H. Hubbard",
+            "Joan Miró"
+          ]
+        }
+      }
+    }
+  }
+}

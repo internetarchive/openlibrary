@@ -31,13 +31,13 @@ def test_log_recent_bot_traffic():
         tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
-        # alias the docker command to return some noise
+        # alias the obfi commands to return some noise
         aliases_fp.write(
             f"""
-                docker() {{
+                obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
-                export -f docker
+                export -f obfi_in_docker
 
                 nc() {{
                     # Read stdin and write to nc_fp
@@ -55,14 +55,16 @@ def test_log_recent_bot_traffic():
 
         bash_run(
             "log_recent_bot_traffic stats.ol-covers0.bot_traffic openlibrary-covers_nginx-1",
-            sources=[aliases_fp.name, "utils.sh"],
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
         )
 
         with open(nc_fp.name) as f:
+            # FIXME: eg gptbot is counted twice since it appears twice in each log entry
             expected_output = """
 stats.ol-covers0.bot_traffic.gptbot 2 1741054377
+stats.ol-covers0.bot_traffic.meta_externalagent 1 1741054377
 stats.ol-covers0.bot_traffic.other 0 1741054377
-stats.ol-covers0.bot_traffic.non_bot 6 1741054377
+stats.ol-covers0.bot_traffic.non_bot 5 1741054377
             """.strip()
             assert f.read().strip() == expected_output
 
@@ -72,13 +74,13 @@ def test_log_recent_http_statuses():
         tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
-        # alias the docker command to return some noise
+        # alias the obfi commands to return some noise
         aliases_fp.write(
             f"""
-                docker() {{
+                obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
-                export -f docker
+                export -f obfi_in_docker
 
                 nc() {{
                     # Read stdin and write to nc_fp
@@ -96,7 +98,7 @@ def test_log_recent_http_statuses():
 
         bash_run(
             "log_recent_http_statuses stats.ol-covers.http_status openlibrary-covers_nginx-1",
-            sources=[aliases_fp.name, "utils.sh"],
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
         )
 
         with open(nc_fp.name) as f:

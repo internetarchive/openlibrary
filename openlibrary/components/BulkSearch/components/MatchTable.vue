@@ -10,7 +10,7 @@
             #
           </th>
           <th
-            colspan="2"
+            :colspan="columns.length"
             style="width:400px;"
           >
             Extracted Books
@@ -20,9 +20,11 @@
           </th>
         </tr>
         <tr>
-          <th>Title</th>
-          <th style="min-width: 200px;">
-            Author
+          <th
+            v-for="(column, colIndex) in columns"
+            :key="colIndex"
+          >
+            {{ column }}
           </th>
         </tr>
       </thead>
@@ -34,6 +36,7 @@
           :book-match="bookMatch"
           :index="index"
           :bulk-search-state="bulkSearchState"
+          :columns="columns"
         />
       </tbody>
     </table>
@@ -49,6 +52,18 @@ export default {
     },
     props: {
         bulkSearchState: BulkSearchState,
+    },
+    computed: {
+        columns(){
+            const cols = new Set(
+                this.bulkSearchState.matchedBooks
+                    .flatMap(bookMatch => Object.keys(bookMatch.extractedBook)
+                        .filter(key => bookMatch.extractedBook[key])
+                    )
+                    .map(col => col.toLowerCase())
+            )
+            return ['title', 'author', 'isbn'].filter(col => cols.has(col))
+        }
     }
 }</script>
 

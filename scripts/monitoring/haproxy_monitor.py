@@ -10,7 +10,7 @@ import struct
 import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 import requests
 
@@ -31,6 +31,32 @@ class GraphiteEvent:
 
     def serialize(self):
         return (self.path, (self.timestamp, self.value))
+
+    def serialize_str(self) -> str:
+        return f"{self.path} {self.value} {self.timestamp}"
+
+    def submit(self, graphite_address: str | tuple[str, int]):
+        GraphiteEvent.submit_many([self], graphite_address)
+
+    @staticmethod
+    def submit_many(
+        events: 'list[GraphiteEvent]', graphite_address: str | tuple[str, int]
+    ):
+        if isinstance(graphite_address, str):
+            graphite_host, graphite_port = cast(
+                tuple[str, str], tuple(graphite_address.split(':', 1))
+            )
+            graphite_address_tuple = (graphite_host, int(graphite_port))
+        else:
+            graphite_address_tuple = graphite_address
+
+        payload = pickle.dumps([e.serialize() for e in events], protocol=2)
+        header = struct.pack("!L", len(payload))
+        message = header + payload
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect(graphite_address_tuple)
+            sock.sendall(message)
 
 
 @dataclass
@@ -83,8 +109,8 @@ async def main(
     commit_freq=30,
     agg: Literal['max', 'min', 'sum', None] = None,
 ):
-    graphite_address = tuple(graphite_address.split(':', 1))
-    graphite_address = (graphite_address[0], int(graphite_address[1]))
+    graphite_address_tuple = tuple(graphite_address.split(':', 1))
+    graphite_address_tuple = (graphite_address_tuple[0], int(graphite_address_tuple[1]))
 
     agg_options: dict[str, Callable[[Iterable[float]], float]] = {
         'max': max,
@@ -127,15 +153,7 @@ async def main(
                 print(e.serialize())
 
             if not dry_run:
-                payload = pickle.dumps(
-                    [e.serialize() for e in events_buffer], protocol=2
-                )
-                header = struct.pack("!L", len(payload))
-                message = header + payload
-
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.connect(graphite_address)
-                    sock.sendall(message)
+                GraphiteEvent.submit_many(events_buffer, graphite_address_tuple)
 
             events_buffer = []
             last_commit_ts = ts

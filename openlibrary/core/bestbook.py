@@ -7,7 +7,7 @@ class Bestbook(db.CommonExtras):
     """Best book award operations"""
 
     TABLENAME = "bestbooks"
-    PRIMARY_KEY = "nomination_id"
+    PRIMARY_KEY = "award_id"
     ALLOW_DELETE_ON_CONFLICT = False
 
     class AwardConditionsError(Exception):

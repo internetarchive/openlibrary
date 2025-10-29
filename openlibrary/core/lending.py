@@ -1,5 +1,7 @@
 """Module for providing core functionality of lending on Open Library."""
 
+from __future__ import annotations  # Needed for 'Loan' return types early on
+
 import datetime
 import logging
 import time
@@ -24,6 +26,8 @@ from . import ia
 if TYPE_CHECKING:
     from openlibrary.book_providers import EbookAccess
     from openlibrary.plugins.upstream.models import Edition
+
+    from .waitinglist import WaitingLoan
 
 
 logger = logging.getLogger(__name__)
@@ -112,6 +116,7 @@ def compose_ia_url(
     sorts=None,
     advanced: bool = True,
     rate_limit_exempt: bool = True,
+    safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
@@ -149,6 +154,9 @@ def compose_ia_url(
         q += " AND " + query
     if subject:
         q += " AND openlibrary_subject:" + subject
+
+    if safe_mode:
+        q += " AND !collection:(no-preview)"
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -240,6 +248,7 @@ def get_available(
     query=None,
     sorts=None,
     url=None,
+    safe_mode=False,
 ):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
@@ -256,6 +265,7 @@ def get_available(
         subject=subject,
         query=query,
         sorts=sorts,
+        safe_mode=safe_mode,
     )
     if not url:
         logger.error(
@@ -335,7 +345,7 @@ class AvailabilityStatusV2(AvailabilityStatus):
 
 
 def get_ebook_access_availability(
-    ocaid: str, ebook_access: 'EbookAccess'
+    ocaid: str, ebook_access: EbookAccess
 ) -> AvailabilityStatusV2:
     from openlibrary.book_providers import EbookAccess
 
@@ -565,7 +575,7 @@ def add_availability(
     return items
 
 
-def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
+def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
     """
     Get Editions from OCAIDs and attach their availabiliity.
 
@@ -613,7 +623,7 @@ def is_loaned_out_on_ol(identifier: str) -> bool:
     return bool(loan)
 
 
-def get_loan(identifier, user_key=None):
+def get_loan(identifier: str, user_key: str | None = None):
     """Returns the loan object for given identifier, if a loan exists.
 
     If user_key is specified, it returns the loan only if that user is
@@ -623,19 +633,20 @@ def get_loan(identifier, user_key=None):
     account = None
     if user_key:
         if user_key.startswith('@'):
-            account = OpenLibraryAccount.get(link=user_key)
+            account = OpenLibraryAccount.get_by_link(user_key)
         else:
-            account = OpenLibraryAccount.get(key=user_key)
+            account = OpenLibraryAccount.get_by_key(user_key)
 
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (
         user_key is None
-        or (d['user'] == account.username)
-        or (d['user'] == account.itemname)
+        or (account and d['user'] == account.username)
+        or (account and d['user'] == account.itemname)
     ):
         loan = Loan(d)
         if loan.is_expired():
-            return loan.delete()
+            loan.delete()
+            return None
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception:  # TODO: Narrow exception scope
@@ -649,12 +660,12 @@ def get_loan(identifier, user_key=None):
     return _loan
 
 
-def _get_ia_loan(identifier: str, userid: str):
+def _get_ia_loan(identifier: str, userid: str | None = None):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
 
-def get_loans_of_user(user_key):
+def get_loans_of_user(user_key: str) -> list[Loan]:
     """TODO: Remove inclusion of local data; should only come from IA"""
     if 'env' not in web.ctx:
         """For the get_cached_user_loans to call the API if no cache is present,
@@ -662,13 +673,15 @@ def get_loans_of_user(user_key):
         """
         delegate.fakeload()
 
-    account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+    account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
+    loans = [Loan(d) for d in loandata]
+    if account and account.itemname:
+        loans += _get_ia_loans_of_user(account.itemname)
     # Set patron's loans in cache w/ now timestamp
     get_cached_loans_of_user.memcache_set(
-        [user_key], {}, loans or [], time.time()
+        (user_key,), {}, loans or [], time.time()
     )  # rehydrate cache
     return loans
 
@@ -680,7 +693,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
 )
 
 
-def get_user_waiting_loans(user_key):
+def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
     """Gets the waitingloans of the patron.
 
     Returns [] if user has no waitingloans.
@@ -691,11 +704,11 @@ def get_user_waiting_loans(user_key):
         delegate.fakeload()
 
     try:
-        account = OpenLibraryAccount.get(key=user_key)
-        itemname = account.itemname
+        account = OpenLibraryAccount.get_by_key(user_key)
+        itemname = account.itemname if account else None
         result = WaitingLoan.query(userid=itemname)
         get_cached_user_waiting_loans.memcache_set(
-            [user_key], {}, result or {}, time.time()
+            (user_key,), {}, result or [], time.time()
         )  # rehydrate cache
         return result or []
     except JSONDecodeError:
@@ -709,12 +722,14 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
 )
 
 
-def _get_ia_loans_of_user(userid):
+def _get_ia_loans_of_user(userid: str) -> list[Loan]:
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
 
-def create_loan(identifier, resource_type, user_key, book_key=None):
+def create_loan(
+    identifier: str, resource_type: str, user_key: str, book_key: str | None = None
+) -> Loan | None:
     """Creates a loan and returns it."""
     ia_loan = ia_lending_api.create_loan(
         identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
@@ -725,10 +740,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
         eventer.trigger("loan-created", loan)
         sync_loan(identifier)
         return loan
-
-    # loan = Loan.new(identifier, resource_type, user_key, book_key)
-    # loan.save()
-    # return loan
+    return None
 
 
 NOT_INITIALIZED = object()
@@ -798,7 +810,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
 class EBookRecord(dict):
     @staticmethod
-    def find(identifier):
+    def find(identifier: str) -> EBookRecord:
         key = "ebooks/" + identifier
         d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
@@ -819,7 +831,12 @@ class Loan(dict):
     """Model for loan."""
 
     @staticmethod
-    def new(identifier, resource_type, user_key, book_key=None):
+    def new(
+        identifier: str,
+        resource_type: Literal["bookreader"],
+        user_key: str,
+        book_key: str | None = None,
+    ) -> Loan:
         """Creates a new loan object.
 
         The caller is expected to call save method to save the loan.
@@ -868,7 +885,7 @@ class Loan(dict):
         )
 
     @staticmethod
-    def from_ia_loan(data):
+    def from_ia_loan(data: dict) -> Loan:
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:') :]
         elif data['userid'].startswith('@'):
@@ -908,11 +925,11 @@ class Loan(dict):
         }
         return Loan(d)
 
-    def is_ol_loan(self):
+    def is_ol_loan(self) -> bool:
         # self['user'] will be None for IA loans
         return self['user'] is not None
 
-    def save(self):
+    def save(self) -> None:
         # loans stored at IA are not supposed to be saved at OL.
         # This call must have been made in mistake.
         if self.get("stored_at") == "ia":
@@ -923,12 +940,12 @@ class Loan(dict):
         # Inform listers that a loan is created/updated
         eventer.trigger("loan-created", self)
 
-    def is_expired(self):
+    def is_expired(self) -> bool:
         return (
             self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
         )
 
-    def is_yet_to_be_fulfilled(self):
+    def is_yet_to_be_fulfilled(self) -> bool:
         """Returns True if the loan is not yet fulfilled and fulfillment time
         is not expired.
         """
@@ -937,7 +954,7 @@ class Loan(dict):
             and (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
         )
 
-    def return_loan(self):
+    def return_loan(self) -> bool:
         logger.info("*** return_loan ***")
         if self['resource_type'] == 'bookreader':
             self.delete()
@@ -945,13 +962,13 @@ class Loan(dict):
         else:
             return False
 
-    def delete(self):
+    def delete(self) -> None:
         loan = dict(self, returned_at=time.time())
         user_key = self['user']
-        account = OpenLibraryAccount.get(key=user_key)
+        account = OpenLibraryAccount.get_by_key(user_key)
         if self.get("stored_at") == 'ia':
             ia_lending_api.delete_loan(self['ocaid'], userkey2userid(user_key))
-            if account.itemname:
+            if account and account.itemname:
                 ia_lending_api.delete_loan(self['ocaid'], account.itemname)
         else:
             web.ctx.site.store.delete(self['_key'])
@@ -961,7 +978,7 @@ class Loan(dict):
         eventer.trigger("loan-completed", loan)
 
 
-def resolve_identifier(identifier):
+def resolve_identifier(identifier: str) -> str | None:
     """Returns the OL book key for given IA identifier."""
     if keys := web.ctx.site.things({'type': '/type/edition', 'ocaid': identifier}):
         return keys[0]
@@ -969,12 +986,12 @@ def resolve_identifier(identifier):
         return "/books/ia:" + identifier
 
 
-def userkey2userid(user_key):
+def userkey2userid(user_key: str) -> str:
     username = user_key.split("/")[-1]
     return "ol:" + username
 
 
-def get_resource_id(identifier, resource_type):
+def get_resource_id(identifier: str, resource_type: str) -> str | None:
     """Returns the resource_id for an identifier for the specified resource_type.
 
     The resource_id is found by looking at external_identifiers field in the
@@ -996,6 +1013,7 @@ def get_resource_id(identifier, resource_type):
         acs, rtype, resource_id = eid.split(":", 2)
         if rtype == resource_type:
             return resource_id
+    return None
 
 
 def update_loan_status(identifier):

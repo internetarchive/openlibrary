@@ -12,12 +12,15 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
+    quote,
+    quote_plus,
     urlparse,
     urlunparse,
 )
+from urllib.parse import urlencode as og_urlencode
 from urllib.parse import (
     urlencode as parse_urlencode,
 )
@@ -643,8 +646,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
-    from urllib.parse import quote, quote_plus
-    from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
@@ -690,10 +691,7 @@ def set_share_links(
         view_context.share_links = links
 
 
-T = TypeVar('T')
-
-
-def safeget(func: Callable[[], T], default=None) -> T:
+def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy
     >>> safeget(lambda: {}['foo'])
@@ -1661,6 +1659,14 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
+
+
+@public
+def subject_name_to_key(subject: str, prefix='') -> str:
+    # TODO: DRY with scripts/solr_builder/solr_builder/index_subjects.py
+    if prefix:
+        prefix = prefix.rstrip(':') + ':'
+    return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
 
 
 def setup_requests(config=config) -> None:

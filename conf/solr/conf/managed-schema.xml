@@ -160,6 +160,7 @@
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
+    <field name="ebook_provider" type="string" multiValued="true"/>
 
     <!-- Reading Levels -->
     <field name="lexile" type="pint" multiValued="true"/>
@@ -265,6 +266,10 @@
 
    <!-- additional fields used by documents of type subject -->
    <field name="subject_type" type="string" indexed="true" stored="true"/>
+
+   <!-- fields used by documents of type list -->
+   <field name="last_modified" type="pdate" indexed="true" stored="true"/>
+   <field name="seed_count" type="pint" indexed="true" stored="true"/>
 
     <!-- dynamic fields -->
     <dynamicField name="id_*"  type="string"  indexed="true"  stored="true" multiValued="true"/>
@@ -552,7 +557,7 @@
     </fieldType>
 
     <!-- A text field that applies standard title sorting conventions to its content -->
-    <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
+    <fieldType name="text_title_sort" class="solr.SortableTextField" sortMissingLast="false" omitNorms="true">
       <analyzer>
         <tokenizer name="keyword" />
         <filter name="trim" />

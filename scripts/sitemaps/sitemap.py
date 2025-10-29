@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
@@ -146,18 +147,18 @@ def generate_sitemaps(filename: str) -> None:
     with open(filename) as f:
         rows = (line.strip().split("\t") for line in f)
 
-    for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
-        things = []
+        for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
+            things = []
 
-        _chunk = list(chunk)
-        for segment in _chunk:
-            sortkey = segment.pop(0)
-            last_modified = segment.pop(-1)
-            path = ''.join(segment)
-            things.append(web.storage(path=path, last_modified=last_modified))
+            _chunk = list(chunk)
+            for segment in _chunk:
+                sortkey = segment.pop(0)
+                last_modified = segment.pop(-1)
+                path = ''.join(segment)
+                things.append(web.storage(path=path, last_modified=last_modified))
 
-        if things:
-            write(f"sitemaps/sitemap_{sortkey}.xml.gz", sitemap(things))
+            if things:
+                write(f"sitemaps/sitemap_{sortkey}.xml.gz", sitemap(things))
 
 
 @elapsed_time("generate_siteindex")
@@ -225,6 +226,5 @@ def main(dumpfile: str) -> None:
 
 
 if __name__ == "__main__":
-    import sys
 
     main(sys.argv[1])

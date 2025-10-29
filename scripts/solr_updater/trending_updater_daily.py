@@ -13,7 +13,7 @@ def fetch_works_trending_scores(current_day: int):
             # /export needs a sort to work
             "sort": "key asc",
         },
-        _timeout=10_000,  # Increase timeout for large datasets
+        _timeout=None,  # No timeout for large datasets
     )
     assert resp
     data = resp.json()

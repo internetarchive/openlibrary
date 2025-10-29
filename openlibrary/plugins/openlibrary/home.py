@@ -67,7 +67,8 @@ def get_cached_homepage():
     page = mc(devmode=("dev" in web.ctx.features))
 
     if not page:
-        mc(_cache='delete')
+        mc.memcache_delete_by_args()
+        mc()
 
     return page
 
@@ -106,21 +107,31 @@ class home(delegate.page):
         return web.template.TemplateResult(cached_homepage)
 
 
+@cache.memoize(
+    engine="memcache", key="home.random_book", expires=dateutil.HALF_HOUR_SECS
+)
+def get_random_borrowable_ebook_keys(count: int) -> list[str]:
+    solr = search.get_solr()
+    docs = solr.select(
+        'type:edition AND ebook_access:[borrowable TO *]',
+        fields=['key'],
+        rows=count,
+        sort=f'random_{random.random()} desc',
+    )['docs']
+    return [doc['key'] for doc in docs]
+
+
 class random_book(delegate.page):
     path = "/random"
 
     def GET(self):
-        solr = search.get_solr()
-        key = solr.select(
-            'type:edition AND ebook_access:[borrowable TO *]',
-            fields=['key'],
-            rows=1,
-            sort=f'random_{random.random()} desc',
-        )['docs'][0]['key']
-        raise web.seeother(key)
+        keys = get_random_borrowable_ebook_keys(1000)
+        raise web.seeother(random.choice(keys))
 
 
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
+def get_ia_carousel_books(
+    query=None, subject=None, sorts=None, limit=None, safe_mode=True
+):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -133,6 +144,7 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
         subject=subject,
         sorts=sorts,
         query=query,
+        safe_mode=safe_mode,
     )
     formatted_books = [
         format_book_data(book, False) for book in books if book != 'error'
@@ -188,6 +200,7 @@ def generic_carousel(
     sorts=None,
     limit=None,
     timeout=None,
+    safe_mode=True,
 ):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
@@ -200,6 +213,7 @@ def generic_carousel(
         subject=subject,
         sorts=sorts,
         limit=limit,
+        safe_mode=safe_mode,
     )
     if not books:
         books = cached_ia_carousel_books.update(
@@ -207,6 +221,7 @@ def generic_carousel(
             subject=subject,
             sorts=sorts,
             limit=limit,
+            safe_mode=safe_mode,
         )[0]
     return storify(books) if books else books
 

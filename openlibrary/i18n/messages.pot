@@ -149,7 +149,8 @@ msgstr ""
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/tag/form.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -292,12 +293,16 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
-#: Follow.html
-msgid "UnfollowFollow"
+#: Follow.html lists/list_follow.html
+msgid "Follow"
 msgstr ""
 
 #: Follow.html
-msgid "Follow"
+msgid "Unfollow"
+msgstr ""
+
+#: Follow.html
+msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
 #: FormatExpiry.html
@@ -1916,6 +1921,13 @@ msgstr ""
 #: internalerror.html
 #, python-format
 msgid ""
+"The reference code %s and Sentry trace ID %s have been created to track "
+"this error and we will investigate as we're able."
+msgstr ""
+
+#: internalerror.html
+#, python-format
+msgid ""
 "The reference code %s has been created to track this error and we will "
 "investigate as we're able."
 msgstr ""
@@ -2534,7 +2546,7 @@ msgid "Download a copy of your reading log."
 msgstr ""
 
 #: account/import.html
-msgid "What is this?"
+msgid "What is a reading log?"
 msgstr ""
 
 #: account/import.html
@@ -5467,7 +5479,7 @@ msgstr ""
 
 #: covers/external_image.html
 #, python-format
-msgid "Or, use the cover from %s"
+msgid "Or, use a cover from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -5555,11 +5567,6 @@ msgstr ""
 
 #: home/categories.html
 msgid "Browse by Subject"
-msgstr ""
-
-#: home/categories.html
-#, python-format
-msgid "browse %(subject)s books"
 msgstr ""
 
 #: home/categories.html
@@ -6296,8 +6303,32 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
+#: lists/list_follow.html
+msgid "Cover of book"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Avatar of the owner of the list"
+msgstr ""
+
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "This patron has not enabled following"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "🔒︎"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "OpenLibrary Logo"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "Community List"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
@@ -7077,6 +7108,18 @@ msgid "Random"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Name (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (oldest) (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (youngest) (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
 msgid "List Order"
 msgstr ""
 
@@ -7464,10 +7507,6 @@ msgstr ""
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
-
-#: type/author/view.html
-msgid "Location"
 msgstr ""
 
 #: type/author/view.html

@@ -1,14 +1,15 @@
 import re
 from collections import defaultdict
+from functools import cached_property
 from typing import cast
 
 import httpx
 
+from openlibrary.core.models import SubjectType
 from openlibrary.plugins.openlibrary.lists import (
     SeedType,
     seed_key_to_seed_type,
 )
-from openlibrary.plugins.worksearch.subjects import SubjectType
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_key
@@ -106,7 +107,7 @@ class ListSolrBuilder(AbstractSolrBuilder):
     def name(self) -> str | None:
         return self._list.get('name')
 
-    @property
+    @cached_property
     def seed(self) -> list[str]:
         return [
             (
@@ -116,3 +117,12 @@ class ListSolrBuilder(AbstractSolrBuilder):
             )
             for seed in self._list.get('seeds', [])
         ]
+
+    @property
+    def last_modified(self) -> str:
+        # Solr expects UTC ISO 8601 with 'Z' suffix, e.g. 2024-12-09T12:57:14.074200Z
+        return self._list['last_modified']['value'] + 'Z'
+
+    @property
+    def seed_count(self) -> int:
+        return len(self.seed)

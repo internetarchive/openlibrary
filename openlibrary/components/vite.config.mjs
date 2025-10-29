@@ -6,7 +6,7 @@ import { writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 
-const BUILD_DIR = './static/build/components';
+const BUILD_DIR = process.env.BUILD_DIR || 'static/build/components';
 
 const componentNames = getComponentNames();
 componentNames.forEach(generateViteEntryFile)

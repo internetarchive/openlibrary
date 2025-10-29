@@ -20,7 +20,6 @@ jobs:
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel
           pip install -r requirements_test.txt
-          pip list --outdated
       - run: make git
       - shell: python
         run: |

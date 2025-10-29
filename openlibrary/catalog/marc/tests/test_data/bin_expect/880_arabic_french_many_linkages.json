@@ -22,6 +22,7 @@
     {
       "name": "مودن، عبد الرحمن",
       "entity_type": "person",
+      "remote_ids": {"lc_naf": "nr92001540"},
       "alternate_names": [
 	"El Moudden, Abderrahmane"
       ]
@@ -29,6 +30,7 @@
     {
       "name": "بنحادة، عبد الرحيم",
       "entity_type": "person",
+      "remote_ids": {"lc_naf": "nr97026593"},
       "alternate_names": [
 	"Bin-Ḥāddah, ʻAbd al-Raḥīm"
       ]
@@ -36,6 +38,7 @@
     {
       "name": "غربي، محمد لزهر",
       "entity_type": "person",
+      "remote_ids": {"lc_naf": "nr96019749"},
       "alternate_names": [
 	"Gharbi, Mohamed Lazhar"
       ]

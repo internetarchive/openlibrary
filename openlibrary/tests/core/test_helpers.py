@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import web
 
 from openlibrary.core import helpers as h
@@ -55,7 +57,6 @@ def test_sanitize():
 
 
 def test_safesort():
-    from datetime import datetime
 
     y2000 = datetime(2000, 1, 1)
     y2005 = datetime(2005, 1, 1)
@@ -73,7 +74,6 @@ def test_safesort():
 
 
 def test_datestr(monkeypatch):
-    from datetime import datetime
 
     then = datetime(2010, 1, 1, 0, 0, 0)
 

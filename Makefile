@@ -14,23 +14,30 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 all: git css js components i18n
 
 css:
-	mkdir -p $(BUILD)
-	NODE_ENV=production npx webpack --config webpack.config.css.js
+	mkdir -p $(BUILD)/css_new
+	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
+	mkdir -p $(BUILD)/css
+	rm -rf $(BUILD)/css
+	mv $(BUILD)/css_new $(BUILD)/css
 
 js:
-	mkdir -p $(BUILD)
-	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
-	NODE_ENV=production npx webpack
+	mkdir -p $(BUILD)/js_new
+	BUILD_DIR=$(BUILD)/js_new NODE_ENV=production npx webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
-	for js in $(BUILD)/*.js; do \
+	for js in $(BUILD)/js_new/*.js; do \
 		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
 		echo "\n// @license-end"  >> $$js; \
 	done
+	mkdir -p $(BUILD)/js
+	rm -rf $(BUILD)/js
+	mv $(BUILD)/js_new $(BUILD)/js
 
 components:
-	rm -rf $(BUILD)/components
+	mkdir -p $(BUILD)/components_new
+	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
 	mkdir -p $(BUILD)/components
-	npx vite build -c openlibrary/components/vite.config.mjs
+	rm -rf $(BUILD)/components
+	mv $(BUILD)/components_new $(BUILD)/components
 
 
 i18n:

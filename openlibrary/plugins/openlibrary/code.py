@@ -3,17 +3,20 @@ Open Library Plugin.
 """
 
 import datetime
+import gzip
 import json
 import logging
 import math
 import os
 import random
 import socket
+import sys
 from time import time
 from urllib.parse import parse_qs, urlencode
 
 import requests
 import web
+import yaml
 
 import infogami
 from openlibrary.core import db
@@ -196,7 +199,6 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename='sampledump.txt.gz'):
-    import gzip
 
     with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
         queries = [json.loads(line) for line in file]
@@ -218,7 +220,6 @@ class routes(delegate.page):
 
         return '<pre>%s</pre>' % json.dumps(
             code.delegate.pages,
-            sort_keys=True,
             cls=ModulesToStr,
             indent=4,
             separators=(',', ': '),
@@ -462,7 +463,7 @@ class serviceworker(delegate.page):
 
     def GET(self):
         web.header('Content-Type', 'text/javascript')
-        return web.ok(open('static/build/sw.js').read())
+        return web.ok(open('static/build/js/sw.js').read())
 
 
 class assetlinks(delegate.page):
@@ -616,9 +617,9 @@ class BatchImportApprove(delegate.page):
             """
             UPDATE import_item
             SET status = 'pending'
-            WHERE batch_id = $1 AND status = 'needs_review';
+            WHERE batch_id = $batch_id AND status = 'needs_review';
             """,
-            (batch_id,),
+            vars=locals(),
         )
 
         return web.found(f"/import/batch/{batch_id}")
@@ -685,7 +686,9 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
+            if ed := Edition.from_isbn(
+                isbn_or_asin=isbn, high_priority=high_priority, allow_import=False
+            ):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -861,12 +864,10 @@ class _yaml(delegate.mode):
         return json.loads(d)
 
     def dump(self, d):
-        import yaml
 
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
     def load(self, data):
-        import yaml
 
         return yaml.safe_load(data)
 
@@ -1147,9 +1148,7 @@ def save_error():
 
 
 def internalerror():
-    name = save_error()
-
-    import sys
+    name_webpy_error = save_error()
 
     exception_type, exception_value, _ = sys.exc_info()
 
@@ -1161,14 +1160,20 @@ def internalerror():
     # TODO: move this to plugins\openlibrary\sentry.py
     from openlibrary.plugins.openlibrary.sentry import sentry
 
+    sentry_event_id: str | None = None
     if sentry.enabled:
-        sentry.capture_exception_webpy()
+        sentry_event_id = sentry.capture_exception_webpy()
 
     if features.is_enabled('debug'):
         raise web.debugerror()
     else:
         msg = render.site(
-            render.internalerror(name, etype=exception_type, evalue=exception_value)
+            render.internalerror(
+                name_webpy_error,
+                sentry_event_id,
+                etype=exception_type,
+                evalue=exception_value,
+            )
         )
         raise web.internalerror(web.safestr(msg))
 

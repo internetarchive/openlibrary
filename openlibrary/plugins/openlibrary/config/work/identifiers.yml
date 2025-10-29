@@ -11,6 +11,11 @@ identifiers:
 -   label: Goodreads
     name: goodreads
     url: https://www.goodreads.com/work/editions/@@@
+-   label: Internet Speculative Fiction Database
+    name: isfdb
+    notes: Should be a number
+    url: https://www.isfdb.org/cgi-bin/title.cgi?@@@
+    website: https://www.isfdb.org
 -   label: LibraryThing
     name: librarything
     url: https://www.librarything.com/work/@@@
