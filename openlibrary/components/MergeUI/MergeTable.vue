@@ -424,10 +424,6 @@ table.main {
           padding-left: 1em;
           padding-top: 0;
         }
-
-        div.field-title {
-          font-family: monospace;
-        }
       }
 
       & > div.wrap-created--last_modified--revision--type--location {
