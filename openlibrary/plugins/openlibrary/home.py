@@ -36,21 +36,21 @@ def get_continue_reading_books(limit=20):
     """
     Get books for the 'Continue Reading' carousel.
     Returns active loans + recent loan history (up to `limit` total books).
-    
+
     Args:
         limit: Maximum number of books to return
-    
+
     Returns:
         list: List of book editions to display in carousel
         None: If user is not logged in or has no reading history
     """
     user = accounts.get_current_user()
-    
+
     if not user:
         return None
-    
+
     books = []
-    
+
     # 1. Get active loans (priority)
     try:
         active_loans = lending.get_loans_of_user(user.key)
@@ -60,24 +60,25 @@ def get_continue_reading_books(limit=20):
                 book.is_active_loan = True
                 books.append(book)
     except Exception as e:
-        logger.error(f"Error fetching active loans for continue reading: {e}", exc_info=True)
-    
+        logger.error(
+            f"Error fetching active loans for continue reading: {e}", exc_info=True
+        )
+
     # 2. Get recent loan history to fill remaining slots
-    remaining_slots = limit - len(books)
-    if remaining_slots > 0:
+    if (remaining_slots := limit - len(books)) > 0:
         try:
             from openlibrary.plugins.upstream.account import (
-                get_loan_history_data,
                 MyBooksTemplate,
+                get_loan_history_data,
             )
-            
+
             username = user['key'].split('/')[-1]
             mb = MyBooksTemplate(username, key='loan_history')
             history_data = get_loan_history_data(page=1, mb=mb)
-            
+
             # Filter out books already in active loans
             active_loan_keys = {book.key for book in books}
-            
+
             for doc in history_data.get('docs', [])[:remaining_slots]:
                 if hasattr(doc, 'key'):
                     if doc.key not in active_loan_keys:
@@ -88,10 +89,12 @@ def get_continue_reading_books(limit=20):
                         if book_obj := web.ctx.site.get(doc['key']):
                             book_obj.is_active_loan = False
                             books.append(book_obj)
-                            
+
         except Exception as e:
-            logger.error(f"Error fetching loan history for continue reading: {e}", exc_info=True)
-    
+            logger.error(
+                f"Error fetching loan history for continue reading: {e}", exc_info=True
+            )
+
     return books[:limit] if books else None
 
 
@@ -102,7 +105,7 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    
+
     # Get continue reading books for logged-in users
     try:
         continue_reading = get_continue_reading_books(limit=20)
@@ -114,10 +117,10 @@ def get_homepage(devmode):
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
     page = render_template(
-        "home/index", 
-        stats=stats, 
+        "home/index",
+        stats=stats,
         blog_posts=blog_posts,
-        continue_reading=continue_reading
+        continue_reading=continue_reading,
     )
     # Convert to a dict so it can be cached
     return dict(page)
@@ -128,10 +131,9 @@ def get_cached_homepage():
 
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
-    
+
     # Create user-specific cache key for logged-in users
-    user = accounts.get_current_user()
-    if user:
+    if user := accounts.get_current_user():
         # User-specific cache (shorter duration for personalized content)
         key = f'home.homepage.{lang}.user.{user.key}'
         timeout = dateutil.MINUTE_SECS  # 1 minute cache for logged-in users
@@ -139,7 +141,7 @@ def get_cached_homepage():
         # Public cache (longer duration)
         key = f'home.homepage.{lang}'
         timeout = five_minutes
-    
+
     cookies = web.cookies()
     if cookies.get('pd', False):
         key += '.pd'

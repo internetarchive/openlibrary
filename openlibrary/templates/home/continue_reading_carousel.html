@@ -4,7 +4,7 @@ $# Continue Reading carousel for logged-in users
 $# Shows active loans and recent loan history
 
 $if books:
-    $:render_template("books/custom_carousel", 
+    $:render_template("books/custom_carousel",
         books=books,
         title=_('Continue Reading'),
         url="/account/loans",
