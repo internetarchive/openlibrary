@@ -106,7 +106,7 @@ class hooks(client.hook):
             )
 
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
-            if page.type.key == '/type/author' or page.type.key == '/type/redirect':
+            if page.type.key in ('/type/author', '/type/redirect'):
                 return
 
             books = web.ctx.site.things({'type': '/type/edition', 'authors': page.key})
