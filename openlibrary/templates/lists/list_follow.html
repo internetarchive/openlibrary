@@ -63,8 +63,8 @@ $for i, list in enumerate(lists):
         $ converted = convert_list(list.key)
 
         $ cached_info = converted.get_patron_showcase()
-        $ count = cached_info["count"]
-        $ card_header = render_card_header(cached_info['title'], count)
+        $ book_count = cached_info["count"]
+        $ card_header = render_card_header(cached_info['title'], book_count)
         $ card_footer = render_card_footer(list.owner, own_list)
         $ image_urls = []
         $for img_url in cached_info["covers"]:
@@ -74,4 +74,4 @@ $for i, list in enumerate(lists):
                 $image_urls.append("/images/icons/avatar_book-sm.png")
 
         $:render_template("cards/multi_image_card", header_html=card_header, image_urls=image_urls, footer_html=card_footer, href=converted.get_url())
-      $ count = count + 1
+        $ count = count + 1
