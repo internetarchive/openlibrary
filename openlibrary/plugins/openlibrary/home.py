@@ -80,16 +80,19 @@ def get_continue_reading_books(limit=20):
             active_loan_keys = {book.key for book in books}
 
             for doc in history_data.get('docs', [])[:remaining_slots]:
-                if hasattr(doc, 'key'):
-                    if doc.key not in active_loan_keys:
-                        doc.is_active_loan = False
-                        books.append(doc)
-                elif isinstance(doc, dict) and doc.get('key'):
-                    if doc['key'] not in active_loan_keys:
-                        if book_obj := web.ctx.site.get(doc['key']):
-                            book_obj.is_active_loan = False
-                            books.append(book_obj)
-
+                if hasattr(doc, 'key') and doc.key not in active_loan_keys:
+                    doc.is_active_loan = False
+                    books.append(doc)
+                elif (
+                    isinstance(doc, dict)
+                    and doc.get('key')
+                    and doc['key'] not in active_loan_keys
+                    and (book_obj := web.ctx.site.get(doc['key']))
+                ):
+                    book_obj.is_active_loan = False
+                    books.append(book_obj)
+                            
+>>>>>>> a9e3889f9 (resolved ruff linting errors)
         except Exception as e:
             logger.error(
                 f"Error fetching loan history for continue reading: {e}", exc_info=True
