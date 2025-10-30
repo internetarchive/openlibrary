@@ -91,7 +91,7 @@ def get_continue_reading_books(limit=20):
                 ):
                     book_obj.is_active_loan = False
                     books.append(book_obj)
-                            
+
 >>>>>>> a9e3889f9 (resolved ruff linting errors)
         except Exception as e:
             logger.error(

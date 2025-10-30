@@ -6,9 +6,9 @@ from openlibrary.plugins.worksearch import search
 # Check for any books with ebook access
 solr = search.get_solr()
 result = solr.select(
-    'type:edition AND ebook_access:*', 
-    fields=['key', 'title', 'ebook_access', 'ia'], 
-    rows=10
+    'type:edition AND ebook_access:*',
+    fields=['key', 'title', 'ebook_access', 'ia'],
+    rows=10,
 )
 
 print(f'Total books with ebook access: {result.get("num_found", 0)}')
