@@ -1,6 +1,5 @@
 import copy
 import functools
-import itertools
 import json
 import logging
 import re
@@ -750,6 +749,10 @@ class search(delegate.page):
         if list(param) == ['has_fulltext']:
             param = {}
 
+        # TODO: Put this in a more centralized place in the code path
+        if 'q' in param:
+            param['q'] = rewrite_list_query(param['q'])
+
         page = int(param.get('page', 1))
         sort = param.get('sort')
         rows = 20
@@ -1068,47 +1071,53 @@ def random_author_search(limit=10) -> SearchResponse:
     )
 
 
-def rewrite_list_query(q, page, offset, limit):
-    """Takes a solr query. If it doesn't contain a /lists/ key, then
-    return the query, unchanged, exactly as it entered the
-    function. If it does contain a lists key, then use the pagination
-    information to fetch the right block of keys from the
-    lists_editions and lists_works API and then feed these editions resulting work
-    keys into solr with the form key:(OL123W, OL234W). This way, we
-    can use the solr API to fetch list works and render them in
-    carousels in the right format.
+def rewrite_list_query(q: str) -> str:
+    """
+    Takes a solr query and replaces and list key search fields, eg
+    list_key:/people/username/lists/OL123L , with a solr query of
+    the form key:(OL123W, OL234W). This way, we can use the solr API
+    to fetch list works and render them in carousels in the right
+    format.
     """
     from openlibrary.core.lists.model import List
 
-    def cached_get_list_book_keys(key: str, offset: int | None, limit: int | None):
-        offset = offset or 0
-        limit = limit or 100
-
+    def cached_get_list_book_keys(key: str):
         # make cacheable
         if 'env' not in web.ctx:
             delegate.fakeload()
+
         lst = cast(List, web.ctx.site.get(key))
-        return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
+        return list(lst.get_work_keys())
 
-    if list_key_match := re.match(r'^(/people/[^/]+)?/lists/OL\d+L', q):
-        # we're making an assumption that q is just a list key
-        book_keys = cache.memcache_memoize(
+    def get_subquery_list_key(subquery: str) -> str:
+        if m := re.search(r'(/people/[^/]+)?/lists/OL\d+L', subquery):
+            return m[0]
+        raise ValueError(f'Invalid list subquery: {subquery}')
+
+    # Note the first half of the pattern is legacy support for
+    # older queries that had the query start with the list key
+    list_search_field_pattern = (
+        r'(?:^(?:/people/[^/]+)?/lists/OL\d+L|list_key:(?:/people/[^/]+)?/lists/OL\d+L)'
+    )
+    list_keys = {
+        get_subquery_list_key(m) for m in re.findall(list_search_field_pattern, q)
+    }
+    list_seed_keys = {
+        key: cache.memcache_memoize(
             cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
-        )(list_key_match.group(0), offset, limit)
+        )(key)
+        for key in list_keys
+    }
 
-        # Compose a query for book_keys or fallback special query w/ no results
-        q = re.sub(
-            r'^(/people/[^/]+)?/lists/OL\d+L',
-            f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*",
-            q,
-        )
+    def replace_subquery(m: re.Match) -> str:
+        list_key = get_subquery_list_key(m.group(0))
+        book_keys = list_seed_keys.get(list_key, [])
+        return f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*"
 
-        # We've applied the offset to fetching get_list_editions to
-        # produce the right set of discrete work IDs. We don't want
-        # it applied to paginate our resulting solr query.
-        offset = 0
-        page = 1
-    return q, page, offset, limit
+    if list_keys:
+        return re.sub(list_search_field_pattern, replace_subquery, q)
+    else:
+        return q
 
 
 @dataclass(frozen=True)
@@ -1160,16 +1169,13 @@ def _prepare_work_search_query(
     prepared_query_dict['wt'] = 'json'
 
     # Deal with special /lists/ key queries
-    q_val, new_page, new_offset, new_limit = rewrite_list_query(
-        prepared_query_dict.get('q', ''), page, offset, limit
-    )
-    prepared_query_dict['q'] = q_val
+    prepared_query_dict['q'] = rewrite_list_query(prepared_query_dict.get('q', ''))
 
     return PreparedQuery(
         query=prepared_query_dict,
-        page=new_page,
-        offset=new_offset,
-        limit=new_limit,
+        page=page,
+        offset=offset,
+        limit=limit,
     )
 
 
@@ -1281,7 +1287,7 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '').strip()
-        query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
+        query['q'] = rewrite_list_query(q)
         response = work_search(
             query,
             sort=sort,
