@@ -83,8 +83,74 @@ $if "dev" in ctx.features:
             <div class="formElement bottom">
                 <br/>
                 <button value="$_('Log In')" type="submit" class="cta-btn cta-btn--primary" name="login" title="$_('Log In')">$_("Log In")</button>
+                <br/>
+                <ol-button
+                    variant="primary"
+                    type="submit"
+                    name="login"
+                    value="$_('Log In')"
+                    full-width>
+                    $_("Log In")
+                </ol-button>
             </div>
             <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
         </form>
+
+        <div style="margin-top: 40px; padding: 20px; background: #f5f5f5; border-radius: 5px;">
+            <h3 style="margin-top: 0;">ol-button Component Demo</h3>
+
+            <script type="module" src="/static/build/components/production/ol-button.js"></script>
+
+            <div style="margin-bottom: 15px;">
+                <label>Primary<br />with event handlers test:</label><br />
+                <ol-button
+                    id="demo-primary-btn"
+                    variant="primary"
+                    size="medium"
+                    onclick="alert('Primary button clicked! Check console for event logs.'); console.log('Click event bubbled successfully!');"
+                    onmouseover="console.log('Mouseover EVENT!'); this.style.opacity='0.9';"
+                    onmouseout="console.log('Mouseout event bubbled!'); this.style.opacity='1';"
+                    onfocus="console.log('Focus event bubbled!');"
+                    onblur="console.log('Blur event bubbled!');">Demo Login Button</ol-button>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Secondary:</label><br />
+                <ol-button variant="secondary" size="medium">Cancel Action</ol-button>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Destructive:</label><br />
+                <ol-button variant="destructive" size="medium">Delete Account</ol-button>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Sizes (small, medium, large):</label><br />
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <ol-button variant="primary" size="small">Small</ol-button>
+                    <ol-button variant="primary" size="medium">Medium</ol-button>
+                    <ol-button variant="primary" size="large">Large</ol-button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Loading state:</label><br />
+                <ol-button onclick="toggleLoading()" id="demo-loading-btn" variant="primary" size="medium">Save</ol-button>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <button onclick="toggleLoading()" style="padding: 5px 10px; font-size: 12px;">Toggle Loading State</button>
+                <script>
+                    function toggleLoading() {
+                        const loadingBtn = document.getElementById('demo-loading-btn');
+                        if (loadingBtn && loadingBtn.hasAttribute('loading')) {
+                            loadingBtn.removeAttribute('loading');
+                        } else if (loadingBtn) {
+                            loadingBtn.setAttribute('loading', '');
+                        }
+                    }
+                </script>
+            </div>
+        </div>
     </div>
 </div>
