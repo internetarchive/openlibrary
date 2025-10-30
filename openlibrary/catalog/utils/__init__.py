@@ -16,6 +16,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.utils import uniq
 
 if TYPE_CHECKING:
+    from openlibrary.catalog.add_book.load_book import AuthorImportDict
     from openlibrary.plugins.upstream.models import Author
 
 
@@ -53,7 +54,7 @@ def key_int(rec):
     return int(web.numify(rec['key']))
 
 
-def author_dates_match(a: dict, b: "dict | Author") -> bool:
+def author_dates_match(a: "AuthorImportDict", b: "dict | Author") -> bool:
     """
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
@@ -63,7 +64,7 @@ def author_dates_match(a: dict, b: "dict | Author") -> bool:
     :param dict a: Author import dict {"name": "Some One", "birth_date": "1960"}
     :param dict b: Author import dict {"name": "Some One"}
     """
-    for k in ['birth_date', 'death_date', 'date']:
+    for k in ('birth_date', 'death_date', 'date'):
         if k not in a or a[k] is None or k not in b or b[k] is None:
             continue
         if a[k] == b[k] or a[k].startswith(b[k]) or b[k].startswith(a[k]):

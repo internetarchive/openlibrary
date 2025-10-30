@@ -184,7 +184,7 @@ export default {
 
 <style lang="less">
 #app {
-    font-size: 0.9em;
+    font-family: monospace;
 
     div#diffs-toggle {
         float: right;
