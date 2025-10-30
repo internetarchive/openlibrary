@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable, Generator
 from urllib.parse import urlencode
 
-import requests
+import httpx
 import web
 
 from infogami import config
@@ -19,7 +19,7 @@ logger = logging.getLogger('openlibrary.ia')
 IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
-session = requests.Session()
+session = httpx.Client()
 
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
@@ -32,7 +32,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     stats.begin('archive.org', url=url)
     try:
         r = session.get(url, params=params, timeout=3)
-        if r.status_code == requests.codes.ok:
+        if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:
             logger.info(f'{r.status_code} response received from {url}')
@@ -120,7 +120,7 @@ def edition_from_item_metadata(itemid: str, metadata: dict) -> 'ItemEdition | No
 def get_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's cover page."""
     base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
-    cover_response = requests.head(base_url + 'default.jpg', allow_redirects=True)
+    cover_response = session.head(base_url + 'default.jpg', follow_redirects=True)
     if cover_response.status_code == 404:
         return get_fallback_cover_url(item_id)
     return base_url + 'default.jpg'
@@ -129,7 +129,7 @@ def get_cover_url(item_id: str) -> str:
 def get_fallback_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
-    title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
+    title_response = session.head(base_url + 'title.jpg', follow_redirects=True)
     if title_response.status_code == 404:
         return base_url + 'cover.jpg'
     return base_url + 'title.jpg'
