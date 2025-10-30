@@ -34,7 +34,10 @@ js:
 
 components:
 	mkdir -p $(BUILD)/components_new
+	# Build Vue components
 	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
+	# Build Lit components
+	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components-lit/vite.config.mjs
 	mkdir -p $(BUILD)/components
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
