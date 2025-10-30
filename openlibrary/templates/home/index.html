@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, test=False)
+$def with (stats=None, blog_posts=None, continue_reading=None, test=False)
 
 $ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
@@ -15,6 +15,10 @@ $add_metatag(property="og:site_name", content="Open Library")
 <div id="contentBody">
 
   $:render_template("home/welcome", test=test)
+
+  $# Continue Reading carousel for logged-in users with active loans or reading history
+  $if continue_reading:
+    $:render_template("home/continue_reading_carousel", continue_reading, test=test)
 
   $if not test:
     $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)

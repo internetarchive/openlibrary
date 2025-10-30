@@ -1,0 +1,17 @@
+$def with(books, test=False)
+
+$# Continue Reading carousel for logged-in users
+$# Shows active loans and recent loan history
+
+$if books:
+    $:render_template("books/custom_carousel", 
+        books=books,
+        title=_('Continue Reading'),
+        url="/account/loans",
+        key="continue_reading",
+        min_books=1,
+        load_more=None,
+        test=test,
+        compact_mode=False,
+        layout='carousel'
+    )
