@@ -50,7 +50,12 @@ from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isb
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
+delegate.app.add_processor(
+    processors.CORSProcessor(
+        cors_paths={'/opds'},
+        cors_prefixes={'/api/', '/opds/'},
+    )
+)
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
