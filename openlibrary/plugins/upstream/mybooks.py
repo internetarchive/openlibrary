@@ -102,6 +102,8 @@ class mybooks_home(delegate.page):
             counts=mb.counts,
             lists=mb.lists,
             component_times=mb.component_times,
+            activity_feed=mb.activity_feed,
+            follows_others=mb.follows_others,
         )
 
 
@@ -429,8 +431,13 @@ class MyBooksTemplate:
             self.counts['followers'] = PubSub.count_followers(self.username)
             self.counts['following'] = PubSub.count_following(self.username)
 
+        self.activity_feed = []
+        self.follows_others = False
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
+            self.activity_feed, self.follows_others = ActivityFeed.get_activity_feed(
+                self.username
+            )
 
         self.component_times: dict = {}
 
@@ -638,3 +645,25 @@ class PatronBooknotes:
             'notes': Booknotes.count_works_with_notes_by_user(username),
             'observations': Observations.count_distinct_observations(username),
         }
+
+
+class ActivityFeed:
+
+    @classmethod
+    def get_activity_feed(cls, username):
+        """Returns up to three of the most recent events from one of two feeds.
+
+        If the given user is not following others, the feed will contain recently
+        logged books.  Otherwise, the feed will contain events from the patron's
+        `PubSub.get_feed` results.
+        """
+        following = PubSub.is_following(username)
+        if PubSub.is_following(username):
+            feed = PubSub.get_feed(username, limit=3)
+        else:
+            feed = Bookshelves.get_recently_logged_books(limit=3)
+            for i, doc in enumerate(feed):
+                feed[i].key = f'/works/OL{doc["work_id"]}W'
+            Bookshelves.add_solr_works(feed)
+
+        return feed or [], following
