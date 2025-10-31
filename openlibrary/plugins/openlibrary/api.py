@@ -819,7 +819,11 @@ class opds_search(delegate.page):
                 offset=(int(i.page) - 1) * int(i.limit),
             ),
             links=[
-                Link(rel="self", href=web.ctx.fullpath, type="application/opds+json"),
+                Link(
+                    rel="self",
+                    href=provider.BASE_URL + web.ctx.fullpath,
+                    type="application/opds+json",
+                ),
                 Link(
                     rel="search",
                     href=f"{provider.BASE_URL}/opds/search{{?query}}",
@@ -865,7 +869,7 @@ class opds_home(delegate.page):
                     Navigation(
                         type="application/opds+json",
                         title=f'{subject['emoji']} {subject['presentable_name']}',
-                        href=f'{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
+                        href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
                     )
                     for subject in get_cached_featured_subjects()
                 ],
@@ -928,7 +932,9 @@ class opds_home(delegate.page):
                 facets=None,
                 links=[
                     Link(
-                        rel="self", href=web.ctx.fullpath, type="application/opds+json"
+                        rel="self",
+                        href=provider.BASE_URL + web.ctx.fullpath,
+                        type="application/opds+json",
                     ),
                     Link(
                         rel="search",
