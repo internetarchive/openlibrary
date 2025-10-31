@@ -796,7 +796,7 @@ class opds_catalog(delegate.page):
 
     @jsonapi
     def GET(self):
-        from opds2 import Catalog, Metadata
+        from opds2 import Catalog, Link, Metadata
         from pyopds2_openlibrary import OpenLibraryDataProvider
 
         i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
@@ -811,6 +811,15 @@ class opds_catalog(delegate.page):
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
             ),
+            links=[
+                Link(rel="self", href=web.ctx.fullpath, type="application/opds+json"),
+                Link(
+                    rel="search",
+                    href=f"{protocol}://{web.ctx.host}/opds/search{{?query}}",
+                    type="application/opds+json",
+                    templated=True,
+                ),
+            ],
         )
         web.header('Content-Type', 'application/opds+json')
         return json.dumps(catalog.model_dump())
