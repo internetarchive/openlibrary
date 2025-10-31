@@ -64,7 +64,7 @@ def monitor_nginx_logs():
 async def monitor_haproxy():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
-    from scripts.monitoring.haproxy_monitor import main
+    from scripts.monitoring.haproxy_monitor import main  # noqa: PLC0415
 
     web_haproxy_ip = get_service_ip("web_haproxy")
 
@@ -84,7 +84,7 @@ async def monitor_haproxy():
 async def monitor_solr():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
-    from scripts.monitoring.solr_logs_monitor import main
+    from scripts.monitoring.solr_logs_monitor import main  # noqa: PLC0415
 
     main(
         solr_container=(

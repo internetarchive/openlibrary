@@ -213,7 +213,7 @@ def _get_from_web(id: str) -> WikidataEntity | None:
             _add_to_cache(entity)
             return entity
     except requests.exceptions.HTTPError as err:
-        from openlibrary.plugins.openlibrary.sentry import sentry
+        from openlibrary.plugins.openlibrary.sentry import sentry  # noqa: PLC0415
 
         if sentry and sentry.enabled:
             sentry.capture_exception(err)
