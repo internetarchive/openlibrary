@@ -791,8 +791,8 @@ class bestbook_count(delegate.page):
         return json.dumps({'count': result})
 
 
-class opds_catalog(delegate.page):
-    path = r"/opds/(?:catalog|search)"
+class opds_search(delegate.page):
+    path = r"/opds/search"
 
     @jsonapi
     def GET(self):
@@ -823,6 +823,27 @@ class opds_catalog(delegate.page):
         )
         web.header('Content-Type', 'application/opds+json')
         return json.dumps(catalog.model_dump())
+
+
+class opds_books(delegate.page):
+    path = r"/opds/books/(OL\d+M)"
+
+    @jsonapi
+    def GET(self, edition_olid: str):
+        from pyopds2_openlibrary import OpenLibraryDataProvider
+
+        provider = OpenLibraryDataProvider()
+        protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
+        provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
+        resp = provider.search(query=f'edition_key:{edition_olid}')
+        web.header('Content-Type', 'application/opds-publication+json')
+        if not resp.records:
+            raise web.HTTPError(
+                '404 Not Found',
+                data=json.dumps({'error': 'Edition not found'}),
+            )
+
+        return json.dumps(resp.records[0].to_publication().model_dump())
 
 
 class opds_home(delegate.page):
