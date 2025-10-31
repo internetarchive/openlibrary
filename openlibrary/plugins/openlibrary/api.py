@@ -801,6 +801,8 @@ class opds_catalog(delegate.page):
 
         i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
         provider = OpenLibraryDataProvider()
+        protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
+        provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
             search=provider.search(
@@ -823,6 +825,8 @@ class opds_home(delegate.page):
             from pyopds2_openlibrary import OpenLibraryDataProvider
 
             provider = OpenLibraryDataProvider()
+            protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
+            provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
             catalog = Catalog(
                 metadata=Metadata(title=_("Welcome to Open Library")),
                 publications=[],
@@ -830,7 +834,7 @@ class opds_home(delegate.page):
                     Navigation(
                         type="application/opds+json",
                         title=subject['presentable_name'],
-                        href=f'/opds/search?query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',
+                        href=f'{provider.SEARCH_URL}?query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
                     )
                     for subject in get_cached_featured_subjects()
                 ],
@@ -897,7 +901,7 @@ class opds_home(delegate.page):
                     ),
                     Link(
                         rel="search",
-                        href=f"{web.ctx.home}/opds/search{{?query}}",
+                        href=f"{protocol}://{web.ctx.host}/opds/search{{?query}}",
                         type="application/opds+json",
                         templated=True,
                     ),
