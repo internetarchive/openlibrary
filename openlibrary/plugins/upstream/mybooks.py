@@ -665,5 +665,12 @@ class ActivityFeed:
         `PubSub.get_feed` results.
         """
         following = PubSub.is_following(username)
-        feed = PubSub.get_feed(username, limit=3) if PubSub.is_following(username) else Bookshelves.get_recently_logged_books(limit=3)
+        if PubSub.is_following(username):
+            feed = PubSub.get_feed(username, limit=3)
+        else:
+            feed = Bookshelves.get_recently_logged_books(limit=3)
+            for i, doc in enumerate(feed):
+                feed[i].key = f'/works/OL{doc["work_id"]}W'
+            Bookshelves.add_solr_works(feed)
+
         return feed or [], following
