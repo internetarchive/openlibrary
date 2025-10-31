@@ -5371,7 +5371,7 @@ msgid "Use this image"
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer"
+msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
 #: covers/add.html
