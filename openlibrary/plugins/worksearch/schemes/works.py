@@ -13,6 +13,7 @@ import web
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     fully_escape_query,
@@ -238,9 +239,15 @@ class WorkSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
-        if field.startswith(('work.', 'edition.')):
+        if field.startswith('work.'):
             return self.is_search_field(field.partition(".")[2])
-        return super().is_search_field(field) or field.startswith('id_')
+        if field.startswith('edition.'):
+            return EditionSearchScheme().is_search_field(field.partition(".")[2])
+        return (
+            super().is_search_field(field)
+            or field.startswith('id_')
+            or EditionSearchScheme().is_search_field(field)
+        )
 
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
@@ -327,8 +334,12 @@ class WorkSearchScheme(SearchScheme):
         # Removes the indicator prefix from queries with the 'work field' before appending them to parameters.
         final_work_query = deepcopy(work_q_tree)
         luqum_replace_field(final_work_query, remove_work_prefix)
+        EDITION_ONLY_FIELDS = {'acquisition'}
         try:
-            luqum_remove_field(final_work_query, lambda f: f.startswith('edition.'))
+            luqum_remove_field(
+                final_work_query,
+                lambda f: f.startswith('edition.') or f in EDITION_ONLY_FIELDS,
+            )
         except EmptyTreeError:
             # If the whole tree is removed, we should just search for everything
             final_work_query = luqum_parser('*:*')
@@ -398,6 +409,7 @@ class WorkSearchScheme(SearchScheme):
                 'ia_collection': 'ia_collection',
                 'ia_box_id': 'ia_box_id',
                 'public_scan_b': 'public_scan_b',
+                'acquisition': 'acquisition',
             }
 
             def convert_work_field_to_edition_field(
