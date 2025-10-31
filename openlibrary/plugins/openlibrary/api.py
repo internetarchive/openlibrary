@@ -21,8 +21,8 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
+from openlibrary.core import cache, lending, models
 from openlibrary.core import helpers as h
-from openlibrary.core import lending, models
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
@@ -37,7 +37,9 @@ from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.plugins.worksearch.subjects import (
     get_subject,  # noqa: F401 side effects may be needed
 )
@@ -794,13 +796,141 @@ class opds_catalog(delegate.page):
 
     @jsonapi
     def GET(self):
+        from opds2 import Catalog, Metadata
         from pyopds2_openlibrary import OpenLibraryDataProvider
 
         i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
-        records, num_found = OpenLibraryDataProvider.search(
-            query=i.query, limit=i.limit
+        provider = OpenLibraryDataProvider()
+        catalog = Catalog.create(
+            metadata=Metadata(title=_("Search Results")),
+            search=provider.search(
+                query=i.query,
+                limit=int(i.limit),
+                offset=(int(i.page) - 1) * int(i.limit),
+            ),
         )
-        catalog = OpenLibraryDataProvider.create_catalog(
-            publications=[record.to_publication() for record in records]
-        ).model_dump()
-        return json.dumps(catalog)
+        web.header('Content-Type', 'application/opds+json')
+        return json.dumps(catalog.model_dump())
+
+
+class opds_home(delegate.page):
+    path = r"/opds"
+
+    @jsonapi
+    def GET(self):
+        def build_homepage():
+            from opds2 import Catalog, Link, Metadata, Navigation
+            from pyopds2_openlibrary import OpenLibraryDataProvider
+
+            provider = OpenLibraryDataProvider()
+            catalog = Catalog(
+                metadata=Metadata(title=_("Welcome to Open Library")),
+                publications=[],
+                navigation=[
+                    Navigation(
+                        type="application/opds+json",
+                        title=subject['presentable_name'],
+                        href=f'/opds/search?query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',
+                    )
+                    for subject in get_cached_featured_subjects()
+                ],
+                groups=[
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Trending Books")),
+                        search=provider.search(
+                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
+                            sort='trending',
+                            limit=25,
+                        ),
+                    ),
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Classic Books")),
+                        search=provider.search(
+                            query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false -subject:"content_warning:cover"',
+                            sort='trending',
+                            limit=25,
+                        ),
+                    ),
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Romance")),
+                        search=provider.search(
+                            query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',  # noqa: E501
+                            sort='trending,trending_score_hourly_sum',
+                            limit=25,
+                        ),
+                    ),
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Kids")),
+                        search=provider.search(
+                            query='ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] (subject_key:(juvenile_audience OR children\'s_fiction OR juvenile_nonfiction OR juvenile_encyclopedias OR juvenile_riddles OR juvenile_poetry OR juvenile_wit_and_humor OR juvenile_limericks OR juvenile_dictionaries OR juvenile_non-fiction) OR subject:("Juvenile literature" OR "Juvenile fiction" OR "pour la jeunesse" OR "pour enfants"))',  # noqa: E501
+                            sort='random.hourly',
+                            limit=25,
+                        ),
+                    ),
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Thrillers")),
+                        search=provider.search(
+                            query='subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
+                            sort='trending,trending_score_hourly_sum',
+                            limit=25,
+                        ),
+                    ),
+                    Catalog.create(
+                        provider,
+                        metadata=Metadata(title=_("Textbooks")),
+                        search=provider.search(
+                            query='subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]',
+                            sort='trending',
+                            limit=25,
+                        ),
+                    ),
+                ],
+                facets=None,
+                links=[
+                    Link(
+                        rel="self", href=web.ctx.fullpath, type="application/opds+json"
+                    ),
+                    Link(
+                        rel="search",
+                        href=f"{web.ctx.home}/opds/search{{?query}}",
+                        type="application/opds+json",
+                        templated=True,
+                    ),
+                ],
+            )
+            return catalog.model_dump()
+
+        def get_cached_homepage():
+            from openlibrary.plugins.openlibrary.code import is_bot
+            from openlibrary.plugins.openlibrary.home import caching_prethread
+            from openlibrary.utils import dateutil
+
+            five_minutes = 5 * dateutil.MINUTE_SECS
+            lang = web.ctx.lang
+            key = f'home.homepage-opds.{lang}'
+            cookies = web.cookies()
+            if cookies.get('pd', False):
+                key += '.pd'
+            if cookies.get('sfw', ''):
+                key += '.sfw'
+            if is_bot():
+                key += '.bot'
+
+            mc = cache.memcache_memoize(
+                build_homepage, key, timeout=five_minutes, prethread=caching_prethread()
+            )
+            page = mc()
+
+            if not page:
+                mc.memcache_delete_by_args()
+                mc()
+
+            return page
+
+        web.header('Content-Type', 'application/opds+json')
+        return json.dumps(get_cached_homepage())
