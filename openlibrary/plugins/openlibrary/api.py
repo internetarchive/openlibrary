@@ -796,8 +796,8 @@ def get_opds_data_provider():
 
     provider = OpenLibraryDataProvider()
     protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-    provider.BASE_URL = f'{protocol}://{web.ctx.host}'
-    provider.SEARCH_URL = '/opds/search'
+    OpenLibraryDataProvider.BASE_URL = f'{protocol}://{web.ctx.host}'
+    OpenLibraryDataProvider.SEARCH_URL = '/opds/search'
     return provider
 
 
