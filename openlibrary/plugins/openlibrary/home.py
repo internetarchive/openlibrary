@@ -83,6 +83,7 @@ def caching_prethread():
 
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang
+    host = web.ctx.host
     _is_bot = is_bot()
 
     def main():
@@ -92,6 +93,7 @@ def caching_prethread():
         delegate.fakeload()
         web.ctx.lang = lang
         web.ctx.is_bot = _is_bot
+        web.ctx.host = host
 
     return main
 
