@@ -804,7 +804,6 @@ def get_opds_data_provider():
 class opds_search(delegate.page):
     path = r"/opds/search"
 
-    @jsonapi
     def GET(self):
         from opds2 import Catalog, Link, Metadata
 
@@ -833,13 +832,12 @@ class opds_search(delegate.page):
             ],
         )
         web.header('Content-Type', 'application/opds+json')
-        return json.dumps(catalog.model_dump())
+        return delegate.RawText(json.dumps(catalog.model_dump()))
 
 
 class opds_books(delegate.page):
     path = r"/opds/books/(OL\d+M)"
 
-    @jsonapi
     def GET(self, edition_olid: str):
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
@@ -850,13 +848,14 @@ class opds_books(delegate.page):
                 data=json.dumps({'error': 'Edition not found'}),
             )
 
-        return json.dumps(resp.records[0].to_publication().model_dump())
+        return delegate.RawText(
+            json.dumps(resp.records[0].to_publication().model_dump())
+        )
 
 
 class opds_home(delegate.page):
     path = r"/opds"
 
-    @jsonapi
     def GET(self):
         def build_homepage():
             from opds2 import Catalog, Link, Metadata, Navigation
@@ -974,4 +973,4 @@ class opds_home(delegate.page):
             return page
 
         web.header('Content-Type', 'application/opds+json')
-        return json.dumps(get_cached_homepage())
+        return delegate.RawText(json.dumps(get_cached_homepage()))
