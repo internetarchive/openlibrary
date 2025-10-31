@@ -791,18 +791,25 @@ class bestbook_count(delegate.page):
         return json.dumps({'count': result})
 
 
+def get_opds_data_provider():
+    from pyopds2_openlibrary import OpenLibraryDataProvider
+
+    provider = OpenLibraryDataProvider()
+    protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
+    provider.BASE_URL = f'{protocol}://{web.ctx.host}'
+    provider.SEARCH_URL = '/opds/search'
+    return provider
+
+
 class opds_search(delegate.page):
     path = r"/opds/search"
 
     @jsonapi
     def GET(self):
         from opds2 import Catalog, Link, Metadata
-        from pyopds2_openlibrary import OpenLibraryDataProvider
 
         i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
-        provider = OpenLibraryDataProvider()
-        protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-        provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
+        provider = get_opds_data_provider()
         catalog = Catalog.create(
             provider,
             metadata=Metadata(title=_("Search Results")),
@@ -815,7 +822,7 @@ class opds_search(delegate.page):
                 Link(rel="self", href=web.ctx.fullpath, type="application/opds+json"),
                 Link(
                     rel="search",
-                    href=f"{protocol}://{web.ctx.host}/opds/search{{?query}}",
+                    href=f"{provider.BASE_URL}/opds/search{{?query}}",
                     type="application/opds+json",
                     templated=True,
                 ),
@@ -830,11 +837,7 @@ class opds_books(delegate.page):
 
     @jsonapi
     def GET(self, edition_olid: str):
-        from pyopds2_openlibrary import OpenLibraryDataProvider
-
-        provider = OpenLibraryDataProvider()
-        protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-        provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
+        provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
         web.header('Content-Type', 'application/opds-publication+json')
         if not resp.records:
@@ -853,11 +856,8 @@ class opds_home(delegate.page):
     def GET(self):
         def build_homepage():
             from opds2 import Catalog, Link, Metadata, Navigation
-            from pyopds2_openlibrary import OpenLibraryDataProvider
 
-            provider = OpenLibraryDataProvider()
-            protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-            provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
+            provider = get_opds_data_provider()
             catalog = Catalog(
                 metadata=Metadata(title=_("Welcome to Open Library")),
                 publications=[],
@@ -932,7 +932,7 @@ class opds_home(delegate.page):
                     ),
                     Link(
                         rel="search",
-                        href=f"{protocol}://{web.ctx.host}/opds/search{{?query}}",
+                        href=f"{provider.BASE_URL}/opds/search{{?query}}",
                         type="application/opds+json",
                         templated=True,
                     ),
