@@ -1067,6 +1067,10 @@ msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
+msgid "Arabic"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
 msgstr ""
 
