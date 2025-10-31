@@ -792,7 +792,7 @@ class bestbook_count(delegate.page):
 
 
 class opds_catalog(delegate.page):
-    path = r"/opds/(catalog|search)"
+    path = r"/opds/(?:catalog|search)"
 
     @jsonapi
     def GET(self):
@@ -804,6 +804,7 @@ class opds_catalog(delegate.page):
         protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
         provider.SEARCH_URL = f'{protocol}://{web.ctx.host}/opds/search'
         catalog = Catalog.create(
+            provider,
             metadata=Metadata(title=_("Search Results")),
             search=provider.search(
                 query=i.query,
