@@ -77,11 +77,7 @@ $var title: $_("Sign Up to Open Library")
 
             <div class="ol-signup-form__checkbox">
                 <input type="checkbox" id="ia_newsletter" name="ia_newsletter"/>
-                <label for="ia_newsletter">
-                    I want to receive news, announcements, and resources from the
-                    <a href="https://archive.org/">Internet Archive</a>,
-                    the non-profit that runs Open Library.
-                </label>
+                <label for="ia_newsletter">$:_('I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library.')</label>
             </div>
             <div id="rpd-checkbox" class="ol-signup-form__checkbox">
                 $:form.pd_request.render() <label for="pd_request">$:form.pd_request.description</label>
