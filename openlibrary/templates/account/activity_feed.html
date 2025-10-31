@@ -48,9 +48,9 @@ $def trending_card_footer(shelf_name, occurred_on):
         <div class="list-showcase">
             $for i in feed:
                 $ shelf_name = shelf_id_to_name[i.get('bookshelf_id')]
-                $ bookcover_urls = ["//covers.openlibrary.org/b/id/%s-M.jpg" % i.get("work_id")]
                 $ occurred_on = datestr(i.get("created"))
-
+                $ cover = get_cover_url(i) or "/images/icons/avatar_book-sm.png"
+                $ bookcover_urls = [cover]
                 $if follows_others:
                     $ username = i.get('username')
                     $ avatar_url = "/people/%s/avatar" % username
