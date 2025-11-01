@@ -387,7 +387,9 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
-        sort: Literal['created asc', 'created desc', 'finished asc', 'finished desc'] = 'created desc',
+        sort: Literal[
+            'created asc', 'created desc', 'finished asc', 'finished desc'
+        ] = 'created desc',
         checkin_year: int | None = None,
         q: str = "",
     ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
@@ -530,7 +532,9 @@ class Bookshelves(db.CommonExtras):
 
         def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
-            sort: Literal['created asc', 'created desc', 'finished asc', 'finished desc'],
+            sort: Literal[
+                'created asc', 'created desc', 'finished asc', 'finished desc'
+            ],
             checkin_year: int | None,
         ):
             """
@@ -554,12 +558,11 @@ class Bookshelves(db.CommonExtras):
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
                 """
-            else:
-                if sort.startswith('finished'):
-                    desc = True if sort == 'finished desc' else False
-                    order_dir = 'DESC' if desc else 'ASC'
-                    nulls = 'NULLS LAST' if desc else 'NULLS FIRST'
-                    query = f"""
+            elif sort.startswith('finished'):
+                desc = True if sort == 'finished desc' else False
+                order_dir = 'DESC' if desc else 'ASC'
+                nulls = 'NULLS LAST' if desc else 'NULLS FIRST'
+                query = f"""
                     WITH latest_finish AS (
                         SELECT DISTINCT ON (work_id) work_id, event_date
                         FROM bookshelves_events
@@ -580,13 +583,13 @@ class Bookshelves(db.CommonExtras):
                         b.created DESC
                     LIMIT $limit OFFSET $offset
                     """
-                else:
-                    query = (
-                        "SELECT work_id, created, edition_id from bookshelves_books WHERE "
-                        "bookshelf_id=$bookshelf_id AND username=$username "
-                        f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
-                        "LIMIT $limit OFFSET $offset"
-                    )
+            else:
+                query = (
+                    "SELECT work_id, created, edition_id from bookshelves_books WHERE "
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
+                    "LIMIT $limit OFFSET $offset"
+                )
 
             if not bookshelf_id:
                 query = "SELECT * from bookshelves_books WHERE username=$username"
