@@ -251,13 +251,13 @@ class mybooks_readinglog(delegate.page):
         raise web.seeother(mb.user.key)
 
     def render_template(self, mb, year=None):
-        i = web.input(page=1, sort='desc', q="", results_per_page=RESULTS_PER_PAGE)
+        i = web.input(page=1, sort='desc', q="", results_per_page=RESULTS_PER_PAGE, order_by='created')
         # Limit reading log filtering to queries of 3+ characters
         # because filtering the reading log can be computationally expensive.
         if len(i.q) < 3:
             i.q = ""
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
-            key=mb.key, page=i.page, sort='created', sort_order=i.sort, q=i.q, year=year
+            key=mb.key, page=i.page, sort=i.order_by, sort_order=i.sort, q=i.q, year=year
         )
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
@@ -536,12 +536,10 @@ class ReadingLog:
         shelf = self.READING_LOG_KEY_TO_SHELF[key]
 
         # Mypy is unhappy about the sort argument not being a literal string.
-        # Although this doesn't satisfy Mypy, at least make sure sort is either
-        # "created asc" or "created desc"
-        if sort + " " + sort_order == "created asc":
-            sort_literal = "created_asc"
+        if sort == 'finished':
+            sort_literal = "finished asc" if sort + " " + sort_order == "finished asc" else "finished desc"
         else:
-            sort_literal = "created desc"
+            sort_literal = "created asc" if sort + " " + sort_order == "created asc" else "created desc"
 
         logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
             self.user.get_username(),
