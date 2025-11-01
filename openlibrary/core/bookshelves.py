@@ -559,7 +559,7 @@ class Bookshelves(db.CommonExtras):
                 ORDER BY b.created DESC
                 """
             elif sort.startswith('finished'):
-                desc = True if sort == 'finished desc' else False
+                desc = sort == 'finished desc'
                 order_dir = 'DESC' if desc else 'ASC'
                 nulls = 'NULLS LAST' if desc else 'NULLS FIRST'
                 query = f"""
