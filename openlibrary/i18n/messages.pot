@@ -2949,6 +2949,14 @@ msgid "Date Added (oldest)"
 msgstr ""
 
 #: account/reading_log.html
+msgid "Date Finished (newest)"
+msgstr ""
+
+#: account/reading_log.html
+msgid "Date Finished (oldest)"
+msgstr ""
+
+#: account/reading_log.html
 msgid "No results found in this shelf"
 msgstr ""
 
