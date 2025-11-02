@@ -32,7 +32,7 @@
   }
 
   img.cover {
-    border-radius: 5px;
+    border-radius: @radius-card; // 5px→12px (+7px)
     box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
   }
 }
@@ -73,7 +73,7 @@
     background: @white;
     padding: 10px;
     border: 1px solid @dark-beige;
-    border-radius: 12px;
+    border-radius: @radius-card; // 12px→12px (no change)
     -webkit-box-shadow: 1px 3px 5px @darker-grey;
     box-shadow: 1px 3px 5px @darker-grey;
   }
@@ -222,7 +222,7 @@ div.floater {
 
 .ol-cover-form {
   background-color: @lightest-grey;
-  border-radius: 10px;
+  border-radius: @radius-card; // 10px→12px (+2px)
   padding: 10px;
   margin-bottom: 10px;
 
@@ -243,7 +243,7 @@ div.floater {
   .carousel-container {
     padding: 10px 0;
     margin: 0;
-    border-radius: 10px;
+    border-radius: @radius-card; // 10px→12px (+2px)
   }
 
   .carousel {
@@ -263,7 +263,7 @@ div.floater {
   .carousel .cta-btn {
     color: @grey;
     border: 2px solid @light-grey;
-    border-radius: 6px;
+    border-radius: @radius-button; // 6px→8px (+2px)
     position: relative;
   }
 }

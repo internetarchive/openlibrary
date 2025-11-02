@@ -52,7 +52,7 @@
   list-style-type: none;
   line-height: 1.5em;
   background-color: @grey-fafafa;
-  border-radius: 5px;
+  border-radius: @radius-notification; // 5px→12px (+7px)
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
@@ -117,7 +117,7 @@
     margin-bottom: 5px;
   }
   .preview-covers img {
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
     opacity: 0.7;
   }
   .preview-covers--blur {
@@ -131,7 +131,7 @@
     text-align: center;
 
     img {
-      border-radius: 4px;
+      border-radius: @radius-badge; // 4px→4px (no change)
       max-width: 100%;
       max-height: 300px;
       width: 175px;
@@ -163,7 +163,7 @@
     font-size: @font-size-label-medium;
     line-height: @font-size-label-medium;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -224,7 +224,7 @@
 .trending-badge {
   display: inline-block;
   background-color: fade(@olive, 12%);
-  border-radius: 50px;
+  border-radius: @radius-pill; // 50px→100px (+50px)
   padding: 0 13px;
 
   .trending-badge__chart {

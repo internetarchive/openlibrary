@@ -60,7 +60,7 @@ footer {
   height: 35px;
   cursor: pointer;
   background-color: @dark-grey;
-  border-radius: 3px;
+  border-radius: @radius-badge; // 3px→4px (+1px)
 
   img {
     padding: 8px;
@@ -102,6 +102,6 @@ div#version-details {
 .version {
   color: @dark-grey;
   border: 1px solid @dark-beige;
-  border-radius: 3px;
+  border-radius: @radius-badge; // 3px→4px (+1px)
   padding: 8px 10px;
 }

@@ -16,7 +16,7 @@
 /* Table wrapper */
 .librarian-queue-wrapper {
   border: 1px solid @light-grey;
-  border-radius: 5px;
+  border-radius: @radius-container; // 5px→12px (+7px)
 }
 
 /* Table header */
@@ -70,7 +70,7 @@
   box-shadow:
     0 4px 4px @light-mid-grey,
     0 4px 4px @light-mid-grey;
-  border-radius: 5px;
+  border-radius: @radius-notification; // 5px→12px (+7px)
   color: @black;
   font-size: 13px;
   cursor: default;
@@ -179,7 +179,7 @@
   width: 60%;
 
   .dot {
-    border-radius: 10px;
+    border-radius: @radius-avatar; // 10px→50% (circular dot)
     width: 10px;
     height: 10px;
     margin-right: 22px;
@@ -231,7 +231,7 @@
   &__comment-display {
     border: 1px solid @light-grey;
     background-color: @white;
-    border-radius: 5px;
+    border-radius: @radius-notification; // 5px→12px (+7px)
     margin-bottom: 6px;
     overflow: auto;
     overflow-y: scroll;
@@ -259,7 +259,7 @@
       height: 100%;
       resize: none;
       border: 1px solid @light-grey;
-      border-radius: 5px;
+      border-radius: @radius-input; // 5px→8px (+3px)
       margin-right: 5px;
     }
 
@@ -268,7 +268,7 @@
       color: @white;
       text-decoration: none;
       border: none;
-      border-radius: 6px;
+      border-radius: @radius-button; // 6px→8px (+2px)
       box-shadow: none;
       height: 100%;
       font-weight: bold;
@@ -337,7 +337,7 @@
     &.cta-btn {
       background-color: @grey-f4f4f4;
       border: 1px solid @lighter-grey;
-      border-radius: 5px;
+      border-radius: @radius-button; // 5px→8px (+3px)
       margin-top: 23px;
     }
 

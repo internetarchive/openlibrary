@@ -368,7 +368,7 @@ span {
       color: @white;
       font-weight: normal !important;
       padding: 3px;
-      border-radius: 3px;
+      border-radius: @radius-badge; // 3px→4px (+1px)
     }
     span.list {
       padding: 3px;
@@ -521,7 +521,7 @@ div#content {
   position: relative;
   width: 958px;
   background-color: @white;
-  border-radius: 5px;
+  border-radius: @radius-container; // 5px→12px (+7px)
   border: 1px solid @dark-beige;
   div.contentLists {
     float: left;
@@ -684,7 +684,7 @@ div.valid {
 // openlibrary/templates/search/subjects.html
 div.siteSearch {
   overflow: visible;
-  border-radius: 5px;
+  border-radius: @radius-input; // 5px→8px (+3px)
   width: 300px;
   &.darker {
     -webkit-box-shadow: 1px 1px 10px @dark-grey;
@@ -695,14 +695,14 @@ div.siteSearch {
     font-size: 0.9em;
     background: @link-blue;
     color: @white;
-    border-radius: 5px;
+    border-radius: @radius-button; // 5px→8px (+3px)
     border: none;
   }
   input[type="text"] {
     margin: 0;
     width: 215px;
     padding: 12px;
-    border-radius: 5px;
+    border-radius: @radius-input; // 5px→8px (+3px)
     border: 1px solid @mid-grey;
   }
 }
@@ -956,7 +956,7 @@ div#searchResults {
   }
   .cover {
     max-width: 120px;
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
   }
 }
 

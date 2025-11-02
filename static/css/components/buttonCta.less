@@ -13,7 +13,7 @@ a.cta-btn {
   width: 100%;
   display: block;
   border: 0;
-  border-radius: 5px;
+  border-radius: @radius-button; // 5px→8px (+3px)
   margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
@@ -113,7 +113,7 @@ a.cta-btn {
     border: 2px solid @light-grey;
     background: @white;
     color: @grey;
-    border-radius: 6px;
+    border-radius: @radius-button; // 6px→8px (+2px)
   }
 
   &--unstyled,
@@ -122,7 +122,7 @@ a.cta-btn {
     padding: 7px;
     background: @white;
     color: @grey;
-    border-radius: 6px;
+    border-radius: @radius-button; // 6px→8px (+2px)
   }
 
   &--delete,
@@ -157,7 +157,7 @@ a.cta-btn {
   &__badge {
     background-color: darken(@burnt-sienna, 20%);
     padding: 4px 7px;
-    border-radius: 5px;
+    border-radius: @radius-badge; // 5px→4px (-1px)
     font-size: 0.7em;
   }
 }
@@ -213,7 +213,7 @@ a.cta-btn {
 
   // stylelint-disable-next-line selector-max-specificity
   > .cta-btn:first-child:not(:last-child) {
-    border-radius: 6px 2px 2px 6px;
+    border-radius: @radius-button 2px 2px @radius-button; // 6px→8px (+2px) on left side
   }
 
   // stylelint-disable-next-line selector-max-specificity
@@ -225,6 +225,6 @@ a.cta-btn {
   // stylelint-disable-next-line selector-max-specificity
   > .cta-btn:last-child:not(:first-child) {
     margin-left: 1px;
-    border-radius: 2px 6px 6px 2px;
+    border-radius: 2px @radius-button @radius-button 2px; // 6px→8px (+2px) on right side
   }
 }

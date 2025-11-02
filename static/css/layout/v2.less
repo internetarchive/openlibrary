@@ -4,7 +4,7 @@
   width: 100%;
   margin: 0 auto;
   background-color: @white;
-  border-radius: 5px;
+  border-radius: @radius-container; // 5px→12px (+7px)
   border: 1px solid @dark-beige;
   z-index: @z-index-level-1;
   position: relative;
@@ -14,7 +14,7 @@
 body.full-width #test-body-mobile {
   max-width: initial;
   border: 0;
-  border-radius: 0;
+  border-radius: 0; // explicit no radius
 }
 
 // The border-box padding model is much more friendly for responsive layouts

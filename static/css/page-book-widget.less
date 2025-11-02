@@ -5,8 +5,7 @@
  * The stylesheet is loaded via style tag inside
  * openlibrary/templates/widget.html
  */
-@import (less) "less/colors.less";
-@import (less) "less/font-families.less";
+@import (less) "less/index.less";
 
 body {
   line-height: normal;
@@ -25,7 +24,7 @@ body {
 .cta {
   font-family: @lucida_sans_serif-1;
   background: @primary-blue;
-  border-radius: 3px;
+  border-radius: @radius-badge; // 3px→4px (+1px)
   width: 130px;
   margin: 0 auto;
   margin-top: 5px;
@@ -59,7 +58,7 @@ img.bookcover {
   width: 130px;
   height: 200px;
   box-shadow: 1px 2px 5px 0 @grey-555;
-  border-radius: 3px;
+  border-radius: @radius-badge; // 3px→4px (+1px)
   text-align: center;
   display: block;
 }

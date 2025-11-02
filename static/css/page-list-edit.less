@@ -6,11 +6,10 @@
  * Used on pages:
  * - /list/add
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
-@import (less) "less/font-families.less";
+
+@import (less) "less/index.less";
 @import (less) "legacy.less";
+
 
 #list-edit {
   max-width: 800px;
@@ -84,7 +83,7 @@
     width: 90%;
     margin-top: 6px;
     border: 1px solid @light-grey;
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
     padding: 8px;
     background: @grey-fafafa;
 

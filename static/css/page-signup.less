@@ -54,7 +54,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: 5px 0 0 5px;
+  border-radius: @radius-container 0 0 @radius-container; // 5px→12px (+7px) on left side
 
   .ol-signup-hero__title {
     color: @black;
@@ -129,7 +129,7 @@
 
     input {
       border: 1px solid @light-grey;
-      border-radius: 5px;
+      border-radius: @radius-input; // 5px→8px (+3px)
       width: 100%;
       padding: 6px 4px;
     }
@@ -151,7 +151,7 @@
     background-color: fade(@baby-pink, 50%);
     border: 0.5px fade(@red, 50%);
     border-style: solid solid none;
-    border-radius: 5px 5px 0 0;
+    border-radius: @radius-notification @radius-notification 0 0; // 5px→12px (+7px) on top
     margin-bottom: -3px;
     width: 100%;
     padding: 10px 5px;

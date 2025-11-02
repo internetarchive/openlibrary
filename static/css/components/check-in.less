@@ -56,7 +56,7 @@
 
 .last-read-date,
 .check-in-prompt {
-  border-radius: 0 0 5px 5px;
+  border-radius: 0 0 @radius-button @radius-button; // 5px→8px (+3px) on bottom
   padding: 5px 0;
   margin-top: -15px;
   margin-bottom: 5px;
@@ -69,7 +69,7 @@
     display: inline-block;
     padding: 8px 7px;
     transition: background-color 0.2s;
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
   }
   a:hover {
     background-color: @icon-link-grey;

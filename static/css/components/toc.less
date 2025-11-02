@@ -4,7 +4,7 @@
 .toc__entry {
   line-height: 1.2em;
 
-  border-radius: 4px;
+  border-radius: @radius-badge; // 4px→4px (no change)
   padding: 3px 8px;
   @media only screen and (hover: none) {
     padding: 8px; /* Increase padding for touch-only devices */
@@ -41,7 +41,7 @@
 
 a.toc__main {
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: @radius-badge; // 4px→4px (no change)
 
   .toc__title {
     text-decoration: underline;
@@ -52,7 +52,7 @@ a.toc__main {
     content: "";
     inset: -2px;
     position: absolute;
-    border-radius: 4px;
+    border-radius: @radius-badge; // 4px→4px (no change)
     pointer-events: none;
     animation: fade-in 0.2s;
     background-color: rgba(0, 124, 255, 0.15);

@@ -11,7 +11,7 @@
     background-color: @primary-blue;
     // Important is necessary to override default link color
     color: @white !important;
-    border-radius: 5px;
+    border-radius: @radius-button; // 5px→8px (+3px)
   }
 }
 a {
@@ -24,7 +24,7 @@ a {
 .chip {
   padding: 4px 12px;
   border: 1px solid @mid-grey;
-  border-radius: 16px;
+  border-radius: @radius-xl; // 16px→16px (no change)
   user-select: none;
   width: fit-content;
 }

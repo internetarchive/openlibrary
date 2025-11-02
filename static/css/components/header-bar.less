@@ -57,7 +57,7 @@
     text-align: left;
     background-color: @light-beige;
     border: 1px solid @dark-beige;
-    border-radius: 3px;
+    border-radius: @radius-badge; // 3px→4px (+1px)
 
     li {
       border-bottom: 1px solid @beige-two;
@@ -113,7 +113,7 @@
       background-color: @primary-blue;
       font-size: 0.9em;
       padding: 2px 6px 1px;
-      border-radius: 4px;
+      border-radius: @radius-badge; // 4px→4px (no change)
       float: right;
       text-transform: uppercase;
     }
@@ -168,7 +168,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 6px;
+      border-radius: @radius-button; // 6px→8px (+2px)
       padding: 6px;
       transition: 0.3s;
     }
@@ -215,7 +215,7 @@
     .hamburger__icon {
       width: 22px;
       padding: 0 10px;
-      border-radius: 3px;
+      border-radius: @radius-badge; // 3px→4px (+1px)
       box-sizing: content-box;
     }
 
@@ -296,7 +296,7 @@
 
     .account__icon {
       border: 2px solid @account-icon-border;
-      border-radius: 4px;
+      border-radius: @radius-badge; // 4px→4px (no change)
       width: 30px;
       height: 30px;
     }
@@ -305,7 +305,7 @@
       position: absolute;
       background: @primary-blue;
       color: @white;
-      border-radius: 8px;
+      border-radius: @radius-notification; // 8px→12px (+4px)
       padding: 3px 7px;
       font-size: @font-size-label-medium;
       margin-top: 25px;
@@ -463,8 +463,8 @@
       background: url(/static/images/search-icon.svg) center no-repeat;
       width: 35px;
       height: 45px;
-      border-top-left-radius: 0.3em;
-      border-bottom-left-radius: 0.3em;
+      border-top-left-radius: @radius-badge; // 0.3em→4px (context-dependent)
+      border-bottom-left-radius: @radius-badge; // 0.3em→4px (context-dependent)
     }
 
     .vertical-separator {
@@ -482,7 +482,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: 6px;
+      border-radius: @radius-input; // 6px→8px (+2px)
       position: relative;
     }
 
@@ -509,7 +509,7 @@
         transition: background-color 0.2s;
 
         &:last-child {
-          border-radius: 0 0 6px 6px;
+          border-radius: 0 0 @radius-input @radius-input; // 6px→8px (+2px) on bottom
         }
 
         &:hover {
@@ -529,7 +529,7 @@
             background-color: @lightest-grey;
             margin-right: 10px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: @radius-badge; // 4px→4px (no change)
           }
 
           .book-desc {
@@ -559,7 +559,7 @@
     .search-facet {
       display: none;
       position: relative;
-      border-radius: 3px 0 0 3px;
+      border-radius: @radius-badge 0 0 @radius-badge; // 3px→4px (+1px) on left side
       background-color: fade(@beige, 32);
       border: none;
       border-right: 1px solid @lighter-grey;
@@ -617,7 +617,7 @@ div.search-facet:focus-within {
     .header-dropdown__icon {
       border: none;
       margin-right: 5px;
-      border-radius: 3px;
+      border-radius: @radius-badge; // 3px→4px (+1px)
       box-sizing: content-box;
     }
   }
@@ -679,7 +679,7 @@ div.search-facet:focus-within {
     -webkit-transition: all 0.2s;
     -o-transition: all 0.2s;
     transition: all 0.2s;
-    border-radius: 0.3em;
+    border-radius: @radius-badge; // 0.3em→4px (context-dependent)
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
     flex: 1;

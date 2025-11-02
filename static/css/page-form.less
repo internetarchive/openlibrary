@@ -7,9 +7,8 @@
  * - /books/OL9737752M/The_Odyssey/add-cover
  * - /books/OL9737752M/The_Odyssey/manage-covers
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
+@import (less) "less/index.less";
+
 // TODO: Only formElement and a few common styles are actually needed in this file
 // to render this simple page. We should list them explicitly once that's possible.
 @import (less) "legacy.less";
@@ -64,7 +63,7 @@ div#revertLink,
   overflow: hidden;
   background-color: @light-yellow;
   margin: 0 10px;
-  border-radius: 8px;
+  border-radius: @radius-notification; // 8px→12px (+4px)
   border: 1px solid @dark-yellow;
 }
 .portlet {
@@ -74,7 +73,7 @@ div#revertLink,
   height: 70px;
   overflow: hidden;
   border: 1px solid @lighter-grey;
-  border-radius: 6px;
+  border-radius: @radius-button; // 6px→8px (+2px)
   cursor: move;
   td {
     width: 70px;
