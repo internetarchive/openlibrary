@@ -39,7 +39,11 @@ describe('Carousel accessibility init', () => {
             // Otherwise treat as initialization options; trigger 'init'
             // synchronously so Carousel's init handler runs immediately.
             // Ensure mock prev/next controls exist (Slick normally creates these)
-            this.append('<button class="slick-prev"></button><button class="slick-next"></button>');
+            // Add navigation buttons with pre-set aria-labels to match production
+            this.append(
+                '<button class="slick-prev" aria-label="Previous slide"></button>' +
+                '<button class="slick-next" aria-label="Next slide"></button>'
+            );
 
             this.trigger('init', [slickInstance]);
             return this;
@@ -60,5 +64,9 @@ describe('Carousel accessibility init', () => {
         // Navigation buttons should have accessible labels
         expect($container.find('.slick-prev').attr('aria-label')).toBe('Previous slide');
         expect($container.find('.slick-next').attr('aria-label')).toBe('Next slide');
+
+        // Container should have appropriate region role and label
+        expect($container.attr('role')).toBe('region');
+        expect($container.attr('aria-label')).toBe('Carousel');
     });
 });

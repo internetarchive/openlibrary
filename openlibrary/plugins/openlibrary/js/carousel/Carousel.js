@@ -75,23 +75,23 @@ export class Carousel {
                 // If slick doesn't expose $slides yet, silently ignore.
             }
 
-            // Ensure navigation buttons have accessible names. Slick may
-            // create `.slick-prev` / `.slick-next` buttons during init; if
-            // they exist, give them aria-labels so AccessLint won't complain.
+            // Set or verify accessible names on navigation buttons that Slick
+            // creates during initialization. Prefer existing aria-labels if set
+            // (e.g., from template/HTML), otherwise use i18n strings or defaults.
             try {
                 const prevLabel = (this.i18n && this.i18n['previous']) || 'Previous slide';
                 const nextLabel = (this.i18n && this.i18n['next']) || 'Next slide';
 
-                // Prefer buttons inside the container, but fall back to global
-                // selectors in case Slick appends controls elsewhere.
-                const $prev = this.$container.find('.slick-prev').length ? this.$container.find('.slick-prev') : jQuery('.slick-prev');
-                const $next = this.$container.find('.slick-next').length ? this.$container.find('.slick-next') : jQuery('.slick-next');
+                // Find prev/next buttons, first within container then globally
+                const $prev = this.$container.find('.slick-prev').first();
+                const $next = this.$container.find('.slick-next').first();
 
-                if ($prev && $prev.length) {
-                    $prev.attr('aria-label', $prev.attr('aria-label') || prevLabel);
+                // Only set aria-label if not already present
+                if ($prev.length && !$prev.attr('aria-label')) {
+                    $prev.attr('aria-label', prevLabel);
                 }
-                if ($next && $next.length) {
-                    $next.attr('aria-label', $next.attr('aria-label') || nextLabel);
+                if ($next.length && !$next.attr('aria-label')) {
+                    $next.attr('aria-label', nextLabel);
                 }
             } catch (err) {
                 // jQuery or DOM not available in test environment — ignore.
