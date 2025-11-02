@@ -68,12 +68,47 @@ export class Carousel {
         // so we can remove the role/aria attributes as soon as Slick creates slides.
         this.$container.on('init', (_e, slick) => {
             // Remove attributes Slick injects that make slides act like selectable
-            // options for assistive tech. We keep accessibility enabled so Slick
-            // continues to provide keyboard handlers.
+            // options for assistive tech.
             try {
                 slick.$slides.removeAttr('role aria-selected tabindex');
             } catch (err) {
                 // If slick doesn't expose $slides yet, silently ignore.
+            }
+
+            // Ensure navigation buttons have accessible names. Slick may
+            // create `.slick-prev` / `.slick-next` buttons during init; if
+            // they exist, give them aria-labels so AccessLint won't complain.
+            try {
+                const prevLabel = (this.i18n && this.i18n['previous']) || 'Previous slide';
+                const nextLabel = (this.i18n && this.i18n['next']) || 'Next slide';
+
+                // Prefer buttons inside the container, but fall back to global
+                // selectors in case Slick appends controls elsewhere.
+                const $prev = this.$container.find('.slick-prev').length ? this.$container.find('.slick-prev') : jQuery('.slick-prev');
+                const $next = this.$container.find('.slick-next').length ? this.$container.find('.slick-next') : jQuery('.slick-next');
+
+                if ($prev && $prev.length) {
+                    $prev.attr('aria-label', $prev.attr('aria-label') || prevLabel);
+                }
+                if ($next && $next.length) {
+                    $next.attr('aria-label', $next.attr('aria-label') || nextLabel);
+                }
+            } catch (err) {
+                // jQuery or DOM not available in test environment — ignore.
+            }
+
+            // Ensure the carousel container has an accessible name/role so
+            // screen readers can identify the region.
+            try {
+                if (!this.$container.attr('role')) {
+                    this.$container.attr('role', 'region');
+                }
+                if (!this.$container.attr('aria-label')) {
+                    const label = this.config.analyticsCategory || 'Carousel';
+                    this.$container.attr('aria-label', label);
+                }
+            } catch (err) {
+                // ignore in constrained environments
             }
         });
 
