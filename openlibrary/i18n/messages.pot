@@ -107,7 +107,7 @@ msgid "Preview Only"
 msgstr ""
 
 #: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html
+#: editpage.html import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -1904,6 +1904,15 @@ msgstr ""
 
 #: import_preview.html
 msgid "Preview Import"
+msgstr ""
+
+#: import_preview.html
+msgid "Show Raw Import Data"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "New %(thing_type)s record created"
 msgstr ""
 
 #: internalerror.html

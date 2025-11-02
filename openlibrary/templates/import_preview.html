@@ -25,7 +25,22 @@ $def with (md_provider_factory, req, result=None)
 
 
     $if result:
-        <textarea readonly aria-label="json preview of import record" style="width: 100%; height: 300px;">$json_encode(result, indent=2)</textarea>
+        <h2>$_("Preview")</h2>
+        <details>
+            <summary>$_("Show Raw Import Data")</summary>
+            <textarea readonly aria-label="json preview of import record" style="width: 100%; height: 300px;">$json_encode(result, indent=2)</textarea>
+        </details>
+        $if 'edits' in result and result['edits']:
+            <hr>
+            $for edit in result['edits']:
+                $if not edit.get('revision'):
+                    <h2>$_("New %(thing_type)s record created", thing_type=edit['type']['key'])</h2>
+                    <textarea readonly aria-label="json preview of new record" style="width: 100%; height: 200px;">$json_encode(edit, indent=2)</textarea>
+                $else:
+                    $ prev = get_document(edit['key'], edit['revision'])
+                    $ edit = create_thing(edit)
+                    $:render_template('diff.html', prev, edit)
+                <hr>
 
         <form method="POST" action="/import/preview">
             <input type="hidden" name="provider" value="$req.metadata_provider.id_name">

@@ -6,7 +6,7 @@ $putctx("robots", "noindex,nofollow")
 
 <div id="contentHead">
 
-    $:macros.databarDiff()
+    $:macros.databarDiff(path=a.key)
 
     $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
         $ title = a.title or a.key
