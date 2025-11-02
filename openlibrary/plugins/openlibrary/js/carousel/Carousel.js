@@ -63,9 +63,30 @@ export class Carousel {
     }
 
     init() {
+        // Ensure we strip only the ARIA attributes Slick adds while preserving
+        // Slick's keyboard handling. Bind the `init` event before initializing
+        // so we can remove the role/aria attributes as soon as Slick creates slides.
+        this.$container.on('init', (_e, slick) => {
+            // Remove attributes Slick injects that make slides act like selectable
+            // options for assistive tech. We keep accessibility enabled so Slick
+            // continues to provide keyboard handlers.
+            try {
+                slick.$slides.removeAttr('role aria-selected tabindex');
+            } catch (err) {
+                // If slick doesn't expose $slides yet, silently ignore.
+            }
+        });
+
         this.$container.slick({
             infinite: false,
             speed: 300,
+            // Keep Slick accessibility enabled so keyboard navigation works.
+            // Disable Slick's built-in accessibility (it adds role="option"
+            // and related attributes which makes slides behave like selectable
+            // options for assistive tech and leads to duplicate announcements).
+            // We provide a small keyboard handler below to preserve left/right
+            // arrow navigation without Slick injecting role="option".
+            accessibility: false,
             slidesToShow: this.config.booksPerBreakpoint[0],
             slidesToScroll: this.config.booksPerBreakpoint[0],
             responsive: [1200, 1024, 600, 480, 360]
@@ -99,6 +120,22 @@ export class Carousel {
                     action: 'Next',
                     label: this.config.carouselKey,
                 });
+            }
+        });
+
+        // Provide simple left/right arrow keyboard navigation while keeping
+        // Slick accessibility disabled (so it doesn't mark slides as options).
+        // We listen on the container so that key events bubble up from focused
+        // elements inside slides.
+        this.$container.on('keydown', (ev) => {
+            // Use `key` where available; fall back to keyCode for older browsers.
+            const key = ev.key || ev.keyCode;
+            if (key === 'ArrowLeft' || key === 37) {
+                ev.preventDefault();
+                this.$container.slick('slickPrev');
+            } else if (key === 'ArrowRight' || key === 39) {
+                ev.preventDefault();
+                this.$container.slick('slickNext');
             }
         });
 
