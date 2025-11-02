@@ -1912,7 +1912,7 @@ msgstr ""
 
 #: import_preview.html
 #, python-format
-msgid "New %(thing_type)s record created"
+msgid "New %(thing_type)s record will be created"
 msgstr ""
 
 #: import_preview.html

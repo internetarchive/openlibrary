@@ -20,7 +20,7 @@ $if show_header:
 
 $def display_revision(page):
     <div class="small sansserif">
-        <a href="$changequery({}, v=page.revision)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
+        <a href="$changequery({}, v=page.revision, _path=page.key)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
         $ v = get_version(page.key, page.revision)
         $if v:
             $if v.author:
