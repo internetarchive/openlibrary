@@ -1807,22 +1807,6 @@ msgid "Diff on %s"
 msgstr ""
 
 #: diff.html
-msgid "Added"
-msgstr ""
-
-#: admin/imports_by_date.html diff.html
-msgid "Modified"
-msgstr ""
-
-#: diff.html
-msgid "Removed"
-msgstr ""
-
-#: diff.html
-msgid "Not changed"
-msgstr ""
-
-#: diff.html
 #, python-format
 msgid "Revision %d"
 msgstr ""
@@ -1839,6 +1823,22 @@ msgstr ""
 
 #: diff.html
 msgid "history"
+msgstr ""
+
+#: diff.html
+msgid "Added"
+msgstr ""
+
+#: admin/imports_by_date.html diff.html
+msgid "Modified"
+msgstr ""
+
+#: diff.html
+msgid "Removed"
+msgstr ""
+
+#: diff.html
+msgid "Not changed"
 msgstr ""
 
 #: diff.html
@@ -1913,6 +1913,11 @@ msgstr ""
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Changes to %(key)s"
 msgstr ""
 
 #: internalerror.html

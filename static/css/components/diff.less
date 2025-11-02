@@ -6,17 +6,12 @@
 
 // stylelint-disable selector-max-specificity
 #legend {
-  float: left;
   font-size: @font-size-label-small;
-  font-family: @body-family;
-  line-height: 1em;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 #legend dl,
 dd {
-  float: left;
-  padding: 0;
   margin: 0;
 }
 
@@ -45,12 +40,13 @@ dd {
 
 /* Diff comparison table */
 
+#contentBody.diff {
+  overflow: auto;
+}
+
 .diff .revisions {
-  clear: both;
-  margin-top: 20px;
-  padding: 0;
-  float: left;
   width: 100%;
+  min-width: 400px;
 }
 
 .diff .revisions th {
