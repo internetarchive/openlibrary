@@ -1273,6 +1273,7 @@ def setup_template_globals():
 
     def get_supported_languages():
         return {
+            "ar": {"code": "ar", "localized": _('Arabic'), "native": "العربية"},
             "cs": {"code": "cs", "localized": _('Czech'), "native": "Čeština"},
             "de": {"code": "de", "localized": _('German'), "native": "Deutsch"},
             "en": {"code": "en", "localized": _('English'), "native": "English"},
