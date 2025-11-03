@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
@@ -15,6 +16,7 @@ from openlibrary.accounts.model import (
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -23,7 +25,7 @@ from openlibrary.core.lending import (
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
@@ -665,12 +667,47 @@ class ActivityFeed:
         `PubSub.get_feed` results.
         """
         following = PubSub.is_following(username)
-        if PubSub.is_following(username):
-            feed = PubSub.get_feed(username, limit=3)
+        if following:
+            feed = cls.get_cached_pub_sub_feed(username)
         else:
-            feed = Bookshelves.get_recently_logged_books(limit=3)
-            for i, doc in enumerate(feed):
-                feed[i].key = f'/works/OL{doc["work_id"]}W'
-            Bookshelves.add_solr_works(feed)
+            feed = cls.get_cached_trending_feed()
 
         return feed or [], following
+
+    @classmethod
+    def get_pub_sub_feed(cls, username):
+        feed = PubSub.get_feed(username, limit=3)
+        return feed
+
+    @classmethod
+    def get_cached_pub_sub_feed(cls, username):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(cls.get_pub_sub_feed, key_prefix="my.books.pub.sub.feed", timeout=five_minutes)
+        results = mc(username)
+
+        for r in results:
+            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+                # Update `created` to datetime, which is the type expected by `datestr` (called in card template)
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
+
+    @classmethod
+    def get_trending_feed(cls):
+        logged_books = Bookshelves.get_recently_logged_books(limit=3)
+        Bookshelves.add_solr_works(logged_books)
+        feed = [book['work'] for book in logged_books if book.get('work')]
+        for idx, i in enumerate(feed):
+            feed[idx].bookshelf_id = logged_books[idx]['bookshelf_id']
+            feed[idx].created = logged_books[idx]['created']
+        return feed
+
+    @classmethod
+    def get_cached_trending_feed(cls):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(cls.get_trending_feed, key_prefix="my.books.trending.feed", timeout=five_minutes)
+        results = mc()
+
+        for r in results:
+            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
