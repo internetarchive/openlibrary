@@ -80,11 +80,11 @@ class mybooks_home(delegate.page):
             def add_availability_with_edition_preference(docs):
                 """Check edition-level availability when available, fallback to work-level."""
                 filtered_docs = [d for d in docs if d.get('title')]
-                
+
                 docs_with_editions = []
                 editions_to_check = []
                 docs_without_editions = []
-                
+
                 for doc in filtered_docs:
                     # editions can be a list [edition] or dict {'docs': [edition]}
                     editions = doc.get('editions')
@@ -95,7 +95,7 @@ class mybooks_home(delegate.page):
                             edition = editions['docs'][0]
                         else:
                             edition = None
-                        
+
                         if edition:
                             docs_with_editions.append((doc, edition))
                             editions_to_check.append(edition)
@@ -103,7 +103,7 @@ class mybooks_home(delegate.page):
                             docs_without_editions.append(doc)
                     else:
                         docs_without_editions.append(doc)
-                
+
                 if editions_to_check:
                     edition_olids = [
                         edition['key'].split('/')[-1]
@@ -118,13 +118,15 @@ class mybooks_home(delegate.page):
                             if edition.get('key'):
                                 edition_olid = edition['key'].split('/')[-1]
                                 if edition_olid in edition_availabilities:
-                                    doc['availability'] = edition_availabilities[edition_olid]
-                
+                                    doc['availability'] = edition_availabilities[
+                                        edition_olid
+                                    ]
+
                 if docs_without_editions:
                     add_availability(docs_without_editions)
-                
+
                 return filtered_docs
-            
+
             # Ideally, do all 3 lookups in one add_availability call
             want_to_read.docs = add_availability_with_edition_preference(
                 want_to_read.docs
