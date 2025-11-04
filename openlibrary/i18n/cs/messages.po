@@ -319,11 +319,11 @@ msgstr ""
 
 #: borrow.html:264
 msgid "Internet Archive"
-msgstr ""
+msgstr "Internetový Archiv"
 
 #: borrow.html:266
 msgid "eBooks everywhere"
-msgstr ""
+msgstr "eKnihy kdekoliv"
 
 #: borrow.html:268
 msgid ""
@@ -334,7 +334,7 @@ msgstr ""
 
 #: borrow.html:274
 msgid "physical books from your local library"
-msgstr ""
+msgstr "fyzické knížky z Vaší místní knihovny"
 
 #: borrow.html:276
 msgid ""
@@ -352,6 +352,8 @@ msgid ""
 "All you need to borrow a book scanned at the Internet Archive is an Open "
 "Library account and Adobe Digital Editions."
 msgstr ""
+"Vše, co potřebujete pro vypůjčení knihy naskenované v Internet Archive je"
+"účet u Open Library a Adobe Digital Editions.
 
 #: borrow.html:283
 msgid ""
@@ -364,6 +366,8 @@ msgid ""
 "Check out the <a href=\"/help/faq#section-borrowing\"><strong>Lending "
 "FAQ</strong></a> for more information."
 msgstr ""
+"Podívejte se <a href=\"/help/faq#section-borrowing\"><strong>Výpujčky "
+"FAQ</strong></a> pro více informací.
 
 #: borrow.html:288
 #, python-format
@@ -1986,7 +1990,7 @@ msgstr "Novější"
 
 #: default/message.html:25 edit-book/message.html:25
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "vytvořil nový Open Library účet!"
 
 #: merge-authors/message.html:9
 #, python-format
@@ -2069,7 +2073,7 @@ msgstr "Zobrazit nebo upravit váše seznamy"
 
 #: openlibrary/templates/account.html:20
 msgid "Please contact us if you need help with anything else."
-msgstr ""
+msgstr "Kontaktujte nás prosím, pokud potřebujete pomoc s něčím dalším."
 
 #: openlibrary/templates/diff.html:3
 #, python-format
