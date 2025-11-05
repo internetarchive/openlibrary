@@ -65,6 +65,7 @@ class SolrDocument(TypedDict):
     time: Optional[list[str]]
     time_facet: Optional[list[str]]
     time_key: Optional[list[str]]
+    acquisition: Optional[list[str]]
     ratings_average: Optional[float]
     ratings_sortable: Optional[float]
     ratings_count: Optional[int]
