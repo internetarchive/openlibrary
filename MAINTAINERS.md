@@ -18,4 +18,4 @@ The assignee of a PR is responsible for:
 - **testing the PR** before merging. Comment about how you tested in the PR. If _any_ changes are made to the PR code, you will have to test it again before merging.
 - **merging (or closing)** the PR.
 
-Each Monday (as of 2022) we triage PRs (excluding drafts) and make sure they have leads assigneed so that nothing gets stuck.
+Each Monday (as of 2022) we triage PRs (excluding drafts) and make sure they have leads assigned so that nothing gets stuck.
