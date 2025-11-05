@@ -805,14 +805,13 @@ class opds_search(delegate.page):
     path = r"/opds/search"
 
     def GET(self):
-        from opds2 import Catalog, Link, Metadata
+        from pyopds2 import Catalog, Link, Metadata
 
         i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
         provider = get_opds_data_provider()
         catalog = Catalog.create(
-            provider,
             metadata=Metadata(title=_("Search Results")),
-            search=provider.search(
+            response=provider.search(
                 query=i.query,
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
@@ -858,7 +857,7 @@ class opds_home(delegate.page):
 
     def GET(self):
         def build_homepage():
-            from opds2 import Catalog, Link, Metadata, Navigation
+            from pyopds2 import Catalog, Link, Metadata, Navigation
 
             provider = get_opds_data_provider()
             catalog = Catalog(
@@ -874,54 +873,48 @@ class opds_home(delegate.page):
                 ],
                 groups=[
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Trending Books")),
-                        search=provider.search(
+                        response=provider.search(
                             query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
                             sort='trending',
                             limit=25,
                         ),
                     ),
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Classic Books")),
-                        search=provider.search(
+                        response=provider.search(
                             query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false -subject:"content_warning:cover"',
                             sort='trending',
                             limit=25,
                         ),
                     ),
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Romance")),
-                        search=provider.search(
+                        response=provider.search(
                             query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',  # noqa: E501
                             sort='trending,trending_score_hourly_sum',
                             limit=25,
                         ),
                     ),
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Kids")),
-                        search=provider.search(
+                        response=provider.search(
                             query='ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] (subject_key:(juvenile_audience OR children\'s_fiction OR juvenile_nonfiction OR juvenile_encyclopedias OR juvenile_riddles OR juvenile_poetry OR juvenile_wit_and_humor OR juvenile_limericks OR juvenile_dictionaries OR juvenile_non-fiction) OR subject:("Juvenile literature" OR "Juvenile fiction" OR "pour la jeunesse" OR "pour enfants"))',  # noqa: E501
                             sort='random.hourly',
                             limit=25,
                         ),
                     ),
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Thrillers")),
-                        search=provider.search(
+                        response=provider.search(
                             query='subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
                             sort='trending,trending_score_hourly_sum',
                             limit=25,
                         ),
                     ),
                     Catalog.create(
-                        provider,
                         metadata=Metadata(title=_("Textbooks")),
-                        search=provider.search(
+                        response=provider.search(
                             query='subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]',
                             sort='trending',
                             limit=25,
