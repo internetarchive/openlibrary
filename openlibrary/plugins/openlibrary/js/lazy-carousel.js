@@ -19,8 +19,9 @@ export function initLazyCarousel(elems) {
         // Observe element for intersections
         intersectionObserver.observe(elem)
 
-        // Add retry listeners
-        $('.retry-btn').on('click', (e) => {
+        // Add retry listener
+        const retryElem = elem.querySelector('.retry-btn')
+        retryElem.addEventListener('click', (e) => {
             e.preventDefault()
             handleRetry(elem);
         })
@@ -97,7 +98,10 @@ function doFetchAndUpdate(target) {
 function handleRetry(target) {
     target.querySelector('.loadingIndicator').classList.remove('hidden')
     target.querySelector('.lazy-carousel-retry').classList.add('hidden')
-    target.querySelector('.lazy-carousel-fallback').classList.add('hidden')
+    const carouselFallbackElem = target.querySelector('.lazy-carousel-fallback')
+    if (carouselFallbackElem) {
+        carouselFallbackElem.classList.add('hidden')
+    }
     doFetchAndUpdate(target)
 }
 
