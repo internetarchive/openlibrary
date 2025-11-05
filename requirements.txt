@@ -9,7 +9,7 @@ feedparser==6.0.11
 flup-py3==1.0.3
 Genshi==0.7.7
 git+https://github.com/ArchiveLab/pyopds2.git@72443c0bc38acb9507154900051f8badaa354332
-git+https://github.com/ArchiveLab/pyopds2_openlibrary.git@cc83e779728ecab919297ac9794daf6499e4a646
+git+https://github.com/ArchiveLab/pyopds2_openlibrary.git@76cc2d05b110336ce4010f3eb8109169f9d8222a
 git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382
 gunicorn==23.0.0
 httpx==0.24.1
