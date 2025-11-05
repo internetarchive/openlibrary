@@ -6,18 +6,16 @@
   gap: 10px;
   text-align: center;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 
   &__question {
     display: flex;
-    flex-flow: row wrap;
+    flex-direction: row;
     gap: 8px;
     align-items: center;
     justify-content: center;
-
-    span {
-      font-weight: 500;
-    }
+    flex-wrap: wrap;
   }
 
   &__learn-more {
@@ -30,32 +28,10 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
     width: 100%;
     box-sizing: border-box;
-
-    input {
-      width: 100px;
-      padding: 10px 14px;
-      font-size: @font-size-label-large;
-      text-align: center;
-      border: 2px solid @lighter-grey;
-      border-radius: 4px;
-      outline: none;
-
-      &:focus {
-        border-color: @primary-blue;
-        box-shadow: 0 0 0 2px fade(@primary-blue, 20%);
-      }
-    }
-
-    button {
-      display: inline-block;
-      width: fit-content;
-      margin: 0;
-      padding: 9px 20px;
-      font-size: @font-size-label-large;
-    }
+    padding-right: 10px;
   }
 
   &__note {
@@ -66,55 +42,88 @@
   }
 }
 
+.goal-form__question span {
+  font-weight: 500;
+}
+
+.goal-form__input-section input {
+  width: 80px;
+  padding: 8px 12px;
+  font-size: @font-size-label-large;
+  text-align: center;
+  border: 2px solid @lighter-grey;
+  border-radius: 4px;
+  outline: none;
+}
+
+.goal-form__input-section input:focus {
+  border-color: @primary-blue;
+  box-shadow: 0 0 0 2px fade(@primary-blue, 20%);
+}
+
+.goal-form__input-section button {
+  display: inline-block;
+  width: fit-content;
+  margin: 0;
+  padding: 9px 20px;
+  font-size: @font-size-label-large;
+}
+
+// Responsive design for smaller screens
 @media only screen and (max-width: @width-breakpoint-tablet) {
   .goal-form {
     gap: 12px;
+  }
 
-    &__question span {
-      font-size: @font-size-label-medium;
-    }
+  .goal-form__question {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
 
-    &__input-section {
-      gap: 10px;
-      justify-content: center;
-      padding: 0 10px;
+  .goal-form__question span {
+    font-size: @font-size-label-medium;
+  }
 
-      input {
-        width: 70px;
-        padding: 8px 10px;
-        font-size: @font-size-label-medium;
-      }
+  .goal-form__input-section {
+    gap: 10px;
+    justify-content: center;
+    padding-right: 0;
+  }
 
-      button {
-        padding: 8px 12px;
-        font-size: @font-size-label-medium;
-      }
-    }
+  .goal-form__input-section input {
+    width: 65px;
+    padding: 7px 8px;
+    font-size: @font-size-label-medium;
+  }
+
+  .goal-form__input-section button {
+    padding: 7px 14px;
+    font-size: @font-size-label-medium;
   }
 }
 
 @media only screen and (max-width: 480px) {
-  .goal-form {
-    &__question {
-      flex-direction: column;
-      gap: 6px;
-    }
+  .goal-form__question {
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
 
-    &__input-section {
-      gap: 8px;
-      padding: 0 5px;
+  .goal-form__input-section {
+    gap: 8px;
+    justify-content: center;
+    padding-right: 0;
+  }
 
-      input {
-        width: 60px;
-        padding: 6px 8px;
-        font-size: @font-size-label-small;
-      }
+  .goal-form__input-section input {
+    width: 55px;
+    padding: 6px 8px;
+    font-size: @font-size-label-small;
+  }
 
-      button {
-        padding: 6px 10px;
-        font-size: @font-size-label-small;
-      }
-    }
+  .goal-form__input-section button {
+    padding: 6px 12px;
+    font-size: @font-size-label-small;
   }
 }
 
@@ -131,8 +140,9 @@
     background-color: @light-grey;
     border-radius: 5px;
     height: 20px;
-    margin: 0 auto 10px;
+    margin: auto;
     width: 85%;
+    margin-bottom: 10px;
   }
 
   &__completed {
@@ -155,7 +165,10 @@
     padding: 15px 0 0;
 
     &__details {
+      display: flex;
+      justify-content: space-between;
       width: 85%;
+      margin: auto;
     }
   }
 }
