@@ -78,13 +78,25 @@ class mybooks_home(delegate.page):
             already_read = mb.readlog.get_works(key='already-read', **params)
 
             want_to_read.docs = add_availability(
-                [safeget(lambda: d['editions']['docs'][0], d) for d in want_to_read.docs if d.get('title')]
+                [
+                    safeget(lambda: d['editions']['docs'][0], d)
+                    for d in want_to_read.docs
+                    if d.get('title')
+                ]
             )[:5]
             currently_reading.docs = add_availability(
-                [safeget(lambda: d['editions']['docs'][0], d) for d in currently_reading.docs if d.get('title')]
+                [
+                    safeget(lambda: d['editions']['docs'][0], d)
+                    for d in currently_reading.docs
+                    if d.get('title')
+                ]
             )[:5]
             already_read.docs = add_availability(
-                [safeget(lambda: d['editions']['docs'][0], d) for d in already_read.docs if d.get('title')]
+                [
+                    safeget(lambda: d['editions']['docs'][0], d)
+                    for d in already_read.docs
+                    if d.get('title')
+                ]
             )[:5]
 
         docs = {
