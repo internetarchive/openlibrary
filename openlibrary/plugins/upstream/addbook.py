@@ -1031,11 +1031,13 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
+            cleaned_names = [
+                name.strip() for name in alternate_names.split('\n') if name.strip()
+            ]
+            sorted_names = sorted(cleaned_names, key=str.lower)
             author.alternate_names = uniq(
-                [author.name]
-                + [
-                    name.strip() for name in alternate_names.split('\n') if name.strip()
-                ],
+                [author.name] + sorted_names,
+                key=str.lower
             )[1:]
             author.links = author.get('links') or []
             return author
