@@ -1035,10 +1035,9 @@ class author_edit(delegate.page):
                 name.strip() for name in alternate_names.split('\n') if name.strip()
             ]
             sorted_names = sorted(cleaned_names, key=str.lower)
-            author.alternate_names = uniq(
-                [author.name] + sorted_names,
-                key=str.lower
-            )[1:]
+            author.alternate_names = uniq([author.name] + sorted_names, key=str.lower)[
+                1:
+            ]
             author.links = author.get('links') or []
             return author
 
