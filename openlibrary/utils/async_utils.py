@@ -3,6 +3,8 @@ import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
 
+import web
+
 # Start a persistent event loop in a background thread.
 # This avoids creating/destroying a loop on every call to select().
 # More importantly, this lets us call async code from sync code.
@@ -17,6 +19,13 @@ T = TypeVar("T")
 # We can't use the 3.14 syntax yet for the paramspec
 
 
+async def setup_ctx_site() -> None:
+    if not web.ctx.get('site'):
+        from infogami.utils.delegate import create_site
+
+        web.ctx.site = create_site()
+
+
 class AsyncBridge:
     def __init__(self):
         self._loop = asyncio.new_event_loop()
@@ -26,10 +35,14 @@ class AsyncBridge:
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
         return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
 
-    def wrap(self, func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, T]:
+    def wrap(
+        self, func: Callable[P, Coroutine[Any, Any, T]], init_ctx_site: bool = False
+    ) -> Callable[P, T]:
         """Wrap an async function so it can be called from sync code, preserving type hints."""
 
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            if init_ctx_site:
+                self.run(setup_ctx_site())
             return self.run(func(*args, **kwargs))
 
         return wrapper
