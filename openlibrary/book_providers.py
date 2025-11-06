@@ -1,3 +1,4 @@
+import functools
 import logging
 import typing
 from collections.abc import Callable, Iterator
@@ -54,6 +55,16 @@ class EbookAccess(OrderedEnum):
             return EbookAccess.NO_EBOOK
         else:
             raise ValueError(f'Unknown access literal: {literal}')
+
+    def to_acquisition_access_literal(self) -> AcquisitionAccessLiteral | None:
+        if self == EbookAccess.PRINTDISABLED:
+            return 'sample'
+        elif self == EbookAccess.PUBLIC:
+            return 'open-access'
+        elif self == EbookAccess.BORROWABLE:
+            return 'borrow'
+        else:
+            return None
 
 
 @dataclass
@@ -353,13 +364,24 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     def get_acquisitions(
         self,
         ed_or_solr: Edition | dict,
+        db_edition: Edition | None = None,
     ) -> list[Acquisition]:
+        access: AcquisitionAccessLiteral | None = None
+
+        if solr_ebook_access := ed_or_solr.get('ebook_access'):
+            access = EbookAccess.from_solr_str(
+                solr_ebook_access
+            ).to_acquisition_access_literal()
+
+        if not access:
+            return []
+
         return [
             Acquisition(
-                access='open-access',
+                access=access,
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(ed_or_solr)}',
+                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}',
                 provider_name=self.short_name,
             )
         ]
@@ -594,6 +616,46 @@ class WikisourceProvider(AbstractBookProvider):
         ]
 
 
+class BetterWorldBooksProvider(AbstractBookProvider):
+    short_name = 'betterworldbooks'
+    long_name = 'Better World Books'
+    identifier_key = 'betterworldbooks'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+    def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
+        # basically just check if it has an isbn?
+        return (ed_or_solr.get('isbn') or ed_or_solr.get('isbn_10') or []) + (
+            ed_or_solr.get('isbn_13') or []
+        )
+
+    @functools.cached_property
+    def bwb_acquisitions(self) -> dict[str, Acquisition]:
+        from infogami import config
+
+        results = {
+            key: Acquisition.from_json(acq)
+            for key, acq in getattr(config, 'bwb_test_holdings', {}).items()
+        }
+
+        for acq in results.values():
+            acq.provider_name = "Better World Books"
+
+        return results
+
+    def get_acquisitions(
+        self,
+        ed_or_solr: Edition | dict,
+    ) -> list[Acquisition]:
+        key = cast(str, ed_or_solr['key'])
+
+        if acq := self.bwb_acquisitions.get(key):
+            return [acq]
+
+        return []
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -607,6 +669,8 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
+    # Then link to purchase options
+    BetterWorldBooksProvider(),
 ]
 
 
@@ -727,6 +791,18 @@ def get_book_providers(ed_or_solr: Edition | dict) -> Iterator[AbstractBookProvi
 
 def get_book_provider(ed_or_solr: Edition | dict) -> AbstractBookProvider | None:
     return next(get_book_providers(ed_or_solr), None)
+
+
+def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
+    acquisitions: list[Acquisition] = []
+    for provider in get_book_providers(edition):
+        if isinstance(provider, InternetArchiveProvider):
+            acquisitions.extend(
+                provider.get_acquisitions(solr_edition, db_edition=edition)
+            )
+        else:
+            acquisitions.extend(provider.get_acquisitions(edition))
+    return acquisitions
 
 
 def get_best_edition(
