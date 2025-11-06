@@ -722,6 +722,12 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
+    # TODO: fix this hack. Should be higher up like in other PR.
+    if not hasattr(web.ctx, 'site'):
+        from infogami.utils.delegate import create_site
+
+        web.ctx.site = create_site()
+
     keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
     return {
         lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
@@ -1170,7 +1176,9 @@ def get_marc21_language(language: str) -> str | None:
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
+def get_language_name(
+    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -1178,7 +1186,6 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     else:
         lang = lang_or_key
 
-    user_lang = web.ctx.lang or 'en'
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
