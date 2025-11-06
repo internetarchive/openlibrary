@@ -297,10 +297,10 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        # client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
         headers = {
-            # "x-client-id": client_ip,
-            # "x-preferred-client-id": client_ip,
+            "x-client-id": client_ip,
+            "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
         response = ia.session.get(
@@ -439,10 +439,10 @@ def get_availability(
 
     try:
         headers = {
-            # "x-preferred-client-id": web.ctx.env.get(
-            #     'HTTP_X_FORWARDED_FOR', 'ol-internal'
-            # ),
-            # "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
+            "x-preferred-client-id": web.ctx.env.get(
+                'HTTP_X_FORWARDED_FOR', 'ol-internal'
+            ),
+            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
         }

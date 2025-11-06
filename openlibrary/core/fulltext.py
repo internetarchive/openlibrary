@@ -24,7 +24,7 @@ async def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
     headers = {
-        # "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
+        "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
         "x-application-id": "openlibrary",
     }
     if config_fts_context is not None:
@@ -80,4 +80,26 @@ async def async_fulltext_search(q, page=1, limit=100, js=False, facets=False):
     return ia_results
 
 
-fulltext_search = async_bridge.wrap(async_fulltext_search, init_ctx_site=True)
+def ctx_func_factory():
+    """Factory function that returns setup_ctx_site for use with async_bridge.wrap
+    TODO: next time we use this in a different context, we should consider generalizing it.
+    """
+
+    forwarded_for = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+    user_agent = web.ctx.env.get('HTTP_USER_AGENT', '')
+
+    async def setup_env_vars():
+        from infogami.utils.delegate import create_site
+
+        web.ctx.site = create_site()
+        web.ctx.env = {
+            'HTTP_X_FORWARDED_FOR': forwarded_for,
+            'HTTP_USER_AGENT': user_agent,
+        }
+
+    return setup_env_vars
+
+
+fulltext_search = async_bridge.wrap(
+    async_fulltext_search, init_ctx_factory=ctx_func_factory
+)
