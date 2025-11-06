@@ -623,7 +623,9 @@ class WorkSearchScheme(SearchScheme):
                 for field in non_solr_fields:
                     val = getattr(ed, field)
                     if field == 'providers':
-                        ed_doc[field] = [acq.__dict__ for acq in get_acquisitions(ed)]
+                        ed_doc[field] = [
+                            acq.__dict__ for acq in get_acquisitions(ed_doc, ed)
+                        ]
                     elif isinstance(val, infogami.infobase.client.Nothing):
                         continue
                     elif field == 'description':
