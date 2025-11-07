@@ -605,7 +605,7 @@ class BetterWorldBooksMetadataError(TypedDict):
 @public
 def get_betterworldbooks_metadata(
     isbn: str,
-) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError:
+) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None:
     """
     :param str isbn: Unnormalisied ISBN10 or ISBN13
     :return: Metadata for a single BWB book, currently lited on their catalog, or
