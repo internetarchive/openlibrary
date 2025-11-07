@@ -505,18 +505,21 @@ class MigrationMiddleware(ConnectionMiddleware):
             title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
             doc['title'] = title.strip()
             import re
+
             # Generate normalized title for sorting
             def make_title_sort(title: str) -> str:
                 """Normalize title for sorting (ignore 'A', 'An', 'The')."""
                 if not title:
                     return ""
-                title = re.sub(r'^\s*(?:the|a|an)\b[\s\W_]*', '', title, flags=re.IGNORECASE)
+                title = re.sub(
+                    r'^\s*(?:the|a|an)\b[\s\W_]*', '', title, flags=re.IGNORECASE
+                )
                 title = re.sub(r'\s+', ' ', title).strip().lower()
                 return title
 
             doc['title_sort'] = make_title_sort(doc['title'])
             del doc['title_prefix']
-            
+
         return doc
 
     def fix_broken_redirect(self, key):
