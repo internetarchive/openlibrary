@@ -199,7 +199,7 @@ async def main(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    if keys[0].startswith('//'):
+    if keys and keys[0].startswith('//'):
         keys = [k[1:] for k in keys]
 
     if solr_base:
