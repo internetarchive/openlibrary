@@ -341,33 +341,34 @@ class people_view:
             raise web.notfound()
 
         i = web.input(action=None, tag=None, bot=None, dry_run=None)
-        if i.action == "update_email":
-            return self.POST_update_email(user, i)
-        elif i.action == "update_password":
-            return self.POST_update_password(user, i)
-        elif i.action == "resend_link":
-            return self.POST_resend_link(user)
-        elif i.action == "activate_account":
-            return self.POST_activate_account(user)
-        elif i.action == "block_account":
-            return self.POST_block_account(user)
-        elif i.action == "block_account_and_revert":
-            return self.POST_block_account_and_revert(user)
-        elif i.action == "unblock_account":
-            return self.POST_unblock_account(user)
-        elif i.action == "add_tag":
-            return self.POST_add_tag(user, i.tag)
-        elif i.action == "remove_tag":
-            return self.POST_remove_tag(user, i.tag)
-        elif i.action == "set_bot_flag":
-            return self.POST_set_bot_flag(user, i.bot)
-        elif i.action == "su":
-            return self.POST_su(user)
-        elif i.action == "anonymize_account":
-            test = bool(i.dry_run)
-            return self.POST_anonymize_account(user, test)
-        else:
-            raise web.seeother(web.ctx.path)
+        match i.action:
+            case "update_email":
+                return self.POST_update_email(user, i)
+            case "update_password":
+                return self.POST_update_password(user, i)
+            case "resend_link":
+                return self.POST_resend_link(user)
+            case "activate_account":
+                return self.POST_activate_account(user)
+            case "block_account":
+                return self.POST_block_account(user)
+            case "block_account_and_revert":
+                return self.POST_block_account_and_revert(user)
+            case "unblock_account":
+                return self.POST_unblock_account(user)
+            case "add_tag":
+                return self.POST_add_tag(user, i.tag)
+            case "remove_tag":
+                return self.POST_remove_tag(user, i.tag)
+            case "set_bot_flag":
+                return self.POST_set_bot_flag(user, i.bot)
+            case "su":
+                return self.POST_su(user)
+            case "anonymize_account":
+                test = bool(i.dry_run)
+                return self.POST_anonymize_account(user, test)
+            case _:
+                raise web.seeother(web.ctx.path)
 
     def POST_activate_account(self, user):
         user.activate()
