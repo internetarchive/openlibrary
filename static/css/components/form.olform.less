@@ -265,3 +265,58 @@
   }
   /* stylelint-enable selector-max-specificity */
 }
+
+@media only screen and (max-width: @width-breakpoint-mobile) {
+  .olform {
+    // Make the two-column edit layout stack vertically
+    .formBackLeft,
+    .formBackRight,
+    .formBackLeft.formBackLeft,
+    .formBackRight.formBackRight {
+      float: none !important;
+      width: 100% !important;
+    }
+
+    // Make identifier/classification tables responsive: stack cells
+    table.identifiers {
+      width: 100% !important;
+      table-layout: auto;
+    }
+
+    table.identifiers tr {
+      display: block;
+      margin: 0 0 8px 0;
+    }
+
+    table.identifiers td {
+      display: block;
+      width: 100% !important;
+      box-sizing: border-box;
+      padding: 6px 0;
+      border: none;
+    }
+
+    // Make form inputs full-width and remove right margins that caused overflow
+    input[type="text"],
+    input[type="email"],
+    input[type="url"],
+    textarea,
+    select {
+      width: 100% !important;
+      margin-right: 0 !important;
+    }
+
+    // Links/form groups that used fixed min-width should be allowed to shrink
+    .links-form__label,
+    .links-form__url,
+    .mia__reorder {
+      min-width: 0 !important;
+    }
+
+    // Avoid horizontal gutters from content areas
+    .formBack {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+  }
+}
