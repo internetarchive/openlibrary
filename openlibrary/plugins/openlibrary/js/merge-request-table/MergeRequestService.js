@@ -1,7 +1,7 @@
-
 export const REQUEST_TYPES = {
     WORK_MERGE: 1,
-    AUTHOR_MERGE: 2
+    AUTHOR_MERGE: 2,
+    DELETION: 3  // ← ADDED
 }
 
 export async function createRequest(olids, action, type, comment = null, primary = null) {
@@ -26,6 +26,17 @@ export async function createRequest(olids, action, type, comment = null, primary
         },
         body: JSON.stringify(data)
     })
+}
+
+/**
+ * Creates a deletion request for an entry that is not a book
+ * @param {string} olid - The Open Library ID to request deletion (e.g., "OL123W")
+ * @param {string} comment - Reason why this should be removed ("This is not a book")
+ * @returns {Promise<Response>}
+ */
+export async function createDeletionRequest(olid, comment) {
+    // olid should be a single ID string, not an array
+    return createRequest(olid, 'create-pending', REQUEST_TYPES.DELETION, comment);
 }
 
 /**
@@ -86,4 +97,24 @@ export async function declineRequest(mrid, comment) {
 
 export async function approveRequest(mrid, comment) {
     return updateRequest('approve', mrid, comment)
+}
+
+/**
+ * Approve a deletion request (for super librarians)
+ * @param {number} mrid - Merge request ID
+ * @param {string} comment - Optional comment about the approval
+ * @returns {Promise<Response>}
+ */
+export async function approveDeletionRequest(mrid, comment = null) {
+    return approveRequest(mrid, comment);
+}
+
+/**
+ * Decline a deletion request (keep the entry)
+ * @param {number} mrid - Merge request ID
+ * @param {string} comment - Optional comment about why it's being kept
+ * @returns {Promise<Response>}
+ */
+export async function declineDeletionRequest(mrid, comment = null) {
+    return declineRequest(mrid, comment);
 }

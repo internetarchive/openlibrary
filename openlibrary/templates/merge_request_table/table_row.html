@@ -1,7 +1,8 @@
-$def with (request, username, can_merge)
-$# request : dict : Dict containing information about a single merge request.
+$def with (request, username, can_merge, is_deletion_mode=False)
+$# request : dict : Dict containing information about a single merge request or deletion request.
 $# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
 $# can_merge : boolean : `True` if patron has merge privileges.
+$# is_deletion_mode : boolean : `True` if we're displaying a deletion request.
 
 $ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
 $ comments = request.get('comments', {}).get('comments', [])
@@ -17,25 +18,33 @@ $code:
     2: 'dot--merged'
   }
 
-<tr id="mrid-$(request['id'])" class="mr-table-row" data-mrid="$(request['id'])">
+<tr id="mrid-$(request['id'])" class="mr-table-row $('deletion-request' if is_deletion_mode else '')" data-mrid="$(request['id'])" data-is-deletion="$('true' if is_deletion_mode else 'false')">
     <td class="mr-info">
         $# Start : Status dot indicator
         $ dot_status_class = status_dot_mapping[request['status']]
-        $ status = _('Open request') if is_open else _('Closed request')
+        $ status = _('Open request') if is_open else (_('Closed request') if not is_deletion_mode else (_('Removed') if request['status'] == 2 else _('Kept')))
         <div class="dot $dot_status_class" title="$status"></div>
         $# End : Status dot indicator
 
         <div class="mr-details">
         $if is_open:
-            <span class="mr-details__request-title">$request_title</span>
+            <span class="mr-details__request-title">
+                $if is_deletion_mode:
+                    <span class="deletion-badge">$_('Deletion:')</span>
+                $request_title
+            </span>
         $else:
             <a href="$review_url" class="mr-title-link">
-                <span class="mr-details__request-title">$request_title</span>
+                <span class="mr-details__request-title">
+                    $if is_deletion_mode:
+                        <span class="deletion-badge">$_('Deletion:')</span>
+                    $request_title
+                </span>
             </a>
 
         $# Start : Most recent comment preview
         <div class="mr-details__comment-preview">
-            $ latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
+            $ latest_comment = comments[-1]['message'] if comments else (_('No comments yet.') if not is_deletion_mode else _('No reason provided.'))
             $latest_comment
         </div>
         $# End : Most recent comment preview
@@ -50,7 +59,8 @@ $code:
             $if is_submitter or can_merge:
             <div class="comment-panel__input">
                 $# XXX: Ensure that this has a drag handle
-                <textarea class="comment-panel__reply-input" rows="1" placeholder="$_('Add a comment...')"></textarea>
+                $ comment_placeholder = _('Add a comment...') if not is_deletion_mode else _('Add a reason...')
+                <textarea class="comment-panel__reply-input" rows="1" placeholder="$comment_placeholder"></textarea>
                 <input class="comment-panel__reply-btn" type="button" value="$_('Reply')">
             </div>
         </div>
@@ -58,9 +68,12 @@ $code:
 
         $# Start : Submitted by line
         <span class="mr-details__opened-by">
-            $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
+            $if is_deletion_mode:
+                $:_('Deletion request #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
+            $else:
+                $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
             $if is_open and is_submitter:
-            <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
+            <a class="mr-close-link" title="$(_('Click to close this Deletion Request') if is_deletion_mode else _('Click to close this Merge Request'))" href="javascript:;">&times;</a>
         </span>
         $# End : Submitted by line
         </div>
@@ -83,7 +96,8 @@ $code:
         <span class="mr-review-actions__assignee-name">$request_reviewer</span>
         <span class="$icon_classes">$:icon_content</span>
         </div>
-        <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$:_('Review <!-- (merge request) -->')</a>
+        $ review_btn_text = _('Review <!-- (deletion request) -->') if is_deletion_mode else _('Review <!-- (merge request) -->')
+        <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$:review_btn_text</a>
     </td>
     <td class="mr-comment-toggle">
         <a href="javascript:;" class="mr-comment-toggle__comment-expand cta-btn">
