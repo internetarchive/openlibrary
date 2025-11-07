@@ -222,9 +222,13 @@ class community_edits_queue(delegate.page):
                 if not record:
                     # Try author
                     record = web.ctx.site.get(f'/authors/{olid}')
-                
+
                 if record:
-                    return getattr(record, 'title', None) or getattr(record, 'name', None) or 'Unknown record'
+                    return (
+                        getattr(record, 'title', None)
+                        or getattr(record, 'name', None)
+                        or 'Unknown record'
+                    )
         return 'Unknown record'
 
 

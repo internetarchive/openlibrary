@@ -141,14 +141,16 @@ class CommunityEditsQueue:
         # ← MODIFIED: Add mr_type filtering for deletion modes
         status_list = []
         mr_type_filter = None
-        
+
         if mode in ['deletion_open', 'deletion_closed']:
             # Deletion requests: filter by mr_type = 3
             mr_type_filter = f'mr_type={cls.TYPE["DELETION"]}'
             status_list = [f'status={status}' for status in cls.MODES[mode]]
         elif mode in ['open', 'closed']:
             # Regular merge requests: filter by mr_type IN (1, 2)
-            mr_type_filter = f'mr_type IN ({cls.TYPE["WORK_MERGE"]}, {cls.TYPE["AUTHOR_MERGE"]})'
+            mr_type_filter = (
+                f'mr_type IN ({cls.TYPE["WORK_MERGE"]}, {cls.TYPE["AUTHOR_MERGE"]})'
+            )
             status_list = [f'status={status}' for status in cls.MODES[mode]]
         elif mode != 'all':
             status_list = [f'status={status}' for status in cls.MODES[mode]]
@@ -157,14 +159,14 @@ class CommunityEditsQueue:
 
         if wheres:
             where_clause = f'{" AND ".join(wheres)}'
-        
+
         if status_list:
             status_query = f'({" OR ".join(status_list)})'
             if where_clause:
                 where_clause = f'{where_clause} AND {status_query}'
             else:
                 where_clause = status_query
-        
+
         # ← ADDED: Append mr_type filter
         if mr_type_filter:
             if where_clause:
