@@ -57,12 +57,6 @@ class community_edits_queue(delegate.page):
             "closed": CommunityEditsQueue.get_counts_by_mode(
                 mode='closed', submitter=i.submitter, reviewer=i.reviewer
             ),
-            "deletion_open": CommunityEditsQueue.get_counts_by_mode(  # ← ADDED
-                mode='deletion_open', submitter=i.submitter, reviewer=i.reviewer
-            ),
-            "deletion_closed": CommunityEditsQueue.get_counts_by_mode(  # ← ADDED
-                mode='deletion_closed', submitter=i.submitter, reviewer=i.reviewer
-            ),
             "submitters": CommunityEditsQueue.get_submitters(),
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
@@ -101,7 +95,6 @@ class community_edits_queue(delegate.page):
             return mr_type in (
                 CommunityEditsQueue.TYPE['WORK_MERGE'],
                 CommunityEditsQueue.TYPE['AUTHOR_MERGE'],
-                CommunityEditsQueue.TYPE['DELETION'],  # ← ADDED
             )
 
         if is_valid_action(action):
@@ -138,7 +131,7 @@ class community_edits_queue(delegate.page):
             else:
                 resp = response(
                     status='error',
-                    error='A request for this item already exists.',  # ← CHANGED MESSAGE
+                    error='A merge request for these items already exists.',
                 )
         else:
             resp = response(
@@ -194,9 +187,12 @@ class community_edits_queue(delegate.page):
             return f'/works/merge?records={",".join(olids)}{primary_param}'
         elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
             return f'/authors/merge?records={",".join(olids)}'
-        elif mr_type == CommunityEditsQueue.TYPE['DELETION']:  # ← ADDED ENTIRE BLOCK
-            # Deletion only needs one OLID
-            return f'/works/{olids[0]}/delete' if olids else ''
+        elif mr_type == CommunityEditsQueue.TYPE['WORK_DELETE']:
+            return f'/works/{olids[0]}/delete'
+        elif mr_type == CommunityEditsQueue.TYPE['EDITION_DELETE']:
+            return f'/books/{olids[0]}/delete'
+        elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_DELETE']:
+            return f'/authors/{olids[0]}/delete'
         return ''
 
     @staticmethod
@@ -211,26 +207,61 @@ class community_edits_queue(delegate.page):
                 author = web.ctx.site.get(f'/authors/{olid}')
                 if author and author.name:
                     return author.name
-        elif mr_type == CommunityEditsQueue.TYPE['DELETION']:  # ← ADDED ENTIRE BLOCK
-            if olids:
-                olid = olids[0]
-                # Try to get work first
-                record = web.ctx.site.get(f'/works/{olid}')
-                if not record:
-                    # Try edition
-                    record = web.ctx.site.get(f'/books/{olid}')
-                if not record:
-                    # Try author
-                    record = web.ctx.site.get(f'/authors/{olid}')
-
-                if record:
-                    return (
-                        getattr(record, 'title', None)
-                        or getattr(record, 'name', None)
-                        or 'Unknown record'
-                    )
+        elif mr_type == CommunityEditsQueue.TYPE['DELETION'] and olids:
+            olid = olids[0]
+            record = web.ctx.site.get(f'/works/{olid}')
+            if not record:
+                record = web.ctx.site.get(f'/books/{olid}')
+            if not record:
+                record = web.ctx.site.get(f'/authors/{olid}')
+            if record:
+                return getattr(record, 'title', None) or getattr(record, 'name', None) or 'Unknown record'
         return 'Unknown record'
+    
+    @staticmethod
+    def delete_request(
+        username,
+        action='',
+        mr_type=None,
+        olids='',
+        comment: str | None = None,
+    ):
+        def is_valid_action(action):
+            return action in ('create-pending', 'create-merged')
 
+        if is_valid_action(action):
+            olid_list = olids.split(',')
 
+            title = community_edits_queue.create_title(mr_type, olid_list)
+            url = community_edits_queue.create_url(mr_type, olid_list)
+
+            # No need to check for existing URL on deletion requests
+            if action == 'create-pending':
+                result = CommunityEditsQueue.submit_request(
+                    url, username, title=title, comment=comment, mr_type=mr_type
+                )
+            elif action == 'create-merged':
+                result = CommunityEditsQueue.submit_request(
+                    url,
+                    username,
+                    title=title,
+                    comment=comment,
+                    reviewer=username,
+                    status=CommunityEditsQueue.STATUS['MERGED'],
+                    mr_type=mr_type,
+                )
+            resp = (
+                response(id=result)
+                if result
+                else response(status='error', error='Request creation failed.')
+            )
+        else:
+            resp = response(
+                status='error',
+                error=f'Action "{action}" is invalid for this request type.',
+            )
+
+        return resp
+    
 def setup():
     pass
