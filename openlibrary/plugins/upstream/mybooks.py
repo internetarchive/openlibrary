@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from itertools import islice
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
@@ -693,12 +694,26 @@ class ActivityFeed:
 
     @classmethod
     def get_trending_feed(cls):
-        logged_books = Bookshelves.get_recently_logged_books(limit=3)
+        def has_public_reading_log(username):
+            acct = OpenLibraryAccount.get_by_username(username)
+            if acct:
+                user = acct.get_user()
+                return user and user.preferences().get('public_readlog', 'no') == 'yes'
+            return False
+
+        logged_books = Bookshelves.get_recently_logged_books(limit=10)
         Bookshelves.add_solr_works(logged_books)
-        feed = [book['work'] for book in logged_books if book.get('work')]
-        for idx, i in enumerate(feed):
-            feed[idx].bookshelf_id = logged_books[idx]['bookshelf_id']
-            feed[idx].created = logged_books[idx]['created']
+
+        feed = []
+        for idx, item in enumerate(logged_books):
+            if item['work'] and has_public_reading_log(item['username']):
+                item['work'].username = item['username']
+                item['work'].bookshelf_id = logged_books[idx]['bookshelf_id']
+                item['work'].created = logged_books[idx]['created']
+                feed.append(item['work'])
+            if len(feed) > 2:
+                break
+
         return feed
 
     @classmethod
