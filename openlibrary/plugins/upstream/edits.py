@@ -215,9 +215,13 @@ class community_edits_queue(delegate.page):
             if not record:
                 record = web.ctx.site.get(f'/authors/{olid}')
             if record:
-                return getattr(record, 'title', None) or getattr(record, 'name', None) or 'Unknown record'
+                return (
+                    getattr(record, 'title', None)
+                    or getattr(record, 'name', None)
+                    or 'Unknown record'
+                )
         return 'Unknown record'
-    
+
     @staticmethod
     def delete_request(
         username,
@@ -262,6 +266,7 @@ class community_edits_queue(delegate.page):
             )
 
         return resp
-    
+
+
 def setup():
     pass
