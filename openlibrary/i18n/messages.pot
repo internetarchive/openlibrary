@@ -1480,12 +1480,13 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/upstream/mybooks.py
+#: account/activity_feed.html account/sidebar.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
 
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: account/activity_feed.html account/mybooks.html
+#: account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
@@ -2269,12 +2270,14 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
-#: my_books/primary_action.html search/sort_options.html trending.html
+#: account/activity_feed.html account/mybooks.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: account/activity_feed.html account/mybooks.html
+#: account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
@@ -2445,6 +2448,35 @@ msgid ""
 " the team, then complete the <a "
 "href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
 "information form</a>."
+msgstr ""
+
+#: account/activity_feed.html lists/list_follow.html
+msgid "Avatar of the owner of the list"
+msgstr ""
+
+#: account/activity_feed.html
+#, python-format
+msgid ""
+"<a class=\"activity-feed-card__user-link\" "
+"href=\"$user_key\">@%(username)s</a> added to %(shelf_name)s "
+"%(occurred_on)s"
+msgstr ""
+
+#: account/activity_feed.html
+#, python-format
+msgid "%(someone)s marked as %(shelf_name)s %(occurred_on)s"
+msgstr ""
+
+#: account/activity_feed.html
+msgid ""
+"Here's the latest activity around the library. Follow readers to "
+"personalize your feed."
+msgstr ""
+
+#: account/activity_feed.html
+msgid ""
+"None of the people that you follow have logged books.  When they do, "
+"you'll see it here."
 msgstr ""
 
 #: account/create.html
@@ -6306,14 +6338,6 @@ msgstr ""
 
 #: lists/home.html lists/showcase.html lists/widget.html
 msgid "See all"
-msgstr ""
-
-#: lists/list_follow.html
-msgid "Cover of book"
-msgstr ""
-
-#: lists/list_follow.html
-msgid "Avatar of the owner of the list"
 msgstr ""
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
