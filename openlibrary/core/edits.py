@@ -159,7 +159,6 @@ class CommunityEditsQueue:
 
         if wheres:
             where_clause = f'{" AND ".join(wheres)}'
-
         if status_list:
             status_query = f'({" OR ".join(status_list)})'
             if where_clause:
