@@ -228,6 +228,12 @@ jQuery(function () {
             .then((module) => new module.LazyThingPreview().init());
     }
 
+    // Enhance patron export buttons on /account/import
+    if (location.pathname === '/account/import') {
+        import(/* webpackChunkName: "patron-exports" */ './patron_exports')
+            .then(module => module.initPatronExportButtons());
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
