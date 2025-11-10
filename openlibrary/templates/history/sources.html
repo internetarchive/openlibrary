@@ -29,7 +29,8 @@ $code:
     # Define trusted source prefixes that are allowed to generate links
     TRUSTED_SOURCE_PREFIXES = {
         'ia', 'promise', 'amazon', 'bwb', 'google_books', 'idb', 'osp', 
-        'openalex', 'marc', 'lccn', 'goodreads', 'standard_ebooks'
+        'openalex', 'marc', 'lccn', 'goodreads', 'standard_ebooks',
+        'pressbooks'
     }
 
     def is_trusted_source(record_id):
@@ -76,6 +77,10 @@ $code:
         elif item.startswith("goodreads:"):
             source_name = "Goodreads"
             source_url = "https://www.goodreads.com/"
+        elif item.startswith("pressbooks:"):
+            source_name = "Pressbooks"
+            # Don't create clickable link for pressbooks URLs
+            source_url = ""
         else:
             source_name = names.get(item, item)
             source_url = "//archive.org/details/" + item
@@ -87,17 +92,13 @@ $code:
     def get_source_html(record_id):
         # Security check: only render trusted sources as links
         if not is_trusted_source(record_id):
-            # For untrusted sources (like pressbooks:), show friendly label only
-            if ':' in record_id:
-                prefix = record_id.split(':', 1)[0].lower()
-                if prefix == 'pressbooks':
-                    return 'Pressbooks'
-                elif prefix == 'wikisource':
-                    return 'Wikisource'
-                else:
-                    return 'External source'
+            # For untrusted sources, show generic label
             return 'External source'
-
+        
+        # Special handling for pressbooks - show label without raw URL
+        if record_id.startswith('pressbooks:'):
+            return 'Pressbooks'
+        
         record_type = _('record')
         if record_id.startswith('marc:'):
             record_id = record_id[5:]

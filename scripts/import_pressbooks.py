@@ -5,6 +5,7 @@ PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yml
 """
 
 import datetime
+import hashlib
 import html
 import json
 import logging
@@ -131,8 +132,14 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
         for line_num, record in enumerate(books):
             # try:
             b = convert_pressbooks_to_ol(record)
-            # Use the original URL as the identifier instead of source_records
-            book_items.append({'ia_id': f"pressbooks:{record['url']}", 'data': b})
+            
+            if b.get('isbn_13') and len(b['isbn_13']) > 0:
+                ia_id = f"isbn:{b['isbn_13'][0]}"
+            else:
+                url_hash = hashlib.md5(record['url'].encode()).hexdigest()[:12]
+                ia_id = f"pressbooks:{url_hash}"
+            
+            book_items.append({'ia_id': ia_id, 'data': b})
             # except (AssertionError, IndexError) as e:
             #    logger.info(f"Error: {e} from {line}")
 
