@@ -76,7 +76,6 @@ $code:
             source_url = "https://lccn.loc.gov/" + item[5:]
         elif item.startswith("goodreads:"):
             source_name = "Goodreads"
-            # Goodreads book URL format: /book/show/{id}
             source_url = "https://www.goodreads.com/book/show/" + item[10:]
         elif item.startswith("pressbooks:"):
             source_name = "Pressbooks"
