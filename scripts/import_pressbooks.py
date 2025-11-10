@@ -130,13 +130,17 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
         book_items = []
         books = json.load(f)
         for line_num, record in enumerate(books):
+            if not record.get('url'):
+                logger.warning(f"Record at line {line_num} missing URL, skipping")
+                continue
+            
             # try:
             b = convert_pressbooks_to_ol(record)
 
             if b.get('isbn_13') and len(b['isbn_13']) > 0:
                 ia_id = f"isbn:{b['isbn_13'][0]}"
             else:
-                url_hash = hashlib.md5(record['url'].encode()).hexdigest()[:12]
+                url_hash = hashlib.sha256(record['url'].encode()).hexdigest()[:16]
                 ia_id = f"pressbooks:{url_hash}"
 
             book_items.append({'ia_id': ia_id, 'data': b})
