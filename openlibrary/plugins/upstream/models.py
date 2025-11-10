@@ -70,7 +70,8 @@ class Edition(models.Edition):
         This methods excludes covers that are -1 or None, which are in the data
         but should not be.
         """
-        return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
+        covers_list = self.get('covers') or []
+        return [Image(self._site, 'b', c) for c in covers_list if c and c > 0]
 
     def get_cover(self):
         covers = self.get_covers()
