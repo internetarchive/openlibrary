@@ -26,6 +26,20 @@ $code:
     for i in range(1, 17):
         names["SanFranPL%02d" % i] = "San Francisco Public Library"
 
+    # Define trusted source prefixes that are allowed to generate links
+    TRUSTED_SOURCE_PREFIXES = {
+        'ia', 'promise', 'amazon', 'bwb', 'google_books', 'idb', 'osp', 
+        'openalex', 'marc', 'lccn', 'goodreads', 'standard_ebooks'
+    }
+
+    def is_trusted_source(record_id):
+        """Check if a source record ID starts with a trusted prefix"""
+        if ':' not in record_id:
+            return True  # Legacy format without prefix is trusted
+        
+        prefix = record_id.split(':', 1)[0].lower()
+        return prefix in TRUSTED_SOURCE_PREFIXES
+
     def get_source_record(record_id):
         if '/' not in record_id and '_meta.mrc:' in record_id:
             record_id = 'ia:' + record_id.split('_')[0]
@@ -53,6 +67,15 @@ $code:
         elif item.startswith("openalex:"):
             source_name = "OpenAlex"
             source_url = "https://openalex.org/" + item[9:]
+        elif item.startswith("standard_ebooks:"):
+            source_name = "Standard Ebooks"
+            source_url = "https://standardebooks.org/ebooks/" + item[16:]
+        elif item.startswith("lccn:"):
+            source_name = "Library of Congress"
+            source_url = "https://lccn.loc.gov/" + item[5:]
+        elif item.startswith("goodreads:"):
+            source_name = "Goodreads"
+            source_url = "https://www.goodreads.com/"
         else:
             source_name = names.get(item, item)
             source_url = "//archive.org/details/" + item
@@ -62,18 +85,32 @@ $code:
         return '<a href="' + url + '">' + label + '</a>' if url else label
 
     def get_source_html(record_id):
+        # Security check: only render trusted sources as links
+        if not is_trusted_source(record_id):
+            # For untrusted sources (like pressbooks:), show friendly label only
+            if ':' in record_id:
+                prefix = record_id.split(':', 1)[0].lower()
+                if prefix == 'pressbooks':
+                    return 'Pressbooks'
+                elif prefix == 'wikisource':
+                    return 'Wikisource'
+                else:
+                    return 'External source'
+            return 'External source'
+
         record_type = _('record')
         if record_id.startswith('marc:'):
-	    record_id = record_id[5:]
+            record_id = record_id[5:]
         if record_id.startswith('marc'):
-	    record_type = _('MARC record')
+            record_type = _('MARC record')
         record = get_source_record(record_id)
-	if record.source_name == 'Internet Archive':
-	    record_type = _('item record')
-	if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex'):
+        if record.source_name == 'Internet Archive':
+            record_type = _('item record')
+        if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex', 'Standard Ebooks', 'Goodreads'):
             return link(record.source_url, record.source_name)
-	else:
+        else:
             return link(record.source_url, record.source_name) + ' ' + link(record.url, record_type)
 
 $var get_source_record = get_source_record
 $var get_source_html = get_source_html
+$var is_trusted_source = is_trusted_source

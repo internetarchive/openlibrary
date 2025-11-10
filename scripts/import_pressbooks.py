@@ -35,7 +35,8 @@ langs = {
 
 
 def convert_pressbooks_to_ol(data):
-    book = {"source_records": ['pressbooks:%s' % data['url']]}
+    # Do not add raw URLs to source_records - use providers instead
+    book = {}
     if data.get('isbn'):
         book['isbn_13'] = [
             isbn.split(' ')[0].replace('-', '') for isbn in data['isbn'].split('; ')
@@ -130,7 +131,8 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
         for line_num, record in enumerate(books):
             # try:
             b = convert_pressbooks_to_ol(record)
-            book_items.append({'ia_id': b['source_records'][0], 'data': b})
+            # Use the original URL as the identifier instead of source_records
+            book_items.append({'ia_id': f"pressbooks:{record['url']}", 'data': b})
             # except (AssertionError, IndexError) as e:
             #    logger.info(f"Error: {e} from {line}")
 
