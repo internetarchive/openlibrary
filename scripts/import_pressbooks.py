@@ -132,13 +132,13 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
         for line_num, record in enumerate(books):
             # try:
             b = convert_pressbooks_to_ol(record)
-            
+
             if b.get('isbn_13') and len(b['isbn_13']) > 0:
                 ia_id = f"isbn:{b['isbn_13'][0]}"
             else:
                 url_hash = hashlib.md5(record['url'].encode()).hexdigest()[:12]
                 ia_id = f"pressbooks:{url_hash}"
-            
+
             book_items.append({'ia_id': ia_id, 'data': b})
             # except (AssertionError, IndexError) as e:
             #    logger.info(f"Error: {e} from {line}")

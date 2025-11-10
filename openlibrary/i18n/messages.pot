@@ -5569,6 +5569,14 @@ msgstr ""
 msgid "record"
 msgstr ""
 
+#: history/sources.html
+msgid "MARC record"
+msgstr ""
+
+#: history/sources.html
+msgid "item record"
+msgstr ""
+
 #: home/about.html
 msgid "About the Project"
 msgstr ""

@@ -28,7 +28,7 @@ $code:
 
     # Define trusted source prefixes that are allowed to generate links
     TRUSTED_SOURCE_PREFIXES = {
-        'ia', 'promise', 'amazon', 'bwb', 'google_books', 'idb', 'osp', 
+        'ia', 'promise', 'amazon', 'bwb', 'google_books', 'idb', 'osp',
         'openalex', 'marc', 'lccn', 'goodreads', 'standard_ebooks',
         'pressbooks'
     }
@@ -37,7 +37,7 @@ $code:
         """Check if a source record ID starts with a trusted prefix"""
         if ':' not in record_id:
             return True  # Legacy format without prefix is trusted
-        
+
         prefix = record_id.split(':', 1)[0].lower()
         return prefix in TRUSTED_SOURCE_PREFIXES
 
@@ -94,11 +94,11 @@ $code:
         if not is_trusted_source(record_id):
             # For untrusted sources, show generic label
             return 'External source'
-        
+
         # Special handling for pressbooks - show label without raw URL
         if record_id.startswith('pressbooks:'):
             return 'Pressbooks'
-        
+
         record_type = _('record')
         if record_id.startswith('marc:'):
             record_id = record_id[5:]
