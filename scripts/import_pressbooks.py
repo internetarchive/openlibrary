@@ -133,7 +133,7 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
             if not record.get('url'):
                 logger.warning(f"Record at line {line_num} missing URL, skipping")
                 continue
-            
+
             # try:
             b = convert_pressbooks_to_ol(record)
 
