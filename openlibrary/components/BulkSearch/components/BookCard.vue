@@ -116,16 +116,7 @@ export default {
   }
 
   &.book-card--primary {
-    border: 2px solid #0376B8;
-    background: #C7E3FC26;
-  }
-
-  &.book-card--secondary {
-    opacity: 0.6;
-
-    &:hover {
-      opacity: 0.8;
-    }
+      border: 1px solid rgba(0, 0, 255, 0.5);
   }
 
   &.loading::before {

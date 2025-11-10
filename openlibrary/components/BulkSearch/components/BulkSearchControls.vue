@@ -200,7 +200,7 @@ export default {
             if (!newValue) {
                 this.activeStep = 2;
                 this.$nextTick(() => {
-                    this.$refs.step2?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    this.$refs.step2?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 });
             }
         },
@@ -208,7 +208,7 @@ export default {
             if (!newValue) {
                 this.activeStep = 3;
                 this.$nextTick(() => {
-                    this.$refs.step3?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    this.$refs.step3?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 });
             }
         }
@@ -342,7 +342,8 @@ textarea {
 }
 
 .activeStep{
-    border: 2px solid #0376B8;
+    border: 1px solid #0376B8;
+    border-bottom: 5px solid #0376B8;
 }
 
 
