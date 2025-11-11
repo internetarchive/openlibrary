@@ -46,7 +46,7 @@ async def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-async def async_fulltext_search(q, page=1, limit=100, js=False, facets=False):
+async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
     offset = (page - 1) * limit
     params = {
         'q': q,
@@ -101,5 +101,5 @@ def ctx_func_factory():
 
 
 fulltext_search = async_bridge.wrap(
-    async_fulltext_search, init_ctx_factory=ctx_func_factory
+    fulltext_search_async, init_ctx_factory=ctx_func_factory
 )

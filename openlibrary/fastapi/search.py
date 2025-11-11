@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
-from openlibrary.core.fulltext import async_fulltext_search
+from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.worksearch.code import async_work_search
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
@@ -73,4 +73,4 @@ async def search_inside_json(
     page: int | None = Query(1, ge=1, description="Page number"),
     limit: int | None = Query(20, ge=1, le=20, description="Results per page"),
 ):
-    return await async_fulltext_search(q, page=page, limit=limit, js=True, facets=True)
+    return await fulltext_search_async(q, page=page, limit=limit, js=True, facets=True)
