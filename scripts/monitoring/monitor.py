@@ -5,6 +5,7 @@ Defines various monitoring jobs, that check the health of the system.
 
 import asyncio
 import os
+import re
 import time
 
 import httpx
@@ -94,6 +95,66 @@ async def monitor_solr():
         graphite_address='graphite.us.archive.org:2004',
     )
 
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_partner_useragents():
+
+    def graphite_safe(s: str) -> str:
+        """Normalize a string for safe use as a Graphite metric name."""
+        # Replace dots and spaces with underscores                                                                                                                                                                                 
+        s = s.replace('.', '_').replace(' ', '_')
+        # Remove or replace unsafe characters                                                                                                                                                                                      
+        s = re.sub(r'[^A-Za-z0-9_-]+', '_', s)
+        # Collapse multiple underscores                                                                                                                                                                                            
+        s = re.sub(r'_+', '_', s)
+        # Strip leading/trailing underscores or dots                                                                                                                                                                               
+        return s.strip('._')
+
+    def extract_agent_counts(ua_counts, allowed_names=None):
+        agent_counts = {}
+        for ua in ua_counts.strip().split("\n"):
+            count, agent, *_ = ua.strip().split(" ")
+            count = int(count)
+            agent_name = graphite_safe(agent.split('/')[0])
+            if not allowed_names or agent_name in allowed_names:
+                agent_counts[agent_name] = count
+            else:
+                agent_counts.setdefault('other', 0)
+                agent_counts['other'] += count
+        return agent_counts
+
+    known_names = extract_agent_counts("""                                                                                                                                                                                         
+    177 Whefi/1.0 (contact@whefi.com)                                                                                                                                                                                              
+     85 Bookhives/1.0 (paulpleela@gmail.com)                                                                                                                                                                                       
+     85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)                                                                                                                                                                     
+     62 BookHub/1.0 (contact@ybookshub.com)                                                                                                                                                                                        
+     58 Bookscovery/1.0 (https://bookscovery.com; info@bookscovery.com)                                                                                                                                                            
+     45 BookstoreApp/1.0 (contact@thounkai.com)                                                                                                                                                                                    
+     20 Gleeph/1.0 (contact-openlibrary@gleeph.net)                                                                                                                                                                                
+      2 Tomeki/1.0 (ankit@yopmail.com , gzip)                                                                                                                                                                                      
+      2 Snipd/1.0 (https://www.snipd.com) contact: company@snipd.com                                                                                                                                                               
+      2 OnTrack/1.0 (ashkan.haghighifashi@gmail.com)                                                                                                                                                                               
+      2 Leaders.org (leaders.org) janakan@leaders.org                                                                                                                                                                              
+      2 AwarioSmartBot/1.0 (+https://awario.com/bots.html; bots@awario.com)                                                                                                                                                        
+      1 ISBNdb (support@isbndb.com)                                                                                                                                                                                                
+    """)
+
+    recent_uas = bash_run(
+        f"""obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep " 200 " | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
+        sources=["../obfi.sh"],
+        capture_output=True
+    ).stdout
+
+    agent_counts = extract_agent_counts(recent_uas, allowed_names=known_names)
+    events = []
+    ts = int(time.time())
+    for agent, count in agent_counts.items():
+        events.append(GraphiteEvent(
+            path=f'stats.ol.partners.{agent}',
+            value=float(count),
+            timestamp=ts
+        ))
+    GraphiteEvent.submit_many(events, 'graphite.us.archive.org:2004')
 
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
