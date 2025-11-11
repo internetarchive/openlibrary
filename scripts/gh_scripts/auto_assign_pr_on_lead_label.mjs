@@ -37,11 +37,11 @@ async function main() {
 
     // Find all PRs that reference this issue
     const [repoOwner, repoName] = fullRepoName.split('/')
-    
+
     // Search for PRs that close this issue
     const searchQuery = `repo:${fullRepoName} is:pr is:open ${issueNumber} in:body`
     console.log(`Searching for PRs with query: ${searchQuery}`)
-    
+
     const searchResults = await octokit.request('GET /search/issues', {
         q: searchQuery,
         headers: {
@@ -60,7 +60,7 @@ async function main() {
     for (const pr of searchResults.data.items) {
         const prNumber = pr.number
         const prAuthor = pr.user.login
-        
+
         console.log(`Processing PR #${prNumber} by @${prAuthor}`)
 
         // Check if the PR body actually contains a "Closes" statement for this issue
@@ -131,6 +131,6 @@ function isLinkedIssue(body, issueNumber) {
         new RegExp(`fix #${issueNumber}\\b`, 'i'),
         new RegExp(`resolve #${issueNumber}\\b`, 'i')
     ]
-    
+
     return patterns.some(pattern => pattern.test(lowerBody))
 }
