@@ -70,12 +70,6 @@ async function main() {
             continue
         }
 
-        // Don't assign lead to PR if PR author is the issue lead
-        if (leadName === prAuthor) {
-            console.log(`PR #${prNumber} author is the lead, skipping assignment.`)
-            continue
-        }
-
         // Check if lead is already assigned
         const currentAssignees = pr.assignees.map(a => a.login)
         if (currentAssignees.includes(leadName)) {
