@@ -1,0 +1,32 @@
+name: auto_assign_pr_on_lead_label
+on:
+  issues:
+    types:
+      - labeled
+env:
+  NODE_VERSION: '20'
+jobs:
+  assign_pr:
+    # Continue only if a Lead label was added to the issue:
+    if: ${{ github.repository == github.event.repository.full_name && startsWith(github.event.label.name, 'Lead: @') }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-octokit
+        with:
+          path: 'node_modules'
+          # Cache key shared across workflows
+          key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.cache-octokit.outputs.cache-hit != 'true'
+        run: npm install @octokit/action
+      - run: node scripts/gh_scripts/auto_assign_pr_on_lead_label.mjs ${{ github.repository }} ${{ github.event.issue.number }} "${{ github.event.label.name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
