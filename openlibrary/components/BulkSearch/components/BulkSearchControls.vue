@@ -169,10 +169,18 @@ export default {
             loadingMatchedBooks: false,
             matchBooksDisabled: true,
             createListDisabled: true,
-            activeStep: 1,
         }
     },
     computed: {
+        activeStep() {
+            if (!this.createListDisabled) {
+                return 3;
+            } else if (!this.matchBooksDisabled) {
+                return 2;
+            } else {
+                return 1;
+            }
+        },
         showApiKey(){
             if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
             return false
@@ -194,22 +202,6 @@ export default {
         selectedValue(newValue) {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
-            }
-        },
-        matchBooksDisabled(newValue) {
-            if (!newValue) {
-                this.activeStep = 2;
-                this.$nextTick(() => {
-                    this.$refs.step2?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                });
-            }
-        },
-        createListDisabled(newValue) {
-            if (!newValue) {
-                this.activeStep = 3;
-                this.$nextTick(() => {
-                    this.$refs.step3?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                });
             }
         }
     },
@@ -288,6 +280,12 @@ textarea {
     display:flex;
     column-gap:16px;
     flex-shrink:0;
+    border: 1px solid transparent;
+    border-bottom: 5px solid transparent;
+    
+    &.activeStep {
+        border-color: #0376B8;
+    }
     .info{
         display:flex;
         flex-direction:column;
@@ -340,12 +338,6 @@ textarea {
 .progressCardDisabled{
     opacity:50%;
 }
-
-.activeStep{
-    border: 1px solid #0376B8;
-    border-bottom: 5px solid #0376B8;
-}
-
 
 .api-key-bar{
     width:100%;
