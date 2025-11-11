@@ -8,7 +8,7 @@ env:
 jobs:
   assign_pr:
     # Continue only if a Lead label was added to the issue:
-    if: ${{ github.repository == github.event.repository.full_name && startsWith(github.event.label.name, 'Lead: @') }}
+    if: ${{ github.repository == github.event.repository.full_name && startsWith(github.event.label.name, 'Lead:') }}
     permissions:
       contents: read
       issues: read
