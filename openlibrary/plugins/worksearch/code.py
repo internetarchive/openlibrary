@@ -1209,7 +1209,7 @@ def work_search(
 
 # Warning: when changing this please also change the sync version
 @public
-async def async_work_search(
+async def work_search_async(
     query: dict,
     sort: str | None = None,
     page: int = 1,
