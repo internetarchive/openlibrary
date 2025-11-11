@@ -563,9 +563,11 @@ def add_availability(
     """
     if mode == "identifier":
         from openlibrary.book_providers import EbookAccess
-        from openlibrary.plugins.openlibrary.code import is_bot
 
-        if is_bot() and items and 'ebook_access' in items[0]:
+        # if is_bot() and items and 'ebook_access' in items[0]: # TODO: Fix this, it's temporary hack
+        # We probably need to do this in the router and set a global variable that is_bot also reads...
+        # But then we'll also need to set it every time we make an async function call from sync too
+        if items and 'ebook_access' in items[0]:
             for item in items:
                 ocaid = get_ocaid(item)
                 if ocaid:

@@ -37,6 +37,7 @@ from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
+    get_fulltext_min,
     has_solr_editions_enabled,
 )
 from openlibrary.plugins.worksearch.search import get_solr
@@ -327,7 +328,7 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
-def run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -343,7 +344,7 @@ def run_solr_query(
     request_label: SolrRequestLabel = 'UNLABELLED',
 ) -> 'SearchResponse':
     """
-    Builds and executes a synchronous Solr query.
+    Builds and executes an asynchronous Solr query.
     """
     params, fields = _prepare_solr_query_params(
         scheme,
@@ -363,7 +364,7 @@ def run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = execute_solr_query(solr_select_url, params)
+    response = await async_execute_solr_query(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -372,25 +373,7 @@ def run_solr_query(
     )
 
 
-async def async_run_solr_query(
-    scheme: SearchScheme,
-    param: dict | None = None,
-    **kwargs,
-) -> 'SearchResponse':
-    """
-    Builds and executes an asynchronous Solr query.
-    """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
-
-    url = f'{solr_select_url}?{urlencode(params)}'
-    start_time = time.time()
-    response = await async_execute_solr_query(solr_select_url, params)
-    end_time = time.time()
-    duration = end_time - start_time
-
-    return _process_solr_response_and_enrich(
-        response, scheme, fields, kwargs.get('sort'), url, duration
-    )
+run_solr_query = async_bridge.wrap(run_solr_query_async)
 
 
 @functools.cache
@@ -1175,42 +1158,13 @@ def _prepare_work_search_query(
 
 # Note: these could share an "implementation" to keep a common interface but it creates a lot more complexity
 # Warning: when changing this please also change the async version
-@public
-def work_search(
-    query: dict,
-    sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
-    limit: int = 100,
-    fields: str = '*',
-    facet: bool = True,
-    highlight: bool = False,
-    spellcheck_count: int | None = None,
-    request_label: SolrRequestLabel = 'UNLABELLED',
-) -> dict:
-    prepared = _prepare_work_search_query(query, page, offset, limit)
-
-    resp = run_solr_query(
-        WorkSearchScheme(),
-        prepared.query,
-        rows=prepared.limit,
-        page=prepared.page,
-        sort=sort,
-        offset=prepared.offset,
-        fields=fields,
-        facet=facet,
-        highlight=highlight,
-        spellcheck_count=spellcheck_count,
-        request_label=request_label,
-    )
-
-    return _process_solr_search_response(resp, fields)
 
 
 # Warning: when changing this please also change the sync version
-@public
-async def async_work_search(
+async def work_search_async(
     query: dict,
+    editions_mode: bool = True,
+    print_disabled: bool = False,
     sort: str | None = None,
     page: int = 1,
     offset: int = 0,
@@ -1222,8 +1176,10 @@ async def async_work_search(
     lang: str | None = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
-    scheme = WorkSearchScheme(lang=lang)
-    resp = await async_run_solr_query(
+    scheme = WorkSearchScheme(
+        lang=lang, editions_mode=editions_mode, print_disabled=print_disabled
+    )
+    resp = await run_solr_query_async(
         scheme,
         prepared.query,
         rows=prepared.limit,
@@ -1237,6 +1193,12 @@ async def async_work_search(
     )
 
     return _process_solr_search_response(resp, fields)
+
+
+# @functools.wraps(work_search_async)
+@public
+def work_search(*args, **kwargs):
+    return async_bridge.run(work_search_async(*args, **kwargs))
 
 
 class search_json(delegate.page):
@@ -1284,6 +1246,8 @@ class search_json(delegate.page):
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
+            editions_mode=has_solr_editions_enabled(),
+            print_disabled=get_fulltext_min(),
             sort=sort,
             page=page,
             offset=offset,

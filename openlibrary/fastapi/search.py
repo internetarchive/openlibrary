@@ -1,17 +1,58 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Cookie, Depends, Query, Request
 from fastapi.responses import JSONResponse
 
-from openlibrary.plugins.worksearch.code import async_work_search
+from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
 
 
+def get_editions_enabled(
+    # Look for an 'editions' query parameter, e.g., /search.json?editions=true
+    # FastAPI automatically converts "true"/"false" strings to booleans.
+    editions_from_query: Annotated[bool | None, Query(alias="editions")] = None,
+    # Look for a cookie named 'SOLR_EDITIONS'.
+    # We use an 'alias' because the cookie name is uppercase.
+    editions_from_cookie: Annotated[str | None, Cookie(alias="SOLR_EDITIONS")] = None,
+) -> bool:
+    """
+    Determines if SOLR editions should be enabled for the search query.
+
+    The decision is based on the following precedence:
+    1. A `editions` URL query parameter (`?editions=true`).
+    2. A `SOLR_EDITIONS` cookie.
+    3. Defaults to `True` if neither is provided.
+
+    This dependency is automatically resolved for the search endpoint.
+    """
+    # This replaces has_solr_editions_enabled in fastapi context
+
+    if editions_from_query is not None:
+        return editions_from_query
+
+    if editions_from_cookie is not None:
+        return editions_from_cookie.lower() == 'true'
+
+    return True
+
+
+def get_print_disabled(
+    print_disabled: Annotated[str | None, Cookie(alias="pd")] = None,
+) -> bool:
+    if print_disabled is not None:
+        return print_disabled.lower() == 'true'
+    return False
+
+
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(
     request: Request,
+    editions_mode: Annotated[bool, Depends(get_editions_enabled)],
+    print_disabled: Annotated[bool, Depends(get_print_disabled)],
     q: str | None = Query("", description="The search query."),
     page: int | None = Query(
         1, ge=1, description="The page number of results to return."
@@ -41,8 +82,10 @@ async def search_json(
     query.update(
         kwargs
     )  # This is a hack until we define all the params we expect above.
-    response = await async_work_search(
+    response = await work_search_async(
         query,
+        editions_mode=editions_mode,
+        print_disabled=print_disabled,
         sort=sort,
         page=page,
         offset=offset,

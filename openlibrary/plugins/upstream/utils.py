@@ -48,6 +48,9 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.utils.async_utils import (
+    infogami_site,  # used when calling async from sync code
+)
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -722,9 +725,9 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
+    keys = infogami_site.things({"type": "/type/language", "limit": limit})
     return {
-        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
+        lang.key: lang for lang in infogami_site.get_many(keys) if not lang.deprecated
     }
 
 

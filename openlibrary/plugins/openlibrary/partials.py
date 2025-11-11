@@ -14,6 +14,10 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
+from openlibrary.plugins.worksearch.schemes.works import (
+    get_fulltext_min,
+    has_solr_editions_enabled,
+)
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
@@ -156,6 +160,8 @@ class CarouselCardPartial(PartialDataHandler):
 
         results = work_search(
             query_params,
+            editions_mode=has_solr_editions_enabled(),
+            print_disabled=get_fulltext_min(),
             sort=sort,
             fields=','.join(fields),
             limit=limit,
