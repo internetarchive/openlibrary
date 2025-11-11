@@ -866,7 +866,7 @@ class opds_home(delegate.page):
                 navigation=[
                     Navigation(
                         type="application/opds+json",
-                        title=f'{subject['emoji']} {subject['presentable_name']}',
+                        title=f'{subject['presentable_name']}',
                         href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
                     )
                     for subject in get_cached_featured_subjects()
