@@ -255,6 +255,7 @@
 
    <!-- fields used by documents of type author -->
    <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
+   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false"/>
    <field name="name_str" type="string" indexed="true" stored="false"/>
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
@@ -330,6 +331,8 @@
     <!-- *** copyFields for OpenLibrary fields *** -->
     <!-- TODO: Can we pare this down for performance and storage? -->
 
+    <copyField source="name" dest="name_sort"/>
+
     <copyField source="title" dest="title_suggest"/>
     <copyField source="title" dest="title_sort"/>
     <copyField source="publisher" dest="publisher_facet"/>
@@ -363,7 +366,7 @@
 
     <!-- Copy author search fields into default search field "text" -->
     <copyField source="name" dest="text"/>
-    <copyField source="name_str" dest="text"/>
+    <copyField source="name_str" dest="text"/> <!-- FIXME: Unneeded duplicate? -->
     <copyField source="alternate_names" dest="text"/>
 
     <!-- *** END of OpenLibrary copyFields *** -->
@@ -554,6 +557,11 @@
         <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter name="lowercase"/>
       </analyzer>
+    </fieldType>
+
+    <!-- A text field that uses the default ICU multi-locale (locale="") collating order -->
+    <fieldType name="text_international_sort" class="solr.ICUCollationField" locale="" strength="primary">
+        <!-- No analyzers allowed here, so field value must be pre-processed, if needed -->
     </fieldType>
 
     <!-- A text field that applies standard title sorting conventions to its content -->

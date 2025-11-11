@@ -114,6 +114,7 @@ class SolrDocument(TypedDict):
     text: Optional[list[str]]
     seed: Optional[list[str]]
     name: Optional[str]
+    name_sort: Optional[str]
     name_str: Optional[str]
     alternate_names: Optional[list[str]]
     birth_date: Optional[str]
