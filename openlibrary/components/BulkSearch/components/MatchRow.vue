@@ -60,7 +60,7 @@ th {
     align-items: center;
     overflow-x:auto;
     scrollbar-width:thin;
-    
+
     .book-card--primary {
         margin-right: 20px;
     }

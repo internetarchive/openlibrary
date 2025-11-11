@@ -282,7 +282,7 @@ textarea {
     flex-shrink:0;
     border: 1px solid transparent;
     border-bottom: 5px solid transparent;
-    
+
     &.activeStep {
         border-color: #0376B8;
     }
