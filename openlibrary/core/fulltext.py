@@ -2,7 +2,7 @@ import json
 import logging
 from urllib.parse import urlencode
 
-import requests
+import httpx
 import web
 
 from infogami import config
@@ -25,8 +25,9 @@ def fulltext_search_api(params):
     headers = {
         "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
         "x-application-id": "openlibrary",
-        "x-search-request-context": config_fts_context,
     }
+    if config_fts_context is not None:
+        headers["x-search-request-context"] = config_fts_context
     if config_ia_ol_metadata_write_s3:
         headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
             **config_ia_ol_metadata_write_s3
@@ -34,10 +35,10 @@ def fulltext_search_api(params):
 
     logger.debug('URL: ' + search_select)
     try:
-        response = requests.get(search_select, headers=headers, timeout=30)
+        response = httpx.get(search_select, headers=headers, timeout=30)
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError:
+    except httpx.HTTPStatusError:
         return {'error': 'Unable to query search engine'}
     except json.decoder.JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}

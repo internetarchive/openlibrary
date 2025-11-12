@@ -506,7 +506,6 @@ class OpenLibraryAccount(Account):
         return account
 
     @classmethod
-    @classmethod
     def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
         username = key.split('/')[-1]
         return cls.get_by_username(username)
