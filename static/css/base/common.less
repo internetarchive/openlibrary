@@ -91,14 +91,18 @@ div.head {
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
-  tr,
-  tbody,
-  table {
+  table:not(.no-table-collapse) {
     overflow: auto;
     display: block;
-  }
-  td {
-    display: inline-block;
+
+    tr,
+    tbody {
+      overflow: auto;
+      display: block;
+    }
+    td {
+      display: inline-block;
+    }
   }
 }
 

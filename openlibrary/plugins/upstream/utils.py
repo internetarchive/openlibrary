@@ -36,7 +36,9 @@ from web.template import TemplateResult
 from web.utils import Storage
 
 from infogami import config
+from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
+from infogami.infobase.common import parse_query
 from infogami.utils import delegate, features, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
@@ -1451,6 +1453,18 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
+
+
+@public
+def create_thing(data: dict) -> Thing:
+    """
+    Helper method to convert a data object recursively to the correct `Thing`
+    classes. Will change the dict to be the same type as when fetched from
+    the database via `web.ctx.site.get`.
+    """
+    return client.create_thing(
+        web.ctx.site, data['key'], web.ctx.site._process_dict(parse_query(data))
+    )
 
 
 @public
