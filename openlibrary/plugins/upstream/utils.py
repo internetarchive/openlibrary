@@ -722,7 +722,7 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    # TODO: fix this hack. Should be higher up like in other PR.
+    # TODO: Once #11425 is merged in we can use the init factory instead.
     if not hasattr(web.ctx, 'site'):
         from infogami.utils.delegate import create_site
 
