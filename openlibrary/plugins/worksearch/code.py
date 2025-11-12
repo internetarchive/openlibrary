@@ -15,6 +15,7 @@ from unicodedata import normalize
 import httpx
 import web
 from requests import Response
+from typing_extensions import deprecated
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -1239,6 +1240,7 @@ async def async_work_search(
     return _process_solr_search_response(resp, fields)
 
 
+@deprecated("migrated to fastapi")
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"

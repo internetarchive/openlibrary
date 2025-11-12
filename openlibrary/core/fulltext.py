@@ -8,11 +8,12 @@ import web
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
+from openlibrary.utils.async_utils import async_bridge
 
 logger = logging.getLogger("openlibrary.inside")
 
 
-def fulltext_search_api(params):
+async def fulltext_search_api(params):
     from openlibrary.core.lending import (
         config_fts_context,
         config_ia_ol_metadata_write_s3,
@@ -35,16 +36,17 @@ def fulltext_search_api(params):
 
     logger.debug('URL: ' + search_select)
     try:
-        response = httpx.get(search_select, headers=headers, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(search_select, headers=headers, timeout=30)
+            response.raise_for_status()
+            return response.json()
     except httpx.HTTPStatusError:
         return {'error': 'Unable to query search engine'}
     except json.decoder.JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}
 
 
-def fulltext_search(q, page=1, limit=100, js=False, facets=False):
+async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
     offset = (page - 1) * limit
     params = {
         'q': q,
@@ -53,7 +55,7 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
         **({'nofacets': 'true'} if not facets else {}),
         'olonly': 'true',
     }
-    ia_results = fulltext_search_api(params)
+    ia_results = await fulltext_search_api(params)
 
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
@@ -76,3 +78,28 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
                 )
                 ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results
+
+
+def ctx_func_factory():
+    """Factory function that returns setup_ctx_site for use with async_bridge.wrap
+    TODO: next time we use this in a different context, we should consider generalizing it.
+    """
+
+    forwarded_for = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+    user_agent = web.ctx.env.get('HTTP_USER_AGENT', '')
+
+    async def setup_env_vars():
+        from infogami.utils.delegate import create_site
+
+        web.ctx.site = create_site()
+        web.ctx.env = {
+            'HTTP_X_FORWARDED_FOR': forwarded_for,
+            'HTTP_USER_AGENT': user_agent,
+        }
+
+    return setup_env_vars
+
+
+fulltext_search = async_bridge.wrap(
+    fulltext_search_async, init_ctx_factory=ctx_func_factory
+)

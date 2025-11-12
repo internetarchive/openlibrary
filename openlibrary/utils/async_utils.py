@@ -26,10 +26,22 @@ class AsyncBridge:
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
         return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
 
-    def wrap(self, func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, T]:
-        """Wrap an async function so it can be called from sync code, preserving type hints."""
+    def wrap(
+        self,
+        func: Callable[P, Coroutine[Any, Any, T]],
+        init_ctx_factory: (
+            Callable[[], Callable[[], Coroutine[Any, Any, None]]] | None
+        ) = None,
+    ) -> Callable[P, T]:
+        """Wrap an async function so it can be called from sync code, preserving type hints.
+
+        init_ctx_factory is a factory function that returns a function that can be called to initialize the context.
+        We must do this because we need to capture the request context when the request comes in, not when the wrapper is defined.
+        """
 
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            if init_ctx_factory:
+                self.run(init_ctx_factory()())
             return self.run(func(*args, **kwargs))
 
         return wrapper
