@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 1 --timeout 180 --max-requests 500
+      - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
