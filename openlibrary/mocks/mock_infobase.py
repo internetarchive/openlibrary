@@ -12,6 +12,7 @@ import web
 from infogami import config
 from infogami.infobase import account, client, common
 from infogami.infobase import config as infobase_config
+from openlibrary.core.lists.model import register_models
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
 
@@ -432,6 +433,7 @@ def mock_site(request):
         from openlibrary.plugins.upstream import models
 
         models.setup()
+        register_models()
 
     site = MockSite()
 
