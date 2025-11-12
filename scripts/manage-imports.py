@@ -194,7 +194,7 @@ def main():
 
     load_config(configfile)
 
-    from infogami import config
+    from infogami import config  # noqa: PLC0415
 
     cmd = sys.argv[1]
     args, flags = [], {
