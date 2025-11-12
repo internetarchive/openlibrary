@@ -9,6 +9,7 @@ from typing import Any, cast
 
 import luqum.tree
 import web
+from typing_extensions import deprecated
 
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
@@ -41,6 +42,18 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 
 class WorkSearchScheme(SearchScheme):
+    def __init__(
+        self,
+        lang: str | None = None,
+        editions_mode: bool | None = None,
+        print_disabled: bool | None = None,
+    ):
+        super().__init__(lang)
+        # Store editions preference - fallback to web.py context if not provided
+        self.editions_mode = editions_mode
+        self.print_disabled = print_disabled
+        self.facet_rewrites = self.get_facet_rewrites()
+
     universe = frozenset(['type:work'])
     all_fields = frozenset(
         {
@@ -219,22 +232,27 @@ class WorkSearchScheme(SearchScheme):
             'id_wikisource',
         }
     )
-    facet_rewrites = MappingProxyType(
-        {
-            ('public_scan', 'true'): 'ebook_access:public',
-            ('public_scan', 'false'): '-ebook_access:public',
-            ('print_disabled', 'true'): 'ebook_access:printdisabled',
-            ('print_disabled', 'false'): '-ebook_access:printdisabled',
-            (
-                'has_fulltext',
-                'true',
-            ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
-            (
-                'has_fulltext',
-                'false',
-            ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
-        }
-    )
+
+    facet_rewrites = MappingProxyType({})
+
+    def get_facet_rewrites(self):
+        # Turned into a function so we can access self.print_disabled
+        return MappingProxyType(
+            {
+                ('public_scan', 'true'): 'ebook_access:public',
+                ('public_scan', 'false'): '-ebook_access:public',
+                ('print_disabled', 'true'): 'ebook_access:printdisabled',
+                ('print_disabled', 'false'): '-ebook_access:printdisabled',
+                (
+                    'has_fulltext',
+                    'true',
+                ): lambda: f'ebook_access:[{get_fulltext_min(self.print_disabled)} TO *]',
+                (
+                    'has_fulltext',
+                    'false',
+                ): lambda: f'ebook_access:[* TO {get_fulltext_min(self.print_disabled)}]',
+            }
+        )
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
@@ -363,7 +381,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
+        if self.editions_mode and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
@@ -609,6 +627,10 @@ class WorkSearchScheme(SearchScheme):
             for doc in solr_result['response']['docs']
             for ed_doc in doc.get('editions', {}).get('docs', [])
         ]
+        if not web.ctx.get('site'):
+            from infogami.utils.delegate import create_site
+
+            web.ctx.site = create_site()
         editions = cast(list[Edition], web.ctx.site.get_many(edition_keys))
         ed_key_to_record = {ed.key: ed for ed in editions if ed.key in edition_keys}
 
@@ -713,9 +735,18 @@ def ia_collection_s_transform(sf: luqum.tree.SearchField):
         )
 
 
+@deprecated("Use fastapi dependency instead. get_editions_enabled")
 def has_solr_editions_enabled():
+    """
+    Returns True if editions should be enabled in the search results.
+    Only used in web.py context.
+    """
     if 'pytest' in sys.modules:
         return True
+
+    # This is for when this is called from the fastapi mode
+    # if not web.ctx:
+    #     return True
 
     def read_query_string():
         return web.input(editions=None).get('editions')
@@ -733,6 +764,9 @@ def has_solr_editions_enabled():
     return True
 
 
-def get_fulltext_min():
-    is_printdisabled = web.cookies().get('pd', False)
+def get_fulltext_min(pd: bool | None = None):
+    if pd is None:
+        is_printdisabled = web.cookies().get('pd', False)
+    else:
+        is_printdisabled = pd
     return 'printdisabled' if is_printdisabled else 'borrowable'

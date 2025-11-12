@@ -3,6 +3,10 @@ import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
 
+import web
+
+from infogami.utils.delegate import create_site
+
 # Start a persistent event loop in a background thread.
 # This avoids creating/destroying a loop on every call to select().
 # More importantly, this lets us call async code from sync code.
@@ -36,3 +40,6 @@ class AsyncBridge:
 
 
 async_bridge = AsyncBridge()
+
+# I don't really understand why we even have site as a global instance it doesn't do anything special on init
+infogami_site = web.ctx.get('site') or create_site()
