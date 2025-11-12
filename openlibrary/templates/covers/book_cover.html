@@ -16,7 +16,7 @@ $ src = cover_url or '/images/icons/avatar_book.png'
 $ srcset = '%s 2x' % (cover_lg or '/images/icons/avatar_book-lg.png')
 
 $if preload:
-    $add_metatag(tag="link", **{'rel': 'preload', 'as': 'image', 'href': src, 'imagesrcset': srcset})
+    $add_metatag(tag="link", **{'rel': 'preload', 'as': 'image', 'href': src, 'imagesrcset': srcset, 'fetchpriority': 'high'})
 
 <div class="coverMagic cover-animation">
     <div class="SRPCover bookCover" style="display: $cond(cover_url, 'block', 'none');">
