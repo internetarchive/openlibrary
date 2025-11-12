@@ -66,7 +66,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 'key': wkey.replace("/books/", "/works/"),
                 'type': {'key': '/type/work'},
                 'title': work.get('title'),
-                'title_sort' : work.get('title_sort'),
+                'title_sort': work.get('title_sort'),
                 'editions': [work],
                 'authors': [
                     {'type': '/type/author_role', 'author': {'key': a['key']}}
@@ -255,7 +255,12 @@ def subject_name_to_key(subject_type: str, name: str) -> SubjectPseudoKey:
         prefix += f'{subject_type}:'
     return prefix + re_subject.sub("_", name.lower()).strip("_")
 
-ARTICLE_PATTERN = re.compile("^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)", flags=re.IGNORECASE)
+
+ARTICLE_PATTERN = re.compile(
+    "^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)",
+    flags=re.IGNORECASE,
+)
+
 
 class WorkSolrBuilder(AbstractSolrBuilder):
     def __init__(
@@ -338,10 +343,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         :return: A formatted title string or None if ``title`` is not set.
         :rtype: str | None
         """
-        title = self.title
-        if title:
+        if title := self.title:
             if self.subtitle:
-                title = title +': ' + self.subtitle
+                title = title + ': ' + self.subtitle
             # TODO: We could use the language of the work/title to do more specific processing here
             match = re.fullmatch(pattern=ARTICLE_PATTERN, string=title)
             if match:
