@@ -100,7 +100,7 @@ function isLoginRequest(url) {
 function isFormError() {
     const errorSelectors = [
         '.error',
-        '.alert-error', 
+        '.alert-error',
         '.flash-error',
         '.form-error',
         '[class*="error"]',
@@ -114,15 +114,15 @@ function isFormError() {
 }
 
 window.triggerPWAPrompt = function(type = 'borrow') {
-    switch(type) {
-        case 'borrow':
-            return PWAPrompts.showAfterBorrow();
-        case 'login':
-            return PWAPrompts.showAfterLogin();
-        case 'return':
-            return PWAPrompts.showForReturnVisitor();
-        default:
-            console.warn('Unknown PWA prompt type:', type);
-            return false;
+    switch (type) {
+    case 'borrow':
+        return PWAPrompts.showAfterBorrow();
+    case 'login':
+        return PWAPrompts.showAfterLogin();
+    case 'return':
+        return PWAPrompts.showForReturnVisitor();
+    default:
+        console.warn('Unknown PWA prompt type:', type);
+        return false;
     }
 };

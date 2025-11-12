@@ -13,7 +13,7 @@ export class PWAPromptManager {
             shownCount: 'ol-pwa-prompt-shown-count',
             lastShown: 'ol-pwa-prompt-last-shown'
         };
-        
+
         this.config = {
             maxShownCount: 3,
             cooldownDays: 30,
@@ -45,7 +45,7 @@ export class PWAPromptManager {
         if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
             return true;
         }
-        
+
         if (window.navigator.standalone === true) {
             return true;
         }
@@ -74,7 +74,7 @@ export class PWAPromptManager {
             primaryButton: 'Add to Home Screen',
             secondaryButton: 'Not now'
         });
-        
+
         return true;
     }
 
@@ -183,7 +183,7 @@ export class PWAPromptManager {
     handleDismiss(promptElement, trigger, permanent = false) {
         this.markAsDismissed(permanent);
         this.removePrompt(promptElement);
-        
+
         this.trackEvent('pwa_prompt_dismissed', {
             trigger: trigger,
             permanent: permanent
@@ -272,7 +272,7 @@ export class PWAPromptManager {
     getUserId() {
         let userId = localStorage.getItem('ol-user-id');
         if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            userId = `user_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
             localStorage.setItem('ol-user-id', userId);
         }
         return userId;
@@ -296,7 +296,7 @@ export class PWAPromptManager {
         if (window.gtag) {
             window.gtag('event', eventName, properties);
         }
-        
+
         console.log('PWA Analytics:', eventName, properties);
     }
 }
