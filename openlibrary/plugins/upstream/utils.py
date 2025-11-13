@@ -660,6 +660,12 @@ def entity_decode(text: str) -> str:
 
 
 @public
+def sanitize_book_title(title: str | None) -> str | None:
+    """Decode HTML entities in book titles for proper Unicode display."""
+    return entity_decode(title) if title else None
+
+
+@public
 def set_share_links(
     url: str = '#', title: str = '', view_context: InfogamiContext | None = None
 ) -> None:
