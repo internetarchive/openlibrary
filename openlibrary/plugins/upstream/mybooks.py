@@ -24,7 +24,6 @@ from openlibrary.core.lending import (
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
@@ -95,7 +94,7 @@ class mybooks_home(delegate.page):
                             edition = editions[0]
                         elif isinstance(editions, dict) and editions.get('docs'):
                             edition = editions['docs'][0]
-                    
+
                     if edition and edition.get('key'):
                         edition_olid = edition['key'].split('/')[-1]
                         edition_olids.append(edition_olid)
