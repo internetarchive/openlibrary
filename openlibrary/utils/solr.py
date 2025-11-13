@@ -112,7 +112,12 @@ class Solr:
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
-    def update_in_place(self, request, commit: bool = False, _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS):
+    def update_in_place(
+        self,
+        request,
+        commit: bool = False,
+        _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
+    ):
         resp = self.session.post(
             f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
             json=request,
