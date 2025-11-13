@@ -18,6 +18,7 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
+    get_availability,
     get_loans_of_user,
 )
 from openlibrary.core.models import LoggedBooksData, User
@@ -77,27 +78,42 @@ class mybooks_home(delegate.page):
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
 
-            want_to_read.docs = add_availability(
-                [
-                    safeget(lambda: d['editions']['docs'][0], d)
-                    for d in want_to_read.docs
-                    if d.get('title')
+            def add_edition_availability(docs):
+                """Add edition-level availability to work docs, fallback to work-level."""
+                filtered_docs = [d for d in docs if d.get('title')]
+                
+                # Extract editions and get their OLIDs
+                edition_olids = []
+                doc_to_edition_olid = {}
+                
+                for doc in filtered_docs:
+                    edition = safeget(lambda: doc['editions']['docs'][0], None)
+                    if edition and edition.get('key'):
+                        edition_olid = edition['key'].split('/')[-1]
+                        edition_olids.append(edition_olid)
+                        doc_to_edition_olid[doc] = edition_olid
+                
+                # Get edition-level availability
+                if edition_olids:
+                    edition_availabilities = get_availability('openlibrary_edition', edition_olids)
+                    for doc in filtered_docs:
+                        if doc in doc_to_edition_olid:
+                            edition_olid = doc_to_edition_olid[doc]
+                            if edition_olid in edition_availabilities:
+                                doc['availability'] = edition_availabilities[edition_olid]
+                
+                # Fallback to work-level availability for docs without edition availability
+                docs_without_edition_availability = [
+                    d for d in filtered_docs if not d.get('availability')
                 ]
-            )[:5]
-            currently_reading.docs = add_availability(
-                [
-                    safeget(lambda: d['editions']['docs'][0], d)
-                    for d in currently_reading.docs
-                    if d.get('title')
-                ]
-            )[:5]
-            already_read.docs = add_availability(
-                [
-                    safeget(lambda: d['editions']['docs'][0], d)
-                    for d in already_read.docs
-                    if d.get('title')
-                ]
-            )[:5]
+                if docs_without_edition_availability:
+                    add_availability(docs_without_edition_availability, mode='openlibrary_work')
+                
+                return filtered_docs
+
+            want_to_read.docs = add_edition_availability(want_to_read.docs)[:5]
+            currently_reading.docs = add_edition_availability(currently_reading.docs)[:5]
+            already_read.docs = add_edition_availability(already_read.docs)[:5]
 
         docs = {
             'loans': loans,
