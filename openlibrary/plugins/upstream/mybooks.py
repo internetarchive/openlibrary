@@ -83,11 +83,19 @@ class mybooks_home(delegate.page):
                 filtered_docs = [d for d in docs if d.get('title')]
 
                 # Extract editions and get their OLIDs
+                # editions can be a list [edition] or dict {'docs': [edition]}
                 edition_olids = []
                 doc_to_edition_olid = {}
 
                 for doc in filtered_docs:
-                    edition = safeget(lambda: doc['editions']['docs'][0], None)
+                    editions = doc.get('editions')
+                    edition = None
+                    if editions:
+                        if isinstance(editions, list) and editions:
+                            edition = editions[0]
+                        elif isinstance(editions, dict) and editions.get('docs'):
+                            edition = editions['docs'][0]
+                    
                     if edition and edition.get('key'):
                         edition_olid = edition['key'].split('/')[-1]
                         edition_olids.append(edition_olid)
