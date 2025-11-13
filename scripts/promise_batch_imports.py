@@ -32,7 +32,7 @@ from openlibrary.config import load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import stage_bookworm_metadata
-from openlibrary.plugins.upstream.utils import safeget
+from openlibrary.plugins.upstream.utils import safeget, sanitize_book_title
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -57,7 +57,7 @@ def map_book_to_olbook(book, promise_id):
     asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
     product_json = book.get('ProductJSON', {})
     publish_date = clean_null(product_json.get('PublicationDate'))
-    title = product_json.get('Title')
+    title = sanitize_book_title(product_json.get('Title'))
     isbn = book.get('ISBN') or ' '
     sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
     olbook = {

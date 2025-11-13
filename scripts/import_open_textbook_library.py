@@ -9,6 +9,7 @@ import requests
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
+from openlibrary.plugins.upstream.utils import sanitize_book_title
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 FEED_URL = 'https://open.umn.edu/opentextbooks/textbooks.json?'
@@ -39,7 +40,7 @@ def map_data(data) -> dict[str, Any]:
     import_record["source_records"] = ['open_textbook_library:%s' % data['id']]
 
     if data.get("title"):
-        import_record["title"] = data["title"]
+        import_record["title"] = sanitize_book_title(data["title"])
 
     if data.get('ISBN10'):
         import_record['isbn_10'] = [data['ISBN10']]
