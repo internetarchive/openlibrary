@@ -662,9 +662,7 @@ def entity_decode(text: str) -> str:
 @public
 def sanitize_book_title(title: str | None) -> str | None:
     """Decode HTML entities in book titles for proper Unicode display."""
-    if title is None:
-        return None
-    return unescape(title)
+    return entity_decode(title) if title else None
 
 
 @public
