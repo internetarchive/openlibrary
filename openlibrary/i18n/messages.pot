@@ -1844,7 +1844,8 @@ msgstr ""
 msgid "Modified"
 msgstr ""
 
-#: diff.html
+#: diff.html merge_request_table/table_header.html
+#: merge_request_table/table_row.html
 msgid "Removed"
 msgstr ""
 
@@ -6535,6 +6536,10 @@ msgid "(Optional) Why are you closing this request?"
 msgstr ""
 
 #: merge_request_table/merge_request_table.html
+msgid "(Optional) Why should this entry be removed?"
+msgstr ""
+
+#: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
 msgstr ""
@@ -6552,7 +6557,15 @@ msgid "Show my requests"
 msgstr ""
 
 #: merge_request_table/merge_request_table.html
+msgid "Community Deletion Requests"
+msgstr ""
+
+#: merge_request_table/merge_request_table.html
 msgid "Community Edit Requests"
+msgstr ""
+
+#: merge_request_table/merge_request_table.html
+msgid "No deletion requests here!"
 msgstr ""
 
 #: merge_request_table/merge_request_table.html
@@ -6568,11 +6581,23 @@ msgid "Closed"
 msgstr ""
 
 #: merge_request_table/table_header.html
+msgid "Deletion Open"
+msgstr ""
+
+#: merge_request_table/table_header.html
+msgid "Deletion Closed"
+msgstr ""
+
+#: merge_request_table/table_header.html
 msgid "Status ▾"
 msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Request Status"
+msgstr ""
+
+#: merge_request_table/table_header.html merge_request_table/table_row.html
+msgid "Kept"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -6636,7 +6661,15 @@ msgid "Closed request"
 msgstr ""
 
 #: merge_request_table/table_row.html
+msgid "Deletion:"
+msgstr ""
+
+#: merge_request_table/table_row.html
 msgid "No comments yet."
+msgstr ""
+
+#: merge_request_table/table_row.html
+msgid "No reason provided."
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6644,7 +6677,18 @@ msgid "Add a comment..."
 msgstr ""
 
 #: merge_request_table/table_row.html
+msgid "Add a reason..."
+msgstr ""
+
+#: merge_request_table/table_row.html
 msgid "Reply"
+msgstr ""
+
+#: merge_request_table/table_row.html
+#, python-format
+msgid ""
+"Deletion request #%(id)s opened %(date)s by <a "
+"href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6655,7 +6699,15 @@ msgid ""
 msgstr ""
 
 #: merge_request_table/table_row.html
+msgid "Click to close this Deletion Request"
+msgstr ""
+
+#: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
+msgstr ""
+
+#: merge_request_table/table_row.html
+msgid "Review <!-- (deletion request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html

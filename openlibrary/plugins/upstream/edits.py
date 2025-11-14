@@ -187,6 +187,12 @@ class community_edits_queue(delegate.page):
             return f'/works/merge?records={",".join(olids)}{primary_param}'
         elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
             return f'/authors/merge?records={",".join(olids)}'
+        elif mr_type == CommunityEditsQueue.TYPE['WORK_DELETE']:
+            return f'/works/{olids[0]}/delete'
+        elif mr_type == CommunityEditsQueue.TYPE['EDITION_DELETE']:
+            return f'/books/{olids[0]}/delete'
+        elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_DELETE']:
+            return f'/authors/{olids[0]}/delete'
         return ''
 
     @staticmethod
@@ -201,7 +207,65 @@ class community_edits_queue(delegate.page):
                 author = web.ctx.site.get(f'/authors/{olid}')
                 if author and author.name:
                     return author.name
+        elif mr_type == CommunityEditsQueue.TYPE['DELETION'] and olids:
+            olid = olids[0]
+            record = web.ctx.site.get(f'/works/{olid}')
+            if not record:
+                record = web.ctx.site.get(f'/books/{olid}')
+            if not record:
+                record = web.ctx.site.get(f'/authors/{olid}')
+            if record:
+                return (
+                    getattr(record, 'title', None)
+                    or getattr(record, 'name', None)
+                    or 'Unknown record'
+                )
         return 'Unknown record'
+
+    @staticmethod
+    def delete_request(
+        username,
+        action='',
+        mr_type=None,
+        olids='',
+        comment: str | None = None,
+    ):
+        def is_valid_action(action):
+            return action in ('create-pending', 'create-merged')
+
+        if is_valid_action(action):
+            olid_list = olids.split(',')
+
+            title = community_edits_queue.create_title(mr_type, olid_list)
+            url = community_edits_queue.create_url(mr_type, olid_list)
+
+            # No need to check for existing URL on deletion requests
+            if action == 'create-pending':
+                result = CommunityEditsQueue.submit_request(
+                    url, username, title=title, comment=comment, mr_type=mr_type
+                )
+            elif action == 'create-merged':
+                result = CommunityEditsQueue.submit_request(
+                    url,
+                    username,
+                    title=title,
+                    comment=comment,
+                    reviewer=username,
+                    status=CommunityEditsQueue.STATUS['MERGED'],
+                    mr_type=mr_type,
+                )
+            resp = (
+                response(id=result)
+                if result
+                else response(status='error', error='Request creation failed.')
+            )
+        else:
+            resp = response(
+                status='error',
+                error=f'Action "{action}" is invalid for this request type.',
+            )
+
+        return resp
 
 
 def setup():
