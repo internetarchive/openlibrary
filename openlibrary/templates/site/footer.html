@@ -21,6 +21,13 @@ $if show_ol_shell:
 
 <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
 <script src="$static_url('build/js/all.js')" type="text/javascript"></script>
+
+$# Lit web components - modern ES modules for supported browsers
+<script type="module" src="$static_url('build/lit-components/production/ol-components.js')"></script>
+
+$# Lit web components - legacy build for older browsers (IE11, old Safari, etc.)
+<script nomodule src="$static_url('build/lit-components/production/ol-components-legacy.js')"></script>
+
 <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
 </body>
 </html>
