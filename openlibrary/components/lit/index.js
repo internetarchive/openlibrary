@@ -7,4 +7,4 @@
  */
 
 // Import components
-import './OlHeading.js';
+import './OlButton.js';
