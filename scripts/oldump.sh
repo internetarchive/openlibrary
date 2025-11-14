@@ -139,7 +139,7 @@ then
   if [[ ! -f $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz") ]]
   then
       log "generating wikidata table: ol_dump_wikidata_$yyyymmdd.txt.gz"
-      time psql $PSQL_PARAMS -f $SCRIPTS/dump-wikidata.sql | gzip -c > ol_dump_wikidata_$yyyymmdd.txt.gz
+      time psql $PSQL_PARAMS -f $SCRIPTS/dump-wikidata.sql | sed 's/\\\\"/\\"/g' | gzip -c > ol_dump_wikidata_$yyyymmdd.txt.gz
   else
       log "Skipping: $(compgen -G "ol_dump_wikidata_$yyyymm*.txt.gz")"
   fi
