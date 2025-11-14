@@ -1,2 +1,5 @@
 $def with (change, page=None)
-$change.comment
+$if change.comment:
+    $change.comment
+$else:
+    $_("Edited without comment.")
