@@ -12,7 +12,6 @@ class SolrDocument(TypedDict):
     redirects: Optional[list[str]]
     has_fulltext: Optional[bool]
     title: Optional[str]
-    title_suggest: Optional[str]
     title_sort: Optional[str]
     subtitle: Optional[str]
     alternative_title: Optional[list[str]]
