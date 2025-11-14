@@ -3,4 +3,4 @@
 -- Usage: psql $PSQL_PARAMS -f dump-wikidata.sql | gzip -c > ol_dump_wikidata_YYYY-MM-DD.txt.gz
 
 -- Export all rows from the wikidata table as tab-separated values
-COPY wikidata TO STDOUT WITH (FORMAT csv, DELIMITER E'\t');
+COPY wikidata TO STDOUT;
