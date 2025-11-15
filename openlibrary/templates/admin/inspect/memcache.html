@@ -8,6 +8,24 @@ $var title: $_("[Admin Center] Inspect Memcache")
 </div>
 
 <div id="contentBody">
+    <div class="section" style="padding: 1em; background-color: #f5f5f5; border: 1px solid #ccc; margin-bottom: 2em;">
+    <h2>$_("Common Cache Fixes")</h2>
+    <p>$_("Click these links to clear the cache for common, frequently-updated pages.")</p>
+    <ul>
+        <li>
+            <a href="/admin/inspect/memcache?keys=home.homepage.en&action=delete">
+                <strong>$_("Clear Homepage Cache")</strong>
+            </a>
+            ($_("for regular users"))
+        </li>
+        <li style="margin-top: 0.5em;">
+            <a href="/admin/inspect/memcache?keys=home.homepage.en.pd-&action=delete">
+                <strong>$_("Clear Homepage Cache (Print Disabled)")</strong>
+            </a>
+            ($_("for print-disabled users"))
+        </li>
+    </ul>
+    </div>
 
     <div>
         <form name="by_key" class="olform">
