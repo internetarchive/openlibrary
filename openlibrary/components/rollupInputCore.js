@@ -12,7 +12,7 @@ export const createWebComponentSimple = (rootComponent, name) => {
                 app.use(AsyncComputed);
             }
         },
-    })
+    });
 
     if (!customElements.get(elementName)) {
         customElements.define(elementName, WebComponent);
