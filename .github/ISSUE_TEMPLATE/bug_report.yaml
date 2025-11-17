@@ -1,6 +1,6 @@
 name: Bug Report
 description:  Create a report to help us improve
-labels: ["Type: Bug", "Needs: Triage", "Needs: Lead"]
+labels: ["Type: Bug", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
 body:
   - type: markdown
     attributes:
