@@ -828,6 +828,16 @@ class opds_search(delegate.page):
                     type="application/opds+json",
                     templated=True,
                 ),
+                Link(
+                    rel="http://opds-spec.org/shelf",
+                    href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                    type="application/opds+json",
+                ),
+                Link(
+                    rel="profile",
+                    href="https://archive.org/services/loans/loan/?action=user_profile",
+                    type="application/opds-profile+json",
+                ),
             ],
         )
         web.header('Content-Type', 'application/opds+json')
