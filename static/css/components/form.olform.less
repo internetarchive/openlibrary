@@ -233,40 +233,40 @@
       resize: vertical;
     }
 
-  .input {
-    width: 100%;
-    select {
-      width: 130px;
-      
-      @media (pointer: coarse) {
-        padding: 8px 3px;
-        min-height: 44px;
-      }
-    }
+    .input {
+      width: 100%;
+      select {
+        width: 130px;
 
-    .label {
-      width: 90%;
-    }
-
-    table {
-      input {
-        width: 300px;
-      }
-    }
-    &.books {
-      .TitleAuthor {
-        // stylelint-disable-next-line max-nesting-depth
-        input#work-title {
-          width: 900px !important;
-        }
-
-        // stylelint-disable-next-line max-nesting-depth
-        input#author {
-          width: 550px !important;
+        @media (pointer: coarse) {
+          padding: 8px 3px;
+          min-height: 44px;
         }
       }
+
+      .label {
+        width: 90%;
+      }
+
+      table {
+        input {
+          width: 300px;
+        }
+      }
+      &.books {
+        .TitleAuthor {
+          // stylelint-disable-next-line max-nesting-depth
+          input#work-title {
+            width: 900px !important;
+          }
+
+          // stylelint-disable-next-line max-nesting-depth
+          input#author {
+            width: 550px !important;
+          }
+        }
+      }
     }
+    /* stylelint-enable selector-max-specificity */
   }
-  /* stylelint-enable selector-max-specificity */
-}
 }
