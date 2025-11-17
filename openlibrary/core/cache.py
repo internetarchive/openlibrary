@@ -25,7 +25,6 @@ __all__ = [
     "MemcacheCache",
     "MemoryCache",
     "RequestCache",
-    "cached_property",
     "get_memcache",
     "memcache_memoize",
     "memoize",
@@ -241,28 +240,6 @@ class memcache_memoize[**P, T]:
 ####
 
 
-def cached_property(getter):
-    """Decorator like `property`, but the value is computed on first call and cached.
-
-    class Foo:
-
-        @cached_property
-        def memcache_client(self):
-            ...
-    """
-    name = getter.__name__
-
-    def g(self):
-        if name in self.__dict__:
-            return self.__dict__[name]
-
-        value = getter(self)
-        self.__dict__[name] = value
-        return value
-
-    return property(g)
-
-
 class Cache:
     """Cache interface."""
 
@@ -322,7 +299,7 @@ class MemcacheCache(Cache):
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
 
-    @cached_property
+    @functools.cached_property
     def memcache(self):
         if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
