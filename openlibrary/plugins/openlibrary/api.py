@@ -828,6 +828,16 @@ class opds_search(delegate.page):
                     type="application/opds+json",
                     templated=True,
                 ),
+                Link(
+                    rel="http://opds-spec.org/shelf",
+                    href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                    type="application/opds+json",
+                ),
+                Link(
+                    rel="profile",
+                    href="https://archive.org/services/loans/loan/?action=user_profile",
+                    type="application/opds-profile+json",
+                ),
             ],
         )
         web.header('Content-Type', 'application/opds+json')
@@ -838,6 +848,8 @@ class opds_books(delegate.page):
     path = r"/opds/books/(OL\d+M)"
 
     def GET(self, edition_olid: str):
+        from pyopds2 import Link
+
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
         web.header('Content-Type', 'application/opds-publication+json')
@@ -847,9 +859,20 @@ class opds_books(delegate.page):
                 data=json.dumps({'error': 'Edition not found'}),
             )
 
-        return delegate.RawText(
-            json.dumps(resp.records[0].to_publication().model_dump())
-        )
+            pub = resp.records[0].to_publication()
+            pub.links += [
+                Link(
+                    rel="http://opds-spec.org/shelf",
+                    href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                    type="application/opds+json",
+                ),
+                Link(
+                    rel="profile",
+                    href="https://archive.org/services/loans/loan/?action=user_profile",
+                    type="application/opds-profile+json",
+                ),
+            ]
+            return delegate.RawText(json.dumps(pub.model_dump()))
 
 
 class opds_home(delegate.page):
@@ -933,6 +956,16 @@ class opds_home(delegate.page):
                         href=f"{provider.BASE_URL}/opds/search{{?query}}",
                         type="application/opds+json",
                         templated=True,
+                    ),
+                    Link(
+                        rel="http://opds-spec.org/shelf",
+                        href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                        type="application/opds+json",
+                    ),
+                    Link(
+                        rel="profile",
+                        href="https://archive.org/services/loans/loan/?action=user_profile",
+                        type="application/opds-profile+json",
                     ),
                 ],
             )
