@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -33,28 +34,31 @@ async def search_json(
     spellcheck_count: int | None = Query(
         3, description="The number of spellcheck suggestions."
     ),
+    query: str | None = Query(None, description="JSON query to search for"),
 ):
     """
     Performs a search for documents based on the provided query.
     """
+    if query:
+        final_query = json.loads(query)
+    else:
+        final_query = {"q": q, "page": page, "limit": limit}
 
     # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
 
-    query = {"q": q, "page": page, "limit": limit}
-
-    query.update(
+    final_query.update(
         {key: value for key, value in facets.dict().items() if value is not None}
     )
 
-    query.update(
+    final_query.update(
         {key: value for key, value in all_fields.dict().items() if value is not None}
     )
 
     response = await work_search_async(
-        query,
+        query=final_query,
         sort=sort,
         page=page,
         offset=offset,
