@@ -70,10 +70,12 @@ $code:
             "test": False
         }) if books else None
 
-$def empty_mobile_carousel(data):
+$def empty_mobile_carousel(data, show_count=True):
     $ key, title, url = data
+    $if show_count:
+        $ title += ' (0)'
     <div class="carousel-section-header">
-      <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+      <a class="li-title-desktop" name="$key" href="$url">$title<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
     </div>
 
   $ component_times['Sidebar'] = time()
@@ -104,6 +106,10 @@ $def empty_mobile_carousel(data):
                 $:render_template('reading_goals/reading_goal_progress', [current_goal])
               </span>
           </div>
+        </li>
+        <li>
+            $ carousel_data = ('activity-feed-key', 'Activity Feed', feed_url)
+            $:empty_mobile_carousel(carousel_data, show_count=False)
         </li>
     $if public or owners_page:
         <li>
@@ -179,4 +185,3 @@ $def empty_mobile_carousel(data):
   </div>
   <p></p>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']
-
