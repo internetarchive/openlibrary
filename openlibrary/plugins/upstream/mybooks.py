@@ -707,10 +707,7 @@ class ActivityFeed:
         feed = []
         for idx, item in enumerate(logged_books):
             if item['work'] and has_public_reading_log(item['username']):
-                item['work'].username = item['username']
-                item['work'].bookshelf_id = logged_books[idx]['bookshelf_id']
-                item['work'].created = logged_books[idx]['created']
-                feed.append(item['work'])
+                feed.append(item)
             if len(feed) > 2:
                 break
 

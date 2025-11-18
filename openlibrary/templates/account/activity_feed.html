@@ -12,28 +12,34 @@ $code:
         2: _('Currently Reading'),
         3: _('Already Read')
     }
+    shelf_id_to_path_segment = {
+        1: '/want-to-read',
+        2: '/currently-reading',
+        3: '/already-read'
+    }
 
-$def activity_card_footer(shelf_name, occurred_on, username):
+$def activity_card_header(book_title, book_key, author_name, author_key):
+    <div class="activity-feed-card__header">
+        <a class="activity-feed-card__header-title" href="$book_key">$book_title</a>
+        $if author_key:
+            <a class="activity-feed-card__header-author" href="$(author_key)">$author_name</a>
+    </div>
+
+$def activity_card_footer(shelf_id, occurred_on, username):
     $ user_key = "/people/%s" % username
     $ avatar_url = "%s/avatar" % user_key
+    $ shelf_name = shelf_id_to_name[shelf_id]
+    $ shelf_url = "%s/books%s" % (user_key, shelf_id_to_path_segment[shelf_id])
+    $# shelf_url = user_key % '/books' % shelf_id_to_path_segment[shelf_id]
     <div class="activity-feed-card__footer">
         <div class="activity-feed-card__user">
-            <a href="$user_key">
+            <a href="$user_key/books">
                 <img src="$avatar_url" alt="$_('Avatar of the owner of the list')">
             </a>
             <div class="activity-feed-card__footer-copy">
-                $:_('<a class="activity-feed-card__user-link" href="$user_key">@%(username)s</a> added to %(shelf_name)s %(occurred_on)s', username=username, shelf_name=shelf_name, occurred_on=occurred_on)
+                $:_('<a class="activity-feed-card__user-link" href="%(user_key)s/books">@%(username)s</a> added to <a href="%(shelf_url)s">%(shelf_name)s</a> %(occurred_on)s', user_key=user_key, username=username, shelf_url=shelf_url, shelf_name=shelf_name, occurred_on=occurred_on)
             </div>
         </div>
-        <div class="activity-feed-card__follow-button">
-            $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
-            $ settings = ctx.user.get_users_settings()
-        </div>
-    </div>
-
-$def trending_card_footer(shelf_name, occurred_on, username):
-    <div class="trending-feed-card__footer">
-        $_("%(someone)s marked as %(shelf_name)s %(occurred_on)s", someone=username, shelf_name=shelf_name, occurred_on=occurred_on)
     </div>
 
 <div class="carousel-section">
@@ -45,18 +51,31 @@ $def trending_card_footer(shelf_name, occurred_on, username):
             <p>$_("Here's the latest activity around the library. Follow readers to personalize your feed.")</p>
         $elif not feed:
            <p>$_("None of the people that you follow have logged books.  When they do, you'll see it here.")</p>
-        <div class="list-showcase">
+        <div class="activity-feed">
             $for i in feed:
-                $ shelf_name = shelf_id_to_name[i.get('bookshelf_id')]
-                $ occurred_on = datestr(i.get("created"))
-                $ bookcover_urls = ["//covers.openlibrary.org/w/id/%s-M.jpg" % i.get("work_id")]
-                $ username = i.get('username')
-                $if follows_others:
-                    $ avatar_url = "/people/%s/avatar" % username
-                    $ card_footer_html = activity_card_footer(shelf_name, occurred_on, username)
+                $ work = i.get('work')
+                $ book_title = work.get('title')
+                $if i.get('edition_id'):
+                    $ book_key = '/books/OL%sM' % i.get('edition_id')
                 $else:
-                    $ card_footer_html = trending_card_footer(shelf_name, occurred_on, username)
-                $:render_template("cards/multi_image_card", image_urls=bookcover_urls, footer_html=card_footer_html)
+                    $ book_key = work.get('key')
+                $if work.get('author_key', []) and work.get('author_key')[0]:
+                    $ author_key = '/authors/%s' % work.get('author_key')[0]
+                $else:
+                    $ author_key = None
+                $if work.get('author_name', []) and work.get('author_name')[0]:
+                    $ author_name = work.get('author_name')[0]
+                $else:
+                    $ author_name = _('Unknown author')
+                    $ author_key = None
+                $ card_header_html = activity_card_header(book_title, book_key, author_name, author_key)
+
+                $ shelf_id = i.get('bookshelf_id')
+                $ occurred_on = datestr(i.get("created"))
+                $ bookcover_urls = ["//covers.openlibrary.org/w/olid/OL%sW-M.jpg" % i.get("work_id")]
+                $ username = i.get('username')
+                $ card_footer_html = activity_card_footer(shelf_id, occurred_on, username)
+                $:render_template("cards/multi_image_card", image_urls=bookcover_urls, header_html=card_header_html, footer_html=card_footer_html)
         </div>
     </div>
 </div>

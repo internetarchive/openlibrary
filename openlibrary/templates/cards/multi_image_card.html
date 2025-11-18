@@ -22,7 +22,7 @@ $def image_container():
 
 $def render_images():
     $for url in image_urls:
-        <img src="$url" loading="lazy" width="80">
+        <img class="multi-img-card__images-img" src="$url" loading="lazy" width="80">
 
 <div class="multi-img-card">
     $if href:
