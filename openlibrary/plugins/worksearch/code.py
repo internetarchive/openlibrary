@@ -1279,8 +1279,32 @@ class search_json(delegate.page):
             default=default_spellcheck_count,
         )
 
-        # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '').strip()
+        web.header('Content-Type', 'application/json')
+        if q and len(q) < 3:
+            # Send a 422
+            web.ctx.status = '422 Unprocessable Entity'
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'error': 'Query too short, must be at least 3 characters',
+                    }
+                )
+            )
+
+        BLOCKED_QUERIES = {'the'}
+        if q and q.lower() in BLOCKED_QUERIES:
+            # Send a 422
+            web.ctx.status = '422 Unprocessable Entity'
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        'error': f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}",
+                    }
+                )
+            )
+
+        # If the query is a /list/ key, create custom list_editions_query
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
@@ -1302,7 +1326,6 @@ class search_json(delegate.page):
         docs = response['docs']
         del response['docs']
         response['docs'] = docs
-        web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
 

@@ -37,6 +37,21 @@ async def search_json(
     if fields:
         _fields = fields.split(',')  # type: ignore
 
+    if q and len(q) < 3:
+        return JSONResponse(
+            status_code=422,
+            content={"error": "Query too short, must be at least 3 characters"},
+        )
+
+    BLOCKED_QUERIES = {'the'}
+    if q and q.lower() in BLOCKED_QUERIES:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}"
+            },
+        )
+
     query = {"q": q, "page": page, "limit": limit}
     query.update(
         kwargs
