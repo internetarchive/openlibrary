@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 
 from openlibrary.plugins.worksearch.code import work_search_async
-from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.schemes.works import (
+    WorkSearchAllFields,
+    WorkSearchFacetFields,
+    WorkSearchScheme,
+)
 
 router = APIRouter()
 
@@ -12,6 +18,8 @@ router = APIRouter()
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(
     request: Request,
+    facets: Annotated[WorkSearchFacetFields, Depends(WorkSearchFacetFields)],
+    all_fields: Annotated[WorkSearchAllFields, Depends(WorkSearchAllFields)],
     q: str | None = Query("", description="The search query."),
     page: int | None = Query(
         1, ge=1, description="The page number of results to return."
@@ -22,7 +30,6 @@ async def search_json(
     sort: str | None = Query(None, description="The sort order of results."),
     offset: int | None = Query(None, description="The offset of results to return."),
     fields: str | None = Query(None, description="The fields to return."),
-    # facet: bool = Query(False, description="Whether to return facets."),
     spellcheck_count: int | None = Query(
         3, description="The number of spellcheck suggestions."
     ),
@@ -31,16 +38,21 @@ async def search_json(
     Performs a search for documents based on the provided query.
     """
 
-    kwargs = dict(request.query_params)
     # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
 
     query = {"q": q, "page": page, "limit": limit}
+
     query.update(
-        kwargs
-    )  # This is a hack until we define all the params we expect above.
+        {key: value for key, value in facets.dict().items() if value is not None}
+    )
+
+    query.update(
+        {key: value for key, value in all_fields.dict().items() if value is not None}
+    )
+
     response = await work_search_async(
         query,
         sort=sort,
@@ -53,11 +65,13 @@ async def search_json(
         facet=False,
         spellcheck_count=spellcheck_count,
         lang=request.state.lang,
+        request_label='BOOK_SEARCH_API',
     )
 
     # Add extra metadata to the response, similar to the original
     response['q'] = q
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
+    response['offset'] = offset
 
     # Reorder keys to have 'docs' at the end, as in the original code
     docs = response.pop('docs', [])

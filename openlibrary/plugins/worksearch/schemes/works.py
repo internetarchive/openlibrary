@@ -9,6 +9,7 @@ from typing import Any, cast
 
 import luqum.tree
 import web
+from pydantic import BaseModel
 
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
@@ -40,90 +41,97 @@ logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r'(OL\d+A)')
 
 
+class WorkSearchFacetFields(BaseModel):
+    """Facet fields that can be used when searching"""
+
+    # Facets
+    has_fulltext: bool | None = None
+    author_facet: str | None = None
+    language: str | None = None
+    first_publish_year: str | None = None
+    publisher_facet: str | None = None
+    subject_facet: str | None = None
+    person_facet: str | None = None
+    place_facet: str | None = None
+    time_facet: str | None = None
+    public_scan_b: bool | None = None
+
+
+class WorkSearchAllFields(BaseModel):
+    """All fields that can be used when searching"""
+
+    # Unclear why some facets like subject_facet, person_facet, place_facet, time_facet, public_scan_b are not included
+
+    key: str | None = None
+    redirects: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    alternative_title: str | None = None
+    alternative_subtitle: str | None = None
+    cover_i: str | None = None
+    ebook_access: str | None = None
+    ebook_provider: str | None = None
+    edition_count: str | None = None
+    edition_key: str | None = None
+    format: str | None = None
+    by_statement: str | None = None
+    publish_date: str | None = None
+    lccn: str | None = None
+    lexile: str | None = None
+    ia: str | None = None
+    oclc: str | None = None
+    isbn: str | None = None
+    contributor: str | None = None
+    publish_place: str | None = None
+    publisher: str | None = None
+    first_sentence: str | None = None
+    author_key: str | None = None
+    author_name: str | None = None
+    author_alternative_name: str | None = None
+    subject: str | None = None
+    person: str | None = None
+    place: str | None = None
+    time: str | None = None
+    has_fulltext: bool | None = None
+    title_suggest: str | None = None
+    publish_year: str | None = None
+    language: str | None = None
+    number_of_pages_median: int | None = None
+    ia_count: int | None = None
+    publisher_facet: str | None = None
+    author_facet: str | None = None
+    first_publish_year: str | None = None
+    ratings_count: int | None = None
+    readinglog_count: int | None = None
+    want_to_read_count: int | None = None
+    currently_reading_count: int | None = None
+    already_read_count: int | None = None
+    # Subjects
+    subject_key: str | None = None
+    person_key: str | None = None
+    place_key: str | None = None
+    time_key: str | None = None
+    # Classifications
+    lcc: str | None = None
+    ddc: str | None = None
+    lcc_sort: str | None = None
+    ddc_sort: str | None = None
+    osp_count: int | None = None
+    # Trending
+    trending_score_hourly_sum: int | None = None
+    trending_z_score: int | None = None
+
+
 class WorkSearchScheme(SearchScheme):
     universe = frozenset(['type:work'])
-    all_fields = frozenset(
-        {
-            "key",
-            "redirects",
-            "title",
-            "subtitle",
-            "alternative_title",
-            "alternative_subtitle",
-            "cover_i",
-            "ebook_access",
-            "ebook_provider",
-            "edition_count",
-            "edition_key",
-            "format",
-            "by_statement",
-            "publish_date",
-            "lccn",
-            "lexile",
-            "ia",
-            "oclc",
-            "isbn",
-            "contributor",
-            "publish_place",
-            "publisher",
-            "first_sentence",
-            "author_key",
-            "author_name",
-            "author_alternative_name",
-            "subject",
-            "person",
-            "place",
-            "time",
-            "has_fulltext",
-            "title_suggest",
-            "publish_year",
-            "language",
-            "number_of_pages_median",
-            "ia_count",
-            "publisher_facet",
-            "author_facet",
-            "first_publish_year",
-            "ratings_count",
-            "readinglog_count",
-            "want_to_read_count",
-            "currently_reading_count",
-            "already_read_count",
-            # Subjects
-            "subject_key",
-            "person_key",
-            "place_key",
-            "time_key",
-            # Classifications
-            "lcc",
-            "ddc",
-            "lcc_sort",
-            "ddc_sort",
-            "osp_count",
-            # Trending
-            "trending_score_hourly_sum",
-            "trending_z_score",
-        }
-    )
+    all_fields = frozenset(WorkSearchAllFields.model_fields.keys())
     non_solr_fields = frozenset(
         {
             'description',
             'providers',
         }
     )
-    facet_fields = frozenset(
-        {
-            "has_fulltext",
-            "author_facet",
-            "language",
-            "first_publish_year",
-            "publisher_facet",
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-            "public_scan_b",
-        }
-    )
+    facet_fields = frozenset(WorkSearchFacetFields.model_fields.keys())
     field_name_map = MappingProxyType(
         {
             'author': 'author_name',
