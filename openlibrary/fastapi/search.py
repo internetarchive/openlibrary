@@ -44,6 +44,9 @@ async def search_json(
     else:
         final_query = {"q": q, "page": page, "limit": limit}
 
+    # TODO: determine how this differs in terms of handling repeated parameters
+    # https://openlibrary.org/search.json?q=pokemon&mode=everything&author_key=OL67633A&author_key=OL1423328A
+
     # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
