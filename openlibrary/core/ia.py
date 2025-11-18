@@ -74,7 +74,7 @@ def save_page_now(
             return result.get('job_id', f"ERROR_NO_JOB_ID_{r.status_code}")
         else:
             return f"ERROR_HTTP_{r.status_code}"
-    except (requests.RequestException, ValueError) as e:
+    except (httpx.RequestException, ValueError) as e:
         return f"ERROR_EXCEPTION_{str(e)[:50]}"
 
 
