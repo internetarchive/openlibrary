@@ -849,6 +849,7 @@ class opds_books(delegate.page):
 
     def GET(self, edition_olid: str):
         from pyopds2 import Link
+
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
         web.header('Content-Type', 'application/opds-publication+json')
@@ -869,7 +870,7 @@ class opds_books(delegate.page):
                     rel="profile",
                     href="https://archive.org/services/loans/loan/?action=user_profile",
                     type="application/opds-profile+json",
-                )
+                ),
             ]
             return delegate.RawText(json.dumps(pub.model_dump()))
 
@@ -965,7 +966,7 @@ class opds_home(delegate.page):
                         rel="profile",
                         href="https://archive.org/services/loans/loan/?action=user_profile",
                         type="application/opds-profile+json",
-                    )
+                    ),
                 ],
             )
             return catalog.model_dump()
