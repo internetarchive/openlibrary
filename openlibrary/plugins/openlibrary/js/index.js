@@ -549,6 +549,13 @@ jQuery(function () {
             .then(module => module.initListsSection(listSection))
     }
 
+    // Initialize follow forms lazily
+    const followForms = document.querySelectorAll('.follow-form');
+    if (followForms.length) {
+        import(/* webpackChunkName: "following" */ './following')
+            .then(module => module.initAsyncFollowing(followForms))
+    }
+
     // Generalized carousel lazy-loading
     const lazyCarousels = document.querySelectorAll('.lazy-carousel')
     if (lazyCarousels.length) {

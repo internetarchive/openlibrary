@@ -1,6 +1,7 @@
 """web.py application processors for Open Library."""
 
 import re
+from typing import cast
 
 import web
 
@@ -49,8 +50,15 @@ class CORSProcessor:
     Cross Origin Resource Sharing.
     """
 
-    def __init__(self, cors_prefixes=None):
-        self.cors_prefixes = cors_prefixes
+    def __init__(
+        self,
+        cors_paths: set[str] | None = None,
+        cors_prefixes: set[str] | None = None,
+        cors_everything: bool = False,
+    ):
+        self.cors_paths = cors_paths or set()
+        self.cors_prefixes = cors_prefixes or set()
+        self.cors_everything = cors_everything
 
     def __call__(self, handler):
         if self.is_cors_path():
@@ -61,10 +69,15 @@ class CORSProcessor:
             return handler()
 
     def is_cors_path(self):
-        if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
-            return True
-        return any(
-            web.ctx.path.startswith(path_segment) for path_segment in self.cors_prefixes
+        path = cast(str, web.ctx.path)
+        return (
+            self.cors_everything
+            or path.endswith(".json")
+            or path in self.cors_paths
+            or any(
+                web.ctx.path.startswith(path_segment)
+                for path_segment in self.cors_prefixes
+            )
         )
 
     def add_cors_headers(self):

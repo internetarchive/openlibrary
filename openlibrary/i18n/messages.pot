@@ -1066,6 +1066,44 @@ msgstr ""
 msgid "Buy this book"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Search Results"
+msgstr ""
+
+#: home/index.html home/welcome.html openlibrary/plugins/openlibrary/api.py
+msgid "Welcome to Open Library"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+msgid "Trending Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Kids"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Arabic"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
 msgstr ""
@@ -1140,14 +1178,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Recipes"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
@@ -2255,10 +2285,6 @@ msgstr ""
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
-
-#: home/index.html trending.html
-msgid "Trending Books"
 msgstr ""
 
 #: trending.html
@@ -5371,7 +5397,7 @@ msgid "Use this image"
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer"
+msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
 #: covers/add.html
@@ -5576,24 +5602,8 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: home/index.html home/welcome.html
-msgid "Welcome to Open Library"
-msgstr ""
-
-#: home/index.html
-msgid "Classic Books"
-msgstr ""
-
 #: home/index.html
 msgid "Recently Returned"
-msgstr ""
-
-#: home/index.html
-msgid "Kids"
-msgstr ""
-
-#: home/index.html
-msgid "Thrillers"
 msgstr ""
 
 #: home/index.html
