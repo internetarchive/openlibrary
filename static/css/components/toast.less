@@ -39,6 +39,24 @@
   background-color: @light-yellow;
 }
 
+.toast-error {
+  background-color: @baby-pink;
+  border-left: 4px solid @red-two;
+  border-radius: 4px;
+  color: @dark-red;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px fade(@red-two, 20%);
+  
+  &:hover {
+    box-shadow: 0 4px 12px fade(@red-two, 30%);
+  }
+}
+
+.toast-error .toast__body {
+  font-weight: bold;
+}
+
 @media screen and (max-width: @width-breakpoint-tablet) {
   .toast {
     max-width: 80%;

@@ -299,15 +299,28 @@ export default {
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            
+            // Check for error editions and filter them out
             const editions_to_move = _.flatMap(
                 all_dupes,
-                work => this.editions[work.key].entries
+                work => {
+                    if (this.editions[work.key] && this.editions[work.key].error) {
+                        // Skip works with edition loading errors
+                        return [];
+                    }
+                    return this.editions[work.key].entries || [];
+                }
             );
 
             const [record, sources] = merge(master, dupes);
 
             const extras = {
-                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                edition_count: _.sum(records.map(r => {
+                    if (this.editions[r.key] && this.editions[r.key].error) {
+                        return 0;
+                    }
+                    return this.editions[r.key].size || 0;
+                })),
                 list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
             };
 
@@ -315,6 +328,7 @@ export default {
                 .filter(work => work.type.key === '/type/work' &&
         this.selected[work.key] &&
         work.key !== this.master_key &&
+        this.editions[work.key] && !this.editions[work.key].error &&
         this.editions[work.key].entries.length < this.editions[work.key].size)
                 .map(r => r.key);
 
