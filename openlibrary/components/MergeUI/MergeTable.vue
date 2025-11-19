@@ -299,7 +299,7 @@ export default {
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
-            
+
             // Check for error editions and filter them out
             const editions_to_move = _.flatMap(
                 all_dupes,

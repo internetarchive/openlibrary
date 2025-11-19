@@ -191,16 +191,16 @@ export function get_editions(work_key) {
     }
     return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
         if (r.ok) return r.json();
-        
+
         // Log error for debugging
         console.error(`Failed to load editions for ${work_key}:`, r.status, r.statusText);
-        
+
         // Show network error toast only once to prevent multiple alerts
         if (!hasNetworkErrorShown()) {
             setNetworkErrorShown();
-            const errorMessage = `Network error; failed to load editions for one or more works. Click here to reload the page.`;
+            const errorMessage = 'Network error; failed to load editions for one or more works. Click here to reload the page.';
             const toast = new PersistentToast(errorMessage, 'toast-error');
-            
+
             // Add click handler to reload page when user clicks the toast
             toast.show();
             toast.$toast.on('click', () => {
@@ -211,18 +211,18 @@ export function get_editions(work_key) {
             toast.$toast.attr('aria-live', 'assertive');
             toast.$toast.attr('aria-label', 'Network error notification. Click to reload page.');
         }
-        
+
         // Return error object instead of failing
         return { error: true, work_key };
     }).catch(error => {
         // Handle fetch errors (network failures, etc.)
         console.error(`Network error loading editions for ${work_key}:`, error);
-        
+
         if (!hasNetworkErrorShown()) {
             setNetworkErrorShown();
-            const errorMessage = `Network error; failed to load editions for one or more works. Click here to reload the page.`;
+            const errorMessage = 'Network error; failed to load editions for one or more works. Click here to reload the page.';
             const toast = new PersistentToast(errorMessage, 'toast-error');
-            
+
             toast.show();
             toast.$toast.on('click', () => {
                 location.reload();
@@ -232,7 +232,7 @@ export function get_editions(work_key) {
             toast.$toast.attr('aria-live', 'assertive');
             toast.$toast.attr('aria-label', 'Network error notification. Click to reload page.');
         }
-        
+
         return { error: true, work_key };
     });
 }
