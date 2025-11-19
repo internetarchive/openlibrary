@@ -1,5 +1,6 @@
 import web
 
+from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.worksearch.code import (
     get_doc,
     process_facet,
@@ -74,3 +75,59 @@ def test_get_doc():
             'want_to_read_count': None,
         }
     )
+
+
+def test_rewrite_list_query(mock_site: mock_infobase.MockSite):
+    from openlibrary.plugins.worksearch.code import rewrite_list_query
+
+    mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}})
+    mock_site.save({"key": "/works/OL2W", "type": {"key": "/type/work"}})
+    mock_site.save(
+        {
+            "key": "/lists/OL123L",
+            "type": {"key": "/type/list"},
+            "seeds": [
+                {"key": "/works/OL1W"},
+                {"key": "/works/OL2W"},
+            ],
+        }
+    )
+    mock_site.save(
+        {
+            "key": "/lists/OL456L",
+            "type": {"key": "/type/list"},
+            "seeds": [
+                {"key": "/works/OL2W"},
+            ],
+        }
+    )
+    mock_site.save(
+        {
+            "key": "/people/foo/lists/OL999L",
+            "type": {"key": "/type/list"},
+            "seeds": [
+                {"key": "/authors/OL1A"},
+            ],
+        }
+    )
+
+    # Normal case
+    query = 'list_key:/lists/OL123L subject:"Science Fiction"'
+    rewritten_query = rewrite_list_query(query)
+    assert (
+        rewritten_query == 'key:(/works/OL1W OR /works/OL2W) subject:"Science Fiction"'
+    )
+
+    query = 'query without list_key'
+    rewritten_query = rewrite_list_query(query)
+    assert rewritten_query == query
+
+    # Legacy: query begins with list key and no works in list
+    query = '/people/foo/lists/OL999L AND subject:"Fantasy"'
+    rewritten_query = rewrite_list_query(query)
+    assert rewritten_query == '-key:* AND subject:"Fantasy"'  # List does not exist
+
+    # Multiple list keys
+    query = 'list_key:/lists/OL123L AND list_key:/lists/OL456L'
+    rewritten_query = rewrite_list_query(query)
+    assert rewritten_query == 'key:(/works/OL1W OR /works/OL2W) AND key:(/works/OL2W)'
