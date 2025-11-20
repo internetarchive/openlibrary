@@ -1,6 +1,6 @@
 # My Books Dropper
 
-The **My Books Dropper** is a reusable component that lets patrons categorize a book (at either Edition (default) or Work level) within the shelves ("Want to Read", "Currently Reading", "Already Read", and custom lists) of their personal library.
+The **My Books Dropper** (see https://github.com/internetarchive/openlibrary/pull/8019) is a reusable component that lets patrons categorize a book (at either Edition (default) or Work level) within the shelves ("Want to Read", "Currently Reading", "Already Read", and custom lists) of their personal library.
 
 <img width="400"  alt="image" src="https://github.com/user-attachments/assets/dde8af06-5aed-4775-817b-dc4a87e5312a" />
 
@@ -23,7 +23,7 @@ $include('my_books/dropper.html', page=page, edition_key=page.olid, async_load=F
 
 ## Technical 
 
-The **My Books Dropper** -- primarily implemented in https://github.com/internetarchive/openlibrary/pull/8019 -- extends the generic Dropper comprised of a primary button and dropdown content. The template for the dropper takes a rendered HTML string for each of these.  The template also takes a additional classes as a string, enabling the dropper to be styled as needed. 
+The **My Books Dropper** -- implemented and DOCUMENTED in https://github.com/internetarchive/openlibrary/pull/8019 -- extends the generic Dropper comprised of a primary button and dropdown content. The template for the dropper takes a rendered HTML string for each of these.  The template also takes a additional classes as a string, enabling the dropper to be styled as needed. 
 
 ![generic-dropper-parts](https://github.com/internetarchive/openlibrary/assets/28732543/3a4df71a-aa6c-42de-bb58-8880ef86f5db)
 
