@@ -279,7 +279,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def get_memcache(self, memcache_servers):
         global _memcache
         if _memcache is None:
-            from openlibrary.utils import olmemcache
+            from openlibrary.utils import olmemcache  # noqa: PLC0415
 
             _memcache = olmemcache.Client(memcache_servers)
         return _memcache
@@ -571,7 +571,7 @@ def _update_infobase_config():
     From next time onwards, it doesn't do anything because this function is memoized.
     """
     # update infobase configuration
-    from infogami.infobase import server
+    from infogami.infobase import server  # noqa: PLC0415
 
     if not config.get("infobase"):
         config.infobase = {}

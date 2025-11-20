@@ -223,7 +223,7 @@ class ImportItem(web.storage):
         """Import the item using load(), swallow errors, update status, and return the Edition if any."""
         try:
             # Avoids a circular import issue.
-            from openlibrary.plugins.importapi.code import parse_data
+            from openlibrary.plugins.importapi.code import parse_data  # noqa: PLC0415
 
             edition, _ = parse_data(self.data.encode('utf-8'))
             if edition:

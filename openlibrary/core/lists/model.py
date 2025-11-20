@@ -353,7 +353,7 @@ class List(Thing):
                 return cover.id
 
     def get_default_cover(self):
-        from openlibrary.core.models import Image
+        from openlibrary.core.models import Image  # noqa: PLC0415
 
         cover_id = self._get_default_cover_id()
         return Image(self._site, 'b', cover_id)

@@ -265,7 +265,7 @@ async def main(
     logger.info("BEGIN solr_updater")
 
     if debugger:
-        import debugpy  # noqa: T100
+        import debugpy  # noqa: PLC0415, T100
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
         debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100

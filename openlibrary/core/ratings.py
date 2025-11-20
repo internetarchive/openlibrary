@@ -188,7 +188,7 @@ class Ratings(db.CommonExtras):
 
     @classmethod
     def add(cls, username, work_id, rating, edition_id=None):
-        from openlibrary.core.bookshelves import Bookshelves
+        from openlibrary.core.bookshelves import Bookshelves  # noqa: PLC0415
 
         oldb = db.get_db()
         work_id = int(work_id)

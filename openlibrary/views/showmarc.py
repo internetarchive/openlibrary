@@ -55,7 +55,7 @@ class show_ia(app.view):
             }
         )
 
-        from openlibrary.catalog.marc import html
+        from openlibrary.catalog.marc import html  # noqa: PLC0415
 
         try:
             leader_len = int(data[:5])
@@ -133,7 +133,7 @@ class show_marc(app.view):
                 '/show-records/%s:%d:%d' % (filename, offset, len_in_rec)
             )
 
-        from openlibrary.catalog.marc import html
+        from openlibrary.catalog.marc import html  # noqa: PLC0415
 
         try:
             record = html.html_record(result[0:length])

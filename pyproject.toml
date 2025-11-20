@@ -68,7 +68,6 @@ lint.ignore = [
     # openlibrary/plugins/upstream/utils.py - unclear but it's huge
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
-  "PLC0415", # import-outside-top-level we really need to turn this on but it's a decently big change
 ]
 line-length = 162
 lint.select = [

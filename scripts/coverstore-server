@@ -35,14 +35,14 @@ def setup_env():
 
 
 def start_server():
-    from openlibrary.coverstore import server
+    from openlibrary.coverstore import server  # noqa: PLC0415
 
     server.main(*sys.argv[1:])
 
 
 def start_gunicorn_server():
     """Starts the coverstore server using gunicorn server."""
-    from gunicorn.app.base import Application
+    from gunicorn.app.base import Application  # noqa: PLC0415
 
     configfile = sys.argv.pop(1)
 
@@ -51,7 +51,7 @@ def start_gunicorn_server():
             pass
 
         def load(self):
-            from openlibrary.coverstore import code, server
+            from openlibrary.coverstore import code, server  # noqa: PLC0415
 
             server.setup(configfile)
             return code.app.wsgifunc(https_middleware)

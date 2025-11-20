@@ -28,6 +28,6 @@ class static(app.page):  # type: ignore[name-defined]
 
 def setup():
     # load templates from this package so that they are available via render_template
-    from infogami.utils import template
+    from infogami.utils import template  # noqa: PLC0415
 
     template.load_templates(os.path.dirname(__file__))

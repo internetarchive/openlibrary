@@ -39,11 +39,10 @@ def _load_legacy_wsgi(ol_config_file: str):
 
     This function does not return a WSGI callable; it is called for its side effects only.
     """
-    import infogami  # type: ignore
-    from infogami import config  # type: ignore
+    import infogami  # noqa: PLC0415  # type: ignore
+    from infogami import config  # noqa: PLC0415  # type: ignore
 
     # match scripts/openlibrary-server behavior
-    from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
 
     config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
@@ -117,7 +116,7 @@ def create_app() -> FastAPI:
     _setup_env()
 
     if os.environ.get("CI"):
-        import pytest
+        import pytest  # noqa: PLC0415 needs to be here because pytest isn't in production
 
         pytest.skip("Skipping in CI", allow_module_level=True)
 
@@ -166,7 +165,7 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.search import router as search_router  # type: ignore
+    from openlibrary.fastapi.search import router as search_router  # noqa: PLC0415
 
     app.include_router(search_router)
 

@@ -135,7 +135,7 @@ def test_canonical_url():
 
 
 def test_get_coverstore_url(monkeypatch):
-    from infogami import config
+    from infogami import config  # noqa: PLC0415
 
     monkeypatch.delattr(config, "coverstore_url", raising=False)
     assert utils.get_coverstore_url() == "https://covers.openlibrary.org"

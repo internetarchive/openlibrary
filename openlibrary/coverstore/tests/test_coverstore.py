@@ -55,7 +55,7 @@ def test_bad_image(image_dir):
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
-    from PIL import Image
+    from PIL import Image  # noqa: PLC0415
 
     img = Image.new('RGB', (100, 200))
 

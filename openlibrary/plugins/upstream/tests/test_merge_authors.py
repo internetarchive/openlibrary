@@ -18,7 +18,7 @@ def setup_module(mod):
 
     # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
     web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    from openlibrary.plugins.upstream import models
+    from openlibrary.plugins.upstream import models  # noqa: PLC0415
 
     models.setup()
 

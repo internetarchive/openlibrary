@@ -42,7 +42,7 @@ def main(args):
 
 
 def start(config_file, *args):
-    from infogami.infobase import server
+    from infogami.infobase import server  # noqa: PLC0415
 
     server.load_config(config_file)
 
@@ -73,7 +73,7 @@ def start(config_file, *args):
 
 def runfcgi(func, addr=('localhost', 8000)):
     """Runs a WSGI function as a FastCGI server."""
-    import flup.server.fcgi as flups
+    import flup.server.fcgi as flups  # noqa: PLC0415
 
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
@@ -85,7 +85,7 @@ def runfcgi(func, addr=('localhost', 8000)):
 
 def start_gunicorn_server():
     """Starts the infobase server using gunicorn server."""
-    from gunicorn.app.base import Application
+    from gunicorn.app.base import Application  # noqa: PLC0415
 
     configfile = sys.argv.pop(1)
 
@@ -94,7 +94,7 @@ def start_gunicorn_server():
             pass
 
         def load(self):
-            from infogami.infobase import server
+            from infogami.infobase import server  # noqa: PLC0415
 
             server.load_config(configfile)
             return server.app.wsgifunc()

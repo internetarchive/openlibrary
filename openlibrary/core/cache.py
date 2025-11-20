@@ -84,7 +84,7 @@ class memcache_memoize[**P, T]:
                 web.debug(
                     "Could not find memcache_servers in the configuration. Used dummy memcache."
                 )
-                from pymemcache.test.utils import MockMemcacheClient
+                from pymemcache.test.utils import MockMemcacheClient  # noqa: PLC0415
 
                 self._memcache = MockMemcacheClient()
 
@@ -330,7 +330,7 @@ class MemcacheCache(Cache):
             web.debug(
                 "Could not find memcache_servers in the configuration. Used dummy memcache."
             )
-            from pymemcache.test.utils import MockMemcacheClient
+            from pymemcache.test.utils import MockMemcacheClient  # noqa: PLC0415
 
             return MockMemcacheClient()
 

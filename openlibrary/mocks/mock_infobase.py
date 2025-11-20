@@ -429,7 +429,7 @@ def mock_site(request):
                 yield doc
 
     def setup_models():
-        from openlibrary.plugins.upstream import models
+        from openlibrary.plugins.upstream import models  # noqa: PLC0415
 
         models.setup()
 
