@@ -71,7 +71,9 @@ class Sentry:
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             # Continuous profiling configuration
-            profile_session_sample_rate=self.config.get('profile_session_sample_rate', 0.0),
+            profile_session_sample_rate=self.config.get(
+                'profile_session_sample_rate', 0.0
+            ),
             profile_lifecycle=self.config.get('profile_lifecycle', 'trace'),
             release=get_software_version(),
         )
