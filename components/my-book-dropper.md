@@ -7,19 +7,19 @@ The **My Books Dropper** (see https://github.com/internetarchive/openlibrary/pul
 ## Usage
 
 ```html
-<!-- Example: include the dropper in a template that has `page` available.
-     The actual include mechanism depends on the template you're editing; a common pattern is to
-     render the my_books/dropper.html fragment and pass page and edition_key as needed.
-
-     PSEUDOCODE (adapt to the template language in the file you're editing):
-     $include('my_books/dropper.html', page=page, edition_key=page.olid, async_load=False)
--->
 $include('my_books/dropper.html', page=page, edition_key=page.olid, async_load=False)
 ```
 
 ## Where It's Used
 
+Graphics, code snippets, and notes would be useful for each of the following:
 
+1. Book Pages
+2. Search Results*
+3. Lists & Reading Log Shelves*
+4. Author Pages Books*
+
+*_many compact droppers rendered next to each item; these frequently rely on async inner loading to remain performant._
 
 ## Technical 
 
@@ -53,6 +53,10 @@ Server-side templates that output the HTML structure and server-initialized piec
   - openlibrary/i18n/messages.pot and **i18n** language .po files (e.g., hi/messages.po) contain “Want to Read”, “Currently Reading”, and “Already Read” references (helpful to find template usages).
     https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/i18n/messages.pot#L1513-L1546
 
+### CSS
+
+https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/static/css/components/mybooks-dropper.less
+
 ### JavaScript
 
 Client-side JS hydrates the dropper, wires actions, loads user lists asynchronously and manages UI state
@@ -71,8 +75,18 @@ Client-side JS hydrates the dropper, wires actions, loads user lists asynchronou
 
 ### Backend
 
-Partials (for async loading a patron's lists per dropper)
-- TODO
+Partials (Server-side templates render the HTML fragments that populate the dropper dropdown) are used to async load a patron's lists per dropper when multiple droppers exist on a page and would otherwise be expensive/redundant to compete fetch data individually.
 
-Endpoints (for POSTing when various actions are taken within the dropper)
-- TODO
+See `/partials.json?_component=MyBooksDropperLists`
+The `ListService` client helper `getListPartials()` calls fetch(buildPartialsUrl('MyBooksDropperLists')) using `buildPartialsUrl` defined in `plugins/openlibrary/js/utils.js`.
+
+Endpoints (for `POST`ing when various actions are taken within the dropper)
+
+1. `<work_key>/bookshelves.json` to (re)shelf a book
+  *  add/remove the current work/edition to/from a reading shelf (Want to Read / Currently Reading / Already Read)
+  *  https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/plugins/openlibrary/api.py#L296-L362
+2. `{listKey}/seeds.json` to add/remove books from/to a list
+  * https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/plugins/openlibrary/lists.py#L586-L628
+3. `/lists` to create a new list
+  * https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/plugins/openlibrary/lists.py#L309-L339
+
