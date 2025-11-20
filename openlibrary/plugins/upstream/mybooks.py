@@ -114,9 +114,7 @@ class mybooks_home(delegate.page):
             owners_page=mb.is_my_page,
             counts=mb.counts,
             lists=mb.lists,
-            component_times=mb.component_times,
-            activity_feed=mb.activity_feed,
-            follows_others=mb.follows_others
+            component_times=mb.component_times
         )
 
 
@@ -444,11 +442,8 @@ class MyBooksTemplate:
             self.counts['followers'] = PubSub.count_followers(self.username)
             self.counts['following'] = PubSub.count_following(self.username)
 
-        self.activity_feed = []
-        self.follows_others = False
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
-            self.activity_feed, self.follows_others = ActivityFeed.get_activity_feed(self.username)
 
         self.component_times: dict = {}
 

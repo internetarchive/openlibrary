@@ -582,4 +582,11 @@ jQuery(function () {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
     }
+
+    // Lazy-load activity feed
+    const activityFeedContainer = document.querySelector('.activity-feed-container')
+    if (activityFeedContainer) {
+        import(/* webpackChunkName: "activity-feed" */ './activity-feed')
+            .then(module => module.initActivityFeedRequest(activityFeedContainer))
+    }
 });

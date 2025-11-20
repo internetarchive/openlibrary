@@ -1,4 +1,4 @@
-$def with (caption, additional_classes='', hidden=True)
+$def with (caption, additional_classes='', hidden=True, show_retry=False)
 
 $ hidden = "hidden" if hidden else ""
 
@@ -10,4 +10,7 @@ $ hidden = "hidden" if hidden else ""
       display: flex;
   ">$caption</figcaption>
   </figure>
+</div>
+<div class="retry-fetch hidden">
+    $_("Failed to fetch data.") <a href="javascript:;" class="retry-btn">$_("Retry?")</a>
 </div>
