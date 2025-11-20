@@ -21,9 +21,9 @@ Graphics, code snippets, and notes would be useful for each of the following:
 
 *_many compact droppers rendered next to each item; these frequently rely on async inner loading to remain performant._
 
-## Technical 
+## Technical
 
-The **My Books Dropper** -- implemented and DOCUMENTED in https://github.com/internetarchive/openlibrary/pull/8019 -- extends the generic Dropper comprised of a primary button and dropdown content. The template for the dropper takes a rendered HTML string for each of these.  The template also takes a additional classes as a string, enabling the dropper to be styled as needed. 
+The **My Books Dropper** -- implemented and DOCUMENTED in https://github.com/internetarchive/openlibrary/pull/8019 -- extends the generic Dropper comprised of a primary button and dropdown content. The template for the dropper takes a rendered HTML string for each of these.  The template also takes a additional classes as a string, enabling the dropper to be styled as needed.
 
 ![generic-dropper-parts](https://github.com/internetarchive/openlibrary/assets/28732543/3a4df71a-aa6c-42de-bb58-8880ef86f5db)
 
@@ -40,7 +40,7 @@ Server-side templates that output the HTML structure and server-initialized piec
   - my_books/dropper.html — main dropper template (structure/data attrs). See:
     https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/templates/my_books/dropper.html#L1-L24
     - Role: server-side dropper wrapper; computes seed keys, user lists (or placeholders for async load), CSS classes, and outputs initial dropdown markup.
-  
+
   The generic dropper is defined by:
   - my_books/dropdown_content.html — the **generic** dropper dropdown **content** (reading-log forms / Want to Read buttons).
     https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/templates/my_books/dropdown_content.html#L18-L33
@@ -48,7 +48,7 @@ Server-side templates that output the HTML structure and server-initialized piec
   - lib/dropper.html — **generic** dropper wrapper used as the HTML skeleton for droppers.
     https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/templates/lib/dropper.html#L1-L22
     - Role: generic primary-button + dropdown HTML structure the My Books templates use.
-  
+
   Internationalization for the My Books Dropper:
   - openlibrary/i18n/messages.pot and **i18n** language .po files (e.g., hi/messages.po) contain “Want to Read”, “Currently Reading”, and “Already Read” references (helpful to find template usages).
     https://github.com/internetarchive/openlibrary/blob/5d13f226cb61ccb4cbd8f74e3a01cd2e3dfa7675/openlibrary/i18n/messages.pot#L1513-L1546
