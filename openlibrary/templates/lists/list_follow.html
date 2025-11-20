@@ -4,13 +4,13 @@ $def render_follow_button(owner_username, is_subscribed):
   $ request = "/people/" + owner_username
   $:macros.Follow(owner_username, following=is_subscribed, request_path=request)
 
-$def render_card_header(list_name, count):
-    <div class="list-follow-card__header">
+$def render_card_header(list_name, count, list_url):
+    <a class="list-follow-card__header" href="$list_url">
         <div class="list-follow-card__title" title="$list_name">$list_name</div>
         <div class="list-follow-card__num-books">
             $ungettext("%(count)d book", "%(count)d books", count, count=count)
         </div>
-    </div>
+    </a>
 
 $def render_card_footer(owner, own_list):
     $if owner:
@@ -64,7 +64,7 @@ $for i, list in enumerate(lists):
 
         $ cached_info = converted.get_patron_showcase()
         $ book_count = cached_info["count"]
-        $ card_header = render_card_header(cached_info['title'], book_count)
+        $ card_header = render_card_header(cached_info['title'], book_count, converted.get_url())
         $ card_footer = render_card_footer(list.owner, own_list)
         $ image_urls = []
         $for img_url in cached_info["covers"]:

@@ -1,10 +1,5 @@
 $def with(header_html="", image_urls=[], href='', footer_html="")
 
-$def anchored_header():
-    <a href="$href" class="multi-img-card__header">
-        $:header_html
-    </a>
-
 $def header():
     <div class="multi-img-card__header">
         $:header_html
@@ -25,10 +20,7 @@ $def render_images():
         <img class="multi-img-card__images-img" src="$url" loading="lazy" width="80">
 
 <div class="multi-img-card">
-    $if href:
-        $:anchored_header()
-    $else:
-        $:header()
+    $:header()
     $if href:
         $:anchored_image_container()
     $else:
