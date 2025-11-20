@@ -17,7 +17,7 @@ py_spy_cur_fn() {
 
     py-spy dump --nonblocking --pid $pid \
     | grep -vE '^(Process|Python|Thread)' \
-    | grep -vE '(\bssl\.py|(readinto) .*socket\.py|http/client\.py|sentry_sdk|urllib3/connection\.py|<genexpr>|urllib3/connectionpool\.py|requests/(api|adapters|sessions)\.py)|httpcore/|httpx/' \
+    | grep -vE '(\bssl\.py|(readinto) .*socket\.py|http/client\.py|sentry_sdk|urllib3/connection\.py|<genexpr>|urllib3/connectionpool\.py|requests/(api|adapters|sessions)\.py|httpcore/|httpx/)' \
     | head -n2 | tail -n1
 }
 export -f py_spy_cur_fn
