@@ -4,7 +4,7 @@
 @top-cover-z-index: 3;
 @middle-cover-z-index: 2;
 @bottom-cover-z-index: 1;
-@cover-overlap: (3 * @cover-width - (@card-width - 2 * @cover-padding)) / 2;
+@cover-overlap: ((3 * @cover-width - (@card-width - 2 * @cover-padding)) / 2);
 
 .multi-img-card {
   a& {
@@ -57,17 +57,17 @@
 
   img:nth-child(1) {
     z-index: @top-cover-z-index;
-    transform: translate(0, 20px);
+    transform: translate(0, @cover-padding);
   }
 
   img:nth-child(2) {
     z-index: @middle-cover-z-index;
-    transform: translate(-8.5px, 20px);
+    transform: translate(-1 * @cover-overlap, @cover-padding);
   }
 
   img:nth-child(3) {
     z-index: @bottom-cover-z-index;
-    transform: translate(-17px, 20px);
+    transform: translate(-2 * @cover-overlap, @cover-padding);
   }
 }
 
