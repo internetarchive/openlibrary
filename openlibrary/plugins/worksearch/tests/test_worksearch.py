@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import web
 
 from openlibrary.plugins.worksearch.code import (
@@ -91,3 +93,60 @@ def test_prepare_solr_query_params_first_publish_year_string():
     # Check that the fq param for first_publish_year is correctly added
     fq_params = [p for p in params if p[0] == 'fq']
     assert ('fq', 'first_publish_year:"1997"') in fq_params
+
+
+def test_solr_config_contains_realistic_search(mock_site):
+    import xml.etree.ElementTree as ET
+
+    SOLR_CONFIG_PATH = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "conf"
+        / "solr"
+        / "conf"
+        / "solrconfig.xml"
+    )
+    parsed_solr_config = ET.parse(SOLR_CONFIG_PATH)
+    root = parsed_solr_config.getroot()
+    # Find listener[event=newSearcher] > arr[name=queries] > lst:firstchild
+    first_query = root.find(
+        ".//listener[@event='newSearcher']/arr[@name='queries']/lst"
+    )
+    assert first_query is not None
+    # `<lst>` has a child `<str name="q">...</str>`; convert to a list of tuples
+    new_searcher_query_params = [
+        (child.attrib['name'], str(child.text)) for child in first_query.findall('str')
+    ]
+
+    expected_params, _ = _prepare_solr_query_params(
+        scheme=WorkSearchScheme(),
+        param={'q': 'harry potter'},
+        spellcheck_count=3,
+        facet=True,
+        highlight=True,
+        fields=list(
+            WorkSearchScheme.default_fetched_fields
+            | {
+                'editions',
+                'providers',
+                'ratings_average',
+                'ratings_count',
+                'want_to_read_count',
+            }
+        ),
+        rows=20,
+    )
+
+    def normalize_params(params: list[tuple[str, str]]):
+        ignored_fields = {'ol.label', 'editions.ol.label'}
+        sorted_fields = {'fl', 'editions.fl'}
+        params = [(k, str(v)) for k, v in params if k not in ignored_fields]
+        params = [
+            (k, ','.join(sorted(v.split(','))) if k in sorted_fields else v)
+            for k, v in params
+        ]
+        return params
+
+    new_searcher_query_params = normalize_params(new_searcher_query_params)
+    expected_params = normalize_params(expected_params)
+
+    assert set(new_searcher_query_params) == set(expected_params)
