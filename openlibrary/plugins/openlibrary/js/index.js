@@ -429,7 +429,7 @@ jQuery(function () {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
-        import(/* webpackChunkName: "star-ratings" */'./star-ratings')
+        import(/* webpackChunkName: "star-ratings" */'@/ui/components/StarRatings/StarRatings.js')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 

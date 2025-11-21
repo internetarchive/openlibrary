@@ -39,6 +39,7 @@ def main(cmd, args):
         ).stdout.splitlines()
 
         message_sources = [
+            'ui/',
             'openlibrary/templates/',
             'openlibrary/macros/',
             *py_sources,

@@ -861,10 +861,6 @@ msgstr ""
 msgid "QR Code"
 msgstr ""
 
-#: StarRatings.html
-msgid "Clear my rating"
-msgstr ""
-
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "rating"
 msgstr ""
@@ -8164,5 +8160,9 @@ msgstr ""
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
+msgstr ""
+
+#: components/StarRatings/StarRatings.html
+msgid "Clear my rating"
 msgstr ""
 
