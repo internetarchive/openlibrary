@@ -255,10 +255,10 @@ class any:
 class ExpiredTokenError(Exception):
     pass
 
-def verify_hmac(digest, msg, key_prefix, delimiter=":"):
-    # Current time, in seconds
-    current_time = time.time()
-    expiry = msg.split(delimiter)[-1]
+def verify_hmac(digest, msg, secret_key_name, delimiter="|"):
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    expiry_str = msg.split(delimiter)[-1]
+    expiry = datetime.datetime.fromisoformat(expiry_str)
 
     # To avoid timing attacks, we avoid raising exceptions
     # until after the digests are compared
@@ -267,10 +267,7 @@ def verify_hmac(digest, msg, key_prefix, delimiter=":"):
     if current_time > expiry:
         err = ExpiredTokenError()
 
-    key_name = f"{key_prefix}_shared_key"
-
-    # TODO : Pull key from config using `key_name`
-    if not (key := ''):
+    if not (key := config.get(secret_key_name, '')):
         err = ValueError("No key found")
 
     mac = ''
@@ -298,12 +295,11 @@ class sync_ia_ol(delegate.page):
         msg = i.msg
 
         try:
-            verify_hmac(digest, msg, "ia_sync")
+            verify_hmac(digest, msg, "ia_ol_request_shared_key")
         except (ValueError, ExpiredTokenError):
-            # XXX : Is this the correct response for this case?
             raise web.HTTPError("401 Unauthorized")
 
-        op, ocaid, _ = msg.split(":")
+        op, ocaid, _ = msg.split("|")
 
         if not op or not ocaid:
             raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
