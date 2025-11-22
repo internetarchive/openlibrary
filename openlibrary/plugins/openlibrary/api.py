@@ -898,7 +898,7 @@ class opds_home(delegate.page):
                     Catalog.create(
                         metadata=Metadata(title=_("Trending Books")),
                         response=provider.search(
-                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
+                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover" ebook_access:[borrowable TO *]',
                             sort='trending',
                             limit=25,
                         ),
