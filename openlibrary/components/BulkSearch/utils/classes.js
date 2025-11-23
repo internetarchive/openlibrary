@@ -201,7 +201,7 @@ export class BookMatch {
 }
 
 
-const BASE_LIST_URL = 'https://openlibrary.org/account/lists/add?seeds='
+const BASE_LIST_URL = '/account/lists/add?seeds='
 
 export class BulkSearchState{
     constructor(){

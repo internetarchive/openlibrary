@@ -80,6 +80,23 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 [Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
+## Contributor Etiquette
+
+We value all contributors and want to ensure a positive and collaborative environment. Please follow these guidelines:
+
+### Respecting Other Contributors' Work
+- **Do not undermine others' efforts**: If someone has already asked to work on an issue and been assigned (or is actively working on it), please respect their effort. Opening a competing PR without coordination undermines their contribution and violates our community spirit.
+- **Check before starting**: Before beginning work on an issue, check if someone else is already assigned or has recently expressed interest in working on it.
+
+### Requesting Issue Assignments
+- **Quality over quantity**: Please do not ask to be assigned to dozens of issues at a time. Focus on making meaningful contributions rather than accumulating assignments.
+- **Demonstrate understanding**: When requesting to be assigned to an issue, show that you understand the problem by including:
+  - A summary of the challenge or bug
+  - Your proposed approach to solving it
+  - Which files or components you plan to modify
+  - Any questions you have about the implementation
+- **Use AI tools responsibly**: While you're encouraged to use AI tools (like LLMs) to assist with research and understanding the codebase, please don't simply copy-paste AI-generated responses into your comments. Take time to understand the suggestions and present them in your own words, demonstrating genuine comprehension of the issue.
+
 ### Our Roadmap(s)
 You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
 
@@ -137,24 +154,3 @@ Follow these rules when creating a PR:
 4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
 5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
 
-# Maintainers
-
-Guidelines for repo maintainers.
-
-## Pull Requests
-
-We use assignee to denote PR ownership. If you are the assignee, then you should have the PR on your todo list until you merge or close it.
-- **Assign yourself** to a PR if you have the time to take on the responsibilities of ownership (described below).
-- **Don't assign others** to a PR. Feel free to ask someone to take ownership, but respect others' time restrictions.
-- **Avoid assignee=author**. In the case where the PR author is also a maintainer, we will strive to have another maintainer own and merge the PR to ensure these steps are followed fairly by all.
-
-The assignee of a PR is responsible for:
-- **being the primary contact** for the PR author. Be polite; you're the face of the community to this contributor.
-- **managing the PR's labels**. Add `Needs: Author Input` or `Needs: Review` as necessary.
-- **ensuring the PR doesn't get stuck**. Avoid leaving the author wondering about the state of the PR. If you don't have time right now, saying "I'm a little swamped now but will try to get to this in \_" is better than radio silence for a week.
-- **getting the PR code reviewed** either by yourself (often so) or by someone else.
-- **getting merge approval**. If a PR requires a special deploy, label as `Needs: Deploy Approval` and get that approval before merging.
-- **testing the PR** before merging. Comment about how you tested in the PR. If _any_ changes are made to the PR code, you will have to test it again before merging.
-- **merging (or closing)** the PR.
-
-Each Monday (as of 2022) we triage PRs (excluding drafts) and make sure they have leads assigneed so that nothing gets stuck.

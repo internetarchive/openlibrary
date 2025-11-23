@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
-from openlibrary.plugins.worksearch.code import async_work_search
+from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
@@ -41,7 +41,7 @@ async def search_json(
     query.update(
         kwargs
     )  # This is a hack until we define all the params we expect above.
-    response = await async_work_search(
+    response = await work_search_async(
         query,
         sort=sort,
         page=page,
@@ -52,6 +52,7 @@ async def search_json(
         # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=spellcheck_count,
+        request_label='BOOK_SEARCH_API',
         lang=request.state.lang,
     )
 
