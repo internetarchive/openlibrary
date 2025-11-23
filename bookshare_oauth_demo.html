@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bookshare OAuth Integration - UI Preview</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .preview-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .implementation-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+        .ui-preview {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        .bookshare-verification {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .bookshare-info {
+            margin: 20px 0;
+        }
+        .bookshare-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .bookshare-auth {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .cta-btn {
+            background: #2c5282;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .cta-btn:hover {
+            background: #2a4d75;
+        }
+        .bookshare-auth .note {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .bookshare-alternatives {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="header">
+            <h1>🔗 Bookshare OAuth Integration</h1>
+            <p><span class="status-badge">✅ IMPLEMENTED</span></p>
+            <p>Print Disability Qualification Flow Enhancement</p>
+        </div>
+
+        <div class="implementation-summary">
+            <h3>📋 Implementation Summary</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <strong>OAuth Client</strong><br>
+                    Full OAuth 2.0 flow with Bookshare API
+                </div>
+                <div class="feature-item">
+                    <strong>Account Controllers</strong><br>
+                    GET/POST endpoints for OAuth handling
+                </div>
+                <div class="feature-item">
+                    <strong>Template UI</strong><br>
+                    User-facing OAuth verification page
+                </div>
+                <div class="feature-item">
+                    <strong>PD Integration</strong><br>
+                    Seamless integration with existing qualification workflow
+                </div>
+            </div>
+        </div>
+
+        <div class="ui-preview">
+            <h3>🎨 User Interface Preview</h3>
+            <p><em>This is how the Bookshare OAuth page will appear to users:</em></p>
+            
+            <div class="bookshare-verification">
+                <h2>Verify Your Bookshare Account</h2>
+                <p>To complete your print disability access request, please verify your Bookshare account.</p>
+                
+                <div class="bookshare-info">
+                    <h3>About Bookshare</h3>
+                    <p>Bookshare is the world's largest accessible digital library for people with reading barriers. By verifying your Bookshare account, you can automatically qualify for print disability access on Open Library.</p>
+                    
+                    <ul>
+                        <li>✅ Instant qualification - no manual review needed</li>
+                        <li>🔒 Secure OAuth connection</li>
+                        <li>📚 Access to Open Library's print disability collection</li>
+                    </ul>
+                </div>
+
+                <div class="bookshare-auth">
+                    <a href="#" class="cta-btn" onclick="alert('In production, this would redirect to Bookshare OAuth');">
+                        🔗 Connect with Bookshare
+                    </a>
+                    <p class="note">You'll be redirected to Bookshare.org to authorize the connection.</p>
+                </div>
+
+                <div class="bookshare-alternatives">
+                    <h3>Don't have a Bookshare account?</h3>
+                    <p>You can still request print disability access through other qualifying programs or documentation.</p>
+                    <a href="#">Continue with manual verification →</a>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #e9ecef; border-radius: 8px;">
+            <h4>🔧 Configuration Requirements</h4>
+            <p><strong>Add to olsystem.yml:</strong></p>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.9em;">
+bookshare_oauth:
+  client_id: "your_bookshare_client_id"
+  client_secret: "your_bookshare_client_secret"
+  base_url: "https://api.bookshare.org"
+  redirect_uri: "https://openlibrary.org/account/bookshare"
+            </pre>
+        </div>
+    </div>
+</body>
+</html>
