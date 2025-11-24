@@ -882,7 +882,7 @@ class opds_subjects(delegate.page):
         web.header('Content-Type', 'application/opds+json')
         return delegate.RawText(json.dumps(catalog.model_dump()))
 
-        
+
 class opds_home(delegate.page):
     path = r"/opds"
 
