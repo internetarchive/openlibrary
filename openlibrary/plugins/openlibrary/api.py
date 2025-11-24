@@ -808,7 +808,7 @@ class opds_search(delegate.page):
         from pyopds2 import Catalog, Link, Metadata
 
         i = web.input(
-            query="trending_score_hourly_sum:[1 TO *]", limit=25, sort=None, page=1
+            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
         )
         provider = get_opds_data_provider()
         catalog = Catalog.create(
