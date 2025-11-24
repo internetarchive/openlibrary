@@ -52,6 +52,7 @@ async def search_json(
         # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=spellcheck_count,
+        request_label='BOOK_SEARCH_API',
         lang=request.state.lang,
     )
 

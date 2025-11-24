@@ -154,6 +154,13 @@ def create_app() -> FastAPI:
 
     setup_i18n(app)
 
+    @app.middleware("http")
+    async def add_fastapi_header(request: Request, call_next):
+        """Middleware to add a header indicating the response came from FastAPI."""
+        response = await call_next(request)
+        response.headers["X-Served-By"] = "FastAPI"
+        return response
+
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
     def health() -> dict[str, str]:
