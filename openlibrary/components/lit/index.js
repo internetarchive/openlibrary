@@ -8,3 +8,4 @@
 
 // Import components
 import './OlButton.js';
+import './OlStarRating.js';

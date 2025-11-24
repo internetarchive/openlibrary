@@ -19,7 +19,9 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
     $if mobile:
-      $:macros.StarRatings(work, edition, id="--mobile")
+      <div class="stars-wrapper">
+        $:macros.StarRatings(work, edition, id="--mobile")
+      </div>
 
     $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')

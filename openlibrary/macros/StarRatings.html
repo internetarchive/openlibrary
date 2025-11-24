@@ -4,47 +4,74 @@ $ username = ctx.user and ctx.user.key.split('/')[-1]
 $if rating is None and work and username:
   $ rating = work.get_users_rating(username)
 $ edition_key = edition.key if edition else ""
-$ form_id = "ratingsForm%s" % id
+$ work_id = work.key.split('/')[-1] if work else ""
 
-<form class="star-rating-form $('mobile' if id == '--mobile' else 'desktop')" id="$form_id" method="POST" action="$(work.key)/ratings.json"
-      property="reviewRating" typeof="Rating" vocab="http://schema.org/" data-work-key="$work.key">
-  <meta property="worstRating" content="1"/>
-  <meta property="bestRating" content="5"/>
-  <input type="hidden" value="$edition_key" name="edition_id"/>
-  <input type="hidden" value="true" name="redir"/>
-  $if redir_url:
-    $ page = query_param('page', '0')
-    $if safeint(page) > 1:
-      <input type="hidden" value="$page" name="page"/>
-    <input type="hidden" value="$redir_url" name="redir_url"/>
-  <div class="review" id="starRatingSection$id">
-    <div class="stars" data-ol-link-track="StarRating|BookRated">
-      $ NUM_STARS = 5
-      $for star in range(1, NUM_STARS + 1)
-        <input type="submit" value="$star" name="rating"
-          $if rating == star:
-            class="star-$star star-selected"
-          $else:
-            class="star-$star"
-          id="star-$star$id" />
-        <label class="star star-$star $('star-selected' if rating==star else '')"
-          $ properties = []
-          $if star == rating:
-            $ properties.append("ratingValue")
-          $if star == 1:
-            $ properties.append("worstRating")
-          $elif (star == NUM_STARS):
-            $ properties.append("bestRating")
-          $if properties:
-            property="$(' '.join(properties))"
-          for="star-$star$id">$star</label>
-      $# Empty span is necessary. It displays the filled stars.
-      <span></span>
-    </div>
-  </div>
-  $ class_list = "star-messaging"
-  $if not rating:
-    $ class_list = "%s hidden" % (class_list)
-    <!-- <span class="star-rating__not-rated">Rate</span> -->
-  <button type="submit" class="$class_list">$_("Clear my rating")</button>
-</form>
+<!-- TODO: Analytics tracking needs to be reimplemented.
+     Previous implementation used: data-ol-link-track="StarRating|BookRated"
+     This needs to be integrated with the component's change event handler. -->
+
+<ol-star-rating
+  id="starRating$id"
+  value="$(rating if rating else 0)"
+  clear-button-label="$_('Clear my rating')"
+></ol-star-rating>
+
+<script>
+(function() {
+  const starRating = document.getElementById('starRating$id');
+  if (!starRating) return;
+
+  const workKey = '$work.key';
+  const editionKey = '$edition_key';
+  const workId = '$work_id';
+
+  // Handle rating changes
+  starRating.addEventListener('change', async (event) => {
+    const rating = event.detail.value;
+
+    try {
+      const formData = new URLSearchParams();
+
+      // Only send rating parameter if rating is not 0 (clearing)
+      if (rating !== 0) {
+        formData.append('rating', rating.toString());
+      }
+
+      if (editionKey) {
+        formData.append('edition_id', editionKey);
+      }
+
+      formData.append('ajax', 'true');
+
+      const response = await fetch(`$${workKey}/ratings.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+        credentials: 'same-origin'
+      });
+
+      // Handle redirect to login page
+      if (response.redirected || response.status === 401) {
+        const loginUrl = `/account/login?redirect=$${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = loginUrl;
+        return;
+      }
+
+      // TODO: Add analytics tracking here
+      // Example: if (window.dataLayer) { window.dataLayer.push({...}); }
+
+    } catch (error) {
+      console.error('Failed to submit rating:', error);
+      // Optionally revert the UI on error
+      starRating.value = event.target._previousValue || 0;
+    }
+  });
+
+  // Store previous value for error recovery
+  starRating.addEventListener('change', (event) => {
+    event.target._previousValue = event.detail.value;
+  }, { capture: true });
+})();
+</script>
