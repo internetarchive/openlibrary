@@ -1,16 +1,11 @@
 import { LitElement, html, css } from 'lit';
 
 /**
- * STATUS: EXPERIMENTAL - Minimal implementation for single scenario production testing.
- *
- * A star rating web component built with Lit
- *
  * @element ol-star-rating
  *
  * @prop {number} value - Current rating value (0-5, supports decimals) (default: 0)
  * @prop {string} size - Star size: 'small', 'medium', 'large' (default: 'medium')
  * @prop {boolean} readonly - Read-only mode, no interactions (default: false)
- * @prop {boolean} disabled - Disabled state (default: false)
  * @prop {string} clearButtonLabel - Label for the clear button (default: 'Clear my rating')
  * @prop {string} ratingText - Text to display next to stars (e.g., "4.2 (1,234 ratings)") - shown automatically when set
  *
@@ -27,7 +22,6 @@ export class OlStarRating extends LitElement {
         value: { type: Number, reflect: true },
         size: { type: String, reflect: true },
         readonly: { type: Boolean, reflect: true },
-        disabled: { type: Boolean, reflect: true },
         clearButtonLabel: { type: String, reflect: true, attribute: 'clear-button-label' },
         ratingText: { type: String, reflect: true, attribute: 'rating-text' },
         _hoverValue: { type: Number, state: true },
@@ -80,11 +74,6 @@ export class OlStarRating extends LitElement {
       white-space: nowrap;
     }
 
-    :host([disabled]) .stars-wrapper {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
     .star-button {
       background: none;
       border: none;
@@ -101,16 +90,8 @@ export class OlStarRating extends LitElement {
       outline-offset: 2px;
     }
 
-    .star-button:disabled {
-      cursor: not-allowed;
-    }
-
     :host([readonly]) .star-button {
       cursor: default;
-    }
-
-    :host([readonly]) .star-button:hover {
-      transform: none;
     }
 
     /* Star sizes */
@@ -210,15 +191,6 @@ export class OlStarRating extends LitElement {
       align-self: center;
     }
 
-    .clear-button:hover:not(:disabled) {
-      background-color: #f5f5f5;
-    }
-
-    .clear-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     .clear-button:focus-visible {
       outline: var(--focus-ring-width) solid var(--color-border-focused);
     }
@@ -229,7 +201,6 @@ export class OlStarRating extends LitElement {
         this.value = 0;
         this.size = 'medium';
         this.readonly = false;
-        this.disabled = false;
         this.clearButtonLabel = 'Clear my rating';
         this.ratingText = '';
         this._hoverValue = null;
@@ -241,7 +212,7 @@ export class OlStarRating extends LitElement {
      * Handle star click
      */
     _handleStarClick(index) {
-        if (this.readonly || this.disabled) return;
+        if (this.readonly) return;
 
         const newValue = index + 1;
         this.value = newValue;
@@ -258,7 +229,7 @@ export class OlStarRating extends LitElement {
      * Handle star hover
      */
     _handleStarHover(index) {
-        if (this.readonly || this.disabled) return;
+        if (this.readonly) return;
         this._hoverValue = index + 1;
     }
 
@@ -266,7 +237,7 @@ export class OlStarRating extends LitElement {
      * Handle mouse leave from stars wrapper
      */
     _handleMouseLeave() {
-        if (this.readonly || this.disabled) return;
+        if (this.readonly) return;
         this._hoverValue = null;
     }
 
@@ -274,7 +245,7 @@ export class OlStarRating extends LitElement {
      * Handle keyboard navigation
      */
     _handleKeyDown(event, index) {
-        if (this.readonly || this.disabled) return;
+        if (this.readonly) return;
 
         let newIndex = index;
 
@@ -342,7 +313,7 @@ export class OlStarRating extends LitElement {
      * Handle clear button click
      */
     _handleClear() {
-        if (this.readonly || this.disabled) return;
+        if (this.readonly) return;
 
         this.value = 0;
 
@@ -373,8 +344,8 @@ export class OlStarRating extends LitElement {
 
         if (displayValue >= starThreshold) {
             return 'full';
-        } else if (displayValue > previousThreshold && displayValue >= previousThreshold + 0.25) {
-            // Show half star if value is at least 0.25 into this star
+        } else if (displayValue > previousThreshold && displayValue >= previousThreshold + 0.5) {
+            // Show half star if value is at least 0.5 into this star
             return 'half';
         }
 
@@ -418,8 +389,7 @@ export class OlStarRating extends LitElement {
         class=${classes}
         type="button"
         aria-label="Rate ${index + 1} out of ${this._totalStars} stars"
-        tabindex=${this.readonly || this.disabled ? -1 : tabIndex}
-        ?disabled=${this.disabled}
+        tabindex=${this.readonly ? -1 : tabIndex}
         @click=${() => this._handleStarClick(index)}
         @mouseenter=${() => this._handleStarHover(index)}
         @keydown=${(e) => this._handleKeyDown(e, index)}
@@ -465,12 +435,11 @@ export class OlStarRating extends LitElement {
           </div>
         ` : starsDisplay}
 
-        ${this.value > 0 && !this.readonly && !this.disabled ? html`
+        ${this.value > 0 && !this.readonly ? html`
           <button
             class="clear-button"
             type="button"
             @click=${this._handleClear}
-            ?disabled=${this.disabled}
           >
             ${this.clearButtonLabel}
           </button>
@@ -480,6 +449,5 @@ export class OlStarRating extends LitElement {
     }
 }
 
-// Register the custom element
 customElements.define('ol-star-rating', OlStarRating);
 
