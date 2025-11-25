@@ -43,6 +43,7 @@ export class OlStarRating extends LitElement {
 
       /* Temporarily hardcoding CSS values in component file for testing. */
       --spacing-inline: 8px;
+      --spacing-inline-sm: 0;
       --radius-button: 4px;
       --focus-ring-width: 2px;
       --color-border-focused: #2e7bcf;
@@ -56,6 +57,10 @@ export class OlStarRating extends LitElement {
       flex-direction: column;
       align-items: center;
       gap: var(--spacing-inline);
+    }
+
+    :host([size="small"]) .star-rating-container {
+      gap: var(--spacing-inline-sm);
     }
 
     .stars-wrapper {
@@ -86,7 +91,7 @@ export class OlStarRating extends LitElement {
     .star-button {
       background: none;
       border: none;
-      padding: 0.1rem;
+      padding: 0;
       cursor: pointer;
       display: inline-flex;
       align-items: center;

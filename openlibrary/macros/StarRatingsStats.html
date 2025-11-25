@@ -17,7 +17,14 @@ $ id = '--mobile' if mobile else ''
     <meta itemprop="ratingCount" content="$ratings_count"/>
   <li class="avg-ratings" onclick="location.href='#starRatingSection';" data-ol-link-track="StarRating|StatsComponentClick">
     $if ratings_count:
-      $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page')
+      <!-- $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page') -->
+      <ol-star-rating
+          value="$ratings_average"
+          readonly
+          rating-text="$ratings_average (${'{:,}'.format(ratings_count)} ratings)"
+          show-text
+          size="small">
+      </ol-star-rating>
   </li>
   $if want_to_read_count:
     <li class="reading-log-stat"><span class="readers-stats__stat">$want_to_read_count</span> <span class="readers-stats__label">$_("Want to read")</span></li>
