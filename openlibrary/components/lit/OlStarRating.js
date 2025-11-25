@@ -7,17 +7,20 @@ import { LitElement, html, css } from 'lit';
  *
  * @element ol-star-rating
  *
- * @prop {number} value - Current rating value (0-5) (default: 0)
+ * @prop {number} value - Current rating value (0-5, supports decimals) (default: 0)
  * @prop {string} size - Star size: 'small', 'medium', 'large' (default: 'medium')
  * @prop {boolean} readonly - Read-only mode, no interactions (default: false)
  * @prop {boolean} disabled - Disabled state (default: false)
  * @prop {string} clearButtonLabel - Label for the clear button (default: 'Clear my rating')
+ * @prop {string} ratingText - Text to display next to stars (e.g., "4.2 (1,234 ratings)")
+ * @prop {boolean} showText - Whether to show the rating text (default: false)
  *
  * @fires change - Emitted when rating value changes with detail: { value }
  *
  * @example
  * <ol-star-rating value="3" size="medium"></ol-star-rating>
  * <ol-star-rating value="4" readonly></ol-star-rating>
+ * <ol-star-rating value="4.5" readonly rating-text="4.5 (123 ratings)" show-text></ol-star-rating>
  * <ol-star-rating value="3" clear-button-label="Borrar mi calificación"></ol-star-rating>
  */
 export class OlStarRating extends LitElement {
@@ -27,6 +30,8 @@ export class OlStarRating extends LitElement {
         readonly: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         clearButtonLabel: { type: String, reflect: true, attribute: 'clear-button-label' },
+        ratingText: { type: String, reflect: true, attribute: 'rating-text' },
+        showText: { type: Boolean, reflect: true, attribute: 'show-text' },
         _hoverValue: { type: Number, state: true },
         _focusedIndex: { type: Number, state: true }
     };
@@ -35,6 +40,7 @@ export class OlStarRating extends LitElement {
     :host {
       display: block;
       width: 100%;
+
       /* Temporarily hardcoding CSS values in component file for testing. */
       --spacing-inline: 8px;
       --radius-button: 4px;
@@ -44,21 +50,39 @@ export class OlStarRating extends LitElement {
       --star-color-fill: #ffd400;
       --star-color-empty: #ccc  ;
     }
+
     .star-rating-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: var(--spacing-inline);
     }
+
     .stars-wrapper {
       display: inline-flex;
       align-items: center;
       position: relative;
+      gap: 2px;
     }
+
+    .stars-and-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rating-text {
+      color: var(--color-text);
+      font-size: 0.875rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
     :host([disabled]) .stars-wrapper {
       opacity: 0.5;
       cursor: not-allowed;
     }
+
     .star-button {
       background: none;
       border: none;
@@ -69,32 +93,40 @@ export class OlStarRating extends LitElement {
       justify-content: center;
       border-radius: var(--radius-button);
     }
+
     .star-button:focus-visible {
       outline: var(--focus-ring-width) solid var(--color-border-focused);
       outline-offset: 2px;
     }
+
     .star-button:disabled {
       cursor: not-allowed;
     }
+
     :host([readonly]) .star-button {
       cursor: default;
     }
+
     :host([readonly]) .star-button:hover {
       transform: none;
     }
+
     /* Star sizes */
     .star-button.small svg {
       width: 16px;
       height: 16px;
     }
+
     .star-button.medium svg {
       width: 24px;
       height: 24px;
     }
+
     .star-button.large svg {
       width: 32px;
       height: 32px;
     }
+
     /* Star colors for interactive mode (not readonly) */
     .star-button svg {
       color: var(--star-color-empty);
@@ -102,10 +134,37 @@ export class OlStarRating extends LitElement {
       stroke: currentColor;
       stroke-width: 2;
     }
+
     .star-button.filled svg {
       color: var(--star-color-fill);
       fill: var(--star-color-fill);
     }
+
+    /* Half-star rendering */
+    .star-button.half {
+      position: relative;
+    }
+
+    .star-button.half svg {
+      color: var(--star-color-empty);
+      fill: var(--star-color-empty);
+    }
+
+    .star-button.half .star-half-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .star-button.half .star-half-overlay svg {
+      color: var(--star-color-fill);
+      fill: var(--star-color-fill);
+      stroke: var(--star-color-fill);
+    }
+
     /* Star colors for readonly mode - all stars visible */
     :host([readonly]) .star-button svg {
       color: var(--star-color-empty);
@@ -113,11 +172,25 @@ export class OlStarRating extends LitElement {
       stroke: var(--star-color-empty);
       stroke-width: 2;
     }
+
     :host([readonly]) .star-button.filled svg {
       color: var(--star-color-fill);
       fill: var(--star-color-fill);
       stroke: var(--star-color-fill);
     }
+
+    :host([readonly]) .star-button.half svg {
+      color: var(--star-color-empty);
+      fill: var(--star-color-empty);
+      stroke: var(--star-color-empty);
+    }
+
+    :host([readonly]) .star-button.half .star-half-overlay svg {
+      color: var(--star-color-fill);
+      fill: var(--star-color-fill);
+      stroke: var(--star-color-fill);
+    }
+
     /* Clear button styles */
     .clear-button {
       background-color: #fff;
@@ -134,13 +207,16 @@ export class OlStarRating extends LitElement {
       box-sizing: border-box;
       align-self: center;
     }
+
     .clear-button:hover:not(:disabled) {
       background-color: #f5f5f5;
     }
+
     .clear-button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
+
     .clear-button:focus-visible {
       outline: var(--focus-ring-width) solid var(--color-border-focused);
     }
@@ -153,6 +229,8 @@ export class OlStarRating extends LitElement {
         this.readonly = false;
         this.disabled = false;
         this.clearButtonLabel = 'Clear my rating';
+        this.ratingText = '';
+        this.showText = false;
         this._hoverValue = null;
         this._focusedIndex = null;
         this._totalStars = 5;
@@ -276,25 +354,61 @@ export class OlStarRating extends LitElement {
     }
 
     /**
-     * Check if a star should be filled
+     * Get star fill state
+     * @param {number} index - Star index (0-based)
+     * @returns {string} 'full', 'half', or 'empty'
      */
-    _isStarFilled(index) {
+    _getStarState(index) {
         const displayValue = this._hoverValue !== null ? this._hoverValue : this.value;
-        return index < displayValue;
+
+        // For interactive mode, always use whole numbers
+        if (!this.readonly) {
+            return index < displayValue ? 'full' : 'empty';
+        }
+
+        // For readonly mode with decimals, support half stars
+        const starThreshold = index + 1;
+        const previousThreshold = index;
+
+        if (displayValue >= starThreshold) {
+            return 'full';
+        } else if (displayValue > previousThreshold && displayValue >= previousThreshold + 0.25) {
+            // Show half star if value is at least 0.25 into this star
+            return 'half';
+        }
+
+        return 'empty';
+    }
+
+    /**
+     * Render a star SVG
+     */
+    _renderStarSVG() {
+        return html`
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+        />
+      </svg>
+    `;
     }
 
     /**
      * Render a star icon
      */
     _renderStar(index) {
-        const isFilled = this._isStarFilled(index);
-        const classes = `star-button ${this.size} ${isFilled ? 'filled' : ''}`;
+        const starState = this._getStarState(index);
+        const classes = `star-button ${this.size} ${starState === 'full' ? 'filled' : ''} ${starState === 'half' ? 'half' : ''}`;
 
         // Determine tab index: first star is always tabbable, or the star matching current value
         let tabIndex = -1;
         if (index === 0 && this.value === 0) {
             tabIndex = 0;
-        } else if (index === this.value - 1 && this.value > 0) {
+        } else if (index === Math.floor(this.value) - 1 && this.value > 0) {
             tabIndex = 0;
         }
 
@@ -311,15 +425,12 @@ export class OlStarRating extends LitElement {
         @focus=${() => this._handleStarFocus(index)}
         @blur=${() => this._handleStarBlur()}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path
-            d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-          />
-        </svg>
+        ${this._renderStarSVG()}
+        ${starState === 'half' ? html`
+          <span class="star-half-overlay">
+            ${this._renderStarSVG()}
+          </span>
+        ` : ''}
       </button>
     `;
     }
@@ -329,34 +440,46 @@ export class OlStarRating extends LitElement {
             this._renderStar(index)
         );
 
+        const starsDisplay = html`
+      <div
+        class="stars-wrapper"
+        @mouseleave=${this._handleMouseLeave}
+        role="radiogroup"
+        aria-label="Rating selection"
+      >
+        ${stars}
+      </div>
+    `;
+
         return html`
       <div
         class="star-rating-container"
         role="group"
         aria-label="Star rating"
       >
-        <div
-          class="stars-wrapper"
-          @mouseleave=${this._handleMouseLeave}
-          role="radiogroup"
-          aria-label="Rating selection"
-        >
-        ${stars}
+        ${this.showText && this.ratingText ? html`
+          <div class="stars-and-text">
+            ${starsDisplay}
+            <span class="rating-text">${this.ratingText}</span>
+          </div>
+        ` : starsDisplay}
+
+        ${this.value > 0 && !this.readonly && !this.disabled ? html`
+          <button
+            class="clear-button"
+            type="button"
+            @click=${this._handleClear}
+            ?disabled=${this.disabled}
+          >
+            ${this.clearButtonLabel}
+          </button>
+        ` : ''}
       </div>
-      ${this.value > 0 && !this.readonly && !this.disabled ? html`
-        <button
-          class="clear-button"
-          type="button"
-          @click=${this._handleClear}
-          ?disabled=${this.disabled}
-        >
-          ${this.clearButtonLabel}
-        </button>
-      ` : ''}
-    </div>
-  `;
+    `;
     }
 }
 
+console.log('OlStarRating component loaded');
 // Register the custom element
 customElements.define('ol-star-rating', OlStarRating);
+
