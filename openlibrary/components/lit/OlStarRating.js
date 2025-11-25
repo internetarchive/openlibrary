@@ -12,15 +12,14 @@ import { LitElement, html, css } from 'lit';
  * @prop {boolean} readonly - Read-only mode, no interactions (default: false)
  * @prop {boolean} disabled - Disabled state (default: false)
  * @prop {string} clearButtonLabel - Label for the clear button (default: 'Clear my rating')
- * @prop {string} ratingText - Text to display next to stars (e.g., "4.2 (1,234 ratings)")
- * @prop {boolean} showText - Whether to show the rating text (default: false)
+ * @prop {string} ratingText - Text to display next to stars (e.g., "4.2 (1,234 ratings)") - shown automatically when set
  *
  * @fires change - Emitted when rating value changes with detail: { value }
  *
  * @example
  * <ol-star-rating value="3" size="medium"></ol-star-rating>
  * <ol-star-rating value="4" readonly></ol-star-rating>
- * <ol-star-rating value="4.5" readonly rating-text="4.5 (123 ratings)" show-text></ol-star-rating>
+ * <ol-star-rating value="4.5" readonly rating-text="4.5 (123 ratings)"></ol-star-rating>
  * <ol-star-rating value="3" clear-button-label="Borrar mi calificación"></ol-star-rating>
  */
 export class OlStarRating extends LitElement {
@@ -31,15 +30,13 @@ export class OlStarRating extends LitElement {
         disabled: { type: Boolean, reflect: true },
         clearButtonLabel: { type: String, reflect: true, attribute: 'clear-button-label' },
         ratingText: { type: String, reflect: true, attribute: 'rating-text' },
-        showText: { type: Boolean, reflect: true, attribute: 'show-text' },
         _hoverValue: { type: Number, state: true },
         _focusedIndex: { type: Number, state: true }
     };
 
     static styles = css`
     :host {
-      display: block;
-      width: 100%;
+      display: inline-block;
 
       /* Temporarily hardcoding CSS values in component file for testing. */
       --spacing-inline: 8px;
@@ -235,7 +232,6 @@ export class OlStarRating extends LitElement {
         this.disabled = false;
         this.clearButtonLabel = 'Clear my rating';
         this.ratingText = '';
-        this.showText = false;
         this._hoverValue = null;
         this._focusedIndex = null;
         this._totalStars = 5;
@@ -462,7 +458,7 @@ export class OlStarRating extends LitElement {
         role="group"
         aria-label="Star rating"
       >
-        ${this.showText && this.ratingText ? html`
+        ${this.ratingText ? html`
           <div class="stars-and-text">
             ${starsDisplay}
             <span class="rating-text">${this.ratingText}</span>
@@ -484,7 +480,6 @@ export class OlStarRating extends LitElement {
     }
 }
 
-console.log('OlStarRating component loaded');
 // Register the custom element
 customElements.define('ol-star-rating', OlStarRating);
 
