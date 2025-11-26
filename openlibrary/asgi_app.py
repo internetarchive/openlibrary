@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import sys
 from pathlib import Path
 
 import yaml
@@ -114,28 +115,29 @@ sentry: Sentry | None = None
 
 
 def create_app() -> FastAPI:
-    _setup_env()
+    if "pytest" not in sys.modules:
+        _setup_env()
 
-    if os.environ.get("CI"):
-        import pytest
+        if os.environ.get("CI"):
+            import pytest
 
-        pytest.skip("Skipping in CI", allow_module_level=True)
+            pytest.skip("Skipping in CI", allow_module_level=True)
 
-    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
-    ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
-    try:
-        # We still call this even though we don't use it because of the side effects
-        legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
+        ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
+        ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
+        try:
+            # We still call this even though we don't use it because of the side effects
+            legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
 
-        global sentry
-        if sentry is not None:
-            return
-        sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
-        set_tag("fastapi", True)
+            global sentry
+            if sentry is not None:
+                return
+            sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+            set_tag("fastapi", True)
 
-    except Exception:
-        logger.exception("Failed to initialize legacy WSGI app")
-        raise
+        except Exception:
+            logger.exception("Failed to initialize legacy WSGI app")
+            raise
 
     app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
 
@@ -174,4 +176,5 @@ def create_app() -> FastAPI:
 
 
 # The ASGI app instance Gunicorn/Uvicorn will serve
+# When running under pytest, skip the legacy WSGI setup to avoid side effects
 app = create_app()
