@@ -176,5 +176,4 @@ def create_app() -> FastAPI:
 
 
 # The ASGI app instance Gunicorn/Uvicorn will serve
-# When running under pytest, skip the legacy WSGI setup to avoid side effects
 app = create_app()
