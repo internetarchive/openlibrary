@@ -41,16 +41,17 @@ def pagination(
 
 
 field_names = set(WorkSearchScheme.all_fields) | set(
-    # WorkSearchScheme.field_name_map.keys()
-    # Temporarily commented out because field names can't start with underscores but we have _ia_collection
+    WorkSearchScheme.field_name_map.keys()
 )
-
 
 # Dynamically create the model
 AllAllowedParams = create_model(
     'AllAllowedParams',
     __base__=BaseModel,
-    **{name: (str | None, Query(None)) for name in field_names},
+    **{
+        field.removeprefix('_'): (str | None, Query(None, alias=field))
+        for field in field_names
+    },
 )
 
 
