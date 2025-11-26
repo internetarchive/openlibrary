@@ -41,7 +41,7 @@ def search(client, **params):
     """
     from urllib.parse import urlencode
 
-    query_string = urlencode(params)
+    query_string = urlencode(params, doseq=True)
     return client.get(f'/search.json?{query_string}')
 
 
@@ -197,3 +197,22 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]  # First positional argument
         assert 'osp_count' in query_arg
         assert query_arg['osp_count'] == '5'
+
+    def test_multiple_author_keys(self, client, mock_work_search):
+        """Test that multiple author_key parameters are parsed correctly.
+        Supporting multiple keys from query params isn't the default so this is important to check.
+        """
+        mock_work_search.return_value = {
+            'numFound': 1,
+            'start': 0,
+            'docs': [{'key': '/works/OL1W', 'title': 'Test Work'}],
+        }
+
+        response = search(client, author_key=['OL1A', 'OL2A'])
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        call_args = mock_work_search.call_args
+        query_arg = call_args[0][0]
+        assert 'author_key' in query_arg
+        assert query_arg['author_key'] == ['OL1A', 'OL2A']
