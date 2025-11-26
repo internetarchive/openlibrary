@@ -887,7 +887,7 @@ class opds_home(delegate.page):
 
             provider = get_opds_data_provider()
             catalog = Catalog(
-                metadata=Metadata(title=_("Welcome to Open Library")),
+                metadata=Metadata(title=_("Open Library")),
                 publications=[],
                 navigation=[
                     Navigation(
