@@ -7,7 +7,10 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from openlibrary.plugins.worksearch.code import work_search_async
+from openlibrary.plugins.worksearch.code import (
+    default_spellcheck_count,
+    work_search_async,
+)
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
@@ -55,7 +58,7 @@ async def search_json(  # noqa: PLR0913
     fields: str | None = Query(None, description="The fields to return."),
     # facet: bool = Query(False, description="Whether to return facets."),
     spellcheck_count: int | None = Query(
-        3, description="The number of spellcheck suggestions."
+        default_spellcheck_count, description="The number of spellcheck suggestions."
     ),
     query_str: str | None = Query(
         None, alias="query", description="A full JSON encoded solr query."
@@ -106,9 +109,10 @@ async def search_json(  # noqa: PLR0913
         lang=request.state.lang,
     )
 
-    # Add extra metadata to the response, similar to the original
-    response['q'] = q
+    # Add extra metadata to the response to match the original
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
+    response['q'] = q
+    response['offset'] = pagination.offset
 
     # Reorder keys to have 'docs' at the end, as in the original code
     docs = response.pop('docs', [])
