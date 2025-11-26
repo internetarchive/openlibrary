@@ -294,7 +294,7 @@ class sync_ia_ol(delegate.page):
         msg = i.msg
 
         try:
-            verify_hmac(digest, msg, "ia_ol_request_shared_key")
+            verify_hmac(digest, msg, "ia_sync_secret")
         except (ValueError, ExpiredTokenError):
             raise web.HTTPError("401 Unauthorized")
 
