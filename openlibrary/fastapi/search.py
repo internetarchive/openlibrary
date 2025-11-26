@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Annotated, Any
+
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
@@ -8,10 +10,21 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
 
+ListQuery = Annotated[list[str], Query(default_factory=list)]
+
 
 @router.get("/search.json", response_class=JSONResponse)
-async def search_json(
+async def search_json(  # noqa: PLR0913
     request: Request,
+    author_key: ListQuery,
+    subject_facet: ListQuery,
+    person_facet: ListQuery,
+    place_facet: ListQuery,
+    time_facet: ListQuery,
+    first_publish_year: ListQuery,
+    publisher_facet: ListQuery,
+    language: ListQuery,
+    public_scan_b: ListQuery,  # tbd if this should actually be a query
     q: str | None = Query("", description="The search query."),
     page: int | None = Query(
         1, ge=1, description="The page number of results to return."
@@ -30,6 +43,7 @@ async def search_json(
     """
     Performs a search for documents based on the provided query.
     """
+    # return author_key
 
     kwargs = dict(request.query_params)
     # Call the underlying search logic
@@ -37,10 +51,23 @@ async def search_json(
     if fields:
         _fields = fields.split(',')  # type: ignore
 
-    query = {"q": q, "page": page, "limit": limit}
+    query: dict[str, Any] = {"q": q, "page": page, "limit": limit}
     query.update(
         kwargs
     )  # This is a hack until we define all the params we expect above.
+    query.update(
+        {
+            "author_key": author_key,
+            "subject_facet": subject_facet,
+            "person_facet": person_facet,
+            "place_facet": place_facet,
+            "time_facet": time_facet,
+            "first_publish_year": first_publish_year,
+            "publisher_facet": publisher_facet,
+            "language": language,
+            "public_scan_b": public_scan_b,
+        }
+    )
     response = await work_search_async(
         query,
         sort=sort,
