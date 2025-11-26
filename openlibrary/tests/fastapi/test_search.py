@@ -164,7 +164,7 @@ class TestSearchEndpoint:
     @pytest.mark.parametrize(
         'params',
         [
-            {'limit': 0},
+            {'limit': -1},
             {'offset': -1},
             {'page': 0},
         ],
