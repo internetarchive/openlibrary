@@ -33,6 +33,11 @@ class Pagination(BaseModel):
 
 
 class MostQueryParams(BaseModel):
+    """
+    This class supports most of the parameters that are passed to query
+    Right now we can't get it to work with the query params that have multiple values (e.g. author_key)
+    """
+
     # from check_params in works.py
     title: str | None = None
     publisher: str | None = None

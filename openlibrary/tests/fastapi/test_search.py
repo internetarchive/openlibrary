@@ -6,6 +6,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from openlibrary.fastapi.search import MostQueryParams
+from openlibrary.plugins.worksearch.code import WorkSearchScheme
+
 
 @pytest.fixture
 def client():
@@ -249,3 +252,14 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]
         assert 'author_key' in query_arg
         assert query_arg['author_key'] == ['OL1A', 'OL2A']
+
+
+def test_check_params():
+    """
+    The purpose of this test is to ensure that check_params doesn't get out of sync with what is in the endpoint.
+    """
+    for field in WorkSearchScheme.check_params:
+        if field == 'author_key':
+            # Skip author_key because it's a list and can't go into the Pydantic model now
+            continue
+        assert field in MostQueryParams.model_fields
