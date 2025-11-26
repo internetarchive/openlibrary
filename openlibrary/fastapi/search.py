@@ -18,7 +18,7 @@ router = APIRouter()
 ListQuery = Annotated[list[str], Query(default_factory=list)]
 
 
-# Ideally this will go in a models files
+# Ideally this will go in a models files, we'll move it for the 2nd endpoint
 class Pagination(BaseModel):
     limit: int = 100
     offset: int | None = None
@@ -31,7 +31,7 @@ class Pagination(BaseModel):
             self.page = self.page or 1
 
 
-# Ideally this will go in a dependencies file
+# Ideally this will go in a dependencies file, we'll move it for the 2nd endpoint
 def pagination(
     limit: Annotated[int, Query(ge=1)] = 100,
     offset: Annotated[int | None, Query(ge=0)] = None,
