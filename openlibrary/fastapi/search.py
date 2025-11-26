@@ -20,24 +20,15 @@ ListQuery = Annotated[list[str], Query(default_factory=list)]
 
 # Ideally this will go in a models files, we'll move it for the 2nd endpoint
 class Pagination(BaseModel):
-    limit: int = 100
-    offset: int | None = None
-    page: int | None = None
+    limit: Annotated[int, Query(ge=0)] = 100
+    offset: Annotated[int | None, Query(ge=0)] = None
+    page: Annotated[int | None, Query(ge=1)] = None
 
     def model_post_init(self, _):
         if self.offset is not None:
             self.page = None
         else:
             self.page = self.page or 1
-
-
-# Ideally this will go in a dependencies file, we'll move it for the 2nd endpoint
-def pagination(
-    limit: Annotated[int, Query(ge=1)] = 100,
-    offset: Annotated[int | None, Query(ge=0)] = None,
-    page: Annotated[int | None, Query(ge=1)] = None,
-) -> Pagination:
-    return Pagination(limit=limit, offset=offset, page=page)
 
 
 field_names = set(WorkSearchScheme.all_fields) | set(
@@ -55,6 +46,10 @@ AllAllowedParams = create_model(
 )
 
 
+def foo(limit: int):
+    return limit
+
+
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(  # noqa: PLR0913
     request: Request,
@@ -67,7 +62,7 @@ async def search_json(  # noqa: PLR0913
     publisher_facet: ListQuery,
     language: ListQuery,
     public_scan_b: ListQuery,  # tbd if this should actually be a list
-    pagination: Annotated[Pagination, Depends(pagination)],
+    pagination: Annotated[Pagination, Depends()],
     all_allowed_params: Annotated[  # type: ignore[valid-type]
         AllAllowedParams,
         Depends(),
