@@ -91,7 +91,7 @@ async def search_json(  # noqa: PLR0913
         query = json.loads(query_str)
     else:
         query = {"q": q, "page": pagination.page, "limit": pagination.limit}
-        query.update({k: v for k, v in all_allowed_params.dict().items() if v is not None})  # type: ignore[attr-defined]
+        query.update({k: v for k, v in all_allowed_params.model_dump().items() if v is not None})  # type: ignore[attr-defined]
         query.update(
             {
                 "author_key": author_key,
