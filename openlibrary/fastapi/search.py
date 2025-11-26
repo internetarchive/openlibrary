@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
@@ -12,6 +13,28 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 router = APIRouter()
 
 ListQuery = Annotated[list[str], Query(default_factory=list)]
+
+
+# Ideally this will go in a models files
+class Pagination(BaseModel):
+    limit: int = 100
+    offset: int | None = None
+    page: int | None = None
+
+    def model_post_init(self, _):
+        if self.offset is not None:
+            self.page = None
+        else:
+            self.page = self.page or 1
+
+
+# Ideally this will go in a dependencies file
+def pagination(
+    limit: Annotated[int, Query(ge=1)] = 100,
+    offset: Annotated[int | None, Query(ge=0)] = None,
+    page: Annotated[int | None, Query(ge=1)] = None,
+) -> Pagination:
+    return Pagination(limit=limit, offset=offset, page=page)
 
 
 @router.get("/search.json", response_class=JSONResponse)
@@ -26,15 +49,9 @@ async def search_json(  # noqa: PLR0913
     publisher_facet: ListQuery,
     language: ListQuery,
     public_scan_b: ListQuery,  # tbd if this should actually be a query
+    pagination: Annotated[Pagination, Depends(pagination)],
     q: str | None = Query("", description="The search query."),
-    page: int | None = Query(
-        1, ge=1, description="The page number of results to return."
-    ),
-    limit: int = Query(
-        100, ge=1, le=1000, description="The number of results per page."
-    ),
     sort: str | None = Query(None, description="The sort order of results."),
-    offset: int | None = Query(None, description="The offset of results to return."),
     fields: str | None = Query(None, description="The fields to return."),
     # facet: bool = Query(False, description="Whether to return facets."),
     spellcheck_count: int | None = Query(
@@ -52,7 +69,7 @@ async def search_json(  # noqa: PLR0913
     if query_str:
         query = json.loads(query_str)
     else:
-        query = {"q": q, "page": page, "limit": limit}
+        query = {"q": q, "page": pagination.page, "limit": pagination.limit}
         query.update(
             dict(request.query_params)
         )  # This is a hack until we define all the params we expect in the route
@@ -77,9 +94,9 @@ async def search_json(  # noqa: PLR0913
     response = await work_search_async(
         query,
         sort=sort,
-        page=page,
-        offset=offset,
-        limit=limit,
+        page=pagination.page,
+        offset=pagination.offset,
+        limit=pagination.limit,
         fields=_fields,
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
