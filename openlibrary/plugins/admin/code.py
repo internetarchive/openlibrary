@@ -9,7 +9,6 @@ import os
 import socket
 import subprocess
 import sys
-import time
 import traceback
 from collections.abc import Iterable
 
