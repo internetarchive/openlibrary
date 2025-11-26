@@ -45,6 +45,8 @@ async def search_json(  # noqa: PLR0913
     publisher_facet: ListQuery,
     language: ListQuery,
     public_scan_b: ListQuery,  # tbd if this should actually be a list
+    author_facet: ListQuery,  # from workscheme facet_fields
+    has_fulltext: bool | None = None,  # from workscheme facet_fields
     # check_params from works.py
     title: str | None = None,
     publisher: str | None = None,
@@ -75,6 +77,7 @@ async def search_json(  # noqa: PLR0913
         query = json.loads(query_str)
     else:
         query = {"q": q, "page": pagination.page, "limit": pagination.limit}
+        # TODO: ensure all the query params are passed down, preferably from a pydantic model
         query.update(
             {
                 "author_key": author_key,
@@ -86,6 +89,8 @@ async def search_json(  # noqa: PLR0913
                 "publisher_facet": publisher_facet,
                 "language": language,
                 "public_scan_b": public_scan_b,
+                "has_fulltext": has_fulltext,
+                "publisher": publisher,
             }
         )
 

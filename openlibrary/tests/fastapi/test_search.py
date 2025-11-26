@@ -181,6 +181,34 @@ class TestSearchEndpoint:
         # Should return a validation error
         assert response.status_code == 422
 
+    @pytest.mark.parametrize(
+        ('params', 'key_to_check', 'expected_value'),
+        [
+            # Case 1: publisher should pass as a string
+            ({'publisher': 'Lab of Thought'}, 'publisher', 'Lab of Thought'),
+            # Case 2: has_fulltext should pass as a boolean
+            ({'has_fulltext': 'true'}, 'has_fulltext', True),
+            ({'has_fulltext': 'false'}, 'has_fulltext', False),
+        ],
+    )
+    def test_search_parameter_types(
+        self, client, mock_work_search, params, key_to_check, expected_value
+    ):
+        """Test that specific parameters are passed down with the correct types."""
+        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
+
+        # Add a required 'q' param to satisfy potential validation, then merge with params
+        response = search(client, q='test', **params)
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+
+        # Get the query dictionary passed to the mock
+        query_arg = mock_work_search.call_args[0][0]
+
+        assert key_to_check in query_arg
+        assert query_arg[key_to_check] == expected_value
+
     def test_arbitrary_query_params_not_passed_down(self, client, mock_work_search):
         """Test that arbitrary query parameters like osp_count are NOT passed down."""
         mock_work_search.return_value = {
