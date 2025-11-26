@@ -83,81 +83,48 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]
         assert query_arg == query_dict
 
-    def test_pagination_with_page(self, client, mock_work_search):
-        """Test pagination using the 'page' parameter."""
+    @pytest.mark.parametrize(
+        ('query', 'expected_kwargs'),
+        [
+            (
+                "q=test&page=3&limit=10",
+                {"page": 3, "limit": 10, "offset": None},
+            ),
+            (
+                "q=test&offset=50&limit=25",
+                {"offset": 50, "limit": 25, "page": None},
+            ),
+            (
+                "q=test&page=5&offset=30&limit=10",
+                {"offset": 30, "limit": 10, "page": None},
+            ),
+            (
+                "q=test",
+                {"limit": 100, "page": 1, "offset": None},
+            ),
+        ],
+    )
+    def test_pagination_variants(
+        self, client, mock_work_search, query, expected_kwargs
+    ):
+        """Test pagination behavior for various query parameter combinations.
+
+        The mock is configured to return a generic successful response; the focus is on
+        verifying that ``work_search_async`` receives the correct pagination arguments.
+        """
         mock_work_search.return_value = {
-            'numFound': 100,
-            'start': 20,
-            'docs': [{'key': '/works/OL3W', 'title': 'Test Work 3'}],
+            "numFound": 10,
+            "start": 0,
+            "docs": [],
         }
 
-        response = client.get('/search.json?q=test&page=3&limit=10')
-
+        response = client.get(f"/search.json?{query}")
         assert response.status_code == 200
 
-        # Verify work_search_async was called with correct pagination
         mock_work_search.assert_called_once()
         call_kwargs = mock_work_search.call_args[1]
-        assert call_kwargs['page'] == 3
-        assert call_kwargs['limit'] == 10
-        assert call_kwargs['offset'] is None
-
-    def test_pagination_with_offset(self, client, mock_work_search):
-        """Test pagination using the 'offset' parameter."""
-        mock_work_search.return_value = {
-            'numFound': 100,
-            'start': 50,
-            'docs': [{'key': '/works/OL4W', 'title': 'Test Work 4'}],
-        }
-
-        response = client.get('/search.json?q=test&offset=50&limit=25')
-
-        assert response.status_code == 200
-
-        # Verify work_search_async was called with correct pagination
-        mock_work_search.assert_called_once()
-        call_kwargs = mock_work_search.call_args[1]
-        assert call_kwargs['offset'] == 50
-        assert call_kwargs['limit'] == 25
-        # When offset is provided, page should be None
-        assert call_kwargs['page'] is None
-
-    def test_pagination_offset_overrides_page(self, client, mock_work_search):
-        """Test that offset takes precedence over page when both are provided."""
-        mock_work_search.return_value = {
-            'numFound': 100,
-            'start': 30,
-            'docs': [],
-        }
-
-        response = client.get('/search.json?q=test&page=5&offset=30&limit=10')
-
-        assert response.status_code == 200
-
-        # Verify that offset is used and page is None
-        mock_work_search.assert_called_once()
-        call_kwargs = mock_work_search.call_args[1]
-        assert call_kwargs['offset'] == 30
-        assert call_kwargs['page'] is None
-
-    def test_default_pagination(self, client, mock_work_search):
-        """Test default pagination values when not specified."""
-        mock_work_search.return_value = {
-            'numFound': 10,
-            'start': 0,
-            'docs': [],
-        }
-
-        response = client.get('/search.json?q=test')
-
-        assert response.status_code == 200
-
-        # Verify default pagination values
-        mock_work_search.assert_called_once()
-        call_kwargs = mock_work_search.call_args[1]
-        assert call_kwargs['limit'] == 100  # Default limit
-        assert call_kwargs['page'] == 1  # Default page
-        assert call_kwargs['offset'] is None
+        for key, expected in expected_kwargs.items():
+            assert call_kwargs.get(key) == expected
 
     def test_response_includes_metadata(self, client, mock_work_search):
         """Test that the response includes expected metadata fields."""
