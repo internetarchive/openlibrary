@@ -3,7 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
-from openlibrary.plugins.worksearch.code import work_search_async
+from openlibrary.plugins.worksearch.code import (
+    validate_search_json_query,
+    work_search_async,
+)
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
@@ -36,6 +39,9 @@ async def search_json(
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
+
+    if q_error := validate_search_json_query(q):
+        return JSONResponse(status_code=422, content={"error": q_error})
 
     query = {"q": q, "page": page, "limit": limit}
     query.update(

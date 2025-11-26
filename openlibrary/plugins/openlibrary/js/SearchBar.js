@@ -350,7 +350,7 @@ export class SearchBar {
      **/
     renderAutocompletionResults() {
         let q = this.$input.val().trim();
-        if (q.length < 3 || q === 'the' || !(this.facetEndpoint in RENDER_AUTOCOMPLETE_RESULT)) {
+        if (q.length < 3 || q.toLowerCase() === 'the' || !(this.facetEndpoint in RENDER_AUTOCOMPLETE_RESULT)) {
             return;
         }
         if (this.facet.read() === 'title') {
