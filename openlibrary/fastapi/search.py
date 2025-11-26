@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, Request
@@ -39,35 +40,40 @@ async def search_json(  # noqa: PLR0913
     spellcheck_count: int | None = Query(
         3, description="The number of spellcheck suggestions."
     ),
+    query_str: str | None = Query(
+        None, alias="query", description="A full JSON encoded solr query."
+    ),
 ):
     """
     Performs a search for documents based on the provided query.
     """
     # return author_key
+    query: dict[str, Any] = {}
+    if query_str:
+        query = json.loads(query_str)
+    else:
+        query = {"q": q, "page": page, "limit": limit}
+        query.update(
+            dict(request.query_params)
+        )  # This is a hack until we define all the params we expect in the route
+        query.update(
+            {
+                "author_key": author_key,
+                "subject_facet": subject_facet,
+                "person_facet": person_facet,
+                "place_facet": place_facet,
+                "time_facet": time_facet,
+                "first_publish_year": first_publish_year,
+                "publisher_facet": publisher_facet,
+                "language": language,
+                "public_scan_b": public_scan_b,
+            }
+        )
 
-    kwargs = dict(request.query_params)
-    # Call the underlying search logic
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
         _fields = fields.split(',')  # type: ignore
 
-    query: dict[str, Any] = {"q": q, "page": page, "limit": limit}
-    query.update(
-        kwargs
-    )  # This is a hack until we define all the params we expect above.
-    query.update(
-        {
-            "author_key": author_key,
-            "subject_facet": subject_facet,
-            "person_facet": person_facet,
-            "place_facet": place_facet,
-            "time_facet": time_facet,
-            "first_publish_year": first_publish_year,
-            "publisher_facet": publisher_facet,
-            "language": language,
-            "public_scan_b": public_scan_b,
-        }
-    )
     response = await work_search_async(
         query,
         sort=sort,
