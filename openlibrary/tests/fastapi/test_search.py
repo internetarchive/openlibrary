@@ -33,19 +33,30 @@ def mock_work_search():
         yield mock
 
 
+def search(client, **params):
+    """Helper function to make search requests with query parameters.
+
+    This helper provides a cleaner interface for making search requests
+    by accepting keyword arguments directly instead of building URL strings.
+    """
+    from urllib.parse import urlencode
+
+    query_string = urlencode(params)
+    return client.get(f'/search.json?{query_string}')
+
+
 class TestSearchEndpoint:
     """Tests for the /search.json endpoint."""
 
     def test_search_uses_query_param(self, client, mock_work_search):
         """Test that the search endpoint uses the 'q' query parameter."""
-        # Mock the async function
         mock_work_search.return_value = {
             'numFound': 1,
             'start': 0,
             'docs': [{'key': '/works/OL1W', 'title': 'The Lord of the Rings'}],
         }
 
-        response = client.get('/search.json?q=lord+of+the+rings')
+        response = search(client, q='lord of the rings')
 
         assert response.status_code == 200
         data = response.json()
@@ -71,9 +82,7 @@ class TestSearchEndpoint:
 
         # The 'query' param should accept a full JSON-encoded Solr query
         query_dict = {'q': 'test', 'author': 'Tolkien'}
-        query_str = json.dumps(query_dict)
-
-        response = client.get(f'/search.json?query={query_str}')
+        response = search(client, query=json.dumps(query_dict))
 
         assert response.status_code == 200
 
@@ -84,28 +93,28 @@ class TestSearchEndpoint:
         assert query_arg == query_dict
 
     @pytest.mark.parametrize(
-        ('query', 'expected_kwargs'),
+        ('params', 'expected_kwargs'),
         [
             (
-                "q=test&page=3&limit=10",
-                {"page": 3, "limit": 10, "offset": None},
+                {'q': 'test', 'page': 3, 'limit': 10},
+                {'page': 3, 'limit': 10, 'offset': None},
             ),
             (
-                "q=test&offset=50&limit=25",
-                {"offset": 50, "limit": 25, "page": None},
+                {'q': 'test', 'offset': 50, 'limit': 25},
+                {'offset': 50, 'limit': 25, 'page': None},
             ),
             (
-                "q=test&page=5&offset=30&limit=10",
-                {"offset": 30, "limit": 10, "page": None},
+                {'q': 'test', 'page': 5, 'offset': 30, 'limit': 10},
+                {'offset': 30, 'limit': 10, 'page': None},
             ),
             (
-                "q=test",
-                {"limit": 100, "page": 1, "offset": None},
+                {'q': 'test'},
+                {'limit': 100, 'page': 1, 'offset': None},
             ),
         ],
     )
     def test_pagination_variants(
-        self, client, mock_work_search, query, expected_kwargs
+        self, client, mock_work_search, params, expected_kwargs
     ):
         """Test pagination behavior for various query parameter combinations.
 
@@ -113,12 +122,12 @@ class TestSearchEndpoint:
         verifying that ``work_search_async`` receives the correct pagination arguments.
         """
         mock_work_search.return_value = {
-            "numFound": 10,
-            "start": 0,
-            "docs": [],
+            'numFound': 10,
+            'start': 0,
+            'docs': [],
         }
 
-        response = client.get(f"/search.json?{query}")
+        response = search(client, **params)
         assert response.status_code == 200
 
         mock_work_search.assert_called_once()
@@ -134,7 +143,7 @@ class TestSearchEndpoint:
             'docs': [{'key': '/works/OL5W', 'title': 'Test'}],
         }
 
-        response = client.get('/search.json?q=test&offset=10')
+        response = search(client, q='test', offset=10)
 
         assert response.status_code == 200
         data = response.json()
@@ -162,8 +171,7 @@ class TestSearchEndpoint:
     )
     def test_pagination_validation_errors(self, client, mock_work_search, params):
         """Test validation errors for invalid pagination parameters."""
-        query = '&'.join(f'{k}={v}' for k, v in params.items())
-        response = client.get(f'/search.json?q=test&{query}')
+        response = search(client, q='test', **params)
 
         # Should return a validation error
         assert response.status_code == 422
