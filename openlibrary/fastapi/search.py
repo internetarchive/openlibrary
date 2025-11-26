@@ -31,10 +31,26 @@ class Pagination(BaseModel):
             self.page = self.page or 1
 
 
+class MostQueryParams(BaseModel):
+    # from check_params in works.py
+    title: str | None = None
+    publisher: str | None = None
+    oclc: str | None = None
+    lccn: str | None = None
+    contributor: str | None = None
+    subject: str | None = None
+    place: str | None = None
+    person: str | None = None
+    time: str | None = None
+    # from workscheme facet_fields
+    has_fulltext: bool | None = None
+
+
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(  # noqa: PLR0913
     request: Request,
     pagination: Annotated[Pagination, Depends()],
+    mqp: Annotated[MostQueryParams, Depends()],
     # from web.input for search.json
     author_key: ListQuery,
     subject_facet: ListQuery,
@@ -46,18 +62,6 @@ async def search_json(  # noqa: PLR0913
     language: ListQuery,
     public_scan_b: ListQuery,  # tbd if this should actually be a list
     author_facet: ListQuery,  # from workscheme facet_fields
-    has_fulltext: bool | None = None,  # from workscheme facet_fields
-    # check_params from works.py
-    title: str | None = None,
-    publisher: str | None = None,
-    oclc: str | None = None,
-    lccn: str | None = None,
-    contributor: str | None = None,
-    subject: str | None = None,
-    place: str | None = None,
-    person: str | None = None,
-    time: str | None = None,
-    # other stuff
     q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
@@ -89,10 +93,9 @@ async def search_json(  # noqa: PLR0913
                 "publisher_facet": publisher_facet,
                 "language": language,
                 "public_scan_b": public_scan_b,
-                "has_fulltext": has_fulltext,
-                "publisher": publisher,
             }
         )
+        query.update(mqp.model_dump())
 
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
