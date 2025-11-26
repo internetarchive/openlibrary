@@ -75,7 +75,6 @@ async def search_json(  # noqa: PLR0913
     q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
-    # facet: bool = Query(False, description="Whether to return facets."),
     spellcheck_count: int | None = Query(
         default_spellcheck_count, description="The number of spellcheck suggestions."
     ),
