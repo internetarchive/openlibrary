@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -31,28 +31,11 @@ class Pagination(BaseModel):
             self.page = self.page or 1
 
 
-field_names = set(WorkSearchScheme.all_fields) | set(
-    WorkSearchScheme.field_name_map.keys()
-)
-
-# Dynamically create the model
-AllAllowedParams = create_model(
-    'AllAllowedParams',
-    __base__=BaseModel,
-    **{
-        field.removeprefix('_'): (str | None, Query(None, alias=field))
-        for field in field_names
-    },
-)
-
-
-def foo(limit: int):
-    return limit
-
-
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(  # noqa: PLR0913
     request: Request,
+    pagination: Annotated[Pagination, Depends()],
+    # from web.input for search.json
     author_key: ListQuery,
     subject_facet: ListQuery,
     person_facet: ListQuery,
@@ -62,11 +45,17 @@ async def search_json(  # noqa: PLR0913
     publisher_facet: ListQuery,
     language: ListQuery,
     public_scan_b: ListQuery,  # tbd if this should actually be a list
-    pagination: Annotated[Pagination, Depends()],
-    all_allowed_params: Annotated[  # type: ignore[valid-type]
-        AllAllowedParams,
-        Depends(),
-    ],
+    # check_params from works.py
+    title: str | None = None,
+    publisher: str | None = None,
+    oclc: str | None = None,
+    lccn: str | None = None,
+    contributor: str | None = None,
+    subject: str | None = None,
+    place: str | None = None,
+    person: str | None = None,
+    time: str | None = None,
+    # other stuff
     q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
@@ -86,7 +75,6 @@ async def search_json(  # noqa: PLR0913
         query = json.loads(query_str)
     else:
         query = {"q": q, "page": pagination.page, "limit": pagination.limit}
-        query.update({k: v for k, v in all_allowed_params.model_dump().items() if v is not None})  # type: ignore[attr-defined]
         query.update(
             {
                 "author_key": author_key,

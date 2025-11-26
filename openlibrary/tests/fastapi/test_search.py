@@ -176,8 +176,8 @@ class TestSearchEndpoint:
         # Should return a validation error
         assert response.status_code == 422
 
-    def test_query_params_passed_down(self, client, mock_work_search):
-        """Test that arbitrary query parameters like osp_count are passed down correctly."""
+    def test_arbitrary_query_params_not_passed_down(self, client, mock_work_search):
+        """Test that arbitrary query parameters like osp_count are NOT passed down."""
         mock_work_search.return_value = {
             'numFound': 1,
             'start': 0,
@@ -193,10 +193,10 @@ class TestSearchEndpoint:
         mock_work_search.assert_called_once()
         call_args = mock_work_search.call_args
 
-        # The query dict should contain the osp_count parameter
+        # The query dict should NOT contain the osp_count parameter
         query_arg = call_args[0][0]  # First positional argument
-        assert 'osp_count' in query_arg
-        assert query_arg['osp_count'] == '5'
+        assert 'osp_count' not in query_arg
+        assert query_arg['q'] == 'test'
 
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
