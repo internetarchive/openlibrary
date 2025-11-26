@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -40,6 +40,20 @@ def pagination(
     return Pagination(limit=limit, offset=offset, page=page)
 
 
+field_names = set(WorkSearchScheme.all_fields) | set(
+    # WorkSearchScheme.field_name_map.keys()
+    # Temporarily commented out because field names can't start with underscores but we have _ia_collection
+)
+
+
+# Dynamically create the model
+AllAllowedParams = create_model(
+    'AllAllowedParams',
+    __base__=BaseModel,
+    **{name: (str | None, Query(None)) for name in field_names},
+)
+
+
 @router.get("/search.json", response_class=JSONResponse)
 async def search_json(  # noqa: PLR0913
     request: Request,
@@ -51,8 +65,12 @@ async def search_json(  # noqa: PLR0913
     first_publish_year: ListQuery,
     publisher_facet: ListQuery,
     language: ListQuery,
-    public_scan_b: ListQuery,  # tbd if this should actually be a query
+    public_scan_b: ListQuery,  # tbd if this should actually be a list
     pagination: Annotated[Pagination, Depends(pagination)],
+    all_allowed_params: Annotated[  # type: ignore[valid-type]
+        AllAllowedParams,
+        Depends(),
+    ],
     q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
@@ -73,9 +91,7 @@ async def search_json(  # noqa: PLR0913
         query = json.loads(query_str)
     else:
         query = {"q": q, "page": pagination.page, "limit": pagination.limit}
-        query.update(
-            dict(request.query_params)
-        )  # This is a hack until we define all the params we expect in the route
+        query.update({k: v for k, v in all_allowed_params.dict().items() if v is not None})  # type: ignore[attr-defined]
         query.update(
             {
                 "author_key": author_key,
