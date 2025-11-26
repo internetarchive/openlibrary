@@ -96,6 +96,11 @@ class TestSearchEndpoint:
         ('params', 'expected_kwargs'),
         [
             (
+                # It's useful to have limit zero so we can get the total number of results without getting results
+                {'q': 'test', 'limit': 0},
+                {'page': 1, 'limit': 0, 'offset': None},
+            ),
+            (
                 {'q': 'test', 'page': 3, 'limit': 10},
                 {'page': 3, 'limit': 10, 'offset': None},
             ),
