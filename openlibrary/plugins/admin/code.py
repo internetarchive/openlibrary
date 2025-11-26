@@ -1,8 +1,6 @@
 """Plugin to provide admin interface."""
 
 import datetime
-import hashlib
-import hmac
 import json
 import logging
 import os
@@ -35,6 +33,7 @@ from openlibrary.core import (
     cache,
     imports,
 )
+from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.models import Work
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
@@ -251,36 +250,7 @@ class any:
         pass
 
 
-class ExpiredTokenError(Exception):
-    pass
 
-def verify_hmac(digest, msg, secret_key_name, delimiter="|"):
-    current_time = datetime.datetime.now(datetime.timezone.utc)
-    expiry_str = msg.split(delimiter)[-1]
-    expiry = datetime.datetime.fromisoformat(expiry_str)
-
-    # To avoid timing attacks, we avoid raising exceptions
-    # until after the digests are compared
-    err: Exception | None = None
-
-    if current_time > expiry:
-        err = ExpiredTokenError()
-
-    if not (key := config.get(secret_key_name, '')):
-        err = ValueError("No key found")
-
-    mac = ''
-    if key:
-        mac = hmac.new(
-            key.encode('utf-8'),
-            msg.encode('utf-8'),
-            hashlib.md5
-        ).hexdigest()
-
-    result = hmac.compare_digest(mac, digest)
-    if err:
-        raise err
-    return result
 
 
 class sync_ia_ol(delegate.page):
@@ -294,7 +264,7 @@ class sync_ia_ol(delegate.page):
         msg = i.msg
 
         try:
-            verify_hmac(digest, msg, "ia_sync_secret")
+            HMACToken.verify(digest, msg, "ia_sync_secret")
         except (ValueError, ExpiredTokenError):
             raise web.HTTPError("401 Unauthorized")
 
