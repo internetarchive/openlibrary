@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -15,8 +15,6 @@ from openlibrary.plugins.worksearch.code import (
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
-
-ListQuery = Annotated[list[str], Query(default_factory=list)]
 
 
 # Ideally this will go in a models files, we'll move it for the 2nd endpoint
@@ -32,10 +30,9 @@ class Pagination(BaseModel):
             self.page = self.page or 1
 
 
-class MostQueryParams(BaseModel):
+class PublicQueryOptions(BaseModel):
     """
-    This class supports most of the parameters that are passed to query
-    Right now we can't get it to work with the query params that have multiple values (e.g. author_key)
+    This class has all the parameters that are passed as "query"
     """
 
     # from check_params in works.py
@@ -51,23 +48,23 @@ class MostQueryParams(BaseModel):
     # from workscheme facet_fields
     has_fulltext: bool | None = None
 
+    author_key: list[str] = Field(Query([]))
+    subject_facet: list[str] = Field(Query([]))
+    person_facet: list[str] = Field(Query([]))
+    place_facet: list[str] = Field(Query([]))
+    time_facet: list[str] = Field(Query([]))
+    first_publish_year: list[str] = Field(Query([]))
+    publisher_facet: list[str] = Field(Query([]))
+    language: list[str] = Field(Query([]))
+    public_scan_b: list[str] = Field(Query([]))  # tbd if this should actually be a list
+    author_facet: list[str] = Field(Query([]))
+
 
 @router.get("/search.json", response_class=JSONResponse)
-async def search_json(  # noqa: PLR0913
+async def search_json(
     request: Request,
     pagination: Annotated[Pagination, Depends()],
-    mqp: Annotated[MostQueryParams, Depends()],
-    # from web.input for search.json
-    author_key: ListQuery,
-    subject_facet: ListQuery,
-    person_facet: ListQuery,
-    place_facet: ListQuery,
-    time_facet: ListQuery,
-    first_publish_year: ListQuery,
-    publisher_facet: ListQuery,
-    language: ListQuery,
-    public_scan_b: ListQuery,  # tbd if this should actually be a list
-    author_facet: ListQuery,  # from workscheme facet_fields
+    public_query_options: Annotated[PublicQueryOptions, Depends()],
     q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
@@ -87,21 +84,8 @@ async def search_json(  # noqa: PLR0913
         query = json.loads(query_str)
     else:
         query = {"q": q, "page": pagination.page, "limit": pagination.limit}
-        # TODO: ensure all the query params are passed down, preferably from a pydantic model
-        query.update(
-            {
-                "author_key": author_key,
-                "subject_facet": subject_facet,
-                "person_facet": person_facet,
-                "place_facet": place_facet,
-                "time_facet": time_facet,
-                "first_publish_year": first_publish_year,
-                "publisher_facet": publisher_facet,
-                "language": language,
-                "public_scan_b": public_scan_b,
-            }
-        )
-        query.update(mqp.model_dump())
+        # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
+        query.update(public_query_options.model_dump(exclude_none=True))
 
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:

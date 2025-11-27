@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI, Query
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
 
-from openlibrary.fastapi.search import MostQueryParams
+from openlibrary.fastapi.search import PublicQueryOptions
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
 
 
@@ -265,7 +265,7 @@ def test_check_params():
         if field == 'author_key':
             # Skip author_key because it's a list and can't go into the Pydantic model now
             continue
-        assert field in MostQueryParams.model_fields
+        assert field in PublicQueryOptions.model_fields
 
 
 ##### The tests here are to show that it's hard to get the lists working for query params
