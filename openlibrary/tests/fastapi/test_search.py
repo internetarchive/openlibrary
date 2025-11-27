@@ -5,8 +5,9 @@ from typing import Annotated
 from unittest.mock import patch
 
 import pytest
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, Query
 from fastapi.testclient import TestClient
+from pydantic import BaseModel, Field
 
 from openlibrary.fastapi.search import MostQueryParams
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
@@ -313,3 +314,109 @@ def test_multi_key():
     response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
     assert response.status_code == 200
     assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # This this says body is missing again ok
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str]
+
+    @app.get("/search.json")
+    async def search_works4(
+        params: SearchParams,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 422
+    assert response.json() != {'author_key': ['OL1A', 'OL2A']}
+    assert response.json()['detail'][0]['type'] == 'missing'
+    assert response.json()['detail'][0]['loc'] == ['body']
+
+    # Ok so now this works. Yay!
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str]
+
+    @app.get("/search.json")
+    async def search_works5(
+        params: Annotated[SearchParams, Query()],
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # But what if there are other params? Uh oh then they're missing...
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str]
+
+    @app.get("/search.json")
+    async def search_works6(
+        params: Annotated[SearchParams, Query()],
+        q: str | None = None,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['type'] == 'missing'
+    assert response.json()['detail'][0]['loc'] == ['query', 'params']
+
+    # So Gemini says it'll work if we use Depends instead of query! But then we get a body missing :(
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str]
+
+    @app.get("/search.json")
+    async def search_works7(
+        params: Annotated[SearchParams, Depends()],
+        q: str | None = None,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 422
+    # assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+    assert response.json()['detail'][0]['type'] == 'missing'
+    assert response.json()['detail'][0]['loc'] == ['body']
+
+    # So what if we make it clearer that it's a query param? Woah that works!
+    """
+    It seems to work because:
+    1. Depends(): Tells FastAPI to explode the Pydantic model into individual arguments (dependency injection).
+    2. Field(Query([])): Overrides the default behavior for lists. It forces FastAPI to look for ?author_key=...
+       in the URL query string instead of expecting a JSON array in the request body.
+    The Field part is needed because FastAPI's default guess for lists inside Pydantic models is wrong for your use case.
+       It guesses "JSON Body," and you have to manually correct it to "Query String."
+    """
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str] = Field(Query([]))
+
+    @app.get("/search.json")
+    async def search_works8(
+        params: Annotated[SearchParams, Depends()],
+        q: str | None = None,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # A quick check to make sure it's ok with no params
+    response = client.get('/search.json')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': []}
