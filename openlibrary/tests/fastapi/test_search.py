@@ -1,9 +1,11 @@
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from typing import Annotated
 from unittest.mock import patch
 
 import pytest
+from fastapi import FastAPI, Query
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.search import MostQueryParams
@@ -263,3 +265,51 @@ def test_check_params():
             # Skip author_key because it's a list and can't go into the Pydantic model now
             continue
         assert field in MostQueryParams.model_fields
+
+
+##### The tests here are to show that it's hard to get the lists working for query params
+def test_multi_key():
+
+    app = FastAPI()
+
+    # This doesn't work because it expects the author keys to be in the body
+    @app.get("/search.json")
+    async def search_works(
+        author_key: list[str],
+    ):
+        return {'author_key': author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 422
+    assert response.json() != {'author_key': ['OL1A', 'OL2A']}
+    assert response.json()['detail'][0]['type'] == 'missing'
+    assert response.json()['detail'][0]['loc'] == ['body']
+
+    # This test does work because we're explicitly using Query but we want it moved into a Pydantic model
+    app = FastAPI()
+
+    @app.get("/search.json")
+    async def search_works2(
+        author_key: Annotated[list[str], Query()],
+    ):
+        return {'author_key': author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # This test does work because we're explicitly using query but we don't want None
+    app = FastAPI()
+
+    @app.get("/search.json")
+    async def search_works3(
+        author_key: Annotated[list[str] | None, Query()] = None,
+    ):
+        return {'author_key': author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
