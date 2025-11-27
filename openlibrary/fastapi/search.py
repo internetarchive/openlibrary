@@ -51,6 +51,16 @@ class PublicQueryOptions(BaseModel):
     has_fulltext: bool | None = None
     public_scan_b: bool | None = None
 
+    """
+    The day will come when someone asks, why do we have Field wrapping Query
+    The answer seems to be:
+    1. Depends(): Tells FastAPI to explode the Pydantic model into individual arguments (dependency injection).
+    2. Field(Query([])): Overrides the default behavior for lists. It forces FastAPI to look for ?author_key=...
+       in the URL query string instead of expecting a JSON array in the request body.
+    The Field part is needed because FastAPI's default guess for lists inside Pydantic models is wrong for this use case.
+       It guesses "JSON Body," and you have to manually correct it to "Query String."
+    See: https://github.com/internetarchive/openlibrary/pull/11517#issuecomment-3584196385
+    """
     author_key: list[str] = Field(Query([]))
     subject_facet: list[str] = Field(Query([]))
     person_facet: list[str] = Field(Query([]))
