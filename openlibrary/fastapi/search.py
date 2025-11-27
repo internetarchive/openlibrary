@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -23,11 +23,13 @@ class Pagination(BaseModel):
     offset: Annotated[int | None, Query(ge=0)] = None
     page: Annotated[int | None, Query(ge=1)] = None
 
-    def model_post_init(self, _):
+    @model_validator(mode='after')
+    def normalize_pagination(self) -> Pagination:
         if self.offset is not None:
             self.page = None
-        else:
-            self.page = self.page or 1
+        elif self.page is None:
+            self.page = 1
+        return self
 
 
 class PublicQueryOptions(BaseModel):
