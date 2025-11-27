@@ -74,7 +74,7 @@ class PublicQueryOptions(BaseModel):
     author_facet: list[str] = Field(Query([]))
 
 
-@router.get("/search.json", response_class=JSONResponse)
+@router.get("/search.json")
 async def search_json(
     request: Request,
     pagination: Annotated[Pagination, Depends()],
