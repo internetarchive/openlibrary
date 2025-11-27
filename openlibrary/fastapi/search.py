@@ -109,12 +109,11 @@ async def search_json(
         lang=request.state.lang,
     )
 
-    # Add extra metadata to the response to match the original
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
     response['q'] = public_query_options.q
     response['offset'] = pagination.offset
 
-    # Reorder keys to have 'docs' at the end, as in the original code
+    # Put docs at the end of the response
     docs = response.pop('docs', [])
     response['docs'] = docs
 
