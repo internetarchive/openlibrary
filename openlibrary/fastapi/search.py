@@ -35,6 +35,8 @@ class PublicQueryOptions(BaseModel):
     This class has all the parameters that are passed as "query"
     """
 
+    q: str = Query("", description="The search query, like keyword.")
+
     # from check_params in works.py
     title: str | None = None
     publisher: str | None = None
@@ -65,7 +67,6 @@ async def search_json(
     request: Request,
     pagination: Annotated[Pagination, Depends()],
     public_query_options: Annotated[PublicQueryOptions, Depends()],
-    q: str | None = Query("", description="The search query."),
     sort: str | None = Query(None, description="The sort order of results."),
     fields: str | None = Query(None, description="The fields to return."),
     spellcheck_count: int | None = Query(
@@ -83,7 +84,7 @@ async def search_json(
     if query_str:
         query = json.loads(query_str)
     else:
-        query = {"q": q, "page": pagination.page, "limit": pagination.limit}
+        query = {"page": pagination.page, "limit": pagination.limit}
         # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
         query.update(public_query_options.model_dump(exclude_none=True))
 
@@ -91,7 +92,7 @@ async def search_json(
     if fields:
         _fields = fields.split(',')  # type: ignore
 
-    if q_error := validate_search_json_query(q):
+    if q_error := validate_search_json_query(public_query_options.q):
         return JSONResponse(status_code=422, content={"error": q_error})
 
     response = await work_search_async(
@@ -111,7 +112,7 @@ async def search_json(
 
     # Add extra metadata to the response to match the original
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
-    response['q'] = q
+    response['q'] = public_query_options.q
     response['offset'] = pagination.offset
 
     # Reorder keys to have 'docs' at the end, as in the original code
