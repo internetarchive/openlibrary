@@ -253,6 +253,33 @@ class TestSearchEndpoint:
         assert 'author_key' in query_arg
         assert query_arg['author_key'] == ['OL1A', 'OL2A']
 
+    @pytest.mark.parametrize(
+        ('q_value', 'expected_status'),
+        [
+            (None, 200),  # q is optional
+            ('python', 200),  # valid
+            ('lord', 200),  # valid
+            ('ab', 422),  # too short
+            ('a', 422),  # too short
+            ('the', 422),  # blocked word
+            ('THE', 422),  # blocked word (case-insensitive)
+            ('the hobbit', 200),  # "the" allowed when not alone
+        ],
+    )
+    def test_q_param_validation(
+        self, client, mock_work_search, q_value, expected_status
+    ):
+        """Test that the 'q' parameter is optional, ≥3 chars when present, and not exactly 'the'."""
+        params = {} if q_value is None else {"q": q_value}
+        response = search(client, **params)
+
+        assert response.status_code == expected_status
+
+        if expected_status == 200:
+            mock_work_search.assert_called_once()
+        else:
+            mock_work_search.assert_not_called()
+
 
 def test_check_params():
     """
