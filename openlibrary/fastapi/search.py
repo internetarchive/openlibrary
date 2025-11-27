@@ -88,9 +88,9 @@ async def search_json(
         query = public_query_options.model_dump(exclude_none=True)
         query.update({"page": pagination.page, "limit": pagination.limit})
 
-    _fields = WorkSearchScheme.default_fetched_fields
+    _fields: list[str] = list(WorkSearchScheme.default_fetched_fields)
     if fields:
-        _fields = fields.split(',')  # type: ignore
+        _fields = fields.split(',')
 
     if q_error := validate_search_json_query(public_query_options.q):
         return JSONResponse(status_code=422, content={"error": q_error})
