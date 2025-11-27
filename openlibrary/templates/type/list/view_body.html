@@ -68,6 +68,14 @@ $def seed_attrs(seed):
     data-seed-key="$seed.key"
     data-list-key="$list.key"
 
+$ note_char_limit = 100
+
+$def render_seed_notes(notes):
+    $if not notes:
+        $return None
+    $ truncated = truncate(notes, note_char_limit)
+    $return sanitize(format(truncated))
+
 <div id="contentBody">
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
@@ -120,7 +128,7 @@ $def seed_attrs(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=render_seed_notes(seed.notes), seq_index=loop.index0)
             $else:
                 <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
                     <div class="sri__main">
@@ -137,14 +145,14 @@ $def seed_attrs(seed):
                                 $:seed_meta_line(seed)
                             </div>
                         </div>
-                    <span class="searchResultItemCTA">
-                        $:remove_item_link()
-                    </span>
-                </div>
+                        <span class="searchResultItemCTA">
+                            $:remove_item_link()
+                        </span>
+                    </div>
                     $if seed.notes:
                         <hr>
                         <div class="searchResultItem__footer">
-                            $:sanitize(format(seed.notes))
+                            $:render_seed_notes(seed.notes)
                         </div>
                 </li>
         </ul>
