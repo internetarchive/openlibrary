@@ -49,6 +49,7 @@ class PublicQueryOptions(BaseModel):
     time: str | None = None
     # from workscheme facet_fields
     has_fulltext: bool | None = None
+    public_scan_b: bool | None = None
 
     author_key: list[str] = Field(Query([]))
     subject_facet: list[str] = Field(Query([]))
@@ -58,7 +59,6 @@ class PublicQueryOptions(BaseModel):
     first_publish_year: list[str] = Field(Query([]))
     publisher_facet: list[str] = Field(Query([]))
     language: list[str] = Field(Query([]))
-    public_scan_b: list[str] = Field(Query([]))  # tbd if this should actually be a list
     author_facet: list[str] = Field(Query([]))
 
 
@@ -79,7 +79,6 @@ async def search_json(
     """
     Performs a search for documents based on the provided query.
     """
-    # return author_key
     query: dict[str, Any] = {}
     if query_str:
         query = json.loads(query_str)
