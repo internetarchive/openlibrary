@@ -84,9 +84,9 @@ async def search_json(
     if query_str:
         query = json.loads(query_str)
     else:
-        query = {"page": pagination.page, "limit": pagination.limit}
         # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
-        query.update(public_query_options.model_dump(exclude_none=True))
+        query = public_query_options.model_dump(exclude_none=True)
+        query.update({"page": pagination.page, "limit": pagination.limit})
 
     _fields = WorkSearchScheme.default_fetched_fields
     if fields:
