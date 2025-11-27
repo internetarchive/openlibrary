@@ -63,7 +63,9 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
             availability = {}
 
         edition_keys = list(
-            web.ctx.site.things({'type': '/type/edition', 'ocaid': ocaids})
+            web.ctx.site.things(
+                {'type': '/type/edition', 'ocaid': ocaids, 'limit': len(ocaids)}
+            )
         )
         editions = web.ctx.site.get_many(edition_keys)
         for ed in editions:
