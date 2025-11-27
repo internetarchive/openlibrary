@@ -269,7 +269,7 @@ def test_check_params():
 
 
 ##### The tests here are to show that it's hard to get the lists working for query params
-def test_multi_key():
+def test_multi_key():  # noqa: PLR0915
 
     app = FastAPI()
 
@@ -406,6 +406,61 @@ def test_multi_key():
 
     @app.get("/search.json")
     async def search_works8(
+        params: Annotated[SearchParams, Depends()],
+        q: str | None = None,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # A quick check to make sure it's ok with no params
+    response = client.get('/search.json')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': []}
+
+    # But wait I think doing Query([]) is not great to put a mutable class in the default.
+    # However, pydantic said don't worry about it.
+    # https://docs.pydantic.dev/latest/concepts/fields/#mutable-default-values
+    # Lets try to use the "proper way" just in case
+    # And it works great! But it's ugly so lets not do it
+
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: list[str] = Field(Query(default_factory=list))
+
+    @app.get("/search.json")
+    async def search_works9(
+        params: Annotated[SearchParams, Depends()],
+        q: str | None = None,
+    ):
+        return {'author_key': params.author_key}
+
+    client = TestClient(app)
+    response = client.get('/search.json?author_key=OL1A&author_key=OL2A')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': ['OL1A', 'OL2A']}
+
+    # A quick check to make sure it's ok with no params
+    response = client.get('/search.json')
+    assert response.status_code == 200
+    assert response.json() == {'author_key': []}
+
+    # But wait AI says there's a modern standard of Annotated
+    # However, after looking at the fullstack fastapi template https://github.com/fastapi/full-stack-fastapi-template
+    # It seems they don't do it so we shouldn't have to either
+    # So in summary we should use search_works8 I think!
+
+    app = FastAPI()
+
+    class SearchParams(BaseModel):
+        author_key: Annotated[list[str], Field(Query([]))]
+
+    @app.get("/search.json")
+    async def search_works10(
         params: Annotated[SearchParams, Depends()],
         q: str | None = None,
     ):
