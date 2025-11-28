@@ -143,7 +143,7 @@ async def monitor_partner_useragents():
     )
 
     recent_uas = bash_run(
-        """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep " 200 " | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
+        """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
         sources=["../obfi.sh"],
         capture_output=True,
     ).stdout
