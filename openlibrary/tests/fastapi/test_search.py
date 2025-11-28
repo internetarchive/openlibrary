@@ -286,8 +286,5 @@ def test_check_params():
     This test is to ensure that check_params doesn't get out of sync with what is in the endpoint.
     If this test is failing, then you probably need to update the other model with the difference
     """
-    for field in WorkSearchScheme.check_params:
-        if field == 'author_key':
-            # Skip author_key because it's a list and can't go into the Pydantic model now
-            continue
-        assert field in PublicQueryOptions.model_fields
+    for param in WorkSearchScheme.check_params:
+        assert param in PublicQueryOptions.model_fields
