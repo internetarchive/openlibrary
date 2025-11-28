@@ -238,6 +238,20 @@ class WorkSearchScheme(SearchScheme):
             ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
         }
     )
+    check_params = frozenset(
+        {
+            'title',
+            'publisher',
+            'oclc',
+            'lccn',
+            'contributor',
+            'subject',
+            'place',
+            'person',
+            'time',
+            'author_key',
+        }
+    )
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
@@ -282,23 +296,11 @@ class WorkSearchScheme(SearchScheme):
                 v = fully_escape_query(v)
                 q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
 
-        check_params = {
-            'title',
-            'publisher',
-            'oclc',
-            'lccn',
-            'contributor',
-            'subject',
-            'place',
-            'person',
-            'time',
-            'author_key',
-        }
         # support web.input fields being either a list or string
         # when default values used
         q_list += [
             f'{k}:({fully_escape_query(val)})'
-            for k in (check_params & set(params))
+            for k in (self.check_params & set(params))
             for val in (params[k] if isinstance(params[k], list) else [params[k]])
         ]
 
