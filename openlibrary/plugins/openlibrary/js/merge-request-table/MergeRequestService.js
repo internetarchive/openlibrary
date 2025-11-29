@@ -1,7 +1,7 @@
 export const REQUEST_TYPES = {
     WORK_MERGE: 1,
     AUTHOR_MERGE: 2,
-    DELETION: 3  // ← ADDED
+    DELETION: 3  
 }
 
 export async function createRequest(olids, action, type, comment = null, primary = null) {
@@ -99,22 +99,10 @@ export async function approveRequest(mrid, comment) {
     return updateRequest('approve', mrid, comment)
 }
 
-/**
- * Approve a deletion request (for super librarians)
- * @param {number} mrid - Merge request ID
- * @param {string} comment - Optional comment about the approval
- * @returns {Promise<Response>}
- */
 export async function approveDeletionRequest(mrid, comment = null) {
     return approveRequest(mrid, comment);
 }
 
-/**
- * Decline a deletion request (keep the entry)
- * @param {number} mrid - Merge request ID
- * @param {string} comment - Optional comment about why it's being kept
- * @returns {Promise<Response>}
- */
 export async function declineDeletionRequest(mrid, comment = null) {
     return declineRequest(mrid, comment);
 }

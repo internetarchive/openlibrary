@@ -1,0 +1,90 @@
+$def with (entities, records_param, mrid=None, can_delete=True, entity_type='work')
+
+$if entity_type == 'work':
+    $var title: $_("Delete Works")
+$else:
+    $var title: $_("Delete Authors")
+
+$if entity_type == 'work':
+    $ entity_singular = "Work"
+    $ entity_plural = "Works"
+    $ id_label = $_("Work ID")
+    $ name_label = $_("Title")
+    $ none_selected_msg = $_("No works selected.")
+    $ header_msg = $_("The following Works are marked for deletion:")
+    $ action_url = "/works/delete"
+    $ delete_btn_text = $_("Delete Works Permanently")
+$else:
+    $ entity_singular = "Author"
+    $ entity_plural = "Authors"
+    $ id_label = $_("Author ID")
+    $ name_label = $_("Name")
+    $ none_selected_msg = $_("No authors selected.")
+    $ header_msg = $_("The following Authors are marked for deletion:")
+    $ action_url = "/authors/delete"
+    $ delete_btn_text = $_("Delete Authors Permanently")
+
+<div id="contentHead" style="margin-bottom:15px;">
+    <h1 style="font-size:28px; font-weight:600;">
+        $_("Delete") $entity_plural
+    </h1>
+</div>
+
+<div id="contentBody" style="max-width:700px; background:#fff; padding:20px; border-radius:6px;">
+
+$if not entities:
+    <div class="note" style="padding:10px; background:#fee; border:1px solid #f99; border-radius:4px;">
+        $none_selected_msg
+    </div>
+$else:
+    <p style="color:#444; margin-bottom:10px;">
+        $header_msg
+    </p>
+
+    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+        <tr style="background:#f2f2f2;">
+            <th style="text-align:left; padding:8px;">$id_label</th>
+            <th style="text-align:left; padding:8px;">$name_label</th>
+        </tr>
+
+        $for e in entities:
+            <tr style="border-bottom:1px solid #ddd;">
+                <td style="padding:8px;">${e.key}</td>
+                <td style="padding:8px;">
+                    $if entity_type == 'work':
+                        ${e.get('title','Untitled work')}
+                    $else:
+                        ${e.get('name','Unknown Author')}
+                </td>
+            </tr>
+
+    </table>
+
+    <form method="POST" action="$action_url" style="text-align:right;">
+        <input type="hidden" name="records" value="$records_param" />
+
+        $if can_delete:
+            <button type="submit" style="background:#c62828; color:white; padding:10px 18px; border:none; border-radius:4px; cursor:pointer;">
+                🗑 $delete_btn_text
+            </button>
+        $else:
+            <button type="submit"
+                    style="
+                        background:#0e73c8;
+                        color:#ffffff;
+                        padding:10px 18px;
+                        border:none;
+                        border-radius:6px;
+                        cursor:pointer;
+                        display:inline-flex;
+                        align-items:center;
+                        gap:8px;
+                        font-weight:600;
+                        box-shadow:0 1px 2px rgba(0,0,0,0.2);
+                    ">
+                <span style="flex:1; text-align:left;">$_("Request Deletion")</span>
+                <span style="font-size:11px; line-height:1;">&#x2197;</span>
+            </button>
+    </form>
+
+</div>

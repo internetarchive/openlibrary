@@ -500,6 +500,13 @@ SelectionManager.ACTIONS = [
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
     },
+    {
+        applies_to_type: ['work'],
+        requires_type: ['work'],
+        multiple_only: false, // like Merge Works: only show when multiple works selected
+        name: 'Delete Works...',
+        href: olids => `/works/delete?records=${olids.join(',')}`,
+    },
     /* Uncomment this when edition merging is available.
     {
         applies_to_type: ['edition'],
@@ -516,4 +523,12 @@ SelectionManager.ACTIONS = [
         name: 'Merge Authors...',
         href: olids => `/authors/merge?records=${olids.join(',')}`,
     },
+    {
+        applies_to_type: ['author'],
+        requires_type: ['author'],
+        multiple_only: true,
+        name: 'Delete Authors...',
+        href: olids => `/authors/delete?records=${olids.join(',')}`,
+    },
+
 ];
