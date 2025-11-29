@@ -7,9 +7,9 @@ import asyncio
 import os
 import re
 import time
+from typing import Any
 
 import httpx
-from typing import Any
 
 from scripts.monitoring.haproxy_monitor import GraphiteEvent
 from scripts.monitoring.utils import (
