@@ -1,6 +1,7 @@
 """Librarian Edits"""
 
 import json
+import logging
 
 import web
 
@@ -8,9 +9,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
-import logging
 
 logger = logging.getLogger("openlibrary.community_edits_queue")
+
 
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
@@ -236,18 +237,18 @@ class community_edits_queue(delegate.page):
         web.debug("=" * 60)
         web.debug("🗑️ delete_request() called")
         web.debug("=" * 60)
-        
+
         logger.info("=" * 60)
         logger.info("🗑️ delete_request() called")
         logger.info("=" * 60)
-        
-        web.debug(f"Parameters:")
+
+        web.debug("Parameters:")
         web.debug(f"  username: {username}")
         web.debug(f"  action: {action}")
         web.debug(f"  mr_type: {mr_type}")
         web.debug(f"  olids: {olids}")
         web.debug(f"  comment: {comment if comment else '(none)'}")
-        
+
         logger.info("Parameters:")
         logger.info("  username: %s", username)
         logger.info("  action: %s", action)
@@ -264,7 +265,7 @@ class community_edits_queue(delegate.page):
         if is_valid_action(action):
             web.debug("✓ Action is valid, processing...")
             logger.info("✓ Action is valid, processing...")
-            
+
             olid_list = olids.split(',')
             web.debug(f"Split OLIDs: {olid_list} (count: {len(olid_list)})")
             logger.info("Split OLIDs: %s (count: %d)", olid_list, len(olid_list))
@@ -274,28 +275,28 @@ class community_edits_queue(delegate.page):
             title = community_edits_queue.create_title(mr_type, olid_list)
             web.debug(f"  Title: {title}")
             logger.info("  Title: %s", title)
-            
+
             web.debug("Creating URL...")
             logger.info("Creating URL...")
             url = community_edits_queue.create_url(mr_type, olid_list)
             web.debug(f"  URL: {url}")
             logger.info("  URL: %s", url)
-            
+
             if action == 'create-pending':
                 web.debug(f"Submitting PENDING request for user: {username}")
                 logger.info("Submitting PENDING request for user: %s", username)
-                
+
                 result = CommunityEditsQueue.submit_request(
                     url, username, title=title, comment=comment, mr_type=mr_type
                 )
-                
+
                 web.debug(f"  Result ID: {result}")
                 logger.info("  Result ID: %s", result)
-                
+
             elif action == 'create-merged':
                 web.debug(f"Submitting MERGED request for user: {username}")
                 logger.info("Submitting MERGED request for user: %s", username)
-                
+
                 result = CommunityEditsQueue.submit_request(
                     url,
                     username,
@@ -305,10 +306,10 @@ class community_edits_queue(delegate.page):
                     status=CommunityEditsQueue.STATUS['MERGED'],
                     mr_type=mr_type,
                 )
-                
+
                 web.debug(f"  Result ID: {result}")
                 logger.info("  Result ID: %s", result)
-            
+
             if result:
                 web.debug(f"✓ Request creation successful with ID: {result}")
                 logger.info("✓ Request creation successful with ID: %s", result)
@@ -329,7 +330,7 @@ class community_edits_queue(delegate.page):
         web.debug("=" * 60)
         logger.info("Returning response: %s", resp)
         logger.info("=" * 60)
-        
+
         return resp
 
 
@@ -340,13 +341,13 @@ class works_delete_page(delegate.page):
         web.debug("=" * 60)
         web.debug("📥 GET /works/delete - REQUEST START")
         web.debug("=" * 60)
-        
+
         logger.info("=" * 60)
         logger.info("📥 GET /works/delete - REQUEST START")
         logger.info("=" * 60)
-        
+
         i = web.input(records='', mrid=None)
-        
+
         web.debug(f"Raw Input - records: {i.records}, mrid: {i.mrid}")
         logger.info("Raw Input:")
         logger.info("  records: %s", i.records)
@@ -371,7 +372,9 @@ class works_delete_page(delegate.page):
             if rec:
                 works.append(rec)
                 web.debug(f"  ✓ Found: {olid} | Title: {rec.get('title', 'Untitled')}")
-                logger.info("  ✓ Found: %s | Title: %s", olid, rec.get('title', 'Untitled'))
+                logger.info(
+                    "  ✓ Found: %s | Title: %s", olid, rec.get('title', 'Untitled')
+                )
             else:
                 web.debug(f"  ✗ Not found: {olid}")
                 logger.warning("  ✗ Not found: %s", olid)
@@ -391,7 +394,9 @@ class works_delete_page(delegate.page):
             logger.info("  Has web.ctx.user: %s", hasattr(web.ctx, "user"))
             if hasattr(web.ctx, "user"):
                 web.debug(f"  Is Super Librarian: {web.ctx.user.is_super_librarian()}")
-                logger.info("  Is Super Librarian: %s", web.ctx.user.is_super_librarian())
+                logger.info(
+                    "  Is Super Librarian: %s", web.ctx.user.is_super_librarian()
+                )
         else:
             web.debug("  No user logged in")
             logger.info("  No user logged in")
@@ -406,11 +411,18 @@ class works_delete_page(delegate.page):
             logger.info("✗ User does NOT have deletion privileges")
 
         web.debug("Rendering template 'delete_ile/delete_works'")
-        web.debug(f"Template params: works={len(works)}, olids={','.join(olids)}, mrid={i.mrid}, can_delete={can_delete}")
+        web.debug(
+            f"Template params: works={len(works)}, olids={','.join(olids)}, mrid={i.mrid}, can_delete={can_delete}"
+        )
         logger.info("Rendering template 'delete_ile/delete_works'")
-        logger.info("Template params: works=%d, olids=%s, mrid=%s, can_delete=%s",
-                   len(works), ",".join(olids), i.mrid, can_delete)
-        
+        logger.info(
+            "Template params: works=%d, olids=%s, mrid=%s, can_delete=%s",
+            len(works),
+            ",".join(olids),
+            i.mrid,
+            can_delete,
+        )
+
         web.debug("=" * 60)
         web.debug("📥 GET /works/delete - REQUEST END")
         web.debug("=" * 60)
@@ -430,14 +442,16 @@ class works_delete_page(delegate.page):
         web.debug("=" * 60)
         web.debug("🗑 POST /works/delete - DELETE REQUEST START")
         web.debug("=" * 60)
-        
+
         logger.info("=" * 60)
         logger.info("🗑 POST /works/delete - DELETE REQUEST START")
         logger.info("=" * 60)
-        
+
         i = web.input(records='', comment='', mrid=None)
-        
-        web.debug(f"Raw POST Input - records: {i.records}, comment: {i.comment}, mrid: {i.mrid}")
+
+        web.debug(
+            f"Raw POST Input - records: {i.records}, comment: {i.comment}, mrid: {i.mrid}"
+        )
         logger.info("Raw POST Input:")
         logger.info("  records: %s", i.records)
         logger.info("  comment: %s", i.comment)
@@ -445,8 +459,12 @@ class works_delete_page(delegate.page):
 
         user = accounts.get_current_user()
         if not user:
-            web.debug("⚠️ Unauthenticated user attempted deletion - redirecting to login")
-            logger.warning("⚠️ Unauthenticated user attempted deletion - redirecting to login")
+            web.debug(
+                "⚠️ Unauthenticated user attempted deletion - redirecting to login"
+            )
+            logger.warning(
+                "⚠️ Unauthenticated user attempted deletion - redirecting to login"
+            )
             raise web.seeother('/account/login')
 
         username = user['key'].split('/')[-1]
@@ -454,11 +472,11 @@ class works_delete_page(delegate.page):
         logger.info("Authenticated User: %s (key: %s)", username, user['key'])
 
         web.debug("Preparing delete request:")
-        web.debug(f"  action: create-pending")
+        web.debug("  action: create-pending")
         web.debug(f"  mr_type: {CommunityEditsQueue.TYPE['DELETION']} (DELETION)")
         web.debug(f"  olids: {i.records}")
         web.debug(f"  comment: {i.comment if i.comment else '(none)'}")
-        
+
         logger.info("Preparing delete request:")
         logger.info("  action: create-pending")
         logger.info("  mr_type: %s (DELETION)", CommunityEditsQueue.TYPE['DELETION'])
@@ -480,7 +498,7 @@ class works_delete_page(delegate.page):
         if resp.get('error'):
             web.debug(f"  Error: {resp.get('error')}")
         web.debug(f"  Full Response: {json.dumps(resp)}")
-        
+
         logger.info("Delete Request Response:")
         logger.info("  Status: %s", resp.get('status'))
         if resp.get('id'):
@@ -504,7 +522,7 @@ class works_delete_page(delegate.page):
         olids = [olid for olid in i.records.split(',') if olid]
         web.debug(f"Re-fetching {len(olids)} authors for post-submit display")
         logger.info("Re-fetching %d authors for post-submit display", len(olids))
-        
+
         authors = []
         for olid in olids:
             rec = web.ctx.site.get(f'/authors/{olid}')
@@ -512,7 +530,7 @@ class works_delete_page(delegate.page):
                 authors.append(rec)
                 web.debug(f"  ✓ Re-fetched: {olid}")
                 logger.debug("  ✓ Re-fetched: %s", olid)
-        
+
         web.debug(f"Re-fetched {len(authors)} authors")
         logger.info("Re-fetched %d authors", len(authors))
 
@@ -525,17 +543,17 @@ class works_delete_page(delegate.page):
         web.debug(f"  OLIDs: {','.join(olids)}")
         web.debug(f"  MRID: {i.mrid}")
         web.debug(f"  Can Delete: {can_delete}")
-        
+
         logger.info("Re-rendering delete page:")
         logger.info("  Authors: %d", len(authors))
         logger.info("  OLIDs: %s", ",".join(olids))
         logger.info("  MRID: %s", i.mrid)
         logger.info("  Can Delete: %s", can_delete)
-        
+
         web.debug("=" * 60)
         web.debug("🗑 POST /authors/delete - DELETE REQUEST END")
         web.debug("=" * 60)
-        
+
         logger.info("=" * 60)
         logger.info("🗑 POST /authors/delete - DELETE REQUEST END")
         logger.info("=" * 60)
@@ -547,6 +565,8 @@ class works_delete_page(delegate.page):
             i.mrid,
             can_delete,
         )
+
+
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
 
@@ -598,7 +618,11 @@ class authors_delete_page(delegate.page):
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        authors = [web.ctx.site.get(f'/authors/{olid}') for olid in olids if web.ctx.site.get(f'/authors/{olid}')]
+        authors = [
+            web.ctx.site.get(f'/authors/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/authors/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():

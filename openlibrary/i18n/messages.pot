@@ -2230,7 +2230,8 @@ msgstr ""
 msgid "Show changed files"
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html status.html
+#: admin/inspect/store.html admin/people/index.html
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr ""
@@ -2851,6 +2852,7 @@ msgid "Yes! Please!"
 msgstr ""
 
 #: account/observations.html admin/inspect/memcache.html
+#: delete_ile/delete_entities.html
 msgid "Delete"
 msgstr ""
 
@@ -4440,9 +4442,10 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+#: lib/nav_head.html search/advancedsearch.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -5535,6 +5538,52 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+msgid "Delete Authors"
+msgstr ""
+
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+#: merge/authors.html
+msgid "No authors selected."
+msgstr ""
+
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+msgid "The following Authors are marked for deletion:"
+msgstr ""
+
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+msgid "Author ID"
+msgstr ""
+
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+msgid "Delete Authors Permanently"
+msgstr ""
+
+#: delete_ile/delete_authors.html delete_ile/delete_entities.html
+#: delete_ile/delete_works.html
+msgid "Request Deletion"
+msgstr ""
+
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+msgid "Delete Works"
+msgstr ""
+
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+msgid "Work ID"
+msgstr ""
+
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+msgid "No works selected."
+msgstr ""
+
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+msgid "The following Works are marked for deletion:"
+msgstr ""
+
+#: delete_ile/delete_entities.html delete_ile/delete_works.html
+msgid "Delete Works Permanently"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -6441,10 +6490,6 @@ msgstr ""
 
 #: merge/authors.html
 msgid "Merge Authors"
-msgstr ""
-
-#: merge/authors.html
-msgid "No authors selected."
 msgstr ""
 
 #: merge/authors.html

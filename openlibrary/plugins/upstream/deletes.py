@@ -1,6 +1,5 @@
 """Librarian Deletes"""
 
-
 import web
 
 from infogami.utils import delegate
@@ -11,6 +10,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
+
 
 class community_deletes:
     """Handler for deletion requests"""
@@ -32,7 +32,7 @@ class community_deletes:
 
             title = community_deletes.create_title(mr_type, olid_list)
             url = community_deletes.create_url(mr_type, olid_list)
-            
+
             if action == 'create-pending':
                 result = CommunityEditsQueue.submit_request(
                     url, username, title=title, comment=comment, mr_type=mr_type
@@ -47,7 +47,7 @@ class community_deletes:
                     status=CommunityEditsQueue.STATUS['MERGED'],
                     mr_type=mr_type,
                 )
-            
+
             resp = (
                 response(id=result)
                 if result
@@ -141,7 +141,11 @@ class works_delete_page(delegate.page):
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        works = [web.ctx.site.get(f'/works/{olid}') for olid in olids if web.ctx.site.get(f'/works/{olid}')]
+        works = [
+            web.ctx.site.get(f'/works/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/works/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
@@ -207,7 +211,11 @@ class authors_delete_page(delegate.page):
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        authors = [web.ctx.site.get(f'/authors/{olid}') for olid in olids if web.ctx.site.get(f'/authors/{olid}')]
+        authors = [
+            web.ctx.site.get(f'/authors/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/authors/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
