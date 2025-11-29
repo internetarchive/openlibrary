@@ -1,6 +1,7 @@
 """Librarian Edits"""
 
 import json
+import logging
 
 import web
 
@@ -8,9 +9,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
-import logging
 
 logger = logging.getLogger("openlibrary.community_edits_queue")
+
 
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
@@ -268,8 +269,9 @@ class community_edits_queue(delegate.page):
                 status='error',
                 error=f'Action "{action}" is invalid for this request type.',
             )
-            
+
         return resp
+
 
 class works_delete_page(delegate.page):
     path = '/works/delete'
@@ -322,7 +324,11 @@ class works_delete_page(delegate.page):
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        works = [web.ctx.site.get(f'/works/{olid}') for olid in olids if web.ctx.site.get(f'/works/{olid}')]
+        works = [
+            web.ctx.site.get(f'/works/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/works/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
@@ -335,6 +341,8 @@ class works_delete_page(delegate.page):
             i.mrid,
             can_delete,
         )
+
+
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
 
@@ -386,7 +394,11 @@ class authors_delete_page(delegate.page):
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        authors = [web.ctx.site.get(f'/authors/{olid}') for olid in olids if web.ctx.site.get(f'/authors/{olid}')]
+        authors = [
+            web.ctx.site.get(f'/authors/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/authors/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
