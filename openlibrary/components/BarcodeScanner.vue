@@ -222,7 +222,7 @@ export default {
                 if (!this.returnTo.startsWith('/')) {
                     window.alert(`Redirecting to ${this.returnTo.replace('$$$', isbn)}`);
                 }
-                location = this.returnTo.replace('$$$', isbn);
+                location = this.returnTo.replace('$$$', encodeURIComponent(isbn));
             }
             this.isbnList.unshift({isbn: isbn, cover: tentativeCoverUrl});
             this.seenISBN.add(isbn);
