@@ -220,7 +220,13 @@ export default {
                 // Check if domain is the same as the current domain to prevent
                 // open redirects.
                 if (!this.returnTo.startsWith('/')) {
-                    window.alert(`Redirecting to ${this.returnTo.replace('$$$', isbn)}`);
+                    // Only display the destination's origin (domain), not the full URL
+                    try {
+                        const destUrl = new URL(this.returnTo.replace('$$$', encodeURIComponent(isbn)));
+                        window.alert(`Redirecting to ${destUrl.origin}`);
+                    } catch (err) {
+                        window.alert('Redirecting to external site');
+                    }
                 }
                 location = this.returnTo.replace('$$$', encodeURIComponent(isbn));
             }
