@@ -1,7 +1,7 @@
 export const REQUEST_TYPES = {
     WORK_MERGE: 1,
     AUTHOR_MERGE: 2,
-    DELETION: 3  
+    DELETION: 3
 }
 
 export async function createRequest(olids, action, type, comment = null, primary = null) {
