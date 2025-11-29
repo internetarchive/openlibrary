@@ -9,7 +9,7 @@ import re
 import time
 
 import httpx
-from pyparsing import Any
+from typing import Any
 
 from scripts.monitoring.haproxy_monitor import GraphiteEvent
 from scripts.monitoring.utils import (

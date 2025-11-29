@@ -12,7 +12,7 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
 
     source_paths = [
         (
-            Path(".") / Path("scripts") / Path("monitoring") / Path(source)
+            Path("./scripts/monitoring") / Path(source)
             if not os.path.isabs(source)
             else Path(source)
         )
