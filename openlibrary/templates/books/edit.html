@@ -39,7 +39,7 @@ $:macros.HiddenSaveButton("addWork")
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
-                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Edition")</button>
             </form>
         </span>
 
