@@ -358,6 +358,62 @@ class AvailabilityStatusV2(AvailabilityStatus):
     __src__: str
 
 
+def groundtruth_to_availability_status(
+    ocaid: str, groundtruth: dict
+) -> AvailabilityStatusV2:
+    """Convert data returned by the ground truth availability endpoint into
+    the AvailabilityStatusV2 schema expected by callers."""
+
+    available_to_borrow = bool(groundtruth.get('available_to_borrow'))
+    available_to_waitlist = bool(groundtruth.get('available_to_waitlist'))
+    available_to_browse = bool(groundtruth.get('available_to_browse'))
+    is_readable = bool(groundtruth.get('is_readable'))
+    is_lendable = bool(groundtruth.get('is_lendable'))
+    is_printdisabled = bool(groundtruth.get('is_printdisabled'))
+
+    status: Literal[
+        "borrow_available", "borrow_unavailable", "open", "error"
+    ]
+    if is_readable:
+        status = "open"
+    elif available_to_borrow:
+        status = "borrow_available"
+    elif available_to_waitlist:
+        status = "borrow_unavailable"
+    else:
+        status = "borrow_unavailable"
+
+    availability_v1: AvailabilityStatus = {
+        'status': status,
+        'error_message': None,
+        'available_to_browse': available_to_browse,
+        'available_to_borrow': available_to_borrow,
+        'available_to_waitlist': available_to_waitlist,
+        'is_printdisabled': is_printdisabled,
+        'is_readable': is_readable,
+        'is_lendable': is_lendable,
+        'is_previewable': bool(is_readable or available_to_browse),
+        'identifier': ocaid,
+        'isbn': None,
+        'oclc': None,
+        'openlibrary_work': None,
+        'openlibrary_edition': None,
+        'last_loan_date': groundtruth.get('last_borrow'),
+        'num_waitlist': (
+            str(groundtruth.get('users_on_waitlist'))
+            if groundtruth.get('users_on_waitlist') is not None
+            else None
+        ),
+        'last_waitlist_date': groundtruth.get('last_waitlist'),
+    }
+
+    availability_v2 = update_availability_schema_to_v2(availability_v1, ocaid)
+    availability_v2['__src__'] = (
+        'core.models.lending.get_groundtruth_availability_fallback'
+    )
+    return availability_v2
+
+
 def get_ebook_access_availability(
     ocaid: str, ebook_access: EbookAccess
 ) -> AvailabilityStatusV2:
@@ -437,6 +493,29 @@ def get_availability(
     if not ids_to_fetch:
         return availabilities
 
+    def fallback_with_groundtruth(ids_subset: set[str]) -> dict[str, AvailabilityStatusV2]:
+        if id_type != 'identifier' or not ids_subset:
+            return {}
+        fallback_availabilities: dict[str, AvailabilityStatusV2] = {}
+        for _id in ids_subset:
+            try:
+                groundtruth = get_cached_groundtruth_availability(_id)
+            except Exception:
+                logger.exception(
+                    "groundtruth_fallback_failed", extra={'identifier': _id}
+                )
+                continue
+            if groundtruth:
+                fallback_availabilities[_id] = groundtruth_to_availability_status(
+                    _id, groundtruth
+                )
+        if fallback_availabilities:
+            mc.set_multi(
+                {key_func(_id): availability for _id, availability in fallback_availabilities.items()},
+                expires=5 * dateutil.MINUTE_SECS,
+            )
+        return fallback_availabilities
+
     try:
         headers = {
             "x-preferred-client-id": web.ctx.env.get(
@@ -466,8 +545,14 @@ def get_availability(
         response = cast(AvailabilityServiceResponse, resp.json())
 
         if not response['success']:
-            logger.warning(f"AvailabilityServiceError: {response['error']}")
+            logger.warning(
+                "AvailabilityServiceError: %s", response.get('error', 'unknown')
+            )
             stats.increment('ol.availability.service_error', rate=0.01)
+            fallback = fallback_with_groundtruth(ids_to_fetch)
+            if fallback:
+                availabilities |= fallback
+                return availabilities
             return {}
 
         uncached_values = {
@@ -490,6 +575,10 @@ def get_availability(
         return availabilities
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("lending.get_availability", extra={'ids': ids})
+        fallback = fallback_with_groundtruth(ids_to_fetch)
+        if fallback:
+            availabilities |= fallback
+            return availabilities
         availabilities.update(
             {
                 _id: update_availability_schema_to_v2(
