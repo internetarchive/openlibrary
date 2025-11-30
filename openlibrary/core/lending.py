@@ -371,9 +371,7 @@ def groundtruth_to_availability_status(
     is_lendable = bool(groundtruth.get('is_lendable'))
     is_printdisabled = bool(groundtruth.get('is_printdisabled'))
 
-    status: Literal[
-        "borrow_available", "borrow_unavailable", "open", "error"
-    ]
+    status: Literal["borrow_available", "borrow_unavailable", "open", "error"]
     if is_readable:
         status = "open"
     elif available_to_borrow:
@@ -493,7 +491,9 @@ def get_availability(
     if not ids_to_fetch:
         return availabilities
 
-    def fallback_with_groundtruth(ids_subset: set[str]) -> dict[str, AvailabilityStatusV2]:
+    def fallback_with_groundtruth(
+        ids_subset: set[str],
+    ) -> dict[str, AvailabilityStatusV2]:
         if id_type != 'identifier' or not ids_subset:
             return {}
         fallback_availabilities: dict[str, AvailabilityStatusV2] = {}
@@ -511,7 +511,10 @@ def get_availability(
                 )
         if fallback_availabilities:
             mc.set_multi(
-                {key_func(_id): availability for _id, availability in fallback_availabilities.items()},
+                {
+                    key_func(_id): availability
+                    for _id, availability in fallback_availabilities.items()
+                },
                 expires=5 * dateutil.MINUTE_SECS,
             )
         return fallback_availabilities
