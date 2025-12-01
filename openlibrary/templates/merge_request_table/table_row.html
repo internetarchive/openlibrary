@@ -37,13 +37,11 @@ $code:
             status_label = _('Removed') if request['status'] == 2 else _('Kept')
         latest_comment = comments[-1]['message'] if comments else _('No reason provided.')
         comment_placeholder = _('Add a reason...')
-        opened_by_text = _(
+        opened_by_prefix = _(
             'Deletion request #%(id)s opened %(date)s by '
-            '<a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>'
         ) % {
             'id': request['id'],
             'date': datestr(request['created']),
-            'submitter': request['submitter'],
         }
         close_title = _('Click to close this Deletion Request')
         review_btn_text = _('Review <!-- (deletion request) -->')
@@ -54,13 +52,11 @@ $code:
             status_label = _('Closed request')
         latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
         comment_placeholder = _('Add a comment...')
-        opened_by_text = _(
+        opened_by_prefix = _(
             'MR #%(id)s opened %(date)s by '
-            '<a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>'
         ) % {
             'id': request['id'],
             'date': datestr(request['created']),
-            'submitter': request['submitter'],
         }
         close_title = _('Click to close this Merge Request')
         review_btn_text = _('Review <!-- (merge request) -->')
@@ -82,7 +78,7 @@ $code:
         icon_classes = 'mr-review-actions__checkmark'
         icon_content = '✓'
 
-    # NEW: approve button only for open deletion requests and librarians
+    # Approve button only for open deletion requests and librarians
     show_approve_button = bool(is_deletion and is_open and can_merge)
     approve_btn_label = _('Approve')
 
@@ -136,7 +132,10 @@ $code:
 
         $# Submitted by line
         <span class="mr-details__opened-by">
-            $:opened_by_text
+            $opened_by_prefix
+            <a href="/people/${request['submitter']}" class="commenter">
+                @${request['submitter']}
+            </a>
             $if is_open and is_submitter:
             <a class="mr-close-link"
                title="$close_title"
@@ -154,18 +153,14 @@ $code:
            target="_blank"
            class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$:review_btn_text</a>
 
-    $if show_approve_button:
-        <button
-            type="button"
-            class="cta-btn mr-approve-deletion-btn"
-            data-action="approve"
-            data-mrid="$(request['id'])"
-            style="background:#c62828 !important; border-color:#c62828 !important; color:#ffffff !important;">
-            $approve_btn_label
-        </button>
-
-
-
+        $if show_approve_button:
+            <button
+                type="button"
+                class="cta-btn mr-approve-deletion-btn"
+                data-action="approve"
+                data-mrid="$(request['id'])">
+                $approve_btn_label
+            </button>
     </td>
 
     <td class="mr-comment-toggle">
