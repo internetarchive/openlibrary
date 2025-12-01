@@ -359,4 +359,3 @@ def cached_get_counts_by_mode(mode='all', reviewer='', **kwargs):
         f"librarian_queue_counts_{mode}",
         timeout=dateutil.MINUTE_SECS,
     )(mode=mode, reviewer=reviewer, **kwargs)
-
