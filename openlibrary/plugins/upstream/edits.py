@@ -427,4 +427,3 @@ class authors_delete_page(delegate.page):
 
 def setup():
     pass
-
