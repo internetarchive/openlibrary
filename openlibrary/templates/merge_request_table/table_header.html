@@ -1,23 +1,19 @@
 $def with (totals, librarians, mode, username, submitter, reviewer, status)
-$# totals : dict : {"open": int, "closed": int, "deletion_open": int, "deletion_closed": int} : The total number of merge requests found for each mode
+$# totals : dict : {"open": int, "closed": int} : The total number of merge requests found for each mode
 $# librarians : dict : {"submitters": list[str], "reviewers": list[str]} : Collection of reviewer and submitter usernames
-$# mode : str : "open" | "closed" | "deletion_open" | "deletion_closed" : Type of requests that are currently being viewed.
+$# mode : str : "open" | "closed" : Type of requests that are currently being viewed.
 $# username : str | None : Username of authenticated patron, or `None` if patron is unauthenticated.
 $# submitter : str | None : Submitter's username.  Only passed if we are filtering requests by `submitter`.
 $# reviewer : str | None : Reviewer's username. Only passed if we are filtering requests by `reviewer`.
 $# status : str | None : "0" | "1" | "2" : Represents a request's status.  Only passed if we are filtering by `status`
 
 $ order = query_param('order', 'desc')
-$ is_deletion_mode = mode in ['deletion_open', 'deletion_closed']
 
 <div class="table-header">
     <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', status=None, page=None)">$totals['open'] $_('Open')</a>
     <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', status=None, page=None)">$totals['closed'] $_('Closed')</a>
-    <span class="tab-separator">|</span>
-    <a class="$(mode=='deletion_open' and 'selected' or '') mode-deletion-open" href="$changequery(mode='deletion_open', status=None, page=None)">$totals.get('deletion_open', 0) $_('Deletion Open')</a>
-    <a class="$(mode=='deletion_closed' and 'selected' or '') mode-deletion-closed" href="$changequery(mode='deletion_closed', status=None, page=None)">$totals.get('deletion_closed', 0) $_('Deletion Closed')</a>
     <div class="flex-auto"></div>
-    $if mode not in ['open', 'deletion_open']:
+    $if mode != 'open':
       $# Add filter for request status
       <div class="mr-dropdown">$_('Status ▾')
         <div class="mr-dropdown-menu sort hidden">
@@ -25,28 +21,16 @@ $ is_deletion_mode = mode in ['deletion_open', 'deletion_closed']
             <span>$_('Request Status')</span>
             <button class="dropdown-close">&times;</button>
           </header>
-          $if is_deletion_mode:
-            $ removed_href = changequery(status='2', page=None) if status!='2' else changequery(status=None, page=None)
-            <a href="$removed_href" class="dropdown-item">
-              <span class="$('' if status=='2' else 'invisible') item-checked">✓</span>
-              <span>$_('Removed')</span>
-            </a>
-            $ kept_href = changequery(status='0', page=None) if status!='0' else changequery(status=None, page=None)
-            <a href="$kept_href" class="dropdown-item">
-              <span class="$('' if status=='0' else 'invisible') item-checked">✓</span>
-              <span>$_('Kept')</span>
-            </a>
-          $else:
-            $ merged_href = changequery(status='2', page=None) if status!='2' else changequery(status=None, page=None)
-            <a href="$merged_href" class="dropdown-item">
-              <span class="$('' if status=='2' else 'invisible') item-checked">✓</span>
-              <span>$_('Merged')</span>
-            </a>
-            $ declined_href = changequery(status='0', page=None) if status!='0' else changequery(status=None, page=None)
-            <a href="$declined_href" class="dropdown-item">
-              <span class="$('' if status=='0' else 'invisible') item-checked">✓</span>
-              <span>$_('Declined')</span>
-            </a>
+          $ merged_href = changequery(status='2', page=None) if status!='2' else changequery(status=None, page=None)
+          <a href="$merged_href" class="dropdown-item">
+            <span class="$('' if status=='2' else 'invisible') item-checked">✓</span>
+            <span>$_('Merged')</span>
+          </a>
+          $ declined_href = changequery(status='0', page=None) if status!='0' else changequery(status=None, page=None)
+          <a href="$declined_href" class="dropdown-item">
+            <span class="$('' if status=='0' else 'invisible') item-checked">✓</span>
+            <span>$_('Declined')</span>
+          </a>
         </div>
       </div>
     <div class="mr-dropdown" id="submitter-menu-button">$_('Submitter ▾')

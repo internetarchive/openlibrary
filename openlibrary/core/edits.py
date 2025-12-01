@@ -43,7 +43,7 @@ class CommunityEditsQueue:
         {
             'WORK_MERGE': 1,
             'AUTHOR_MERGE': 2,
-            'DELETION': 3,  # ← ADDED
+            'DELETION': 3,
         }
     )
 
@@ -60,8 +60,9 @@ class CommunityEditsQueue:
             'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
             'open': [STATUS['PENDING']],
             'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-            'deletion_open': [STATUS['PENDING']],  # ← ADDED
-            'deletion_closed': [STATUS['DECLINED'], STATUS['MERGED']],  # ← ADDED
+            # still available if you want a deletion-only view somewhere
+            'deletion_open': [STATUS['PENDING']],
+            'deletion_closed': [STATUS['DECLINED'], STATUS['MERGED']],
         }
     )
 
@@ -138,21 +139,17 @@ class CommunityEditsQueue:
         if "id" in kwargs:
             wheres.append("id=$id")
 
-        # ← MODIFIED: Add mr_type filtering for deletion modes
+        # status + mr_type handling
         status_list = []
         mr_type_filter = None
 
         if mode in ['deletion_open', 'deletion_closed']:
-            # Deletion requests: filter by mr_type = 3
+            # Deletion-only views: filter by mr_type = DELETION
             mr_type_filter = f'mr_type={cls.TYPE["DELETION"]}'
             status_list = [f'status={status}' for status in cls.MODES[mode]]
-        elif mode in ['open', 'closed']:
-            # Regular merge requests: filter by mr_type IN (1, 2)
-            mr_type_filter = (
-                f'mr_type IN ({cls.TYPE["WORK_MERGE"]}, {cls.TYPE["AUTHOR_MERGE"]})'
-            )
-            status_list = [f'status={status}' for status in cls.MODES[mode]]
-        elif mode != 'all':
+        elif mode in cls.MODES and mode != 'all':
+            # Normal open/closed/all modes: filter by status only,
+            # DO NOT filter by mr_type so deletions appear in main queue.
             status_list = [f'status={status}' for status in cls.MODES[mode]]
 
         where_clause = ''
@@ -166,7 +163,7 @@ class CommunityEditsQueue:
             else:
                 where_clause = status_query
 
-        # ← ADDED: Append mr_type filter
+        # Append mr_type filter only when we explicitly set it (deletion_* modes)
         if mr_type_filter:
             if where_clause:
                 where_clause = f'{where_clause} AND {mr_type_filter}'
@@ -362,3 +359,4 @@ def cached_get_counts_by_mode(mode='all', reviewer='', **kwargs):
         f"librarian_queue_counts_{mode}",
         timeout=dateutil.MINUTE_SECS,
     )(mode=mode, reviewer=reviewer, **kwargs)
+

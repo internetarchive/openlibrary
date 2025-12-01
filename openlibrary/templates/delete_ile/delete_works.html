@@ -33,6 +33,20 @@ $else:
 
     <form method="POST" action="/works/delete" style="text-align:right;">
         <input type="hidden" name="records" value="$records_param" />
+        $if mrid:
+            <input type="hidden" name="mrid" value="$mrid" />
+
+        <div style="text-align:left; margin-bottom:12px;">
+            <label for="comment-works" style="display:block; font-weight:600; margin-bottom:4px;">
+                $_("Reason for deletion (optional)")
+            </label>
+            <textarea
+                id="comment-works"
+                name="comment"
+                rows="3"
+                style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;"
+            ></textarea>
+        </div>
 
         $if can_delete:
             <button type="submit" style="background:#c62828; color:white; padding:10px 18px; border:none; border-radius:4px; cursor:pointer;">

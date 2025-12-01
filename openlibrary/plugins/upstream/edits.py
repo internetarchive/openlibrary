@@ -42,38 +42,47 @@ class community_edits_queue(delegate.page):
             order='desc',
             status=None,
         )
+
+        # Only allow "open" or "closed" as real modes for querying
+        # Anything else (like "deletion_open"/"deletion_closed") falls back to "open"
+        mode = i.mode if i.mode in ("open", "closed") else "open"
+
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
-            mode=i.mode,
+            mode=mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order=f'updated {i.order}',
+            order=f"updated {i.order}",
             status=i.status,
         ).list()
 
+        # Provide all four keys so templates that do total[mode] never KeyError
         total_found = {
             "open": CommunityEditsQueue.get_counts_by_mode(
-                mode='open', submitter=i.submitter, reviewer=i.reviewer
+                mode="open", submitter=i.submitter, reviewer=i.reviewer
             ),
             "closed": CommunityEditsQueue.get_counts_by_mode(
-                mode='closed', submitter=i.submitter, reviewer=i.reviewer
+                mode="closed", submitter=i.submitter, reviewer=i.reviewer
             ),
+            # Deletion queues removed from UI, but keep keys to avoid KeyError
+            "deletion_open": 0,
+            "deletion_closed": 0,
+        }
+
+        librarians = {
             "submitters": CommunityEditsQueue.get_submitters(),
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
 
-        librarians = {
-            'submitters': CommunityEditsQueue.get_submitters(),
-            'reviewers': CommunityEditsQueue.get_reviewers(),
-        }
-
         return render_template(
-            'merge_request_table/merge_request_table',
+            "merge_request_table/merge_request_table",
             total_found,
             librarians,
             merge_requests=merge_requests,
         )
+
+
 
     def POST(self):
         data = json.loads(web.data())
@@ -308,21 +317,26 @@ class works_delete_page(delegate.page):
         if not user:
             raise web.seeother('/account/login')
 
-        username = user['key'].split('/')[-1]
+        # Build payload exactly like the JS createDeletionRequest → /merges flow
+        data = {
+            "action": "create-pending",
+            "mr_type": CommunityEditsQueue.TYPE['DELETION'],
+            "olids": i.records,          # comma-separated list of OLIDs
+            "comment": i.comment or None,
+        }
 
-        resp = community_edits_queue.delete_request(
-            username=username,
-            action='create-pending',
-            mr_type=CommunityEditsQueue.TYPE['DELETION'],
-            olids=i.records,
-            comment=i.comment or None,
-        )
+        # This now uses the same path as POST /merges with rtype="create-request"
+        resp = process_merge_request("create-request", data)
 
         if resp.get('status') == 'error':
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        works = [web.ctx.site.get(f'/works/{olid}') for olid in olids if web.ctx.site.get(f'/works/{olid}')]
+        works = [
+            web.ctx.site.get(f'/works/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/works/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
@@ -335,6 +349,7 @@ class works_delete_page(delegate.page):
             i.mrid,
             can_delete,
         )
+
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
 
@@ -372,21 +387,24 @@ class authors_delete_page(delegate.page):
         if not user:
             raise web.seeother('/account/login')
 
-        username = user['key'].split('/')[-1]
+        data = {
+            "action": "create-pending",
+            "mr_type": CommunityEditsQueue.TYPE['DELETION'],
+            "olids": i.records,
+            "comment": i.comment or None,
+        }
 
-        resp = community_edits_queue.delete_request(
-            username=username,
-            action='create-pending',
-            mr_type=CommunityEditsQueue.TYPE['DELETION'],
-            olids=i.records,
-            comment=i.comment or None,
-        )
+        resp = process_merge_request("create-request", data)
 
         if resp.get('status') == 'error':
             return response(status="error", error=resp.get("error"))
 
         olids = [olid for olid in i.records.split(',') if olid]
-        authors = [web.ctx.site.get(f'/authors/{olid}') for olid in olids if web.ctx.site.get(f'/authors/{olid}')]
+        authors = [
+            web.ctx.site.get(f'/authors/{olid}')
+            for olid in olids
+            if web.ctx.site.get(f'/authors/{olid}')
+        ]
 
         can_delete = False
         if user and hasattr(web.ctx, "user") and web.ctx.user.is_super_librarian():
@@ -403,3 +421,4 @@ class authors_delete_page(delegate.page):
 
 def setup():
     pass
+

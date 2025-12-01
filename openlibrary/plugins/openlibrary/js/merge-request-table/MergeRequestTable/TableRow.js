@@ -4,7 +4,13 @@
  * @module merge-request-table/MergeRequestTable/TableRow
  */
 
-import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService'
+import {
+    claimRequest,
+    commentOnRequest,
+    declineRequest,
+    unassignRequest,
+    approveDeletionRequest
+} from '../MergeRequestService'
 import { FadingToast } from '../../Toast'
 
 let i18nStrings;
@@ -53,6 +59,13 @@ export class TableRow {
          * @param {Number}
          */
         this.mrid = row.dataset.mrid
+        /**
+         * Is this row a deletion request?
+         *
+         * @param {boolean}
+         */
+        this.isDeletion = row.dataset.isDeletion === 'true'
+
         /**
          * Button used to toggle the full comments display's visibility.
          *
@@ -127,6 +140,13 @@ export class TableRow {
          * @param {HTMLElement}
          */
         this.unassignReviewerButton = this.row.querySelector('.mr-review-actions__unassign')
+
+        /**
+         * Approve button for deletion requests (only present on deletion rows).
+         *
+         * @param {HTMLElement|null}
+         */
+        this.approveDeletionButton = this.row.querySelector('.mr-approve-deletion-btn')
     }
 
     /**
@@ -140,9 +160,14 @@ export class TableRow {
         if (this.replyButton && this.commentReplyInput) {
             this.replyButton.addEventListener('click', () => this.addComment())
         }
-        this.reviewButton.addEventListener('click', () => this.claimRequest())
+        if (this.reviewButton) {
+            this.reviewButton.addEventListener('click', () => this.claimRequest())
+        }
         if (this.unassignReviewerButton) {
             this.unassignReviewerButton.addEventListener('click', () => this.unassignReviewer())
+        }
+        if (this.approveDeletionButton && this.isDeletion) {
+            this.approveDeletionButton.addEventListener('click', () => this.approveDeletion())
         }
     }
 
@@ -180,6 +205,35 @@ export class TableRow {
                     throw e
                 })
         }
+    }
+
+    /**
+     * Approves a deletion request and removes this row from the DOM.
+     */
+    async approveDeletion() {
+        const promptText = i18nStrings['deletion_request_comment_prompt'] ||
+            'Optional) Why should this entry be removed?'
+        const comment = window.prompt(promptText)
+        if (comment === null) {
+            // user hit cancel
+            return
+        }
+
+        await approveDeletionRequest(this.mrid, comment || null)
+            .then(result => result.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    // Option 1: remove row from UI immediately
+                    this.row.parentElement.removeChild(this.row)
+                    // Optionally: show a toast
+                    // new FadingToast('Deletion request approved.').show()
+                } else {
+                    new FadingToast(i18nStrings['comment_submission_failure_message']).show()
+                }
+            })
+            .catch(e => {
+                throw e
+            })
     }
 
     /**
