@@ -2,74 +2,63 @@ $def with (authors, records_param, mrid=None, can_delete=True)
 
 $var title: $_("Delete Authors")
 
-<div id="contentHead" style="margin-bottom:15px;">
-    <h1 style="font-size:28px; font-weight:600;"> $_("Delete Authors")</h1>
+<div id="contentHead" class="delete-page__head">
+    <h1 class="delete-page__title">$_("Delete Authors")</h1>
 </div>
 
-<div id="contentBody" style="max-width:700px; background:#fff; padding:20px; border-radius:6px;">
-
+<div id="contentBody" class="delete-page delete-page--authors">
 $if not authors:
-    <div class="note" style="padding:10px; background:#fee; border:1px solid #f99; border-radius:4px;">
+    <div class="delete-page__note">
         $_("No authors selected.")
     </div>
 $else:
-    <p style="color:#444; margin-bottom:10px;">
+    <p class="delete-page__description">
         $_("The following Authors are marked for deletion:")
     </p>
 
-    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-        <tr style="background:#f2f2f2;">
-            <th style="text-align:left; padding:8px;">$_("Author ID")</th>
-            <th style="text-align:left; padding:8px;">$_("Name")</th>
+    <table class="delete-page__table">
+        <tr class="delete-page__table-header">
+            <th class="delete-page__th-id">$_("Author ID")</th>
+            <th class="delete-page__th-name">$_("Name")</th>
         </tr>
 
         $for a in authors:
-            <tr style="border-bottom:1px solid #ddd;">
-                <td style="padding:8px;">${a.key}</td>
-                <td style="padding:8px;">${a.get('name','Unknown Author')}</td>
+            <tr class="delete-page__table-row">
+                <td class="delete-page__td-id">${a.key}</td>
+                <td class="delete-page__td-name">${a.get('name','Unknown Author')}</td>
             </tr>
-
     </table>
 
-    <form method="POST" action="/authors/delete" style="text-align:right;">
+    <form method="POST" action="/authors/delete" class="delete-page__form">
         <input type="hidden" name="records" value="$records_param" />
         $if mrid:
             <input type="hidden" name="mrid" value="$mrid" />
 
-        <div style="text-align:left; margin-bottom:12px;">
-            <label for="comment-authors" style="display:block; font-weight:600; margin-bottom:4px;">
+        <div class="delete-page__reason">
+            <label for="comment-authors" class="delete-page__reason-label">
                 $_("Reason for deletion (optional)")
             </label>
             <textarea
                 id="comment-authors"
                 name="comment"
                 rows="3"
-                style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;"
+                class="delete-page__reason-input"
             ></textarea>
         </div>
 
+        <div class="delete-page__actions">
         $if can_delete:
-            <button type="submit" style="background:#c62828; color:white; padding:10px 18px; border:none; border-radius:4px; cursor:pointer;">
+            <button type="submit"
+                    class="delete-page__btn delete-page__btn--danger">
                 🗑 $_("Delete Authors Permanently")
             </button>
         $else:
             <button type="submit"
-                    style="
-                        background:#0e73c8;
-                        color:#ffffff;
-                        padding:10px 18px;
-                        border:none;
-                        border-radius:6px;
-                        cursor:pointer;
-                        display:inline-flex;
-                        align-items:center;
-                        gap:8px;
-                        font-weight:600;
-                        box-shadow:0 1px 2px rgba(0,0,0,0.2);
-                    ">
-                <span style="flex:1; text-align:left;">$_("Request Deletion")</span>
-                <span style="font-size:11px; line-height:1;">&#x2197;</span>
+                    class="delete-page__btn delete-page__btn--primary">
+                <span class="delete-page__btn-text">$_("Request Deletion")</span>
+                <span class="delete-page__btn-icon">&#x2197;</span>
             </button>
+        </div>
     </form>
 
 </div>

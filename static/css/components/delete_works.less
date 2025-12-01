@@ -1,0 +1,126 @@
+/**
+ * DeletePage
+ * Confirmation UI for delete authors/works flows.
+ */
+
+.delete-page__head {
+  margin-bottom: 15px;
+}
+
+.delete-page__title {
+  font-family: @body-family;
+  font-size: 1.75rem; // ~28px
+  font-weight: 600;
+}
+
+.delete-page {
+  max-width: 700px;
+  background: @white;
+  padding: 20px;
+  border-radius: 6px;
+  color: @dark-grey;
+}
+
+.delete-page__note {
+  padding: 10px;
+  border-radius: 4px;
+  background: @light-yellow;
+  border: 1px solid @admin-table-border;
+}
+
+.delete-page__description {
+  margin-bottom: 10px;
+}
+
+.delete-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.delete-page__table-header {
+  background: @light-grey;
+}
+
+.delete-page__th-id,
+.delete-page__th-name,
+.delete-page__td-id,
+.delete-page__td-name {
+  text-align: left;
+  padding: 8px;
+}
+
+.delete-page__table-row {
+  border-bottom: 1px solid @light-grey;
+}
+
+.delete-page__form {
+  text-align: right;
+}
+
+.delete-page__reason {
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.delete-page__reason-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.delete-page__reason-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid @light-grey;
+  font-family: @body-family;
+  resize: vertical;
+}
+
+.delete-page__actions {
+  text-align: right;
+}
+
+.delete-page__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: @body-family;
+  box-shadow: 0 1px 2px @boxshadow-black;
+}
+
+.delete-page__btn--danger {
+  background-color: @red;
+  border-color: @red;
+  color: @white;
+}
+
+.delete-page__btn--danger:hover {
+  background-color: darken(@red, 5%);
+}
+
+.delete-page__btn--primary {
+  background-color: @blue;
+  border-color: @blue;
+  color: @white;
+}
+
+.delete-page__btn--primary:hover {
+  background-color: darken(@blue, 5%);
+}
+
+.delete-page__btn-text {
+  flex: 1;
+  text-align: left;
+}
+
+.delete-page__btn-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
