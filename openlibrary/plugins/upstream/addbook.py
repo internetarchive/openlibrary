@@ -222,7 +222,14 @@ class addbook(delegate.page):
                 src = duplicate_edition.dict()
 
                 # Remove internal keys we must not copy
-                for k in ["key", "type", "revision", "created", "last_modified", "works"]:
+                for k in [
+                    "key",
+                    "type",
+                    "revision",
+                    "created",
+                    "last_modified",
+                    "works",
+                ]:
                     src.pop(k, None)
 
                 # Remove unique identifiers so we don't create an exact duplicate
@@ -232,7 +239,7 @@ class addbook(delegate.page):
                     "lccn",
                     "oclc_numbers",
                     "ocaid",
-                    "identifiers",     # nested IDs like Goodreads, LibraryThing, etc.
+                    "identifiers",  # nested IDs like Goodreads, LibraryThing, etc.
                     "source_records",  # MARC / ingest references
                     "ia_box_id",
                     "ia_loaded_id",
