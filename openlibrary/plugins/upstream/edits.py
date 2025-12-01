@@ -83,8 +83,6 @@ class community_edits_queue(delegate.page):
             merge_requests=merge_requests,
         )
 
-
-
     def POST(self):
         data = json.loads(web.data())
         resp = process_merge_request(data.pop('rtype', ''), data)
@@ -323,7 +321,7 @@ class works_delete_page(delegate.page):
         data = {
             "action": "create-pending",
             "mr_type": CommunityEditsQueue.TYPE['DELETION'],
-            "olids": i.records,          # comma-separated list of OLIDs
+            "olids": i.records,  # comma-separated list of OLIDs
             "comment": i.comment or None,
         }
 
@@ -351,6 +349,7 @@ class works_delete_page(delegate.page):
             i.mrid,
             can_delete,
         )
+
 
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
