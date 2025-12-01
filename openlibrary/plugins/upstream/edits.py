@@ -1,6 +1,7 @@
 """Librarian Edits"""
 
 import json
+import logging
 
 import web
 
@@ -8,9 +9,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
-import logging
 
 logger = logging.getLogger("openlibrary.community_edits_queue")
+
 
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
@@ -277,8 +278,9 @@ class community_edits_queue(delegate.page):
                 status='error',
                 error=f'Action "{action}" is invalid for this request type.',
             )
-            
+
         return resp
+
 
 class works_delete_page(delegate.page):
     path = '/works/delete'
@@ -350,6 +352,10 @@ class works_delete_page(delegate.page):
             can_delete,
         )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8db5d3bdf21a339311bb15ff3a2741713d1ecd3
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
 
