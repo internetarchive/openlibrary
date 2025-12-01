@@ -6690,9 +6690,7 @@ msgstr ""
 
 #: merge_request_table/table_row.html
 #, python-format
-msgid ""
-"Deletion request #%(id)s opened %(date)s by <a "
-"href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
+msgid "Deletion request #%(id)s opened %(date)s by "
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6717,9 +6715,7 @@ msgstr ""
 
 #: merge_request_table/table_row.html
 #, python-format
-msgid ""
-"MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
-"class=\"commenter\">@%(submitter)s</a>"
+msgid "MR #%(id)s opened %(date)s by "
 msgstr ""
 
 #: merge_request_table/table_row.html
