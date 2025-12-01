@@ -352,10 +352,6 @@ class works_delete_page(delegate.page):
             can_delete,
         )
 
-<<<<<<< HEAD
-=======
-
->>>>>>> c8db5d3bdf21a339311bb15ff3a2741713d1ecd3
 class authors_delete_page(delegate.page):
     path = '/authors/delete'
 
