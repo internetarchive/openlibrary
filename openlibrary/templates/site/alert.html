@@ -5,179 +5,25 @@ $ lang = get_lang() or 'en'
 $ supported_languages = get_supported_languages()
 $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en')
 
-<style>
-  .filter-panel {
-            position: fixed;
-            top: 45px; /* Position below the IA bar */
-            right: 0;
-            width: 320px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-top: none;
-            box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            max-height: calc(100vh - 45px);
-            overflow-y: auto;
-        }
-
-        .filter-panel.show {
-            transform: translateX(0);
-        }
-
-        .filter-panel.hidden {
-            transform: translateX(100%);
-        }
-
-        .filter-header {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .filter-header h2 {
-            font-size: 18px;
-            color: #333;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #666;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .close-btn:hover {
-            background-color: #e9ecef;
-            color: #000;
-        }
-
-        .preference-panel {
-            padding: 20px;
-        }
-
-        .preference-panel label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            margin-top: 20px;
-        }
-
-        .preference-panel label:first-child {
-            margin-top: 0;
-        }
-
-        .dropdown-menu {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: inherit;
-            background-color: #fff;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .dropdown-menu:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-        }
-
-        .language-field {
-            margin-top: 20px;
-        }
-
-        .language-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .time-range-inputs {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .time-range-inputs input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .time-range-inputs input:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-        }
-
-        .time-range-inputs input::placeholder {
-            color: #999;
-        }
-
-        .save-btn {
-            width: 100%;
-            background: #4A90E2;
-            color: #fff;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 25px;
-            transition: background-color 0.2s ease;
-        }
-
-        .save-btn:hover {
-            background: #357ABD;
-        }
-
-        .save-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .filter-panel {
-                width: 100%;
-                right: 0;
-            }
-        }
-</style>
 <div id="topNotice">
   <div class="page-banner page-banner-black page-banner-center">
     <div class="iaBar">
       <a class="iaLogo" href="https://archive.org"><img alt="$_('Internet Archive logo')" src="/static/images/ia-logo.svg" width="160"></a>
+      $# detect-missing-i18n-skip-line
       <a class="ghost-btn iabar-mobile" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
-      <button id="filter-panel-trigger" class="ghost-btn iabar-mobile" aria-label="Global filter" aria-expanded="false" aria-controls="filter-panel">
-        <img src="/static/images/filter-icon.svg" alt="filter icon" style="width:14px;height:14px;" />
+      <div class="language-component header-dropdown iabar-mobile">
+          <summary>
+            <span>$active_ui_lang['localized'] ($active_ui_lang['code'])</span>
+            <img class="translate-icon" src="/static/images/language-icon.svg" title="$_('Change Website Language')" alt="$_('Change Website Language')"/>
+          </summary>
+          <div class="language-dropdown-component">
+            $:render_template('languages/language_list', classes="dropdown-menu")
+          </div>
+        </details>
+      </div>
+      <button class="filter-panel-trigger ghost-btn iabar-mobile" aria-label="Global filter" aria-expanded="false" aria-controls="filter-panel">
         Filter
+        <img src="/static/images/filter-icon.svg" alt="filter icon" style="width:14px;height:14px;filter:invert(1);" />
       </button>
     </div>
   </div>
