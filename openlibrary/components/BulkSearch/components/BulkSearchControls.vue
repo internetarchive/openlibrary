@@ -206,7 +206,7 @@ export default {
         },
         activeStep(newValue) {
             this.$nextTick(() => {
-                this.$refs['step' + newValue]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                this.$refs[`step${newValue}`]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             });
         }
     },
