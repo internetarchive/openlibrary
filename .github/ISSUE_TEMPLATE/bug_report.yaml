@@ -20,6 +20,7 @@ body:
       label: Reproducing the bug
       description: Being as specific as possible, what steps result in triggering this bug?
       value: |
+
         1. Go to ...
         2. Do ...
 

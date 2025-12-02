@@ -1,6 +1,6 @@
 import json
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final, Literal, cast
+from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
 from web.template import TemplateResult
@@ -56,9 +56,15 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb):
+    def render_template(self, mb: 'MyBooksTemplate') -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
-        want_to_read, currently_reading, already_read, loans = [], [], [], []
+
+        docs: dict[str, Any] = {
+            'loans': [],
+            'want-to-read': [],
+            'currently-reading': [],
+            'already-read': [],
+        }
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
@@ -69,30 +75,33 @@ class mybooks_home(delegate.page):
                 if book := web.ctx.site.get(loan['book']):
                     book.loan = loan
                     loans.docs.append(book)
+            docs['loans'] = loans
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
-            want_to_read = mb.readlog.get_works(key='want-to-read', **params)
-            currently_reading = mb.readlog.get_works(key='currently-reading', **params)
-            already_read = mb.readlog.get_works(key='already-read', **params)
+            want_to_read = mb.readlog.get_works('want-to-read', limit=6)
+            currently_reading = mb.readlog.get_works('currently-reading', limit=6)
+            already_read = mb.readlog.get_works('already-read', limit=6)
+            works = want_to_read.docs + currently_reading.docs + already_read.docs
 
-            # Ideally, do all 3 lookups in one add_availability call
-            want_to_read.docs = add_availability(
-                [d for d in want_to_read.docs if d.get('title')]
-            )[:5]
-            currently_reading.docs = add_availability(
-                [d for d in currently_reading.docs if d.get('title')]
-            )[:5]
-            already_read.docs = add_availability(
-                [d for d in already_read.docs if d.get('title')]
-            )[:5]
+            def get_edition(solr_doc: web.Storage | dict) -> dict | None:
+                editions_raw = cast(dict | list[dict], solr_doc.get('editions'))
+                if isinstance(editions_raw, dict):
+                    editions = editions_raw.get('docs', [])
+                else:
+                    editions = editions_raw or []
 
-        docs = {
-            'loans': loans,
-            'want-to-read': want_to_read,
-            'currently-reading': currently_reading,
-            'already-read': already_read,
-        }
+                return editions[0] if editions else None
+
+            add_availability(
+                [get_edition(doc) or doc for doc in works if doc.get('title')]
+            )
+
+            docs |= {
+                'want-to-read': want_to_read,
+                'currently-reading': currently_reading,
+                'already-read': already_read,
+            }
+
         return render['account/mybooks'](
             mb.user,
             docs,
@@ -537,7 +546,7 @@ class ReadingLog:
         sort_order: str = 'desc',
         q: str = "",
         year: int | None = None,
-    ) -> LoggedBooksData:
+    ) -> 'LoggedBooksData':
         """
         Get works for want-to-read, currently-reading, and already-read as
         determined by {key}.

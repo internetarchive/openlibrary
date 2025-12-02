@@ -108,6 +108,9 @@ class WorkSearchScheme(SearchScheme):
         {
             'description',
             'providers',
+            'work.description',
+            'editions.description',
+            'editions.providers',
         }
     )
     facet_fields = frozenset(
@@ -235,6 +238,20 @@ class WorkSearchScheme(SearchScheme):
             ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
         }
     )
+    check_params = frozenset(
+        {
+            'title',
+            'publisher',
+            'oclc',
+            'lccn',
+            'contributor',
+            'subject',
+            'place',
+            'person',
+            'time',
+            'author_key',
+        }
+    )
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
@@ -279,23 +296,11 @@ class WorkSearchScheme(SearchScheme):
                 v = fully_escape_query(v)
                 q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
 
-        check_params = {
-            'title',
-            'publisher',
-            'oclc',
-            'lccn',
-            'contributor',
-            'subject',
-            'place',
-            'person',
-            'time',
-            'author_key',
-        }
         # support web.input fields being either a list or string
         # when default values used
         q_list += [
             f'{k}:({fully_escape_query(val)})'
-            for k in (check_params & set(params))
+            for k in (self.check_params & set(params))
             for val in (params[k] if isinstance(params[k], list) else [params[k]])
         ]
 
@@ -600,39 +605,68 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('editions.fl', ','.join(edition_fields)))
         return new_params
 
-    def add_non_solr_fields(self, non_solr_fields: set[str], solr_result: dict) -> None:
-        from openlibrary.plugins.upstream.models import Edition
+    def add_non_solr_fields(
+        self,
+        non_solr_fields: set[str],
+        solr_result: dict,
+    ) -> None:
+        from openlibrary.plugins.upstream.models import Edition, Work
+
+        prefixed_fields = {
+            prefixed_field
+            for field in non_solr_fields
+            for prefixed_field in (
+                (field,) if '.' in field else (f'work.{field}', f'editions.{field}')
+            )
+        }
+        need_works = any(field.startswith('work.') for field in prefixed_fields)
+        need_editions = any(field.startswith('editions.') for field in prefixed_fields)
 
         # Augment with data from db
-        edition_keys = [
-            ed_doc['key']
-            for doc in solr_result['response']['docs']
-            for ed_doc in doc.get('editions', {}).get('docs', [])
-        ]
-        editions = cast(list[Edition], web.ctx.site.get_many(edition_keys))
-        ed_key_to_record = {ed.key: ed for ed in editions if ed.key in edition_keys}
+        keys: list[str] = []
+        if need_works:
+            keys += [doc['key'] for doc in solr_result['response']['docs']]
 
-        from openlibrary.book_providers import get_book_provider
+        if need_editions:
+            keys += [
+                ed_doc['key']
+                for doc in solr_result['response']['docs']
+                for ed_doc in doc.get('editions', {}).get('docs', [])
+            ]
+
+        things = cast(list[Work | Edition], web.ctx.site.get_many(keys))
+        key_to_thing = {t.key: t for t in things if t.key in keys}
+
+        from openlibrary.book_providers import get_acquisitions
 
         for doc in solr_result['response']['docs']:
-            for ed_doc in doc.get('editions', {}).get('docs', []):
-                # `ed` could be `None` if the record has been deleted and Solr not yet updated.
-                if not (ed := ed_key_to_record.get(ed_doc['key'])):
-                    continue
+            for field in prefixed_fields:
+                prefix, field_name = field.split('.', 1)
+                if prefix == 'work':
+                    pairs = [(doc, key_to_thing.get(doc['key']))]
+                else:
+                    pairs = [
+                        (ed_doc, key_to_thing.get(ed_doc['key']))
+                        for ed_doc in doc.get('editions', {}).get('docs', [])
+                    ]
 
-                for field in non_solr_fields:
-                    val = getattr(ed, field)
-                    if field == 'providers':
-                        provider = get_book_provider(ed)
-                        if not provider:
-                            continue
-                        ed_doc[field] = [
-                            p.__dict__ for p in provider.get_acquisitions(ed)
+                for solr_doc, db_thing in pairs:
+                    # Could be `None` if the record has been deleted and Solr not yet updated.
+                    if not db_thing:
+                        continue
+
+                    val = getattr(db_thing, field_name)
+                    if field_name == 'providers':
+                        ed = cast(Edition, db_thing)
+                        solr_doc[field_name] = [
+                            acq.__dict__ for acq in get_acquisitions(solr_doc, ed)
                         ]
                     elif isinstance(val, infogami.infobase.client.Nothing):
                         continue
-                    elif field == 'description':
-                        ed_doc[field] = val if isinstance(val, str) else val.value
+                    elif field_name == 'description':
+                        solr_doc[field_name] = (
+                            val if isinstance(val, str) else val.value
+                        )
 
 
 def lcc_transform(sf: luqum.tree.SearchField):

@@ -47,7 +47,7 @@ class ReadingGoalProgressPartial(PartialDataHandler):
     def generate(self) -> dict:
         year = self.i.year or datetime.now().year
         goal = get_reading_goals(year=year)
-        component = render_template('check_ins/reading_goal_progress', [goal])
+        component = render_template('reading_goals/reading_goal_progress', [goal])
 
         return {"partials": str(component)}
 
