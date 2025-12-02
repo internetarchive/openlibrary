@@ -203,6 +203,11 @@ export default {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
             }
+        },
+        activeStep(newValue) {
+            this.$nextTick(() => {
+                this.$refs['step' + newValue]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            });
         }
     },
     methods: {
