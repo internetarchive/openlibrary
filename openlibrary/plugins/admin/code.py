@@ -298,10 +298,11 @@ class unlink_ia_ol(delegate.page):
     def make_dark(self, edition):
         data = edition.dict()
         del data["ocaid"]
+        source_records = data.get("source_records", [])
+        data['source_records'] = [ rec for rec in source_records if not rec.startswith("ia:") ]
+        if not data['source_records']:
+            del data['source_records']
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
-
-    def update_marc(self, edition, new_marc):
-        raise NotImplementedError()
 
 
 class people:
