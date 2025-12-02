@@ -16,6 +16,7 @@ from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
 from infogami import config
+from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.context import context
@@ -250,11 +251,8 @@ class any:
         pass
 
 
-
-
-
-class sync_ia_ol(delegate.page):
-    path = '/ia/sync'
+class unlink_ia_ol(delegate.page):
+    path = '/ia/unlink'
     encoding = 'json'
 
     def POST(self):
@@ -268,9 +266,9 @@ class sync_ia_ol(delegate.page):
         except (ValueError, ExpiredTokenError):
             raise web.HTTPError("401 Unauthorized")
 
-        op, ocaid, _ = msg.split("|")
+        ocaid, ts = msg.split("|")
 
-        if not op or not ocaid:
+        if not ts or not ocaid:
             raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
 
         # Fetch affected editions
@@ -288,18 +286,11 @@ class sync_ia_ol(delegate.page):
 
         # Update records
         try:
-            match op:
-                case "makedark":
-                    self.make_dark(edition)
-                case "updatemarc":
-                    # XXX : Where is the new marc record coming from?
-                    new_marc = None
-                    self.update_marc(edition, new_marc)
-                case _:
-                    raise ValueError(f"Unknown operation : {op}")
-        except (NotImplementedError, ValueError) as e:
-            raise web.HTTPError("400 Bad Request",
-                data=json.dumps({"error": f"Unrecognized operation : {op}"})
+            self.make_dark(edition)
+        except ClientException as e:
+            raise web.HTTPError(
+                "500 Internal Server Error",
+                data=json.dumps({"error": str(e)})
             )
 
         return delegate.RawText(json.dumps({"status": "ok"}))
