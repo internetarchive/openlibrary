@@ -269,17 +269,25 @@ class unlink_ia_ol(delegate.page):
         ocaid, ts = msg.split("|")
 
         if not ts or not ocaid:
-            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
+            raise web.HTTPError(
+                "400 Bad Request", data=json.dumps({"error": "Invalid inputs"})
+            )
 
         # Fetch affected editions
-        if not (edition_keys := web.ctx.site.things({"type": '/type/edition', "ocaid": ocaid})):
+        if not (
+            edition_keys := web.ctx.site.things(
+                {"type": '/type/edition', "ocaid": ocaid}
+            )
+        ):
             raise web.HTTPError("404 Not Found")
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
         if len(editions) > 1:
             raise web.HTTPError(
                 "409 Conflict",
-                data=json.dumps({"error": "Multiple editions associated with given ocaid"})
+                data=json.dumps(
+                    {"error": "Multiple editions associated with given ocaid"}
+                ),
             )
 
         edition = editions[0]
@@ -289,8 +297,7 @@ class unlink_ia_ol(delegate.page):
             self.make_dark(edition)
         except ClientException as e:
             raise web.HTTPError(
-                "500 Internal Server Error",
-                data=json.dumps({"error": str(e)})
+                "500 Internal Server Error", data=json.dumps({"error": str(e)})
             )
 
         return delegate.RawText(json.dumps({"status": "ok"}))
@@ -299,7 +306,9 @@ class unlink_ia_ol(delegate.page):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])
-        data['source_records'] = [ rec for rec in source_records if not rec.startswith("ia:") ]
+        data['source_records'] = [
+            rec for rec in source_records if not rec.startswith("ia:")
+        ]
         if not data['source_records']:
             del data['source_records']
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')

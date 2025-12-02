@@ -42,7 +42,7 @@ class HMACToken:
             ValueError: If the secret key cannot be found in the configuration
                 (raised after digest comparison).
         """
-        current_time = datetime.datetime.now(datetime.timezone.utc)
+        current_time = datetime.datetime.now(datetime.UTC)
         expiry_str = msg.split(delimiter)[-1]
         expiry = datetime.datetime.fromisoformat(expiry_str)
 
@@ -57,9 +57,7 @@ class HMACToken:
         mac = ''
         if key:
             mac = hmac.new(
-                key.encode('utf-8'),
-                msg.encode('utf-8'),
-                hashlib.md5
+                key.encode('utf-8'), msg.encode('utf-8'), hashlib.md5
             ).hexdigest()
 
         result = hmac.compare_digest(mac, digest)
