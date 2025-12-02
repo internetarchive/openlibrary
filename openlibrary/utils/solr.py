@@ -86,6 +86,7 @@ class Solr:
                 ),
                 'ol.label': request_label,
             },
+            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
         ).json()
 
         # Solr returns {doc: null} if the record isn't there
@@ -107,13 +108,20 @@ class Solr:
                 'ids': ','.join(ids),
                 **({'fl': ','.join(fields)} if fields else {}),
             },
+            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
-    def update_in_place(self, request, commit: bool = False):
+    def update_in_place(
+        self,
+        request,
+        commit: bool = False,
+        _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
+    ):
         resp = self.session.post(
             f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
             json=request,
+            timeout=_timeout,
         ).json()
         return resp
 
