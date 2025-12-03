@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, model_validator
 
+from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     validate_search_json_query,
@@ -130,3 +131,12 @@ async def search_json(
     response['docs'] = docs
 
     return response
+
+
+@router.get("/search/inside.json")
+async def search_inside_json(
+    q: str = Query(..., title="Search query"),
+    page: int | None = Query(1, ge=1, description="Page number"),
+    limit: int | None = Query(20, ge=1, le=20, description="Results per page"),
+):
+    return await fulltext_search_async(q, page=page, limit=limit, js=True, facets=True)
