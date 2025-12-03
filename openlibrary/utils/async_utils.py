@@ -2,6 +2,7 @@ import asyncio
 import threading
 from collections.abc import Callable, Coroutine
 from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Any, ParamSpec, TypeVar
 
 import web
@@ -48,8 +49,20 @@ async_bridge = AsyncBridge()
 # These are scoped to a specific request
 # Defining them here for now to keep things close together
 
-x_forwarded_for: ContextVar[str] = ContextVar("x_forwarded_for")
-user_agent: ContextVar[str] = ContextVar("user_agent")
+
+@dataclass(frozen=True)
+class RequestContextVars:
+    """
+    These are scoped to a specific request and should be derived directly from the request.
+    Use sparingly.
+    """
+
+    x_forwarded_for: str | None
+    user_agent: str | None
+
+
+req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
+
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
 
@@ -62,8 +75,12 @@ def set_context_for_sync_request():
     That version should be usable without instantiating a site
     """
     site.set(create_site())
-    user_agent.set(web.ctx.env.get("HTTP_USER_AGENT", ""))
-    x_forwarded_for.set(web.ctx.env.get("HTTP_X_FORWARDED_FOR", "ol-internal"))
+    req_context.set(
+        RequestContextVars(
+            x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
+            user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
+        )
+    )
 
 
 def set_context_for_async_request(request: Request):
@@ -76,5 +93,9 @@ def set_context_for_async_request(request: Request):
     This is preferable for testable and maintainable code.
     """
     site.set(create_site())
-    user_agent.set(request.headers.get("User-Agent", ""))
-    x_forwarded_for.set(request.headers.get("X-Forwarded-For", "ol-internal"))
+    req_context.set(
+        RequestContextVars(
+            x_forwarded_for=request.headers.get("X-Forwarded-For"),
+            user_agent=request.headers.get("User-Agent"),
+        )
+    )
