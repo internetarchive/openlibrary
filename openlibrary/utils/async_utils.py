@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from collections.abc import Callable, Coroutine
+from contextvars import ContextVar
 from typing import Any, ParamSpec, TypeVar
 
 import web
@@ -46,7 +47,6 @@ async_bridge = AsyncBridge()
 # ContextVariables
 # These are scoped to a specific request
 # Defining them here for now to keep things close together
-from contextvars import ContextVar
 
 x_forwarded_for: ContextVar[str] = ContextVar("x_forwarded_for")
 user_agent: ContextVar[str] = ContextVar("user_agent")
