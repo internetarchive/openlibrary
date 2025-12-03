@@ -1066,6 +1066,40 @@ msgstr ""
 msgid "Buy this book"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Search Results"
+msgstr ""
+
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+msgid "Open Library"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+msgid "Trending Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Kids"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
@@ -1144,14 +1178,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Recipes"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
@@ -2252,10 +2278,6 @@ msgstr ""
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
-
-#: home/index.html trending.html
-msgid "Trending Books"
 msgstr ""
 
 #: trending.html
@@ -5375,7 +5397,7 @@ msgid "Use this image"
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer"
+msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
 #: covers/add.html
@@ -5585,19 +5607,7 @@ msgid "Welcome to Open Library"
 msgstr ""
 
 #: home/index.html
-msgid "Classic Books"
-msgstr ""
-
-#: home/index.html
 msgid "Recently Returned"
-msgstr ""
-
-#: home/index.html
-msgid "Kids"
-msgstr ""
-
-#: home/index.html
-msgid "Thrillers"
 msgstr ""
 
 #: home/index.html
@@ -5911,10 +5921,6 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
-
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html
