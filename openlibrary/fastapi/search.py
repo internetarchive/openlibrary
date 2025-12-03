@@ -14,7 +14,7 @@ from openlibrary.plugins.worksearch.code import (
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.utils.async_utils import set_site, x_forwarded_for
+from openlibrary.utils.async_utils import set_site, user_agent, x_forwarded_for
 
 router = APIRouter()
 
@@ -143,4 +143,5 @@ async def search_inside_json(
 ):
     set_site()
     x_forwarded_for.set(request.headers.get('x-forwarded-for', 'ol-internal'))
+    user_agent.set(request.headers.get('user-agent', ''))
     return await fulltext_search_async(q, page=page, limit=limit, js=True, facets=True)

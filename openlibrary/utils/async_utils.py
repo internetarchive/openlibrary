@@ -46,6 +46,7 @@ async_bridge = AsyncBridge()
 from contextvars import ContextVar
 
 x_forwarded_for: ContextVar[str] = ContextVar("x_forwarded_for")
+user_agent: ContextVar[str] = ContextVar("user_agent")
 site: ContextVar[Site] = ContextVar("site")
 
 

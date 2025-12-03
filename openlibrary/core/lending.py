@@ -21,7 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
-from openlibrary.utils.async_utils import x_forwarded_for
+from openlibrary.utils.async_utils import user_agent, x_forwarded_for
 
 from . import helpers as h
 from . import ia
@@ -441,8 +441,7 @@ def get_availability(
     try:
         headers = {
             "x-preferred-client-id": x_forwarded_for.get(),
-            # TODO: set this
-            # "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
+            "x-preferred-client-useragent": user_agent.get(),
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
         }
