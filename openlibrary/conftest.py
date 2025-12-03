@@ -46,6 +46,21 @@ def no_sleep(monkeypatch):
     monkeypatch.setattr("time.sleep", mock_sleep)
 
 
+@pytest.fixture(autouse=True)
+def setup_db_config():
+    """Set up empty database configuration for all tests to prevent db_parameters errors."""
+    import web
+
+    from infogami import config
+
+    # Set web.config.db_parameters for OLConnection
+    web.config.db_parameters = {}
+
+    # Set infobase_parameters to use local connection instead of OLConnection
+    # This prevents the database configuration error when tests run
+    config.infobase_parameters = {'type': 'local'}
+
+
 @pytest.fixture
 def monkeytime(monkeypatch):
     cur_time = 1
