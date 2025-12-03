@@ -36,3 +36,10 @@ class AsyncBridge:
 
 
 async_bridge = AsyncBridge()
+
+# ContextVariables
+# These are scoped to a specific request
+# Defining them here for now to keep things close together
+from contextvars import ContextVar
+
+x_forwarded_for: ContextVar[str] = ContextVar("x_forwarded_for")

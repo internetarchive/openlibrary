@@ -8,7 +8,7 @@ import web
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.async_utils import async_bridge, x_forwarded_for
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -24,7 +24,8 @@ async def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
     headers = {
-        "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
+        # "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
+        "x-preferred-client-id": x_forwarded_for.get(),
         "x-application-id": "openlibrary",
     }
     if config_fts_context is not None:

@@ -14,6 +14,7 @@ from openlibrary.plugins.worksearch.code import (
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.async_utils import x_forwarded_for
 
 router = APIRouter()
 
@@ -135,8 +136,10 @@ async def search_json(
 
 @router.get("/search/inside.json")
 async def search_inside_json(
+    request: Request,
     q: str = Query(..., title="Search query"),
     page: int | None = Query(1, ge=1, description="Page number"),
     limit: int | None = Query(20, ge=1, le=20, description="Results per page"),
 ):
+    x_forwarded_for.set(request.headers.get('x-forwarded-for', 'ol-internal'))
     return await fulltext_search_async(q, page=page, limit=limit, js=True, facets=True)
