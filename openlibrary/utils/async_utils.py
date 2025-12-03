@@ -3,6 +3,9 @@ import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
 
+from infogami.infobase.client import Site
+from infogami.utils.delegate import create_site
+
 # Start a persistent event loop in a background thread.
 # This avoids creating/destroying a loop on every call to select().
 # More importantly, this lets us call async code from sync code.
@@ -43,3 +46,13 @@ async_bridge = AsyncBridge()
 from contextvars import ContextVar
 
 x_forwarded_for: ContextVar[str] = ContextVar("x_forwarded_for")
+site: ContextVar[Site] = ContextVar("site")
+
+
+def set_site():
+    """
+    Sets the site in the contextvars for the current request.
+    This is ultimately temporary as we'll need an async version of site
+    That version should be usable without instantiating a site
+    """
+    site.set(create_site())

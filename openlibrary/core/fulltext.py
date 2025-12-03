@@ -3,11 +3,11 @@ import logging
 from urllib.parse import urlencode
 
 import httpx
-import web
 
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
+from openlibrary.utils import async_utils
 from openlibrary.utils.async_utils import async_bridge, x_forwarded_for
 
 logger = logging.getLogger("openlibrary.inside")
@@ -64,7 +64,7 @@ async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
         availability = get_availability('identifier', ocaids)
         if 'error' in availability:
             return {"hits": {"hits": []}}
-        editions = web.ctx.site.get_many(
+        editions = async_utils.site.get().get_many(
             [
                 '/books/%s' % availability[ocaid].get('openlibrary_edition')
                 for ocaid in availability

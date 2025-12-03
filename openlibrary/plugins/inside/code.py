@@ -7,6 +7,7 @@ from typing_extensions import deprecated
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.fulltext import fulltext_search
+from openlibrary.utils.async_utils import set_site, x_forwarded_for
 
 RESULTS_PER_PAGE = 20
 
@@ -15,6 +16,8 @@ class search_inside(delegate.page):
     path = '/search/inside'
 
     def GET(self):
+        x_forwarded_for.set(web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'))
+        set_site()
         search_start = time()  # should probably use a @timeit decorator
         i = web.input(q='', page=1)
         query = i.q
@@ -38,6 +41,8 @@ class search_inside_json(delegate.page):
     encoding = "json"
 
     def GET(self):
+        x_forwarded_for.set(web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'))
+        set_site()
         i = web.input(q='', page=1, limit=RESULTS_PER_PAGE)
         limit = min(safeint(i.limit, RESULTS_PER_PAGE), RESULTS_PER_PAGE)
         query = i.q

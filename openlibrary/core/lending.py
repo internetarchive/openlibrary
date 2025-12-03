@@ -21,6 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import x_forwarded_for
 
 from . import helpers as h
 from . import ia
@@ -297,7 +298,7 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        client_ip = x_forwarded_for.get()
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
@@ -439,10 +440,9 @@ def get_availability(
 
     try:
         headers = {
-            "x-preferred-client-id": web.ctx.env.get(
-                'HTTP_X_FORWARDED_FOR', 'ol-internal'
-            ),
-            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
+            "x-preferred-client-id": x_forwarded_for.get(),
+            # TODO: set this
+            # "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
         }
