@@ -13,6 +13,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.utils.async_utils import set_context_for_async_request
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -161,6 +162,12 @@ def create_app() -> FastAPI:
         """Middleware to add a header indicating the response came from FastAPI."""
         response = await call_next(request)
         response.headers["X-Served-By"] = "FastAPI"
+        return response
+
+    @app.middleware("http")
+    async def set_context(request: Request, call_next):
+        set_context_for_async_request(request)
+        response = await call_next(request)
         return response
 
     # --- Fast routes (mounted within this app) ---

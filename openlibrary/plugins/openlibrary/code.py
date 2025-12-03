@@ -30,6 +30,8 @@ from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+import contextvars
+
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
@@ -46,6 +48,7 @@ from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
+from openlibrary.utils.async_utils import set_context_for_sync_request
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -97,6 +100,26 @@ from openlibrary.plugins.openlibrary import bulk_tag, lists
 
 lists.setup()
 bulk_tag.setup()
+
+
+def contextvars_processor(handler):
+    """
+    web.py processor that runs the request handle in a completely
+    blank contextvars.Context.
+
+    This ensures no ContextVars persist between requests.
+    """
+    ctx = contextvars.Context()
+
+    def inner():
+        # Now we are inside the new, empty context
+        set_context_for_sync_request()
+        return handler()
+
+    return ctx.run(inner)
+
+
+delegate.app.add_processor(contextvars_processor)
 
 logger = logging.getLogger('openlibrary')
 
