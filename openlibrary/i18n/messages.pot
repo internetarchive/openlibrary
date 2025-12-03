@@ -1070,8 +1070,8 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
-#: home/index.html home/welcome.html openlibrary/plugins/openlibrary/api.py
-msgid "Welcome to Open Library"
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
@@ -5602,6 +5602,10 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
+#: home/index.html home/welcome.html
+msgid "Welcome to Open Library"
+msgstr ""
+
 #: home/index.html
 msgid "Recently Returned"
 msgstr ""
@@ -5917,10 +5921,6 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
-
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html
