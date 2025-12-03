@@ -19,7 +19,7 @@ function disableButton(buttonElement) {
 export function initPatronExportForms(elems) {
     elems.forEach((form) => {
         const submitButton = form.querySelector('input[type=submit]')
-        form.addEventListener("submit", () => {
+        form.addEventListener('submit', () => {
             disableButton(submitButton);
         })
     })
