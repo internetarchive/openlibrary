@@ -78,12 +78,3 @@ def set_context_for_async_request(request: Request):
     site.set(create_site())
     user_agent.set(request.headers.get("User-Agent", ""))
     x_forwarded_for.set(request.headers.get("X-Forwarded-For", "ol-internal"))
-
-
-def set_site():
-    """
-    Sets the site in the contextvars for the current request.
-    This is ultimately temporary as we'll need an async version of site
-    That version should be usable without instantiating a site
-    """
-    site.set(create_site())

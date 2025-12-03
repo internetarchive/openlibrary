@@ -24,7 +24,6 @@ async def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
     headers = {
-        # "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
         "x-preferred-client-id": x_forwarded_for.get(),
         "x-application-id": "openlibrary",
     }
