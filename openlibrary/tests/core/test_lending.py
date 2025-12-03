@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 from openlibrary.core import lending
+from openlibrary.utils.async_utils import user_agent, x_forwarded_for
 
 
 class TestAddAvailability:
@@ -42,6 +43,10 @@ class TestAddAvailability:
 
 class TestGetAvailability:
     def test_cache(self):
+        # Set needed context variables
+        x_forwarded_for.set("ol-internal")
+        user_agent.set("test-user-agent")
+
         with patch("openlibrary.core.ia.session.get") as mock_get:
             mock_get.return_value = Mock()
             mock_get.return_value.json.return_value = {
