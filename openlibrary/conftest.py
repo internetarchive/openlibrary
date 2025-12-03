@@ -48,7 +48,14 @@ def no_sleep(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def setup_db_config():
-    """Set up empty database configuration for all tests to prevent db_parameters errors."""
+    """
+    Set up empty database configuration for all tests to prevent db_parameters errors.
+
+    This fixture is required for tests that use `create_site()` calls, especially when setting up
+    context variables. It ensures that the database configuration is stubbed out, which is necessary
+    for the context variable infrastructure being added. Without this, tests may fail due to missing
+    or incorrect database parameters when initializing site contexts.
+    """
     import web
 
     from infogami import config
