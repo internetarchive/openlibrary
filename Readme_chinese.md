@@ -53,11 +53,11 @@
 
 ## 代码组成
 
-* openlibrary/core - 公共图书馆的核心功能，由www导入和使用
-* openlibrary/plugins - 其它模型、控制器和视图帮助器
-* openlibrary/views - 网页视图的呈现
-* openlibrary/templates - 所有在网页里使用的模板
-* openlibrary/macros - macros和模板类似，但可以被wikitext调用
+* [*openlibrary/core*](/openlibrary/core) - 公共图书馆的核心功能，由www导入和使用
+* [*openlibrary/plugins*](/openlibrary/plugins) - 其它模型、控制器和视图帮助器
+* [*openlibrary/views*](/openlibrary/views) - 网页视图的呈现
+* [*openlibrary/templates*](/openlibrary/templates) - 所有在网页里使用的模板
+* [*openlibrary/macros*](/openlibrary/macros) - macros和模板类似，但可以被wikitext调用
 
 ## 结构
 
