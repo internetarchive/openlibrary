@@ -21,7 +21,6 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
 @import (less) "legacy-header.less";
@@ -1299,7 +1298,7 @@ span.actions {
 // openlibrary/macros/FulltextResults.html
 ul.list-books {
   > li {
-    .display-flex();
+    display: flex;
   }
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
@@ -1542,13 +1541,12 @@ div#subjectLists {
     padding: 0;
     li {
       list-style-type: none;
-      display: block;
       float: left;
       width: 282px;
       font-family: @body-family;
       padding-bottom: 10px;
       padding-top: 0;
-      .display-flex();
+      display: flex;
       .image {
         display: block;
         float: left;
@@ -1619,7 +1617,7 @@ div#subjectLists {
 // openlibrary/templates/account/books.html
 .list-books {
   .book {
-    .display-flex();
+    display: flex;
   }
 }
 
