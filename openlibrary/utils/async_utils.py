@@ -45,9 +45,7 @@ class AsyncBridge:
 
 async_bridge = AsyncBridge()
 
-# ContextVariables
-# These are scoped to a specific request
-# Defining them here for now to keep things close together
+################### ContextVariables ###################
 
 
 @dataclass(frozen=True)
@@ -67,12 +65,9 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 site: ContextVar[Site] = ContextVar("site")
 
 
-def set_context_for_sync_request():
+def set_context_from_legacy_web_py() -> None:
     """
-    Sets the contextvars for the current request when called from web.py
-
-    create_site is ultimately temporary as we'll need an async version of site
-    That version should be usable without instantiating a site
+    Extracts context from the global web.ctx (sync) and populates ContextVars.
     """
     site.set(create_site())
     req_context.set(
@@ -83,15 +78,12 @@ def set_context_for_sync_request():
     )
 
 
-def set_context_for_async_request(request: Request):
+def set_context_from_fastapi(request: Request) -> None:
     """
-    These are set automatically in the middleware of fastapi
-    They are made available to all requests
-
-    BEFORE ADDING:
-    Please consider if we could feasibly just pass it down to the function instead
-    This is preferable for testable and maintainable code.
+    Extracts context from a FastAPI request (async) and populates ContextVars.
+    Should be called within the middleware stack.
     """
+    # NOTE: Avoid adding new fields here if they can be passed as function arguments instead.
     site.set(create_site())
     req_context.set(
         RequestContextVars(

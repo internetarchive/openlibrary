@@ -48,7 +48,7 @@ from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.utils.async_utils import set_context_for_sync_request
+from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -113,7 +113,7 @@ def contextvars_processor(handler):
 
     def inner():
         # Now we are inside the new, empty context
-        set_context_for_sync_request()
+        set_context_from_legacy_web_py()
         return handler()
 
     return ctx.run(inner)

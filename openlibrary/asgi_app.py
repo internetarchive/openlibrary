@@ -13,7 +13,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
-from openlibrary.utils.async_utils import set_context_for_async_request
+from openlibrary.utils.async_utils import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -166,7 +166,7 @@ def create_app() -> FastAPI:
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
-        set_context_for_async_request(request)
+        set_context_from_fastapi(request)
         response = await call_next(request)
         return response
 
