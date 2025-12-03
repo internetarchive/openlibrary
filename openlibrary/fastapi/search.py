@@ -135,7 +135,6 @@ async def search_json(
 
 @router.get("/search/inside.json")
 async def search_inside_json(
-    request: Request,
     q: str = Query(..., title="Search query"),
     page: int | None = Query(1, ge=1, description="Page number"),
     limit: int | None = Query(20, ge=1, le=20, description="Results per page"),
