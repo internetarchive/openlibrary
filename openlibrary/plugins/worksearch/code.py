@@ -60,6 +60,7 @@ re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
 
+default_spellcheck_count = 10
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
         config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
@@ -197,7 +198,7 @@ def get_remembered_layout():
     return 'details'
 
 
-def _prepare_solr_query_params(
+def _prepare_solr_query_params(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -269,6 +270,8 @@ def _prepare_solr_query_params(
         if field == 'author_facet':
             field = 'author_key'
         values = param[field]
+        if isinstance(values, str):
+            values = [values]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
     # Many fields in solr use the convention of `*_facet` both
@@ -1239,6 +1242,19 @@ async def work_search_async(
     return _process_solr_search_response(resp, fields)
 
 
+def validate_search_json_query(q: str | None) -> str | None:
+    if q and len(q) < 3:
+        return 'Query too short, must be at least 3 characters'
+
+    BLOCKED_QUERIES = {'the'}
+    if q and q.lower() in BLOCKED_QUERIES:
+        return (
+            f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}",
+        )
+
+    return None
+
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
@@ -1279,8 +1295,13 @@ class search_json(delegate.page):
             default=default_spellcheck_count,
         )
 
-        # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '').strip()
+        web.header('Content-Type', 'application/json')
+        if q_error := validate_search_json_query(q):
+            web.ctx.status = '422 Unprocessable Entity'
+            return delegate.RawText(json.dumps({'error': q_error}))
+
+        # If the query is a /list/ key, create custom list_editions_query
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
@@ -1302,7 +1323,6 @@ class search_json(delegate.page):
         docs = response['docs']
         del response['docs']
         response['docs'] = docs
-        web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
 

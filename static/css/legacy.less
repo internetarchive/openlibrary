@@ -21,7 +21,6 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
 @import (less) "legacy-header.less";
@@ -45,26 +44,6 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 
-  // openlibrary/templates/type/edition/view.html
-  &#toc-table {
-    width: 100%;
-    font-size: 0.8125em;
-    td {
-      padding: 5px 15px 5px 0;
-    }
-  }
-  // openlibrary/templates/type/edition/view.html
-  &.navEdition {
-    margin-bottom: 5px;
-    td.nowrap {
-      white-space: nowrap;
-    }
-    td {
-      padding: 0;
-      margin: 0;
-      vertical-align: middle;
-    }
-  }
   &.meta {
     margin-top: 10px;
     td {
@@ -270,47 +249,6 @@ q {
 @import (less) "base/dl.less";
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
-
-// openlibrary/templates/lib/pagination.html
-// openlibrary/templates/type/author/view.html
-.pagination {
-  font-size: 0.75em;
-  margin: 0 15px;
-  .display-flex();
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  a {
-    display: block;
-    text-decoration: none;
-    padding: 7px;
-    margin-right: 10px;
-    &:hover {
-      background: @link-blue;
-      color: @white;
-      display: block;
-      float: left;
-      text-decoration: none;
-      padding: 7px;
-      margin-right: 10px;
-    }
-  }
-  span.ellipsis {
-    display: block;
-    float: left;
-    color: @black;
-    padding: 8px;
-    margin-right: 10px;
-  }
-  span.this {
-    display: block;
-    float: left;
-    color: @black;
-    padding: 7px;
-    border: 1px solid @lighter-grey;
-    margin-right: 10px;
-    background-color: @lightest-grey;
-  }
-}
 
 // openlibrary/templates/recentchanges/header.html
 // openlibrary/templates/showia.html
@@ -1360,7 +1298,7 @@ span.actions {
 // openlibrary/macros/FulltextResults.html
 ul.list-books {
   > li {
-    .display-flex();
+    display: flex;
   }
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
@@ -1603,13 +1541,12 @@ div#subjectLists {
     padding: 0;
     li {
       list-style-type: none;
-      display: block;
       float: left;
       width: 282px;
       font-family: @body-family;
       padding-bottom: 10px;
       padding-top: 0;
-      .display-flex();
+      display: flex;
       .image {
         display: block;
         float: left;
@@ -1680,7 +1617,7 @@ div#subjectLists {
 // openlibrary/templates/account/books.html
 .list-books {
   .book {
-    .display-flex();
+    display: flex;
   }
 }
 
