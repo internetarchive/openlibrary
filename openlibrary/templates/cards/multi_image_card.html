@@ -1,0 +1,31 @@
+$def with(header_html="", image_urls=[], href='', footer_html="")
+
+$def header():
+    <div class="multi-img-card__header">
+        $:header_html
+    </div>
+
+$def anchored_image_container():
+    <a href="$href" class="multi-img-card__images">
+        $:render_images()
+    </a>
+
+$def image_container():
+    <div class="multi-img-card__images">
+        $:render_images()
+    </div>
+
+$def render_images():
+    $for url in image_urls:
+        <img class="multi-img-card__images-img" src="$url" loading="lazy" width="80">
+
+<div class="multi-img-card">
+    $:header()
+    $if href:
+        $:anchored_image_container()
+    $else:
+        $:image_container()
+    <div class="multi-img-card__footer">
+        $:footer_html
+    </div>
+</div>
