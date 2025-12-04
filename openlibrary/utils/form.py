@@ -109,9 +109,6 @@ class Email(Input):
         return "email"
 
 
-
-
-
 class Hidden(Input):
     """Hidden input."""
 
