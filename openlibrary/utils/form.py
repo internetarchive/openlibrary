@@ -109,21 +109,21 @@ class Email(Input):
         return "email"
 
 
-class Checkbox(Input):
-    """Checkbox input."""
+# class Checkbox(Input):
+#     """Checkbox input."""
 
-    @property
-    def checked(self):
-        return self.value is not None
+#     @property
+#     def checked(self):
+#         return self.value is not None
 
-    def get_type(self):
-        return "checkbox"
+#     def get_type(self):
+#         return "checkbox"
 
-    def render(self):
-        if self.value is not None:
-            self.attrs['checked'] = ''
+#     def render(self):
+#         if self.value is not None:
+#             self.attrs['checked'] = ''
 
-        return Input.render(self)
+#         return Input.render(self)
 
 
 class Hidden(Input):

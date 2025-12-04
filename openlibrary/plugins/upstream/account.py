@@ -333,7 +333,7 @@ class account_create(delegate.page):
                     email=f.email.value,
                     password=f.password.value,
                     notifications=notifications,
-                    verified=False,
+                    verified=True,
                     retries=USERNAME_RETRIES,
                 )
                 if "pd_request" in web.input() and web.input().get("pd_program"):
