@@ -67,7 +67,27 @@ class PublicQueryOptions(BaseModel):
     time_facet: list[str] = []
     first_publish_year: list[str] = []
     publisher_facet: list[str] = []
-    language: list[str] = []
+    language: list[str] = Field(
+        [],
+        description="Filter by language using three-letter language codes.",
+        examples={
+            "english": {
+                "summary": "English",
+                "description": "Returns results in English",
+                "value": ["eng"],
+            },
+            "spanish": {
+                "summary": "Spanish",
+                "description": "Returns results in Spanish",
+                "value": ["spa"],
+            },
+            "english_and_spanish": {
+                "summary": "English + Spanish",
+                "description": "Bilingual results",
+                "value": ["eng", "spa"],
+            },
+        },
+    )
     author_facet: list[str] = []
 
     @field_validator('q')
