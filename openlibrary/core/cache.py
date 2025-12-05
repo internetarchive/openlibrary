@@ -51,6 +51,8 @@ class memcache_memoize[**P, T]:
     :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
     :param prethread: Function to call on the new thread to set it up
+    :param cacheable: Optional callback to determine if a value should be cached.
+        Called with (args, kwargs, value) and should return True if cacheable.
     """
 
     def __init__(
@@ -60,6 +62,7 @@ class memcache_memoize[**P, T]:
         timeout: int = MINUTE_SECS,
         prethread: Callable[[], None] | None = None,
         hash_args: bool = False,
+        cacheable: Callable[[tuple, dict, T], bool] | None = None,
     ):
         """Creates a new memoized function for ``f``."""
         self.f: Callable[P, T] = f
@@ -72,6 +75,7 @@ class memcache_memoize[**P, T]:
         self.active_threads: dict[str, threading.Thread] = {}
         self.prethread = prethread
         self.hash_args = hash_args
+        self.cacheable = cacheable
 
     @property
     def memcache(self) -> memcache.Client:
@@ -157,7 +161,16 @@ class memcache_memoize[**P, T]:
         value = self.f(*args, **kw)
         t = time.time()
 
-        self.memcache_set(args, kw, value, t)
+        should_cache = True
+        if self.cacheable is not None:
+            try:
+                should_cache = self.cacheable(args, kw, value)
+            except Exception as e:
+                web.debug(f"memcache_memoize: cacheable callback error: {e}")
+                should_cache = False
+
+        if should_cache:
+            self.memcache_set(args, kw, value, t)
         return value, t
 
     def join_threads(self) -> None:

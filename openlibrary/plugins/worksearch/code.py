@@ -1129,6 +1129,18 @@ def _process_solr_search_response(response: SearchResponse, fields: str) -> dict
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
     """
+    # Handle error responses - return error dict instead of crashing
+    if response.error or response.raw_resp is None:
+        error_msg = str(response.error) if response.error else 'Unknown error occurred'
+        logger.warning(f"Solr search error: {error_msg}")
+        return {
+            'docs': [],
+            'numFound': 0,
+            'num_found': 0,
+            'error': error_msg,
+            'error_code': 'SOLR_ERROR',
+        }
+
     processed_response = response.raw_resp['response']
 
     if response.highlighting is not None:

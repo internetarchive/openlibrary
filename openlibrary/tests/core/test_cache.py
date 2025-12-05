@@ -89,6 +89,118 @@ class Test_memcache_memoize:
         m(10)
         assert m.stats.updates == 2
 
+    def test_cacheable_callback(self):
+        call_count = 0
+
+        def sometimes_fails(x):
+            nonlocal call_count
+            call_count += 1
+            if x < 0:
+                return {'error': 'negative number'}
+            return {'result': x * x}
+
+        def is_cacheable(args, kwargs, value):
+            return 'error' not in value
+
+        m = cache.memcache_memoize(
+            sometimes_fails,
+            key_prefix="sometimes_fails",
+            cacheable=is_cacheable,
+        )
+        m._memcache = mock_memcache.Client([])
+
+        assert m(10) == {'result': 100}
+        assert call_count == 1
+        assert m(10) == {'result': 100}
+        assert call_count == 1
+        assert m(-5) == {'error': 'negative number'}
+        assert call_count == 2
+        assert m(-5) == {'error': 'negative number'}
+        assert call_count == 3  # No cache hit, new call made
+
+    def test_cacheable_callback_edge_cases(self):
+        call_count = 0
+
+        def returns_various(x):
+            nonlocal call_count
+            call_count += 1
+            if x == 0:
+                return None
+            if x == 1:
+                return ''
+            if x == 2:
+                return {}
+            if x == 3:
+                return {'partial': True}
+            return {'complete': True, 'data': x}
+
+        def is_cacheable(args, kwargs, value):
+            if value is None or value == '' or value == {}:
+                return False
+            if isinstance(value, dict) and 'complete' not in value:
+                return False
+            return True
+
+        m = cache.memcache_memoize(
+            returns_various,
+            key_prefix="edge_cases",
+            cacheable=is_cacheable,
+        )
+        m._memcache = mock_memcache.Client([])
+
+        assert m(0) is None
+        assert call_count == 1
+        assert m(0) is None
+        assert call_count == 2
+        assert m(1) == ''
+        assert call_count == 3
+        assert m(1) == ''
+        assert call_count == 4
+        assert m(2) == {}
+        assert call_count == 5
+        assert m(2) == {}
+        assert call_count == 6
+        assert m(3) == {'partial': True}
+        assert call_count == 7
+        assert m(3) == {'partial': True}
+        assert call_count == 8
+
+        assert m(100) == {'complete': True, 'data': 100}
+        assert call_count == 9
+        assert m(100) == {'complete': True, 'data': 100}
+        assert call_count == 9
+
+    def test_cacheable_callback_exception_handling(self):
+        call_count = 0
+
+        def simple_func(x):
+            nonlocal call_count
+            call_count += 1
+            return {'value': x}
+
+        def buggy_cacheable(args, kwargs, value):
+            if value.get('value') == 'crash':
+                raise ValueError("Intentional crash in cacheable")
+            return True
+
+        m = cache.memcache_memoize(
+            simple_func,
+            key_prefix="buggy_cacheable",
+            cacheable=buggy_cacheable,
+        )
+        m._memcache = mock_memcache.Client([])
+
+        assert m('normal') == {'value': 'normal'}
+        assert call_count == 1
+        assert m('normal') == {'value': 'normal'}
+        assert call_count == 1 
+        result = m('crash')
+        assert result == {'value': 'crash'}
+        call_count_after_first_crash = call_count
+        result = m('crash')
+        assert result == {'value': 'crash'}
+        assert call_count > call_count_after_first_crash
+
 
 class Test_memoize:
     def teardown_method(self, method):

@@ -249,6 +249,58 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
             key_prefix += '.bot'
         return key_prefix
 
+    def is_cacheable_carousel_content(rendered_str: str) -> bool:
+        """
+        Check if carousel render has valid content that should be cached.
+
+        Returns False if the rendered content is empty or indicates an error.
+        See: https://github.com/internetarchive/openlibrary/issues/11373
+        """
+        # Check for explicit error indicators in rendered output
+        error_indicators = ['error-message', 'carousel-error', 'Failed to']
+        for indicator in error_indicators:
+            if indicator in rendered_str:
+                logger.info(f"Carousel cache skip: error indicator '{indicator}' found")
+                return False
+
+        # Check for meaningful carousel content using multiple indicators
+        carousel_indicators = ['carousel-section', 'carousel-container', 'custom_carousel']
+        has_carousel_content = any(ind in rendered_str for ind in carousel_indicators)
+
+        if not has_carousel_content:
+            logger.info("Carousel cache skip: no carousel content found in render")
+            return False
+
+        if len(rendered_str.strip()) < 100:
+            logger.info("Carousel cache skip: rendered content too short, likely empty")
+            return False
+
+        return True
+
+    def is_cacheable_macro(args_tuple: tuple, kwargs_dict: dict, value: Any) -> bool:
+        """
+        Determines if a macro render result should be cached.
+
+        Only applies special carousel checking for carousel-related macros.
+        Other macros use default caching behavior (always cache)
+        """
+        try:
+            if not value:
+                logger.info("Macro cache skip: empty render result")
+                return False
+
+            macro_name = str(args_tuple[0]) if args_tuple else ''
+
+            if 'carousel' in macro_name.lower():
+                rendered_str = str(value.get('__body__', ''))
+                return is_cacheable_carousel_content(rendered_str)
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Macro cache skip: error checking cacheability: {e}")
+            return False
+
     five_minutes = 5 * 60
     key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
@@ -257,6 +309,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         timeout=five_minutes,
         prethread=caching_prethread(),
         hash_args=True,  # this avoids cache key length overflow
+        cacheable=is_cacheable_macro,
     )
 
     try:
