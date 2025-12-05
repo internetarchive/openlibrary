@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any, Self
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from openlibrary.core.fulltext import fulltext_search_async
@@ -110,12 +110,8 @@ class PublicQueryOptions(BaseModel):
     @field_validator('q')
     @classmethod
     def parse_q_string(cls, v: str) -> str:
-        # Note: in other endpoints we should use a value error
-        # but we can't because the way we have multiple pydantic models here
-        # See: https://docs.pydantic.dev/2.2/usage/validators/
-        # Also https://fastapi.tiangolo.com/tutorial/handling-errors/
         if q_error := validate_search_json_query(v):
-            raise HTTPException(422, detail=q_error)
+            raise ValueError(q_error)
         return v
 
 
@@ -144,7 +140,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         try:
             return json.loads(v)
         except json.JSONDecodeError as e:
-            raise HTTPException(422, detail=f"Invalid JSON in 'query' parameter: {e}")
+            raise ValueError(f"Invalid JSON in 'query' parameter: {e}")
 
     @computed_field
     def selected_query(self) -> dict[str, Any]:
