@@ -96,6 +96,72 @@ class TestSearchEndpoint:
         assert query_arg == query_dict
 
     @pytest.mark.parametrize(
+        ('query_dict', 'description'),
+        [
+            # Simple query with just 'q'
+            ({'q': 'python programming'}, 'simple q param'),
+            # Query with multiple fields
+            (
+                {'q': 'fantasy', 'author': 'Tolkien', 'title': 'Ring'},
+                'multiple fields',
+            ),
+            # Query with list values
+            (
+                {'author_key': ['OL1A', 'OL2A'], 'subject': 'fiction'},
+                'list values',
+            ),
+            # Query with boolean fields
+            ({'q': 'open access', 'has_fulltext': True}, 'boolean fields'),
+            # Query with numeric fields
+            ({'q': 'history', 'first_publish_year': 1990}, 'numeric fields'),
+            # Empty query dict
+            ({}, 'empty query'),
+        ],
+    )
+    def test_query_param_parsing(
+        self, client, mock_work_search, query_dict, description
+    ):
+        """Test that the 'query' JSON parameter is correctly parsed and passed to work_search_async.
+
+        When the 'query' parameter is specified, it should be JSON-decoded and passed
+        directly as the first positional argument to work_search_async, bypassing
+        the individual query parameter parsing.
+        """
+        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
+
+        response = search(client, query=json.dumps(query_dict))
+
+        assert response.status_code == 200, f"Failed for case: {description}"
+        mock_work_search.assert_called_once()
+
+        # Verify the query dict is passed as the first positional argument
+        call_args = mock_work_search.call_args
+        actual_query = call_args[0][0]
+        assert actual_query == query_dict, f"Query mismatch for case: {description}"
+
+    @pytest.mark.parametrize(
+        'invalid_json',
+        [
+            '{not valid json}',
+            '{"unclosed": "brace"',
+            "{'single': 'quotes'}",  # JSON requires double quotes
+            'just a string',
+            '[1, 2, 3',  # unclosed array
+        ],
+    )
+    def test_query_param_invalid_json(self, client, mock_work_search, invalid_json):
+        """Test that invalid JSON in the 'query' parameter returns an error.
+
+        When the 'query' parameter contains malformed JSON, the endpoint should
+        return an error response rather than crashing.
+        """
+        response = search(client, query=invalid_json)
+
+        # Should return a 422 validation error for invalid JSON
+        assert response.status_code == 422
+        mock_work_search.assert_not_called()
+
+    @pytest.mark.parametrize(
         ('params', 'expected_kwargs'),
         [
             (

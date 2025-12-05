@@ -119,7 +119,10 @@ async def search_json(
     """
     query: dict[str, Any] = {}
     if query_str:
-        query = json.loads(query_str)
+        try:
+            query = json.loads(query_str)
+        except json.JSONDecodeError as e:
+            raise HTTPException(422, detail=f"Invalid JSON in 'query' parameter: {e}")
     else:
         # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
         query = public_query_options.model_dump(exclude_none=True)
