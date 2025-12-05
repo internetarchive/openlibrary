@@ -66,5 +66,35 @@ class TestVerification(unittest.TestCase):
         self.assertIsNotNone(publish_year_config, "Should have publish_year facet config")
         self.assertEqual(publish_year_config.get('limit'), 2000, "Should have limit=2000 for publish_year")
 
+    @patch('openlibrary.plugins.worksearch.search.get_solr')
+    def test_language_ebook_count_publish_year(self, mock_get_solr):
+        # Test LanguageEngine.get_ebook_count with different publish_year inputs
+        engine = languages.LanguageEngine()
+        mock_solr_instance = MagicMock()
+        mock_get_solr.return_value = mock_solr_instance
+        
+        # Mock result
+        mock_result = {'facets': {'has_fulltext': [web.storage(value='true', count=10)]}}
+        mock_solr_instance.select.return_value = mock_result
+
+        # Case 1: Single year > 2000
+        engine.get_ebook_count("English", "eng", 2025)
+        args, kwargs = mock_solr_instance.select.call_args
+        self.assertEqual(args[0]['publish_year'], 2025, "Should handle years > 2000")
+
+        # Case 2: List of years (range)
+        engine.get_ebook_count("English", "eng", [1990, 2025])
+        args, kwargs = mock_solr_instance.select.call_args
+        self.assertEqual(args[0]['publish_year'], (1990, 2025), "Should handle ranges ending > 2000")
+
+    def test_date_range_filter(self):
+        # Test the date_range_to_publish_year_filter helper in subjects.py
+        from openlibrary.plugins.worksearch.subjects import date_range_to_publish_year_filter
+        
+        self.assertEqual(date_range_to_publish_year_filter("1990-2025"), "[1990 TO 2025]")
+        self.assertEqual(date_range_to_publish_year_filter("2025"), "2025")
+        self.assertEqual(date_range_to_publish_year_filter("invalid"), "")
+        self.assertEqual(date_range_to_publish_year_filter("1990-invalid"), "")
+
 if __name__ == '__main__':
     unittest.main()
