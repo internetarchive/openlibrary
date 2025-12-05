@@ -371,7 +371,7 @@ class TestSearchEndpoint:
         ('params', 'expected_fields'),
         [
             # No fields param: should use default fields
-            ({'q': 'test'}, list(WorkSearchScheme.default_fetched_fields)),
+            ({'q': 'test'}, sorted(WorkSearchScheme.default_fetched_fields)),
             # Single field as comma-separated string
             ({'q': 'test', 'fields': 'title'}, ['title']),
             # Multiple fields as comma-separated string

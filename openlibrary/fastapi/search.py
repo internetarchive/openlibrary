@@ -22,13 +22,11 @@ router = APIRouter()
 class Pagination(BaseModel):
     """Reusable pagination parameters for API endpoints."""
 
-    limit: int = Field(
-        default=100, ge=0, description="Maximum number of results to return."
-    )
+    limit: int = Field(100, ge=0, description="Maximum number of results to return.")
     offset: int | None = Field(
-        default=None, ge=0, description="Number of results to skip.", exclude=True
+        None, ge=0, description="Number of results to skip.", exclude=True
     )
-    page: int | None = Field(default=None, ge=1, description="Page number (1-indexed).")
+    page: int | None = Field(None, ge=1, description="Page number (1-indexed).")
 
     @model_validator(mode='after')
     def normalize_pagination(self) -> Self:
@@ -44,7 +42,7 @@ class PublicQueryOptions(BaseModel):
     All parameters (and Pagination) that will be passed to the query.
     """
 
-    q: str = Field(default="", description="The search query string.")
+    q: str = Field("", description="The search query string.")
 
     # from check_params in works.py
     title: str | None = None
@@ -123,15 +121,13 @@ class PublicQueryOptions(BaseModel):
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: str | None = Field(
-        default=",".join(WorkSearchScheme.default_fetched_fields),
+        ",".join(sorted(WorkSearchScheme.default_fetched_fields)),
         description="The fields to return.",
     )
-    query: str | None = Field(
-        default=None, description="A full JSON encoded solr query."
-    )
-    sort: str | None = Field(default=None, description="The sort order of results.")
+    query: str | None = Field(None, description="A full JSON encoded solr query.")
+    sort: str | None = Field(None, description="The sort order of results.")
     spellcheck_count: int | None = Field(
-        default=default_spellcheck_count,
+        default_spellcheck_count,
         description="The number of spellcheck suggestions.",
     )
 
