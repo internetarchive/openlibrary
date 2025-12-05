@@ -135,6 +135,27 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return result
 
     @property
+    def chapter(self) -> list[str]:
+        result = []
+        olid = self._edition.get('key', '').split('/', 2)[-1]
+        for chapter in self._edition.get('table_of_contents', []):
+            # Check if plain string first
+            if isinstance(chapter, str):
+                result.append(f'{olid} | {chapter}')
+                continue
+
+            title = chapter.get("title", "")
+            if chapter.get("subtitle"):
+                title += f": {chapter['subtitle']}"
+            if chapter.get("authors"):
+                title += f" ({', '.join(a['name'] for a in chapter['authors'])})"
+
+            result.append(
+                f'{olid} | {chapter.get("label", "")} | {title} | {chapter.get("pagenum", "")}'
+            )
+        return result
+
+    @property
     def cover_i(self) -> int | None:
         return next(
             (
@@ -310,6 +331,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'title': self.title,
                 'subtitle': self.subtitle,
                 'alternative_title': list(self.alternative_title),
+                'chapter': self.chapter,
                 'cover_i': self.cover_i,
                 'language': self.language,
                 # Duplicate the author data from the work

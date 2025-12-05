@@ -784,6 +784,14 @@ msgid "added to"
 msgstr ""
 
 #: SearchResultsWork.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Show less"
+msgstr ""
+
+#: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""

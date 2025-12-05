@@ -50,6 +50,7 @@ class WorkSearchScheme(SearchScheme):
             "subtitle",
             "alternative_title",
             "alternative_subtitle",
+            "chapter",
             "cover_i",
             "ebook_access",
             "ebook_provider",
@@ -351,7 +352,7 @@ class WorkSearchScheme(SearchScheme):
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^10 author_name^10',
+            qf='text alternative_title^10 author_name^10 chapter^5',
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
             pf='alternative_title^10 author_name^10',
@@ -389,6 +390,7 @@ class WorkSearchScheme(SearchScheme):
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
+                'chapter': 'chapter',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
                 'publish_date': 'publish_date',
@@ -520,7 +522,7 @@ class WorkSearchScheme(SearchScheme):
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text alternative_title^4 author_name^4',
+                qf='text alternative_title^4 author_name^4 chapter^4',
                 # Reading from the url parameter userEdQuery. This lets us avoid
                 # having to try to escape the query in order to fit inside this
                 # other query.
@@ -559,7 +561,7 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', full_work_query))
 
         if highlight:
-            highlight_fields = ('subject',)
+            highlight_fields = ('subject', 'chapter')
             try:
                 # This can throw the EmptyTreeError if nothing remains in the query
                 highlight_query = luqum_deepcopy(work_q_tree)
@@ -572,6 +574,8 @@ class WorkSearchScheme(SearchScheme):
                 new_params.append(('hl.fl', ','.join(highlight_fields)))
                 new_params.append(('hl.q', str(highlight_query)))
                 new_params.append(('hl.snippets', '10'))
+                # we can't trim e.g. chapter since it has a specific structure with the pipes
+                new_params.append(('hl.fragsize', '0'))
             except EmptyTreeError:
                 # nothing to highlight
                 pass
