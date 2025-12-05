@@ -1,6 +1,9 @@
 import sys
 import unittest
+import sys
+import unittest
 from unittest.mock import MagicMock, patch
+import json
 
 # We do NOT want to mock modules globally as it breaks other tests in the suite.
 # Instead, we will use patch.dict on sys.modules contextually.
@@ -68,7 +71,38 @@ class TestVerification(unittest.TestCase):
             'openlibrary.accounts': MagicMock(),
             # upstream utils import web.template
             'openlibrary.plugins.upstream.utils': MagicMock(),
+            'openlibrary.plugins.upstream.utils': MagicMock(),
         }
+
+    # Helper for dot-access dicts (serializable by json.dumps)
+    class Obj(dict):
+        def __getattr__(self, name):
+            if name in self:
+                return self[name]
+            raise AttributeError(name)
+
+    # Helper: create a minimal response-like object that is safe for code that
+    # may access .text, .content, .json() or .select(). Using this avoids
+    # json.loads() being passed a MagicMock.
+    def _make_solr_response(self, select_result):
+        class _Resp:
+            def __init__(self, result):
+                self._result = result
+                # ensure .text/.content are serialised JSON (bytes/str)
+                try:
+                    self.text = json.dumps(result)
+                    self.content = self.text.encode("utf-8")
+                except Exception:
+                    # fall back to empty JSON
+                    self.text = "{}"
+                    self.content = b"{}"
+                # Mimic select method as a mock so we can track calls
+                self.select = MagicMock(return_value=result)
+
+            def json(self):
+                # emulate requests.Response.json()
+                return self._result
+        return _Resp(select_result)
 
     def test_language_query_params(self):
         # Setup the mocks required for import and execution
@@ -82,16 +116,13 @@ class TestVerification(unittest.TestCase):
             from openlibrary.plugins.worksearch import languages
 
             # Mock get_solr
+            # Mock get_solr
             with patch(
                 'openlibrary.plugins.worksearch.search.get_solr'
             ) as mock_get_solr:
-                mock_solr_instance = MagicMock()
-                # Fix for potential "TypeError: the JSON object must be str... not MagicMock"
-                # If the code tries to json.loads(response.text), we provide valid JSON.
-                mock_solr_instance.text = '{"facets": {"language": []}}'
-                mock_solr_instance.content = b'{"facets": {"language": []}}'
+                # Provide a safe response object (handles .text, .content, .json(), .select)
+                mock_solr_instance = self._make_solr_response({'facets': {'language': []}})
                 mock_get_solr.return_value = mock_solr_instance
-                mock_solr_instance.select.return_value = {'facets': {'language': []}}
 
                 # Call the function
                 languages.get_all_language_counts('work')
@@ -176,14 +207,14 @@ class TestVerification(unittest.TestCase):
             ) as mock_get_solr:
                 # Test LanguageEngine.get_ebook_count with different publish_year inputs
                 engine = languages.LanguageEngine()
-                mock_solr_instance = MagicMock()
-                mock_get_solr.return_value = mock_solr_instance
-
-                # Mock result
+                
+                # Mock result - wrap into safe response object
+                # Use self.Obj so json.dumps works AND dot-access works (v.value, v.count)
                 mock_result = {
-                    'facets': {'has_fulltext': [MagicMock(value='true', count=10)]}
+                    'facets': {'has_fulltext': [self.Obj(value='true', count=10)]}
                 }
-                mock_solr_instance.select.return_value = mock_result
+                mock_solr_instance = self._make_solr_response(mock_result)
+                mock_get_solr.return_value = mock_solr_instance
 
                 # Case 1: Single year > 2000
                 engine.get_ebook_count("English", "eng", 2025)
