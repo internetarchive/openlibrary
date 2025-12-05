@@ -44,8 +44,9 @@ class PublicQueryOptions(BaseModel):
     All parameters (and Pagination) that will be passed to the query.
     """
 
-    # from check_params in works.py
     q: str = Field(default="", description="The search query string.")
+
+    # from check_params in works.py
     title: str | None = None
     publisher: str | None = None
     oclc: str | None = None
