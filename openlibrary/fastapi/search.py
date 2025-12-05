@@ -82,7 +82,7 @@ class AdditionalEndpointQueryOptions(BaseModel):
         description="The fields to return.",
     )
 
-    @field_validator('fields', mode='after')
+    @field_validator('fields')
     @classmethod
     def parse_fields_string(cls, v: str) -> list[str]:
         return [f.strip() for f in v.split(",") if f.strip()]
