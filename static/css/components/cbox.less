@@ -74,7 +74,7 @@
     background: @white;
     padding: 10px;
     border: 1px solid @dark-beige;
-    border-radius: 12px;
+    border-radius: @border-radius-overlay; // was 12px, now 16px (+4px)
     -webkit-box-shadow: 1px 3px 5px @darker-grey;
     box-shadow: 1px 3px 5px @darker-grey;
   }
@@ -264,7 +264,7 @@ div.floater {
   .carousel .cta-btn {
     color: @grey;
     border: 2px solid @light-grey;
-    border-radius: @radius-button;
+    border-radius: @border-radius-button;
     position: relative;
   }
 }
