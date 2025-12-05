@@ -4,7 +4,14 @@ import json
 from typing import Annotated, Any, Self
 
 from fastapi import APIRouter, Query, Request
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    Field,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE
@@ -116,7 +123,7 @@ class PublicQueryOptions(BaseModel):
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
-    fields: str | None = Field(
+    fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
         ",".join(sorted(WorkSearchScheme.default_fetched_fields)),
         description="The fields to return.",
     )
@@ -127,10 +134,10 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         description="The number of spellcheck suggestions.",
     )
 
-    @field_validator('fields')
-    @classmethod
-    def parse_fields_string(cls, v: str) -> list[str]:
-        return [f.strip() for f in v.split(",") if f.strip()]
+    def parse_fields_string(v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            v = [v]
+        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
     @field_validator('query')
     @classmethod
