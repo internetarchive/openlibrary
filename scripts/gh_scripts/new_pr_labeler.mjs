@@ -113,6 +113,8 @@ function parseArgs() {
     }
 }
 
+const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i
+
 /**
  * Finds first "Closes" statement in the given pull request body, then
  * returns the number of the linked issue or an empty string, if none exists.
@@ -123,7 +125,6 @@ function parseArgs() {
  *                   "Closes" statement is found.
  */
 function findLinkedIssue(body) {
-    let lowerBody = body.toLowerCase()
-    const matches = lowerBody.match(/closes #(\d+)/)
+    const matches = body.match(CLOSES_REGEX)
     return matches?.length ? Number(matches[1]) : ''
 }
