@@ -2,6 +2,7 @@
 // stylelint-disable selector-max-specificity
 @import (less) "../less/font-families.less";
 @import (less) "../less/z-index.less";
+@import (reference) "../less/border-radius.less";
 
 /* COLORBOX POP-UP */
 #colorbox,
@@ -263,7 +264,7 @@ div.floater {
   .carousel .cta-btn {
     color: @grey;
     border: 2px solid @light-grey;
-    border-radius: 6px;
+    border-radius: @radius-button;
     position: relative;
   }
 }
