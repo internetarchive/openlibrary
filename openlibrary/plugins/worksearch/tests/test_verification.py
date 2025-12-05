@@ -1,9 +1,7 @@
-import sys
-import unittest
+import json
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import json
 
 # We do NOT want to mock modules globally as it breaks other tests in the suite.
 # Instead, we will use patch.dict on sys.modules contextually.
@@ -102,6 +100,7 @@ class TestVerification(unittest.TestCase):
             def json(self):
                 # emulate requests.Response.json()
                 return self._result
+
         return _Resp(select_result)
 
     def test_language_query_params(self):
@@ -121,7 +120,9 @@ class TestVerification(unittest.TestCase):
                 'openlibrary.plugins.worksearch.search.get_solr'
             ) as mock_get_solr:
                 # Provide a safe response object (handles .text, .content, .json(), .select)
-                mock_solr_instance = self._make_solr_response({'facets': {'language': []}})
+                mock_solr_instance = self._make_solr_response(
+                    {'facets': {'language': []}}
+                )
                 mock_get_solr.return_value = mock_solr_instance
 
                 # Call the function
@@ -207,7 +208,7 @@ class TestVerification(unittest.TestCase):
             ) as mock_get_solr:
                 # Test LanguageEngine.get_ebook_count with different publish_year inputs
                 engine = languages.LanguageEngine()
-                
+
                 # Mock result - wrap into safe response object
                 # Use self.Obj so json.dumps works AND dot-access works (v.value, v.count)
                 mock_result = {
