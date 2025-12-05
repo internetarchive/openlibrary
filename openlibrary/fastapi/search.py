@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from openlibrary.core.fulltext import fulltext_search_async
@@ -39,7 +38,7 @@ class PublicQueryOptions(BaseModel):
     This class has all the parameters that are passed as "query"
     """
 
-    q: str = Query("", description="The search query, like keyword.")
+    q: str = ""
 
     # from check_params in works.py
     title: str | None = None
@@ -74,6 +73,17 @@ class PublicQueryOptions(BaseModel):
     publisher_facet: list[str] = Field(Query([]))
     language: list[str] = Field(Query([]))
     author_facet: list[str] = Field(Query([]))
+
+    @field_validator('q')
+    @classmethod
+    def parse_q_string(cls, v: str) -> str:
+        # Note: in other endpoints we should use a value error
+        # but we can't because the way we have multiple pydantic models here
+        # See: https://docs.pydantic.dev/2.2/usage/validators/
+        # Also https://fastapi.tiangolo.com/tutorial/handling-errors/
+        if q_error := validate_search_json_query(v):
+            raise HTTPException(422, detail=q_error)
+        return v
 
 
 class AdditionalEndpointQueryOptions(BaseModel):
@@ -114,9 +124,6 @@ async def search_json(
         # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
         query = public_query_options.model_dump(exclude_none=True)
         query.update({"page": pagination.page, "limit": pagination.limit})
-
-    if q_error := validate_search_json_query(public_query_options.q):
-        return JSONResponse(status_code=422, content={"error": q_error})
 
     response = await work_search_async(
         query,
