@@ -193,7 +193,7 @@ class Test_memcache_memoize:
         assert m('normal') == {'value': 'normal'}
         assert call_count == 1
         assert m('normal') == {'value': 'normal'}
-        assert call_count == 1 
+        assert call_count == 1
         result = m('crash')
         assert result == {'value': 'crash'}
         call_count_after_first_crash = call_count

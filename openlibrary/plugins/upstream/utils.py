@@ -264,7 +264,11 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
                 return False
 
         # Check for meaningful carousel content using multiple indicators
-        carousel_indicators = ['carousel-section', 'carousel-container', 'custom_carousel']
+        carousel_indicators = [
+            'carousel-section',
+            'carousel-container',
+            'custom_carousel',
+        ]
         has_carousel_content = any(ind in rendered_str for ind in carousel_indicators)
 
         if not has_carousel_content:
