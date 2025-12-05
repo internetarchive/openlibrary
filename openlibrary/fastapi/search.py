@@ -91,11 +91,22 @@ class AdditionalEndpointQueryOptions(BaseModel):
         ",".join(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
+    query: str | None = Query(None, description="A full JSON encoded solr query.")
 
     @field_validator('fields')
     @classmethod
     def parse_fields_string(cls, v: str) -> list[str]:
         return [f.strip() for f in v.split(",") if f.strip()]
+
+    @field_validator('query')
+    @classmethod
+    def parse_query_json(cls, v: str | None) -> dict[str, Any] | None:
+        if v is None:
+            return None
+        try:
+            return json.loads(v)
+        except json.JSONDecodeError as e:
+            raise HTTPException(422, detail=f"Invalid JSON in 'query' parameter: {e}")
 
 
 @router.get("/search.json")
@@ -110,19 +121,13 @@ async def search_json(
     spellcheck_count: int | None = Query(
         default_spellcheck_count, description="The number of spellcheck suggestions."
     ),
-    query_str: str | None = Query(
-        None, alias="query", description="A full JSON encoded solr query."
-    ),
 ):
     """
     Performs a search for documents based on the provided query.
     """
-    query: dict[str, Any] = {}
-    if query_str:
-        try:
-            query = json.loads(query_str)
-        except json.JSONDecodeError as e:
-            raise HTTPException(422, detail=f"Invalid JSON in 'query' parameter: {e}")
+    query: dict[str, Any]
+    if additional_endpoint_query_options.query is not None:
+        query = additional_endpoint_query_options.query  # type: ignore[assignment]
     else:
         # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
         query = public_query_options.model_dump(exclude_none=True)
