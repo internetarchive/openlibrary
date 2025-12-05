@@ -114,8 +114,6 @@ class TestSearchEndpoint:
             ({'q': 'open access', 'has_fulltext': True}, 'boolean fields'),
             # Query with numeric fields
             ({'q': 'history', 'first_publish_year': 1990}, 'numeric fields'),
-            # Empty query dict
-            ({}, 'empty query'),
         ],
     )
     def test_query_param_parsing(

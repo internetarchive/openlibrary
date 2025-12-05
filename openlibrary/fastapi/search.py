@@ -127,7 +127,9 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         ",".join(sorted(WorkSearchScheme.default_fetched_fields)),
         description="The fields to return.",
     )
-    query: str | None = Field(None, description="A full JSON encoded solr query.")
+    query: Annotated[dict[str, Any], BeforeValidator(parse_query_json)] = Field(
+        None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
+    )
     sort: str | None = Field(None, description="The sort order of results.")
     spellcheck_count: int | None = Field(
         default_spellcheck_count,
@@ -139,11 +141,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             v = [v]
         return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
-    @field_validator('query')
-    @classmethod
-    def parse_query_json(cls, v: str | None) -> dict[str, Any] | None:
-        if v is None:
-            return None
+    def parse_query_json(v: str) -> dict[str, Any]:
         try:
             return json.loads(v)
         except json.JSONDecodeError as e:
