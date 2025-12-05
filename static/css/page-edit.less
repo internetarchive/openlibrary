@@ -19,7 +19,6 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/font-families.less";
 @import (less) "legacy.less";
 
@@ -32,7 +31,7 @@ div#content {
 
 /* stylelint-disable selector-max-specificity */
 div#content {
-  font-family: @lucida_sans_serif-1;
+  font-family: @body-family;
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -47,27 +46,27 @@ div#revertLink {
   top: 60px;
   right: 20px;
   font-size: 0.75em;
-  font-family: @lucida_sans_serif-1;
+  font-family: @body-family;
 }
 /* stylelint-enable selector-max-specificity */
 .formElement {
-  font-family: @lucida_sans_serif-2;
+  font-family: @body-family;
   color: @darker-grey;
 }
 .label {
   padding: 10px 0 5px;
   label {
     font-size: 1em;
-    font-family: @lucida_sans_serif-5;
+    font-family: @body-family;
     font-weight: 700;
   }
   span {
     font-size: 0.75em;
-    font-family: @lucida_sans_serif-5;
+    font-family: @body-family;
   }
 }
 textarea {
-  font-family: @lucida_console_monospace;
+  font-family: @code-family;
   font-size: 0.875em;
   padding: 5px;
   resize: vertical;
@@ -75,7 +74,7 @@ textarea {
 .formElement input[type="text"],
 .formElement select {
   font-size: 1em;
-  font-family: @lucida_sans_serif-4;
+  font-family: @body-family;
   color: @dark-grey;
   padding: 5px;
 }
@@ -87,7 +86,7 @@ table.code {
   td {
     background-color: @white;
     vertical-align: top;
-    font-family: @lucida_console_monospace;
+    font-family: @code-family;
     font-size: 0.875em;
     padding: 5px;
   }
@@ -111,7 +110,7 @@ div#databar {
   h2 {
     margin: 0 0 5px;
     a {
-      font-family: @lucida_sans_serif-4;
+      font-family: @body-family;
       color: @red;
       font-size: @font-size-label-large;
       font-weight: normal;

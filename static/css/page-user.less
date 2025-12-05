@@ -38,7 +38,6 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/font-families.less";
 @import (less) "components/flash-messages.less";
 @import (less) "less/z-index.less";
@@ -75,7 +74,7 @@ div.message {
   margin-bottom: 15px;
   background: @light-yellow;
   p {
-    font-family: @lucida_sans_serif-7;
+    font-family: @body-family;
   }
 }
 div.siteSearch {
@@ -253,3 +252,4 @@ textarea.toc-editor {
 @import (less) "components/searchbox.less";
 // Import styles for sort options
 @import (less) "components/sort-dropper.less";
+@import (less) "components/pagination.less";

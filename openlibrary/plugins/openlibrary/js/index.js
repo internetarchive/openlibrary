@@ -228,6 +228,12 @@ jQuery(function () {
             .then((module) => new module.LazyThingPreview().init());
     }
 
+    // Enhance patron export buttons on /account/import
+    if (location.pathname === '/account/import') {
+        import(/* webpackChunkName: "patron-exports" */ './patron_exports')
+            .then(module => module.initPatronExportButtons());
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
@@ -547,6 +553,13 @@ jQuery(function () {
     if (listSection) {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
             .then(module => module.initListsSection(listSection))
+    }
+
+    // Initialize follow forms lazily
+    const followForms = document.querySelectorAll('.follow-form');
+    if (followForms.length) {
+        import(/* webpackChunkName: "following" */ './following')
+            .then(module => module.initAsyncFollowing(followForms))
     }
 
     // Generalized carousel lazy-loading

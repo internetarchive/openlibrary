@@ -21,7 +21,7 @@
     margin: 0;
     padding: 5px;
     display: block;
-    font-family: @lucida_sans_serif-2;
+    font-family: @body-family;
     font-size: @font-size-label-medium;
     cursor: pointer;
     color: @dark-grey;
@@ -45,6 +45,11 @@
 .ac_results .ac_language {
   font-size: @font-size-title-medium;
   color: @black;
+
+  @media (pointer: coarse) {
+    padding: 12px 5px;
+    min-height: 44px;
+  }
 }
 
 .ac_author {
@@ -65,7 +70,7 @@
   }
 
   .olid {
-    font-family: @monospace;
+    font-family: @code-family;
   }
 
   .name {
@@ -108,7 +113,7 @@
   }
 
   .olid {
-    font-family: @monospace;
+    font-family: @code-family;
   }
 
   .name {

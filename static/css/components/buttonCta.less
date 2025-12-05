@@ -17,7 +17,7 @@ a.cta-btn {
   margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
-  font-family: @lucida_sans_serif-1;
+  font-family: @body-family;
   text-align: center;
   padding: 7px;
   white-space: nowrap;
@@ -95,7 +95,9 @@ a.cta-btn {
   &--shell,
   &--shell:link,
   &--shell:visited {
-    .shell-btn--active();
+    background-color: @white;
+    border: 2px solid @primary-blue;
+    color: @primary-blue;
   }
   &--shell:disabled {
     border: 2px solid @light-grey;

@@ -6,7 +6,7 @@
 @import "buttonCta.less";
 
 .bookauthor {
-  font-family: @lucida_sans_serif-6;
+  font-family: @body-family;
 }
 
 // Some preview rules are too specific and need to be rewritten
@@ -59,7 +59,7 @@
 
   &,
   .sri__main {
-    .display-flex();
+    display: flex;
     align-items: center;
     flex-direction: column;
 
@@ -96,7 +96,7 @@
   .resultStats {
     font-size: 0.75em;
     color: @grey;
-    font-family: @lucida_sans_serif-6;
+    font-family: @body-family;
     display: block;
   }
   span.resultType {
@@ -201,7 +201,7 @@
   white-space: nowrap;
   max-width: 150px;
   line-height: 28px;
-  .display-flex();
+  display: flex;
   margin-bottom: 5px;
   a {
     span {

@@ -1,36 +1,26 @@
-$def with (a, b)
+$def with (a, b, show_header=True)
 
 $var title: $_("Diff on %s", a.key)
 
 $putctx("robots", "noindex,nofollow")
 
-<div id="contentHead">
+$if show_header:
+    <div id="contentHead">
+        $:macros.databarDiff(path=a.key)
 
-    $:macros.databarDiff()
+        $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
+            $ title = a.title or a.key
+        $elif a.type.key in ["/type/author"]:
+            $ title = a.name or a.key
+        $else:
+            $ title = a.key
 
-    $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
-        $ title = a.title or a.key
-    $elif a.type.key in ["/type/author"]:
-        $ title = a.name or a.key
-    $else:
-        $ title = a.key
-
-    <h2 class="collapse"><a href="$a.key">$title</a> &rarr; Diff</h2>
-
-    <div id="legend">
-       <dl>
-           <dd class="add">$_("Added")</dd>
-           <dd class="mod">$_("Modified")</dd>
-           <dd class="rem">$_("Removed")</dd>
-           <dd class="unmod">$_("Not changed")</dd>
-       </dl>
+        <h2 class="collapse"><a href="$a.key">$title</a> &rarr; Diff</h2>
     </div>
-
-</div>
 
 $def display_revision(page):
     <div class="small sansserif">
-        <a href="$changequery({}, v=page.revision)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
+        <a href="$changequery({}, v=page.revision, _path=page.key)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
         $ v = get_version(page.key, page.revision)
         $if v:
             $if v.author:
@@ -60,7 +50,7 @@ $def listdiff(name, a, b):
     <tr>
         <td class="diff-header-side" style="vertical-align: top;">$name</td>
         <td colspan="2">
-        <table style="width: 100%;">
+        <table class="no-table-collapse" style="width: 100%;">
         $for key, ai, a, bi, b in diffresults:
             <tbody class="$key">
             <tr>
@@ -95,7 +85,16 @@ $def diff_display(name, value):
 
 <div id="contentBody" class="diff">
 
-    <table class="revisions" summary="$_('Differences')">
+    <div id="legend">
+       <dl>
+           <dd class="add">$_("Added")</dd>
+           <dd class="mod">$_("Modified")</dd>
+           <dd class="rem">$_("Removed")</dd>
+           <dd class="unmod">$_("Not changed")</dd>
+       </dl>
+    </div>
+
+    <table class="revisions no-table-collapse" summary="$_('Differences')">
         <colgroup class="l"><col class="line" /><col class="content" /></colgroup>
         <colgroup class="r"><col class="line" /><col class="content" /></colgroup>
         <thead>
@@ -157,6 +156,5 @@ $def diff_display(name, value):
             </tr>
         </tbody>
     </table>
-    <div class="clearfix"></div>
 
 </div>
