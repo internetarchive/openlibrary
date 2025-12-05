@@ -17,7 +17,7 @@ $add_metatag(property="og:site_name", content="Open Library")
   $:render_template("home/welcome", test=test)
 
   $if not test:
-    $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)
+    $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] readinglog_count:[4 TO *]', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)
     $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", sort='trending', user_lang_only=True)
 
   $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, user_lang_only=True)
@@ -26,7 +26,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $if not test:
     $# TODO: See if we can remove the first_publish_year restriction. But the label "romance" seems to be applied unexpectedly to books before 1930.
-    $:macros.QueryCarousel(title=_('Romance'), key="romance", query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"', sort='trending,trending_score_hourly_sum', user_lang_only=True)
+    $:macros.QueryCarousel(title=_('Romance'), key="romance", query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *]', sort='trending,trending_score_hourly_sum', user_lang_only=True)
     $# Note we're not simply doing subject:juvenile because that pulls in things like "juvenile homicide"
     $:macros.QueryCarousel(title=_('Kids'), key="children", query='ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] (subject_key:(juvenile_audience OR children\'s_fiction OR juvenile_nonfiction OR juvenile_encyclopedias OR juvenile_riddles OR juvenile_poetry OR juvenile_wit_and_humor OR juvenile_limericks OR juvenile_dictionaries OR juvenile_non-fiction) OR subject:("Juvenile literature" OR "Juvenile fiction" OR "pour la jeunesse" OR "pour enfants"))', sort='random.hourly', user_lang_only=True)
     $:macros.QueryCarousel(title=_('Thrillers'), key="thrillers", query="subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *]", url="/subjects/thrillers", sort='trending,trending_score_hourly_sum', user_lang_only=True)
