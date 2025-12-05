@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
+    ConfigDict,
     Field,
     computed_field,
     field_validator,
@@ -162,15 +163,34 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             return q
 
 
-@router.get("/search.json", tags=["search"])
+class SearchResponse(BaseModel):
+    """The response from a (books) search query."""
+
+    model_config = ConfigDict(extra='allow')
+
+    numFound: int
+    start: int
+    numFoundExact: bool
+    num_found: int
+
+    documentation_url: str = "https://openlibrary.org/dev/docs/api/search"
+    q: str
+    offset: int | None
+
+    # Defined last so it renders at the bottom.
+    # We use dict[str, Any] to avoid documenting the internal book fields.
+    docs: list[dict[str, Any]] = []
+
+
+@router.get("/search.json", tags=["search"], response_model=SearchResponse)
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
-):
+) -> Any:
     """
     Performs a search for documents based on the provided query.
     """
-    response = await work_search_async(
+    raw_response = await work_search_async(
         params.selected_query,
         sort=params.sort,
         page=params.page,
@@ -185,15 +205,10 @@ async def search_json(
         lang=request.state.lang,
     )
 
-    response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
-    response['q'] = params.q
-    response['offset'] = params.offset
+    raw_response['q'] = params.q
+    raw_response['offset'] = params.offset
 
-    # Put docs at the end of the response
-    docs = response.pop('docs', [])
-    response['docs'] = docs
-
-    return response
+    return raw_response
 
 
 @router.get("/search/inside.json")
