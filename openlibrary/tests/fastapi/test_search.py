@@ -27,11 +27,15 @@ def mock_work_search():
         # Default mock response
         mock.return_value = {
             'numFound': 2,
+            'numFoundExact': True,
+            'num_found': 2,
             'start': 0,
             'docs': [
                 {'key': '/works/OL1W', 'title': 'Test Work 1'},
                 {'key': '/works/OL2W', 'title': 'Test Work 2'},
             ],
+            'q': '',
+            'offset': None,
         }
         yield mock
 
@@ -53,12 +57,6 @@ class TestSearchEndpoint:
 
     def test_search_uses_query_param(self, client, mock_work_search):
         """Test that the search endpoint uses the 'q' query parameter."""
-        mock_work_search.return_value = {
-            'numFound': 1,
-            'start': 0,
-            'docs': [{'key': '/works/OL1W', 'title': 'The Lord of the Rings'}],
-        }
-
         response = search(client, q='lord of the rings')
 
         assert response.status_code == 200
@@ -119,7 +117,6 @@ class TestSearchEndpoint:
         directly as the first positional argument to work_search_async, bypassing
         the individual query parameter parsing.
         """
-        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
 
         response = search(client, query=json.dumps(query_dict))
 
@@ -187,12 +184,6 @@ class TestSearchEndpoint:
         The mock is configured to return a generic successful response; the focus is on
         verifying that ``work_search_async`` receives the correct pagination arguments.
         """
-        mock_work_search.return_value = {
-            'numFound': 10,
-            'start': 0,
-            'docs': [],
-        }
-
         response = search(client, **params)
         assert response.status_code == 200
 
@@ -205,12 +196,6 @@ class TestSearchEndpoint:
         """Test that the pagination param 'offset' is not passed in the query dict.
         Only page and limit should be int that query dict (for some odd reason)
         """
-        mock_work_search.return_value = {
-            'numFound': 10,
-            'start': 0,
-            'docs': [],
-        }
-
         response = search(client, q='test', offset=50, limit=25)
         assert response.status_code == 200
 
@@ -224,11 +209,6 @@ class TestSearchEndpoint:
 
     def test_response_includes_metadata(self, client, mock_work_search):
         """Test that the response includes expected metadata fields."""
-        mock_work_search.return_value = {
-            'numFound': 5,
-            'start': 0,
-            'docs': [{'key': '/works/OL5W', 'title': 'Test'}],
-        }
 
         response = search(client, q='test', offset=10)
 
@@ -277,7 +257,6 @@ class TestSearchEndpoint:
         self, client, mock_work_search, params, key_to_check, expected_value
     ):
         """Test that specific parameters are passed down with the correct types."""
-        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
 
         # Add a required 'q' param to satisfy potential validation, then merge with params
         response = search(client, q='test', **params)
@@ -293,11 +272,6 @@ class TestSearchEndpoint:
 
     def test_arbitrary_query_params_not_passed_down(self, client, mock_work_search):
         """Test that arbitrary query parameters like osp_count are NOT passed down."""
-        mock_work_search.return_value = {
-            'numFound': 1,
-            'start': 0,
-            'docs': [{'key': '/works/OL1W', 'title': 'Test Work'}],
-        }
 
         # Make a request with osp_count parameter
         response = search(client, q='test', osp_count='5')
@@ -317,11 +291,6 @@ class TestSearchEndpoint:
         """Test that multiple author_key parameters are parsed correctly.
         Supporting multiple keys from query params isn't the default so this is important to check.
         """
-        mock_work_search.return_value = {
-            'numFound': 1,
-            'start': 0,
-            'docs': [{'key': '/works/OL1W', 'title': 'Test Work'}],
-        }
 
         response = search(client, author_key=['OL1A', 'OL2A'])
 
@@ -383,8 +352,6 @@ class TestSearchEndpoint:
         This ensures that comma-separated field strings are properly split into lists,
         and that default fields are used when no fields parameter is provided.
         """
-        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
-
         response = search(client, doseq=False, **params)
 
         assert response.status_code == 200
