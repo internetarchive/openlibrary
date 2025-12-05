@@ -4,7 +4,7 @@ import json
 from typing import Annotated, Any, Self
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -24,7 +24,7 @@ class Pagination(BaseModel):
         default=100, ge=0, description="Maximum number of results to return."
     )
     offset: int | None = Field(
-        default=None, ge=0, description="Number of results to skip."
+        default=None, ge=0, description="Number of results to skip.", exclude=True
     )
     page: int | None = Field(default=None, ge=1, description="Page number (1-indexed).")
 
@@ -37,10 +37,9 @@ class Pagination(BaseModel):
         return self
 
 
-class PublicQueryOptions(Pagination):
+class PublicQueryOptions(BaseModel):
     """
     All parameters (and Pagination) that will be passed to the query.
-    Those with exclude=True (like limit) are not serialied and therefore not passed.
     """
 
     # from check_params in works.py
@@ -81,7 +80,7 @@ class PublicQueryOptions(Pagination):
         return v
 
 
-class SearchRequestParams(PublicQueryOptions):
+class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: str | None = Field(
         default=",".join(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
@@ -110,6 +109,20 @@ class SearchRequestParams(PublicQueryOptions):
         except json.JSONDecodeError as e:
             raise HTTPException(422, detail=f"Invalid JSON in 'query' parameter: {e}")
 
+    @computed_field
+    def selected_query(self) -> dict[str, Any]:
+        if isinstance(self.query, dict):
+            return self.query
+        else:
+            q = self.model_dump(
+                include=PublicQueryOptions.model_fields.keys(),
+                exclude_none=True,
+            )
+            # only add page and limit, not offset (unclear why)
+            q['page'] = self.page
+            q['limit'] = self.limit
+            return q
+
 
 @router.get("/search.json")
 async def search_json(
@@ -119,16 +132,8 @@ async def search_json(
     """
     Performs a search for documents based on the provided query.
     """
-    query: dict[str, Any]
-    if params.query is not None:
-        query = params.query  # type: ignore[assignment]
-    else:
-        query = params.model_dump(exclude_none=True)
-        # TODO: remove this line, also add a test ensuring offset is not passed.
-        query.update({"page": params.page, "limit": params.limit})
-
     response = await work_search_async(
-        query,
+        params.selected_query,
         sort=params.sort,
         page=params.page,
         offset=params.offset,
