@@ -70,7 +70,7 @@ class TestGetAvailability:
 
             # Should not make a call to the API again
             r2 = lending.get_availability("identifier", ["foo"])
-            assert mock_get.call_count == 2
+            assert mock_get.call_count == 1
             assert r2 == {"foo": foo_expected}
 
             # Now should make a call for just the new identifier
@@ -79,6 +79,6 @@ class TestGetAvailability:
                 "responses": {"bar": {"status": "error"}},
             }
             r3 = lending.get_availability("identifier", ["foo", "bar"])
-            assert mock_get.call_count == 1
+            assert mock_get.call_count == 2
             assert mock_get.call_args[1]['params']['identifier'] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
