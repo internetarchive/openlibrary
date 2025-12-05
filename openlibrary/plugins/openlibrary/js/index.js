@@ -228,10 +228,11 @@ jQuery(function () {
             .then((module) => new module.LazyThingPreview().init());
     }
 
-    // Enhance patron export buttons on /account/import
-    if (location.pathname === '/account/import') {
+    // Disable data export buttons on form submit
+    const patronImportForms = document.querySelectorAll('.patron-export-form')
+    if (patronImportForms.length) {
         import(/* webpackChunkName: "patron-exports" */ './patron_exports')
-            .then(module => module.initPatronExportButtons());
+            .then(module => module.initPatronExportForms(patronImportForms));
     }
 
     const $observationModalLinks = $('.observations-modal-link');
