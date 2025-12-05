@@ -80,7 +80,7 @@ class TestGetAvailability:
             }
             # Reset mock to ensure we are testing ONLY the new call
             mock_get.reset_mock()
-            
+
             r3 = lending.get_availability("identifier", ["foo", "bar"])
             assert mock_get.call_count == 1
             assert mock_get.call_args[1]['params']['identifier'] == "bar"
