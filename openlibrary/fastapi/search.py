@@ -157,7 +157,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             return q
 
 
-@router.get("/search.json")
+@router.get("/search.json", tags=["search"])
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
