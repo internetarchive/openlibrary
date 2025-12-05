@@ -165,7 +165,7 @@ class memcache_memoize[**P, T]:
         if self.cacheable is not None:
             try:
                 should_cache = self.cacheable(args, kw, value)
-            except Exception as e:
+            except (TypeError, ValueError, KeyError, AttributeError) as e:
                 web.debug(f"memcache_memoize: cacheable callback error: {e}")
                 should_cache = False
 

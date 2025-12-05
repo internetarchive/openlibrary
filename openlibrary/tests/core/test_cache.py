@@ -135,11 +135,9 @@ class Test_memcache_memoize:
             return {'complete': True, 'data': x}
 
         def is_cacheable(args, kwargs, value):
-            if value is None or value == '' or value == {}:
+            if value is None or value in ('', {}):
                 return False
-            if isinstance(value, dict) and 'complete' not in value:
-                return False
-            return True
+            return not (isinstance(value, dict) and 'complete' not in value)
 
         m = cache.memcache_memoize(
             returns_various,
