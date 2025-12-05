@@ -75,25 +75,19 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]  # First positional argument
         assert query_arg['q'] == 'lord of the rings'
 
-    def test_search_uses_query_alias_param(self, client, mock_work_search):
-        """Test that the search endpoint uses the 'query' query parameter (alias for full JSON query)."""
-        mock_work_search.return_value = {
-            'numFound': 1,
-            'start': 0,
-            'docs': [{'key': '/works/OL1W', 'title': 'Test'}],
-        }
-
-        # The 'query' param should accept a full JSON-encoded Solr query
-        query_dict = {'q': 'test', 'author': 'Tolkien'}
-        response = search(client, query=json.dumps(query_dict))
-
+    def test_query_param_takes_precedence_over_individual_params(
+        self, client, mock_work_search
+    ):
+        """If both 'query=' and individual params are sent, 'query=' wins completely."""
+        response = search(
+            client,
+            query=json.dumps({"title": "Override"}),
+            title="Should be ignored",
+            author_key=["OL999A"],
+        )
         assert response.status_code == 200
-
-        # Verify work_search_async was called with the parsed query
-        mock_work_search.assert_called_once()
-        call_args = mock_work_search.call_args
-        query_arg = call_args[0][0]
-        assert query_arg == query_dict
+        query_dict = mock_work_search.call_args[0][0]
+        assert query_dict == {"title": "Override"}
 
     @pytest.mark.parametrize(
         ('query_dict', 'description'),
