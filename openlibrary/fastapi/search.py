@@ -60,13 +60,31 @@ class PublicQueryOptions(BaseModel):
     public_scan_b: bool | None = None
 
     # List fields (facets)
-    author_key: list[str] = []
-    subject_facet: list[str] = []
-    person_facet: list[str] = []
-    place_facet: list[str] = []
-    time_facet: list[str] = []
-    first_publish_year: list[str] = []
-    publisher_facet: list[str] = []
+    author_key: list[str] = Field(
+        [], description="Filter by author key.", examples=["OL1394244A"]
+    )
+    subject_facet: list[str] = Field(
+        [], description="Filter by subject.", examples=["Fiction", "City planning"]
+    )
+    person_facet: list[str] = Field(
+        [],
+        description="Filter by person. Not the author but the person who is the subject of the work.",
+        examples=["Jane Jacobs (1916-2006)", "Cory Doctorow"],
+    )
+    place_facet: list[str] = Field(
+        [], description="Filter by place.", examples=["New York", "Xiamen Shi"]
+    )
+    time_facet: list[str] = Field(
+        [],
+        description="Filter by time. It can be formatted many ways.",
+        examples=["20th century", "To 70 A.D."],
+    )
+    first_publish_year: list[str] = Field(
+        [], description="Filter by first publish year.", examples=["2020"]
+    )
+    publisher_facet: list[str] = Field(
+        [], description="Filter by publisher.", examples=["Urban Land Institute"]
+    )
     language: list[str] = Field(
         [],
         description="Filter by language using three-letter language codes.",
