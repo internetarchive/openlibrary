@@ -92,6 +92,10 @@ class AdditionalEndpointQueryOptions(BaseModel):
         description="The fields to return.",
     )
     query: str | None = Query(None, description="A full JSON encoded solr query.")
+    sort: str | None = Query(None, description="The sort order of results.")
+    spellcheck_count: int | None = Query(
+        default_spellcheck_count, description="The number of spellcheck suggestions."
+    )
 
     @field_validator('fields')
     @classmethod
@@ -117,10 +121,6 @@ async def search_json(
     additional_endpoint_query_options: Annotated[
         AdditionalEndpointQueryOptions, Depends()
     ],
-    sort: str | None = Query(None, description="The sort order of results."),
-    spellcheck_count: int | None = Query(
-        default_spellcheck_count, description="The number of spellcheck suggestions."
-    ),
 ):
     """
     Performs a search for documents based on the provided query.
@@ -135,7 +135,7 @@ async def search_json(
 
     response = await work_search_async(
         query,
-        sort=sort,
+        sort=additional_endpoint_query_options.sort,
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -143,7 +143,7 @@ async def search_json(
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,
-        spellcheck_count=spellcheck_count,
+        spellcheck_count=additional_endpoint_query_options.spellcheck_count,
         request_label='BOOK_SEARCH_API',
         lang=request.state.lang,
     )
