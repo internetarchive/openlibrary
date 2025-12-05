@@ -87,7 +87,7 @@ class TestVerification(unittest.TestCase):
                 # Ensure .text and .content are strings/bytes to satisfy json.loads logic if invoked
                 mock_solr_instance.text = '{}'
                 mock_solr_instance.content = b'{}'
-                mock_solr_instance.json = lambda: {}
+                mock_solr_instance.json = dict
                 mock_get_solr.return_value = mock_solr_instance
 
                 # We return a generic dict. We assume the code iterates the facets locally.
