@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE
@@ -76,13 +76,27 @@ class PublicQueryOptions(BaseModel):
     author_facet: list[str] = Field(Query([]))
 
 
+class AdditionalEndpointQueryOptions(BaseModel):
+    fields: str | None = Query(
+        ",".join(WorkSearchScheme.default_fetched_fields),
+        description="The fields to return.",
+    )
+
+    @field_validator('fields', mode='after')
+    @classmethod
+    def parse_fields_string(cls, v: str) -> list[str]:
+        return [f.strip() for f in v.split(",") if f.strip()]
+
+
 @router.get("/search.json")
 async def search_json(
     request: Request,
     pagination: Annotated[Pagination, Depends()],
     public_query_options: Annotated[PublicQueryOptions, Depends()],
+    additional_endpoint_query_options: Annotated[
+        AdditionalEndpointQueryOptions, Depends()
+    ],
     sort: str | None = Query(None, description="The sort order of results."),
-    fields: str | None = Query(None, description="The fields to return."),
     spellcheck_count: int | None = Query(
         default_spellcheck_count, description="The number of spellcheck suggestions."
     ),
@@ -101,10 +115,6 @@ async def search_json(
         query = public_query_options.model_dump(exclude_none=True)
         query.update({"page": pagination.page, "limit": pagination.limit})
 
-    _fields: list[str] = list(WorkSearchScheme.default_fetched_fields)
-    if fields:
-        _fields = fields.split(',')
-
     if q_error := validate_search_json_query(public_query_options.q):
         return JSONResponse(status_code=422, content={"error": q_error})
 
@@ -114,7 +124,7 @@ async def search_json(
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
-        fields=_fields,
+        fields=additional_endpoint_query_options.fields,
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,

@@ -280,6 +280,42 @@ class TestSearchEndpoint:
         else:
             mock_work_search.assert_not_called()
 
+    @pytest.mark.parametrize(
+        ('params', 'expected_fields'),
+        [
+            # No fields param: should use default fields
+            ({'q': 'test'}, list(WorkSearchScheme.default_fetched_fields)),
+            # Single field as comma-separated string
+            ({'q': 'test', 'fields': 'title'}, ['title']),
+            # Multiple fields as comma-separated string
+            (
+                {'q': 'test', 'fields': 'title,author_name,key'},
+                ['title', 'author_name', 'key'],
+            ),
+            # Fields with spaces (edge case)
+            ({'q': 'test', 'fields': 'title, author_name'}, ['title', 'author_name']),
+        ],
+    )
+    def test_fields_passed_as_list(
+        self, client, mock_work_search, params, expected_fields
+    ):
+        """Test that the 'fields' parameter is always passed as a list to work_search_async.
+
+        This ensures that comma-separated field strings are properly split into lists,
+        and that default fields are used when no fields parameter is provided.
+        """
+        mock_work_search.return_value = {'numFound': 0, 'start': 0, 'docs': []}
+
+        response = search(client, doseq=False, **params)
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        call_kwargs = mock_work_search.call_args[1]
+
+        assert 'fields' in call_kwargs
+        assert isinstance(call_kwargs['fields'], list)
+        assert call_kwargs['fields'] == expected_fields
+
 
 def test_check_params():
     """
