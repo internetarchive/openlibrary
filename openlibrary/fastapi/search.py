@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from openlibrary.core.fulltext import fulltext_search_async
@@ -20,12 +20,18 @@ router = APIRouter()
 
 # Ideally this will go in a models files, we'll move it for the 2nd endpoint
 class Pagination(BaseModel):
-    limit: Annotated[int, Query(ge=0)] = 100
-    offset: Annotated[int | None, Query(ge=0)] = None
-    page: Annotated[int | None, Query(ge=1)] = None
+    """Reusable pagination parameters for API endpoints."""
+
+    limit: int = Field(
+        default=100, ge=0, description="Maximum number of results to return."
+    )
+    offset: int | None = Field(
+        default=None, ge=0, description="Number of results to skip."
+    )
+    page: int | None = Field(default=None, ge=1, description="Page number (1-indexed).")
 
     @model_validator(mode='after')
-    def normalize_pagination(self) -> Pagination:
+    def normalize_pagination(self) -> Self:
         if self.offset is not None:
             self.page = None
         elif self.page is None:
@@ -33,14 +39,14 @@ class Pagination(BaseModel):
         return self
 
 
-class PublicQueryOptions(BaseModel):
+class PublicQueryOptions(Pagination):
     """
-    This class has all the parameters that are passed as "query"
+    All parameters (and Pagination) that will be passed to the query.
+    Those with exclude=True (like limit) are not serialied and therefore not passed.
     """
-
-    q: str = ""
 
     # from check_params in works.py
+    q: str = Field(default="", description="The search query string.")
     title: str | None = None
     publisher: str | None = None
     oclc: str | None = None
@@ -54,25 +60,16 @@ class PublicQueryOptions(BaseModel):
     has_fulltext: bool | None = None
     public_scan_b: bool | None = None
 
-    """
-    The day will come when someone asks, why do we have Field wrapping Query
-    The answer seems to be:
-    1. Depends(): Tells FastAPI to explode the Pydantic model into individual arguments (dependency injection).
-    2. Field(Query([])): Overrides the default behavior for lists. It forces FastAPI to look for ?author_key=...
-       in the URL query string instead of expecting a JSON array in the request body.
-    The Field part is needed because FastAPI's default guess for lists inside Pydantic models is wrong for this use case.
-       It guesses "JSON Body," and you have to manually correct it to "Query String."
-    See: https://github.com/internetarchive/openlibrary/pull/11517#issuecomment-3584196385
-    """
-    author_key: list[str] = Field(Query([]))
-    subject_facet: list[str] = Field(Query([]))
-    person_facet: list[str] = Field(Query([]))
-    place_facet: list[str] = Field(Query([]))
-    time_facet: list[str] = Field(Query([]))
-    first_publish_year: list[str] = Field(Query([]))
-    publisher_facet: list[str] = Field(Query([]))
-    language: list[str] = Field(Query([]))
-    author_facet: list[str] = Field(Query([]))
+    # List fields (facets)
+    author_key: list[str] = []
+    subject_facet: list[str] = []
+    person_facet: list[str] = []
+    place_facet: list[str] = []
+    time_facet: list[str] = []
+    first_publish_year: list[str] = []
+    publisher_facet: list[str] = []
+    language: list[str] = []
+    author_facet: list[str] = []
 
     @field_validator('q')
     @classmethod
@@ -86,15 +83,18 @@ class PublicQueryOptions(BaseModel):
         return v
 
 
-class AdditionalEndpointQueryOptions(BaseModel):
-    fields: str | None = Query(
-        ",".join(WorkSearchScheme.default_fetched_fields),
+class SearchRequestParams(PublicQueryOptions):
+    fields: str | None = Field(
+        default=",".join(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
-    query: str | None = Query(None, description="A full JSON encoded solr query.")
-    sort: str | None = Query(None, description="The sort order of results.")
-    spellcheck_count: int | None = Query(
-        default_spellcheck_count, description="The number of spellcheck suggestions."
+    query: str | None = Field(
+        default=None, description="A full JSON encoded solr query."
+    )
+    sort: str | None = Field(default=None, description="The sort order of results.")
+    spellcheck_count: int | None = Field(
+        default=default_spellcheck_count,
+        description="The number of spellcheck suggestions.",
     )
 
     @field_validator('fields')
@@ -116,41 +116,37 @@ class AdditionalEndpointQueryOptions(BaseModel):
 @router.get("/search.json")
 async def search_json(
     request: Request,
-    pagination: Annotated[Pagination, Depends()],
-    public_query_options: Annotated[PublicQueryOptions, Depends()],
-    additional_endpoint_query_options: Annotated[
-        AdditionalEndpointQueryOptions, Depends()
-    ],
+    params: Annotated[SearchRequestParams, Query()],
 ):
     """
     Performs a search for documents based on the provided query.
     """
     query: dict[str, Any]
-    if additional_endpoint_query_options.query is not None:
-        query = additional_endpoint_query_options.query  # type: ignore[assignment]
+    if params.query is not None:
+        query = params.query  # type: ignore[assignment]
     else:
-        # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
-        query = public_query_options.model_dump(exclude_none=True)
-        query.update({"page": pagination.page, "limit": pagination.limit})
+        query = params.model_dump(exclude_none=True)
+        # TODO: remove this line, also add a test ensuring offset is not passed.
+        query.update({"page": params.page, "limit": params.limit})
 
     response = await work_search_async(
         query,
-        sort=additional_endpoint_query_options.sort,
-        page=pagination.page,
-        offset=pagination.offset,
-        limit=pagination.limit,
-        fields=additional_endpoint_query_options.fields,
+        sort=params.sort,
+        page=params.page,
+        offset=params.offset,
+        limit=params.limit,
+        fields=params.fields,
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,
-        spellcheck_count=additional_endpoint_query_options.spellcheck_count,
+        spellcheck_count=params.spellcheck_count,
         request_label='BOOK_SEARCH_API',
         lang=request.state.lang,
     )
 
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
-    response['q'] = public_query_options.q
-    response['offset'] = pagination.offset
+    response['q'] = params.q
+    response['offset'] = params.offset
 
     # Put docs at the end of the response
     docs = response.pop('docs', [])
