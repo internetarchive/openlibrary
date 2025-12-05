@@ -83,6 +83,10 @@ class TestVerification(unittest.TestCase):
             # Mock get_solr
             with patch('openlibrary.plugins.worksearch.search.get_solr') as mock_get_solr:
                 mock_solr_instance = MagicMock()
+                # Fix for potential "TypeError: the JSON object must be str... not MagicMock"
+                # If the code tries to json.loads(response.text), we provide valid JSON.
+                mock_solr_instance.text = '{"facets": {"language": []}}'
+                mock_solr_instance.content = b'{"facets": {"language": []}}'
                 mock_get_solr.return_value = mock_solr_instance
                 mock_solr_instance.select.return_value = {'facets': {'language': []}}
                 
