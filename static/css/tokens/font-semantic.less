@@ -1,0 +1,199 @@
+/**
+ * Font Semantic Tokens
+ * ====================
+ * Semantic tokens for typography combine font-family, size, and weight
+ * Reference these throughout the app for consistent text styling
+ */
+
+@import "font-family-primitives.less";
+@import "font-size-primitives.less";
+@import "font-weight-primitives.less";
+
+// === DISPLAY / HERO TEXT ===
+// Large hero text for prominent sections
+
+@font-display-xl: {
+  font-family: @font-family-sans;
+  font-size: @font-size-display-xl;
+  font-weight: @font-weight-bold;
+  line-height: 1.1;
+};
+
+@font-display-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-display-lg;
+  font-weight: @font-weight-bold;
+  line-height: 1.2;
+};
+
+@font-display-md: {
+  font-family: @font-family-sans;
+  font-size: @font-size-display-md;
+  font-weight: @font-weight-bold;
+  line-height: 1.2;
+};
+
+@font-display-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-display-sm;
+  font-weight: @font-weight-semi-bold;
+  line-height: 1.3;
+};
+
+// === HEADLINES ===
+// Section headings and major content divisions
+
+@font-headline-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-headline-lg;
+  font-weight: @font-weight-bold;
+  line-height: 1.25;
+};
+
+@font-headline-md: {
+  font-family: @font-family-sans;
+  font-size: @font-size-headline-md;
+  font-weight: @font-weight-semi-bold;
+  line-height: 1.3;
+};
+
+@font-headline-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-headline-sm;
+  font-weight: @font-weight-semi-bold;
+  line-height: 1.3;
+};
+
+// === TITLES ===
+// Subsection titles and component headers
+
+@font-title-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-title-lg;
+  font-weight: @font-weight-semi-bold;
+  line-height: 1.4;
+};
+
+@font-title-md: {
+  font-family: @font-family-sans;
+  font-size: @font-size-title-md;
+  font-weight: @font-weight-semi-bold;
+  line-height: 1.4;
+};
+
+@font-title-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-title-sm;
+  font-weight: @font-weight-medium;
+  line-height: 1.4;
+};
+
+// === BODY TEXT ===
+// Default text content
+
+@font-body-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-body-lg;
+  font-weight: @font-weight-normal;
+  line-height: 1.5;
+};
+
+@font-body-md: {
+  font-family: @font-family-sans;
+  font-size: @font-size-body-md;
+  font-weight: @font-weight-normal;
+  line-height: 1.5;
+};
+
+@font-body-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-body-sm;
+  font-weight: @font-weight-normal;
+  line-height: 1.4;
+};
+
+// === LABELS & CONTROLS ===
+// Buttons, form labels, and interactive element text
+
+@font-label-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-label-lg;
+  font-weight: @font-weight-medium;
+  line-height: 1.4;
+};
+
+@font-label-md: {
+  font-family: @font-family-sans;
+  font-size: @font-size-label-md;
+  font-weight: @font-weight-medium;
+  line-height: 1.4;
+};
+
+@font-label-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-label-sm;
+  font-weight: @font-weight-medium;
+  line-height: 1.3;
+};
+
+// === CAPTIONS ===
+// Fine print, hints, help text
+
+@font-caption-lg: {
+  font-family: @font-family-sans;
+  font-size: @font-size-caption-lg;
+  font-weight: @font-weight-normal;
+  line-height: 1.4;
+};
+
+@font-caption-sm: {
+  font-family: @font-family-sans;
+  font-size: @font-size-caption-sm;
+  font-weight: @font-weight-normal;
+  line-height: 1.3;
+};
+
+@font-caption-xs: {
+  font-family: @font-family-sans;
+  font-size: @font-size-caption-xs;
+  font-weight: @font-weight-normal;
+  line-height: 1.3;
+};
+
+// === CODE ===
+// Code blocks and inline code
+
+@font-code-lg: {
+  font-family: @font-family-mono;
+  font-size: @font-size-code-lg;
+  font-weight: @font-weight-normal;
+  line-height: 1.5;
+};
+
+@font-code-md: {
+  font-family: @font-family-mono;
+  font-size: @font-size-code-md;
+  font-weight: @font-weight-normal;
+  line-height: 1.5;
+};
+
+@font-code-sm: {
+  font-family: @font-family-mono;
+  font-size: @font-size-code-sm;
+  font-weight: @font-weight-normal;
+  line-height: 1.4;
+};
+
+// === SEMANTIC FONT FAMILIES ===
+// For different content types
+
+@font-family-body: @font-family-sans;
+@font-family-heading: @font-family-sans;
+@font-family-code: @font-family-mono;
+@font-family-serif-fallback: @font-family-serif;
+
+// === LEGACY COMPATIBILITY ===
+// These map existing variable names for backward compatibility
+
+@body-family: @font-family-sans;
+@code-family: @font-family-mono;

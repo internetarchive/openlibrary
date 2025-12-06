@@ -1,0 +1,260 @@
+/**
+ * Color Semantic Tokens
+ * =====================
+ * Semantic tokens map design intent to primitive color values
+ * These communicate where the color should be used
+ * Reference these throughout the app for consistency and easy updates
+ */
+
+@import "color-primitives.less";
+
+// === TEXT COLORS ===
+@text-primary: @color-grey-3;        // Primary text color
+@text-secondary: @color-grey-7;      // Secondary/muted text
+@text-tertiary: @color-grey-9;       // Tertiary/hint text
+@text-disabled: @color-grey-11;      // Disabled text
+@text-inverse: @color-white;         // Text on dark backgrounds
+@text-link: @color-blue-2;           // Link text
+@text-link-visited: @color-blue-1;   // Visited link text
+@text-link-hover: @color-blue-4;     // Link hover text
+@text-error: @color-red-2;           // Error text
+@text-success: @color-green-3;       // Success text
+@text-warning: @color-orange-1;      // Warning text
+@text-info: @color-blue-4;           // Info text
+
+// === BACKGROUND COLORS ===
+@bg-primary: @color-white;           // Primary background
+@bg-secondary: @color-grey-16;       // Secondary background
+@bg-tertiary: @color-grey-14;        // Tertiary background
+@bg-overlay: @color-white;           // Overlay/modal background
+@bg-disabled: @color-grey-14;        // Disabled element background
+@bg-footer: @color-beige-1;          // Footer background
+@bg-header: @color-beige-1;          // Header background
+
+// === INTERACTIVE ELEMENT COLORS ===
+
+// Buttons - Primary (CTA)
+@button-primary-bg: @color-blue-4;
+@button-primary-text: @color-white;
+@button-primary-hover-bg: darken(@button-primary-bg, 10%);
+@button-primary-focus-bg: darken(@button-primary-bg, 15%);
+@button-primary-disabled-bg: @color-grey-11;
+@button-primary-disabled-text: @color-grey-9;
+
+// Buttons - Secondary
+@button-secondary-bg: @color-white;
+@button-secondary-text: @color-blue-4;
+@button-secondary-border: @color-blue-4;
+@button-secondary-hover-bg: lighten(@color-blue-10, 3%);
+@button-secondary-disabled-bg: @color-grey-14;
+@button-secondary-disabled-text: @color-grey-9;
+@button-secondary-disabled-border: @color-grey-11;
+
+// Buttons - Ghost
+@button-ghost-bg: transparent;
+@button-ghost-text: @color-grey-7;
+@button-ghost-border: @color-grey-11;
+@button-ghost-hover-bg: @color-grey-16;
+@button-ghost-disabled-text: @color-grey-11;
+
+// Buttons - Danger
+@button-danger-bg: @color-red-2;
+@button-danger-text: @color-white;
+@button-danger-hover-bg: darken(@button-danger-bg, 10%);
+
+// Input Fields
+@input-bg: @color-white;
+@input-border: @color-grey-11;
+@input-border-hover: @color-grey-9;
+@input-border-focus: @color-blue-4;
+@input-border-error: @color-red-2;
+@input-text: @text-primary;
+@input-placeholder: @color-grey-9;
+@input-disabled-bg: @color-grey-14;
+@input-disabled-text: @color-grey-9;
+
+// === SURFACE COLORS ===
+
+// Cards & Panels
+@surface-card-bg: @color-white;
+@surface-card-border: @color-grey-11;
+@surface-card-shadow: rgba(0, 0, 0, 0.08);
+
+// List items
+@surface-list-item-bg: @color-white;
+@surface-list-item-hover-bg: @color-grey-16;
+@surface-list-item-active-bg: @color-beige-5;
+
+// Dialogs & Modals
+@surface-modal-bg: @color-white;
+@surface-modal-overlay: rgba(0, 0, 0, 0.5);
+@surface-modal-border: @color-grey-11;
+
+// Popovers & Tooltips
+@surface-popover-bg: @color-white;
+@surface-popover-border: @color-grey-11;
+@surface-popover-shadow: rgba(0, 0, 0, 0.15);
+
+// === STATE COLORS ===
+
+// Success
+@state-success-bg: lighten(@color-green-3, 35%);
+@state-success-text: @color-green-3;
+@state-success-border: @color-green-3;
+
+// Error
+@state-error-bg: lighten(@color-red-2, 35%);
+@state-error-text: @color-red-2;
+@state-error-border: @color-red-2;
+
+// Warning
+@state-warning-bg: lighten(@color-orange-1, 35%);
+@state-warning-text: @color-orange-1;
+@state-warning-border: @color-orange-1;
+
+// Info
+@state-info-bg: lighten(@color-blue-4, 35%);
+@state-info-text: @color-blue-4;
+@state-info-border: @color-blue-4;
+
+// === DIVIDER & BORDER COLORS ===
+@divider-color: @color-grey-11;
+@divider-subtle-color: @color-grey-12;
+@divider-emphasis-color: @color-grey-10;
+
+// === SPECIAL COMPONENT COLORS ===
+
+// Tags & Badges
+@tag-bg: @color-blue-10;
+@tag-text: @color-blue-4;
+
+// Badges - Status indicators
+@badge-success-bg: @color-green-3;
+@badge-success-text: @color-white;
+@badge-error-bg: @color-red-2;
+@badge-error-text: @color-white;
+@badge-warning-bg: @color-orange-1;
+@badge-warning-text: @color-white;
+@badge-info-bg: @color-blue-4;
+@badge-info-text: @color-white;
+
+// Selection
+@selection-bg: @color-yellow-2;
+@selection-text: @text-primary;
+
+// Focus ring
+@focus-ring-color: @color-blue-4;
+
+// Scrollbar
+@scrollbar-thumb-bg: @color-grey-10;
+@scrollbar-track-bg: @color-grey-14;
+
+// === LEGACY COMPATIBILITY ===
+// These map existing color names to semantic tokens
+// Gradually replace usage with semantic tokens
+
+@primary-blue: @color-blue-4;
+@link-blue: @color-blue-2;
+@mid-blue: @color-blue-3;
+@dark-blue: @color-blue-1;
+@darker-brand-blue: @color-brand-blue-darker;
+@header-nav-hover-color: @color-header-nav-hover;
+@blue-b0bed9: @color-blue-6;
+@count-blue-grey: @color-count-grey-blue;
+@grey-blue: @color-blue-12;
+@teal: @color-teal;
+@button-hover-blue: @color-blue-5;
+@dark-baby-blue: @color-blue-8;
+@mid-baby-blue: @color-blue-9;
+@baby-blue: @color-blue-10;
+@blue-9fafd1: @color-blue-7;
+@blue-3366ff: @color-blue-11;
+@blue-5e88B9: hsl(212, 39%, 55%);
+
+@green: @color-green-2;
+@mid-baby-green: @color-green-6;
+@baby-green: @color-green-5;
+@dark-green: @color-green-1;
+@soft-green: @color-green-7;
+@soft-green-two: @color-green-8;
+@olive: @color-green-9;
+@light-olive-2: @color-green-10;
+@lime-green: @color-green-11;
+@check-green: @color-green-3;
+
+@orange: @color-orange-1;
+@orange-three: @color-orange-2;
+@orange-four: @color-orange-3;
+@orange-five: @color-orange-4;
+@burnt-sienna: @color-orange-5;
+
+@red: @color-red-2;
+@dark-red: @color-red-1;
+@red-two: @color-red-3;
+@red-three: @color-red-4;
+
+@mid-baby-pink: @color-pink-1;
+@baby-pink: @color-pink-2;
+@magenta: @color-magenta;
+
+@dark-yellow: @color-yellow-1;
+@beige-bright: @color-beige-10;
+@beige-deep: @color-beige-11;
+@beige-two: @color-beige-3;
+@beige-three: @color-beige-2;
+@beige: @color-beige-1;
+@brown: @color-brown;
+@account-icon-border: @color-account-icon-border;
+@light-yellow: @color-yellow-2;
+@lighter-yellow: @color-yellow-3;
+@dark-beige: @color-beige-4;
+@light-beige: @color-beige-5;
+@cream: @color-beige-6;
+@off-white: @color-beige-7;
+@gold: @color-gold;
+
+@black: @color-black;
+@boxshadow-black: @color-shadow-black;
+@icon-link-grey: @color-icon-link-grey;
+@dark-grey: @color-grey-3;
+@grey-464646: @color-grey-4;
+@darker-grey: @color-grey-4;
+@grey-555: @color-grey-5;
+@dark-grey-two: @color-grey-6;
+@grey: @color-grey-7;
+@accessible-grey: @color-grey-8;
+@mid-grey: @color-grey-9;
+@light-mid-grey: @color-grey-10;
+@background-grey: @color-background-grey;
+@light-grey: @color-grey-11;
+@lighter-grey: @color-grey-12;
+@grey-e7e7e7: @color-grey-13;
+@lightest-grey: @color-grey-13;
+@grey-f3f3f3: @color-grey-14;
+@grey-fafafa: @color-grey-16;
+@white: @color-white;
+@gray-a19b9e: hsl(330, 3%, 62%);
+@gray-d1cfd0: hsl(330, 2%, 82%);
+@grey-f4f4f4: @color-grey-15;
+
+@admin-row-background: @color-admin-row-bg;
+@admin-table-border: @color-admin-table-border;
+@heart-color: @color-heart;
+@blue: hsl(240, 100%, 50%);
+@purple: @color-purple;
+@header-bar-gradient-start: @color-header-gradient-start;
+@header-bar-gradient-end: @color-header-gradient-end;
+@account-icon-background: @color-account-icon-bg;
+
+@book-cover-carousel-background: @color-beige-13;
+@book-cover-carousel-border-top: @color-beige-8;
+@book-cover-carousel-border-bottom: @color-beige-9;
+@book-cover-carousel-cards: @color-beige-12;
+
+@book-cover-shadow-color: @color-book-cover-shadow;
+
+@nagios-green: @color-nagios-green;
+
+@open-green: @color-green-4;
+@closed-red: @color-red-4;
+@merged-purple: @color-purple-2;

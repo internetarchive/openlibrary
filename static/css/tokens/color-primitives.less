@@ -1,0 +1,126 @@
+/**
+ * Color Primitives
+ * ================
+ * Raw, base color values organized by hue
+ * These form the foundation of the color system
+ * Do NOT use these directly in components - use semantic tokens instead
+ */
+
+// === NEUTRAL / GREYSCALE ===
+@color-black: hsl(0, 0%, 0%);
+@color-white: hsl(0, 0%, 100%);
+
+@color-grey-1: hsl(0, 0%, 5%);    // Near black
+@color-grey-2: hsl(0, 0%, 10%);
+@color-grey-3: hsl(0, 0%, 20%);
+@color-grey-4: hsl(0, 0%, 27%);
+@color-grey-5: hsl(0, 0%, 33%);
+@color-grey-6: hsl(0, 0%, 35%);
+@color-grey-7: hsl(0, 0%, 40%);
+@color-grey-8: hsl(0, 0%, 46.3%);  // Accessible gray for white bg
+@color-grey-9: hsl(0, 0%, 60%);
+@color-grey-10: hsl(0, 0%, 67%);
+@color-grey-11: hsl(0, 0%, 80%);
+@color-grey-12: hsl(0, 0%, 87%);
+@color-grey-13: hsl(0, 0%, 91%);
+@color-grey-14: hsl(0, 0%, 95%);
+@color-grey-15: hsl(0, 0%, 96%);
+@color-grey-16: hsl(0, 0%, 98%);
+
+// === BLUE ===
+@color-blue-1: hsl(210, 100%, 20%);   // Dark blue
+@color-blue-2: hsl(202, 96%, 28%);    // Link blue
+@color-blue-3: hsl(204, 70%, 53%);    // Mid blue
+@color-blue-4: hsl(202, 96%, 37%);    // Primary blue
+@color-blue-5: hsl(202, 57%, 61%);    // Button hover
+@color-blue-6: hsl(220, 35%, 72%);    // Light blue
+@color-blue-7: hsl(220, 35%, 77%);    // Lighter blue
+@color-blue-8: hsl(240, 100%, 75%);   // Dark baby blue
+@color-blue-9: hsl(240, 100%, 88%);   // Mid baby blue
+@color-blue-10: hsl(240, 100%, 93%);  // Baby blue
+@color-blue-11: hsl(225, 100%, 60%);  // Bright blue
+@color-blue-12: hsl(211, 37%, 89%);   // Grey-blue
+
+// === RED ===
+@color-red-1: hsl(8, 70%, 44%);       // Dark red
+@color-red-2: hsl(8, 78%, 49%);       // Red
+@color-red-3: hsl(4, 90%, 58%);       // Red 2
+@color-red-4: hsl(0, 100%, 50%);      // Red 3
+@color-red-5: hsl(0, 100%, 50%);      // Closed red
+
+// === GREEN ===
+@color-green-1: hsl(113, 38%, 29%);   // Dark green
+@color-green-2: hsl(130, 61%, 33%);   // Green
+@color-green-3: hsl(126, 100%, 36%);  // Check green
+@color-green-4: hsl(126, 100%, 30%);  // Open green
+@color-green-5: hsl(120, 100%, 93%);  // Baby green
+@color-green-6: hsl(120, 100%, 88%);  // Mid baby green
+@color-green-7: hsl(97, 51%, 77%);    // Soft green
+@color-green-8: hsl(97, 40%, 70%);    // Soft green 2
+@color-green-9: hsl(81, 39%, 35%);    // Olive
+@color-green-10: hsl(78, 34%, 63%);   // Light olive 2
+@color-green-11: hsl(75, 100%, 85%);  // Lime green
+
+// === ORANGE / YELLOW ===
+@color-orange-1: hsl(32, 100%, 61%);  // Orange
+@color-orange-2: hsl(32, 100%, 78%);  // Orange 3
+@color-orange-3: hsl(23, 51%, 77%);   // Orange 4
+@color-orange-4: hsl(23, 100%, 50%);  // Orange 5
+@color-orange-5: hsl(19, 95%, 40%);   // Burnt sienna
+
+@color-yellow-1: hsl(57, 60%, 72%);   // Dark yellow
+@color-yellow-2: hsl(58, 100%, 90%);  // Light yellow
+@color-yellow-3: hsl(58, 92%, 95%);   // Lighter yellow
+
+// === BROWN / BEIGE ===
+@color-brown: hsl(40, 32%, 29%);      // Brown
+@color-beige-1: hsl(48, 33%, 83%);    // Beige
+@color-beige-2: hsl(48, 15%, 74%);    // Beige 3
+@color-beige-3: hsl(63, 26%, 84%);    // Beige 2
+@color-beige-4: hsl(64, 9%, 71%);     // Dark beige
+@color-beige-5: hsl(48, 29%, 93%);    // Light beige
+@color-beige-6: hsl(49, 30%, 93%);    // Cream
+@color-beige-7: hsl(45, 100%, 98%);   // Off-white
+@color-beige-8: hsl(51, 32%, 88%);    // Book carousel border top
+@color-beige-9: hsl(50, 32%, 85%);    // Book carousel border bottom
+@color-beige-10: #f6f1e6;              // Beige bright
+@color-beige-11: #ebdfc5;              // Beige deep
+@color-beige-12: hsl(47, 54%, 98%);    // Book carousel cards
+@color-beige-13: hsl(47, 54%, 90%);    // Book carousel background
+
+// === PINK / MAGENTA ===
+@color-pink-1: hsl(0, 100%, 88%);     // Mid baby pink
+@color-pink-2: hsl(0, 100%, 93%);     // Baby pink
+@color-magenta: hsl(300, 100%, 50%);  // Magenta
+
+// === PURPLE ===
+@color-purple: hsl(283, 97%, 61%);    // Purple
+@color-purple-2: hsl(266, 100%, 75%); // Merged purple
+
+// === TEAL ===
+@color-teal: hsl(184, 100%, 21%);     // Teal
+
+// === SPECIAL / SEMANTIC GREYS ===
+@color-shadow-black: hsla(0, 0, 0, 0.15);
+@color-icon-link-grey: hsla(0, 0%, 0%, 0.1);
+@color-background-grey: hsla(0, 0%, 78%, 0.23);
+
+// === SPECIAL COLORS ===
+@color-gold: hsl(50, 100%, 50%);
+@color-heart: hsl(358, 100%, 74%);
+@color-nagios-green: hsl(108, 100%, 50%);
+@color-account-icon-bg: hsla(37, 24%, 79%, 0.761);
+@color-account-icon-border: hsl(45, 7%, 79%);
+@color-admin-row-bg: hsl(58, 66%, 81%);
+@color-admin-table-border: hsl(48, 26%, 73%);
+@color-book-cover-shadow: hsl(48, 35%, 64%);
+@color-header-gradient-start: hsl(41.2, 47.1%, 93.3%);
+@color-header-gradient-end: hsl(41.5, 48.1%, 89.4%);
+@color-header-nav-hover: hsl(207, 83%, 33%);
+@color-brand-blue-darker: hsl(198, 100%, 36%);
+@color-count-grey-blue: hsla(211, 28%, 41%, 1);
+
+// === LEGACY - For backward compatibility ===
+// These will be phased out in favor of semantic tokens
+@color-grey-accessible: @color-grey-8;
+@color-grey-background: @color-background-grey;

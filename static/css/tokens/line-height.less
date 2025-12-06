@@ -1,0 +1,57 @@
+/**
+ * Line Height Primitives & Tokens
+ * ================================
+ * Line height values for different text contexts
+ * These define vertical spacing within text for readability
+ */
+
+// === PRIMITIVE VALUES ===
+// Base line height ratios for different text types
+
+@line-height-tight: 1.1;        // For tight, compact text (headlines)
+@line-height-snug: 1.2;         // For slightly tight text (subheadings)
+@line-height-normal: 1.35;      // For normal text (balanced default)
+@line-height-relaxed: 1.5;      // For body text (readable)
+@line-height-loose: 1.75;       // For sparse text (very readable)
+@line-height-extra-loose: 2;    // For very sparse text (accessibility)
+
+// Numeric line heights (for specific pixel values if needed)
+@line-height-sm: 1.25;
+@line-height-md: 1.4;
+@line-height-lg: 1.6;
+
+// === SEMANTIC TOKENS ===
+// Contextual usage of line heights
+
+// Display/Hero text - tight line height
+@line-height-display: @line-height-tight;
+
+// Headings - snug line height
+@line-height-heading: @line-height-snug;
+
+// Subheadings & titles - normal-to-snug
+@line-height-title: @line-height-normal;
+
+// Body text - relaxed for readability
+@line-height-body: @line-height-relaxed;
+
+// Captions - slightly tighter than body
+@line-height-caption: @line-height-normal;
+
+// Code - relaxed for clarity
+@line-height-code: @line-height-relaxed;
+
+// Links - same as body
+@line-height-link: @line-height-body;
+
+// Labels - tight
+@line-height-label: @line-height-snug;
+
+// Lists - normal
+@line-height-list: @line-height-normal;
+
+// Form elements - normal
+@line-height-form: @line-height-normal;
+
+// For accessibility, extra line height
+@line-height-accessible: @line-height-loose;
