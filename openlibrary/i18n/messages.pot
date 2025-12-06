@@ -6634,6 +6634,14 @@ msgid "Oldest"
 msgstr ""
 
 #: merge_request_table/table_row.html
+msgid "An untitled work"
+msgstr ""
+
+#: merge_request_table/table_row.html
+msgid "An unnamed author"
+msgstr ""
+
+#: merge_request_table/table_row.html
 msgid "Open request"
 msgstr ""
 
