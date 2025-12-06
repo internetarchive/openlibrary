@@ -1849,7 +1849,7 @@ msgstr ""
 msgid "Modified"
 msgstr ""
 
-#: diff.html
+#: diff.html merge_request_table/table_row.html
 msgid "Removed"
 msgstr ""
 
