@@ -1,7 +1,7 @@
-
 export const REQUEST_TYPES = {
     WORK_MERGE: 1,
-    AUTHOR_MERGE: 2
+    AUTHOR_MERGE: 2,
+    DELETION: 3
 }
 
 export async function createRequest(olids, action, type, comment = null, primary = null) {
@@ -86,4 +86,12 @@ export async function declineRequest(mrid, comment) {
 
 export async function approveRequest(mrid, comment) {
     return updateRequest('approve', mrid, comment)
+}
+
+export async function approveDeletionRequest(mrid, comment = null) {
+    return approveRequest(mrid, comment);
+}
+
+export async function declineDeletionRequest(mrid, comment = null) {
+    return declineRequest(mrid, comment);
 }

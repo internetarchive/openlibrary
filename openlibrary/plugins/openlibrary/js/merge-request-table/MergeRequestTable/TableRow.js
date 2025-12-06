@@ -4,7 +4,12 @@
  * @module merge-request-table/MergeRequestTable/TableRow
  */
 
-import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService'
+import {
+    claimRequest,
+    commentOnRequest,
+    declineRequest,
+    unassignRequest
+} from '../MergeRequestService'
 import { FadingToast } from '../../Toast'
 
 let i18nStrings;
@@ -53,6 +58,7 @@ export class TableRow {
          * @param {Number}
          */
         this.mrid = row.dataset.mrid
+
         /**
          * Button used to toggle the full comments display's visibility.
          *
