@@ -1,0 +1,61 @@
+/**
+ * Border Semantic Tokens
+ * ======================
+ * Semantic tokens map design intent to primitive border values
+ * Reference these for consistent borders throughout the app
+ */
+
+@import "border-primitives.less";
+@import "../less/colors.less";
+
+// === DIVIDERS ===
+// Thin borders for subtle separation
+
+@border-divider: @border-width-thin @border-style-solid @light-grey;
+@border-divider-subtle: @border-width-thin @border-style-solid @lighter-grey;
+@border-divider-dark: @border-width-thin @border-style-solid @mid-grey;
+
+// === INPUTS ===
+// Borders for input fields and form controls
+
+@border-input: @border-width-thin @border-style-solid @light-grey;
+@border-input-hover: @border-width-thin @border-style-solid @mid-grey;
+@border-input-focus: @border-width-thin @border-style-solid @primary-blue;
+@border-input-error: @border-width-thin @border-style-solid @red;
+@border-input-disabled: @border-width-thin @border-style-solid @lighter-grey;
+
+// === BUTTONS ===
+// Borders for buttons and interactive elements
+
+@border-button: @border-width-thin @border-style-solid transparent;
+@border-button-outlined: @border-width-thin @border-style-solid @primary-blue;
+@border-button-ghost: @border-width-thin @border-style-solid @mid-grey;
+
+// === CARDS ===
+// Borders for cards and containers
+
+@border-card: @border-width-thin @border-style-solid @light-grey;
+@border-card-subtle: @border-width-thin @border-style-solid @lighter-grey;
+@border-card-dark: @border-width-thin @border-style-solid @mid-grey;
+
+// === EMPHASIS ===
+// Stronger borders for emphasis or states
+
+@border-focus: @border-width-thick @border-style-solid @primary-blue;
+@border-error: @border-width-thick @border-style-solid @red;
+@border-success: @border-width-thick @border-style-solid @check-green;
+@border-warning: @border-width-thick @border-style-solid @orange;
+
+// === ACCENT ===
+// Decorative borders for visual interest
+
+@border-accent: @border-width-thin @border-style-solid @primary-blue;
+@border-accent-secondary: @border-width-thin @border-style-solid @mid-blue;
+
+// === INDIVIDUAL PROPERTIES ===
+// For complex custom borders
+
+@border-width-divider: @border-width-thin;
+@border-width-card: @border-width-thin;
+@border-width-input: @border-width-thin;
+@border-width-focus: @border-width-thick;
