@@ -142,4 +142,3 @@ repos:
         types: [sql]
         args: ["--config=.sqlfluff"]
         exclude: scripts/dev-instance/patron_data.sql|scripts/solr_builder/sql/import-partial.sql
-    
