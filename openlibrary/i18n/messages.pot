@@ -1736,7 +1736,7 @@ msgstr ""
 msgid "Status Summary"
 msgstr ""
 
-#: batch_import_view.html merge_request_table/table_row.html
+#: batch_import_view.html
 msgid "Approve"
 msgstr ""
 
@@ -1849,7 +1849,7 @@ msgstr ""
 msgid "Modified"
 msgstr ""
 
-#: diff.html merge_request_table/table_row.html
+#: diff.html
 msgid "Removed"
 msgstr ""
 
@@ -2229,9 +2229,8 @@ msgstr ""
 msgid "Show changed files"
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html
-#: delete_ile/delete_authors.html status.html type/author/edit.html
-#: type/language/view.html
+#: admin/inspect/store.html admin/people/index.html status.html
+#: type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr ""
 
@@ -4454,9 +4453,9 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html
-#: delete_ile/delete_works.html lib/nav_head.html search/advancedsearch.html
-#: type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html type/about/edit.html type/page/edit.html
+#: type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -5549,54 +5548,6 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: delete_ile/delete_authors.html
-msgid "Delete Authors"
-msgstr ""
-
-#: delete_ile/delete_authors.html merge/authors.html
-msgid "No authors selected."
-msgstr ""
-
-#: delete_ile/delete_authors.html
-msgid "The following Authors are marked for deletion:"
-msgstr ""
-
-#: delete_ile/delete_authors.html
-msgid "Author ID"
-msgstr ""
-
-#: delete_ile/delete_authors.html delete_ile/delete_works.html
-msgid "Reason for deletion (optional)"
-msgstr ""
-
-#: delete_ile/delete_authors.html
-msgid "Delete Authors Permanently"
-msgstr ""
-
-#: delete_ile/delete_authors.html delete_ile/delete_works.html
-msgid "Request Deletion"
-msgstr ""
-
-#: delete_ile/delete_works.html
-msgid "Delete Works"
-msgstr ""
-
-#: delete_ile/delete_works.html
-msgid "No works selected."
-msgstr ""
-
-#: delete_ile/delete_works.html
-msgid "The following Works are marked for deletion:"
-msgstr ""
-
-#: delete_ile/delete_works.html
-msgid "Work ID"
-msgstr ""
-
-#: delete_ile/delete_works.html
-msgid "Delete Works Permanently"
-msgstr ""
-
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -6506,6 +6457,10 @@ msgid "Merge Authors"
 msgstr ""
 
 #: merge/authors.html
+msgid "No authors selected."
+msgstr ""
+
+#: merge/authors.html
 msgid "Please select a primary author record."
 msgstr ""
 
@@ -6679,40 +6634,7 @@ msgid "Oldest"
 msgstr ""
 
 #: merge_request_table/table_row.html
-msgid "An unnamed author"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "An untitled work"
-msgstr ""
-
-#: merge_request_table/table_row.html
 msgid "Open request"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Kept"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "No reason provided."
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Add a reason..."
-msgstr ""
-
-#: merge_request_table/table_row.html
-#, python-format
-msgid "Deletion request #%(id)s opened %(date)s by "
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Click to close this Deletion Request"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Review <!-- (deletion request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6728,8 +6650,14 @@ msgid "Add a comment..."
 msgstr ""
 
 #: merge_request_table/table_row.html
+msgid "Reply"
+msgstr ""
+
+#: merge_request_table/table_row.html
 #, python-format
-msgid "MR #%(id)s opened %(date)s by "
+msgid ""
+"MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -6738,14 +6666,6 @@ msgstr ""
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Deletion:"
-msgstr ""
-
-#: merge_request_table/table_row.html
-msgid "Reply"
 msgstr ""
 
 #: merge_request_table/table_row.html
