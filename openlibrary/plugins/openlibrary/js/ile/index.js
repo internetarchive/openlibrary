@@ -88,4 +88,14 @@ export class IntegratedLibrarianEnvironment {
             this.bulkTagger.showTaggingMenu()
         }
     }
+
+    /**
+     * Handles the new DOM event, which is triggered when a new element is added to the DOM.
+     * This method labels selectable elements in the newly added element.
+     *
+     * @param {HTMLElement} element
+     */
+    handleNewDom(element) {
+        this.selectionManager.labelSelectableElements(element);
+    }
 }
