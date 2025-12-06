@@ -157,9 +157,6 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
                 include=PublicQueryOptions.model_fields.keys(),
                 exclude_none=True,
             )
-            # only add page and limit, not offset (unclear why)
-            q['page'] = self.page
-            q['limit'] = self.limit
             return q
 
 

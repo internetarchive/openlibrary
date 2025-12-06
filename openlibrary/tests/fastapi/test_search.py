@@ -174,21 +174,6 @@ class TestSearchEndpoint:
         for key, expected in expected_kwargs.items():
             assert call_kwargs.get(key) == expected
 
-    def test_offset_not_in_query_dict(self, client, mock_work_search):
-        """Test that the pagination param 'offset' is not passed in the query dict.
-        Only page and limit should be int that query dict (for some odd reason)
-        """
-        response = search(client, q='test', offset=50, limit=25)
-        assert response.status_code == 200
-
-        mock_work_search.assert_called_once()
-        query_dict = mock_work_search.call_args[0][0]
-        assert 'page' in query_dict
-        assert 'limit' in query_dict
-        assert (
-            'offset' not in query_dict
-        ), f"'offset' should not be in the query dict, but found: {query_dict}"
-
     def test_response_includes_metadata(self, client, mock_work_search):
         """Test that the response includes expected metadata fields."""
 
