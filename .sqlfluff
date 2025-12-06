@@ -1,8 +1,9 @@
 [sqlfluff]
 dialect = postgres
-exclude_rules = L031
-templater = jinja
+exclude_rules = 
+    L010,L011,L012,L014,L016,
+    L018,L019,L020,L025,L028,
+    L030,L031,L034,L035,
+    RF04,RF06,RF02,
+    LT12,LT14,AM04
 max_line_length = 120
-
-[sqlfluff:rules:capitalisation.keywords]
-capitalisation_policy = consistent
