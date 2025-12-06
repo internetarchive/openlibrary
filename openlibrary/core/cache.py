@@ -2,6 +2,7 @@
 
 import functools
 import hashlib
+import inspect
 import json
 import random
 import string
@@ -474,21 +475,40 @@ class memoize:
     def __call__(self, f):
         """Returns the memoized version of f."""
 
-        @functools.wraps(f)
-        def func(*args, **kwargs):
-            """The memoized function.
+        if inspect.iscoroutinefunction(f):
+            # Async function - return async wrapper
+            @functools.wraps(f)
+            async def async_func(*args, **kwargs):
+                """The memoized async function.
 
-            If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
-            Otherwise, value from the cache is returned.
-            """
-            key = self.keyfunc(*args, **kwargs)
-            value = self.cache_get(key)
-            if value is None:
-                value = f(*args, **kwargs)
-                self.cache_set(key, value)
-            return value
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = await f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
 
-        return func
+            return async_func
+        else:
+            # Sync function - return sync wrapper (existing behavior)
+            @functools.wraps(f)
+            def func(*args, **kwargs):
+                """The memoized function.
+
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
+
+            return func
 
     def cache_get(self, key: str | tuple):
         """Reads value of a key from the cache.
