@@ -1,4 +1,5 @@
 $def with (request, username, can_merge)
+<<<<<<< HEAD
 $# request : dict : Dict containing information about a single merge request.
 $# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
 $# can_merge : boolean : `True` if patron has merge privileges.
@@ -8,6 +9,11 @@ $ comments = request.get('comments', {}).get('comments', [])
 $ is_open = request['status'] == 1
 $ review_url = "%s&mrid=%s" % (request['url'], request['id'])
 $ is_submitter = username == request['submitter']
+=======
+$# request : dict : Dict containing information about a single librarian request.
+$# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
+$# can_merge : boolean : `True` if patron has merge privileges.
+>>>>>>> b839eb7f3a513f03d9febd4f7d8e6bb732096de1
 
 $code:
   # Maps request statuses to status dot class names

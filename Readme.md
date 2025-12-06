@@ -56,11 +56,11 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ## Code Organization
 
-* openlibrary/core - core openlibrary functionality, imported and used by www
-* openlibrary/plugins - other models, controllers, and view helpers
-* openlibrary/views - views for rendering web pages
-* openlibrary/templates - all the templates used in the website
-* openlibrary/macros - macros are like templates, but can be called from wikitext
+* [*openlibrary/core*](/openlibrary/core) - core openlibrary functionality, imported and used by www
+* [*openlibrary/plugins*](/openlibrary/plugins) - other models, controllers, and view helpers
+* [*openlibrary/views*](/openlibrary/views) - views for rendering web pages
+* [*openlibrary/templates*](/openlibrary/templates) - all the templates used in the website
+* [*openlibrary/macros*](/openlibrary/macros) - macros are like templates, but can be called from wikitext
 
 ## Architecture
 

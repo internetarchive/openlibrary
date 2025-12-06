@@ -503,7 +503,7 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['work'],
         requires_type: ['work'],
-        multiple_only: false, // like Merge Works: only show when multiple works selected
+        multiple_only: false,
         name: 'Delete Works...',
         href: olids => `/works/delete?records=${olids.join(',')}`,
     },

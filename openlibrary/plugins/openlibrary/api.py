@@ -807,7 +807,9 @@ class opds_search(delegate.page):
     def GET(self):
         from pyopds2 import Catalog, Link, Metadata
 
-        i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
+        i = web.input(
+            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
+        )
         provider = get_opds_data_provider()
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
@@ -815,6 +817,7 @@ class opds_search(delegate.page):
                 query=i.query,
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
+                sort=i.sort,
             ),
             links=[
                 Link(
@@ -828,6 +831,16 @@ class opds_search(delegate.page):
                     type="application/opds+json",
                     templated=True,
                 ),
+                Link(
+                    rel="http://opds-spec.org/shelf",
+                    href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                    type="application/opds+json",
+                ),
+                Link(
+                    rel="profile",
+                    href="https://archive.org/services/loans/loan/?action=user_profile",
+                    type="application/opds-profile+json",
+                ),
             ],
         )
         web.header('Content-Type', 'application/opds+json')
@@ -838,6 +851,8 @@ class opds_books(delegate.page):
     path = r"/opds/books/(OL\d+M)"
 
     def GET(self, edition_olid: str):
+        from pyopds2 import Link
+
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
         web.header('Content-Type', 'application/opds-publication+json')
@@ -847,9 +862,20 @@ class opds_books(delegate.page):
                 data=json.dumps({'error': 'Edition not found'}),
             )
 
-        return delegate.RawText(
-            json.dumps(resp.records[0].to_publication().model_dump())
-        )
+        pub = resp.records[0].to_publication()
+        pub.links += [
+            Link(
+                rel="http://opds-spec.org/shelf",
+                href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                type="application/opds+json",
+            ),
+            Link(
+                rel="profile",
+                href="https://archive.org/services/loans/loan/?action=user_profile",
+                type="application/opds-profile+json",
+            ),
+        ]
+        return delegate.RawText(json.dumps(pub.model_dump()))
 
 
 class opds_home(delegate.page):
@@ -861,12 +887,12 @@ class opds_home(delegate.page):
 
             provider = get_opds_data_provider()
             catalog = Catalog(
-                metadata=Metadata(title=_("Welcome to Open Library")),
+                metadata=Metadata(title=_("Open Library")),
                 publications=[],
                 navigation=[
                     Navigation(
                         type="application/opds+json",
-                        title=f'{subject['emoji']} {subject['presentable_name']}',
+                        title=subject['presentable_name'],
                         href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
                     )
                     for subject in get_cached_featured_subjects()
@@ -875,7 +901,7 @@ class opds_home(delegate.page):
                     Catalog.create(
                         metadata=Metadata(title=_("Trending Books")),
                         response=provider.search(
-                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
+                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover" ebook_access:[borrowable TO *]',
                             sort='trending',
                             limit=25,
                         ),
@@ -933,6 +959,16 @@ class opds_home(delegate.page):
                         href=f"{provider.BASE_URL}/opds/search{{?query}}",
                         type="application/opds+json",
                         templated=True,
+                    ),
+                    Link(
+                        rel="http://opds-spec.org/shelf",
+                        href="https://archive.org/services/loans/loan/?action=user_bookshelf",
+                        type="application/opds+json",
+                    ),
+                    Link(
+                        rel="profile",
+                        href="https://archive.org/services/loans/loan/?action=user_profile",
+                        type="application/opds-profile+json",
                     ),
                 ],
             )

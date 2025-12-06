@@ -29,17 +29,6 @@ export async function createRequest(olids, action, type, comment = null, primary
 }
 
 /**
- * Creates a deletion request for an entry that is not a book
- * @param {string} olid - The Open Library ID to request deletion (e.g., "OL123W")
- * @param {string} comment - Reason why this should be removed ("This is not a book")
- * @returns {Promise<Response>}
- */
-export async function createDeletionRequest(olid, comment) {
-    // olid should be a single ID string, not an array
-    return createRequest(olid, 'create-pending', REQUEST_TYPES.DELETION, comment);
-}
-
-/**
  * Updates an existing librarian request.
  *
  * @param {'comment'|'claim'|'approve'|'decline'} action Denotes the type of update being sent

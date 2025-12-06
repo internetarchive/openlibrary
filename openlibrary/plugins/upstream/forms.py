@@ -6,7 +6,6 @@ from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
-    Checkbox,
     Email,
     Form,
     Hidden,
@@ -111,21 +110,6 @@ class RegisterForm(Form):
             minlength="3",
             maxlength="20",
             required="true",
-        ),
-        Checkbox(
-            'ia_newsletter',
-            description=_(
-                'I want to receive news, announcements, and resources from the '
-                '<a href="https://archive.org/">Internet Archive</a>, the non-profit '
-                'that runs Open Library.'
-            ),
-        ),
-        Checkbox(
-            "pd_request",
-            description=_(
-                'I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">'
-                'special print disability access</a> through a qualifying program.'
-            ),
         ),
     )
 

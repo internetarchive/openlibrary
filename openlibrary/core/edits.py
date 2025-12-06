@@ -43,7 +43,8 @@ class CommunityEditsQueue:
         {
             'WORK_MERGE': 1,
             'AUTHOR_MERGE': 2,
-            'DELETION': 3,
+            'WORK_DELETE': 3,
+            'AUTHOR_DELETE': 4,
         }
     )
 
@@ -60,9 +61,6 @@ class CommunityEditsQueue:
             'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
             'open': [STATUS['PENDING']],
             'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-            # still available if you want a deletion-only view somewhere
-            'deletion_open': [STATUS['PENDING']],
-            'deletion_closed': [STATUS['DECLINED'], STATUS['MERGED']],
         }
     )
 
@@ -162,13 +160,6 @@ class CommunityEditsQueue:
                 where_clause = f'{where_clause} AND {status_query}'
             else:
                 where_clause = status_query
-
-        # Append mr_type filter only when we explicitly set it (deletion_* modes)
-        if mr_type_filter:
-            if where_clause:
-                where_clause = f'{where_clause} AND {mr_type_filter}'
-            else:
-                where_clause = mr_type_filter
 
         return where_clause
 

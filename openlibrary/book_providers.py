@@ -381,7 +381,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                 access=access,
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}',
+                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}?view=theater&wrapper=false',
                 provider_name=self.short_name,
             )
         ]
@@ -626,9 +626,15 @@ class BetterWorldBooksProvider(AbstractBookProvider):
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
         # basically just check if it has an isbn?
-        return (ed_or_solr.get('isbn') or ed_or_solr.get('isbn_10') or []) + (
-            ed_or_solr.get('isbn_13') or []
+        isbn = (
+            ed_or_solr.get('isbn')
+            or ed_or_solr.get('isbn_10')
+            or ed_or_solr.get('isbn_13')
+            or []
         )
+        if ed_or_solr.get('key') in self.bwb_acquisitions and isbn:
+            return isbn
+        return []
 
     @functools.cached_property
     def bwb_acquisitions(self) -> dict[str, Acquisition]:
