@@ -26,6 +26,11 @@ module.exports = {
         filename: '[name].css.js', // dummy, CSS will be extracted
         clean: true,
     },
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname),
+        }
+    },
     module: {
         rules: [
             {

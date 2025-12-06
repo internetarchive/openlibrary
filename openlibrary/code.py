@@ -28,6 +28,7 @@ def setup():
 
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
+    template.disktemplates.load_templates("ui", lazy=True)
 
     for p in old_plugins:
         logger.info("loading plugin %s", p)
