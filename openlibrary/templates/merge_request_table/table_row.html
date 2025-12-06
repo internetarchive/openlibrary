@@ -1,174 +1,94 @@
-$def with (request, username, can_merge, is_deletion_mode=False)
-$# request : dict : Dict containing information about a single merge request or deletion request.
+$def with (request, username, can_merge)
+$# request : dict : Dict containing information about a single merge request.
 $# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
 $# can_merge : boolean : `True` if patron has merge privileges.
-$# is_deletion_mode : boolean : legacy flag; we also auto-detect deletion via mr_type.
+
+$ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
+$ comments = request.get('comments', {}).get('comments', [])
+$ is_open = request['status'] == 1
+$ review_url = "%s&mrid=%s" % (request['url'], request['id'])
+$ is_submitter = username == request['submitter']
 
 $code:
-    # Auto-detect deletion requests based on mr_type
-    is_deletion = is_deletion_mode or (request.get('mr_type') == 3)
+  # Maps request statuses to status dot class names
+  status_dot_mapping = {
+    0: 'dot--closed',
+    1: 'dot--open',
+    2: 'dot--merged'
+  }
 
-    # Title
-    if request.get('mr_type') == 2:
-        default_title = _('An unnamed author')
-    else:
-        default_title = _('An untitled work')
-    request_title = request.get('title', default_title)
-
-    # Basic fields
-    comments = request.get('comments', {}).get('comments', [])
-    is_open = (request['status'] == 1)
-    review_url = "%s&mrid=%s" % (request['url'], request['id'])
-    is_submitter = (username == request['submitter'])
-
-    # Status dot classes
-    status_dot_mapping = {
-        0: 'dot--closed',
-        1: 'dot--open',
-        2: 'dot--merged',
-    }
-    dot_status_class = status_dot_mapping.get(request['status'], 'dot--closed')
-
-    # Status label + comment preview + placeholder, depending on deletion or not
-    if is_deletion:
-        if is_open:
-            status_label = _('Open request')
-        else:
-            status_label = _('Removed') if request['status'] == 2 else _('Kept')
-        latest_comment = comments[-1]['message'] if comments else _('No reason provided.')
-        comment_placeholder = _('Add a reason...')
-        opened_by_prefix = _(
-            'Deletion request #%(id)s opened %(date)s by '
-        ) % {
-            'id': request['id'],
-            'date': datestr(request['created']),
-        }
-        close_title = _('Click to close this Deletion Request')
-        review_btn_text = _('Review <!-- (deletion request) -->')
-    else:
-        if is_open:
-            status_label = _('Open request')
-        else:
-            status_label = _('Closed request')
-        latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
-        comment_placeholder = _('Add a comment...')
-        opened_by_prefix = _(
-            'MR #%(id)s opened %(date)s by '
-        ) % {
-            'id': request['id'],
-            'date': datestr(request['created']),
-        }
-        close_title = _('Click to close this Merge Request')
-        review_btn_text = _('Review <!-- (merge request) -->')
-
-    # Reviewer / button state
-    show_review_button = is_open and can_merge and not request.get('reviewer', '')
-    request_reviewer = request.get('reviewer', '')
-    if request_reviewer:
-        request_reviewer_display = '@' + request_reviewer
-    else:
-        request_reviewer_display = ''
-
-    if is_open:
-        icon_classes = 'mr-review-actions__unassign'
-        if not can_merge:
-            icon_classes = '%s hidden' % icon_classes
-        icon_content = '&times;'
-    else:
-        icon_classes = 'mr-review-actions__checkmark'
-        icon_content = '✓'
-
-    # Approve button only for open deletion requests and librarians
-    show_approve_button = bool(is_deletion and is_open and can_merge)
-    approve_btn_label = _('Approve')
-
-<tr id="mrid-$(request['id'])"
-    class="mr-table-row $('deletion-request' if is_deletion else '')"
-    data-mrid="$(request['id'])"
-    data-is-deletion="$('true' if is_deletion else 'false')">
+<tr id="mrid-$(request['id'])" class="mr-table-row" data-mrid="$(request['id'])">
     <td class="mr-info">
-        $# Status dot
-        <div class="dot $dot_status_class" title="$status_label"></div>
+        $# Start : Status dot indicator
+        $ dot_status_class = status_dot_mapping[request['status']]
+        $ status = _('Open request') if is_open else _('Closed request')
+        <div class="dot $dot_status_class" title="$status"></div>
+        $# End : Status dot indicator
 
         <div class="mr-details">
         $if is_open:
-            <span class="mr-details__request-title">
-                $if is_deletion:
-                    <span class="deletion-badge">$_('Deletion:')</span>
-                $request_title
-            </span>
+            <span class="mr-details__request-title">$request_title</span>
         $else:
             <a href="$review_url" class="mr-title-link">
-                <span class="mr-details__request-title">
-                    $if is_deletion:
-                        <span class="deletion-badge">$_('Deletion:')</span>
-                    $request_title
-                </span>
+                <span class="mr-details__request-title">$request_title</span>
             </a>
 
-        $# Most recent comment preview
+        $# Start : Most recent comment preview
         <div class="mr-details__comment-preview">
+            $ latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
             $latest_comment
         </div>
+        $# End : Most recent comment preview
 
-        $# Comment panel
+        $# Start : Comment section
+        $# XXX : Replace this with a modal form
         <div class="comment-panel hidden">
             <div class="comment-panel__comment-display">
             $for c in comments:
-                <div class="comment-panel__comment">
-                    <span class="commenter">@${c['username']}</span> ${c['message']}
-                </div>
+                <div class="comment-panel__comment"><span class="commenter">@$c['username']</span> $c['message']</div>
             </div>
             $if is_submitter or can_merge:
             <div class="comment-panel__input">
-                <textarea class="comment-panel__reply-input"
-                          rows="1"
-                          placeholder="$comment_placeholder"></textarea>
-                <input class="comment-panel__reply-btn"
-                       type="button"
-                       value="$_('Reply')">
+                $# XXX: Ensure that this has a drag handle
+                <textarea class="comment-panel__reply-input" rows="1" placeholder="$_('Add a comment...')"></textarea>
+                <input class="comment-panel__reply-btn" type="button" value="$_('Reply')">
             </div>
         </div>
+        $# End : Comment section
 
-        $# Submitted by line
+        $# Start : Submitted by line
         <span class="mr-details__opened-by">
-            $opened_by_prefix
-            <a href="/people/${request['submitter']}" class="commenter">
-                @${request['submitter']}
-            </a>
+            $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
             $if is_open and is_submitter:
-            <a class="mr-close-link"
-               title="$close_title"
-               href="javascript:;">&times;</a>
+            <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
         </span>
+        $# End : Submitted by line
         </div>
     </td>
-
     <td class="mr-review-actions">
+        $ show_review_button = is_open and can_merge and not request.get('reviewer', '')
         <div class="mr-review-actions__assignee $('hidden' if show_review_button else '')">
-            <span class="mr-review-actions__assignee-name">$request_reviewer_display</span>
-            <span class="$icon_classes">$:icon_content</span>
+        $ request_reviewer = request.get('reviewer', '')
+        $if request_reviewer:
+            $ request_reviewer = '@' + request_reviewer
+        $if is_open:
+            $ icon_classes = 'mr-review-actions__unassign'
+            $if not can_merge:
+                $ icon_classes = '%s hidden' % icon_classes
+            $ icon_content = '&times;'
+        $else:
+            $ icon_classes = 'mr-review-actions__checkmark'
+            $ icon_content = '✓'
+
+        <span class="mr-review-actions__assignee-name">$request_reviewer</span>
+        <span class="$icon_classes">$:icon_content</span>
         </div>
-        <a href="$review_url"
-           target="_blank"
-           class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$:review_btn_text</a>
-
-        $if show_approve_button:
-            <button
-                type="button"
-                class="cta-btn mr-approve-deletion-btn"
-                data-action="approve"
-                data-mrid="$(request['id'])">
-                $approve_btn_label
-            </button>
+        <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$:_('Review <!-- (merge request) -->')</a>
     </td>
-
     <td class="mr-comment-toggle">
         <a href="javascript:;" class="mr-comment-toggle__comment-expand cta-btn">
-            <span class="mr-comment-toggle__comment-count">$len(comments)</span>
-            <img class="mr-comment-review-cell__speech mr-comment-toggle__speech-bubble"
-                 src="/static/images/speech-bubble.svg"
-                 alt="$_('comments')">
+        <span class="mr-comment-toggle__comment-count">$len(comments)</span>
+        <img class="mr-comment-review-cell__speech mr-comment-toggle__speech-bubble" src="/static/images/speech-bubble.svg" alt="$_('comments')">
         </a>
     </td>
 </tr>
