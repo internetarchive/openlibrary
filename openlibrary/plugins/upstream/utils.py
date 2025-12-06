@@ -51,6 +51,13 @@ from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 
+
+def html_unescape(text: str) -> str:
+    if text is None:
+        return ""
+    return unescape(text)
+
+
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
         Author,
@@ -1724,6 +1731,7 @@ def setup() -> None:
             'logger': logging.getLogger("openlibrary.template"),
             'sum': sum,
             'websafe': web.websafe,
+            'html_unescape': unescape,
         }
     )
 
