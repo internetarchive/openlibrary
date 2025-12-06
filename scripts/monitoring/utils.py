@@ -12,17 +12,17 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
 
     source_paths = [
         (
-            os.path.join("scripts", "monitoring", source)
+            Path("./scripts/monitoring") / Path(source)
             if not os.path.isabs(source)
-            else source
+            else Path(source)
         )
         for source in sources
     ]
     bash_command = "\n".join(
         (
             'set -e',
-            *(f'source "{path}"' for path in source_paths),
-            cmd,
+            *(f'source "{path.as_posix()}"' for path in source_paths),
+            *cmd.strip().splitlines(),
         )
     )
 
@@ -33,7 +33,6 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
             bash_command,
         ],
         check=True,
-        # Mainly for testing:
         capture_output=capture_output,
         text=capture_output if capture_output else None,
     )
