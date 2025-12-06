@@ -253,15 +253,15 @@ Modular scale with display, headline, title, body, label, caption, and code size
   line-height: @line-height-label;
   background-color: @button-primary-bg;
   color: @text-inverse;
-  
+
   &:hover {
     background-color: @button-primary-hover-bg;
   }
-  
+
   &:focus {
     border: @border-focus;
   }
-  
+
   &:disabled {
     background-color: @button-disabled-bg;
     color: @button-primary-disabled-text;
@@ -277,7 +277,7 @@ Modular scale with display, headline, title, body, label, caption, and code size
   border-radius: @radius-card;
   background-color: @surface-card-bg;
   box-shadow: 0 2px 4px @surface-card-shadow;
-  
+
   // Increase card padding and border radius globally
   // Just change two lines in radius-semantic.less and spacing-semantic.less
 }
@@ -291,22 +291,22 @@ input {
   border-radius: @radius-input;
   font-size: @font-size-body-md;
   line-height: @line-height-form;
-  
+
   &:hover {
     border: @border-input-hover;
   }
-  
+
   &:focus {
     border: @border-input-focus;
     outline: none;
   }
-  
+
   &:disabled {
     background-color: @input-disabled-bg;
     color: @input-disabled-text;
     border: @border-input-disabled;
   }
-  
+
   &.error {
     border: @border-input-error;
   }
@@ -320,19 +320,19 @@ input {
   border-radius: @radius-card;
   border-left: 3px solid;
   line-height: @line-height-body;
-  
+
   &--success {
     background-color: @state-success-bg;
     color: @state-success-text;
     border-color: @state-success-border;
   }
-  
+
   &--error {
     background-color: @state-error-bg;
     color: @state-error-text;
     border-color: @state-error-border;
   }
-  
+
   &--warning {
     background-color: @state-warning-bg;
     color: @state-warning-text;
