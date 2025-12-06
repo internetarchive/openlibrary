@@ -137,18 +137,9 @@ class CommunityEditsQueue:
         if "id" in kwargs:
             wheres.append("id=$id")
 
-        # status + mr_type handling
-        status_list = []
-        mr_type_filter = None
-
-        if mode in ['deletion_open', 'deletion_closed']:
-            # Deletion-only views: filter by mr_type = DELETION
-            mr_type_filter = f'mr_type={cls.TYPE["DELETION"]}'
-            status_list = [f'status={status}' for status in cls.MODES[mode]]
-        elif mode in cls.MODES and mode != 'all':
-            # Normal open/closed/all modes: filter by status only,
-            # DO NOT filter by mr_type so deletions appear in main queue.
-            status_list = [f'status={status}' for status in cls.MODES[mode]]
+        status_list = (
+            [f'status={status}' for status in cls.MODES[mode]] if mode != 'all' else []
+        )
 
         where_clause = ''
 
