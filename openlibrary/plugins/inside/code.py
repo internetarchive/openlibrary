@@ -2,6 +2,7 @@ import json
 from time import time
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
@@ -31,6 +32,7 @@ class search_inside(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class search_inside_json(delegate.page):
     path = "/search/inside"
     encoding = "json"
