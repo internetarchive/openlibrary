@@ -1,9 +1,11 @@
 import web
 
 from openlibrary.plugins.worksearch.code import (
+    _prepare_solr_query_params,
     get_doc,
     process_facet,
 )
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 
 def test_process_facet():
@@ -74,3 +76,18 @@ def test_get_doc():
             'want_to_read_count': None,
         }
     )
+
+
+def test_prepare_solr_query_params_first_publish_year_string():
+    """Test to check that when we have a facet value as a string it is converted to a list properly"""
+    scheme = WorkSearchScheme()
+    param = {'first_publish_year': '1997'}
+    params, fields = _prepare_solr_query_params(scheme, param)
+
+    param2 = {'first_publish_year': ['1997']}
+    params2, fields2 = _prepare_solr_query_params(scheme, param2)
+    assert params == params2
+    assert fields == fields2
+    # Check that the fq param for first_publish_year is correctly added
+    fq_params = [p for p in params if p[0] == 'fq']
+    assert ('fq', 'first_publish_year:"1997"') in fq_params

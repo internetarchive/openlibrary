@@ -1,65 +1,131 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, Request
-from fastapi.responses import JSONResponse
+import json
+from typing import Annotated, Any
 
-from openlibrary.plugins.worksearch.code import async_work_search
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field, model_validator
+
+from openlibrary.plugins.worksearch.code import (
+    default_spellcheck_count,
+    validate_search_json_query,
+    work_search_async,
+)
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
 
 
-@router.get("/search.json", response_class=JSONResponse)
+# Ideally this will go in a models files, we'll move it for the 2nd endpoint
+class Pagination(BaseModel):
+    limit: Annotated[int, Query(ge=0)] = 100
+    offset: Annotated[int | None, Query(ge=0)] = None
+    page: Annotated[int | None, Query(ge=1)] = None
+
+    @model_validator(mode='after')
+    def normalize_pagination(self) -> Pagination:
+        if self.offset is not None:
+            self.page = None
+        elif self.page is None:
+            self.page = 1
+        return self
+
+
+class PublicQueryOptions(BaseModel):
+    """
+    This class has all the parameters that are passed as "query"
+    """
+
+    q: str = Query("", description="The search query, like keyword.")
+
+    # from check_params in works.py
+    title: str | None = None
+    publisher: str | None = None
+    oclc: str | None = None
+    lccn: str | None = None
+    contributor: str | None = None
+    subject: str | None = None
+    place: str | None = None
+    person: str | None = None
+    time: str | None = None
+    # from workscheme facet_fields
+    has_fulltext: bool | None = None
+    public_scan_b: bool | None = None
+
+    """
+    The day will come when someone asks, why do we have Field wrapping Query
+    The answer seems to be:
+    1. Depends(): Tells FastAPI to explode the Pydantic model into individual arguments (dependency injection).
+    2. Field(Query([])): Overrides the default behavior for lists. It forces FastAPI to look for ?author_key=...
+       in the URL query string instead of expecting a JSON array in the request body.
+    The Field part is needed because FastAPI's default guess for lists inside Pydantic models is wrong for this use case.
+       It guesses "JSON Body," and you have to manually correct it to "Query String."
+    See: https://github.com/internetarchive/openlibrary/pull/11517#issuecomment-3584196385
+    """
+    author_key: list[str] = Field(Query([]))
+    subject_facet: list[str] = Field(Query([]))
+    person_facet: list[str] = Field(Query([]))
+    place_facet: list[str] = Field(Query([]))
+    time_facet: list[str] = Field(Query([]))
+    first_publish_year: list[str] = Field(Query([]))
+    publisher_facet: list[str] = Field(Query([]))
+    language: list[str] = Field(Query([]))
+    author_facet: list[str] = Field(Query([]))
+
+
+@router.get("/search.json")
 async def search_json(
     request: Request,
-    q: str | None = Query("", description="The search query."),
-    page: int | None = Query(
-        1, ge=1, description="The page number of results to return."
-    ),
-    limit: int = Query(
-        100, ge=1, le=1000, description="The number of results per page."
-    ),
+    pagination: Annotated[Pagination, Depends()],
+    public_query_options: Annotated[PublicQueryOptions, Depends()],
     sort: str | None = Query(None, description="The sort order of results."),
-    offset: int | None = Query(None, description="The offset of results to return."),
     fields: str | None = Query(None, description="The fields to return."),
-    # facet: bool = Query(False, description="Whether to return facets."),
     spellcheck_count: int | None = Query(
-        3, description="The number of spellcheck suggestions."
+        default_spellcheck_count, description="The number of spellcheck suggestions."
+    ),
+    query_str: str | None = Query(
+        None, alias="query", description="A full JSON encoded solr query."
     ),
 ):
     """
     Performs a search for documents based on the provided query.
     """
+    query: dict[str, Any] = {}
+    if query_str:
+        query = json.loads(query_str)
+    else:
+        # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
+        query = public_query_options.model_dump(exclude_none=True)
+        query.update({"page": pagination.page, "limit": pagination.limit})
 
-    kwargs = dict(request.query_params)
-    # Call the underlying search logic
-    _fields = WorkSearchScheme.default_fetched_fields
+    _fields: list[str] = list(WorkSearchScheme.default_fetched_fields)
     if fields:
-        _fields = fields.split(',')  # type: ignore
+        _fields = fields.split(',')
 
-    query = {"q": q, "page": page, "limit": limit}
-    query.update(
-        kwargs
-    )  # This is a hack until we define all the params we expect above.
-    response = await async_work_search(
+    if q_error := validate_search_json_query(public_query_options.q):
+        return JSONResponse(status_code=422, content={"error": q_error})
+
+    response = await work_search_async(
         query,
         sort=sort,
-        page=page,
-        offset=offset,
-        limit=limit,
+        page=pagination.page,
+        offset=pagination.offset,
+        limit=pagination.limit,
         fields=_fields,
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=spellcheck_count,
+        request_label='BOOK_SEARCH_API',
         lang=request.state.lang,
     )
 
-    # Add extra metadata to the response, similar to the original
-    response['q'] = q
     response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
+    response['q'] = public_query_options.q
+    response['offset'] = pagination.offset
 
-    # Reorder keys to have 'docs' at the end, as in the original code
+    # Put docs at the end of the response
     docs = response.pop('docs', [])
     response['docs'] = docs
 
