@@ -1346,6 +1346,7 @@ ul.list-books {
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   grid-gap: 30px 5px;
   padding: 10px;
+  padding-bottom: 150px;
 
   .searchResultItem {
     padding: 0 5px;
@@ -1385,6 +1386,17 @@ ul.list-books {
     .check-in-prompt,
     .star-rating-form {
       display: none;
+    }
+
+    .searchResultItem__footer {
+      margin-top: 6px;
+      max-height: 7.5em;
+      overflow: hidden;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
     }
   }
 }
