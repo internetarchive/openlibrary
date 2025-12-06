@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
@@ -50,8 +50,8 @@ class PublicQueryOptions(BaseModel):
     person: str | None = None
     time: str | None = None
     # from workscheme facet_fields
-    has_fulltext: bool | None = None
-    public_scan_b: bool | None = None
+    has_fulltext: Literal['true', 'false'] | None = None
+    public_scan_b: Literal['true', 'false'] | None = None
 
     """
     The day will come when someone asks, why do we have Field wrapping Query
