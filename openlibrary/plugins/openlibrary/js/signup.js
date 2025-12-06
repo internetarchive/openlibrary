@@ -159,16 +159,22 @@ export function initSignupForm() {
     }
 
     function validatePDSelection() {
+        if (!rpdCheckbox || !pdaSelector) {
+        return;
+        }
         if (!rpdCheckbox.checked) {
             clearError('#pd_program', '#pd_programMessage')
+            pdaSelector.setAttribute('aria-invalid', 'false');
             return
         }
         if (pdaSelector.value === '') {
             renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err'])
+            pdaSelector.setAttribute('aria-invalid', 'true');
             return
         }
 
         clearError('#pd_program', '#pd_programMessage')
+        pdaSelector.setAttribute('aria-invalid', 'false');
     }
 
     // Maps input ID attribute to corresponding validation function
@@ -207,10 +213,23 @@ export function initSignupForm() {
     })
 
     function updateSelectorVisibility() {
+        if (!rpdCheckbox || !pdaSelectorContainer) {
+        return;
+        }
         if (rpdCheckbox.checked) {
             pdaSelectorContainer.classList.remove('hidden')
+            rpdCheckbox.setAttribute('aria-expanded','true')
+            pdaSelectorContainer.setAttribute('aria-hidden','false')
+            if (pdaSelector) {
+                pdaSelector.setAttribute('aria-required', 'true')
+            }
         } else {
             pdaSelectorContainer.classList.add('hidden')
+            rpdCheckbox.setAttribute('aria-expanded','false')
+            pdaSelectorContainer.setAttribute('aria-hidden','true')
+            if (pdaSelector) {
+                pdaSelector.setAttribute('aria-required', 'false')
+            }
         }
     }
 
