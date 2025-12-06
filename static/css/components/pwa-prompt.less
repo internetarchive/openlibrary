@@ -1,0 +1,325 @@
+/**
+ * PWA Installation Prompt Styles
+ * Mobile-first bottom sheet design for native app-like experience
+ */
+
+@import (reference) "../less/colors.less";
+@import (reference) "../less/z-index.less";
+@import (reference) "../less/breakpoints.less";
+
+.pwa-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: @z-index-level-14; // High z-index for overlay
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  &--show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+
+  &__content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: @white;
+    border-radius: 20px 20px 0 0;
+    padding: 24px;
+    box-shadow: 0 -4px 20px @boxshadow-black;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 80vh;
+    overflow-y: auto;
+
+    .pwa-prompt--show & {
+      transform: translateY(0);
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: @dark-grey;
+    line-height: 1.2;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: @mid-grey;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: @lightest-grey;
+    }
+
+    &:focus-visible {
+      outline: 2px solid @primary-blue;
+      outline-offset: 2px;
+    }
+  }
+
+  &__message {
+    font-size: 16px;
+    color: @darker-grey;
+    line-height: 1.5;
+    margin: 0 0 24px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  &__btn {
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    line-height: 1;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:focus-visible {
+      outline: 2px solid #3498db;
+      outline-offset: 2px;
+    }
+
+    &--primary {
+      background: @primary-blue;
+      color: @white;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+
+      &:hover {
+        background: @link-blue;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+      }
+    }
+
+    &--secondary {
+      background: @grey-fafafa;
+      color: @accessible-grey;
+      border: 1px solid @light-grey;
+
+      &:hover {
+        background: @lightest-grey;
+        color: @darker-grey;
+      }
+
+      &:active {
+        background: @lighter-grey;
+      }
+    }
+
+    &--loading {
+      position: relative;
+      color: transparent;
+      pointer-events: none;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+// Tablet and larger screens
+@media (min-width: (@width-breakpoint-tablet + 1px)) {
+  .pwa-prompt {
+    &__content {
+      bottom: 50%;
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, 50%) scale(0.9);
+      border-radius: 16px;
+      max-width: 400px;
+      width: 90%;
+      max-height: none;
+
+      .pwa-prompt--show & {
+        transform: translate(-50%, 50%) scale(1);
+      }
+    }
+
+    &__actions {
+      flex-direction: row;
+    }
+
+    &__btn {
+      flex: 1;
+      min-height: 48px;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .pwa-prompt {
+    &__content {
+      background: @darker-grey;
+      color: @lightest-grey;
+    }
+
+    &__title {
+      color: @white;
+    }
+
+    &__message {
+      color: @light-grey;
+    }
+
+    &__close {
+      color: @mid-grey;
+
+      &:hover {
+        background-color: @grey;
+      }
+    }
+
+    &__btn {
+      &--secondary {
+        background: @grey;
+        color: @light-grey;
+        border-color: @mid-grey;
+
+        &:hover {
+          background: @accessible-grey;
+          color: @white;
+        }
+      }
+    }
+  }
+}
+
+// Reduced motion preference
+@media (prefers-reduced-motion: reduce) {
+  .pwa-prompt,
+  .pwa-prompt__content,
+  .pwa-prompt__btn {
+    transition: none;
+  }
+
+  .pwa-prompt__backdrop {
+    backdrop-filter: none;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .pwa-prompt {
+    &__btn {
+      &--primary {
+        background: @black;
+        color: @white;
+        border: 2px solid @white;
+      }
+
+      &--secondary {
+        background: @white;
+        color: @black;
+        border: 2px solid @black;
+      }
+    }
+  }
+}
+
+// iOS Safari specific adjustments
+@supports (-webkit-touch-callout: none) {
+  .pwa-prompt__content {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+// Enhance button interactions on touch devices
+@media (hover: none) and (pointer: coarse) {
+  .pwa-prompt {
+    &__btn {
+      padding: 18px 24px;
+      min-height: 56px;
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    &__close {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+}
+
+// Use proper mobile breakpoint for button sizing
+@media (max-width: @width-breakpoint-tablet) {
+  .pwa-prompt {
+    &__btn {
+      min-height: 56px; // Larger touch targets on mobile
+    }
+  }
+}
+
+// Loading animation
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
