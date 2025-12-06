@@ -51,7 +51,6 @@ from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 
-from html import unescape  # this import already exists at the top
 
 def html_unescape(text: str) -> str:
     if text is None:
