@@ -60,9 +60,6 @@ class CommunityEditsQueue:
             'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
             'open': [STATUS['PENDING']],
             'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-            # still available if you want a deletion-only view somewhere
-            'deletion_open': [STATUS['PENDING']],
-            'deletion_closed': [STATUS['DECLINED'], STATUS['MERGED']],
         }
     )
 
