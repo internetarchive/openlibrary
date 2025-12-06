@@ -160,13 +160,6 @@ class CommunityEditsQueue:
             else:
                 where_clause = status_query
 
-        # Append mr_type filter only when we explicitly set it (deletion_* modes)
-        if mr_type_filter:
-            if where_clause:
-                where_clause = f'{where_clause} AND {mr_type_filter}'
-            else:
-                where_clause = mr_type_filter
-
         return where_clause
 
     @classmethod
