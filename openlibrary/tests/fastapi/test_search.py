@@ -1,43 +1,25 @@
 """Basic tests for the FastAPI search endpoint."""
 
 import json
-from unittest.mock import patch
 
 import pytest
-from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.search import PublicQueryOptions
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI app."""
-    from openlibrary.asgi_app import create_app
-
-    app = create_app()
-    return TestClient(app)
+def client(fastapi_client):
+    """Alias for backward compatibility with existing tests."""
+    # TODO: refactor to remove this fixture before merging
+    return fastapi_client
 
 
 @pytest.fixture
-def mock_work_search():
-    """Mock the work_search_async function to avoid actual Solr calls."""
-    # autospec=True ensures the mock has the same signature as the real function
-    with patch('openlibrary.fastapi.search.work_search_async', autospec=True) as mock:
-        # Default mock response
-        mock.return_value = {
-            'numFound': 2,
-            'numFoundExact': True,
-            'num_found': 2,
-            'start': 0,
-            'docs': [
-                {'key': '/works/OL1W', 'title': 'Test Work 1'},
-                {'key': '/works/OL2W', 'title': 'Test Work 2'},
-            ],
-            'q': '',
-            'offset': None,
-        }
-        yield mock
+def mock_work_search(mock_work_search_async):
+    """Alias for backward compatibility with existing tests."""
+    # TODO: refactor to remove this fixture before merging
+    return mock_work_search_async
 
 
 def search(client, **params):
