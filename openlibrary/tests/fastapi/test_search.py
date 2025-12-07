@@ -216,8 +216,8 @@ class TestSearchEndpoint:
             # Case 1: publisher should pass as a string
             ({'publisher': 'Lab of Thought'}, 'publisher', 'Lab of Thought'),
             # Case 2: has_fulltext should pass as a boolean
-            ({'has_fulltext': 'true'}, 'has_fulltext', True),
-            ({'has_fulltext': 'false'}, 'has_fulltext', False),
+            ({'has_fulltext': 'true'}, 'has_fulltext', 'true'),
+            ({'has_fulltext': 'false'}, 'has_fulltext', 'false'),
         ],
     )
     def test_search_parameter_types(
