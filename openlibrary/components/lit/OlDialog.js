@@ -35,12 +35,10 @@ export class OlDialog extends LitElement {
             --ol-dialog-width-small: 400px;
             --ol-dialog-width-medium: 550px;
             --ol-dialog-width-large: 800px;
-            --ol-dialog-padding: 1rem;
-            --ol-dialog-border-radius: 8px;
+            --ol-dialog-padding: 1.25rem;
+            --ol-dialog-border-radius: 12px;
             --ol-dialog-animation-duration: 200ms;
-            --ol-dialog-backdrop-color: rgba(0, 0, 0, 0.5);
-            --ol-dialog-header-border-color: #e0e0e0;
-            --ol-dialog-footer-border-color: #e0e0e0;
+            --ol-dialog-backdrop-color: rgba(0, 0, 0, 0.25);
         }
 
         dialog {
@@ -140,8 +138,7 @@ export class OlDialog extends LitElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--ol-dialog-padding);
-            border-bottom: 1px solid var(--ol-dialog-header-border-color);
+            padding: var(--ol-dialog-padding) var(--ol-dialog-padding) 0 var(--ol-dialog-padding);
         }
 
         .header.hidden {
@@ -192,8 +189,7 @@ export class OlDialog extends LitElement {
         }
 
         .footer {
-            padding: var(--ol-dialog-padding);
-            border-top: 1px solid var(--ol-dialog-footer-border-color);
+            padding: 0 var(--ol-dialog-padding) var(--ol-dialog-padding) var(--ol-dialog-padding);
         }
 
         .footer:empty {

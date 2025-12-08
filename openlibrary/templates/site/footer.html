@@ -23,49 +23,6 @@ $if show_ol_shell:
 <script src="$static_url('build/js/all.js')" type="text/javascript"></script>
 <script src="$static_url('build/lit-components/production/ol-components.js')" type="module"></script>
 
-<!-- ol-dialog demos (temporary) -->
-<div style="padding: 1rem; border-top: 2px dashed #ccc; margin-top: 2rem;">
-  <h3 style="margin: 0 0 1rem;">ol-dialog demos</h3>
-  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-    <button id="demo-basic-btn">Basic Dialog (small)</button>
-    <button id="demo-footer-btn">With Footer (medium)</button>
-    <button id="demo-no-header-btn">Without Header (large)</button>
-  </div>
-</div>
-
-<ol-dialog id="demo-basic" label="Basic Dialog" width="small">
-  <p>This is a simple dialog with a small width. Press Escape or click the X to close.</p>
-</ol-dialog>
-
-<ol-dialog id="demo-footer" label="Confirm Action" width="medium">
-  <p>Are you sure you want to proceed with this action?</p>
-  <div slot="footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-    <button type="button" onclick="document.getElementById('demo-footer').open = false">Cancel</button>
-    <button type="button" onclick="alert('Confirmed!'); document.getElementById('demo-footer').open = false">Confirm</button>
-  </div>
-</ol-dialog>
-
-<ol-dialog id="demo-no-header" without-header width="large">
-  <p>This dialog has no header. Use the close button below or press Escape to close it.</p>
-  <p>Large width is useful for displaying more content like forms or detailed information.</p>
-  <div slot="footer" style="display: flex; justify-content: flex-end;">
-    <button type="button" onclick="document.getElementById('demo-no-header').open = false">Close</button>
-  </div>
-</ol-dialog>
-
-<script type="module">
-  document.getElementById('demo-basic-btn').addEventListener('click', () => {
-    document.getElementById('demo-basic').open = true;
-  });
-  document.getElementById('demo-footer-btn').addEventListener('click', () => {
-    document.getElementById('demo-footer').open = true;
-  });
-  document.getElementById('demo-no-header-btn').addEventListener('click', () => {
-    document.getElementById('demo-no-header').open = true;
-  });
-</script>
-<!-- end ol-dialog demos -->
-
 <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
 </body>
 </html>
