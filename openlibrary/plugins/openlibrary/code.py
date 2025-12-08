@@ -463,14 +463,6 @@ class ia_js_cdn(delegate.page):
         return web.ok(fetch_ia_js(filename))
 
 
-class serviceworker(delegate.page):
-    path = '/sw.js'
-
-    def GET(self):
-        web.header('Content-Type', 'text/javascript')
-        return web.ok(open('static/build/js/sw.js').read())
-
-
 class assetlinks(delegate.page):
     path = '/.well-known/assetlinks'
 

@@ -1,7 +1,7 @@
 export default function initServiceWorker(){
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('/static/build/js/sw.js')
                 .then(() => { })
                 .catch(error => {
                     // eslint-disable-next-line no-console
