@@ -13,13 +13,6 @@ import { ifDefined } from 'lit/directives/if-defined.js';
  * @fires ol-after-open - Fired after the dialog open animation completes
  * @fires ol-close - Fired when the dialog starts closing (cancelable)
  * @fires ol-after-close - Fired after the dialog close animation completes
- *
- * @csspart dialog - The native dialog element
- * @csspart header - The dialog header
- * @csspart title - The dialog title
- * @csspart close-button - The close button
- * @csspart body - The dialog body
- * @csspart footer - The dialog footer
  */
 export class OlDialog extends LitElement {
     static properties = {
@@ -537,7 +530,6 @@ export class OlDialog extends LitElement {
 
         return html`
             <dialog
-                part="dialog"
                 role="dialog"
                 aria-modal="true"
                 aria-label=${ifDefined(ariaLabel)}
@@ -546,18 +538,15 @@ export class OlDialog extends LitElement {
             >
                 <header
                     class="header ${this.withoutHeader ? 'hidden' : ''}"
-                    part="header"
                 >
                     <h2
                         class="title"
-                        part="title"
                         id=${this._titleId}
                     >
                         ${this.label}
                     </h2>
                     <button
                         class="close-button"
-                        part="close-button"
                         type="button"
                         aria-label="Close dialog"
                         @click=${this._handleCloseClick}
@@ -579,12 +568,11 @@ export class OlDialog extends LitElement {
                 </header>
                 <div
                     class="body"
-                    part="body"
                     id=${this._bodyId}
                 >
                     <slot></slot>
                 </div>
-                <footer class="footer" part="footer">
+                <footer class="footer">
                     <slot name="footer"></slot>
                 </footer>
             </dialog>
