@@ -5,22 +5,34 @@ import '../../../../../static/css/components/metadata-form.less';
 
 
 /**
- * Initializes share modal.
+ * Initializes share modal using the OlDialog web component.
+ *
+ * @param {JQuery} $modalLinks Collection of share modal trigger links
  */
 export function initShareModal($modalLinks) {
-    addClickListeners($modalLinks, '400px');
-    addShareModalButtonListeners();
-}
-/**
- * Adds click listeners to buttons in all notes modals on a page.
- */
-function addShareModalButtonListeners (){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
-        event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard')
-        $.colorbox.close()
-    })
+    $modalLinks.each(function(_i, modalLinkElement) {
+        const $link = $(modalLinkElement);
+        const dialog = $link.siblings('ol-dialog')[0];
+
+        if (!dialog) return;
+
+        // Open dialog when link is clicked
+        $link.on('click', function(event) {
+            event.preventDefault();
+            dialog.open = true;
+        });
+
+        // Handle copy URL button
+        const copyUrlBtn = dialog.querySelector('.copy-url-btn');
+        if (copyUrlBtn) {
+            copyUrlBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                navigator.clipboard.writeText(window.location.href);
+                showToast('URL copied to clipboard');
+                dialog.open = false;
+            });
+        }
+    });
 }
 
 /**

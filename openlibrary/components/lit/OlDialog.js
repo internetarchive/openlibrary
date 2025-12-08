@@ -27,7 +27,9 @@ export class OlDialog extends LitElement {
         /** Whether clicking the backdrop closes the dialog */
         closeOnBackdropClick: { type: Boolean, attribute: 'close-on-backdrop-click' },
         /** Whether pressing Escape closes the dialog */
-        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' }
+        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
+        /** @private Whether the footer slot has content */
+        _hasFooterContent: { state: true }
     };
 
     static styles = css`
@@ -192,7 +194,7 @@ export class OlDialog extends LitElement {
             padding: 0 var(--ol-dialog-padding) var(--ol-dialog-padding) var(--ol-dialog-padding);
         }
 
-        .footer:empty {
+        .footer[hidden] {
             display: none;
         }
     `;
@@ -205,6 +207,7 @@ export class OlDialog extends LitElement {
         this.width = 'medium';
         this.closeOnBackdropClick = true;
         this.closeOnEscape = true;
+        this._hasFooterContent = false;
 
         /** @type {HTMLElement|null} Element that had focus before dialog opened */
         this._previouslyFocusedElement = null;
@@ -213,6 +216,7 @@ export class OlDialog extends LitElement {
         this._handleCancel = this._handleCancel.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
         this._handleBackdropClick = this._handleBackdropClick.bind(this);
+        this._handleFooterSlotChange = this._handleFooterSlotChange.bind(this);
     }
 
     /**
@@ -488,6 +492,22 @@ export class OlDialog extends LitElement {
         this.open = false;
     }
 
+    /**
+     * Handles slotchange events on the footer slot to track if it has content.
+     * @param {Event} event
+     * @private
+     */
+    _handleFooterSlotChange(event) {
+        const slot = event.target;
+        const assignedNodes = slot.assignedNodes({ flatten: true });
+        // Check if there are any non-empty text nodes or element nodes
+        this._hasFooterContent = assignedNodes.some(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) return true;
+            if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() !== '';
+            return false;
+        });
+    }
+
     connectedCallback() {
         super.connectedCallback();
         // Add keydown listener to document for focus trapping
@@ -568,8 +588,8 @@ export class OlDialog extends LitElement {
                 >
                     <slot></slot>
                 </div>
-                <footer class="footer">
-                    <slot name="footer"></slot>
+                <footer class="footer" ?hidden=${!this._hasFooterContent}>
+                    <slot name="footer" @slotchange=${this._handleFooterSlotChange}></slot>
                 </footer>
             </dialog>
         `;

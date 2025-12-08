@@ -11,73 +11,66 @@ $def embed_iframe(page_url):
 <div class="$classes">
   $:link_markup
 
-  <div class="hidden">
-    <div id="social-modal-content" class="floaterAdd">
-      <div class="content">
-        <div class="floaterHead right-justify">
-          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-        </div>
-        <div class="shareLinks cta-section">
-          <ul class="shareLinks-list">
-              $for share_link in share_links:
-              $ track_tag = share_link['text'].replace(' ', '-')
-              <li>
-                <a href="$share_link['url']" class="sansserif large" target="_blank"
-                  data-ol-link-track="Share|$track_tag">
-                  <img
-                    title="$_('Share on %(share_link)s', share_link=share_link['text'])"
-                    alt="$(share_link['text'])" class="share-link"
-                    src="$static_url('images/%s.svg' % share_link['text'].lower())"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$share_link['text']</div>
-              </li>
+  <ol-dialog id="share-dialog" width="small">
+    <div class="shareLinks">
+      <ul class="shareLinks-list">
+        $for share_link in share_links:
+          $ track_tag = share_link['text'].replace(' ', '-')
+          <li>
+            <a href="$share_link['url']" class="sansserif large" target="_blank"
+              data-ol-link-track="Share|$track_tag">
+              <img
+                title="$_('Share on %(share_link)s', share_link=share_link['text'])"
+                alt="$(share_link['text'])" class="share-link"
+                src="$static_url('images/%s.svg' % share_link['text'].lower())"
+                loading="lazy"
+              >
+              <div class="share-source">$share_link['text']</div>
+            </a>
+          </li>
 
-            $if show_embed:
-              <li>
-                $# rm special characters from url such as single quote which break js prompt/iframe
-                $ clean_url = page_url.replace("'", "\\'")
-                $ iframe_html = str(embed_iframe(clean_url)).strip()
-                <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-                  onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-                  <img
-                    alt="$_('Embed icon')"
-                    class="share-link"
-                    src="$static_url('images/embed.png')"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$_("Embed")</div>
-              </li>
+        $if show_embed:
+          <li>
+            $# rm special characters from url such as single quote which break js prompt/iframe
+            $ clean_url = page_url.replace("'", "\\'")
+            $ iframe_html = str(embed_iframe(clean_url)).strip()
+            <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
+              onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+              <img
+                alt="$_('Embed icon')"
+                class="share-link"
+                src="$static_url('images/embed.png')"
+                loading="lazy"
+              >
+              <div class="share-source">$_("Embed")</div>
+            </a>
+          </li>
 
-            <li>
-              <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
-                  <img
-                      alt="$_('Copy URL icon')"
-                      class="share-link"
-                      src="$static_url('images/copy_url.png')"
-                      loading="lazy"
-                  >
-              </a>
-              <div class="share-source">$_("Copy URL")</div>
-            </li>
+        <li>
+          <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
+            <img
+              alt="$_('Copy URL icon')"
+              class="share-link"
+              src="$static_url('images/copy_url.png')"
+              loading="lazy"
+            >
+            <div class="share-source">$_("Copy URL")</div>
+          </a>
+        </li>
 
-            <li>
-              <a href="/qrcode?path=$(ctx.path)" target="_blank" class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
-                  <img
-                      alt="$_('QR code icon')"
-                      class="share-link"
-                      src="$static_url('images/qr_code.png')"
-                      loading="lazy"
-                  >
-              </a>
-              <div class="share-source">$_("QR Code")</div>
-            </li>
+        <li>
+          <a href="/qrcode?path=$(ctx.path)" target="_blank" class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
+            <img
+              alt="$_('QR code icon')"
+              class="share-link"
+              src="$static_url('images/qr_code.png')"
+              loading="lazy"
+            >
+            <div class="share-source">$_("QR Code")</div>
+          </a>
+        </li>
 
-          </ul>
-        </div>
-      </div>
+      </ul>
     </div>
-  </div>
+  </ol-dialog>
 </div>
