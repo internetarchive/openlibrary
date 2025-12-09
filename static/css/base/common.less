@@ -109,3 +109,8 @@ div.head {
 a.nostyle {
   color: inherit;
 }
+
+/* Prevent flash of undefined custom elements */
+ol-dialog:not(:defined) {
+  display: none;
+}

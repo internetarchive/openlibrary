@@ -185,7 +185,6 @@ export class OlDialog extends LitElement {
         }
 
         .body {
-            flex: 1;
             padding: var(--ol-dialog-padding);
             overflow-y: auto;
         }
@@ -214,9 +213,9 @@ export class OlDialog extends LitElement {
 
         // Bind event handlers
         this._handleCancel = this._handleCancel.bind(this);
-        this._handleKeyDown = this._handleKeyDown.bind(this);
         this._handleBackdropClick = this._handleBackdropClick.bind(this);
         this._handleFooterSlotChange = this._handleFooterSlotChange.bind(this);
+        this._handleKeyDown = this._handleKeyDown.bind(this);
     }
 
     /**
@@ -265,6 +264,10 @@ export class OlDialog extends LitElement {
         }));
 
         dialog.showModal();
+
+        // Add focus trap listener for Safari compatibility
+        // Use capture phase to intercept Tab before Safari's native handling
+        document.addEventListener('keydown', this._handleKeyDown, true);
 
         // Set initial focus
         this._setInitialFocus();
@@ -349,6 +352,9 @@ export class OlDialog extends LitElement {
         // Check if user prefers reduced motion
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+        // Remove focus trap listener
+        document.removeEventListener('keydown', this._handleKeyDown, true);
+
         if (prefersReducedMotion) {
             // Skip animation, close immediately
             dialog.close();
@@ -405,64 +411,6 @@ export class OlDialog extends LitElement {
     }
 
     /**
-     * Handles keydown events for focus trapping and keyboard navigation.
-     * @param {KeyboardEvent} event
-     * @private
-     */
-    _handleKeyDown(event) {
-        // Only trap focus when dialog is open
-        if (!this.open) return;
-
-        if (event.key === 'Tab') {
-            this._trapFocus(event);
-        }
-    }
-
-    /**
-     * Traps focus within the dialog when Tab is pressed.
-     * @param {KeyboardEvent} event
-     * @private
-     */
-    _trapFocus(event) {
-        const dialog = this.dialog;
-        if (!dialog) return;
-
-        // Get all focusable elements within dialog (including shadow DOM and slotted content)
-        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
-        // Get focusable elements from shadow DOM
-        const shadowFocusable = Array.from(this.renderRoot?.querySelectorAll(focusableSelector) || []);
-
-        // Get focusable elements from slotted content
-        const slottedFocusable = Array.from(this.querySelectorAll(focusableSelector));
-
-        // Combine and filter visible elements
-        const focusableElements = [...shadowFocusable, ...slottedFocusable].filter(el => {
-            return el.offsetParent !== null && !el.disabled;
-        });
-
-        if (focusableElements.length === 0) return;
-
-        const firstFocusable = focusableElements[0];
-        const lastFocusable = focusableElements[focusableElements.length - 1];
-        const activeElement = this.renderRoot?.activeElement || document.activeElement;
-
-        if (event.shiftKey) {
-            // Shift+Tab: moving backwards
-            if (activeElement === firstFocusable || activeElement === dialog) {
-                event.preventDefault();
-                lastFocusable.focus();
-            }
-        } else {
-            // Tab: moving forwards
-            if (activeElement === lastFocusable) {
-                event.preventDefault();
-                firstFocusable.focus();
-            }
-        }
-    }
-
-    /**
      * Handles clicks on the backdrop to close the dialog.
      * @param {MouseEvent} event
      * @private
@@ -493,6 +441,94 @@ export class OlDialog extends LitElement {
     }
 
     /**
+     * Gets all focusable elements within the dialog, including slotted content.
+     * Elements are returned in DOM/visual order.
+     * @returns {HTMLElement[]} Array of focusable elements
+     * @private
+     */
+    _getFocusableElements() {
+        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+        // Get the dialog element
+        const dialog = this.dialog;
+        if (!dialog) return [];
+
+        // Get close button from shadow DOM (it comes first visually)
+        const closeButton = this.renderRoot?.querySelector('.close-button');
+
+        // Get the default slot and find focusable elements within assigned content
+        const slot = this.renderRoot?.querySelector('slot:not([name])');
+        const slottedFocusable = [];
+
+        if (slot) {
+            // Get all assigned elements (light DOM content)
+            const assignedElements = slot.assignedElements({ flatten: true });
+            for (const el of assignedElements) {
+                // Check if the element itself is focusable
+                if (el.matches?.(focusableSelector)) {
+                    slottedFocusable.push(el);
+                }
+                // Find focusable descendants
+                slottedFocusable.push(...el.querySelectorAll(focusableSelector));
+            }
+        }
+
+        // Build the list in visual order: close button first, then slotted content
+        const allFocusable = [];
+        if (closeButton && !this.withoutHeader) {
+            allFocusable.push(closeButton);
+        }
+        allFocusable.push(...slottedFocusable);
+
+        // Filter out disabled elements
+        return allFocusable.filter(el => !el.disabled);
+    }
+
+    /**
+     * Gets the currently focused element, handling shadow DOM boundaries.
+     * @returns {Element|null}
+     * @private
+     */
+    _getDeepActiveElement() {
+        let active = document.activeElement;
+        while (active?.shadowRoot?.activeElement) {
+            active = active.shadowRoot.activeElement;
+        }
+        return active;
+    }
+
+    /**
+     * Handles keydown events to implement manual focus trapping.
+     * This is needed because Safari doesn't properly trap focus for slotted content.
+     * We manually handle ALL Tab navigation to ensure focus stays within the dialog.
+     * @param {KeyboardEvent} event
+     * @private
+     */
+    _handleKeyDown(event) {
+        if (event.key !== 'Tab') return;
+
+        const focusable = this._getFocusableElements();
+        if (focusable.length === 0) return;
+
+        // Always prevent default and handle focus manually for Safari compatibility
+        event.preventDefault();
+
+        const activeElement = this._getDeepActiveElement();
+        const currentIndex = focusable.indexOf(activeElement);
+
+        let nextIndex;
+        if (event.shiftKey) {
+            // Shift+Tab: move backwards
+            nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
+        } else {
+            // Tab: move forwards
+            nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
+        }
+
+        focusable[nextIndex].focus();
+    }
+
+    /**
      * Handles slotchange events on the footer slot to track if it has content.
      * @param {Event} event
      * @private
@@ -510,15 +546,12 @@ export class OlDialog extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        // Add keydown listener to document for focus trapping
-        document.addEventListener('keydown', this._handleKeyDown);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        // Clean up event listeners
-        document.removeEventListener('keydown', this._handleKeyDown);
-
+        // Clean up focus trap listener
+        document.removeEventListener('keydown', this._handleKeyDown, true);
         const dialog = this.dialog;
         if (dialog) {
             dialog.removeEventListener('cancel', this._handleCancel);

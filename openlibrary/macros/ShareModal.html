@@ -31,6 +31,8 @@ $def embed_iframe(page_url):
 
         $if show_embed:
           <li>
+            $# TODO: Replace <a> with <button>.
+
             $# rm special characters from url such as single quote which break js prompt/iframe
             $ clean_url = page_url.replace("'", "\\'")
             $ iframe_html = str(embed_iframe(clean_url)).strip()
@@ -47,6 +49,7 @@ $def embed_iframe(page_url):
           </li>
 
         <li>
+          $# TODO: Replace <a> with <button>
           <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
             <img
               alt="$_('Copy URL icon')"

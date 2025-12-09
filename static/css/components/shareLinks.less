@@ -8,35 +8,29 @@
  * - openlibrary/templates/type/edition/view.html
  */
 
-
-
 .shareLinks-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   place-items: center;
   text-align: center;
+  font-size: 0.8em;
 
   a {
     display: block;
     text-decoration: none;
     border-radius: 8px;
-    padding: 8px 16px;
+    padding: 12px 16px;
+    color: @dark-grey;
     &:hover {
       background-color: @grey-f4f4f4;
     }
+    &:focus-visible {
+      outline: 2px solid @primary-blue;
+      outline-offset: 2px;
+    }
   }
   img {
-    display: block;
-    cursor: pointer;
     height: 64px;
-    margin-bottom: 8px;
-  }
-}
-
-.shareLinks {
-  .share-source {
-    font-size: 0.8em;
-    color: @grey;
-    font-weight: 500;
+    margin-bottom: 4px;
   }
 }
