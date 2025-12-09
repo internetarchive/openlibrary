@@ -113,16 +113,6 @@ export class OlDialog extends LitElement {
             to { opacity: 0; }
         }
 
-        /* Respect user preference for reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-            dialog[open],
-            dialog.closing,
-            dialog::backdrop,
-            dialog.closing::backdrop {
-                animation: none;
-            }
-        }
-
         /* Width variants */
         :host([width="small"]) dialog {
             width: var(--ol-dialog-width-small);
@@ -272,24 +262,13 @@ export class OlDialog extends LitElement {
         // Set initial focus
         this._setInitialFocus();
 
-        // Check if user prefers reduced motion
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        if (prefersReducedMotion) {
-            // Fire after-open immediately when animations are disabled
+        // Dispatch ol-after-open after animation
+        dialog.addEventListener('animationend', () => {
             this.dispatchEvent(new CustomEvent('ol-after-open', {
                 bubbles: true,
                 composed: true
             }));
-        } else {
-            // Dispatch ol-after-open after animation
-            dialog.addEventListener('animationend', () => {
-                this.dispatchEvent(new CustomEvent('ol-after-open', {
-                    bubbles: true,
-                    composed: true
-                }));
-            }, { once: true });
-        }
+        }, { once: true });
     }
 
     /**
@@ -349,37 +328,24 @@ export class OlDialog extends LitElement {
             return;
         }
 
-        // Check if user prefers reduced motion
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
         // Remove focus trap listener
         document.removeEventListener('keydown', this._handleKeyDown, true);
 
-        if (prefersReducedMotion) {
-            // Skip animation, close immediately
+        // Add closing class for animation
+        dialog.classList.add('closing');
+
+        dialog.addEventListener('animationend', () => {
+            dialog.classList.remove('closing');
             dialog.close();
+
+            // Restore focus to previously focused element
             this._restoreFocus();
+
             this.dispatchEvent(new CustomEvent('ol-after-close', {
                 bubbles: true,
                 composed: true
             }));
-        } else {
-            // Add closing class for animation
-            dialog.classList.add('closing');
-
-            dialog.addEventListener('animationend', () => {
-                dialog.classList.remove('closing');
-                dialog.close();
-
-                // Restore focus to previously focused element
-                this._restoreFocus();
-
-                this.dispatchEvent(new CustomEvent('ol-after-close', {
-                    bubbles: true,
-                    composed: true
-                }));
-            }, { once: true });
-        }
+        }, { once: true });
     }
 
     /**
@@ -542,10 +508,6 @@ export class OlDialog extends LitElement {
             if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() !== '';
             return false;
         });
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
     }
 
     disconnectedCallback() {
