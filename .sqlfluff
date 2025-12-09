@@ -1,6 +1,6 @@
 [sqlfluff]
 dialect = postgres
-exclude_rules = 
+exclude_rules =
     L010,L011,L012,L014,L016,
     L018,L019,L020,L025,L028,
     L030,L031,L034,L035,
