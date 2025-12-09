@@ -13,6 +13,7 @@ import requests
 from openlibrary.core import db
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
+from scripts.solr_updater.trending_updater_daily import wait_for_solr
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]
@@ -202,6 +203,8 @@ def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
 
 
 def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
+    wait_for_solr()
+
     docs = []
     solr_fields = (
         "key",
