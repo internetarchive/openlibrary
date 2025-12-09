@@ -621,9 +621,9 @@ class public_observations(delegate.page):
 
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
+    BATCH_SIZE = 1_000
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
-        i = web.input(bulk=False)
         limit = 1_000  # This is the max limit of the things function
         all_keys: list = []
         offset = 0
@@ -639,18 +639,7 @@ class work_delete(delegate.page):
             )
             all_keys.extend(keys)
             if len(keys) == limit:
-                if not i.bulk:
-                    raise web.HTTPError(
-                        '400 Bad Request',
-                        data=json.dumps(
-                            {
-                                'error': f'API can only delete {limit} editions per work.',
-                            }
-                        ),
-                        headers={"Content-Type": "application/json"},
-                    )
-                else:
-                    offset += limit
+                offset += limit
             else:
                 break
 
@@ -661,24 +650,54 @@ class work_delete(delegate.page):
             return web.HTTPError('403 Forbidden')
 
         web_input = web.input(comment=None)
-
-        comment = web_input.get('comment')
+        base_comment = web_input.get('comment') or 'Deleting work and editions'
 
         work: Work = web.ctx.site.get(f'/works/{work_id}')
         if work is None:
             return web.HTTPError(status='404 Not Found')
 
         editions: list[dict] = self.get_editions_of_work(work)
-        keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
-        delete_payload: list[dict] = [
-            {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
-        ]
 
-        web.ctx.site.save_many(delete_payload, comment)
+        # Build list of all keys to delete (editions first, work last)
+        edition_keys: list[str] = [el.get('key') for el in editions]
+        work_key: str = work.key
+
+        # Calculate total batches needed
+        total_keys = len(edition_keys) + 1  # +1 for the work
+        total_batches = (total_keys + self.BATCH_SIZE - 1) // self.BATCH_SIZE
+
+        # Delete editions in batches
+        batch_num = 0
+        for i in range(0, len(edition_keys), self.BATCH_SIZE):
+            batch_num += 1
+            batch_keys = edition_keys[i : i + self.BATCH_SIZE]
+
+            # If this is the last batch of editions and work fits, include work
+            remaining_in_batch = self.BATCH_SIZE - len(batch_keys)
+            if i + self.BATCH_SIZE >= len(edition_keys) and remaining_in_batch >= 1:
+                batch_keys.append(work_key)
+                work_key = None  # Mark as included
+
+            delete_payload = [
+                {'key': key, 'type': {'key': '/type/delete'}} for key in batch_keys
+            ]
+
+            comment = f'{base_comment}, batch {batch_num} of {total_batches}'
+            web.ctx.site.save_many(delete_payload, comment)
+
+        # If work wasn't included in final batch, delete it separately
+        if work_key is not None:
+            batch_num += 1
+            delete_payload = [{'key': work_key, 'type': {'key': '/type/delete'}}]
+            comment = f'{base_comment}, batch {batch_num} of {total_batches}'
+            web.ctx.site.save_many(delete_payload, comment)
+
         return delegate.RawText(
             json.dumps(
                 {
                     'status': 'ok',
+                    'editions_deleted': len(editions),
+                    'batches': batch_num,
                 }
             ),
             content_type="application/json",
