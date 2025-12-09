@@ -851,7 +851,6 @@ class opds_books(delegate.page):
     path = r"/opds/books/(OL\d+M)"
 
     def GET(self, edition_olid: str):
-        from pyopds2 import Link
 
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
