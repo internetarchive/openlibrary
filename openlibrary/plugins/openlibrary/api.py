@@ -863,18 +863,6 @@ class opds_books(delegate.page):
             )
 
         pub = resp.records[0].to_publication()
-        pub.links += [
-            Link(
-                rel="http://opds-spec.org/shelf",
-                href="https://archive.org/services/loans/loan/?action=user_bookshelf",
-                type="application/opds+json",
-            ),
-            Link(
-                rel="profile",
-                href="https://archive.org/services/loans/loan/?action=user_profile",
-                type="application/opds-profile+json",
-            ),
-        ]
         return delegate.RawText(json.dumps(pub.model_dump()))
 
 
