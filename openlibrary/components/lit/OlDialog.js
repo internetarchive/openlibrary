@@ -1,5 +1,7 @@
 import { LitElement, html, css, isServer } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { FOCUSABLE_SELECTOR, getDeepActiveElement, getFocusableFromSlot } from './utils/focus-utils.js';
+import { slotHasContent } from './utils/slot-utils.js';
 
 /**
  * A dialog web component for Open Library.
@@ -216,14 +218,6 @@ export class OlDialog extends LitElement {
         return `${this.id || 'ol-dialog'}-title`;
     }
 
-    /**
-     * Unique ID for ARIA describedby association
-     * @private
-     */
-    get _bodyId() {
-        return `${this.id || 'ol-dialog'}-body`;
-    }
-
     /** @returns {HTMLDialogElement} */
     get dialog() {
         return this.renderRoot?.querySelector('dialog');
@@ -290,8 +284,7 @@ export class OlDialog extends LitElement {
             }
 
             // 2. Find first focusable element in slotted content
-            const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-            const firstFocusable = this.querySelector(focusableSelector);
+            const firstFocusable = this.querySelector(FOCUSABLE_SELECTOR);
             if (firstFocusable) {
                 firstFocusable.focus();
                 return;
@@ -384,20 +377,9 @@ export class OlDialog extends LitElement {
     _handleBackdropClick(event) {
         if (!this.closeOnBackdropClick) return;
 
-        const dialog = this.dialog;
-        if (!dialog) return;
-
-        // Check if click was on the backdrop (::backdrop) by checking if click target is the dialog
-        // and the click position is outside the dialog's bounds
-        const rect = dialog.getBoundingClientRect();
-        const clickedInDialog = (
-            event.clientX >= rect.left &&
-            event.clientX <= rect.right &&
-            event.clientY >= rect.top &&
-            event.clientY <= rect.bottom
-        );
-
-        if (!clickedInDialog) {
+        // Clicks on the ::backdrop pseudo-element register the dialog as the target.
+        // Clicks on dialog content will have a child element as the target.
+        if (event.target === this.dialog) {
             this.open = false;
         }
     }
@@ -413,54 +395,23 @@ export class OlDialog extends LitElement {
      * @private
      */
     _getFocusableElements() {
-        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
-        // Get the dialog element
-        const dialog = this.dialog;
-        if (!dialog) return [];
+        if (!this.dialog) return [];
 
         // Get close button from shadow DOM (it comes first visually)
         const closeButton = this.renderRoot?.querySelector('.close-button');
 
-        // Get the default slot and find focusable elements within assigned content
+        // Get focusable elements from slotted content
         const slot = this.renderRoot?.querySelector('slot:not([name])');
-        const slottedFocusable = [];
-
-        if (slot) {
-            // Get all assigned elements (light DOM content)
-            const assignedElements = slot.assignedElements({ flatten: true });
-            for (const el of assignedElements) {
-                // Check if the element itself is focusable
-                if (el.matches?.(focusableSelector)) {
-                    slottedFocusable.push(el);
-                }
-                // Find focusable descendants
-                slottedFocusable.push(...el.querySelectorAll(focusableSelector));
-            }
-        }
+        const slottedFocusable = getFocusableFromSlot(slot);
 
         // Build the list in visual order: close button first, then slotted content
         const allFocusable = [];
-        if (closeButton && !this.withoutHeader) {
+        if (closeButton && !this.withoutHeader && !closeButton.disabled) {
             allFocusable.push(closeButton);
         }
         allFocusable.push(...slottedFocusable);
 
-        // Filter out disabled elements
-        return allFocusable.filter(el => !el.disabled);
-    }
-
-    /**
-     * Gets the currently focused element, handling shadow DOM boundaries.
-     * @returns {Element|null}
-     * @private
-     */
-    _getDeepActiveElement() {
-        let active = document.activeElement;
-        while (active?.shadowRoot?.activeElement) {
-            active = active.shadowRoot.activeElement;
-        }
-        return active;
+        return allFocusable;
     }
 
     /**
@@ -479,7 +430,7 @@ export class OlDialog extends LitElement {
         // Always prevent default and handle focus manually for Safari compatibility
         event.preventDefault();
 
-        const activeElement = this._getDeepActiveElement();
+        const activeElement = getDeepActiveElement();
         const currentIndex = focusable.indexOf(activeElement);
 
         let nextIndex;
@@ -500,16 +451,12 @@ export class OlDialog extends LitElement {
      * @private
      */
     _handleFooterSlotChange(event) {
-        const slot = event.target;
-        const assignedNodes = slot.assignedNodes({ flatten: true });
-        // Check if there are any non-empty text nodes or element nodes
-        this._hasFooterContent = assignedNodes.some(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) return true;
-            if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() !== '';
-            return false;
-        });
+        this._hasFooterContent = slotHasContent(event.target);
     }
 
+    /*
+    Lifecycle event that fires when the dialog is removed from the DOM.
+    */
     disconnectedCallback() {
         super.disconnectedCallback();
         // Clean up focus trap listener
@@ -545,7 +492,6 @@ export class OlDialog extends LitElement {
                 aria-modal="true"
                 aria-label=${ifDefined(ariaLabel)}
                 aria-labelledby=${ifDefined(ariaLabelledBy)}
-                aria-describedby=${this._bodyId}
             >
                 <header
                     class="header ${this.withoutHeader ? 'hidden' : ''}"
@@ -577,10 +523,7 @@ export class OlDialog extends LitElement {
                         </svg>
                     </button>
                 </header>
-                <div
-                    class="body"
-                    id=${this._bodyId}
-                >
+                <div class="body">
                     <slot></slot>
                 </div>
                 <footer class="footer" ?hidden=${!this._hasFooterContent}>
