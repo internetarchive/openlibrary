@@ -16,7 +16,6 @@ from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
 from infogami import config
-from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.context import context
@@ -34,7 +33,6 @@ from openlibrary.core import (
     cache,
     imports,
 )
-from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.models import Work
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
@@ -249,60 +247,6 @@ class _reload(delegate.page):
 class any:
     def GET(self):
         pass
-
-
-class unlink_ia_ol(delegate.page):
-    path = '/ia/unlink'
-    encoding = 'json'
-
-    def POST(self):
-        i = web.input(digest="", msg="")
-
-        digest = i.digest
-        msg = i.msg
-
-        try:
-            HMACToken.verify(digest, msg, "ia_sync_secret")
-        except (ValueError, ExpiredTokenError):
-            raise web.HTTPError("401 Unauthorized")
-
-        ocaid, ts = msg.split("|")
-
-        if not ts or not ocaid:
-            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
-
-        # Fetch affected editions
-        if not (edition_keys := web.ctx.site.things({"type": '/type/edition', "ocaid": ocaid})):
-            raise web.HTTPError("404 Not Found")
-
-        editions = [web.ctx.site.get(key) for key in edition_keys]
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                data=json.dumps({"error": "Multiple editions associated with given ocaid"})
-            )
-
-        edition = editions[0]
-
-        # Update records
-        try:
-            self.make_dark(edition)
-        except ClientException as e:
-            raise web.HTTPError(
-                "500 Internal Server Error",
-                data=json.dumps({"error": str(e)})
-            )
-
-        return delegate.RawText(json.dumps({"status": "ok"}))
-
-    def make_dark(self, edition):
-        data = edition.dict()
-        del data["ocaid"]
-        source_records = data.get("source_records", [])
-        data['source_records'] = [ rec for rec in source_records if not rec.startswith("ia:") ]
-        if not data['source_records']:
-            del data['source_records']
-        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
 
 
 class people:
