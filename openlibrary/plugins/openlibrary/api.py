@@ -6,6 +6,7 @@ its experience. This does not include public facing APIs with LTS
 
 import io
 import json
+import logging
 from collections import defaultdict
 
 import qrcode
@@ -48,6 +49,9 @@ from openlibrary.plugins.worksearch.subjects import (
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
+
+
+logger = logging.getLogger(__name__)
 
 
 class book_availability(delegate.page):
@@ -1041,6 +1045,7 @@ class unlink_ia_ol(delegate.page):
         try:
             self.make_dark(edition)
         except ClientException as e:
+            logger.error(f'Failed to disassociate record with key {edition.key}', exc_info=True)
             raise web.HTTPError(
                 "500 Internal Server Error",
                 data=json.dumps({"error": str(e)})
