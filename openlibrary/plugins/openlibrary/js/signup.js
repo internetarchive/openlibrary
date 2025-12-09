@@ -160,7 +160,7 @@ export function initSignupForm() {
 
     function validatePDSelection() {
         if (!rpdCheckbox || !pdaSelector) {
-        return;
+            return;
         }
         if (!rpdCheckbox.checked) {
             clearError('#pd_program', '#pd_programMessage')
@@ -214,7 +214,7 @@ export function initSignupForm() {
 
     function updateSelectorVisibility() {
         if (!rpdCheckbox || !pdaSelectorContainer) {
-        return;
+            return;
         }
         if (rpdCheckbox.checked) {
             pdaSelectorContainer.classList.remove('hidden')
