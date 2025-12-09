@@ -6073,6 +6073,14 @@ msgstr ""
 msgid "Release Notes"
 msgstr ""
 
+#: lib/nav_foot.html
+msgid "Bluesky"
+msgstr ""
+
+#: lib/nav_foot.html
+msgid "GitHub"
+msgstr ""
+
 #: lib/nav_foot.html site/alert.html
 msgid "Change Website Language"
 msgstr ""
