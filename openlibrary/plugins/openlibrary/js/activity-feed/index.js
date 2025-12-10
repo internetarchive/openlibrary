@@ -1,3 +1,4 @@
+import { initAsyncFollowing } from "../following";
 import { buildPartialsUrl } from '../utils'
 
 /**
@@ -27,6 +28,8 @@ export async function initActivityFeedRequest(elem) {
             .then(data => {
                 const div = document.createElement('div')
                 div.innerHTML = data.partials.trim()
+                const followButtons = div.querySelectorAll('.follow-form')
+                initAsyncFollowing(followButtons)
                 loadingIndicator.classList.add('hidden')
                 for (const child of Array.from(div.children)) {
                     elem.insertAdjacentElement('beforeend', child)

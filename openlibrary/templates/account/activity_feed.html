@@ -25,20 +25,22 @@ $def activity_card_header(book_title, book_key, author_name, author_key):
             <a class="activity-feed-card__header-author" href="$(author_key)">$author_name</a>
     </div>
 
-$def activity_card_footer(shelf_id, occurred_on, username):
+$def activity_card_footer(username, shelf_id, show_follow=False):
     $ user_key = "/people/%s" % username
     $ avatar_url = "%s/avatar" % user_key
-    $ shelf_name = shelf_id_to_name[shelf_id]
     $ shelf_url = "%s/books%s" % (user_key, shelf_id_to_path_segment[shelf_id])
-    $# shelf_url = user_key % '/books' % shelf_id_to_path_segment[shelf_id]
     <div class="activity-feed-card__footer">
         <div class="activity-feed-card__user">
             <a href="$user_key/books">
                 <img src="$avatar_url" alt="$_('Avatar of the owner of the list')">
             </a>
             <div class="activity-feed-card__footer-copy">
-                $:_('<a class="activity-feed-card__user-link" href="%(user_key)s/books">@%(username)s</a> added to <a href="%(shelf_url)s">%(shelf_name)s</a> %(occurred_on)s', user_key=user_key, username=username, shelf_url=shelf_url, shelf_name=shelf_name, occurred_on=occurred_on)
+                $:_('<a class="activity-feed-card__user-link" href="%(user_key)s/books">@%(username)s</a> added to <a href="%(shelf_url)s">shelf</a>', user_key=user_key, username=username, shelf_url=shelf_url)
             </div>
+            $if show_follow:
+                <div>
+                    $:macros.Follow(username, request_path="/account/books")
+                </div>
         </div>
     </div>
 
@@ -73,6 +75,6 @@ $elif not feed:
         $else:
             $ bookcover_url += "w/olid/OL%sW-M.jpg" % i.get("work_id")
         $ username = i.get('username')
-        $ card_footer_html = activity_card_footer(shelf_id, occurred_on, username)
+        $ card_footer_html = activity_card_footer(username, shelf_id, show_follow=(not follows_others))
         $:render_template("cards/multi_image_card", image_urls=[bookcover_url], header_html=card_header_html, footer_html=card_footer_html, href=book_key)
 </div>
