@@ -58,13 +58,15 @@ $ q = query_param('q')
     $else:
       $# Only show default carousel if subject doesn't have an associated Tag
       $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
-    $:macros.PublishingHistory(page.publishing_history)
 
-    <div class="clearfix"></div>
-    $:macros.RelatedSubjects(page)
+    $if page.has_details:
+      $:macros.PublishingHistory(page.publishing_history)
 
-    <div class="clearfix"></div>
-    $:macros.ProlificAuthors(page.authors)
+      <div class="clearfix"></div>
+      $:macros.RelatedSubjects(page)
 
-    <div class="section clearfix"></div>
+      <div class="clearfix"></div>
+      $:macros.ProlificAuthors(page.authors)
+
+      <div class="section clearfix"></div>
 </div>
