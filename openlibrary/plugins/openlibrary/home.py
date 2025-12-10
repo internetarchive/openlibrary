@@ -268,6 +268,7 @@ def generic_carousel(
         get_ia_carousel_books,
         memcache_key,
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+        prethread=caching_prethread(),
     )
     books = cached_ia_carousel_books(
         query=query,
