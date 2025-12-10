@@ -1,26 +1,12 @@
 $def with (lists, username)
 
-
-$def list_card(list):
-    $ cached_info = list.get_patron_showcase()
-    $ count = cached_info["count"]
-    <a class="list-card" href="$list.get_url()">
-        <div class="list-card__covers">
-            $for img_url in cached_info["covers"]:
-                $if img_url:
-                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
-                $else:
-                    $ img_url = '/images/icons/avatar_book-sm.png'
-                <img src="$img_url" loading="lazy" width="80">
+$def card_footer(title, book_count):
+    <div class="list-card__name-tag">
+        <div class="list-card__title">$title</div>
+        <div class="list-card__num-books">
+            $ungettext("%(count)d book", "%(count)d books", book_count, count=book_count)
         </div>
-        <div class="list-card__name-tag">
-            <div class="list-card__title">$cached_info["title"]</div>
-            <div class="list-card__num-books">
-                $ungettext("%(count)d book", "%(count)d books", count, count=count)
-            </div>
-        </div>
-    </a>
-
+    </div>
 
 <div class="carousel-section">
     <div class="carousel-section-header">
@@ -31,9 +17,19 @@ $def list_card(list):
     <div class="list-showcase">
         $if lists:
             $ displayed_lists = 5
-            $for list in lists[:displayed_lists]
-                $:list_card(list)
-
+            $for list in lists[:displayed_lists]:
+                $ cached_info = list.get_patron_showcase()
+                $ image_urls = []
+                $for img_url in cached_info["covers"]:
+                    $if img_url:
+                        $ img_url = img_url.replace("-S.jpg", "-M.jpg")
+                    $else:
+                        $ img_url = '/images/icons/avatar_book-sm.png'
+                    $image_urls.append(img_url)
+                $ footer_html = card_footer(cached_info["title"], cached_info["count"])
+                <a class="list-card" href="$list.get_url()">
+                    $:render_template("cards/multi_image_card", image_urls=image_urls, footer_html=footer_html)
+                </a>
             $if len(lists) > displayed_lists:
                 <a
                     class="list-showcase__see-all cta-btn cta-btn--vanilla"
