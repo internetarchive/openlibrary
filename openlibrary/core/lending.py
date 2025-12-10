@@ -21,7 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
-from openlibrary.utils.async_utils import req_context
+from openlibrary.utils.async_utils import req_context, set_context_from_legacy_web_py
 
 from . import helpers as h
 from . import ia
@@ -685,6 +685,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         we have to fakeload the web.ctx
         """
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
 
