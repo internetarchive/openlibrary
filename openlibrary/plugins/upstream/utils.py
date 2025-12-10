@@ -50,6 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.utils import async_utils
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -724,16 +725,9 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    # TODO: Once #11425 is merged in we can use the init factory instead.
-    if not hasattr(web.ctx, 'site'):
-        from infogami.utils.delegate import create_site
-
-        web.ctx.site = create_site()
-
-    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
-    return {
-        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
-    }
+    site = async_utils.site.get()
+    keys = site.things({"type": "/type/language", "limit": limit})
+    return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
 
 def word_prefix_match(prefix: str, text: str) -> bool:
