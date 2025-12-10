@@ -21,6 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import req_context, set_context_from_legacy_web_py
 
 from . import helpers as h
 from . import ia
@@ -297,7 +298,7 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        client_ip = req_context.get().x_forwarded_for or "ol-internal"
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
@@ -439,10 +440,8 @@ def get_availability(
 
     try:
         headers = {
-            "x-preferred-client-id": web.ctx.env.get(
-                'HTTP_X_FORWARDED_FOR', 'ol-internal'
-            ),
-            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
+            "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
+            "x-preferred-client-useragent": req_context.get().user_agent or "",
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
         }
@@ -686,6 +685,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         we have to fakeload the web.ctx
         """
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
 

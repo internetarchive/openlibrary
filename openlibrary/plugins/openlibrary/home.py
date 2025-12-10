@@ -14,6 +14,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -94,6 +95,7 @@ def caching_prethread():
         web.ctx.lang = lang
         web.ctx.is_bot = _is_bot
         web.ctx.host = host
+        set_context_from_legacy_web_py()
 
     return main
 
@@ -266,6 +268,7 @@ def generic_carousel(
         get_ia_carousel_books,
         memcache_key,
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+        prethread=caching_prethread(),
     )
     books = cached_ia_carousel_books(
         query=query,
