@@ -1,4 +1,4 @@
-import { initAsyncFollowing } from "../following";
+import { initAsyncFollowing } from '../following';
 import { buildPartialsUrl } from '../utils'
 
 /**
