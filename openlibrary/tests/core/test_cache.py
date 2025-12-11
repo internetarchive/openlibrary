@@ -120,6 +120,7 @@ class Test_memoize:
         assert square(2) == 4
         assert self.get("square-2") == 4
 
+        # It should read from cache instead of computing if entry is present in the cache
         self.set('square-42', 43)
         assert square(42) == 43
 
