@@ -70,9 +70,9 @@ async def update_keys(
     """
     logger.debug("BEGIN update_keys")
 
-    def _solr_update(update_state: SolrUpdateRequest):
+    def _solr_update(update_state: SolrUpdateRequest, entity_type: str = 'mixed'):
         if update == 'update':
-            return solr_update(update_state, skip_id_check)
+            return solr_update(update_state, skip_id_check, entity_type=entity_type)
         elif update == 'pprint':
             print(update_state.to_solr_requests_json(sep='\n', indent=4))
         elif update == 'print':
@@ -90,6 +90,9 @@ async def update_keys(
         update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
+        
+        entity_type = updater.__class__.__name__.replace('SolrUpdater', '').lower()
+        
         for key in updater_keys:
             logger.debug(f"processing {key}")
             try:
@@ -131,7 +134,7 @@ async def update_keys(
                     for doc in update_state.adds:
                         await f.write(f"{json.dumps(doc)}\n")
             else:
-                _solr_update(update_state)
+                _solr_update(update_state, entity_type)
         net_update += update_state
 
     logger.debug("END update_keys")

@@ -128,3 +128,54 @@ CREATE TABLE bestbooks (
 CREATE INDEX bestbooks_username ON bestbooks (username);
 CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
+
+-- Solr Update Retry Queue (Issue #10737)
+CREATE TABLE solr_update_failures (
+    id serial PRIMARY KEY,
+    keys TEXT[] NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    error_type VARCHAR(100) NOT NULL,
+    error_message TEXT,
+    stack_trace TEXT,
+    solr_response_code INT,
+    retry_count INT DEFAULT 0 NOT NULL,
+    max_retries INT DEFAULT 10 NOT NULL,
+    next_retry_at timestamp without time zone NOT NULL,
+    first_failed_at timestamp without time zone DEFAULT (current_timestamp at time zone 'utc') NOT NULL,
+    last_attempted_at timestamp without time zone DEFAULT (current_timestamp at time zone 'utc') NOT NULL,
+    batch_metadata JSONB,
+    CONSTRAINT retry_count_positive CHECK (retry_count >= 0),
+    CONSTRAINT max_retries_positive CHECK (max_retries > 0),
+    CONSTRAINT keys_not_empty CHECK (array_length(keys, 1) > 0)
+);
+
+CREATE INDEX idx_solr_failures_retry ON solr_update_failures(next_retry_at, retry_count) 
+WHERE retry_count < max_retries;
+CREATE INDEX idx_solr_failures_oldest ON solr_update_failures(first_failed_at DESC);
+CREATE INDEX idx_solr_failures_entity ON solr_update_failures(entity_type);
+CREATE INDEX idx_solr_failures_error_type ON solr_update_failures(error_type);
+
+CREATE TABLE solr_update_failures_archived (
+    id INT NOT NULL,
+    keys TEXT[] NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    error_type VARCHAR(100) NOT NULL,
+    error_message TEXT,
+    stack_trace TEXT,
+    solr_response_code INT,
+    retry_count INT NOT NULL,
+    max_retries INT NOT NULL,
+    next_retry_at timestamp without time zone NOT NULL,
+    first_failed_at timestamp without time zone NOT NULL,
+    last_attempted_at timestamp without time zone NOT NULL,
+    batch_metadata JSONB,
+    archived_at timestamp without time zone DEFAULT (current_timestamp at time zone 'utc') NOT NULL,
+    archived_reason VARCHAR(255) DEFAULT 'max_retries_exceeded' NOT NULL,
+    manual_resolution_notes TEXT,
+    resolved_at timestamp without time zone,
+    resolved_by VARCHAR(255),
+    PRIMARY KEY (id, archived_at)
+);
+
+CREATE INDEX idx_solr_failures_archived_unresolved ON solr_update_failures_archived(archived_at DESC) 
+WHERE resolved_at IS NULL;

@@ -10,7 +10,12 @@ curl -L --output $OSP_DUMP_LOCATION \
 
 ls -la /solr-updater-data/
 
-# Run in background
+echo "Starting Solr retry worker"
+PYTHONPATH=. python scripts/solr_updater/solr_retry_worker.py "$OL_CONFIG" \
+    --ol-url "$OL_URL" \
+    --poll-interval 30 \
+    --batch-size 100 &
+
 echo "Starting trending updater"
 PYTHONPATH=. python scripts/solr_updater/trending_updater.py \
     "$OL_CONFIG" \
