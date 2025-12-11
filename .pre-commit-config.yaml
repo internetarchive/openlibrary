@@ -98,6 +98,12 @@ repos:
         - stylelint-prettier@5.0.3
       args: [--fix]
 
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.1.0
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+
   - repo: local
     hooks:
     - id: generate-pot
