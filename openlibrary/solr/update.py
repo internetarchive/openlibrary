@@ -90,9 +90,9 @@ async def update_keys(
         update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
-        
+
         entity_type = updater.__class__.__name__.replace('SolrUpdater', '').lower()
-        
+
         for key in updater_keys:
             logger.debug(f"processing {key}")
             try:

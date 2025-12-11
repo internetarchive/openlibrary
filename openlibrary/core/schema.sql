@@ -149,7 +149,7 @@ CREATE TABLE solr_update_failures (
     CONSTRAINT keys_not_empty CHECK (array_length(keys, 1) > 0)
 );
 
-CREATE INDEX idx_solr_failures_retry ON solr_update_failures(next_retry_at, retry_count) 
+CREATE INDEX idx_solr_failures_retry ON solr_update_failures(next_retry_at, retry_count)
 WHERE retry_count < max_retries;
 CREATE INDEX idx_solr_failures_oldest ON solr_update_failures(first_failed_at DESC);
 CREATE INDEX idx_solr_failures_entity ON solr_update_failures(entity_type);
@@ -177,5 +177,5 @@ CREATE TABLE solr_update_failures_archived (
     PRIMARY KEY (id, archived_at)
 );
 
-CREATE INDEX idx_solr_failures_archived_unresolved ON solr_update_failures_archived(archived_at DESC) 
+CREATE INDEX idx_solr_failures_archived_unresolved ON solr_update_failures_archived(archived_at DESC)
 WHERE resolved_at IS NULL;

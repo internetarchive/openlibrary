@@ -90,19 +90,19 @@ def record_failure(
         error_type = type(exception).__name__
         error_message = str(exception)
         stack_trace = traceback.format_exc()
-        
+
         # Exponential backoff: 2^retry_count minutes + jitter
-        base_delay_minutes = 2 ** retry_count
+        base_delay_minutes = 2**retry_count
         jitter = random.uniform(-base_delay_minutes * 0.1, base_delay_minutes * 0.1)
         total_delay_minutes = base_delay_minutes + jitter
         next_retry_at = datetime.utcnow() + timedelta(minutes=total_delay_minutes)
-        
+
         solr_response_code = getattr(exception, 'status_code', None)
-        
+
         db.query(
             """
-            INSERT INTO solr_update_failures 
-            (keys, entity_type, error_type, error_message, stack_trace, 
+            INSERT INTO solr_update_failures
+            (keys, entity_type, error_type, error_message, stack_trace,
              retry_count, max_retries, next_retry_at, solr_response_code)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             """,
@@ -116,7 +116,7 @@ def record_failure(
             next_retry_at,
             solr_response_code,
         )
-        
+
         logger.warning(
             f"Recorded failed Solr update for {len(keys)} keys ({entity_type}). "
             f"Next retry in {total_delay_minutes:.1f} minutes.",
@@ -128,7 +128,7 @@ def record_failure(
                 'retry_count': retry_count,
                 'next_retry_at': next_retry_at.isoformat(),
                 'delay_minutes': total_delay_minutes,
-            }
+            },
         )
     except Exception as e:
         logger.error(
@@ -138,9 +138,8 @@ def record_failure(
                 'original_error': str(exception),
                 'keys_count': len(keys),
                 'entity_type': entity_type,
-            }
+            },
         )
-
 
 
 @dataclass
@@ -251,13 +250,13 @@ def solr_update(
         return retry(make_request)
     except MaxRetriesExceeded as e:
         logger.error(f'Max retries exceeded for Solr POST: {e.last_exception}')
-        
+
         keys = []
         for doc in update_request.adds:
             if 'key' in doc:
                 keys.append(doc['key'])
         keys.extend(update_request.deletes)
-        
+
         if keys:
             record_failure(
                 keys=keys,
@@ -265,7 +264,7 @@ def solr_update(
                 exception=e.last_exception,
                 retry_count=0,
             )
-        
+
         raise
 
 

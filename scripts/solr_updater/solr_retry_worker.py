@@ -6,7 +6,6 @@ Continuously polls solr_update_failures table and retries with exponential backo
 
 import asyncio
 import logging
-from datetime import datetime
 
 from openlibrary.config import load_config
 from openlibrary.core import db
@@ -50,12 +49,12 @@ def archive_failure(failure_id):
             """,
             failure_id,
         )
-        
+
         db.query("DELETE FROM solr_update_failures WHERE id = $1", failure_id)
-        
+
         logger.critical(
             f"Archived failure {failure_id} after exceeding max retries",
-            extra={'failure_id': failure_id}
+            extra={'failure_id': failure_id},
         )
     except Exception as e:
         logger.error(f"Failed to archive failure {failure_id}: {e}", exc_info=True)
@@ -68,7 +67,7 @@ async def retry_failure(failure):
     entity_type = failure['entity_type']
     retry_count = failure['retry_count']
     max_retries = failure['max_retries']
-    
+
     logger.info(
         f"Retrying batch {failure_id}: {len(keys)} {entity_type} keys "
         f"(attempt {retry_count + 1}/{max_retries})",
@@ -78,24 +77,24 @@ async def retry_failure(failure):
             'total_keys': len(keys),
             'entity_type': entity_type,
             'retry_count': retry_count,
-        }
+        },
     )
-    
+
     try:
         await update.update_keys(keys, commit=True)
-        
+
         db.query("DELETE FROM solr_update_failures WHERE id = $1", failure_id)
-        
+
         logger.info(
             f"Successfully retried batch {failure_id} ({len(keys)} keys)",
             extra={
                 'failure_id': failure_id,
                 'retry_count': retry_count,
                 'keys_count': len(keys),
-            }
+            },
         )
         return True
-        
+
     except Exception as e:
         logger.error(
             f"Retry failed for batch {failure_id}: {e}",
@@ -104,9 +103,9 @@ async def retry_failure(failure):
                 'retry_count': retry_count,
                 'error_type': type(e).__name__,
             },
-            exc_info=True
+            exc_info=True,
         )
-        
+
         new_retry_count = retry_count + 1
         if new_retry_count >= max_retries:
             archive_failure(failure_id)
@@ -114,7 +113,7 @@ async def retry_failure(failure):
             logger.warning(
                 f"Batch {failure_id} failed retry {new_retry_count}/{max_retries}"
             )
-        
+
         return False
 
 
@@ -123,7 +122,7 @@ def get_queue_stats():
     try:
         results = db.query(
             """
-            SELECT 
+            SELECT
                 COUNT(*) as total_failures,
                 COUNT(*) FILTER (WHERE retry_count = 0) as first_attempt_failures,
                 COUNT(*) FILTER (WHERE retry_count >= 5) as high_retry_count,
@@ -149,35 +148,35 @@ async def main(
     logger.info("Starting Solr retry worker")
     logger.info(f"Config: {ol_config}, URL: {ol_url}")
     logger.info(f"Poll interval: {poll_interval}s, Batch size: {batch_size}")
-    
+
     load_config(ol_config)
     update.load_configs(ol_url, ol_config, 'default')
-    
+
     iteration = 0
-    
+
     while True:
         iteration += 1
         try:
             failures = get_ready_failures(limit=batch_size)
-            
+
             if failures:
                 logger.info(
                     f"Iteration {iteration}: Found {len(failures)} failures ready to retry"
                 )
-                
+
                 success_count = 0
                 for failure in failures:
                     if await retry_failure(failure):
                         success_count += 1
-                    
+
                     await asyncio.sleep(0.5)
-                
+
                 logger.info(
                     f"Iteration {iteration} complete: {success_count}/{len(failures)} succeeded"
                 )
             else:
                 logger.debug(f"Iteration {iteration}: No failures ready to retry")
-            
+
             if iteration % 10 == 0:
                 stats = get_queue_stats()
                 if stats:
@@ -185,20 +184,19 @@ async def main(
                         f"Queue stats: {stats['total_failures']} total failures, "
                         f"{stats['ready_to_retry']} ready to retry, "
                         f"{stats['total_keys_affected']} keys affected",
-                        extra=dict(stats)
+                        extra=dict(stats),
                     )
-            
-        except Exception as e:
+
+        except Exception:
             logger.error(
-                f"Error in retry worker loop (iteration {iteration})",
-                exc_info=True
+                f"Error in retry worker loop (iteration {iteration})", exc_info=True
             )
-        
+
         await asyncio.sleep(poll_interval)
 
 
 if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-    
+
     cli = FnToCLI(main)
     cli.run()
