@@ -1,0 +1,13 @@
+$def with (lists, all_url)
+
+$ user_key = ctx.user and ctx.user.key
+<div class="carousel-section">
+    <div class="list-follow-showcase">
+        $:render_template('lists/list_follow', lists, 5, user_key)
+        $if len(lists) > 5:
+            <a
+                class="list-follow-showcase__see-all cta-btn cta-btn--vanilla"
+                href="$all_url"
+            >$_("See all")</a>
+    </div>
+</div>
