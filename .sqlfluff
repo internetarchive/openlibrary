@@ -1,10 +1,14 @@
 [sqlfluff]
 dialect = postgres
-# Explicitly enforce ONLY rule L052 (semicolon) and nothing else.
-rules = L052
+nocolor = True
+# Explicitly enforce ONLY convention.terminator (formerly L052)
+rules = convention.terminator
 
-[sqlfluff:rules]
-max_line_length = 0
+[sqlfluff:rules:convention.terminator]
+# Force semicolons
+require_final_semicolon = True
+# Ensure it applies even to single lines if relevant
+multiline_newline = True
 
 [sqlfluff:layout:type:comma]
 spacing_before = touch
