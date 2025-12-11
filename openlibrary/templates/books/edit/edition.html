@@ -465,7 +465,7 @@ $ })
                             <select name="name" id="select-classification">
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
-                                    <option value="$d.name">$d.label</option>
+                                    <option value="$d.name" data-full-label="$d.label">$truncate(d.label, 45)</option>
 
                                 <!-- <option>---</option> -->
                                 <!-- <option value="__add__">$_("Add a new classification type")</option> -->
@@ -480,7 +480,7 @@ $ })
                     </tr>
                     <tbody id="classifications-display">
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").html()}}</strong></td>
+                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").attr("data-full-label")}}</strong></td>
                             <td>{{value}}
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
