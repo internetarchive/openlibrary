@@ -26,6 +26,7 @@ from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+
 # from openlibrary.plugins.openlibrary.api.py import work_delete
 
 logger = logging.getLogger("openlibrary.book")
@@ -571,18 +572,18 @@ class SaveBookHelper:
 
         saveutil = DocSaveHelper()
 
-        #deletes a work and all its editions via batching
+        # deletes a work and all its editions via batching
         if delete_all:
             if self.work:
                 from openlibrary.plugins.openlibrary.api import work_delete
-                
+
                 work_id = self.work.key.split('/')[-1]
                 deleter = work_delete()
                 deleter.POST(work_id)
                 raise web.seeother('/')
             return
 
-        #deletes a single edition (and work if no more editions exist)
+        # deletes a single edition (and work if no more editions exist)
         if delete:
             if self.edition:
                 self.delete(self.edition.key, comment=comment)
