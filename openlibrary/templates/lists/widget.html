@@ -80,7 +80,7 @@ $if include_widget:
           $:render_showcase()
     </ul>
   $if work and include_rating:
-    $:macros.StarRatings(work, edition)
+    $:render_ui('StarRatings', work, edition)
 
 $if include_showcase:
   $:render_showcase()

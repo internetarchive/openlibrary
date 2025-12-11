@@ -25,7 +25,10 @@ module.exports = {
     },
 
     resolve: {
-        alias: {}
+        alias: {
+            '@': path.resolve(__dirname),
+            '@js': path.resolve(__dirname, 'openlibrary/plugins/openlibrary/js'),
+        }
     },
     plugins: [
         new webpack.ProvidePlugin({

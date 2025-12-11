@@ -188,6 +188,11 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
+def render_ui(name: str, *args, **kwargs) -> TemplateResult:
+    return render_template(f'components/{name}/{name}.html', *args, **kwargs)
+
+
+@public
 def render_component(
     name: str,
     attrs: dict | None = None,

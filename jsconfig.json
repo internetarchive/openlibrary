@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@js/*": ["./openlibrary/plugins/openlibrary/js/*"]
+    }
+  },
+  "include": [
+    "openlibrary/plugins/openlibrary/js/**/*.js",
+    "ui/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+  ]
+}
