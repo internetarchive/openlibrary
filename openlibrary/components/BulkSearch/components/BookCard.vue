@@ -1,5 +1,8 @@
 <template>
-  <div class="book-card">
+  <div
+    class="book-card"
+    :class="{ 'book-card--primary': isPrimary, 'book-card--secondary': !isPrimary }"
+  >
     <div class="cover">
       <img
         :src="coverImage"
@@ -29,7 +32,11 @@
 <script>
 export default {
     props: {
-        doc: Object
+        doc: Object,
+        isPrimary: {
+            type: Boolean,
+            default: false
+        }
     },
     computed: {
         coverImage() {
@@ -92,7 +99,7 @@ export default {
   color: inherit;
   text-decoration: inherit;
   position: relative;
-  transition-property: background-color border-color;
+  transition-property: background-color border-color opacity;
   transition-duration: 0.2s;
 
   &:first-child {
@@ -106,6 +113,10 @@ export default {
   &:hover {
     background: rgba(0, 0, 255, 0.05);
     border-color: rgba(0, 0, 255, 0.5);
+  }
+
+  &.book-card--primary {
+      border: 1px solid rgba(0, 0, 255, 0.5);
   }
 
   &.loading::before {
