@@ -11,9 +11,6 @@ def simulate_batching(num_editions):
     edition_keys = [f'/books/OL{i}M' for i in range(num_editions)]
     work_key = '/works/OL123W'
 
-    total_keys = len(edition_keys) + 1
-    total_batches = (total_keys + BATCH_SIZE - 1) // BATCH_SIZE
-
     batches = []
     batch_num = 0
     work_deleted = False
