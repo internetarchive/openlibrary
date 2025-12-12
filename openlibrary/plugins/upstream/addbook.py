@@ -573,15 +573,11 @@ class SaveBookHelper:
         saveutil = DocSaveHelper()
 
         # deletes a work and all its editions via batching
-        if delete_all:
-            if self.work:
-                from openlibrary.plugins.openlibrary.api import work_delete
-
-                work_id = self.work.key.split('/')[-1]
-                deleter = work_delete()
-                deleter.POST(work_id)
-                raise web.seeother('/')
-            return
+        if delete_all and self.work:
+            from openlibrary.plugins.openlibrary.api import work_delete
+            work_id = self.work.key.split('/')[-1]
+            work_delete().POST(work_id)
+            raise web.seeother('/')
 
         # deletes a single edition (and work if no more editions exist)
         if delete:
