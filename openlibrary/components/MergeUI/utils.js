@@ -47,7 +47,12 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
 function hash_subel(field, value) {
     switch (field) {
     case 'authors':
-        return (value.type.key || value.type) + value.author.key;
+        // Defensive check: handle malformed author entries
+        if (value.author && value.author.key) {
+            return (value.type.key || value.type) + value.author.key;
+        }
+        // Fallback to JSON stringify for malformed entries
+        return JSON.stringify(value);
     case 'covers':
     case 'subjects':
     case 'subject_people':

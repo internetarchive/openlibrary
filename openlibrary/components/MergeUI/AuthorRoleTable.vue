@@ -30,11 +30,15 @@
             </div>
             <div v-else-if="field == 'author'">
               <a
+                v-if="role[field] && role[field].key"
                 :href="`${role[field].key}`"
                 target="_blank"
               >
                 {{ role[field].key.slice("/authors/".length) }}
               </a>
+              <span v-else>
+                (malformed author)
+              </span>
             </div>
             <div v-else>
               {{ role[field] }}
