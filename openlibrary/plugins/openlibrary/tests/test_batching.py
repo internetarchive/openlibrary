@@ -39,7 +39,7 @@ def simulate_batching(num_editions):
     return {'editions': num_editions, 'total_batches': batch_num, 'batches': batches}
 
 
-def main():
+def run_batching_tests():
     test_cases = [0, 1, 500, 999, 1000, 1001, 1999, 2000, 2500, 4000]
 
     print("Work Delete Batching Test")
@@ -67,5 +67,4 @@ def main():
     return 0 if all_pass else 1
 
 
-if __name__ == '__main__':
-    exit(main())
+run_batching_tests()
