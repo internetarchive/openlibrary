@@ -19,9 +19,9 @@ export function initDeleteConfirm() {
             if (window.confirm(MSG_DELETE_ALL)) {
                 // ensure server receives the same _delete_all param that would be sent
                 // if the button were allowed to submit normally
-                $form.find('#_delete_temp').remove();
+                $form.find('#_delete_all_temp').remove();
                 $('<input>')
-                    .attr({type: 'hidden', name: '_delete_all', value: btnVal, id: '_delete_temp', 'aria-label': 'Confirm delete work and all editions'})
+                    .attr({type: 'hidden', name: '_delete_all', value: btnVal, id: '_delete_all_temp', 'aria-label': 'Confirm delete work and all editions'})
                     .appendTo($form);
                 $form[0].submit();
             }
