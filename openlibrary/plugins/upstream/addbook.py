@@ -573,6 +573,7 @@ class SaveBookHelper:
         # deletes a work and all its editions via batching
         if delete_all and self.work:
             from openlibrary.plugins.openlibrary.api import work_delete
+
             work_id = self.work.key.split('/')[-1]
             work_delete().POST(work_id)
             raise web.seeother('/')

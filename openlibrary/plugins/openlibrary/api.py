@@ -659,8 +659,8 @@ class work_delete(delegate.page):
         editions: list[dict] = self.get_editions_of_work(work)
 
         # Build list of all keys to delete (editions first, work last)
-        edition_keys: list[str] = [el.get('key') for el in editions]
-        work_key: str = work.key
+        edition_keys: list[str | None] = [el.get('key') for el in editions]
+        work_key: str | None = work.key
 
         # Calculate total batches needed
         total_keys = len(edition_keys) + 1  # +1 for the work
