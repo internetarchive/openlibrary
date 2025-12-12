@@ -96,9 +96,7 @@ def _parse_args():
         default=DEFAULT_CONFIG_PATH,
         help=f"Path to cron-wrapper configuration file. Defaults to \"{DEFAULT_CONFIG_PATH}\"",
     )
-    _parser.add_argument(
-        "job_name", help="Name of the job to be monitored"
-    )
+    _parser.add_argument("job_name", help="Name of the job to be monitored")
     _parser.add_argument(
         "script", help="Path to script that will be wrapped and monitored"
     )
