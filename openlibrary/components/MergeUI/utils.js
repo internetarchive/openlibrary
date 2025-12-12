@@ -269,7 +269,9 @@ function save_many(items, comment, action, data) {
  */
 export async function get_author_names(works) {
     const authorIds = _.uniq(works).flatMap(record =>
-        (record.authors || []).map(authorEntry => authorEntry.author.key)
+        (record.authors || [])
+            .filter(authorEntry => authorEntry.author && authorEntry.author.key)
+            .map(authorEntry => authorEntry.author.key)
     )
 
     if (!authorIds.length) return {};

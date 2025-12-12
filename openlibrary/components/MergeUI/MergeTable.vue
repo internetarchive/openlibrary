@@ -159,7 +159,14 @@ export default {
 
             for (const record of enhanced_records) {
                 for (const entry of (record.authors || [])) {
-                    entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+                    // Defensive check: ensure entry.author and entry.author.key exist
+                    if (entry.author && entry.author.key) {
+                        const authorId = entry.author.key.slice('/authors/'.length);
+                        // Only set name if the author was found in the search results
+                        if (authorId in author_names) {
+                            entry.name = author_names[authorId];
+                        }
+                    }
                 }
             }
             return enhanced_records
