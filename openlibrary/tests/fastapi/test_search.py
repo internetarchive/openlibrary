@@ -339,6 +339,19 @@ def test_check_params():
         assert param in PublicQueryOptions.model_fields
 
 
+def test_search_fields_sync():
+    """
+    This test is to ensure that PublicQueryOptions doesn't get out of sync with WorkSearchScheme fields.
+    If this test is failing, then you probably need to update the model with the difference
+    """
+    # Exclude fields starting with _ as Pydantic doesn't allow them in models
+    expected_fields = (
+        WorkSearchScheme.all_fields | set(WorkSearchScheme.field_name_map.keys())
+    ) - {f for f in WorkSearchScheme.field_name_map if f.startswith('_')}
+    for param in expected_fields:
+        assert param in PublicQueryOptions.model_fields
+
+
 class TestOpenAPIDocumentation:
     """Tests to verify OpenAPI documentation is generated correctly."""
 

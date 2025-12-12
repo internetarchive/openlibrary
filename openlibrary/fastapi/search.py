@@ -13,7 +13,6 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from pydantic.fields import FieldInfo
 
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE
@@ -120,50 +119,63 @@ class PublicQueryOptions(BaseModel):
         examples=["OL1394244A"],
     )
 
+    # from all_fields
+    key: str | None = None
+    redirects: str | None = None
+    subtitle: str | None = None
+    alternative_title: str | None = None
+    alternative_subtitle: str | None = None
+    cover_i: str | None = None
+    ebook_access: str | None = None
+    ebook_provider: str | None = None
+    edition_count: str | None = None
+    edition_key: str | None = None
+    format: str | None = None
+    by_statement: str | None = None
+    publish_date: str | None = None
+    lexile: str | None = None
+    ia: str | None = None
+    isbn: str | None = None
+    publish_place: str | None = None
+    first_sentence: str | None = None
+    author_name: str | None = None
+    author_alternative_name: str | None = None
+    title_suggest: str | None = None
+    publish_year: str | None = None
+    number_of_pages_median: str | None = None
+    ia_count: str | None = None
+    ratings_count: str | None = None
+    readinglog_count: str | None = None
+    want_to_read_count: str | None = None
+    currently_reading_count: str | None = None
+    already_read_count: str | None = None
+    subject_key: str | None = None
+    person_key: str | None = None
+    place_key: str | None = None
+    time_key: str | None = None
+    lcc: str | None = None
+    ddc: str | None = None
+    lcc_sort: str | None = None
+    ddc_sort: str | None = None
+    osp_count: str | None = None
+    trending_score_hourly_sum: str | None = None
+    trending_z_score: str | None = None
+    # Field name map aliases
+    author: str | None = None
+    authors: str | None = None
+    by: str | None = None
+    number_of_pages: str | None = None
+    publishers: str | None = None
+    work_subtitle: str | None = None
+    work_title: str | None = None
+    trending: str | None = None
+
     @field_validator('q')
     @classmethod
     def parse_q_string(cls, v: str) -> str:
         if q_error := validate_search_json_query(v):
             raise ValueError(q_error)
         return v
-
-
-def add_search_fields_to_model(model: type[PublicQueryOptions]) -> None:
-    """
-    Dynamically adds all search fields (from WorkSearchScheme) as optional string fields
-    to the given Pydantic model (typically PublicQueryOptions).
-
-    This should be called once at import time or in a module-level block.
-
-    TODO: when we refactor worksearchscheme we should stop using this function and have a proper model.
-    """
-    # Common field definition: Optional[str] with default=None
-    search_field = (str | None, Field(default=None))
-
-    # Collect all field names we want to add (original + aliases)
-    fields_to_add: dict[str, tuple[Any, FieldInfo]] = {}
-
-    for field_name in WorkSearchScheme.all_fields:
-        if field_name not in model.model_fields:
-            fields_to_add[field_name] = search_field
-
-    for alias in WorkSearchScheme.field_name_map:
-        if alias not in model.model_fields:
-            fields_to_add[alias] = search_field
-
-    # Apply them all at once
-    for name, (type_hint, field_info) in fields_to_add.items():
-        # Update annotations for IDEs/type checkers
-        model.__annotations__[name] = type_hint
-        # Actually set the field on the model
-        setattr(model, name, field_info)
-
-    # Rebuild the model so Pydantic recognizes the new fields
-    model.model_rebuild()
-
-
-# Call it once, ideally right after PublicQueryOptions is defined
-add_search_fields_to_model(PublicQueryOptions)
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
