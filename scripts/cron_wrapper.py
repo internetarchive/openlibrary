@@ -16,7 +16,7 @@ DEFAULT_CONFIG_PATH = "/olsystem/etc/cron-wrapper.ini"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_cfg):
+    def __init__(self, command, sentry_cfg, statsd_cfg, job_name):
         self.command = command
         self.statsd_client = (
             self._setup_statsd(statsd_cfg.get("host", ""), statsd_cfg.get("port", ""))
@@ -24,7 +24,7 @@ class MonitoredJob:
             else None
         )
         self._setup_sentry(sentry_cfg.get("dsn", ""))
-        self.job_name = self._get_job_name()
+        self.job_name = job_name
         self.job_failed = False
 
     def run(self):
@@ -68,23 +68,15 @@ class MonitoredJob:
     def _setup_statsd(self, host, port):
         return StatsClient(host, port)
 
-    def _get_job_name(self):
-        # TODO: Change to specify a --script as argparse arg (instead of scripts path)
-        script_path = next(
-            s for s in self.command if s.startswith("/openlibrary/scripts/")
-        )
-        script_name = script_path.split('/')[-1]
-        job_name = script_name.split('.')[0]
-        return job_name
-
 
 def main(args):
     config = _read_config(args.config)
     sentry_cfg = dict(config["sentry"]) if config.has_section("sentry") else None
     statsd_cfg = dict(config["statsd"]) if config.has_section("statsd") else None
     command = [args.script] + args.script_args
+    job_name = args.job_name
 
-    job = MonitoredJob(command, sentry_cfg, statsd_cfg)
+    job = MonitoredJob(command, sentry_cfg, statsd_cfg, job_name)
     job.run()
 
 
@@ -103,6 +95,9 @@ def _parse_args():
         "--config",
         default=DEFAULT_CONFIG_PATH,
         help=f"Path to cron-wrapper configuration file. Defaults to \"{DEFAULT_CONFIG_PATH}\"",
+    )
+    _parser.add_argument(
+        "job_name", help="Name of the job to be monitored"
     )
     _parser.add_argument(
         "script", help="Path to script that will be wrapped and monitored"
