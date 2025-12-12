@@ -27,8 +27,6 @@ from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 
-# from openlibrary.plugins.openlibrary.api.py import work_delete
-
 logger = logging.getLogger("openlibrary.book")
 
 

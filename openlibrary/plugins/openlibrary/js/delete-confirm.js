@@ -17,7 +17,7 @@ export function initDeleteConfirm() {
             e.preventDefault();
             const btnVal = $(this).val() || 'true';
             if (window.confirm(MSG_DELETE_ALL)) {
-                // ensure server receives the same _delete param that would be sent
+                // ensure server receives the same _delete_all param that would be sent
                 // if the button were allowed to submit normally
                 $form.find('#_delete_temp').remove();
                 $('<input>')
