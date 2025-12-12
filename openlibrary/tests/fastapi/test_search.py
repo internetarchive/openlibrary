@@ -238,10 +238,10 @@ class TestSearchEndpoint:
         assert query_arg[key_to_check] == expected_value
 
     def test_arbitrary_query_params_not_passed_down(self, client, mock_work_search):
-        """Test that arbitrary query parameters like osp_count are NOT passed down."""
+        """Test that arbitrary query parameters like osp_count_fake are NOT passed down."""
 
-        # Make a request with osp_count parameter
-        response = search(client, q='test', osp_count='5')
+        # Make a request with osp_count_fake parameter
+        response = search(client, q='test', osp_count_fake='5')
 
         assert response.status_code == 200
 
@@ -249,9 +249,9 @@ class TestSearchEndpoint:
         mock_work_search.assert_called_once()
         call_args = mock_work_search.call_args
 
-        # The query dict should NOT contain the osp_count parameter
+        # The query dict should NOT contain the osp_count_fake parameter
         query_arg = call_args[0][0]  # First positional argument
-        assert 'osp_count' not in query_arg
+        assert 'osp_count_fake' not in query_arg
         assert query_arg['q'] == 'test'
 
     def test_multiple_author_keys(self, client, mock_work_search):
