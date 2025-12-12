@@ -128,6 +128,8 @@ class TestAPIContract:
                 generate_test_params_from_model(PublicQueryOptions),
                 'all PublicQueryOptions fields (generated)',
             ),
+            ({'isbn': '9780143038252'}, 'isbn'),
+            ({'author': 'mark twain'}, 'author'),
         ],
     )
     def test_both_endpoints_call_search_with_same_query(

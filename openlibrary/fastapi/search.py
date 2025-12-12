@@ -13,6 +13,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from pydantic.fields import FieldInfo
 
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE
@@ -127,6 +128,44 @@ class PublicQueryOptions(BaseModel):
         return v
 
 
+def add_search_fields_to_model(model: type[PublicQueryOptions]) -> None:
+    """
+    Dynamically adds all search fields (from WorkSearchScheme) as optional string fields
+    to the given Pydantic model (typically PublicQueryOptions).
+
+    This should be called once at import time or in a module-level block.
+
+    TODO: when we refactor worksearchscheme we should stop using this function and have a proper model.
+    """
+    # Common field definition: Optional[str] with default=None
+    search_field = (str | None, Field(default=None))
+
+    # Collect all field names we want to add (original + aliases)
+    fields_to_add: dict[str, tuple[Any, FieldInfo]] = {}
+
+    for field_name in WorkSearchScheme.all_fields:
+        if field_name not in model.model_fields:
+            fields_to_add[field_name] = search_field
+
+    for alias in WorkSearchScheme.field_name_map:
+        if alias not in model.model_fields:
+            fields_to_add[alias] = search_field
+
+    # Apply them all at once
+    for name, (type_hint, field_info) in fields_to_add.items():
+        # Update annotations for IDEs/type checkers
+        model.__annotations__[name] = type_hint
+        # Actually set the field on the model
+        setattr(model, name, field_info)
+
+    # Rebuild the model so Pydantic recognizes the new fields
+    model.model_rebuild()
+
+
+# Call it once, ideally right after PublicQueryOptions is defined
+add_search_fields_to_model(PublicQueryOptions)
+
+
 class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
         ",".join(sorted(WorkSearchScheme.default_fetched_fields)),
@@ -157,10 +196,13 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         if isinstance(self.query, dict):
             return self.query
         else:
-            q = self.model_dump(
-                include=PublicQueryOptions.model_fields.keys(),
-                exclude_none=True,
-            )
+            # Include all fields that belong to PublicQueryOptions (the search query part)
+            # This automatically excludes SearchRequestParams-specific fields like fields, sort, etc.
+            query_fields = set(PublicQueryOptions.model_fields.keys())
+            # Add dynamically handled fields from WorkSearchScheme
+            query_fields |= WorkSearchScheme.all_fields
+            query_fields |= set(WorkSearchScheme.field_name_map.keys())
+            q = self.model_dump(include=query_fields, exclude_none=True)
             return q
 
 
