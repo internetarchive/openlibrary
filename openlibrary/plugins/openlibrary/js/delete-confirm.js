@@ -21,7 +21,7 @@ export function initDeleteConfirm() {
                 // if the button were allowed to submit normally
                 $form.find('#_delete_temp').remove();
                 $('<input>')
-                    .attr({type: 'hidden', name: '_delete', value: btnVal, id: '_delete_temp'})
+                    .attr({type: 'hidden', name: '_delete_all', value: btnVal, id: '_delete_temp'})
                     .appendTo($form);
                 $form[0].submit();
             }
