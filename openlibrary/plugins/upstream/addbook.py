@@ -575,10 +575,12 @@ class SaveBookHelper:
             from openlibrary.plugins.openlibrary.api import work_delete
 
             work_id = self.work.key.split('/')[-1]
-            try: 
+            try:
                 work_delete().POST(work_id)
             except Exception as e:
-                add_flash_message("error", "There was an error deleting the work: " + str(e))
+                add_flash_message(
+                    "error", "There was an error deleting the work: " + str(e)
+                )
             raise web.seeother('/')
 
         # deletes a single edition (and work if no more editions exist)
