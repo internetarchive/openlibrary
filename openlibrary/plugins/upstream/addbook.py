@@ -683,7 +683,9 @@ class SaveBookHelper:
         try:
             work_delete().POST(work_id)
         except web.HTTPError as e:
-            add_flash_message("error", "There was an error deleting the work: " + str(e))
+            add_flash_message(
+                "error", "There was an error deleting the work: " + str(e)
+            )
         raise web.seeother('/')
 
     @staticmethod
