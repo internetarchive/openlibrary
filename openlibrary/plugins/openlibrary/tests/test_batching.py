@@ -1,70 +1,98 @@
+from unittest.mock import MagicMock, patch
+from openlibrary.plugins.openlibrary.api import work_delete
+import json
+import pytest
+
 """
-Simple test to verify the work deletion batching logic.
-Run with: python test_batching.py
+Test cases for the work_delete implementation using magic mock.
 """
 
 BATCH_SIZE = 1000
+TOTAL_EDITION_TEST_CASES = [0, 1, 500, 999, 1000, 1001, 1999, 2000, 2500]
 
 
-def simulate_batching(num_editions):
-    """Simulates how many batches would be needed to delete a work."""
-    edition_keys = [f'/books/OL{i}M' for i in range(num_editions)]
+class MockWork:
+    def __init__(self, key):
+        self.key = key
+
+
+def create_mock_editions(num_editions):
+    """
+    Create mock edition dictionaries.
+    """
+    return [{'key': f'/books/OL{i}M', 'type': {'key': '/type/edition'}} 
+            for i in range(num_editions)]
+
+# Will run each of the test cases defined above
+@pytest.mark.parametrize("num_editions", TOTAL_EDITION_TEST_CASES)
+def test_delete_all_batching(num_editions):
+    """
+    Test that work_delete properly batches deletions.
+    """
     work_key = '/works/OL123W'
+    mock_work = MockWork(work_key)
+    mock_editions = create_mock_editions(num_editions)
 
-    batches = []
-    batch_num = 0
-    work_deleted = False
+    save_many_calls = []
+    
+    def mock_save_many(payload, comment):
+        save_many_calls.append({
+            'payload': payload,
+            'comment': comment,
+            'size': len(payload)
+        })
+    
+    mock_site = MagicMock()
+    mock_site.get.return_value = mock_work
+    mock_site.save_many = mock_save_many
+    
+    # Mock web.input
+    mock_input = MagicMock()
+    mock_input.get.return_value = None
+    
+    with patch('web.ctx') as mock_ctx, \
+         patch('web.input', return_value=mock_input), \
+         patch('openlibrary.plugins.openlibrary.api.can_write', return_value=True):
+        
+        mock_ctx.site = mock_site
+        
+        # Create work_delete instance and mock get_editions_of_work
+        deleter = work_delete()
+        deleter.get_editions_of_work = MagicMock(return_value=mock_editions)
+        
+        # Execute the POST method
+        result = deleter.POST('OL123W')
+        result_data = json.loads(result.rawtext)
+        
+        assert result_data['status'] == 'ok'
+        assert result_data['editions_deleted'] == num_editions
+        
+        total_items = num_editions + 1  # +1 for the work
+        expected_batches = (total_items + BATCH_SIZE - 1) // BATCH_SIZE
 
-    for i in range(0, len(edition_keys), BATCH_SIZE):
-        batch_num += 1
-        batch_keys = edition_keys[i : i + BATCH_SIZE]
+        assert result_data['batches'] == expected_batches
+        assert len(save_many_calls) == expected_batches
+        
+        # The work and all the editions were deleted correctly
+        all_deleted_keys = []
+        for call in save_many_calls:
+            all_deleted_keys.extend([item['key'] for item in call['payload']])
+        
+        for edition in mock_editions:
+            assert edition['key'] in all_deleted_keys
 
-        remaining = BATCH_SIZE - len(batch_keys)
-        if i + BATCH_SIZE >= len(edition_keys) and remaining >= 1:
-            batch_keys.append(work_key)
-            work_deleted = True
+        assert work_key in all_deleted_keys
+        
+        # None of the batches exceed the BATCH_SIZE
+        for call in save_many_calls:
+            assert call['size'] <= BATCH_SIZE
 
-        batches.append(
-            {
-                'num': batch_num,
-                'size': len(batch_keys),
-                'has_work': work_key in batch_keys,
-            }
-        )
-
-    if not work_deleted:
-        batch_num += 1
-        batches.append({'num': batch_num, 'size': 1, 'has_work': True})
-
-    return {'editions': num_editions, 'total_batches': batch_num, 'batches': batches}
-
-
-def run_batching_tests():
-    test_cases = [0, 1, 500, 999, 1000, 1001, 1999, 2000, 2500, 4000]
-
-    print("Work Delete Batching Test")
-    print("=" * 50)
-
-    all_pass = True
-    for num in test_cases:
-        result = simulate_batching(num)
-        total_deleted = sum(b['size'] for b in result['batches'])
-        expected = num + 1
-
-        status = "PASS" if total_deleted == expected else "FAIL"
-        if status == "FAIL":
-            all_pass = False
-
-        print(f"\n{num} editions:")
-        print(f"  Batches: {result['total_batches']}")
-        for batch in result['batches']:
-            work_note = " (with work)" if batch['has_work'] else ""
-            print(f"  - Batch {batch['num']}: {batch['size']} items{work_note}")
-        print(f"  Total deleted: {total_deleted}/{expected} - {status}")
-
-    print("\n" + "=" * 50)
-    print("Result: ALL PASS" if all_pass else "Result: SOME FAILED")
-    return 0 if all_pass else 1
-
-
-run_batching_tests()
+        # If some editions can fit in the same batch with the work, it should be only 1 batch
+        if num_editions < BATCH_SIZE:
+            assert len(save_many_calls) == 1
+            assert work_key in [item['key'] for item in save_many_calls[0]['payload']]
+        
+        # If there are exactly BATCH_SIZE editions, work should be in separate batch
+        elif num_editions == BATCH_SIZE:
+            assert len(save_many_calls) == 2
+            assert work_key in [item['key'] for item in save_many_calls[1]['payload']]
