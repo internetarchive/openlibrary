@@ -231,24 +231,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def ia_collection(self) -> list[str]:
         collections = self._ia_metadata['collection'] if self._ia_metadata else set()
         # Exclude fav-* collections because they're not useful to us.
-        return [c for c in collections if not c.startswith('fav-')]
-
-    @property
-    def ia_box_id(self) -> list[str]:
-        boxids = []
-        if 'ia_box_id' in self._edition:
-            if isinstance(self._edition['ia_box_id'], str):
-                boxids = [self._edition['ia_box_id']]
-            elif isinstance(self._edition['ia_box_id'], list):
-                boxids = self._edition['ia_box_id']
-            else:
-                logger.warning(
-                    f'Bad ia_box_id on {self.key}: "{self._edition["ia_box_id"]}"'
-                )
-        if self._ia_metadata:
-            boxids += list(self._ia_metadata.get('boxid') or [])
-
-        return uniq(boxids, key=lambda x: x.lower())
+        # Also exclude simplelists as they are not relevant collections for OL.
+        return [
+            c
+            for c in collections
+            if not c.startswith('fav-') and not c.endswith('simplelists')
+        ]
 
     @property
     def identifiers(self) -> dict:
@@ -337,7 +325,6 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 # IA
                 'ia': [self.ia] if self.ia else None,
                 'ia_collection': self.ia_collection,
-                'ia_box_id': self.ia_box_id,
                 # Ebook access
                 'ebook_access': self.ebook_access.to_solr_str(),
                 'ebook_provider': self.ebook_provider,

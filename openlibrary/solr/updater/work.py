@@ -140,7 +140,7 @@ def get_ia_collection_and_box_id(
 
     TODO Make the return type of this a namedtuple so that it's easier to reference
     :param str ia: Internet Archive ID
-    :return: A dict of the form `{ boxid: set[str], collection: set[str] }`
+    :return: A dict of the form `{ collection: set[str] }`
     :rtype: dict[str, set]
     """
 
@@ -170,11 +170,14 @@ def get_ia_collection_and_box_id(
         # It's none when the IA id is not found/invalid.
         # TODO: It would be better if get_metadata riased an error.
         return None
-    return {
-        'boxid': set(get_list(metadata, 'boxid')),
-        'collection': set(get_list(metadata, 'collection')),
-        'access_restricted_item': metadata.get('access-restricted-item'),
-    }
+    return cast(
+        bp.IALiteMetadata,
+        {
+            'boxid': set(get_list(metadata, 'boxid')),
+            'collection': set(get_list(metadata, 'collection')),
+            'access_restricted_item': metadata.get('access-restricted-item'),
+        },
+    )
 
 
 class KeyDict(TypedDict):
@@ -282,7 +285,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         doc = cast(dict, super().build())
         doc |= self.build_identifiers()
         doc |= self.build_subjects()
-        doc |= self.build_legacy_ia_fields()
         doc |= self.build_ratings() or {}
         doc |= self.build_reading_log() or {}
         doc |= self._trending_data
@@ -602,48 +604,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def language(self) -> set[str]:
         return {lang for ed in self._solr_editions for lang in ed.language}
-
-    def build_legacy_ia_fields(self) -> dict:
-        ia_loaded_id = set()
-        ia_box_id = set()
-
-        for e in self._editions:
-            # When do we write these to the actual edition?? This code might
-            # be dead.
-            if e.get('ia_loaded_id'):
-                if isinstance(e['ia_loaded_id'], str):
-                    ia_loaded_id.add(e['ia_loaded_id'])
-                else:
-                    try:
-                        assert isinstance(e['ia_loaded_id'], list)
-                        assert isinstance(e['ia_loaded_id'][0], str)
-                    except AssertionError:
-                        logger.error(
-                            "AssertionError: ia=%s, ia_loaded_id=%s",
-                            e.get("ia"),
-                            e['ia_loaded_id'],
-                        )
-                        raise
-                    ia_loaded_id.update(e['ia_loaded_id'])
-            if e.get('ia_box_id'):
-                if isinstance(e['ia_box_id'], str):
-                    ia_box_id.add(e['ia_box_id'])
-                else:
-                    try:
-                        assert isinstance(e['ia_box_id'], list)
-                        assert isinstance(e['ia_box_id'][0], str)
-                    except AssertionError:
-                        logger.error("AssertionError: %s", e['key'])
-                        raise
-                    ia_box_id.update(e['ia_box_id'])
-
-        doc = {}
-
-        if ia_loaded_id:
-            doc['ia_loaded_id'] = list(ia_loaded_id)
-        if ia_box_id:
-            doc['ia_box_id'] = list(ia_box_id)
-        return doc
 
     @cached_property
     def author_key(self) -> list[str]:

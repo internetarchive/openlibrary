@@ -79,7 +79,6 @@ class WorkSearchScheme(SearchScheme):
             "publish_year",
             "language",
             "number_of_pages_median",
-            "ia_count",
             "publisher_facet",
             "author_facet",
             "first_publish_year",
@@ -164,7 +163,6 @@ class WorkSearchScheme(SearchScheme):
             'currently_reading': 'currently_reading_count desc',
             'already_read': 'already_read_count desc',
             'title': 'title_sort asc',
-            'scans': 'ia_count desc',
             # Classifications
             'lcc_sort': 'lcc_sort asc',
             'lcc_sort asc': 'lcc_sort asc',
