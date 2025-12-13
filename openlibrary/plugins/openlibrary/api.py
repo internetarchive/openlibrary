@@ -674,7 +674,7 @@ class work_delete(delegate.page):
 
             # If this is the last batch of editions and work fits, include work
             remaining_in_batch = self.BATCH_SIZE - len(batch_keys)
-            if i + self.BATCH_SIZE >= len(edition_keys) and remaining_in_batch >= 1:
+            if i + len(batch_keys) >= len(edition_keys) and remaining_in_batch >= 1:
                 batch_keys.append(work_key)
                 work_key = None  # Mark as included
 
