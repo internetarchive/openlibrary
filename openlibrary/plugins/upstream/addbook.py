@@ -572,16 +572,7 @@ class SaveBookHelper:
 
         # deletes a work and all its editions via batching
         if delete_all and self.work:
-            from openlibrary.plugins.openlibrary.api import work_delete
-
-            work_id = self.work.key.split('/')[-1]
-            try:
-                work_delete().POST(work_id)
-            except Exception as e:
-                add_flash_message(
-                    "error", "There was an error deleting the work: " + str(e)
-                )
-            raise web.seeother('/')
+            self.delete_all_editions()
 
         # deletes a single edition (and work if no more editions exist)
         if delete:
@@ -681,6 +672,19 @@ class SaveBookHelper:
             saveutil.save(self.edition)
 
         saveutil.commit(comment=comment, action="edit-book")
+
+    def delete_all_editions(self) -> None:
+        """
+        Deletes all editions of the work in batches.
+        """
+        from openlibrary.plugins.openlibrary.api import work_delete
+
+        work_id = self.work.key.split('/')[-1]
+        try:
+            work_delete().POST(work_id)
+        except web.HTTPError as e:
+            add_flash_message("error", "There was an error deleting the work: " + str(e))
+        raise web.seeother('/')
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
