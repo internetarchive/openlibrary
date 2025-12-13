@@ -679,6 +679,7 @@ class SaveBookHelper:
         """
         from openlibrary.plugins.openlibrary.api import work_delete
 
+        assert self.work is not None, "delete_all_editions requires a work"
         work_id = self.work.key.split('/')[-1]
         try:
             work_delete().POST(work_id)
