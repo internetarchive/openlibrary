@@ -5602,7 +5602,7 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: home/index.html home/welcome.html
+#: home/index.html
 msgid "Welcome to Open Library"
 msgstr ""
 
@@ -5691,6 +5691,10 @@ msgstr ""
 
 #: home/stats.html
 msgid "eBooks Borrowed"
+msgstr ""
+
+#: home/welcome.html
+msgid "Welcome to Open Library, Brian"
 msgstr ""
 
 #: home/welcome.html
@@ -7603,7 +7607,7 @@ msgid "Review"
 msgstr ""
 
 #: type/edition/title_and_author.html
-msgid "An edition of"
+msgid "An edition ofss"
 msgstr ""
 
 #: type/edition/title_and_author.html
