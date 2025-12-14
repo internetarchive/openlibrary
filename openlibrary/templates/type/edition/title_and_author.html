@@ -13,9 +13,9 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 $ page_url = page.url()
 $ view_type = 'desktop' if for_desktop else 'mobile'
 <div class="work-title-and-author $view_type">
-  <span>
+  <div>
     <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
+        $_("An edition ofss") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
             <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
               ($work.first_publish_year)
@@ -45,7 +45,7 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
         $:macros.BookByline([{'name': name} for name in author_names], attrs='itemprop="author"')
       </h2>
     $:star_ratings_stats
-  </span>
+    </div>
 
   $if not for_desktop:
     $# On mobile, the 'Share' button appears next to the title and author
