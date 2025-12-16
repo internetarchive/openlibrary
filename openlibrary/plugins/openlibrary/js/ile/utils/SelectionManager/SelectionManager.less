@@ -12,7 +12,7 @@
   box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
   transition-duration: 0.2s;
   transition-property: background-color, box-shadow;
-  border-radius: 4px;
+  border-radius: @border-radius-card;
 }
 .ile-selected {
   box-shadow: 0 0 0 2px inset @selection-outline;
@@ -52,7 +52,7 @@
   max-width: 300px;
 }
 #ile-drag-status .text {
-  border-radius: 100px;
+  border-radius: @border-radius-pill;
   background: @ile-toolbar-background;
   padding: 4px 16px;
 }
