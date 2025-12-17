@@ -127,19 +127,19 @@ def create_app() -> FastAPI:
 
             pytest.skip("Skipping in CI", allow_module_level=True)
 
-    try:
-        # We still call this even though we don't use it because of the side effects
-        _load_legacy_wsgi()
+        try:
+            # We still call this even though we don't use it because of the side effects
+            _load_legacy_wsgi()
 
-        global sentry
-        if sentry is not None:
-            return
-        sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
-        set_tag("fastapi", True)
+            global sentry
+            if sentry is not None:
+                return
+            sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+            set_tag("fastapi", True)
 
-    except Exception:
-        logger.exception("Failed to initialize legacy WSGI app")
-        raise
+        except Exception:
+            logger.exception("Failed to initialize legacy WSGI app")
+            raise
 
     app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
 
