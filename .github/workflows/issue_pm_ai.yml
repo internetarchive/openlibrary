@@ -34,22 +34,27 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           INSTRUCTIONS: ${{ steps.pm.outputs.INSTRUCTIONS }}
         run: |
-          # Escape special characters for JSON
-          ESCAPED_INSTRUCTIONS=$(echo "$INSTRUCTIONS" | jq -Rs .)
-          ESCAPED_TITLE=$(echo "$ISSUE_TITLE" | jq -Rs .)
-          ESCAPED_BODY=$(echo "$ISSUE_BODY" | jq -Rs .)
+          # Construct the user message content
+          USER_MESSAGE="Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"$ISSUE_BODY"
+          
+          # Build JSON payload using jq for proper escaping
+          PAYLOAD=$(jq -n \
+            --arg model "gpt-4o-mini" \
+            --arg system "$INSTRUCTIONS" \
+            --arg user "$USER_MESSAGE" \
+            '{
+              model: $model,
+              messages: [
+                {role: "system", content: $system},
+                {role: "user", content: $user}
+              ]
+            }')
           
           # Make API call to GitHub Models
           RESPONSE=$(curl -s -w "\n%{http_code}" https://models.github.ai/inference/chat/completions \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"model\": \"gpt-4o-mini\",
-              \"messages\": [
-                {\"role\": \"system\", \"content\": $ESCAPED_INSTRUCTIONS},
-                {\"role\": \"user\", \"content\": \"Issue title: $ESCAPED_TITLE\n\nIssue body:\n$ESCAPED_BODY\"}
-              ]
-            }")
+            -d "$PAYLOAD")
           
           # Extract HTTP status code (last line)
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
