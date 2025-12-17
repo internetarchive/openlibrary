@@ -20,6 +20,7 @@ The Issue PM AI workflow helps:
 The workflow triggers automatically when:
 - A new issue is opened in the repository
 - Only runs in the main `internetarchive/openlibrary` repository (not forks)
+- Currently runs for all issues (can be filtered by user type if needed)
 
 ### How It Works
 
@@ -61,6 +62,13 @@ If the workflow isn't working:
 3. Check that the workflow has proper permissions (`issues: write`)
 4. Review recent changes to the instructions file for syntax issues
 5. Ensure the issue was created in the main repository, not a fork
+
+### Filtering by User Type
+
+If you want to limit the workflow to only run for issues created by staff/leads:
+1. Edit `.github/workflows/issue_pm_ai.yml`
+2. Update the `if` condition in the `respond` job to include user checks
+3. Example: `if: github.repository == 'internetarchive/openlibrary' && contains(fromJSON('["user1", "user2", "user3"]'), github.event.issue.user.login)`
 
 ## API Usage
 
