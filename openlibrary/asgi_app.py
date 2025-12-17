@@ -36,7 +36,7 @@ def _https_middleware(app):
     return wrapper
 
 
-def _load_legacy_wsgi(ol_config_file: str):
+def _load_legacy_wsgi():
     """Initialize legacy configuration and side-effects as in scripts/openlibrary-server.
 
     This function does not return a WSGI callable; it is called for its side effects only.
@@ -46,6 +46,9 @@ def _load_legacy_wsgi(ol_config_file: str):
 
     # match scripts/openlibrary-server behavior
     from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
+
+    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
+    ol_config_file = os.environ.get("OL_CONFIG", str(ol_config_path))
 
     config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
@@ -124,11 +127,9 @@ def create_app() -> FastAPI:
 
             pytest.skip("Skipping in CI", allow_module_level=True)
 
-        ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
-        ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
         try:
             # We still call this even though we don't use it because of the side effects
-            legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
+            _load_legacy_wsgi()
 
             global sentry
             if sentry is not None:
