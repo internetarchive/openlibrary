@@ -477,7 +477,9 @@ def _get_amazon_metadata(
             e.response.status_code if e.response else "unknown",
         )
     except requests.exceptions.RequestException:
-        logger.exception("Unexpected request error fetching Amazon metadata for %s", id_)
+        logger.exception(
+            "Unexpected request error fetching Amazon metadata for %s", id_
+        )
     return None
 
 
