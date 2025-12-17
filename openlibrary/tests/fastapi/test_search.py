@@ -330,25 +330,12 @@ class TestSearchEndpoint:
         assert call_kwargs['fields'] == expected_fields
 
 
-def test_check_params():
+def test_public_api_params():
     """
-    This test is to ensure that check_params doesn't get out of sync with what is in the endpoint.
+    This test is to ensure that public_api_params doesn't get out of sync with what is in the endpoint.
     If this test is failing, then you probably need to update the other model with the difference
     """
-    for param in WorkSearchScheme.check_params:
-        assert param in PublicQueryOptions.model_fields
-
-
-def test_search_fields_sync():
-    """
-    This test is to ensure that PublicQueryOptions doesn't get out of sync with WorkSearchScheme fields.
-    If this test is failing, then you probably need to update the model with the difference
-    """
-    # Exclude fields starting with _ as Pydantic doesn't allow them in models
-    expected_fields = (
-        WorkSearchScheme.all_fields | set(WorkSearchScheme.field_name_map.keys())
-    ) - {f for f in WorkSearchScheme.field_name_map if f.startswith('_')}
-    for param in expected_fields:
+    for param in WorkSearchScheme.public_api_params:
         assert param in PublicQueryOptions.model_fields
 
 

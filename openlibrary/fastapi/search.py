@@ -52,7 +52,7 @@ class PublicQueryOptions(BaseModel):
 
     q: str = Field("", description="The search query string.")
 
-    # from check_params in works.py
+    # from public_api_params in works.py
     title: str | None = None
     publisher: str | None = None
     oclc: str | None = None
@@ -119,56 +119,8 @@ class PublicQueryOptions(BaseModel):
         examples=["OL1394244A"],
     )
 
-    # from all_fields
-    key: str | None = None
-    redirects: str | None = None
-    subtitle: str | None = None
-    alternative_title: str | None = None
-    alternative_subtitle: str | None = None
-    cover_i: str | None = None
-    ebook_access: str | None = None
-    ebook_provider: str | None = None
-    edition_count: str | None = None
-    edition_key: str | None = None
-    format: str | None = None
-    by_statement: str | None = None
-    publish_date: str | None = None
-    lexile: str | None = None
-    ia: str | None = None
     isbn: str | None = None
-    publish_place: str | None = None
-    first_sentence: str | None = None
-    author_name: str | None = None
-    author_alternative_name: str | None = None
-    title_suggest: str | None = None
-    publish_year: str | None = None
-    number_of_pages_median: str | None = None
-    ia_count: str | None = None
-    ratings_count: str | None = None
-    readinglog_count: str | None = None
-    want_to_read_count: str | None = None
-    currently_reading_count: str | None = None
-    already_read_count: str | None = None
-    subject_key: str | None = None
-    person_key: str | None = None
-    place_key: str | None = None
-    time_key: str | None = None
-    lcc: str | None = None
-    ddc: str | None = None
-    lcc_sort: str | None = None
-    ddc_sort: str | None = None
-    osp_count: str | None = None
-    trending_score_hourly_sum: str | None = None
-    trending_z_score: str | None = None
-    # Field name map aliases
     author: str | None = None
-    authors: str | None = None
-    by: str | None = None
-    number_of_pages: str | None = None
-    publishers: str | None = None
-    work_subtitle: str | None = None
-    work_title: str | None = None
-    trending: str | None = None
 
     @field_validator('q')
     @classmethod
