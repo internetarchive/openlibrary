@@ -137,7 +137,11 @@ def process_facet(
                 key, name = read_author_facet(val)
                 yield (key, name, count)
             elif field == 'language':
-                yield (val, get_language_name(f'/languages/{val}'), count)
+                yield (
+                    val,
+                    get_language_name(f'/languages/{val}', web.ctx.lang or 'en'),
+                    count,
+                )
             else:
                 yield (val, val, count)
 

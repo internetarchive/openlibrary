@@ -1,5 +1,6 @@
 """Python library for accessing Solr"""
 
+import functools
 import logging
 import re
 from collections.abc import Callable, Iterable
@@ -126,7 +127,7 @@ class Solr:
         ).json()
         return resp
 
-    def select(
+    async def select_async(
         self,
         query,
         fields=None,
@@ -139,7 +140,7 @@ class Solr:
         _pass_time_allowed=DEFAULT_PASS_TIME_ALLOWED,
         **kw,
     ):
-        """Execute a solr query.
+        """Asynchronously execute a solr query.
 
         query can be a string or a dictionary. If query is a dictionary, query
         is constructed by concatenating all the key-value pairs with AND condition.
@@ -172,8 +173,8 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        json_data = async_bridge.run(
-            self.raw_request(
+        json_data = (
+            await self.raw_request(
                 'select',
                 urlencode(params, doseq=True),
                 _timeout=_timeout,
@@ -184,6 +185,16 @@ class Solr:
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
+
+    @functools.wraps(select_async)
+    def select(self, *args, **kwargs):
+        """
+        Synchronously execute a solr query.
+
+        This is a wrapper around the async `select_async` method.
+        All parameters are passed directly to the async version.
+        """
+        return async_bridge.run(self.select_async(*args, **kwargs))
 
     async def raw_request(
         self,
