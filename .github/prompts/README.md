@@ -77,4 +77,6 @@ The workflow uses GitHub Models API which is:
 - Rate-limited but generous for typical usage
 - Requires standard `GITHUB_TOKEN` (automatically provided)
 
+**Note on API Endpoint:** This workflow uses the endpoint `https://models.github.ai/inference/chat/completions` as specified in the original feature request. If the workflow fails with API errors, verify the correct GitHub Models endpoint URL in the [GitHub Models documentation](https://docs.github.com/en/github-models). The endpoint may vary based on GitHub's infrastructure updates.
+
 For more information on GitHub Models, see: https://docs.github.com/en/github-models
