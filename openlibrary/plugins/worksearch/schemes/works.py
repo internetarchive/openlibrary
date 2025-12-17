@@ -238,7 +238,8 @@ class WorkSearchScheme(SearchScheme):
             ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
         }
     )
-    check_params = frozenset(
+    # These are extra public api params on top of facets, which are also public
+    public_api_params = frozenset(
         {
             'title',
             'publisher',
@@ -250,6 +251,8 @@ class WorkSearchScheme(SearchScheme):
             'person',
             'time',
             'author_key',
+            'author',
+            'isbn',
         }
     )
 
@@ -287,27 +290,24 @@ class WorkSearchScheme(SearchScheme):
 
     def build_q_from_params(self, params: dict[str, Any]) -> str:
         q_list = []
-        if 'author' in params:
-            v = params['author'].strip()
-            m = re_author_key.search(v)
-            if m:
-                q_list.append(f"author_key:({m.group(1)})")
-            else:
-                v = fully_escape_query(v)
-                q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
-
-        # support web.input fields being either a list or string
-        # when default values used
-        q_list += [
-            f'{k}:({fully_escape_query(val)})'
-            for k in (self.check_params & set(params))
-            for val in (params[k] if isinstance(params[k], list) else [params[k]])
-        ]
-
-        if params.get('isbn'):
-            q_list.append(
-                'isbn:(%s)' % (normalize_isbn(params['isbn']) or params['isbn'])
-            )
+        for k in self.public_api_params & set(params):
+            values = params[k] if isinstance(params[k], list) else [params[k]]
+            for val in values:
+                if k == 'author':
+                    v = val.strip()
+                    m = re_author_key.search(v)
+                    if m:
+                        q_list.append(f"author_key:({m.group(1)})")
+                    else:
+                        v = fully_escape_query(v)
+                        q_list.append(
+                            f"(author_name:({v}) OR author_alternative_name:({v}))"
+                        )
+                elif k == 'isbn':
+                    normalized = normalize_isbn(val)
+                    q_list.append(f'isbn:({normalized or val})')
+                else:
+                    q_list.append(f'{k}:({fully_escape_query(val)})')
 
         return ' AND '.join(q_list)
 
