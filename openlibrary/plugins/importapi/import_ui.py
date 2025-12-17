@@ -15,6 +15,19 @@ from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
 
 
+class MetadataFetchError(Exception):
+    """Exception raised when metadata cannot be fetched from a provider."""
+
+    def __init__(self, message: str, provider: str, identifier: str):
+        self.message = message
+        self.provider = provider
+        self.identifier = identifier
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.provider}: {self.message} (identifier: {self.identifier})"
+
+
 class import_preview(delegate.page):
     path = "/import/preview"
     """Preview page for import API."""
@@ -54,7 +67,15 @@ class import_preview(delegate.page):
             add_flash_message("error", str(e))
             return render_template("import_preview.html", metadata_provider_factory)
 
-        result = req.metadata_provider.do_import(req.identifier, req.save)
+        try:
+            result = req.metadata_provider.do_import(req.identifier, req.save)
+        except MetadataFetchError as e:
+            add_flash_message("error", str(e))
+            return render_template(
+                "import_preview.html",
+                metadata_provider_factory,
+                req=req,
+            )
 
         if req.save:
             add_flash_message("success", "Import successful")
@@ -92,7 +113,10 @@ class import_preview_json(delegate.page):
         # GET requests should not save the import
         req.save = False
 
-        return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
+        try:
+            return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
+        except MetadataFetchError as e:
+            return json.dumps({'success': False, 'error': str(e)})
 
     @jsonapi
     def POST(self):
@@ -111,7 +135,10 @@ class import_preview_json(delegate.page):
         except ValueError as e:
             return {'success': False, 'error': str(e)}
 
-        return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
+        try:
+            return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
+        except MetadataFetchError as e:
+            return json.dumps({'success': False, 'error': str(e)})
 
 
 @dataclass
@@ -173,7 +200,13 @@ class AmazonMetadataProvider(AbstractMetadataProvider):
         import_record = get_amazon_metadata(
             id_=identifier, id_type=id_type, high_priority=True, stage_import=False
         )
-        assert import_record, "No metadata found for the given identifier"
+        if not import_record:
+            raise MetadataFetchError(
+                message="No metadata found. The affiliate server may be unreachable, "
+                "the ISBN/ASIN may be invalid, or Amazon may not have data for this item.",
+                provider=self.full_name,
+                identifier=identifier,
+            )
         return add_book.load(
             import_record,
             account_key='account/ImportBot',
@@ -196,7 +229,12 @@ class IaMetadataProvider(AbstractMetadataProvider):
             force_import=True,
             preview=not save,
         )
-        assert import_record, "No metadata found for the given identifier"
+        if not import_record:
+            raise MetadataFetchError(
+                message="No metadata found for the given Internet Archive identifier.",
+                provider=self.full_name,
+                identifier=identifier,
+            )
         return add_book.load(
             import_record,
             account_key='account/ImportBot',
