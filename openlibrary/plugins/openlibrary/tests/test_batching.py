@@ -22,8 +22,11 @@ def create_mock_editions(num_editions):
     """
     Create mock edition dictionaries.
     """
-    return [{'key': f'/books/OL{i}M', 'type': {'key': '/type/edition'}}
-            for i in range(num_editions)]
+    return [
+        {'key': f'/books/OL{i}M', 'type': {'key': '/type/edition'}}
+        for i in range(num_editions)
+    ]
+
 
 # Will run each of the test cases defined above
 @pytest.mark.parametrize("num_editions", TOTAL_EDITION_TEST_CASES)
@@ -38,11 +41,9 @@ def test_delete_all_batching(num_editions):
     save_many_calls = []
 
     def mock_save_many(payload, comment):
-        save_many_calls.append({
-            'payload': payload,
-            'comment': comment,
-            'size': len(payload)
-        })
+        save_many_calls.append(
+            {'payload': payload, 'comment': comment, 'size': len(payload)}
+        )
 
     mock_site = MagicMock()
     mock_site.get.return_value = mock_work
@@ -52,9 +53,11 @@ def test_delete_all_batching(num_editions):
     mock_input = MagicMock()
     mock_input.get.return_value = None
 
-    with patch('web.ctx') as mock_ctx, \
-         patch('web.input', return_value=mock_input), \
-         patch('openlibrary.plugins.openlibrary.api.can_write', return_value=True):
+    with (
+        patch('web.ctx') as mock_ctx,
+        patch('web.input', return_value=mock_input),
+        patch('openlibrary.plugins.openlibrary.api.can_write', return_value=True),
+    ):
 
         mock_ctx.site = mock_site
 
