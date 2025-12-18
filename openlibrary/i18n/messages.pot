@@ -81,8 +81,8 @@ msgstr ""
 msgid "Pending Imports"
 msgstr ""
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
-#: account/notes.html account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html account/notes.html
+#: account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -334,10 +334,10 @@ msgstr ""
 msgid "right chevron"
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
-#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
-#: lists/preview.html lists/snippet.html lists/widget.html
-#: my_books/dropdown_content.html type/work/editions.html
+#: FulltextSearchSuggestionItem.html IABook.html books/edition-sort.html
+#: jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html
+#: lists/snippet.html lists/widget.html my_books/dropdown_content.html
+#: type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -778,47 +778,6 @@ msgstr ""
 msgid "Advanced Search"
 msgstr ""
 
-#: SearchResultsWork.html
-msgid "added to"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
-
-#: SearchResultsWork.html type/work/editions.html
-#, python-format
-msgid "First published in %(year)s"
-msgstr ""
-
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
-msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
-
-#: SearchResultsWork.html TrendingBadge.html
-msgid "This is only visible to librarians."
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Work Title"
-msgstr ""
-
-#: SearchResultsWork.html type/edition/admin_bar.html
-msgid "Orphaned Edition"
-msgstr ""
-
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
@@ -949,6 +908,10 @@ msgstr ""
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
+msgstr ""
+
+#: TrendingBadge.html
+msgid "This is only visible to librarians."
 msgstr ""
 
 #: TrendingBadge.html
@@ -4582,6 +4545,13 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
+#: books/check.html merge/authors.html publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
@@ -7596,6 +7566,10 @@ msgstr ""
 msgid "View Book on Archive.org"
 msgstr ""
 
+#: type/edition/admin_bar.html
+msgid "Orphaned Edition"
+msgstr ""
+
 #: type/edition/modal_links.html
 msgid "Review"
 msgstr ""
@@ -8125,6 +8099,11 @@ msgstr ""
 
 #: type/usergroup/edit.html
 msgid "Members:"
+msgstr ""
+
+#: type/work/editions.html
+#, python-format
+msgid "First published in %(year)s"
 msgstr ""
 
 #: type/work/editions.html type/work/editions_datatable.html

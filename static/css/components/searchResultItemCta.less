@@ -28,12 +28,42 @@
   margin-top: 5px;
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .searchResultItem {
-    .searchResultItemCTA {
-      width: 200px;
-      min-width: 200px;
-      padding: 0 5px;
-    }
+/* Mobile: ensure search result cover is visible and layout stays horizontal-ish */
+@media only screen and (max-width: 767px) {
+  /* make sure the cover box is visible and has a fixed width so text doesn't collapse */
+  .searchResultItem .bookcover,
+  .list-books .searchResultItem .bookcover {
+    display: block !important;
+    flex: 0 0 80px;
+    /* reserve space for the cover */
+    width: 80px !important;
+    min-width: 80px !important;
+    margin-right: 12px;
+    box-sizing: border-box;
+    align-self: flex-start;
+  }
+
+  /* make the main content area flow beside the cover using flex */
+  .searchResultItem .sri__main,
+  .list-books .searchResultItem .sri__main {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* ensure the image fits the box */
+  .searchResultItem .bookcover img,
+  .list-books .searchResultItem .bookcover img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* if CTA or metadata is below, allow it to wrap under the text */
+  .searchResultItem .searchResultItemCTA {
+    width: auto;
+    min-width: 0;
+    margin-top: 8px;
   }
 }

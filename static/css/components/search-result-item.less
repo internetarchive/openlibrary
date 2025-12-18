@@ -46,8 +46,10 @@
     mask-size: cover;
     background-color: @primary-blue;
   }
+
   /* stylelint-enable selector-max-specificity */
 }
+
 .searchResultItem {
   list-style-type: none;
   line-height: 1.5em;
@@ -75,6 +77,7 @@
   a[href] {
     text-decoration: none;
   }
+
   h3 {
     display: block;
     margin: 0;
@@ -85,6 +88,7 @@
     font-family: @georgia_serif-1;
     overflow: auto;
   }
+
   .details {
     overflow: auto;
     display: inline;
@@ -99,16 +103,20 @@
     font-family: @body-family;
     display: block;
   }
+
   span.resultType {
     font-size: 0.6875em;
   }
+
   .resultDetails {
     display: block;
     font-size: @font-size-body-medium;
   }
+
   .ratingsByline {
     color: @black;
   }
+
   .preview-covers {
     display: block;
     height: 45px;
@@ -116,15 +124,18 @@
     margin-top: 10px;
     margin-bottom: 5px;
   }
+
   .preview-covers img {
     border-radius: 4px;
     opacity: 0.7;
   }
+
   .preview-covers--blur {
     img {
       filter: blur(2px);
     }
   }
+
   .bookcover {
     width: 100%;
     margin: 10px 10px 0 5px;
@@ -137,15 +148,18 @@
       width: 175px;
     }
   }
+
   .bookcover--blur {
     img {
       filter: blur(4px);
     }
   }
+
   .imageLg {
     text-align: center;
     width: 100%;
     margin: 10px 10px 0 5px;
+
     img {
       max-width: 100%;
       max-height: 110px;
@@ -203,6 +217,7 @@
   line-height: 28px;
   display: flex;
   margin-bottom: 5px;
+
   a {
     span {
       margin-right: 5px;
@@ -216,6 +231,7 @@
       top: 5px;
     }
   }
+
   a:hover span {
     background-position: -21px 0;
   }
@@ -248,18 +264,68 @@
         width: 175px;
         text-align: right;
       }
+
       .imageLg {
         width: 175px;
         text-align: center;
       }
     }
   }
+
   .list-results {
     .searchResultItem {
       .imageLg {
         width: 175px;
         text-align: right;
       }
+    }
+  }
+}
+
+/* Mobile: keep cover visible and layout side-by-side */
+@media only screen and (max-width: 767px) {
+  .searchResultItem {
+    /* make the main container allow cover + details side-by-side */
+    &,
+    .sri__main {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    /* force the cover box to be a fixed, visible column */
+    .bookcover {
+      display: block !important;
+      flex: 0 0 80px;
+      width: 80px !important;
+      min-width: 80px !important;
+      margin: 0 10px 0 0;
+      text-align: left;
+      box-sizing: border-box;
+
+      img {
+        width: 100% !important;
+        height: auto !important;
+        max-width: none;
+        max-height: none;
+        display: block;
+      }
+    }
+
+    /* keep details flowing beside the cover */
+    .details {
+      width: calc(100% - 92px);
+      /* leaves space for cover + gap */
+      padding: 0;
+      display: block;
+    }
+
+    /* ensure CTA doesn't push cover out of view */
+    .searchResultItemCTA {
+      width: auto;
+      min-width: 0;
+      margin-top: 8px;
     }
   }
 }
