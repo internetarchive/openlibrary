@@ -117,8 +117,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_work.html covers/change.html lib/history.html
+#: covers/book_cover.html covers/change.html lib/history.html
 #: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
 #: native_dialog.html
 msgid "Close"
@@ -366,8 +365,8 @@ msgid "Loading indicator"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/read_button.html books/edit/edition.html books/show.html
-#: books/works-show.html trending.html type/list/embed.html widget.html
+#: book_providers/read_button.html books/edit/edition.html trending.html
+#: type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -1827,9 +1826,7 @@ msgstr ""
 msgid "Revision %d"
 msgstr ""
 
-#: books/check.html books/show.html covers/book_cover.html
-#: covers/book_cover_single_edition.html covers/book_cover_work.html diff.html
-#: jsdef/LazyWorkPreview.html
+#: books/check.html covers/book_cover.html diff.html jsdef/LazyWorkPreview.html
 msgid "by"
 msgstr ""
 
@@ -2822,8 +2819,8 @@ msgstr ""
 msgid "Publish date unknown"
 msgstr ""
 
-#: account/notes.html books/edition-sort.html books/works-show.html
-#: lists/export_as_html.html type/work/editions.html
+#: account/notes.html books/edition-sort.html lists/export_as_html.html
+#: type/work/editions.html
 msgid "Publisher unknown"
 msgstr ""
 
@@ -5468,25 +5465,19 @@ msgstr ""
 msgid "Pull up a bigger book cover"
 msgstr ""
 
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_small.html covers/book_cover_work.html
+#: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_work.html
-msgid "View a larger book cover"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_small.html
-#: covers/book_cover_work.html
-#, python-format
-msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
+msgstr ""
+
+#: covers/book_cover_small.html
+#, python-format
+msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/change.html
