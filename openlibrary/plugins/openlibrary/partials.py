@@ -5,9 +5,9 @@ from typing import cast
 from urllib.parse import parse_qs
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _

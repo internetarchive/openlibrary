@@ -10,13 +10,13 @@ $if patrons:
             $for p in patrons:
                 $ username = p["username"]
                 $ status = SHELF_NAMES.get(p["bookshelf_id"], "Shelved")
-                
+
                 <div class="readinglog-card">
                     <!-- Header with status -->
                     <a class="readinglog-card__header" href="/people/$username/books">
                         <div class="readinglog-card__title">$status</div>
                     </a>
-                    
+
                     <!-- Covers section -->
                     <a class="readinglog-card__covers" href="/people/$username/books">
                         $# Current book cover
@@ -31,7 +31,7 @@ $if patrons:
                             $else:
                                 <img src="/images/icons/avatar_book-sm.png" alt="$_('Book cover')" loading="lazy"/>
                     </a>
-                    
+
                     <!-- Bottom section -->
                     <div class="readinglog-card__bottom">
                         <div class="readinglog-card__user">
