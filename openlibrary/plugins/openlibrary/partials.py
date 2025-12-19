@@ -5,9 +5,9 @@ from typing import cast
 from urllib.parse import parse_qs
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
@@ -297,24 +297,56 @@ class BookPageListsPartial(PartialDataHandler):
         self.i = web.input(workId="", editionId="")
 
     def generate(self) -> dict:
+        from openlibrary.core.bookshelves import Bookshelves
+
         results: dict = {"partials": []}
         work_key = self.i.workId
         edition_key = self.i.editionId
         keys = [k for k in (work_key, edition_key) if k]
 
-        # Do checks and render
+        # --- Custom Lists ---
         lists = get_lists(keys)
         results["hasLists"] = bool(lists)
 
-        if not lists:
-            results["partials"].append(_('This work does not appear on any lists.'))
-        else:
+        if lists:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(
                 f'"{k}"' for k in keys
             )
             all_url = "/search/lists?q=" + web.urlquote(query)
             lists_template = render_template("lists/carousel", lists, all_url)
             results["partials"].append(str(lists_template))
+
+        # --- Reading Log Patron Cards ---
+        patrons = []
+        if work_key:
+            # Extract numeric work ID: "/works/OL123W" -> "123"
+            work_id = work_key.split('/')[-1][2:-1]
+            patrons = Bookshelves.get_patrons_who_shelved_work(work_id, limit=3)
+
+            if patrons:
+                # Collect all work IDs to fetch covers
+                all_work_ids: set[int] = set()
+                for p in patrons:
+                    all_work_ids.add(p['work_id'])
+                    for other in p.get('other_books', []):
+                        all_work_ids.add(other['work_id'])
+
+                covers = Bookshelves.get_covers_for_works(list(all_work_ids))
+
+                # Attach cover URLs to patron data
+                for p in patrons:
+                    p['cover_url'] = covers.get(p['work_id'])
+                    for other in p.get('other_books', []):
+                        other['cover_url'] = covers.get(other['work_id'])
+
+                patrons_template = render_template(
+                    "lists/readinglog_patrons", patrons, work_key
+                )
+                results["partials"].append(str(patrons_template))
+
+        # Show message only if BOTH are empty
+        if not lists and not patrons:
+            results["partials"].append(_('This work does not appear on any lists.'))
 
         return results
 
