@@ -958,6 +958,7 @@ def get_lists(keys: list[str]):
         offset=0,
         rows=20,
         extra_params=[('fq', "seed_count:[2 TO *]")],
+        sort='last_modified desc',
         request_label="LIST_CAROUSEL",
     )
     lists = cast(
