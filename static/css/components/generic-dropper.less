@@ -21,7 +21,7 @@
     align-items: stretch;
     cursor: pointer;
     border-radius: 4px;
-    border: 1px solid @mid-grey;
+    border: @border-card;
     overflow: hidden;
 
     * {
@@ -47,7 +47,7 @@
       /* stylelint-enable max-nesting-depth */
     }
     .generic-dropper__dropclick {
-      border-left: 1px solid @lighter-grey;
+      border-left: @border-card;
       text-decoration: none;
       height: inherit;
       width: 32px;
@@ -82,7 +82,7 @@
   &__dropdown {
     display: none;
     width: 100%;
-    border-top: 1px solid @lighter-grey;
+    border-top: @border-card;
     position: absolute;
     font-size: @font-size-label-medium;
   }
@@ -131,7 +131,7 @@
 // dropdown containing Listen/Search/Download/Locate buttons
 .dropper-menu {
   z-index: @z-index-level-4;
-  border: 1px solid @lighter-grey;
+  border: @border-card;
   border-radius: 5px;
   background-color: @white;
   position: absolute;
@@ -164,7 +164,7 @@
     margin: 0;
 
     & + li {
-      border-top: 1px solid @lighter-grey;
+      border-top: @border-card;
     }
     &:first-child,
     &:last-child {
