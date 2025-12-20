@@ -9,7 +9,7 @@
   position: absolute;
   margin-top: 5px;
   background-color: @lightest-grey;
-  border: 1px solid;
+  border: @border-width-control solid;
   border-radius: 5px;
   border-color: @light-grey;
   z-index: @z-index-level-1;
@@ -18,7 +18,7 @@
     text-decoration: none;
     color: @grey;
     padding-right: 25px;
-    border: 2px solid transparent;
+    border: @border-width-thick solid transparent;
 
     &:link,
     &:visited {
@@ -67,7 +67,7 @@
 .tool-button {
   border-radius: 5px;
   background-color: @lightest-grey;
-  border: 1px solid @mid-grey;
+  border: @border-width-control solid @mid-grey;
   padding: 4px 9px;
   display: inline-flex;
   transition: background-color 0.2s;
