@@ -4187,6 +4187,10 @@ msgstr ""
 msgid "Download from"
 msgstr ""
 
+#: book_providers/download_options.html
+msgid "Download"
+msgstr ""
+
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
