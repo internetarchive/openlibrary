@@ -21,7 +21,7 @@
   margin-bottom: 10px;
   background-color: @white;
   border-radius: 5px;
-  border: 1px solid @lighter-grey;
+  border: @border-card;
   margin-top: 0;
 
   .cta-btn,
@@ -80,7 +80,7 @@
 
   .check-availability {
     font-size: @font-size-label-large;
-    border-top: 1px solid @lightest-grey;
+    border-top: @border-divider;
   }
 
   .check-other-editions {
@@ -135,7 +135,7 @@ ul.ebook-download-options li {
 .sponsorship-card {
   border-radius: 5px;
   padding: 10px;
-  border: 2px solid fade(@link-blue, 20%);
+  border: @border-width-thick solid fade(@link-blue, 20%);
   background: fade(lighten(desaturate(@link-blue, 56%), 67%), 50%);
   font-size: 0.8em;
   text-align: center;
@@ -206,7 +206,7 @@ ul.ebook-download-options li {
   }
 
   .readers-stats__wrapper.mobile {
-    border: 1px solid @lighter-grey;
+     border: @border-card;
     border-radius: 5px;
     padding: 10px 0;
 
@@ -226,7 +226,7 @@ ul.ebook-download-options li {
       /* stylelint-disable max-nesting-depth*/
       /* stylelint-disable selector-max-specificity */
       li {
-        border-right: 1px solid @lighter-grey;
+        border-right: @border-divider;
         display: flex;
         flex-direction: column-reverse;
         flex: 1 1 auto;
@@ -239,7 +239,7 @@ ul.ebook-download-options li {
         }
 
         & + li {
-          border-right: solid 1px @lighter-grey;
+          border-right: @border-divider;
         }
 
         &:last-child {
