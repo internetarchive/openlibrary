@@ -433,7 +433,7 @@ input {
 .serp {
   // openlibrary/macros/SearchResultsWork.html
   &-extras {
-    border: 1px solid @lighter-grey;
+    border: @border-card;
     background-color: @white;
     padding: 0 10px 10px;
     margin-top: 10px;
@@ -460,7 +460,7 @@ div#content {
   width: 958px;
   background-color: @white;
   border-radius: 5px;
-  border: 1px solid @dark-beige;
+  border: @border-width solid @dark-beige;
   div.contentLists {
     float: left;
     position: relative;
@@ -498,7 +498,7 @@ div.note {
   margin: 0 auto;
   padding: 10px;
   text-align: left;
-  border: 1px solid @dark-yellow;
+  border: @border-width solid @dark-yellow;
 }
 
 // openlibrary/templates/lib/not_logged.html
@@ -641,7 +641,7 @@ div.siteSearch {
     width: 215px;
     padding: 12px;
     border-radius: 5px;
-    border: 1px solid @mid-grey;
+    border: @border-width-control solid @mid-grey;
   }
 }
 
@@ -853,7 +853,7 @@ div#searchResults {
       float: left;
       width: 130px;
       height: 200px;
-      border: 1px solid @white;
+      border: @border-width-media solid @white;
     }
     a {
       text-decoration: none;
@@ -1057,7 +1057,7 @@ div.books {
     display: none;
     background-color: @lighter-grey;
     .innerBorder {
-      border: 1px solid @white;
+      border: @border-width-media solid @white;
       width: 72px;
       height: 103px;
     }
