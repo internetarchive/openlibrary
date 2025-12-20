@@ -96,23 +96,23 @@ a.cta-btn {
   &--shell:link,
   &--shell:visited {
     background-color: @white;
-    border: 2px solid @primary-blue;
+    border: @border-width-thick solid @primary-blue;
     color: @primary-blue;
   }
   &--shell:disabled {
-    border: 2px solid @light-grey;
+    border: @border-width-thick solid @light-grey;
     color: @light-grey;
     cursor: default;
   }
   &--sponsor {
-    border: 2px solid @link-blue;
+    border: @border-width-control solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
   &--vanilla,
   &--vanilla:visited,
   &--vanilla:link {
     padding: 5px;
-    border: 2px solid @light-grey;
+    border: @border-width-thick solid @light-grey;
     background: @white;
     color: @grey;
     border-radius: 6px;
@@ -151,7 +151,7 @@ a.cta-btn {
   }
 
   &--sponsor:hover {
-    border: 2px solid @link-blue;
+    border: @border-width-control solid @link-blue;
     background-color: @link-blue;
     color: @white;
   }
@@ -191,7 +191,7 @@ a.cta-btn {
   width: auto;
   display: inline-block;
   margin: 0;
-  border: 1px solid @dark-beige;
+  border: @border-width-control solid @dark-beige;
   background-color: @light-beige;
   color: @grey;
 }
