@@ -18,12 +18,12 @@
   display: flex;
   scroll-margin-top: 100px;
   .review-btn {
-    border-left: 1px solid @lighter-grey;
+    border-left: @border-divider;
     width: 35px;
     height: 35px;
   }
   // initial setting before clicking on anchor link
-  border: 1px solid transparent;
+  border: @border-width solid transparent;
   border-radius: 5px;
   -webkit-transition: all 1s linear;
   position: sticky;
@@ -32,15 +32,15 @@
 // highlighting settings
 @keyframes highlight {
   0% {
-    border: 1px solid transparent;
+    border: @border-width solid transparent;
     box-shadow: 0 0 10px transparent;
   }
   50% {
-    border: 1px solid @link-blue;
+    border: @border-divider solid @link-blue;
     box-shadow: 0 0 10px @link-blue;
   }
   100% {
-    border: 1px solid transparent;
+    border: @border-width solid transparent;
     box-shadow: 0 0 10px transparent;
   }
 }
