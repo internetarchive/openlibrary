@@ -55,7 +55,7 @@
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 3px;
-  border-bottom: 1px solid @light-beige;
+  border-bottom: @border-width solid @light-beige;
 
   &,
   .sri__main {
@@ -155,7 +155,7 @@
 
 .srw__subjects {
   a {
-    border: 1px solid currentColor; // Fallback
+    border: @border-width solid currentColor; // Fallback
     border-color: color-mix(in srgb, currentColor 60%, transparent);
 
     display: inline-block;
@@ -178,7 +178,7 @@
 
 .searchResultItem__librarian-extras {
   font-size: 0.7em;
-  border-top: 1px dashed currentColor;
+  border-top: @border-width dashed currentColor;
   margin-top: 8px;
   margin-bottom: -5px;
   color: @grey;
