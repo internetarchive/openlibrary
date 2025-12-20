@@ -699,7 +699,9 @@ class OpenStaxProvider(AbstractBookProvider):
         self,
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
-        url = f'https://openstax.org/details/books/{self.get_best_identifier(ed_or_solr)}'
+        url = (
+            f'https://openstax.org/details/books/{self.get_best_identifier(ed_or_solr)}'
+        )
         return [
             Acquisition(
                 access='open-access',
@@ -716,7 +718,7 @@ class OpenStaxProvider(AbstractBookProvider):
                 url=url,
                 provider_name=self.short_name,
                 label='More at OpenStax',
-            )
+            ),
         ]
 
 
@@ -749,7 +751,7 @@ class CitaPressProvider(AbstractBookProvider):
                 url=url,
                 provider_name=self.short_name,
                 label='More at Cita Press',
-            )
+            ),
         ]
 
 
