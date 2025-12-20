@@ -9,6 +9,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/font-families.less";
+@import (less) "less/borders.less";
 @import (less) "legacy.less";
 
 #list-edit {
@@ -52,7 +53,7 @@
       .seed--controls {
         flex-direction: row;
         padding-bottom: 4px;
-        border-bottom: 1px solid @light-mid-grey;
+        border-bottom: @border-width-control solid @light-mid-grey;
         margin-bottom: 4px;
         justify-content: space-between;
       }
@@ -68,7 +69,7 @@
       .seed--controls {
         flex-direction: column;
         padding-right: 4px;
-        border-right: 1px solid @light-mid-grey;
+        border-right: @border-width-control solid @light-mid-grey;
         margin-right: 4px;
       }
     }
@@ -82,7 +83,7 @@
     list-style: none;
     width: 90%;
     margin-top: 6px;
-    border: 1px solid @light-grey;
+    border: @border-input;
     border-radius: 4px;
     padding: 8px;
     background: @grey-fafafa;
