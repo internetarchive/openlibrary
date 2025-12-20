@@ -115,12 +115,12 @@ table {
   // https://openlibrary.org/help/markdown
   &.help {
     margin: 20px 0;
-    border-top: 1px solid @grey-e7e7e7;
+    border-top: @border-width solid @grey-e7e7e7;
     th {
       font-size: 0.75em;
       font-family: @body-family;
       color: @grey;
-      border-bottom: 1px solid @grey-e7e7e7;
+      border-bottom: @border-width solid @grey-e7e7e7;
       padding: 5px;
       vertical-align: top;
       background-color: @lightest-grey;
@@ -129,7 +129,7 @@ table {
       font-size: 0.75em;
       font-family: @body-family;
       color: @grey;
-      border-bottom: 1px solid @grey-e7e7e7;
+      border-bottom: @border-width solid @grey-e7e7e7;
       padding: 5px;
       vertical-align: top;
     }
@@ -470,7 +470,7 @@ div#content {
   div#contentLists {
     float: left;
     position: relative;
-    border-top: 1px solid @lighter-grey;
+    border-top: @border-divider;
     background: @white url(/images/back_results.png) repeat-x;
   }
   /* stylelint-enable selector-max-specificity */
@@ -545,7 +545,7 @@ div.formElement {
   }
   .footnote,
   p.tip {
-    border-top: 1px solid @mid-grey;
+    border-top: @border-divider solid @mid-grey;
     padding: 5px;
   }
   blockquote {
@@ -1115,7 +1115,7 @@ div.excerpt {
 .identifiers {
   td {
     color: @dark-grey;
-    border-bottom: 1px solid @lighter-grey;
+    border-bottom: @border-card;
     padding: 5px;
   }
   &.authors {
@@ -1606,7 +1606,7 @@ div#subjectLists {
     border: none;
     padding: 0;
     color: @link-blue;
-    border-bottom: 1px solid @link-blue;
+    border-bottom: @border-width solid @link-blue;
     margin-bottom: 15px;
   }
 }
