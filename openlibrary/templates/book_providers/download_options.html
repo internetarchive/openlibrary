@@ -22,6 +22,9 @@ $def get_label(acq):
 <p class="cta-section-title">$_("Download Options")</p>
 <ul class="ebook-download-options">
     $for acq in acquisitions:
-        <li><a href="$acq.url" data-ol-link-track="Download|$(acq.format)_$(acq.provider_name)" title="$_('Download from') $acq.provider_name">$(get_label(acq))</a></li>
+        $if acq.provider_name:
+            <li><a href="$acq.url" data-ol-link-track="Download|$(acq.format)_$(acq.provider_name)" title="$_('Download from') $acq.provider_name">$(get_label(acq))</a></li>
+        $else:
+            <li><a href="$acq.url" data-ol-link-track="Download|$(acq.format)" title="$_('Download')">$(get_label(acq))</a></li>
 </ul>
 </div>

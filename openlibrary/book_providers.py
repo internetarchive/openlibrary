@@ -77,7 +77,7 @@ class Acquisition:
     """
 
     access: AcquisitionAccessLiteral
-    format: Literal['web', 'pdf', 'epub', 'audio']
+    format: Literal['web', 'pdf', 'epub', 'audio', 'mobi', 'txt']
     price: str | None
     url: str
     provider_name: str | None = None
@@ -123,13 +123,17 @@ class Acquisition:
         else:
             mimetype = json['type']
 
-        fmt: Literal['web', 'pdf', 'epub', 'audio'] = 'web'
+        fmt: Literal['web', 'pdf', 'epub', 'audio', 'mobi', 'txt'] = 'web'
         if mimetype.startswith('audio/'):
             fmt = 'audio'
         elif mimetype == 'application/pdf':
             fmt = 'pdf'
         elif mimetype == 'application/epub+zip':
             fmt = 'epub'
+        elif mimetype == 'application/x-mobipocket-ebook':
+            fmt = 'mobi'
+        elif mimetype == 'text/plain':
+            fmt = 'txt'
         elif mimetype == 'text/html':
             fmt = 'web'
         else:
@@ -418,7 +422,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                 acqs.append(
                     Acquisition(
                         access=access,
-                        format='web',
+                        format='mobi',
                         price=None,
                         url=mobi,
                         provider_name=self.short_name,
@@ -429,7 +433,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                 acqs.append(
                     Acquisition(
                         access=access,
-                        format='web',
+                        format='txt',
                         price=None,
                         url=txt,
                         provider_name=self.short_name,
@@ -520,7 +524,7 @@ class ProjectGutenbergProvider(AbstractBookProvider):
             ),
             Acquisition(
                 access='open-access',
-                format='web',
+                format='txt',
                 price=None,
                 url=url,
                 provider_name=self.short_name,
@@ -536,7 +540,7 @@ class ProjectGutenbergProvider(AbstractBookProvider):
             ),
             Acquisition(
                 access='open-access',
-                format='web',
+                format='mobi',
                 price=None,
                 url=url,
                 provider_name=self.short_name,
@@ -654,7 +658,7 @@ class StandardEbooksProvider(AbstractBookProvider):
             ),
             Acquisition(
                 access='open-access',
-                format='web',
+                format='mobi',
                 price=None,
                 url=f'{base_url}/downloads/{flat_id}.azw3',
                 provider_name=self.short_name,
@@ -853,7 +857,7 @@ class WikisourceProvider(AbstractBookProvider):
             ),
             Acquisition(
                 access='open-access',
-                format='web',
+                format='mobi',
                 price=None,
                 url=direct_url('mobi'),
                 provider_name=self.short_name,
