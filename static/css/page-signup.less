@@ -128,14 +128,14 @@
     padding-top: 6px;
 
     input {
-      border: 1px solid @light-grey;
+      border: @border-input;
       border-radius: 5px;
       width: 100%;
       padding: 6px 4px;
     }
 
     input.invalid {
-      border: 1px solid @red;
+      border: @border-width-control solid @red;
     }
 
     label,
@@ -149,7 +149,7 @@
     font-size: @font-size-label-large;
     color: @red;
     background-color: fade(@baby-pink, 50%);
-    border: 0.5px fade(@red, 50%);
+    border: @border-width-control fade(@red, 50%);
     border-style: solid solid none;
     border-radius: 5px 5px 0 0;
     margin-bottom: -3px;
