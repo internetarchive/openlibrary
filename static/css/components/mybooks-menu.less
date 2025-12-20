@@ -8,10 +8,11 @@
   max-width: none !important; /** fix in media query */
   width: 250px;
   flex-shrink: 0;
-  border-right: 1px solid @lightest-grey;
+  border-right: @border-width-divider solid @lightest-grey;
   border-bottom: none;
   border-radius: 7px 0 0 7px;
   background: @grey-fafafa;
+  border-left: @border-width-divider solid @lightest-grey;
   box-shadow: inset -4px 0 10px @lightest-grey;
   padding: 0;
   padding-top: 13px;
@@ -42,7 +43,7 @@
   /*all uls */
   .sidebar-section {
     padding: 0 0 10px;
-    border-bottom: 1px solid @lightest-grey;
+    border-bottom: @border-divider;
   }
 
   .sidebar-section .list-overflow {
@@ -86,7 +87,7 @@
     font-size: 0.8em;
     color: @grey;
     background: @background-grey;
-    border: 1px solid @lighter-grey;
+    border: @border-card;
     border-left: 0;
     border-right: 0;
     margin-bottom: 5px;
@@ -104,7 +105,7 @@
       padding: 2px 5%;
       font-size: 0.96em;
       background-color: @background-grey;
-      border: 1px solid @lighter-grey;
+      border: @border-card;
       color: @grey;
     }
   }
@@ -169,7 +170,7 @@
   .mybooks-menu-mobile {
     max-width: none !important; /** fix in media query */
     flex-shrink: 0;
-    border-right: 1px solid @lightest-grey;
+    border-right: @border-width-divider solid @lightest-grey;
     border-bottom: none;
     border-radius: 7px 0 0 7px;
     background: @white;
@@ -190,7 +191,7 @@
     /*all uls */
     .sidebar-section {
       margin: 0 0 20px;
-      border-bottom: 1px solid @light-mid-grey;
+      border-bottom: @border-divider;
     }
 
     .sidebar-section .list-overflow {
@@ -237,7 +238,7 @@
       font-size: 0.8em;
       color: @grey;
       background: @background-grey;
-      border: 1px solid @lighter-grey;
+      border: @border-card;
       border-left: 0;
       border-right: 0;
       margin-bottom: 5px;
@@ -269,7 +270,7 @@
     hr {
       height: 0;
       margin: 4px 14px;
-      border-bottom: 1px solid @lighter-grey;
+      border-bottom: @border-divider;
     }
 
     .li-count {
