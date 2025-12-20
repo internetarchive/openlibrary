@@ -149,18 +149,18 @@ table.display thead th {
 
 tr.even,
 tr.odd {
-  border-bottom: 1px solid @light-grey;
+  border-bottom: @border-divider;
 }
 
 /*
  * KeyTable
  */
 table.KeyTable td {
-  border: 3px solid transparent;
+  border: @border-width-heavy solid transparent;
 }
 
 table.KeyTable td.focus {
-  border: 3px solid @blue-3366ff;
+  border: @border-width-heavy solid @blue-3366ff;
 }
 
 table.display tr.gradeA {
@@ -221,13 +221,13 @@ tfoot input.search_init {
 
 td.group {
   background-color: @gray-d1cfd0;
-  border-bottom: 2px solid @gray-a19b9e;
-  border-top: 2px solid @gray-a19b9e;
+  border-bottom: @border-width-thick solid @gray-a19b9e;
+  border-top: @border-width-thick solid @gray-a19b9e;
 }
 
 td.details {
   background-color: @gray-d1cfd0;
-  border: 2px solid @gray-a19b9e;
+  border: @border-width-thick solid @gray-a19b9e;
 }
 
 div.dataTables_filter {
