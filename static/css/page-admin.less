@@ -39,7 +39,7 @@
 .sponsor th {
   background-color: @grey-fafafa;
   padding: 5px;
-  border-bottom: 1px solid @light-mid-grey;
+  border-bottom: @border-divider;
   text-transform: uppercase;
   font-size: 0.65em;
   font-weight: bold;
@@ -61,8 +61,8 @@ table.services {
   }
   td {
     padding: 5px;
-    border-right: 1px solid @white;
-    border-bottom: 1px solid @white;
+    border-right: @border-width solid @white;
+    border-bottom: @border-width solid @white;
   }
   td.node {
     vertical-align: top;
@@ -72,19 +72,19 @@ table.services {
 // openlibrary/templates/admin/ip/index.html
 // openlibrary/templates/admin/people/view.html
 #adminHistory {
-  border-top: 1px solid @admin-table-border;
+  border-top: @border-width solid @admin-table-border;
   font-family: @body-family;
   margin: 0 0 20px;
   th {
     background-color: @lightest-grey;
-    border-bottom: 1px solid @admin-table-border;
+    border-bottom: @border-width solid @admin-table-border;
     color: @grey;
     font-size: 0.8675em;
     font-weight: 700;
     padding: 10px;
   }
   td {
-    border-bottom: 1px solid @admin-table-border;
+    border-bottom: @border-width solid @admin-table-border;
     padding: 10px;
     font-size: 0.75em;
     &.number {
@@ -159,7 +159,7 @@ div.siteSearch.darker {
 }
 /* stylelint-disable selector-max-specificity */
 div#headerNav ul.links li {
-  border-top: 1px solid @mid-grey;
+  border-top: @border-divider;
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -176,7 +176,7 @@ div#contentHead {
 
 // openlibrary/templates/admin/index.html
 div.sparkDisplay {
-  border-bottom: 1px solid @black;
+  border-bottom: @border-width solid @black;
   margin-right: 0 !important;
 }
 
