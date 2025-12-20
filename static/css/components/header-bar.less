@@ -5,7 +5,7 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#headerbar
  * Defined in:
  *  - openlibrary/templates/lib/nav_head.html
- *  - openlibrary/plugins/openlibrary/js/ol.js
+ *  - openlibrary/plugins/openlibrary/js/sol.js
  */
 
 @import (less) "less/z-index.less";
@@ -56,11 +56,11 @@
   .dropdown-menu {
     text-align: left;
     background-color: @light-beige;
-    border: 1px solid @dark-beige;
+    border: @border-width solid @dark-beige;
     border-radius: 3px;
 
     li {
-      border-bottom: 1px solid @beige-two;
+      border-bottom: @border-width solid @beige-two;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
       &:last-child {
@@ -129,7 +129,7 @@
     }
 
     li {
-      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, 0.25);
+      border-bottom: @border-width solid hsla(33.6, 10%, 49.2%, 0.25);
     }
 
     li:not(.subsection) {
@@ -150,7 +150,7 @@
     }
 
     .subsection:first-child {
-      border-top: 1px solid @dark-beige;
+      border-top: @border-width solid @dark-beige;
     }
 
     .login-links {
@@ -183,7 +183,7 @@
 
     .login-links .login-links__secondary {
       color: @primary-blue;
-      border: 2px solid @primary-blue;
+      border: @border-width-thick solid @primary-blue;
       &:hover {
         background-color: @white;
       }
@@ -295,7 +295,7 @@
     }
 
     .account__icon {
-      border: 2px solid @account-icon-border;
+      border: @border-width-thick solid @account-icon-border;
       border-radius: 4px;
       width: 30px;
       height: 30px;
@@ -418,7 +418,7 @@
       .search-bar-component {
         width: 95%;
         background-color: @grey-fafafa;
-        border: 1px solid @dark-beige;
+        border: @border-width solid @dark-beige;
       }
 
       .search-bar {
@@ -468,7 +468,7 @@
     }
 
     .vertical-separator {
-      border-left: 1px solid @light-grey;
+      border-left: @border-divider;
       height: 34px;
       margin: auto 5px auto 0;
     }
@@ -504,7 +504,7 @@
       .search-results li {
         text-align: left;
         padding: 7px;
-        border-top: 1px solid @lighter-grey;
+        border-top: @border-input;
         font-size: @font-size-label-large;
         transition: background-color 0.2s;
 
@@ -562,7 +562,7 @@
       border-radius: 3px 0 0 3px;
       background-color: fade(@beige, 32);
       border: none;
-      border-right: 1px solid @lighter-grey;
+      border-right: @border-input;
       font-weight: 500;
       color: @grey;
 
@@ -835,7 +835,7 @@ div.search-facet:focus-within {
       }
       .search-bar-component {
         background-color: @grey-fafafa;
-        border: 1px solid @dark-beige;
+        border: @border-width solid @dark-beige;
         width: 207px;
       }
       .search-bar-input {
