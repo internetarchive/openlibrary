@@ -312,7 +312,7 @@ class BookPageListsPartial(PartialDataHandler):
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(
                 f'"{k}"' for k in keys
             )
-            all_url = "/search/lists?q=" + web.urlquote(query)
+            all_url = "/search/lists?q=" + web.urlquote(query) + "&sort=last_modified"
             lists_template = render_template("lists/carousel", lists, all_url)
             results["partials"].append(str(lists_template))
 
