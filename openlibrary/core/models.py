@@ -5,7 +5,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 from urllib.parse import urlencode
 
 import requests
@@ -41,6 +41,9 @@ from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_u
 from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
+
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import Series
 
 SubjectType = Literal["subject", "place", "person", "time"]
 
@@ -482,8 +485,22 @@ class Edition(Thing):
         )
 
 
+class SeriesSeedThing(Thing):
+    """Class to represent a seed thing in a series list."""
+
+    position: str | None
+    series: 'Series'
+
+
+class SeriesSeedDict(TypedDict):
+    position: str | None
+    series: ThingReferenceDict
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
+
+    series: list[SeriesSeedThing] | None
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -633,6 +650,10 @@ class Work(Thing):
             return [self._make_subject_link(s, "time:") for s in self.subject_times]
         else:
             return []
+
+    def get_primary_series(self) -> 'SeriesSeedThing | None':
+        series = self.series or []
+        return series[0] if series else None
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.

@@ -20,7 +20,7 @@ class ListSolrUpdater(AbstractSolrUpdater):
     thing_type = '/type/list'
 
     def key_test(self, key: str) -> bool:
-        return bool(re.match(r'^(/people/[^/]+)?/lists/[^/]+$', key))
+        return bool(re.match(r'^(/people/[^/]+)?/(lists|series)/[^/]+$', key))
 
     async def update_key(self, list: dict) -> tuple[SolrUpdateRequest, list[str]]:
         seeds = ListSolrBuilder(list).seed
@@ -102,6 +102,16 @@ class ListSolrBuilder(AbstractSolrBuilder):
     @property
     def type(self) -> str:
         return 'list'
+
+    @property
+    def list_type(self) -> str:
+        list_key = self._list['key']
+        if list_key.startswith('/series/'):
+            return 'series'
+        elif list_key.startswith('/people/'):
+            return 'user_list'
+        else:
+            return 'community_list'
 
     @property
     def name(self) -> str | None:

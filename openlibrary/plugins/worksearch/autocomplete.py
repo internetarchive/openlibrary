@@ -23,7 +23,7 @@ def to_json(d):
 
 class autocomplete(delegate.page):
     path = "/_autocomplete"
-    fq = ('-type:edition',)
+    fq: tuple[str, ...] = ('-type:edition',)
     fl = 'key,type,name,title,score'
     olid_suffix: str | None = None
     sort: str | None = None
@@ -135,6 +135,14 @@ class authors_autocomplete(autocomplete):
         else:
             doc['works'] = []
         doc['subjects'] = doc.pop('top_subjects', [])
+
+
+class series_autocomplete(autocomplete):
+    path = "/series/_autocomplete"
+    fq = ('type:list', 'list_type:series')
+    fl = 'key,name'
+    olid_suffix = 'L'
+    query = 'name:({q}*) OR name:"{q}"^2'
 
 
 class subjects_autocomplete(autocomplete):

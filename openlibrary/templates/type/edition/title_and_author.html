@@ -21,6 +21,13 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
               ($work.first_publish_year)
             </span>
     </div>
+    $ primary_series = work.get_primary_series() if work else None
+    $if primary_series:
+      <div class="series-line">
+        <a href="$primary_series.series.url()">$primary_series.series.name</a>$cond(primary_series.position, ':')
+        $if primary_series.position:
+          $_("Book %s", primary_series.position)
+      </div>
     $ book_title = edition.get('title', '') or (work.title if work else '')
     <h1 class="work-title" itemprop="name">$book_title</h1>
 

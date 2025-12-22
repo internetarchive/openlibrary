@@ -1,0 +1,30 @@
+$def with (series, name_path, dict_path, readonly=False)
+$# :param list[dict] series: e.g. {name: str, key: str}
+$# :param str name_path: form path for the user-visible author name
+$# :param str dict_path: form path for the author dict
+
+$jsdef render_series_autocomplete_item(item):
+    $if item.key == "__new__":
+        <div class="ac_author ac_addnew" title="$_('Add a new series')">
+            <span class="action">$_("Create a new record for") </span>
+            <span class="name">$item.name</span>
+        </div>
+    $else:
+        $item.name
+
+$jsdef render_series(name_path, dict_path, readonly, i, series):
+    <div class="input ac-input mia__input">
+        $# detect-missing-i18n-skip-line
+        <div class="mia__reorder">≡</div>
+        <input class="ac-input__visible" name="$name_path--$i" type="text" value="$series.name" $cond(readonly, 'readonly', '')>
+        <input class="ac-input__value" name="$dict_path--$i--series--key" type="hidden" value="$series.key" />
+        <input name="$dict_path--$i--position" value="$series.position" />
+        <a class="mia__remove" href="javascript:;" title="$_('Remove this series')">[&times;]</a>&nbsp;
+    </div>
+
+$ config = {'name_path': name_path, 'dict_path': dict_path}
+<div class="multi-input-autocomplete multi-input-autocomplete--series" data-config="$dumps(config)">
+    $for series in (series or [storage(name="", key="", position="")]):
+        $:render_series(name_path, dict_path, readonly, loop.index0, series)
+    <a href="javascript:;" class="mia__add">$_("Add another series?")</a>
+</div>

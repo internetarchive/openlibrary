@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import typing
 from collections.abc import Iterable
 from functools import cached_property
 from typing import TypedDict, cast
@@ -30,35 +31,28 @@ When a subject is added to a list, it's added as a string like:
 """
 
 
-class AnnotatedSeedDict(TypedDict):
-    """
-    The JSON friendly version of an annotated seed.
-    """
-
-    thing: ThingReferenceDict
-    notes: str
+class GenericAnnotatedSeed[TThing: (ThingReferenceDict, Thing)](TypedDict):
+    thing: TThing
+    notes: str | None
+    position: str | None
+    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
 
 
-class AnnotatedSeed(TypedDict):
-    """
-    The database/`Thing` friendly version of an annotated seed.
-    """
-
-    thing: Thing
-    notes: str
+AnnotatedSeedDict = GenericAnnotatedSeed[ThingReferenceDict]
+AnnotatedSeed = GenericAnnotatedSeed[Thing]
 
 
-class AnnotatedSeedThing(Thing):
+class AnnotatedSeedThing[TData](Thing):
     """
     Note: This isn't a real `Thing` type! This will never be constructed
     or returned. It's just here to illustrate that when we get seeds from
     the db, they're wrapped in this weird `Thing` object, which will have
     a _data field that is the raw JSON data. That JSON data will conform
-    to the `AnnotatedSeedDict` type.
+    to the `AnnotatedSeed` type.
     """
 
     key: None  # type: ignore[assignment]
-    _data: AnnotatedSeed
+    _data: TData
 
 
 class List(Thing):
@@ -75,7 +69,7 @@ class List(Thing):
     description: str | None
     """Detailed description of the list (markdown)"""
 
-    seeds: list[Thing | SeedSubjectString | AnnotatedSeedThing]
+    seeds: list[Thing | SeedSubjectString | AnnotatedSeedThing[AnnotatedSeed]]
     """Members of the list. Either references or subject strings."""
 
     def url(self, suffix="", **params):
@@ -321,11 +315,17 @@ class List(Thing):
             while resolve_redirects and seed.type == 'redirect' and max_checks:
                 # Preserve notes when resolving redirects
                 original_notes = seed.notes
+                original_position = seed.position
                 resolved_document = web.ctx.site.get(seed.document.location)
-                if original_notes:
+                if original_notes or original_position:
                     # Create AnnotatedSeed with both resolved document and original notes
                     seed = Seed(
-                        self, {'thing': resolved_document, 'notes': original_notes}
+                        self,
+                        {
+                            'thing': resolved_document,
+                            'notes': original_notes,
+                            'position': original_position,
+                        },
                     )
                 else:
                     seed = Seed(self, resolved_document)
@@ -409,6 +409,12 @@ class Seed:
 
     notes: str | None = None
 
+    position: str | None = None
+    """
+    Position of the seed in a series list.
+    E.g. '1', '2', '1-7', etc.
+    """
+
     def __init__(
         self,
         list: List,
@@ -426,6 +432,7 @@ class Seed:
             self.key = value['thing'].key
             self.value = value['thing']
             self.notes = value['notes']
+            self.position = value['position']
         else:
             self.key = value.key
             self.value = value
@@ -463,6 +470,7 @@ class Seed:
                     {
                         'thing': Thing(list._site, key, None),
                         'notes': annotated_seed['notes'],
+                        'position': annotated_seed['position'],
                     },
                 )
             elif 'key' in seed_json:
@@ -478,6 +486,7 @@ class Seed:
                     {
                         'thing': Thing(list._site, key, None),
                         'notes': '',
+                        'position': '',
                     },
                 )
         return Seed(list, seed_json)
@@ -488,13 +497,14 @@ class Seed:
         """
         if isinstance(self.value, str):
             return self.value
-        if self.notes:
+        if self.notes or self.position:
             return Thing(
                 self._list._site,
                 None,
                 {
                     'thing': self.value,
-                    'notes': self.notes,
+                    **({'notes': self.notes} if self.notes else {}),
+                    **({'position': self.position} if self.position else {}),
                 },
             )
         else:
@@ -503,10 +513,11 @@ class Seed:
     def to_json(self) -> SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict:
         if isinstance(self.value, str):
             return self.value
-        elif self.notes:
+        elif self.notes or self.position:
             return {
                 'thing': {'key': self.key},
                 'notes': self.notes,
+                'position': self.position,
             }
         else:
             return {'key': self.key}
@@ -637,6 +648,51 @@ class ListChangeset(Changeset):
         return Seed.from_db(self.get_list(), seed)
 
 
+class Series(List):
+    @cached_property
+    @typing.override
+    def seeds(  # type: ignore[override]
+        self,
+    ) -> list[Thing | SeedSubjectString | AnnotatedSeedThing[AnnotatedSeed]]:
+        return [seed.to_db() for seed in self.get_seeds()]
+
+    @typing.override
+    def get_seeds(self, sort=False, resolve_redirects=False) -> list['Seed']:
+        # Need to query for a series' seeds
+        work_keys = web.ctx.site.things(
+            {
+                'type': '/type/work',
+                'series': {'series': {'key': self.key}},
+            }
+        )
+        works = cast(list[Work], web.ctx.site.get_many(work_keys))
+
+        def get_work_position(work: Work) -> float:
+            position = 9999.0
+            if all_series := work.series:
+                series = all_series[0]
+                with contextlib.suppress(ValueError):
+                    position = float(series.get('position', 9999) or 9999)
+            return position
+
+        works = sorted(works, key=get_work_position, reverse=True)
+
+        seeds: list[Seed] = []
+        for work in works:
+            seed = Seed(self, work)
+            seeds.append(seed)
+        return seeds
+
+
 def register_models():
     client.register_thing_class('/type/list', List)
+    client.register_thing_class('/type/series', Series)
     client.register_changeset_class('lists', ListChangeset)
+    client.register_changeset_class('series', ListChangeset)
+
+
+def register_types():
+    from infogami.utils import types
+
+    types.register_type(r'^(/people/[^/]+)?/lists/OL\d+L$', '/type/list')
+    types.register_type(r'^/series/OL\d+L$', '/type/series')

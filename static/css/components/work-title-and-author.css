@@ -13,7 +13,7 @@
 
 .work-title-and-author h1.work-title {
   font-family: var(--font-family-title);
-  margin: 10px 0 0;
+  margin: 0;
   color: var(--dark-grey);
   font-size: var(--font-size-headline-large);
   overflow-wrap: break-word;
@@ -43,6 +43,11 @@
 
 .work-title-and-author .work-line a {
   color: var(--grey);
+}
+
+.work-title-and-author .series-line a {
+  font-weight: bold;
+  text-decoration: none;
 }
 
 .work-title-and-author .first-published-date {

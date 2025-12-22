@@ -304,10 +304,14 @@ class lists(delegate.page):
 
 
 class lists_edit(delegate.page):
-    path = r"(/people/[^/]+)?(/lists/OL\d+L)/edit"
+    path = r"(/people/[^/]+)?/(lists|series)/(OL\d+L)/edit"
 
-    def GET(self, user_key: str | None, list_key: str):  # type: ignore[override]
-        key = (user_key or '') + list_key
+    def GET(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str):  # type: ignore[override]
+        if user_key and list_type == 'series':
+            # Not allowed to have user-specific series
+            return web.badrequest("Invalid URL.")
+
+        key = (user_key or '') + f'/{list_type}/{list_id}'
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -372,9 +376,13 @@ class lists_add_account(delegate.page):
 
 
 class lists_add(delegate.page):
-    path = r"(/people/[^/]+)?/lists/add"
+    path = r"(/people/[^/]+)?/(lists|series)/add"
 
-    def GET(self, user_key: str | None):  # type: ignore[override]
+    def GET(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
+        if list_type == 'series' and user_key:
+            # Not allowed to have user-specific series
+            return web.badrequest("Invalid URL.")
+
         if user_key and not web.ctx.site.can_write(user_key):
             return render_template(
                 "permission_denied",
@@ -557,7 +565,7 @@ def get_list(key, raw=False):
 
 
 class list_view_json(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
     encoding = "json"
     content_type = "application/json"
 
