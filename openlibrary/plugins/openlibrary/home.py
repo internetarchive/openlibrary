@@ -65,11 +65,12 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-    page = mc(devmode=("dev" in web.ctx.features))
+    devmode = "dev" in web.ctx.features
+    page = mc(devmode)
 
     if not page:
-        mc.memcache_delete_by_args()
-        mc()
+        mc.memcache_delete_by_args(devmode)
+        mc(devmode)
 
     return page
 
