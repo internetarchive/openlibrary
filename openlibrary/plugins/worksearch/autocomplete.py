@@ -139,7 +139,7 @@ class authors_autocomplete(autocomplete):
 
 class series_autocomplete(autocomplete):
     path = "/series/_autocomplete"
-    fq = ('type:list', 'list_type:series')
+    fq = ('type:series',)
     fl = 'key,name'
     olid_suffix = 'L'
     query = 'name:({q}*) OR name:"{q}"^2'

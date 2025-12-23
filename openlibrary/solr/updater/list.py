@@ -101,7 +101,11 @@ class ListSolrBuilder(AbstractSolrBuilder):
 
     @property
     def type(self) -> str:
-        return 'list'
+        list_key = self._list['key']
+        if list_key.startswith('/series/'):
+            return 'series'
+        else:
+            return 'list'
 
     @property
     def list_type(self) -> str:
