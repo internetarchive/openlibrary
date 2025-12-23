@@ -784,6 +784,11 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
+msgid "Book %(position)s"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""
 

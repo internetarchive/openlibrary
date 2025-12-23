@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 import requests
 import web
+from pydantic import BaseModel
 
 from infogami.infobase import client
 
@@ -485,15 +486,19 @@ class Edition(Thing):
         )
 
 
-class SeriesSeedThing(Thing):
-    """Class to represent a seed thing in a series list."""
+class SeriesEdge(BaseModel):
+    """The metadata about the "edge" in a series-work relationship."""
 
     position: str | None
+
+
+class SeriesSeedThing(Thing, SeriesEdge):
+    """Class to represent a seed thing in a series list."""
+
     series: 'Series'
 
 
-class SeriesSeedDict(TypedDict):
-    position: str | None
+class SeriesSeedDict(SeriesEdge):
     series: ThingReferenceDict
 
 

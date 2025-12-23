@@ -6,6 +6,7 @@ import pytest
 from openlibrary.book_providers import IALiteMetadata
 from openlibrary.solr.updater.work import (
     DataProvider,
+    ExpandedSeriesDict,
     WorkSolrBuilder,
     WorkSolrUpdater,
 )
@@ -68,6 +69,7 @@ def make_work_solr_builder(
     work: dict | None = None,
     editions: list[dict] | None = None,
     authors: list[dict] | None = None,
+    series: list[ExpandedSeriesDict] | None = None,
     data_provider: DataProvider | None = None,
     ia_metadata: dict[str, dict | None] | None = None,
     trending_data: dict | None = None,
@@ -76,6 +78,7 @@ def make_work_solr_builder(
         work=work or {},
         editions=editions or [],
         authors=authors or [],
+        series=series or [],
         data_provider=data_provider or FakeDataProvider(),
         # FIXME: Fix the type
         ia_metadata=cast(dict[str, IALiteMetadata | None], ia_metadata) or {},

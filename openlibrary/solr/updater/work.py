@@ -12,6 +12,7 @@ from typing import Optional, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
+from openlibrary.core.models import SeriesEdge, SeriesSeedDict
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
@@ -30,6 +31,15 @@ logger = logging.getLogger("openlibrary.solr")
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_subject = re.compile("[, _]+")
+
+
+class SeriesDict(TypedDict):
+    key: str
+    name: str
+
+
+class ExpandedSeriesDict(SeriesEdge):
+    series: SeriesDict
 
 
 class WorkSolrUpdater(AbstractSolrUpdater):
@@ -100,6 +110,29 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     logger.warning('Unexpected author type error: %s', work['key'])
                 authors = [a for a in authors if a['type']['key'] == '/type/author']
 
+                # Fetch series
+                series_edges = uniq(
+                    [
+                        cast(SeriesSeedDict, series)
+                        for rec in (work, *editions)
+                        for series in rec.get('series', [])
+                        if isinstance(series, dict)
+                    ],
+                    key=lambda s: s['series']['key'],
+                )
+                series = [
+                    cast(
+                        ExpandedSeriesDict,
+                        {
+                            **edge,
+                            'series': await self.data_provider.get_document(
+                                edge['series']['key']
+                            ),
+                        },
+                    )
+                    for edge in series_edges
+                ]
+
                 # Fetch ia_metadata
                 iaids = [e["ocaid"] for e in editions if "ocaid" in e]
                 ia_metadata = {
@@ -113,6 +146,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     work,
                     editions,
                     authors,
+                    series,
                     self.data_provider,
                     ia_metadata,
                     trending_data,
@@ -261,6 +295,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         work: dict,
         editions: list[dict],
         authors: list[dict],
+        series: list[ExpandedSeriesDict],
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
         trending_data: dict,
@@ -268,6 +303,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._work = work
         self._editions = editions
         self._authors = authors
+        self._series = series
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._trending_data = trending_data
@@ -345,6 +381,18 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def chapter(self) -> set[str]:
         return {chapter for ed in self._solr_editions for chapter in ed.chapter}
+
+    @property
+    def series_key(self) -> list[str]:
+        return [series['series']['key'].split('/')[-1] for series in self._series]
+
+    @property
+    def series_name(self) -> list[str]:
+        return [series['series']['name'] for series in self._series]
+
+    @property
+    def series_position(self) -> list[str]:
+        return [series['position'] or '' for series in self._series]
 
     @property
     def edition_count(self) -> int:
