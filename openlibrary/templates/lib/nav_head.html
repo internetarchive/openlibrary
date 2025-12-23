@@ -59,6 +59,13 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
           alt="$_('Open Library logo')"/>
       </div>
     </a>
+    $# detect-missing-i18n-skip-line
+    <a
+      href="$changequery(dict(show_page_status=1))"
+      style="color:transparent;position:absolute;pointer-events:none;"
+      tabindex="-1"
+      aria-hidden="true"
+    >Page Status</a>
   </div>
 
   $ browseProps = {

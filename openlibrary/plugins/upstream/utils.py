@@ -50,6 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.utils import async_utils
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -724,10 +725,9 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
-    return {
-        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
-    }
+    site = async_utils.site.get()
+    keys = site.things({"type": "/type/language", "limit": limit})
+    return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
 
 def word_prefix_match(prefix: str, text: str) -> bool:
@@ -1172,7 +1172,9 @@ def get_marc21_language(language: str) -> str | None:
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
+def get_language_name(
+    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -1180,7 +1182,6 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     else:
         lang = lang_or_key
 
-    user_lang = web.ctx.lang or 'en'
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 

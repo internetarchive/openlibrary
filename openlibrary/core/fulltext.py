@@ -3,16 +3,17 @@ import logging
 from urllib.parse import urlencode
 
 import httpx
-import web
 
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
+from openlibrary.utils import async_utils
+from openlibrary.utils.async_utils import async_bridge, req_context
 
 logger = logging.getLogger("openlibrary.inside")
 
 
-def fulltext_search_api(params):
+async def fulltext_search_api(params):
     from openlibrary.core.lending import (
         config_fts_context,
         config_ia_ol_metadata_write_s3,
@@ -23,7 +24,7 @@ def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
     headers = {
-        "x-preferred-client-id": web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal'),
+        "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
         "x-application-id": "openlibrary",
     }
     if config_fts_context is not None:
@@ -35,16 +36,17 @@ def fulltext_search_api(params):
 
     logger.debug('URL: ' + search_select)
     try:
-        response = httpx.get(search_select, headers=headers, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(search_select, headers=headers, timeout=30)
+            response.raise_for_status()
+            return response.json()
     except httpx.HTTPStatusError:
         return {'error': 'Unable to query search engine'}
     except json.decoder.JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}
 
 
-def fulltext_search(q, page=1, limit=100, js=False, facets=False):
+async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
     offset = (page - 1) * limit
     params = {
         'q': q,
@@ -53,7 +55,7 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
         **({'nofacets': 'true'} if not facets else {}),
         'olonly': 'true',
     }
-    ia_results = fulltext_search_api(params)
+    ia_results = await fulltext_search_api(params)
 
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
@@ -61,7 +63,7 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
         availability = get_availability('identifier', ocaids)
         if 'error' in availability:
             return {"hits": {"hits": []}}
-        editions = web.ctx.site.get_many(
+        editions = async_utils.site.get().get_many(
             [
                 '/books/%s' % availability[ocaid].get('openlibrary_edition')
                 for ocaid in availability
@@ -76,3 +78,6 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
                 )
                 ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results
+
+
+fulltext_search = async_bridge.wrap(fulltext_search_async)
