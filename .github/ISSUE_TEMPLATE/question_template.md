@@ -8,16 +8,19 @@ assignees: ''
 
 <!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
 
-### Question
+## Question
 <!-- What question needs to be answered to close this issue? This should be one sentence. -->
 
-
-### Additional context
+## Additional context
 <!-- Add any other context or details here. -->
+
+<details>
+<summary><strong>Resolution Details</strong> (for maintainers)</summary>
 
 ### Issue resolution criteria
 <!-- When can this issue be closed? -->
 
-
 ### Stakeholders
 <!-- @ tag stakeholders of this bug -->
+
+</details>
