@@ -17,7 +17,7 @@ $def with (page)
     <meta name="theme-color" content="#e2dcc5">
 
     <link rel="canonical" href="$request.canonical_url" />
-    
+
     $if not is_bot():
         <link rel="preconnect" href="https://athena.archive.org">
         <link rel="preconnect" href="https://apollo.archive.org">
@@ -88,7 +88,7 @@ $def with (page)
  * for the JavaScript code in this page.
  */
   </script>
-    
+
     $if "dev" in ctx.features:
         <link href="$static_url('build/css/page-dev.css')" rel="stylesheet" type="text/css"/>
 
