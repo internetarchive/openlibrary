@@ -15,8 +15,8 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
-from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.async_utils import set_context_from_legacy_web_py
+from openlibrary.utils.dateutil import DAY_SECS
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -347,13 +347,15 @@ def get_book_talks(limit: int = 18) -> list[dict]:
         for doc in docs:
             identifier = doc.get("identifier", "")
             if identifier:
-                book_talks.append({
-                    "identifier": identifier,
-                    "title": doc.get("title", "Untitled"),
-                    "date": doc.get("date", ""),
-                    "cover_url": f"https://archive.org/services/img/{identifier}/full/pct:250/0/default.jpg",
-                    "url": f"https://archive.org/details/{identifier}",
-                })
+                book_talks.append(
+                    {
+                        "identifier": identifier,
+                        "title": doc.get("title", "Untitled"),
+                        "date": doc.get("date", ""),
+                        "cover_url": f"https://archive.org/services/img/{identifier}/full/pct:250/0/default.jpg",
+                        "url": f"https://archive.org/details/{identifier}",
+                    }
+                )
         return book_talks
     except Exception:
         logger.exception("Error fetching book talks from archive.org")

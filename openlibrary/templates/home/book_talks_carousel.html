@@ -41,7 +41,7 @@ $if test or (book_talks and len(book_talks) >= min_items):
         overflow-x: auto;
     }
     .carousel-section--book-talks .carousel.carousel--progressively-enhanced {
-        display: block; 
+        display: block;
         overflow: visible;
     }
   </style>
@@ -73,8 +73,8 @@ $if test or (book_talks and len(book_talks) >= min_items):
               </a>
             </div>
             <div class="cta-button-group">
-              <a href="$(talk['url'])" target="_blank" rel="noopener" 
-                 class="cta-btn cta-btn--available cta-btn--read cta-btn--external" 
+              <a href="$(talk['url'])" target="_blank" rel="noopener"
+                 class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
                  data-ol-link-track="BookCarousel|CTAClick|book_talks">
                 $_('Watch')
               </a>
