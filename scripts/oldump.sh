@@ -220,18 +220,13 @@ fi
 # =================
 # Generate Sitemaps
 # =================
-if [[ ! -d $TMPDIR/sitemaps ]]
-then
-    log "generating sitemaps"
-    mkdir -p $TMPDIR/sitemaps
-    rm -fr $TMPDIR/sitemaps/*
-    cd $TMPDIR/sitemaps
-    time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
-    # rm -fr $TMPDIR/sitemaps
-    ls -lh
-else
-    log "Skipping sitemaps"
-fi
+log "generating sitemaps"
+rm -rf $TMPDIR/sitemaps
+mkdir -p $TMPDIR/sitemaps
+cd $TMPDIR/sitemaps
+time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
+# rm -fr $TMPDIR/sitemaps
+ls -lh
 
 log "$USER has completed $@ in $TMPDIR on ${HOSTNAME:-$HOST}"
 
