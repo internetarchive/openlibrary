@@ -6073,6 +6073,10 @@ msgid "Release Notes"
 msgstr ""
 
 #: lib/nav_foot.html
+msgid "Bluesky"
+msgstr ""
+
+#: lib/nav_foot.html
 msgid "Twitter"
 msgstr ""
 
