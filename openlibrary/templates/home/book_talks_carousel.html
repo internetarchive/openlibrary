@@ -1,0 +1,85 @@
+$def with(test=False, limit=18, min_items=3)
+
+$code:
+  book_talks = get_cached_book_talks(limit=limit) if not test else []
+
+$if test or (book_talks and len(book_talks) >= min_items):
+  <style>
+    .carousel-section--book-talks .book_carousel__book {
+        height: 200px;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        width: 100%;
+        margin: 0 auto;
+    }
+    .carousel-section--book-talks .bookcover {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    .carousel-section--book-talks .carousel__item {
+        padding: 0 10px;
+    }
+    .carousel-section--book-talks .cta-button-group {
+        margin-top: 10px;
+        display: block;
+    }
+    .carousel-section--book-talks .cta-btn {
+        width: 100%;
+        display: block;
+        text-align: center;
+        box-sizing: border-box;
+    }
+    .carousel-section--book-talks .carousel {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+    .carousel-section--book-talks .carousel.carousel--progressively-enhanced {
+        display: block; 
+        overflow: visible;
+    }
+  </style>
+
+  <div class="carousel-section carousel-section--book-talks">
+    <div class="carousel-section-header">
+      <h2 class="home-h2">
+        <a data-ol-link-track="BookCarousel|HeaderClick|book_talks" href="https://archive.org/details/booktalks">$_('Book Talks')</a>
+      </h2>
+    </div>
+    <div class="carousel-container carousel-container-decorated">
+      $code:
+        config = {
+          'booksPerBreakpoint': [6, 5, 4, 3, 2, 1],
+          'analyticsCategory': 'BookCarousel',
+          'carouselKey': 'book_talks',
+          'loadMore': None
+        }
+      <div class="carousel carousel--progressively-enhanced" data-config="$json_encode(config)">
+        $for index, talk in enumerate(book_talks or []):
+          $ lazy_load = index > 5
+          <div class="book carousel__item">
+            <div class="book_carousel__book">
+              <a href="$(talk['url'])" target="_blank" rel="noopener" data-ol-link-track="BookCarousel|CoverClick|book_talks">
+                $if lazy_load:
+                  <img class="bookcover" loading="lazy" title="$(talk['title'])" alt="$(talk['title'])" data-lazy="$(talk['cover_url'])" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+                $else:
+                  <img class="bookcover" loading="lazy" title="$(talk['title'])" alt="$(talk['title'])" src="$(talk['cover_url'])"/>
+              </a>
+            </div>
+            <div class="cta-button-group">
+              <a href="$(talk['url'])" target="_blank" rel="noopener" 
+                 class="cta-btn cta-btn--available cta-btn--read cta-btn--external" 
+                 data-ol-link-track="BookCarousel|CTAClick|book_talks">
+                $_('Watch')
+              </a>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>

@@ -3,6 +3,7 @@
 import logging
 import random
 
+import httpx
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
@@ -14,6 +15,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
@@ -318,6 +320,59 @@ def format_book_data(book, fetch_availability=True):
         else:
             d.read_url = book.url("/borrow")
     return d
+
+
+def get_book_talks(limit: int = 18) -> list[dict]:
+    """Fetch book talks from archive.org API."""
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
+    try:
+        url = "https://archive.org/advancedsearch.php"
+        params = {
+            "q": "collection:booktalks",
+            "fl[]": ["identifier", "title", "date"],
+            "sort[]": "date desc",
+            "rows": limit,
+            "page": 1,
+            "output": "json",
+        }
+        response = httpx.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        docs = data.get("response", {}).get("docs", [])
+
+        # Format the data for the carousel
+        book_talks = []
+        for doc in docs:
+            identifier = doc.get("identifier", "")
+            if identifier:
+                book_talks.append({
+                    "identifier": identifier,
+                    "title": doc.get("title", "Untitled"),
+                    "date": doc.get("date", ""),
+                    "cover_url": f"https://archive.org/services/img/{identifier}/full/pct:250/0/default.jpg",
+                    "url": f"https://archive.org/details/{identifier}",
+                })
+        return book_talks
+    except Exception:
+        logger.exception("Error fetching book talks from archive.org")
+        return []
+
+
+@public
+def get_cached_book_talks(limit: int = 18) -> list[dict]:
+    """Get cached book talks with 1 day cache."""
+    cached_book_talks = cache.memcache_memoize(
+        get_book_talks,
+        "home.book_talks",
+        timeout=DAY_SECS,
+        prethread=caching_prethread(),
+    )
+    book_talks = cached_book_talks(limit=limit)
+    if not book_talks:
+        book_talks = cached_book_talks.update(limit=limit)[0]
+    return book_talks or []
 
 
 def setup():
