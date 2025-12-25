@@ -1,0 +1,55 @@
+$def with (patrons, work_key)
+
+$code:
+    SHELF_NAMES = {1: "Want to Read", 2: "Currently Reading", 3: "Already Read"}
+
+$if patrons:
+    <div class="readinglog-patrons">
+        <h3 class="readinglog-patrons__title">$_("Recently Added By")</h3>
+        <div class="readinglog-patrons__showcase">
+            $for p in patrons:
+                $ username = p["username"]
+                $ status = SHELF_NAMES.get(p["bookshelf_id"], "Shelved")
+
+                <div class="readinglog-card">
+                    <!-- Header with status -->
+                    <a class="readinglog-card__header" href="/people/$username/books">
+                        <div class="readinglog-card__title">$status</div>
+                    </a>
+
+                    <!-- Covers section -->
+                    <a class="readinglog-card__covers" href="/people/$username/books">
+                        $# Current book cover
+                        $if p.get('cover_url'):
+                            <img src="$(p['cover_url'].replace('-S.jpg', '-M.jpg'))" alt="$_('Book cover')" loading="lazy"/>
+                        $else:
+                            <img src="/images/icons/avatar_book-sm.png" alt="$_('Book cover')" loading="lazy"/>
+                        $# Other books
+                        $for other in p.get('other_books', [])[:2]:
+                            $if other.get('cover_url'):
+                                <img src="$(other['cover_url'].replace('-S.jpg', '-M.jpg'))" alt="$_('Book cover')" loading="lazy"/>
+                            $else:
+                                <img src="/images/icons/avatar_book-sm.png" alt="$_('Book cover')" loading="lazy"/>
+                    </a>
+
+                    <!-- Bottom section -->
+                    <div class="readinglog-card__bottom">
+                        <div class="readinglog-card__user">
+                            <a href="/people/$username">
+                                <img src="/people/$username/avatar" alt="$_('Avatar')"/>
+                            </a>
+                            <div class="readinglog-card__username">
+                                <a class="readinglog-card__username-link" href="/people/$username" title="$username">
+                                    @$username
+                                </a>
+                            </div>
+                        </div>
+                        $if ctx.user and ctx.user.key != "/people/" + username:
+                            <div class="readinglog-card__follow-button">
+                                $ is_subscribed = ctx.user.is_subscribed_user(username)
+                                $:macros.Follow(username, following=is_subscribed, request_path="/people/" + username)
+                            </div>
+                    </div>
+                </div>
+        </div>
+    </div>
