@@ -8,7 +8,6 @@ import web
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils import async_utils
 from openlibrary.utils.async_utils import async_bridge, req_context
 
 logger = logging.getLogger("openlibrary.inside")
