@@ -3,11 +3,11 @@ import logging
 from urllib.parse import urlencode
 
 import httpx
+import web
 
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils import async_utils
 from openlibrary.utils.async_utils import async_bridge, req_context
 
 logger = logging.getLogger("openlibrary.inside")
@@ -62,21 +62,21 @@ async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
         availability = get_availability('identifier', ocaids)
         if 'error' in availability:
-            return {"hits": {"hits": []}}
-        editions = async_utils.site.get().get_many(
-            [
-                '/books/%s' % availability[ocaid].get('openlibrary_edition')
-                for ocaid in availability
-                if availability[ocaid].get('openlibrary_edition')
-            ]
+            availability = {}
+
+        edition_keys = list(
+            web.ctx.site.things(
+                {'type': '/type/edition', 'ocaid': ocaids, 'limit': len(ocaids)}
+            )
         )
+        editions = web.ctx.site.get_many(edition_keys)
         for ed in editions:
-            if ed.ocaid in ocaids:
-                idx = ocaids.index(ed.ocaid)
-                ia_results['hits']['hits'][idx]['edition'] = (
-                    format_book_data(ed, fetch_availability=False) if js else ed
-                )
-                ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
+            idx = ocaids.index(ed.ocaid)
+            hit = ia_results['hits']['hits'][idx]
+            hit['edition'] = (
+                format_book_data(ed, fetch_availability=False) if js else ed
+            )
+            hit['availability'] = availability.get(ed.ocaid, {})
     return ia_results
 
 
