@@ -2,6 +2,7 @@ import { getJsonFromUrl } from './Browser';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
+import { initDeleteConfirm } from './delete-confirm';
 
 /*
 Sets the key in the website cookie to the specified value
@@ -24,6 +25,8 @@ export default function init() {
 
     initBorrowAndReadLinks();
     initWebsiteTranslationOptions();
+    // Initialize delete confirmation handlers on edit pages (if present)
+    initDeleteConfirm();
 }
 
 export function initBorrowAndReadLinks() {
