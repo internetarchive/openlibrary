@@ -527,7 +527,7 @@ class Author(models.Author):
             rows=i.rows,
             has_fulltext=i.mode == "ebooks",
             query=q,
-            facet=True,
+            facet=False,
             request_label='AUTHOR_BOOKS_PAGE',
         )
 
