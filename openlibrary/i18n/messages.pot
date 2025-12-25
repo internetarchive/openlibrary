@@ -5604,6 +5604,14 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
+#: home/book_talks_carousel.html lib/nav_head.html
+msgid "Book Talks"
+msgstr ""
+
+#: home/book_talks_carousel.html
+msgid "Watch"
+msgstr ""
+
 #: home/categories.html
 msgid "Browse by Subject"
 msgstr ""
@@ -6132,10 +6140,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "K-12 Student Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Book Talks"
 msgstr ""
 
 #: lib/nav_head.html
