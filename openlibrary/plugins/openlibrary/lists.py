@@ -943,6 +943,31 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
 
 
+@public
+def get_lists(keys: list[str]):
+    # Fetches and caches the lists through Solr, rather than through the DB.
+    from openlibrary.core.lists.model import List
+    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+
+    or_query = ' OR '.join(f'"{k}"' for k in keys)
+    response = run_solr_query(
+        param={"q": f'seed:({or_query})'},
+        scheme=ListSearchScheme(),
+        fields=["key"],
+        offset=0,
+        rows=20,
+        extra_params=[('fq', "seed_count:[2 TO *]")],
+        sort='last_modified desc',
+        request_label="LIST_CAROUSEL",
+    )
+    lists = cast(
+        list[List], web.ctx.site.get_many([doc["key"] for doc in response.docs])
+    )
+
+    return [get_list_data(lst, None) for lst in lists]
+
+
 class lists_preview(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/preview.png"
 

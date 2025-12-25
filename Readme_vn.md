@@ -52,11 +52,11 @@ Bạn cũng có thể tìm kiếm thêm thông tin về Tài liệu dành cho nh
 
 ## Tổ chức code
 
-* openlibrary/core - chức năng cốt lõi của openlibrary, được nhập và sử dụng bởi www
-* openlibrary/plugins - các mô hình, các bộ điều khiển và trình trợ giúp hiển thị khác.
-* openlibrary/views - các chế độ xem để hiển thị trang web
-* openlibrary/templates - tất cả những templates được dùng trên trang web.
-* openlibrary/macros -  các macro tương tự như mẫu, nhưng có thể được gọi từ wikitext.
+* [*openlibrary/core*](/openlibrary/core) - chức năng cốt lõi của openlibrary, được nhập và sử dụng bởi www
+* [*openlibrary/plugins*](/openlibrary/plugins) - các mô hình, các bộ điều khiển và trình trợ giúp hiển thị khác.
+* [*openlibrary/views*](/openlibrary/views) - các chế độ xem để hiển thị trang web
+* [*openlibrary/templates*](/openlibrary/templates) - tất cả những templates được dùng trên trang web.
+* [*openlibrary/macros*](/openlibrary/macros) -  các macro tương tự như mẫu, nhưng có thể được gọi từ wikitext.
 
 ## Kiến trúc
 

@@ -1,0 +1,41 @@
+// openlibrary/templates/lib/pagination.html
+// openlibrary/templates/type/author/view.html
+
+.pagination {
+  font-size: 0.75em;
+  margin: 0 15px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  a {
+    display: block;
+    text-decoration: none;
+    padding: 7px;
+    margin-right: 10px;
+    &:hover {
+      background: @link-blue;
+      color: @white;
+      display: block;
+      float: left;
+      text-decoration: none;
+      padding: 7px;
+      margin-right: 10px;
+    }
+  }
+  span.ellipsis {
+    display: block;
+    float: left;
+    color: @black;
+    padding: 8px;
+    margin-right: 10px;
+  }
+  span.this {
+    display: block;
+    float: left;
+    color: @black;
+    padding: 7px;
+    border: 1px solid @lighter-grey;
+    margin-right: 10px;
+    background-color: @lightest-grey;
+  }
+}

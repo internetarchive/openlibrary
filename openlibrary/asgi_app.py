@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import sys
 from pathlib import Path
 
 import yaml
@@ -12,6 +13,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.utils.async_utils import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -34,7 +36,7 @@ def _https_middleware(app):
     return wrapper
 
 
-def _load_legacy_wsgi(ol_config_file: str):
+def _load_legacy_wsgi():
     """Initialize legacy configuration and side-effects as in scripts/openlibrary-server.
 
     This function does not return a WSGI callable; it is called for its side effects only.
@@ -44,6 +46,9 @@ def _load_legacy_wsgi(ol_config_file: str):
 
     # match scripts/openlibrary-server behavior
     from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
+
+    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
+    ol_config_file = os.environ.get("OL_CONFIG", str(ol_config_path))
 
     config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
@@ -114,28 +119,27 @@ sentry: Sentry | None = None
 
 
 def create_app() -> FastAPI:
-    _setup_env()
+    if "pytest" not in sys.modules:
+        _setup_env()
 
-    if os.environ.get("CI"):
-        import pytest
+        if os.environ.get("CI"):
+            import pytest
 
-        pytest.skip("Skipping in CI", allow_module_level=True)
+            pytest.skip("Skipping in CI", allow_module_level=True)
 
-    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
-    ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
-    try:
-        # We still call this even though we don't use it because of the side effects
-        legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
+        try:
+            # We still call this even though we don't use it because of the side effects
+            _load_legacy_wsgi()
 
-        global sentry
-        if sentry is not None:
-            return
-        sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
-        set_tag("fastapi", True)
+            global sentry
+            if sentry is not None:
+                return
+            sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+            set_tag("fastapi", True)
 
-    except Exception:
-        logger.exception("Failed to initialize legacy WSGI app")
-        raise
+        except Exception:
+            logger.exception("Failed to initialize legacy WSGI app")
+            raise
 
     app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
 
@@ -161,13 +165,21 @@ def create_app() -> FastAPI:
         response.headers["X-Served-By"] = "FastAPI"
         return response
 
+    @app.middleware("http")
+    async def set_context(request: Request, call_next):
+        set_context_from_fastapi(request)
+        response = await call_next(request)
+        return response
+
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    from openlibrary.fastapi.languages import router as languages_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
 
+    app.include_router(languages_router)
     app.include_router(search_router)
 
     return app

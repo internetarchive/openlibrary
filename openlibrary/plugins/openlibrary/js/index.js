@@ -228,6 +228,13 @@ jQuery(function () {
             .then((module) => new module.LazyThingPreview().init());
     }
 
+    // Disable data export buttons on form submit
+    const patronImportForms = document.querySelectorAll('.patron-export-form')
+    if (patronImportForms.length) {
+        import(/* webpackChunkName: "patron-exports" */ './patron_exports')
+            .then(module => module.initPatronExportForms(patronImportForms));
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');

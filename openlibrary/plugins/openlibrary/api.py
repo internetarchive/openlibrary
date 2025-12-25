@@ -6,12 +6,14 @@ its experience. This does not include public facing APIs with LTS
 
 import io
 import json
+import logging
 from collections import defaultdict
 
 import qrcode
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
+from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,6 +25,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import cache, lending, models
 from openlibrary.core import helpers as h
+from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
@@ -46,6 +49,8 @@ from openlibrary.plugins.worksearch.subjects import (
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
+
+logger = logging.getLogger(__name__)
 
 
 class book_availability(delegate.page):
@@ -807,7 +812,9 @@ class opds_search(delegate.page):
     def GET(self):
         from pyopds2 import Catalog, Link, Metadata
 
-        i = web.input(query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1)
+        i = web.input(
+            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
+        )
         provider = get_opds_data_provider()
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
@@ -815,6 +822,7 @@ class opds_search(delegate.page):
                 query=i.query,
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
+                sort=i.sort,
             ),
             links=[
                 Link(
@@ -848,7 +856,6 @@ class opds_books(delegate.page):
     path = r"/opds/books/(OL\d+M)"
 
     def GET(self, edition_olid: str):
-        from pyopds2 import Link
 
         provider = get_opds_data_provider()
         resp = provider.search(query=f'edition_key:{edition_olid}')
@@ -860,18 +867,6 @@ class opds_books(delegate.page):
             )
 
         pub = resp.records[0].to_publication()
-        pub.links += [
-            Link(
-                rel="http://opds-spec.org/shelf",
-                href="https://archive.org/services/loans/loan/?action=user_bookshelf",
-                type="application/opds+json",
-            ),
-            Link(
-                rel="profile",
-                href="https://archive.org/services/loans/loan/?action=user_profile",
-                type="application/opds-profile+json",
-            ),
-        ]
         return delegate.RawText(json.dumps(pub.model_dump()))
 
 
@@ -884,7 +879,7 @@ class opds_home(delegate.page):
 
             provider = get_opds_data_provider()
             catalog = Catalog(
-                metadata=Metadata(title=_("Welcome to Open Library")),
+                metadata=Metadata(title=_("Open Library")),
                 publications=[],
                 navigation=[
                     Navigation(
@@ -898,7 +893,7 @@ class opds_home(delegate.page):
                     Catalog.create(
                         metadata=Metadata(title=_("Trending Books")),
                         response=provider.search(
-                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
+                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover" ebook_access:[borrowable TO *] readinglog_count:[4 TO *]',
                             sort='trending',
                             limit=25,
                         ),
@@ -1000,3 +995,69 @@ class opds_home(delegate.page):
 
         web.header('Content-Type', 'application/opds+json')
         return delegate.RawText(json.dumps(get_cached_homepage()))
+
+
+class unlink_ia_ol(delegate.page):
+    path = "/api/unlink"
+    encoding = "json"
+
+    def POST(self):
+        i = web.input(digest="", msg="")
+
+        digest = i.digest
+        msg = i.msg
+
+        try:
+            HMACToken.verify(digest, msg, "ia_sync_secret")
+        except (ValueError, ExpiredTokenError):
+            raise web.HTTPError("401 Unauthorized")
+
+        ocaid, ts = msg.split("|")
+
+        if not ts or not ocaid:
+            raise web.HTTPError(
+                "400 Bad Request", data=json.dumps({"error": "Invalid inputs"})
+            )
+
+        # Fetch affected editions
+        if not (
+            edition_keys := web.ctx.site.things(
+                {"type": '/type/edition', "ocaid": ocaid}
+            )
+        ):
+            raise web.HTTPError("404 Not Found")
+
+        editions = [web.ctx.site.get(key) for key in edition_keys]
+        if len(editions) > 1:
+            raise web.HTTPError(
+                "409 Conflict",
+                data=json.dumps(
+                    {"error": "Multiple editions associated with given ocaid"}
+                ),
+            )
+
+        edition = editions[0]
+
+        # Update records
+        try:
+            self.make_dark(edition)
+        except ClientException as e:
+            logger.error(
+                f'Failed to disassociate record with key {edition.key}', exc_info=True
+            )
+            raise web.HTTPError(
+                "500 Internal Server Error", data=json.dumps({"error": str(e)})
+            )
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    def make_dark(self, edition):
+        data = edition.dict()
+        del data["ocaid"]
+        source_records = data.get("source_records", [])
+        data['source_records'] = [
+            rec for rec in source_records if not rec.startswith("ia:")
+        ]
+        if not data['source_records']:
+            del data['source_records']
+        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
