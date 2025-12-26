@@ -8,6 +8,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/font-families.less";
+@import (less) "less/borders.less"; // Import borders.less
 
 div#header,
 footer,
@@ -48,7 +49,7 @@ div.nav {
     margin-bottom: 20px;
 
     th {
-      border-bottom: 1px solid @beige-three;
+      border-bottom: @border-width solid @beige-three;
       vertical-align: bottom;
       padding-bottom: 10px;
 
@@ -136,7 +137,7 @@ div.navBorrow {
 }
 .panel {
   background-color: @white;
-  border: 1px solid @beige-two;
+  border: @border-card; // Replaced with @border-card
   padding: 30px 20px;
   margin-bottom: 20px;
 }

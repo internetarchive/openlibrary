@@ -30,7 +30,7 @@
       font-weight: 600;
       font-size: 0.6875em;
       background: @white;
-      border-bottom: 3px solid @lightest-grey;
+      border-bottom: @border-width-heavy solid @lightest-grey;
       padding: 4px 8px 3px;
       text-decoration: none;
       text-transform: uppercase;
@@ -55,8 +55,8 @@
         &:visited {
           /* @ Opera, use pseudo classes otherwise it confuses cursor... */
           background: @lightest-grey;
-          border: 1px solid @lightest-grey;
-          border-bottom: 3px solid @lightest-grey;
+          border: @border-divider;
+          border-bottom: @border-divider;
           color: @teal;
           cursor: default;
         }
@@ -81,7 +81,7 @@
     filter: alpha(opacity=40);
   }
   &-panel {
-    border: 3px solid @lightest-grey;
+    border: @border-width-heavy solid @lightest-grey;
     background: @white;
     /* declare background color for container to avoid distorted fonts in IE while fading */
   }
@@ -118,7 +118,7 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .floater {
     .ui-tabs-panel {
-      border-top: 3px solid @lightest-grey;
+      border-top: @border-width-heavy solid @lightest-grey;
       padding: 15px 30px !important;
       /* declare background color for container to avoid distorted fonts in IE while fading */
     }

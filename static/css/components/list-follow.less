@@ -36,7 +36,7 @@
   width: @card-width;
   height: 150px;
 
-  border: 1px solid fade(@black, 25%);
+  border: @border-width solid fade(@black, 25%);
   border-radius: 4px;
   box-shadow: 2px 2px 4px fade(@black, 15%);
 
@@ -81,7 +81,7 @@
       margin-top: -10px;
       position: relative;
       z-index: @z-index-level-3;
-      border: 2px solid @white;
+      border: @border-width-thick solid @white;
       flex-shrink: 0;
     }
   }

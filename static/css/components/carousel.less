@@ -124,8 +124,8 @@
 
 .carousel-container-decorated {
   background: @book-cover-carousel-background;
-  border-bottom: 1px solid @book-cover-carousel-border-bottom;
-  border-top: 1px solid @book-cover-carousel-border-top;
+  border-bottom: @border-width solid @book-cover-carousel-border-bottom;
+  border-top: @border-width solid @book-cover-carousel-border-top;
 }
 
 // TODO: Document where this is used. This is unlikely to need to be so specific.
@@ -161,7 +161,7 @@
     content: "";
     display: block;
     position: absolute;
-    border: 2px solid fade(@white, 50%);
+    border: @border-width-thick solid fade(@white, 50%);
     // stylelint-disable declaration-block-no-redundant-longhand-properties
     left: 0;
     right: 0;
@@ -210,14 +210,14 @@
   justify-content: center;
 
   .loadingIndicator {
-    border: 1px @grey solid;
+    border: @border-width @grey solid;
     width: 80%;
     margin: 0 auto;
   }
 
   &-retry,
   &-fallback {
-    border: 1px @grey solid;
+    border: @border-width @grey solid;
     background: @lightest-grey;
     margin: 0 auto;
     padding: 20px;

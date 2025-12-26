@@ -15,7 +15,7 @@
 
 /* Table wrapper */
 .librarian-queue-wrapper {
-  border: 1px solid @light-grey;
+  border: @border-width-table solid @light-grey;
   border-radius: 5px;
 }
 
@@ -66,7 +66,7 @@
   height: 275px;
   width: 269px;
   background: @white;
-  border: 1px solid @light-grey;
+  border: @border-divider;
   box-shadow:
     0 4px 4px @light-mid-grey,
     0 4px 4px @light-mid-grey;
@@ -155,8 +155,8 @@
     justify-content: space-between;
     align-items: flex-start;
     padding: 10px;
-    border-top: 1px solid @lighter-grey;
-    border-bottom: 1px solid @lighter-grey;
+    border-top: @border-table;
+    border-bottom: @border-table;
     background: @grey-fafafa;
   }
 
@@ -229,7 +229,7 @@
   margin-left: -3px;
 
   &__comment-display {
-    border: 1px solid @light-grey;
+    border: @border-card;
     background-color: @white;
     border-radius: 5px;
     margin-bottom: 6px;
@@ -258,7 +258,7 @@
       min-width: 337px;
       height: 100%;
       resize: none;
-      border: 1px solid @light-grey;
+      border: @border-width-control solid @light-grey;
       border-radius: 5px;
       margin-right: 5px;
     }
@@ -336,13 +336,13 @@
 
     &.cta-btn {
       background-color: @grey-f4f4f4;
-      border: 1px solid @lighter-grey;
+      border: @border-width-control solid @lighter-grey;
       border-radius: 5px;
       margin-top: 23px;
     }
 
     &--active.cta-btn {
-      border: 1.5px solid @black;
+      border: @border-width solid @black;
     }
   }
 

@@ -54,7 +54,7 @@ div#headerNav {
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#headerNav ul.links li {
-  border-top: 1px solid @beige-two;
+  border-top: @border-width solid @beige-two;
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -132,7 +132,7 @@ th.toggle-all {
 }
 
 .import-table {
-  border: 2px;
+  border: @border-width-thick;
   th {
     padding: 5px 10px;
   }
@@ -199,12 +199,12 @@ th.toggle-all {
 }
 
 tr.table-row.selected {
-  border: 2px solid @green;
+  border: @border-width-thick solid @green;
 }
 
 .olform--decoration {
   margin: 20px 0;
-  border: 2px solid @lightest-grey;
+  border: @border-width-thick solid @lightest-grey;
   padding: 20px;
   border-radius: 5px;
 }
@@ -221,7 +221,7 @@ tr.table-row.selected {
   content: "";
   display: block;
   flex: 1;
-  border-bottom: 1px solid currentColor;
+  border-bottom: @border-width solid currentColor;
   transform: translateY(-50%);
 }
 
