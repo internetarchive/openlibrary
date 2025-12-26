@@ -1,6 +1,7 @@
 """Librarian Edits"""
 
 import json
+
 import web
 
 from infogami.utils import delegate
@@ -113,8 +114,7 @@ class community_edits_queue(delegate.page):
 
         if not olid_list:
             return response(
-                status='error',
-                error='No records specified for this request.'
+                status='error', error='No records specified for this request.'
             )
 
         if is_delete_request(mr_type):
