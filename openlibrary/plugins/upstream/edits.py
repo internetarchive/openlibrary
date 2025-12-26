@@ -1,7 +1,6 @@
 """Librarian Edits"""
 
 import json
-
 import web
 
 from infogami.utils import delegate
@@ -17,13 +16,14 @@ def response(status='ok', **kwargs):
 def process_merge_request(rtype, data):
     user = accounts.get_current_user()
     username = user['key'].split('/')[-1]
-    # Request types can be: create-request, update-request
+
     if rtype == 'create-request':
         resp = community_edits_queue.create_request(username, **data)
     elif rtype == 'update-request':
         resp = community_edits_queue.update_request(username, **data)
     else:
         resp = response(status='error', error='Unknown request type')
+
     return resp
 
 
@@ -40,6 +40,7 @@ class community_edits_queue(delegate.page):
             order='desc',
             status=None,
         )
+
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
@@ -76,7 +77,6 @@ class community_edits_queue(delegate.page):
     def POST(self):
         data = json.loads(web.data())
         resp = process_merge_request(data.pop('rtype', ''), data)
-
         return delegate.RawText(json.dumps(resp), content_type='application/json')
 
     @staticmethod
@@ -97,81 +97,111 @@ class community_edits_queue(delegate.page):
                 CommunityEditsQueue.TYPE['AUTHOR_MERGE'],
             )
 
-        if is_valid_action(action):
-            olid_list = olids.split(',')
+        def is_delete_request(mr_type):
+            return mr_type in (
+                CommunityEditsQueue.TYPE['WORK_DELETE'],
+                CommunityEditsQueue.TYPE['AUTHOR_DELETE'],
+            )
 
-            title = community_edits_queue.create_title(mr_type, olid_list)
-            url = community_edits_queue.create_url(mr_type, olid_list, primary=primary)
-
-            # Validate URL
-            is_valid_url = True
-            if needs_unique_url(mr_type) and CommunityEditsQueue.exists(url):
-                is_valid_url = False
-
-            if is_valid_url:
-                if action == 'create-pending':
-                    result = CommunityEditsQueue.submit_request(
-                        url, username, title=title, comment=comment, mr_type=mr_type
-                    )
-                elif action == 'create-merged':
-                    result = CommunityEditsQueue.submit_request(
-                        url,
-                        username,
-                        title=title,
-                        comment=comment,
-                        reviewer=username,
-                        status=CommunityEditsQueue.STATUS['MERGED'],
-                        mr_type=mr_type,
-                    )
-                resp = (
-                    response(id=result)
-                    if result
-                    else response(status='error', error='Request creation failed.')
-                )
-            else:
-                resp = response(
-                    status='error',
-                    error='A merge request for these items already exists.',
-                )
-        else:
-            resp = response(
+        if not is_valid_action(action):
+            return response(
                 status='error',
                 error=f'Action "{action}" is invalid for this request type.',
             )
 
-        return resp
+        olid_list = [o for o in olids.split(',') if o]
+
+        if not olid_list:
+            return response(
+                status='error',
+                error='No records specified for this request.'
+            )
+
+        if is_delete_request(mr_type):
+            results = []
+
+            for olid in olid_list:
+                if mr_type == CommunityEditsQueue.TYPE['WORK_DELETE']:
+                    base_url = f'/works/{olid}/edit?m=delete'
+                else:
+                    base_url = f'/authors/{olid}/edit?m=delete'
+
+                mrid = CommunityEditsQueue.submit_request(
+                    url=base_url,
+                    submitter=username,
+                    title=olid,
+                    comment=comment,
+                    mr_type=mr_type,
+                )
+
+                results.append(mrid)
+
+            return response(ids=results)
+
+        title = community_edits_queue.create_title(mr_type, olid_list)
+        url = community_edits_queue.create_url(mr_type, olid_list, primary=primary)
+
+        if needs_unique_url(mr_type) and CommunityEditsQueue.exists(url):
+            return response(
+                status='error',
+                error='A merge request for these items already exists.',
+            )
+
+        if action == 'create-pending':
+            result = CommunityEditsQueue.submit_request(
+                url,
+                username,
+                title=title,
+                comment=comment,
+                mr_type=mr_type,
+            )
+        else:
+            result = CommunityEditsQueue.submit_request(
+                url,
+                username,
+                title=title,
+                comment=comment,
+                reviewer=username,
+                status=CommunityEditsQueue.STATUS['MERGED'],
+                mr_type=mr_type,
+            )
+
+        return (
+            response(id=result)
+            if result
+            else response(status='error', error='Request creation failed.')
+        )
 
     @staticmethod
     def update_request(username, action='', mrid=None, comment=None):
-        # Comment on existing request:
         if action == 'comment':
             if comment:
                 CommunityEditsQueue.comment_request(mrid, username, comment)
                 resp = response()
             else:
                 resp = response(status='error', error='No comment sent in request.')
-        # Assign to existing request:
+
         elif action == 'claim':
             result = CommunityEditsQueue.assign_request(mrid, username)
             resp = response(**result)
-        # Unassign from existing request:
+
         elif action == 'unassign':
             CommunityEditsQueue.unassign_request(mrid)
             status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
             resp = response(newStatus=status)
-        # Close request by approving:
+
         elif action == 'approve':
             CommunityEditsQueue.update_request_status(
                 mrid, CommunityEditsQueue.STATUS['MERGED'], username, comment=comment
             )
             resp = response()
-        # Close request by declining:
+
         elif action == 'decline':
             CommunityEditsQueue.update_request_status(
                 mrid, CommunityEditsQueue.STATUS['DECLINED'], username, comment=comment
             )
             resp = response()
-        # Unknown request:
+
         else:
             resp = response(
                 status='error',

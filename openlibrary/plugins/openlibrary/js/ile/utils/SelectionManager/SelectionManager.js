@@ -1,8 +1,8 @@
-// @ts-check
+// @ts-nocheck
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
 import './SelectionManager.less';
-
+import { createRequest, REQUEST_TYPES } from '../../../merge-request-table/MergeRequestService.js';
 /**
  * The SelectionManager is responsible for making things (e.g. books in search results,
  * or authors on books pages) on Open Library selectable and drag/droppable from one
@@ -45,6 +45,7 @@ export default class SelectionManager {
         const providerSelectors = providers.map(p => p.selector);
         $(providerSelectors.join(', '))
             .addClass('ile-selectable')
+            // @ts-ignore
             .on('click', this.processClick);
 
         for (const provider of providers) {
@@ -188,30 +189,89 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.bulkTagger.hideTaggingMenu()
+        this.ile.bulkTagger.hideTaggingMenu();
+
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
-            if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
+            if (count) {
+                statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
+            }
         });
 
         if (statusParts.length) {
             this.ile.setStatusText(`${statusParts.join(', ')} selected`);
-            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
+            this.ile.$selectionActions.append(
+                $('<a>Clear Selections</a>').on('click', this.clearSelectedItems)
+            );
         } else {
             this.ile.setStatusText('');
         }
 
         for (const action of SelectionManager.ACTIONS) {
             const items = [];
-            if (action.requires_type.every(type => this.selectedItems[type].length > 0)) {
-                action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
-                if (action.multiple_only ? items.length > 1 : items.length > 0)
-                    if (action.href) {
-                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
-                    } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
-                    }
+
+            if (!action.requires_type.every(type => this.selectedItems[type].length > 0)) {
+                continue;
             }
+
+            action.applies_to_type.forEach(type => {
+                items.push(...this.selectedItems[type]);
+            });
+
+            if (!(action.multiple_only ? items.length > 1 : items.length > 0)) {
+                continue;
+            }
+
+            if (action.href && !action.onclick) {
+                this.ile.$actions.append(
+                    $(
+                        `<a target="_blank" href="${action.href(
+                            this.getOlidsFromSelectionList(items)
+                        )}">${action.name}</a>`
+                    )
+                );
+                continue;
+            }
+
+            if (action.onclick) {
+                this.ile.$actions.append(
+                    $(`<a href="#">${action.name}</a>`).on('click', (e) => {
+                        e.preventDefault(); // 🔥 critical
+                        this.handleActionClick(action, items);
+                    })
+                );
+            }
+        }
+    }
+
+    handleActionClick(action, items) {
+        const olids = this.getOlidsFromSelectionList(items);
+
+        if (action.name === 'Tag Works') {
+            this.ile.updateAndShowBulkTagger(olids);
+            return;
+        }
+
+        if (action.name === 'Delete Works...') {
+            createRequest(
+                olids.join(','),
+                'create-pending',
+                REQUEST_TYPES.WORK_DELETE
+            ).finally(() => {
+                window.open('/merges', '_blank');
+            });
+            return;
+        }
+
+        if (action.name === 'Delete Authors...') {
+            createRequest(
+                olids.join(','),
+                'create-pending',
+                REQUEST_TYPES.AUTHOR_DELETE
+            ).finally(() => {
+                window.open('/merges', '_blank');
+            });
+            return;
         }
     }
 
@@ -505,8 +565,9 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: false,
         name: 'Delete Works...',
-        href: olids => `/works/delete?records=${olids.join(',')}`,
+        onclick: true,
     },
+
     /* Uncomment this when edition merging is available.
     {
         applies_to_type: ['edition'],
@@ -528,7 +589,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Delete Authors...',
-        href: olids => `/authors/delete?records=${olids.join(',')}`,
+        onclick: true,
     },
-
 ];
