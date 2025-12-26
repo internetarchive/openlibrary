@@ -372,18 +372,17 @@ def main(
                 )
                 print("Please verify your ~/.olrc credentials have write permissions.")
                 sys.exit(1)
-        else:
-            if not dest_ol.login("admin", "admin123"):
-                print("Error: Failed to login with default credentials (admin/admin123)")
-                print(
-                    "For local development, ensure the admin user exists "
-                    "and has the correct password."
-                )
-                print("Alternatively, create a ~/.olrc file with your credentials:")
-                print(f"  [{web.lstrips(dest, 'http://').strip('/')}]")
-                print("  username = your_username")
-                print("  password = your_password")
-                sys.exit(1)
+        elif not dest_ol.login("admin", "admin123"):
+            print("Error: Failed to login with default credentials (admin/admin123)")
+            print(
+                "For local development, ensure the admin user exists "
+                "and has the correct password."
+            )
+            print("Alternatively, create a ~/.olrc file with your credentials:")
+            print(f"  [{web.lstrips(dest, 'http://').strip('/')}]")
+            print("  username = your_username")
+            print("  password = your_password")
+            sys.exit(1)
         print(f"Successfully logged in to {dest}")
 
     for list_key in lists or []:
