@@ -6,23 +6,20 @@ Executes the given script with the given arguments, adding profiling and error r
 import argparse
 import subprocess
 import sys
-from configparser import ConfigParser
+import yaml
 from pathlib import Path
 
 import sentry_sdk
 from statsd import StatsClient
 
-DEFAULT_CONFIG_PATH = "/olsystem/etc/cron-wrapper.ini"
+DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_cfg, job_name):
+    def __init__(self, command, sentry_cfg, statsd_server, job_name):
         self.command = command
-        self.statsd_client = (
-            self._setup_statsd(statsd_cfg.get("host", ""), statsd_cfg.get("port", ""))
-            if statsd_cfg
-            else None
-        )
+        statsd_host_and_port = statsd_server.split(":")
+        self.statsd_client = self._setup_statsd(statsd_host_and_port[0], statsd_host_and_port[1])
         self._setup_sentry(sentry_cfg.get("dsn", ""))
         self.job_name = job_name
         self.job_failed = False
@@ -71,21 +68,22 @@ class MonitoredJob:
 
 def main(args):
     config = _read_config(args.config)
-    sentry_cfg = dict(config["sentry"]) if config.has_section("sentry") else None
-    statsd_cfg = dict(config["statsd"]) if config.has_section("statsd") else None
+    sentry_cfg = config.get("sentry_cron_jobs", {})
+    statsd_server = config.get("admin", {}).get("statsd_server", "")
+    config = None
     command = [args.script] + args.script_args
     job_name = args.job_name
 
-    job = MonitoredJob(command, sentry_cfg, statsd_cfg, job_name)
+    job = MonitoredJob(command, sentry_cfg, statsd_server, job_name)
     job.run()
 
 
 def _read_config(config_path):
     if not Path(config_path).exists():
         raise FileNotFoundError("Missing cron-wrapper configuration file")
-    config_parser = ConfigParser()
-    config_parser.read(config_path)
-    return config_parser
+    with open(config_path, "r") as in_file:
+        config = yaml.safe_load(in_file)
+        return config
 
 
 def _parse_args():
