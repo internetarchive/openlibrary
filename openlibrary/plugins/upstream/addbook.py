@@ -571,6 +571,27 @@ class SaveBookHelper:
 
             if self.work and self.work.edition_count == 0:
                 self.delete(self.work.key, comment=comment)
+            
+            # Handle merge request closure if mrid is provided
+            mrid = formdata.get('mrid')
+            if mrid:
+                from openlibrary.core.edits import CommunityEditsQueue
+                try:
+                    # Convert mrid to int (it comes from form as string)
+                    mrid_int = int(mrid)
+                    # Mark the merge request as merged/approved since the record was deleted
+                    CommunityEditsQueue.update_request_status(
+                        rid=mrid_int,
+                        status=CommunityEditsQueue.STATUS['MERGED'],
+                        reviewer=user.key.split('/')[-1],
+                        comment=comment or 'Record deleted via delete action'
+                    )
+                    logger.info(f'Successfully closed merge request {mrid} after deleting record')
+                except ValueError as e:
+                    logger.error(f'Invalid merge request ID format: {mrid} - {e}')
+                except Exception as e:
+                    logger.error(f'Failed to close merge request {mrid}: {e}')
+            
             return
 
         just_editing_work = edition_data is None

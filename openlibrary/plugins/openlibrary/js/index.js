@@ -582,4 +582,18 @@ jQuery(function () {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
     }
+
+    const mrReviewPanel = document.getElementById('mr-review-panel');
+    console.log('[BOOT] mrReviewPanel:', mrReviewPanel);
+
+    if (mrReviewPanel) {
+        console.log('[BOOT] loading MergeRequestEditPage');
+        import('./merge-request-table/MergeRequestEditPage')
+            .then(module => {
+                console.log('[BOOT] MergeRequestEditPage loaded');
+                module.initMergeRequestEditPage();
+            });
+    }
+
+
 });
