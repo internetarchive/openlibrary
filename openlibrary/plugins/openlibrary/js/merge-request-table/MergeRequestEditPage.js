@@ -4,10 +4,10 @@ export function initMergeRequestEditPage() {
     console.log('[MR EDIT] initMergeRequestEditPage called')
 
     const panel = document.getElementById('mr-review-panel')
-        if (!panel) {
-            console.warn('[MR EDIT] No MR review panel found, aborting')
-            return
-        }
+    if (!panel) {
+        console.warn('[MR EDIT] No MR review panel found, aborting')
+        return
+    }
 
     // ✅ NEW (FIXED): Reads directly from the URL (Source of Truth)
     const urlParams = new URLSearchParams(window.location.search);
