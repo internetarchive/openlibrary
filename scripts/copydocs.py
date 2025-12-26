@@ -365,9 +365,26 @@ def main(
     if isinstance(dest_ol, OpenLibrary):
         section = "[%s]" % web.lstrips(dest, "http://").strip("/")
         if section in read_lines(os.path.expanduser("~/.olrc")):
-            dest_ol.autologin()
+            if not dest_ol.autologin():
+                print(
+                    f"Error: Failed to login using credentials from ~/.olrc "
+                    f"for section {section}"
+                )
+                print("Please verify your ~/.olrc credentials have write permissions.")
+                sys.exit(1)
         else:
-            dest_ol.login("admin", "admin123")
+            if not dest_ol.login("admin", "admin123"):
+                print("Error: Failed to login with default credentials (admin/admin123)")
+                print(
+                    "For local development, ensure the admin user exists "
+                    "and has the correct password."
+                )
+                print("Alternatively, create a ~/.olrc file with your credentials:")
+                print(f"  [{web.lstrips(dest, 'http://').strip('/')}]")
+                print("  username = your_username")
+                print("  password = your_password")
+                sys.exit(1)
+        print(f"Successfully logged in to {dest}")
 
     for list_key in lists or []:
         copy_list(src_ol, dest_ol, list_key, comment=comment)

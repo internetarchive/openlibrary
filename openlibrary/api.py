@@ -94,7 +94,14 @@ class OpenLibrary:
         return self.login(username, password)
 
     def login(self, username, password):
-        """Login to Open Library with given credentials."""
+        """Login to Open Library with given credentials.
+
+        Returns:
+            bool: True if login was successful, False otherwise.
+
+        Raises:
+            OLError: If a non-authentication HTTP error occurs.
+        """
         headers = {'Content-Type': 'application/json'}
         try:
             data = json.dumps({"username": username, "password": password})
@@ -102,11 +109,16 @@ class OpenLibrary:
                 '/account/login', method='POST', data=data, headers=headers
             )
         except OLError as e:
-            response = e
+            if e.code in (401, 403):
+                return False
+            raise
 
         if 'Set-Cookie' in response.headers:
             cookies = response.headers['Set-Cookie'].split(',')
             self.cookie = ';'.join([c.split(';')[0] for c in cookies])
+            return True
+        logger.warning("Login request succeeded but no session cookie was received")
+        return False
 
     def get(self, key, v=None):
         response = self._request(key + '.json', params={'v': v} if v else {})
