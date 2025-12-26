@@ -16,12 +16,12 @@ DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_server, job_name):
+    def __init__(self, command, sentry_cfg, statsd_server, monitor_slug):
         self.command = command
         statsd_host_and_port = statsd_server.split(":")
         self.statsd_client = self._setup_statsd(statsd_host_and_port[0], statsd_host_and_port[1])
         self._setup_sentry(sentry_cfg.get("dsn", ""))
-        self.job_name = job_name
+        self.monitor_slug = monitor_slug
         self.job_failed = False
 
     def run(self):
@@ -40,15 +40,15 @@ class MonitoredJob:
 
     def _before_run(self):
         if self.statsd_client:
-            self.statsd_client.incr(f'cron.{self.job_name}.start')
-            self.job_timer = self.statsd_client.timer(f'cron.{self.job_name}.duration')
+            self.statsd_client.incr(f'ol.cron.{self.monitor_slug}.start')
+            self.job_timer = self.statsd_client.timer(f'ol.cron.{self.monitor_slug}.duration')
             self.job_timer.start()
 
     def _after_run(self):
         if self.statsd_client:
             self.job_timer.stop()
             status = "failure" if self.job_failed else "stop"
-            self.statsd_client.incr(f'cron.{self.job_name}.{status}')
+            self.statsd_client.incr(f'ol.cron.{self.monitor_slug}.{status}')
 
     def _run_script(self):
         return subprocess.run(
@@ -72,9 +72,9 @@ def main(args):
     statsd_server = config.get("admin", {}).get("statsd_server", "")
     config = None
     command = [args.script] + args.script_args
-    job_name = args.job_name
+    monitor_slug = args.monitor_slug
 
-    job = MonitoredJob(command, sentry_cfg, statsd_server, job_name)
+    job = MonitoredJob(command, sentry_cfg, statsd_server, monitor_slug)
     job.run()
 
 
@@ -94,7 +94,7 @@ def _parse_args():
         default=DEFAULT_CONFIG_PATH,
         help=f"Path to cron-wrapper configuration file. Defaults to \"{DEFAULT_CONFIG_PATH}\"",
     )
-    _parser.add_argument("job_name", help="Name of the job to be monitored")
+    _parser.add_argument("monitor_slug", help="Monitor slug of the Sentry cron monitor")
     _parser.add_argument(
         "script", help="Path to script that will be wrapped and monitored"
     )
