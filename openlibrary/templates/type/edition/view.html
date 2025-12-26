@@ -449,7 +449,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
-                    $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or (ctx.user and ctx.user.is_admin()):
+                    $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or is_privileged_user:
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
