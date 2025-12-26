@@ -6,10 +6,10 @@ Executes the given script with the given arguments, adding profiling and error r
 import argparse
 import subprocess
 import sys
-import yaml
 from pathlib import Path
 
 import sentry_sdk
+import yaml
 from statsd import StatsClient
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
@@ -19,7 +19,9 @@ class MonitoredJob:
     def __init__(self, command, sentry_cfg, statsd_server, monitor_slug):
         self.command = command
         statsd_host_and_port = statsd_server.split(":")
-        self.statsd_client = self._setup_statsd(statsd_host_and_port[0], statsd_host_and_port[1])
+        self.statsd_client = self._setup_statsd(
+            statsd_host_and_port[0], statsd_host_and_port[1]
+        )
         self._setup_sentry(sentry_cfg.get("dsn", ""))
         self.monitor_slug = monitor_slug
         self.job_failed = False
@@ -40,7 +42,9 @@ class MonitoredJob:
     def _before_run(self):
         if self.statsd_client:
             self.statsd_client.incr(f'ol.cron.{self.monitor_slug}.start')
-            self.job_timer = self.statsd_client.timer(f'ol.cron.{self.monitor_slug}.duration')
+            self.job_timer = self.statsd_client.timer(
+                f'ol.cron.{self.monitor_slug}.duration'
+            )
             self.job_timer.start()
 
     def _after_run(self):
@@ -80,7 +84,7 @@ def main(args):
 def _read_config(config_path):
     if not Path(config_path).exists():
         raise FileNotFoundError("Missing cron-wrapper configuration file")
-    with open(config_path, "r") as in_file:
+    with open(config_path) as in_file:
         config = yaml.safe_load(in_file)
         return config
 
