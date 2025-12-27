@@ -101,6 +101,25 @@ class checkout_with_ocaid(delegate.page):
         borrow().POST(ia_edition.location)
 
 
+# Handler for /watch/ia/{identifier} - video watch redirect
+class watch_ia(delegate.page):
+    path = "/watch/ia/(.*)"
+
+    def GET(self, identifier):
+        """Redirect to Internet Archive video with interstitial page."""
+        if not identifier:
+            raise web.notfound()
+
+        video_url = f"https://archive.org/details/{identifier}"
+        stats.increment('ol.views.booktalks')
+        return render_template(
+            "interstitial",
+            url=video_url,
+            provider_name="Internet Archive",
+            content_type="video",
+        )
+
+
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
     path = "(/books/.*)/borrow"

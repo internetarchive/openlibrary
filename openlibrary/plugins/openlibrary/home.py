@@ -16,7 +16,6 @@ from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import set_context_from_legacy_web_py
-from openlibrary.utils.dateutil import DAY_SECS
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -322,59 +321,63 @@ def format_book_data(book, fetch_availability=True):
     return d
 
 
-def get_book_talks(limit: int = 18) -> list[dict]:
-    """Fetch book talks from archive.org API."""
+BOOK_TALKS_API_URL = "https://archive.org/advancedsearch.php"
+
+
+def get_book_talks(limit: int = 20) -> list[dict]:
+    """Fetch book talks from Internet Archive's booktalks collection.
+
+    Returns a list of dicts with identifier, title, date, cover_url, and video_url.
+    """
     if 'env' not in web.ctx:
         delegate.fakeload()
 
+    params = {
+        'q': 'collection:booktalks',
+        'fl[]': ['identifier', 'title', 'date'],
+        'sort[]': 'date desc',
+        'rows': limit,
+        'page': 1,
+        'output': 'json',
+    }
+
     try:
-        url = "https://archive.org/advancedsearch.php"
-        params = {
-            "q": "collection:booktalks",
-            "fl[]": ["identifier", "title", "date"],
-            "sort[]": "date desc",
-            "rows": limit,
-            "page": 1,
-            "output": "json",
-        }
-        response = httpx.get(url, params=params, timeout=10)
+        response = httpx.get(BOOK_TALKS_API_URL, params=params, timeout=10.0)
         response.raise_for_status()
         data = response.json()
-        docs = data.get("response", {}).get("docs", [])
-
-        # Format the data for the carousel
-        book_talks = []
-        for doc in docs:
-            identifier = doc.get("identifier", "")
-            if identifier:
-                book_talks.append(
-                    {
-                        "identifier": identifier,
-                        "title": doc.get("title", "Untitled"),
-                        "date": doc.get("date", ""),
-                        "cover_url": f"https://archive.org/services/img/{identifier}/full/pct:250/0/default.jpg",
-                        "url": f"https://archive.org/details/{identifier}",
-                    }
-                )
-        return book_talks
-    except Exception:
-        logger.exception("Error fetching book talks from archive.org")
+    except (httpx.HTTPError, httpx.TimeoutException, ValueError) as e:
+        logger.error(f"Error fetching book talks: {e}", exc_info=True)
         return []
+
+    docs = data.get('response', {}).get('docs', [])
+    book_talks = []
+
+    for doc in docs:
+        identifier = doc.get('identifier')
+        if not identifier:
+            continue
+
+        book_talk = {
+            'identifier': identifier,
+            'title': doc.get('title', 'Untitled'),
+            'date': doc.get('date', ''),
+            'cover_url': f'https://archive.org/services/img/{identifier}',
+            'video_url': f'https://archive.org/details/{identifier}',
+        }
+        book_talks.append(book_talk)
+
+    return book_talks
 
 
 @public
-def get_cached_book_talks(limit: int = 18) -> list[dict]:
-    """Get cached book talks with 1 day cache."""
-    cached_book_talks = cache.memcache_memoize(
+def get_cached_book_talks(limit: int = 20):
+    """Get book talks with 1-day caching."""
+    return cache.memcache_memoize(
         get_book_talks,
         "home.book_talks",
-        timeout=DAY_SECS,
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
-    )
-    book_talks = cached_book_talks(limit=limit)
-    if not book_talks:
-        book_talks = cached_book_talks.update(limit=limit)[0]
-    return book_talks or []
+    )(limit)
 
 
 def setup():
