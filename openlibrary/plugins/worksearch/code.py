@@ -982,6 +982,7 @@ class subject_search(delegate.page):
         return response
 
 
+@deprecated("migrated to fastapi")
 class subject_search_json(subject_search):
     path = '/search/subjects'
     encoding = 'json'

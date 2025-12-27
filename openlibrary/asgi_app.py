@@ -178,9 +178,11 @@ def create_app() -> FastAPI:
 
     from openlibrary.fastapi.languages import router as languages_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
+    from openlibrary.fastapi.search_subjects import router as search_subjects_router  # type: ignore
 
     app.include_router(languages_router)
     app.include_router(search_router)
+    app.include_router(search_subjects_router)
 
     return app
 
