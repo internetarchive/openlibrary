@@ -1974,7 +1974,16 @@ msgid ""
 msgstr ""
 
 #: interstitial.html
+msgid "You are being redirected to your video"
+msgstr ""
+
+#: interstitial.html
 msgid "You are being redirected to your book"
+msgstr ""
+
+#: interstitial.html
+#, python-format
+msgid "This video is provided by %(video_provider)s"
 msgstr ""
 
 #: interstitial.html
@@ -5606,6 +5615,10 @@ msgstr ""
 
 #: home/book_talks_carousel.html lib/nav_head.html
 msgid "Book Talks"
+msgstr ""
+
+#: home/book_talks_carousel.html
+msgid "Watch on Internet Archive"
 msgstr ""
 
 #: home/book_talks_carousel.html
