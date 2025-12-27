@@ -1039,6 +1039,7 @@ class author_search(delegate.page):
         return resp
 
 
+@deprecated("migrated to fastapi")
 class author_search_json(author_search):
     path = '/search/authors'
     encoding = 'json'
