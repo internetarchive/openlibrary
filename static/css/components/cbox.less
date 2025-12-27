@@ -2,6 +2,7 @@
 // stylelint-disable selector-max-specificity
 @import (less) "../less/font-families.less";
 @import (less) "../less/z-index.less";
+@import (reference) "../less/border-radius.less";
 
 /* COLORBOX POP-UP */
 #colorbox,
@@ -73,7 +74,7 @@
     background: @white;
     padding: 10px;
     border: 1px solid @dark-beige;
-    border-radius: 12px;
+    border-radius: @border-radius-overlay;
     -webkit-box-shadow: 1px 3px 5px @darker-grey;
     box-shadow: 1px 3px 5px @darker-grey;
   }
@@ -263,7 +264,7 @@ div.floater {
   .carousel .cta-btn {
     color: @grey;
     border: 2px solid @light-grey;
-    border-radius: 6px;
+    border-radius: @border-radius-button;
     position: relative;
   }
 }
