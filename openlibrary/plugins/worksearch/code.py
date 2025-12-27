@@ -914,6 +914,7 @@ class list_search(delegate.page):
 
 
 # inherits from list_search but modifies the GET response to return results in JSON format
+@deprecated('migrated to fastapi')
 class list_search_json(list_search):
     # used subject_search_json as a reference
     path = '/search/lists'
