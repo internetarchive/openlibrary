@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -11,11 +11,10 @@ from pydantic import (
     Field,
     computed_field,
     field_validator,
-    model_validator,
 )
 
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.plugins.inside.code import RESULTS_PER_PAGE
+from openlibrary.fastapi.models import Pagination, PaginationLimit20
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     validate_search_json_query,
@@ -24,25 +23,6 @@ from openlibrary.plugins.worksearch.code import (
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
-
-
-# Ideally this will go in a models files, we'll move it for the 2nd endpoint
-class Pagination(BaseModel):
-    """Reusable pagination parameters for API endpoints."""
-
-    limit: int = Field(100, ge=0, description="Maximum number of results to return.")
-    offset: int | None = Field(
-        None, ge=0, description="Number of results to skip.", exclude=True
-    )
-    page: int | None = Field(None, ge=1, description="Page number (1-indexed).")
-
-    @model_validator(mode='after')
-    def normalize_pagination(self) -> Self:
-        if self.offset is not None:
-            self.page = None
-        elif self.page is None:
-            self.page = 1
-        return self
 
 
 class PublicQueryOptions(BaseModel):
@@ -220,10 +200,9 @@ async def search_json(
 
 @router.get("/search/inside.json")
 async def search_inside_json(
+    pagination: Annotated[PaginationLimit20, Depends()],
     q: str = Query(..., title="Search query"),
-    page: int | None = Query(1, ge=1, description="Page number"),
-    limit: int | None = Query(
-        RESULTS_PER_PAGE, ge=0, le=RESULTS_PER_PAGE, description="Results per page"
-    ),
 ):
-    return await fulltext_search_async(q, page=page, limit=limit, js=True, facets=True)
+    return await fulltext_search_async(
+        q, page=pagination.page, limit=pagination.limit, js=True, facets=True
+    )

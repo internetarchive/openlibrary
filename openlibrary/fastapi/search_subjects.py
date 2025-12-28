@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Query
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Query
+
+from openlibrary.fastapi.models import Pagination
 from openlibrary.plugins.worksearch.code import async_run_solr_query
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 
@@ -8,15 +11,14 @@ router = APIRouter()
 
 @router.get("/search/subjects.json")
 async def search_subjects_json(
+    pagination: Annotated[Pagination, Depends()],
     q: str = Query("", description="The search query"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=0, le=1000),
 ):
     response = await async_run_solr_query(
         SubjectSearchScheme(),
         {'q': q},
-        offset=offset,
-        rows=limit,
+        offset=pagination.offset,
+        rows=pagination.limit,
         sort='work_count desc',
         request_label='SUBJECT_SEARCH_API',
     )
