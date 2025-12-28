@@ -39,6 +39,19 @@ def mock_work_search():
         yield mock
 
 
+@pytest.fixture
+def mock_fulltext_search_async():
+    """Mock fulltext_search_async function to avoid actual Solr calls.
+
+    Used by search/inside endpoint tests.
+    """
+    with patch(
+        'openlibrary.fastapi.search.fulltext_search_async', autospec=True
+    ) as mock:
+        mock.return_value = {'docs': [], 'numFound': 0}
+        yield mock
+
+
 def _default_search_response():
     """Default mock response shared by both sync and async mocks."""
     return {
