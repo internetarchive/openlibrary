@@ -180,3 +180,53 @@ class TestAPIContract:
                 f"Query '{key}' mismatch for {description}: "
                 f"FastAPI={fastapi_val}, webpy={webpy_val}"
             )
+
+    @pytest.mark.parametrize(
+        ('params', 'description', 'expected_kwargs'),
+        [
+            (
+                {'q': 'test search inside', 'page': '5', 'limit': '25'},
+                'all parameters',
+                {
+                    'q': 'test search inside',
+                    'page': 5,
+                    'limit': 25,
+                    'js': True,
+                    'facets': True,
+                },
+            ),
+        ],
+    )
+    def test_search_inside_parameters(
+        self,
+        fastapi_client,
+        mock_fulltext_search_async,
+        params,
+        description,
+        expected_kwargs,
+    ):
+        """Test search_inside endpoint passes all parameters correctly."""
+
+        query_string = urlencode(params)
+        response = fastapi_client.get(f'/search/inside.json?{query_string}')
+
+        assert response.status_code == 200, f"Failed for: {description}"
+        mock_fulltext_search_async.assert_called_once()
+
+        # Verify all parameters were passed correctly
+        call_args = mock_fulltext_search_async.call_args
+        # q is passed as positional arg (first element)
+        q = call_args[0][0]
+        assert q == expected_kwargs['q'], (
+            f"Parameter 'q' mismatch for {description}: "
+            f"expected={expected_kwargs['q']}, actual={q}"
+        )
+
+        # Other params are keyword arguments
+        for key in ['page', 'limit', 'js', 'facets']:
+            expected_val = expected_kwargs[key]
+            actual_val = call_args.kwargs.get(key)
+            assert actual_val == expected_val, (
+                f"Parameter '{key}' mismatch for {description}: "
+                f"expected={expected_val}, actual={actual_val}"
+            )
