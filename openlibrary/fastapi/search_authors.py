@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Query
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Query
+
+from openlibrary.fastapi.models import Pagination
 from openlibrary.plugins.worksearch.code import async_run_solr_query
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 
@@ -8,17 +11,16 @@ router = APIRouter()
 
 @router.get("/search/authors.json")
 async def search_authors_json(
+    pagination: Annotated[Pagination, Depends()],
     q: str = Query("", description="The search query"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=0, le=1000),
     fields: str = Query("*", description="Fields to return"),
     sort: str = Query("", description="Sort order"),
 ):
     response = await async_run_solr_query(
         AuthorSearchScheme(),
         {'q': q},
-        offset=offset,
-        rows=limit,
+        offset=pagination.offset,
+        rows=pagination.limit,
         fields=fields,
         sort=sort,
         request_label='AUTHOR_SEARCH_API',
