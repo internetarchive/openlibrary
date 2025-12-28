@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any, Literal
 
+import web
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
@@ -16,10 +17,14 @@ from pydantic import (
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.fastapi.models import Pagination, PaginationLimit20
 from openlibrary.plugins.worksearch.code import (
+    async_run_solr_query,
     default_spellcheck_count,
     validate_search_json_query,
     work_search_async,
 )
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
@@ -206,3 +211,89 @@ async def search_inside_json(
     return await fulltext_search_async(
         q, page=pagination.page, limit=pagination.limit, js=True, facets=True
     )
+
+
+@router.get("/search/subjects.json")
+async def search_subjects_json(
+    pagination: Annotated[Pagination, Depends()],
+    q: str = Query("", description="The search query"),
+):
+    response = await async_run_solr_query(
+        SubjectSearchScheme(),
+        {'q': q},
+        offset=pagination.offset,
+        rows=pagination.limit,
+        sort='work_count desc',
+        request_label='SUBJECT_SEARCH_API',
+    )
+
+    # Backward compatibility
+    raw_resp = response.raw_resp['response']
+    for doc in raw_resp['docs']:
+        doc['type'] = doc.get('subject_type', 'subject')
+        doc['count'] = doc.get('work_count', 0)
+
+    return raw_resp
+
+
+@router.get("/search/lists.json")
+async def search_lists_json(
+    pagination: Annotated[PaginationLimit20, Depends()],
+    q: str = Query("", description="The search query"),
+    fields: str = Query("", description="Fields to return"),
+    sort: str = Query("", description="Sort order"),
+    api: str = Query(
+        "", description="API version: 'next' for new format, empty for old format"
+    ),
+):
+    response = await async_run_solr_query(
+        ListSearchScheme(),
+        {'q': q},
+        offset=pagination.offset,
+        rows=pagination.limit,
+        fields=fields,
+        sort=sort,
+        request_label='LIST_SEARCH_API',
+    )
+
+    if api == 'next':
+        # Match search.json
+        return {
+            'numFound': response.num_found,
+            'num_found': response.num_found,
+            'start': pagination.offset,
+            'q': q,
+            'docs': response.docs,
+        }
+    else:
+        # Default to the old API shape for a while, then we'll flip
+        lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
+        return {
+            'start': pagination.offset,
+            'docs': [lst.preview() for lst in lists],
+        }
+
+
+@router.get("/search/authors.json")
+async def search_authors_json(
+    pagination: Annotated[Pagination, Depends()],
+    q: str = Query("", description="The search query"),
+    fields: str = Query("*", description="Fields to return"),
+    sort: str = Query("", description="Sort order"),
+):
+    response = await async_run_solr_query(
+        AuthorSearchScheme(),
+        {'q': q},
+        offset=pagination.offset,
+        rows=pagination.limit,
+        fields=fields,
+        sort=sort,
+        request_label='AUTHOR_SEARCH_API',
+    )
+
+    # SIGH the public API exposes the key like this :(
+    raw_resp = response.raw_resp['response']
+    for doc in raw_resp['docs']:
+        doc['key'] = doc['key'].split('/')[-1]
+
+    return raw_resp
