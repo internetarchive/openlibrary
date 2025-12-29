@@ -95,7 +95,11 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
     This creates a minimal web.py application allowing real HTTP request parsing for endpoints.
     """
     from openlibrary.plugins.inside.code import search_inside_json
-    from openlibrary.plugins.worksearch.code import search_json, subject_search_json
+    from openlibrary.plugins.worksearch.code import (
+        list_search_json,
+        search_json,
+        subject_search_json,
+    )
 
     # Create a minimal web.py app with all search endpoints
     urls = (
@@ -105,6 +109,8 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         'search_inside_json',
         '/search/subjects',
         'subject_search_json',
+        '/search/lists',
+        'list_search_json',
     )
 
     # Create app with all handlers in the global namespace
@@ -114,6 +120,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
             'search_json': search_json,
             'search_inside_json': search_inside_json,
             'subject_search_json': subject_search_json,
+            'list_search_json': list_search_json,
         },
     )
 
@@ -294,6 +301,94 @@ class TestAPIContract:
         for key in ['page', 'limit', 'js', 'facets']:
             fastapi_val = fastapi_kwargs.get(key)
             webpy_val = webpy_kwargs.get(key)
+            assert fastapi_val == webpy_val, (
+                f"Parameter '{key}' mismatch for {description}: "
+                f"FastAPI={fastapi_val}, webpy={webpy_val}"
+            )
+
+    @pytest.mark.parametrize(
+        ('params', 'description'),
+        [
+            ({'q': 'reading lists'}, 'basic query'),
+            (
+                {'q': 'favorites', 'offset': '5', 'limit': '10'},
+                'pagination with api=next',
+            ),
+        ],
+    )
+    def test_both_lists_endpoints_call_search_with_same_params(
+        self,
+        fastapi_client,
+        webpy_client,
+        mock_async_run_solr_query,
+        mock_run_solr_query,
+        params,
+        description,
+    ):
+        """Verify both webpy and FastAPI search/lists endpoints pass equivalent parameters.
+
+        This test makes real HTTP requests to both FastAPI and webpy search/lists endpoints,
+        then compares the arguments passed to their respective solr query functions.
+        Note: We only test the 'api=next' format since both use the same code path.
+        """
+        # Add api=next to params if not present
+        if 'api' not in params:
+            params = {**params, 'api': 'next'}
+
+        query_string = urlencode(params, doseq=True)
+
+        # === Call FastAPI endpoint ===
+        fastapi_response = fastapi_client.get(f'/search/lists.json?{query_string}')
+        assert fastapi_response.status_code == 200, f"FastAPI failed for: {description}"
+
+        mock_async_run_solr_query.assert_called_once()
+        fastapi_call_args = mock_async_run_solr_query.call_args
+
+        # === Call webpy endpoint ===
+        webpy_response = webpy_client.get(f'/search/lists?{query_string}')
+        assert webpy_response.status_code == 200, f"webpy failed for: {description}"
+
+        mock_run_solr_query.assert_called_once()
+        webpy_call_args = mock_run_solr_query.call_args
+
+        # === Compare the call arguments ===
+        # Both call their respective solr query functions with scheme, param dict, and kwargs
+
+        # Compare param dict (second positional arg)
+        fastapi_param = fastapi_call_args[0][1]
+        webpy_param = webpy_call_args[0][1]
+
+        for key in ['q']:
+            fastapi_val = fastapi_param.get(key)
+            webpy_val = webpy_param.get(key)
+            assert fastapi_val == webpy_val, (
+                f"Parameter '{key}' mismatch for {description}: "
+                f"FastAPI={fastapi_val}, webpy={webpy_val}"
+            )
+
+        # Compare kwargs
+        fastapi_kwargs = {
+            k: v for k, v in fastapi_call_args[1].items() if k not in ['scheme']
+        }
+        webpy_kwargs = {
+            k: v for k, v in webpy_call_args[1].items() if k not in ['scheme']
+        }
+
+        for key in ['offset', 'rows', 'fields', 'sort', 'request_label']:
+            fastapi_val = fastapi_kwargs.get(key)
+            webpy_val = webpy_kwargs.get(key)
+
+            # Handle offset: FastAPI may pass None, webpy defaults to 0
+            if key == 'offset' and fastapi_val is None and webpy_val == 0:
+                continue
+
+            # Handle fields: empty string vs None
+            if key == 'fields' and (
+                (fastapi_val == '' or fastapi_val is None)
+                and (webpy_val == '' or webpy_val is None)
+            ):
+                continue
+
             assert fastapi_val == webpy_val, (
                 f"Parameter '{key}' mismatch for {description}: "
                 f"FastAPI={fastapi_val}, webpy={webpy_val}"
