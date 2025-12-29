@@ -3,7 +3,6 @@
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
 [![Tham gia cuộc trò chuyện tại https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Mở trong Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 [![những người đóng góp](https://img.shields.io/github/contributors/internetarchive/openlibrary.svg)](https://github.com/internetarchive/openlibrary/graphs/contributors)
 
 [Open Library](https://openlibrary.org) là một danh mục thư viện mở, có thể được chỉnh sửa, hướng tới việc tạo ra một trang web cho mỗi cuốn sách từng được xuất bản.
@@ -41,10 +40,6 @@ Chạy `docker compose up` và truy cập http://localhost:8080
 
 Cần thêm chi tiết? Xem thử [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 hoặc [video hướng dẫn](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
-
-***Ngoài ra***, nếu bạn không muốn thiết lập Open Library trên máy tính cá nhân của mình, hãy thử sử dụng Gitpod! Điều này cho phép bạn làm việc với Open Library hoàn toàn trong trình duyệt mà không cần cài đặt bất kỳ thứ gì trên máy tính cá nhân.
-Cảnh báo: Việc tích hợp này vẫn đang trong giai đoạn thử nghiệm.
-[![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### Hướng dẫn dành cho nhà phát triển
 

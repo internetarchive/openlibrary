@@ -46,8 +46,8 @@ import logging
 logger = logging.getLogger('openlibrary.plugins.upstream.code')
 
 
-# Note: This is done in web_nginx.conf on production ; this endpoint is
-# only used in development/gitpod.
+# Note: This is done in web_nginx.conf on production; this endpoint is
+# only used in development.
 class static(delegate.page):
     path = "/images/.*"
 
