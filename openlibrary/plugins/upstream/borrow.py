@@ -101,7 +101,6 @@ class checkout_with_ocaid(delegate.page):
         borrow().POST(ia_edition.location)
 
 
-
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
     path = "(/books/.*)/borrow"
