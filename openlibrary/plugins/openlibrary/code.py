@@ -1263,7 +1263,7 @@ def is_bot():
         'nsrbot',
         'discordbot',
         'ahrefsbot',
-        '`googlebot',
+        'googlebot',
         'coccocbot',
         'buzzbot',
         'laserlikebot',
