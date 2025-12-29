@@ -89,22 +89,27 @@ def generate_test_params_from_model(
 
 
 @pytest.fixture
-def webpy_client(mock_work_search):
-    """Create a WebTest client for the webpy search_json endpoint.
+def webpy_client(mock_work_search, mock_fulltext_search):
+    """Create a WebTest client for webpy search endpoints.
 
-    This creates a minimal web.py application that routes /search.json
-    to the actual search_json handler, allowing real HTTP request parsing.
+    This creates a minimal web.py application allowing real HTTP request parsing for endpoints.
     """
+    from openlibrary.plugins.inside.code import search_inside_json
     from openlibrary.plugins.worksearch.code import search_json
 
-    # Create a minimal web.py app with just the search endpoint
+    # Create a minimal web.py app with both search endpoints
     urls = (
         '/search.json',
         'search_json',
+        '/search/inside',
+        'search_inside_json',
     )
 
-    # Create app with the search_json class in the global namespace
-    app = web.application(urls, {'search_json': search_json})
+    # Create app with both handlers in the global namespace
+    app = web.application(
+        urls,
+        {'search_json': search_json, 'search_inside_json': search_inside_json},
+    )
 
     # Return a WebTest TestApp wrapping the WSGI app
     return TestApp(app.wsgifunc())
@@ -229,4 +234,61 @@ class TestAPIContract:
             assert actual_val == expected_val, (
                 f"Parameter '{key}' mismatch for {description}: "
                 f"expected={expected_val}, actual={actual_val}"
+            )
+
+    @pytest.mark.parametrize(
+        ('params', 'description'),
+        [
+            ({'q': 'python programming'}, 'basic query'),
+            ({'q': 'test', 'page': '2', 'limit': '15'}, 'pagination'),
+        ],
+    )
+    def test_both_search_inside_endpoints_call_search_with_same_params(
+        self,
+        fastapi_client,
+        webpy_client,
+        mock_fulltext_search_async,
+        mock_fulltext_search,
+        params,
+        description,
+    ):
+        """Verify both webpy and FastAPI search_inside endpoints pass equivalent parameters.
+
+        This test makes real HTTP requests to both FastAPI and webpy search_inside endpoints,
+        then compares the arguments passed to their respective search functions.
+        """
+        query_string = urlencode(params, doseq=True)
+
+        # === Call FastAPI endpoint ===
+        fastapi_response = fastapi_client.get(f'/search/inside.json?{query_string}')
+        assert fastapi_response.status_code == 200, f"FastAPI failed for: {description}"
+
+        mock_fulltext_search_async.assert_called_once()
+        fastapi_call_args = mock_fulltext_search_async.call_args
+
+        # === Call webpy endpoint ===
+        webpy_response = webpy_client.get(f'/search/inside?{query_string}')
+        assert webpy_response.status_code == 200, f"webpy failed for: {description}"
+
+        mock_fulltext_search.assert_called_once()
+        webpy_call_args = mock_fulltext_search.call_args
+
+        # === Compare the positional args (q) ===
+        fastapi_q = fastapi_call_args[0][0]
+        webpy_q = webpy_call_args[0][0]
+        assert fastapi_q == webpy_q, (
+            f"Parameter 'q' mismatch for {description}: "
+            f"FastAPI={fastapi_q}, webpy={webpy_q}"
+        )
+
+        # === Compare the keyword args (page, limit, js, facets) ===
+        fastapi_kwargs = fastapi_call_args.kwargs
+        webpy_kwargs = webpy_call_args.kwargs
+
+        for key in ['page', 'limit', 'js', 'facets']:
+            fastapi_val = fastapi_kwargs.get(key)
+            webpy_val = webpy_kwargs.get(key)
+            assert fastapi_val == webpy_val, (
+                f"Parameter '{key}' mismatch for {description}: "
+                f"FastAPI={fastapi_val}, webpy={webpy_val}"
             )
