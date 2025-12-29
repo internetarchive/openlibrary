@@ -11,28 +11,23 @@ div.tutorial__item {
   @media only screen and (min-width: @width-breakpoint-desktop) {
     min-width: 310px;
   }
-
   &:focus {
     border: 1px solid hsl(202, 97%, 28%);
   }
-
   p {
     margin: 4% 5% 5%;
     font-size: 1rem;
     font-weight: 500;
     line-height: normal;
   }
-
   p.small {
     font-size: 0.8rem;
   }
-
   a {
     display: flex;
     align-items: center;
     height: 100px;
   }
-
   img {
     position: relative;
     margin: 5px;
@@ -53,13 +48,11 @@ div.chartHome a:hover,
   &-stats-charts {
     display: flex;
     flex-wrap: wrap;
-
     .statschart {
       flex: 1;
       height: 110px;
       text-align: center;
       padding: 1px;
-
       // stylelint-disable-next-line max-nesting-depth
       .chartShow {
         width: 145px;
@@ -68,17 +61,14 @@ div.chartHome a:hover,
         border-bottom: 1px solid @grey;
         cursor: pointer;
       }
-
       /* stylelint-disable no-descending-specificity */
       /* stylelint-disable max-nesting-depth */
       a {
         color: @black;
         text-decoration: none;
-
         span {
           display: block;
         }
-
         .ticks {
           margin-top: 2px;
           font-family: @georgia_serif-2;
@@ -86,7 +76,6 @@ div.chartHome a:hover,
           font-weight: 700;
           padding-top: 5px;
         }
-
         .label {
           font-family: @body-family;
           font-size: 0.625em;
@@ -98,18 +87,15 @@ div.chartHome a:hover,
       /* stylelint-enable max-nesting-depth */
     }
   }
-
   &-resource {
     font-size: 13px;
     text-align: left;
   }
-
   &-about {
     display: flex;
     flex-wrap: wrap;
     font-size: 13px;
   }
-
   &-about-mission {
     flex: 2;
     min-width: 300px;
@@ -118,7 +104,6 @@ div.chartHome a:hover,
     margin-bottom: 20px;
     font-family: @georgia_serif-2;
   }
-
   &-about-mission-tldr {
     padding: 0;
     margin: 0;
@@ -147,7 +132,6 @@ div.chartHome a:hover,
   li {
     margin: 1em 0;
   }
-
   .collapse {
     margin: 0;
   }
