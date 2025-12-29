@@ -220,6 +220,7 @@ fi
 # =================
 # Generate Sitemaps
 # =================
+# So long as a sitemaps.log doesn't exist, run sitemaps
 if [[ ! -f $TMPDIR/sitemaps/sitemaps.log ]]
 then
     log "generating sitemaps"
