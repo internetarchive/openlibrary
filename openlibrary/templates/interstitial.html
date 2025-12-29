@@ -1,20 +1,12 @@
-$def with(url, provider_name="", wait=5, content_type="book")
+$def with(url, provider_name="", wait=5)
 
 $if provider_name is None:
     $ provider_name = ""
 
-$ is_video = content_type == "video"
-
 <div id="contentBody" class="interstitial" data-url="${url}" data-wait="${wait}">
-  $if is_video:
-    <h1>$_("You are being redirected to your video")</h1>
-  $else:
-    <h1>$_("You are being redirected to your book")</h1>
+  <h1>$_("You are being redirected to your book")</h1>
 
-  $if is_video:
-    <p id="countdown">$:_('This video is provided by %(video_provider)s', video_provider='<strong>' + websafe(provider_name).replace('_', ' ').title() + '</strong>')</p>
-  $else:
-    <p id="countdown">$:_('This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider', book_provider='<strong>' + websafe(provider_name).replace('_', ' ').title() + '</strong>')</p>
+  <p id="countdown">$:_('This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider', book_provider='<strong>' + websafe(provider_name).replace('_', ' ').title() + '</strong>')</p>
 
   <p>$:_('In %(time)s seconds, you will be automatically redirected to: %(url)s', time='<span id="timer">{}</span>'.format(wait), url='<a href="{0}">{0}</a>'.format(url))</p>
 

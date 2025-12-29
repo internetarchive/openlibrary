@@ -20,18 +20,20 @@ $if test or (book_talks and len(book_talks) >= 3):
         <div class="carousel carousel--progressively-enhanced" data-config="$json_encode(config)">
           $for index, talk in enumerate(book_talks or []):
             $ lazy_load = index > 3
-            $ watch_url = '/watch/ia/' + talk.get('identifier', '')
+            $ identifier = talk.get('identifier', '')
+            $ title = talk.get('title', '')
+            $ embed_url = 'https://archive.org/embed/' + identifier + '?autoplay=1'
             <div class="book carousel__item">
               <div class="book-cover">
-                <a href="$watch_url" target="_blank" data-ol-link-track="BookTalksCarousel|CoverClick|book_talks">
+                <a href="#bookTalkPlayer" class="book-talk-link" data-iframe-src="$embed_url" data-title="$title" data-ol-link-track="BookTalksCarousel|CoverClick|book_talks">
                   $if lazy_load:
-                    <img class="bookcover" loading="lazy" title="$(talk.get('title', ''))" alt="$(talk.get('title', ''))" data-lazy="$(talk.get('cover_url', ''))" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+                    <img class="bookcover" loading="lazy" title="$title" alt="$title" data-lazy="$(talk.get('cover_url', ''))" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
                   $else:
-                    <img class="bookcover" loading="lazy" title="$(talk.get('title', ''))" alt="$(talk.get('title', ''))" src="$(talk.get('cover_url', ''))"/>
+                    <img class="bookcover" loading="lazy" title="$title" alt="$title" src="$(talk.get('cover_url', ''))"/>
                 </a>
               </div>
               <div class="book-talk-title">
-                <a href="$watch_url" target="_blank">$:macros.TruncateString(talk.get('title', ''), 50)</a>
+                <a href="#bookTalkPlayer" class="book-talk-link" data-iframe-src="$embed_url" data-title="$title">$:macros.TruncateString(title, 50)</a>
               </div>
               <div class="book-talk-date">
                 $ date_str = talk.get('date', '')
@@ -39,9 +41,7 @@ $if test or (book_talks and len(book_talks) >= 3):
                   $ display_date = date_str[:10] if len(date_str) >= 10 else date_str
                   <span class="date-text">$display_date</span>
               </div>
-              <div class="cta-button-group">
-                <a href="$watch_url" title="$_('Watch on Internet Archive')" class="cta-btn cta-btn--available cta-btn--watch cta-btn--external" target="_blank" data-ol-link-track="BookTalksCarousel|CTAClick|book_talks">$_('Watch')</a>
-              </div>
+              $:macros.BookTalkWatch(identifier, title)
             </div>
         </div>
       </div>
