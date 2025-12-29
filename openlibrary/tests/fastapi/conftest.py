@@ -91,6 +91,24 @@ def mock_run_solr_query():
         yield mock
 
 
+@pytest.fixture
+def mock_get_subject():
+    """Mock get_subject function to avoid actual Solr calls.
+
+    Used by both FastAPI and webpy /subjects/{key} endpoint tests.
+    Returns tuple of (fastapi_mock, webpy_mock) for comparing calls.
+    """
+    with (
+        patch('openlibrary.fastapi.search.get_subject', autospec=True) as fastapi_mock,
+        patch(
+            'openlibrary.plugins.worksearch.subjects.get_subject', autospec=True
+        ) as webpy_mock,
+    ):
+        fastapi_mock.return_value = _default_subject_by_key_response()
+        webpy_mock.return_value = _default_subject_by_key_response()
+        yield fastapi_mock, webpy_mock
+
+
 def _default_search_response():
     """Default mock response shared by both sync and async mocks."""
     return {
@@ -137,3 +155,20 @@ def _default_subjects_response():
         },
         solr_select='mock',
     )
+
+
+def _default_subject_by_key_response():
+    """Default mock response for /subjects/{key} endpoint."""
+    return {
+        'key': '/subjects/fiction',
+        'name': 'fiction',
+        'work_count': 100,
+        'ebook_count': 10,
+        'works': [
+            {
+                'key': '/works/OL1W',
+                'title': 'Test Book 1',
+                'edition_count': 5,
+            }
+        ],
+    }

@@ -140,7 +140,7 @@ class subjects_json(delegate.page):
         return key
 
 
-def date_range_to_publish_year_filter(published_in: str) -> str:
+def date_range_to_publish_year_filter(published_in: str | None) -> str:
     if published_in:
         if '-' in published_in:
             begin, end = published_in.split('-', 1)

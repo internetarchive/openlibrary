@@ -2,6 +2,10 @@
 
 These tests ensure that both implementations call their underlying search functions
 with identical arguments when given the same HTTP request parameters.
+
+Tests can be run via:
+docker compose run --rm web pytest openlibrary/tests/fastapi/test_api_contract.py
+
 """
 
 from typing import Literal, get_args, get_origin
@@ -101,6 +105,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         search_json,
         subject_search_json,
     )
+    from openlibrary.plugins.worksearch.subjects import subjects_json
 
     # Create a minimal web.py app with all search endpoints
     urls = (
@@ -114,6 +119,8 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         'list_search_json',
         '/search/authors',
         'author_search_json',
+        '/subjects/(.+)',
+        'subjects_json',
     )
 
     # Create app with all handlers in the global namespace
@@ -125,6 +132,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
             'subject_search_json': subject_search_json,
             'list_search_json': list_search_json,
             'author_search_json': author_search_json,
+            'subjects_json': subjects_json,
         },
     )
 
@@ -511,7 +519,7 @@ class TestAPIContract:
         # === Compare the call arguments ===
         # Both call their respective solr query functions with scheme, param dict, and kwargs
 
-        # Compare the param dict (second positional arg)
+        # Compare param dict (second positional arg)
         fastapi_param = fastapi_call_args[0][1]
         webpy_param = webpy_call_args[0][1]
 
@@ -543,5 +551,81 @@ class TestAPIContract:
 
             assert fastapi_val == webpy_val, (
                 f"Parameter '{key}' mismatch for {description}: "
+                f"FastAPI={fastapi_val}, webpy={webpy_val}"
+            )
+
+    @pytest.mark.parametrize(
+        ('key', 'params', 'description'),
+        [
+            ('fiction', {}, 'basic subject'),
+            (
+                'person:harry_potter',
+                {'has_fulltext': 'true'},
+                'subject with has_fulltext',
+            ),
+            (
+                'place:new_york',
+                {'offset': '5', 'limit': '10'},
+                'subject with pagination',
+            ),
+            (
+                'time:20th_century',
+                {'published_in': '2000-2010'},
+                'subject with publish_year filter',
+            ),
+        ],
+    )
+    def test_both_subjects_by_key_endpoints_call_get_subject_with_same_params(
+        self,
+        fastapi_client,
+        webpy_client,
+        mock_get_subject,
+        key,
+        params,
+        description,
+    ):
+        """Verify both webpy and FastAPI /subjects/{key} endpoints pass equivalent parameters.
+
+        This test makes real HTTP requests to both FastAPI and webpy /subjects/{key} endpoints,
+        then compares the arguments passed to their respective get_subject functions.
+        """
+        # Unpack mocks: mock_get_subject now returns (fastapi_mock, webpy_mock)
+        fastapi_mock, webpy_mock = mock_get_subject
+        query_string = urlencode(params, doseq=True)
+
+        # === Call FastAPI endpoint ===
+        fastapi_response = fastapi_client.get(f'/subjects/{key}.json?{query_string}')
+        assert fastapi_response.status_code == 200, f"FastAPI failed for: {description}"
+
+        fastapi_mock.assert_called_once()
+        fastapi_call_args = fastapi_mock.call_args
+
+        # === Call webpy endpoint ===
+        webpy_response = webpy_client.get(f'/subjects/{key}?{query_string}')
+        assert webpy_response.status_code == 200, f"webpy failed for: {description}"
+
+        webpy_mock.assert_called_once()
+        webpy_call_args = webpy_mock.call_args
+
+        # === Compare call arguments ===
+        # Compare key (first positional arg)
+        fastapi_key = fastapi_call_args[0][0]
+        webpy_key = webpy_call_args[0][0]
+        assert (
+            fastapi_key == webpy_key
+        ), f"Key mismatch for {description}: FastAPI={fastapi_key}, webpy={webpy_key}"
+
+        # Compare kwargs
+        fastapi_kwargs = fastapi_call_args[1]
+        webpy_kwargs = webpy_call_args[1]
+
+        # Get all keys from both calls
+        all_keys = set(fastapi_kwargs.keys()).union(set(webpy_kwargs.keys()))
+
+        for param_key in all_keys:
+            fastapi_val = fastapi_kwargs.get(param_key)
+            webpy_val = webpy_kwargs.get(param_key)
+            assert fastapi_val == webpy_val, (
+                f"Parameter '{param_key}' mismatch for {description}: "
                 f"FastAPI={fastapi_val}, webpy={webpy_val}"
             )

@@ -4,7 +4,7 @@ import json
 from typing import Annotated, Any, Literal
 
 import web
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -26,6 +26,12 @@ from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.subjects import (
+    DEFAULT_RESULTS,
+    MAX_RESULTS,
+    date_range_to_publish_year_filter,
+    get_subject,
+)
 
 router = APIRouter()
 
@@ -297,3 +303,79 @@ async def search_authors_json(
         doc['key'] = doc['key'].split('/')[-1]
 
     return raw_resp
+
+
+class SubjectsRequestParams(BaseModel):
+    """Parameters for the subjects endpoint."""
+
+    limit: int = Field(
+        DEFAULT_RESULTS,
+        ge=1,
+        le=MAX_RESULTS,
+        description="Maximum number of results to return.",
+    )
+    offset: int = Field(0, ge=0, description="Number of results to skip.")
+    details: bool = Field(False, description="Include detailed facet information.")
+    has_fulltext: bool = Field(False, description="Filter for books with fulltext.")
+    sort: str = Field("editions", description="Sort order of results.")
+    available: bool = Field(
+        False, description="Filter for available books (currently unused)."
+    )
+    published_in: str | None = Field(
+        None, description="Date range filter (e.g., '2000-2010' or '2000')."
+    )
+
+    @computed_field
+    def filters(self) -> dict[str, str]:
+        """Build filters dict based on query parameters."""
+        filters: dict[str, str] = {}
+        if self.has_fulltext:
+            filters['has_fulltext'] = 'true'
+
+        if publish_year_filter := date_range_to_publish_year_filter(self.published_in):
+            filters['publish_year'] = publish_year_filter
+
+        return filters
+
+
+@router.get("/subjects/{subjects}.json")
+async def subjects_json(
+    subjects: Annotated[
+        str, Path(description="Subject key (e.g., 'fiction' or 'person:harry_potter')")
+    ],
+    params: Annotated[SubjectsRequestParams, Query()],
+) -> Any:
+    """
+    Returns works related to a specific subject.
+
+    Supports various query parameters for filtering and pagination:
+    - **limit**: Number of results (default: 12, max: 1000)
+    - **offset**: Number of results to skip (default: 0)
+    - **details**: Include facet information (default: false)
+    - **has_fulltext**: Filter for books with fulltext (default: false)
+    - **sort**: Sort order (default: 'editions')
+    - **published_in**: Date range filter (e.g., '2000-2010' or '2000')
+    """
+    # Normalize the key
+    subjects = subjects.lower()
+
+    # Get subject data
+    try:
+        subject_results = get_subject(
+            subjects,
+            offset=params.offset,
+            limit=params.limit,
+            sort=params.sort,
+            details=params.details,
+            request_label='SUBJECT_ENGINE_API',
+            **params.filters,
+        )
+    except NotImplementedError:
+        # No SubjectEngine for this key
+        raise HTTPException(status_code=404, detail=f"Subject not found: {subjects}")
+
+    # Adjust ebook_count if has_fulltext filter is applied
+    if params.has_fulltext:
+        subject_results['ebook_count'] = subject_results['work_count']
+
+    return subject_results
