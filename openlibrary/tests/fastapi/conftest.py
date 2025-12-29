@@ -93,13 +93,17 @@ def mock_run_solr_query():
 
 @pytest.fixture
 def mock_get_subject():
-    """Mock get_subject function to avoid actual Solr calls.
+    """Mock get_subject and get_subject_async functions to avoid actual Solr calls.
 
     Used by both FastAPI and webpy /subjects/{key} endpoint tests.
-    Returns tuple of (fastapi_mock, webpy_mock) for comparing calls.
+    Returns tuple of (fastapi_mock_async, webpy_mock_sync) for comparing calls.
     """
+    from unittest.mock import AsyncMock
+
     with (
-        patch('openlibrary.fastapi.search.get_subject', autospec=True) as fastapi_mock,
+        patch(
+            'openlibrary.fastapi.search.get_subject_async', new_callable=AsyncMock
+        ) as fastapi_mock,
         patch(
             'openlibrary.plugins.worksearch.subjects.get_subject', autospec=True
         ) as webpy_mock,

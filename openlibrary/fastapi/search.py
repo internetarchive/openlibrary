@@ -30,7 +30,7 @@ from openlibrary.plugins.worksearch.subjects import (
     DEFAULT_RESULTS,
     MAX_RESULTS,
     date_range_to_publish_year_filter,
-    get_subject,
+    get_subject_async,
 )
 
 router = APIRouter()
@@ -361,7 +361,7 @@ async def subjects_json(
 
     # Get subject data
     try:
-        subject_results = get_subject(
+        subject_results = await get_subject_async(
             subjects,
             offset=params.offset,
             limit=params.limit,

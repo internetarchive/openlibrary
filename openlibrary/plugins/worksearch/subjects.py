@@ -14,6 +14,7 @@ from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
@@ -161,7 +162,7 @@ The key-like paths for a subject, eg:
 """
 
 
-def get_subject(
+async def get_subject_async(
     key: SubjectPseudoKey,
     details=False,
     offset=0,
@@ -170,12 +171,12 @@ def get_subject(
     request_label: SolrRequestLabel = 'UNLABELLED',
     **filters,
 ) -> Subject:
-    """Returns data related to a subject.
+    """Returns data related to a subject (async version).
 
     By default, it returns a storage object with key, name, work_count and works.
     The offset and limit arguments are used to get the works.
 
-        >>> get_subject("/subjects/Love") #doctest: +SKIP
+        >>> get_subject_async("/subjects/Love") #doctest: +SKIP
         {
             "key": "/subjects/Love",
             "name": "Love",
@@ -185,7 +186,7 @@ def get_subject(
 
     When details=True, facets and ebook_count are additionally added to the result.
 
-    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
+    >>> get_subject_async("/subjects/Love", details=True) #doctest: +SKIP
     {
         "key": "/subjects/Love",
         "name": "Love",
@@ -230,7 +231,7 @@ def get_subject(
     if not engine:
         raise NotImplementedError(f"No SubjectEngine for key: {key}")
 
-    return engine.get_subject(
+    return await engine.get_subject_async(
         key,
         details=details,
         offset=offset,
@@ -241,6 +242,10 @@ def get_subject(
     )
 
 
+# Sync version wraps async version using async_bridge
+get_subject = async_bridge.wrap(get_subject_async)
+
+
 @dataclass
 class SubjectEngine:
     name: str
@@ -249,7 +254,7 @@ class SubjectEngine:
     facet: str
     facet_key: str
 
-    def get_subject(
+    async def get_subject_async(
         self,
         key,
         details=False,
@@ -260,7 +265,10 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            async_run_solr_query,
+        )
 
         subject_type = self.name
         path = web.lstrips(key, self.prefix)
@@ -270,7 +278,7 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
-        result = run_solr_query(
+        result = await async_run_solr_query(
             WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
@@ -386,6 +394,9 @@ class SubjectEngine:
                     break
 
         return subject
+
+    # Sync version wraps async version using async_bridge
+    get_subject = async_bridge.wrap(get_subject_async)
 
     def normalize_key(self, key):
         return str_to_key(key).lower()
