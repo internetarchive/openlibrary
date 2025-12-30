@@ -1,12 +1,22 @@
 $def with (page, edition=None, edit=True)
 
 $code:
-    mrid = query_param("mrid", None)
-    # Ensure mrid is None if empty string or whitespace
-    if mrid is not None:
-        mrid = mrid.strip() if isinstance(mrid, str) else str(mrid)
-        if not mrid:
-            mrid = None
+    # Properly extract mrid from query parameters
+    mrid_raw = query_param("mrid", None)
+    mrid = None
+    
+    if mrid_raw is not None:
+        # Handle if it's a list (some frameworks return lists)
+        if isinstance(mrid_raw, list):
+            mrid = mrid_raw[0] if mrid_raw else None
+        else:
+            mrid = mrid_raw
+        
+        # Clean and validate
+        if mrid is not None:
+            mrid = str(mrid).strip()
+            if not mrid or mrid == '':
+                mrid = None
 
 $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
     $if edition and page.type.key in ["/type/work"]:
@@ -17,7 +27,7 @@ $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
-
+$# Append mrid to edit_url if it exists
 $if mrid:
     $ edit_url += ('&' if '?' in edit_url else '?') + 'mrid=' + str(mrid)
 
