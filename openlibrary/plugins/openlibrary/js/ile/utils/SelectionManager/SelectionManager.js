@@ -587,7 +587,7 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['author'],
         requires_type: ['author'],
-        multiple_only: true,
+        multiple_only: false,
         name: 'Delete Authors...',
         onclick: true,
     },

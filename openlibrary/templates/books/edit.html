@@ -45,7 +45,7 @@ $:macros.HiddenSaveButton("addWork")
                 <input type="hidden" name="_delete" value="true">
                 $if mrid:
                     <input type="hidden" name="mrid" value="$mrid">
-                <button type="button" id="delete-btn">$_("Delete Record")</button>
+                <button type="submit" id="delete-btn">$_("Delete Record")</button>
             </form>
         </span>
 
@@ -150,4 +150,3 @@ $if mrid and ctx.user:
         <button type="button" id="mr-approve-btn">$_("Approve")</button>
         <button type="button" id="mr-decline-btn">$_("Decline")</button>
     </div>
-

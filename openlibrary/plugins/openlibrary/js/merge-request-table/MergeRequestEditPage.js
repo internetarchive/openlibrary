@@ -4,16 +4,15 @@ export function initMergeRequestEditPage() {
     console.log('[MR EDIT] initMergeRequestEditPage called')
 
     const panel = document.getElementById('mr-review-panel')
-        if (!panel) {
-            console.warn('[MR EDIT] No MR review panel found, aborting')
-            return
-        }
+    if (!panel) {
+        console.warn('[MR EDIT] No MR review panel found, aborting')
+        return
+    }
 
-    // ✅ NEW (FIXED): Reads directly from the URL (Source of Truth)
     const urlParams = new URLSearchParams(window.location.search);
     const mrid = urlParams.get('mrid');
 
-    console.log('[MR EDIT] mrid:', mrid)
+    console.log('[MR EDIT] mrid from URL:', mrid)
 
     if (!mrid) {
         console.warn('[MR EDIT] No mrid found, aborting')
@@ -23,87 +22,104 @@ export function initMergeRequestEditPage() {
     const approveBtn = document.getElementById('mr-approve-btn')
     const declineBtn = document.getElementById('mr-decline-btn')
     const commentInput = document.getElementById('mr-review-comment')
-    const form = document.getElementById('addWork')
-    const deleteBtn = document.getElementById('delete-btn')   // ✅ FIX
-    const reviewPanel = panel                                // ✅ FIX
+    const deleteForm = document.getElementById('delete-record')  // ✅ CORRECT FORM
+    const deleteBtn = document.getElementById('delete-btn')
+    const reviewPanel = panel
 
-    console.log('[MR EDIT] approveBtn:', approveBtn)
-    console.log('[MR EDIT] declineBtn:', declineBtn)
-    console.log('[MR EDIT] commentInput:', commentInput)
-    console.log('[MR EDIT] addWork form:', form)
-    console.log('[MR EDIT] deleteBtn:', deleteBtn)
+    console.log('[MR EDIT] Elements found:', {
+        approveBtn: !!approveBtn,
+        declineBtn: !!declineBtn,
+        commentInput: !!commentInput,
+        deleteForm: !!deleteForm,
+        deleteBtn: !!deleteBtn
+    })
+
+    // Log the form's current state
+    if (deleteForm) {
+        const formData = new FormData(deleteForm)
+        console.log('[MR EDIT] Delete form initial state:', {
+            action: deleteForm.action,
+            method: deleteForm.method,
+            _delete: formData.get('_delete'),
+            mrid: formData.get('mrid')
+        })
+    }
 
     /**
      * Show MR panel only after clicking Delete
      */
     if (deleteBtn && reviewPanel) {
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault()  // ✅ Prevent immediate submission
             console.log('[MR EDIT] Delete button clicked — showing MR review panel')
             reviewPanel.classList.remove('hidden')
         })
     }
 
-    const finish = () => {
-        console.log('[MR EDIT] finish() called, redirecting')
-        approveBtn?.setAttribute('disabled', true)
-        declineBtn?.setAttribute('disabled', true)
-        window.location.href = '/merges'
-    }
-
     /**
      * APPROVE
-     * - Adds _delete=true
-     * - Injects mrid
-     * - Submits addWork
-     * - Backend closes MR
+     * - Injects comment into delete-record form
+     * - Submits delete-record form
+     * - Backend deletes record AND closes MR
      */
-    if (approveBtn) {
-        approveBtn.addEventListener('click', () => {
-            const comment = commentInput?.value.trim() || null
-            console.log('[MR EDIT] approve clicked, comment:', comment)
+    if (approveBtn && deleteForm) {
+        approveBtn.addEventListener('click', (e) => {
+            e.preventDefault()
+            const comment = commentInput?.value.trim() || ''
+            
+            console.log('[MR EDIT] Approve clicked')
+            console.log('[MR EDIT] Comment:', comment || '(empty)')
+            console.log('[MR EDIT] MRID being submitted:', mrid)
 
-            if (!form) {
-                console.error('[MR EDIT] addWork form not found')
-                return
+            // ✅ Inject comment into the correct form
+            let commentField = deleteForm.querySelector('input[name="comment"]')
+            if (!commentField) {
+                commentField = document.createElement('input')
+                commentField.type = 'hidden'
+                commentField.name = 'comment'
+                deleteForm.appendChild(commentField)
             }
+            commentField.value = comment
 
-            // Ensure _delete flag
-            let deleteInput = form.querySelector('input[name="_delete"]')
-            if (!deleteInput) {
-                deleteInput = document.createElement('input')
-                deleteInput.type = 'hidden'
-                deleteInput.name = '_delete'
-                deleteInput.value = 'true'
-                form.appendChild(deleteInput)
-            }
+            // ✅ Verify mrid is in the form (it should already be there from template)
+            const mridField = deleteForm.querySelector('input[name="mrid"]')
+            console.log('[MR EDIT] MRID field value:', mridField?.value)
 
-            // Ensure mrid
-            let mridInput = form.querySelector('input[name="mrid"]')
-            if (!mridInput) {
-                mridInput = document.createElement('input')
-                mridInput.type = 'hidden'
-                mridInput.name = 'mrid'
-                form.appendChild(mridInput)
-            }
-            mridInput.value = mrid
+            // Log final form state before submission
+            const finalFormData = new FormData(deleteForm)
+            console.log('[MR EDIT] Final form data:', {
+                _delete: finalFormData.get('_delete'),
+                mrid: finalFormData.get('mrid'),
+                comment: finalFormData.get('comment')
+            })
 
-            console.log('[MR EDIT] submitting delete via addWork (backend handles MR)')
-            form.submit()
+            console.log('[MR EDIT] Submitting delete-record form')
+            deleteForm.submit()
         })
     }
 
     /**
      * DECLINE
-     * - Declines MR only
-     * - No delete
+     * - Calls API to decline MR
+     * - No deletion occurs
      */
     if (declineBtn) {
-        declineBtn.addEventListener('click', async () => {
+        declineBtn.addEventListener('click', async (e) => {
+            e.preventDefault()
             const comment = commentInput?.value.trim() || null
-            console.log('[MR EDIT] decline clicked, comment:', comment)
+            
+            console.log('[MR EDIT] Decline clicked')
+            console.log('[MR EDIT] Comment:', comment || '(none)')
+            console.log('[MR EDIT] MRID:', mrid)
 
-            await declineRequest(mrid, comment)
-            finish()
+            try {
+                await declineRequest(mrid, comment)
+                console.log('[MR EDIT] Decline successful, redirecting')
+                window.location.href = '/merges'
+            } catch (error) {
+                console.error('[MR EDIT] Decline failed:', error)
+                alert('Failed to decline merge request. Please try again.')
+            }
         })
     }
 }

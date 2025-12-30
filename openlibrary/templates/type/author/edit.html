@@ -1,5 +1,7 @@
 $def with (page)
 $ author_config = get_identifier_config('author')
+$ mrid = query_param("mrid", [None])[0]
+
 $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
@@ -10,7 +12,12 @@ $:macros.HiddenSaveButton("addAuthor")
     $:macros.databarEdit(page)
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
-            <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
+            <form method="post" id="delete-record" name="delete">
+                <input type="hidden" name="_delete" value="true">
+                $if mrid:
+                    <input type="hidden" name="mrid" value="$mrid">
+                <button type="submit" id="delete-btn">$_("Delete Record")</button>
+            </form>
         </span>
     <h1>$_("Edit Author")</h1>
     $if not ctx.user:
@@ -130,3 +137,158 @@ $:macros.HiddenSaveButton("addAuthor")
             </div>
     </form>
 </div>
+
+$if mrid and ctx.user:
+    <div id="mr-review-panel" data-mrid="$:str(mrid)" class="hidden">
+        <textarea id="mr-review-comment"></textarea>
+        <button type="button" id="mr-approve-btn">$_("Approve")</button>
+        <button type="button" id="mr-decline-btn">$_("Decline")</button>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const approveBtn = document.getElementById('mr-approve-btn');
+    const declineBtn = document.getElementById('mr-decline-btn');
+    const commentTextarea = document.getElementById('mr-review-comment');
+    const reviewPanel = document.getElementById('mr-review-panel');
+    
+    if (approveBtn) {
+        approveBtn.addEventListener('click', function() {
+            const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
+            const comment = commentTextarea ? commentTextarea.value : '';
+            
+            console.log('=== APPROVE BUTTON CLICKED ===');
+            console.log('MRID:', mrid);
+            console.log('Comment:', comment);
+            console.log('Current URL:', window.location.href);
+            console.log('Review Panel exists:', !!reviewPanel);
+            
+            // Prepare the data to send
+            const formData = new FormData();
+            formData.append('mrid', mrid);
+            formData.append('action', 'approve');
+            formData.append('comment', comment);
+            
+            console.log('FormData contents:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            // Get the current page URL for the POST request
+            const currentUrl = window.location.pathname + window.location.search;
+            console.log('POST URL:', currentUrl);
+            
+            // Make the request
+            fetch(currentUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                console.log('Response ok:', response.ok);
+                
+                // Log response as text first
+                return response.text().then(text => {
+                    console.log('Response body (raw):', text);
+                    
+                    // Try to parse as JSON
+                    try {
+                        const json = JSON.parse(text);
+                        console.log('Response body (parsed JSON):', json);
+                        return { status: response.status, ok: response.ok, data: json, text: text };
+                    } catch (e) {
+                        console.log('Response is not JSON:', e);
+                        return { status: response.status, ok: response.ok, data: null, text: text };
+                    }
+                });
+            })
+            .then(result => {
+                console.log('Final result:', result);
+                
+                if (result.ok) {
+                    console.log('SUCCESS: Request completed successfully');
+                    alert('Merge request approved successfully!');
+                    // Redirect or reload page
+                    window.location.href = result.data?.redirect || window.location.pathname;
+                } else {
+                    console.error('ERROR: Request failed with status', result.status);
+                    console.error('Error response:', result.text);
+                    alert('Error approving merge request. Check console for details.');
+                }
+            })
+            .catch(error => {
+                console.error('=== FETCH ERROR ===');
+                console.error('Error type:', error.name);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                alert('Network error: ' + error.message);
+            });
+        });
+    }
+    
+    if (declineBtn) {
+        declineBtn.addEventListener('click', function() {
+            const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
+            const comment = commentTextarea ? commentTextarea.value : '';
+            
+            console.log('=== DECLINE BUTTON CLICKED ===');
+            console.log('MRID:', mrid);
+            console.log('Comment:', comment);
+            
+            const formData = new FormData();
+            formData.append('mrid', mrid);
+            formData.append('action', 'decline');
+            formData.append('comment', comment);
+            
+            const currentUrl = window.location.pathname + window.location.search;
+            
+            fetch(currentUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Decline response status:', response.status);
+                return response.text().then(text => {
+                    try {
+                        return { status: response.status, ok: response.ok, data: JSON.parse(text), text: text };
+                    } catch (e) {
+                        return { status: response.status, ok: response.ok, data: null, text: text };
+                    }
+                });
+            })
+            .then(result => {
+                console.log('Decline result:', result);
+                
+                if (result.ok) {
+                    alert('Merge request declined successfully!');
+                    window.location.href = result.data?.redirect || window.location.pathname;
+                } else {
+                    console.error('Decline error:', result.text);
+                    alert('Error declining merge request. Check console for details.');
+                }
+            })
+            .catch(error => {
+                console.error('Decline fetch error:', error);
+                alert('Network error: ' + error.message);
+            });
+        });
+    }
+    
+    // Log initial state
+    console.log('=== MERGE REQUEST REVIEW PANEL INITIALIZED ===');
+    console.log('Approve button exists:', !!approveBtn);
+    console.log('Decline button exists:', !!declineBtn);
+    console.log('Comment textarea exists:', !!commentTextarea);
+    console.log('Review panel exists:', !!reviewPanel);
+    if (reviewPanel) {
+        console.log('MRID from panel:', reviewPanel.getAttribute('data-mrid'));
+    }
+});
+</script>

@@ -572,8 +572,10 @@ class SaveBookHelper:
             if self.work and self.work.edition_count == 0:
                 self.delete(self.work.key, comment=comment)
             
-            # Handle merge request closure if mrid is provided
             mrid = formdata.get('mrid')
+            comment = formdata.get('comment', '')
+
+            # ... rest of code
             if mrid:
                 from openlibrary.core.edits import CommunityEditsQueue
                 try:
