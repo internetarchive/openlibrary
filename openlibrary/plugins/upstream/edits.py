@@ -26,6 +26,7 @@ def process_merge_request(rtype, data):
         resp = response(status='error', error='Unknown request type')
     return resp
 
+
 class community_edits_queue(delegate.page):
     path = '/merges'
 

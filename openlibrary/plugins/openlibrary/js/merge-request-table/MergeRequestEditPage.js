@@ -22,7 +22,7 @@ export function initMergeRequestEditPage() {
     const approveBtn = document.getElementById('mr-approve-btn')
     const declineBtn = document.getElementById('mr-decline-btn')
     const commentInput = document.getElementById('mr-review-comment')
-    const deleteForm = document.getElementById('delete-record')  
+    const deleteForm = document.getElementById('delete-record')
     const deleteBtn = document.getElementById('delete-btn')
     const reviewPanel = panel
 
@@ -50,7 +50,7 @@ export function initMergeRequestEditPage() {
      */
     if (deleteBtn && reviewPanel) {
         deleteBtn.addEventListener('click', (e) => {
-            e.preventDefault() 
+            e.preventDefault()
             console.log('[MR EDIT] Delete button clicked — showing MR review panel')
             reviewPanel.classList.remove('hidden')
         })

@@ -236,7 +236,7 @@ export default class SelectionManager {
             if (action.onclick) {
                 this.ile.$actions.append(
                     $(`<a href="#">${action.name}</a>`).on('click', (e) => {
-                        e.preventDefault(); 
+                        e.preventDefault();
                         this.handleActionClick(action, items);
                     })
                 );
