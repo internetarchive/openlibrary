@@ -151,33 +151,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const declineBtn = document.getElementById('mr-decline-btn');
     const commentTextarea = document.getElementById('mr-review-comment');
     const reviewPanel = document.getElementById('mr-review-panel');
-    
+
     if (approveBtn) {
         approveBtn.addEventListener('click', function() {
             const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
             const comment = commentTextarea ? commentTextarea.value : '';
-            
+
             console.log('=== APPROVE BUTTON CLICKED ===');
             console.log('MRID:', mrid);
             console.log('Comment:', comment);
             console.log('Current URL:', window.location.href);
             console.log('Review Panel exists:', !!reviewPanel);
-            
+
             // Prepare the data to send
             const formData = new FormData();
             formData.append('mrid', mrid);
             formData.append('action', 'approve');
             formData.append('comment', comment);
-            
+
             console.log('FormData contents:');
             for (let pair of formData.entries()) {
                 console.log(pair[0] + ': ' + pair[1]);
             }
-            
+
             // Get the current page URL for the POST request
             const currentUrl = window.location.pathname + window.location.search;
             console.log('POST URL:', currentUrl);
-            
+
             // Make the request
             fetch(currentUrl, {
                 method: 'POST',
@@ -190,11 +190,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Response status:', response.status);
                 console.log('Response headers:', response.headers);
                 console.log('Response ok:', response.ok);
-                
+
                 // Log response as text first
                 return response.text().then(text => {
                     console.log('Response body (raw):', text);
-                    
+
                     // Try to parse as JSON
                     try {
                         const json = JSON.parse(text);
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(result => {
                 console.log('Final result:', result);
-                
+
                 if (result.ok) {
                     console.log('SUCCESS: Request completed successfully');
                     alert('Merge request approved successfully!');
@@ -229,23 +229,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    
+
     if (declineBtn) {
         declineBtn.addEventListener('click', function() {
             const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
             const comment = commentTextarea ? commentTextarea.value : '';
-            
+
             console.log('=== DECLINE BUTTON CLICKED ===');
             console.log('MRID:', mrid);
             console.log('Comment:', comment);
-            
+
             const formData = new FormData();
             formData.append('mrid', mrid);
             formData.append('action', 'decline');
             formData.append('comment', comment);
-            
+
             const currentUrl = window.location.pathname + window.location.search;
-            
+
             fetch(currentUrl, {
                 method: 'POST',
                 body: formData,
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(result => {
                 console.log('Decline result:', result);
-                
+
                 if (result.ok) {
                     alert('Merge request declined successfully!');
                     window.location.href = result.data?.redirect || window.location.pathname;
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    
+
     // Log initial state
     console.log('=== MERGE REQUEST REVIEW PANEL INITIALIZED ===');
     console.log('Approve button exists:', !!approveBtn);

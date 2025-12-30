@@ -571,7 +571,7 @@ class SaveBookHelper:
 
             if self.work and self.work.edition_count == 0:
                 self.delete(self.work.key, comment=comment)
-            
+
             mrid = formdata.get('mrid')
             comment = formdata.get('comment', '')
 
