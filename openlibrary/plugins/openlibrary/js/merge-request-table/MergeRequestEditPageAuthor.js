@@ -11,7 +11,7 @@ export function initAuthorMergeRequestEditPage() {
     const panel = document.getElementById('mr-review-panel');
     const deleteForm = document.getElementById('delete-record');
     const deleteBtn = document.getElementById('delete-btn');
-    
+
     const approveBtn = document.getElementById('mr-approve-btn');
     const declineBtn = document.getElementById('mr-decline-btn');
     const commentInput = document.getElementById('mr-review-comment');
@@ -69,11 +69,11 @@ export function initAuthorMergeRequestEditPage() {
             // --- LOGGING THE DATA ---
             console.log('[AUTHOR MR] Preparing to submit form...');
             console.log(`[AUTHOR MR] Target Action/URL: ${deleteForm.action || window.location.href}`);
-            
+
             // Create a FormData object just to inspect what is inside the form
             const formData = new FormData(deleteForm);
             console.log('[AUTHOR MR] Form Data Payload:');
-            for (let [key, value] of formData.entries()) {
+            for (const [key, value] of formData.entries()) {
                 console.log(`   KEY: ${key}  |  VALUE: ${value}`);
             }
             console.log('[AUTHOR MR] Submitting now...');
@@ -88,10 +88,10 @@ export function initAuthorMergeRequestEditPage() {
         declineBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             console.log('[AUTHOR MR] === Decline Button Clicked ===');
-            
+
             const comment = commentInput ? commentInput.value.trim() : null;
             console.log(`[AUTHOR MR] Declining MRID: ${mrid} with comment: "${comment}"`);
-            
+
             declineBtn.disabled = true;
 
             try {

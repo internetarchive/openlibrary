@@ -1051,6 +1051,7 @@ class author_edit(delegate.page):
                 mrid = i.mrid
                 if mrid:
                     from openlibrary.core.edits import CommunityEditsQueue
+
                     # We need the current user to record who "reviewed" (deleted) it
                     user = accounts.get_current_user()
                     try:
@@ -1071,7 +1072,7 @@ class author_edit(delegate.page):
                     except Exception as e:
                         logger.error(f'Failed to close merge request {mrid}: {e}')
                 raise safe_seeother(key)
-                
+
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             author.update(formdata)
@@ -1091,6 +1092,7 @@ class author_edit(delegate.page):
             )[1:]
             author.links = author.get('links') or []
             return author
+
 
 class daisy(delegate.page):
     path = "(/books/.*)/daisy"
