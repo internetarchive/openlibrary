@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "Status Summary"
 msgstr ""
 
-#: batch_import_view.html books/edit.html
+#: batch_import_view.html books/edit.html type/author/edit.html
 msgid "Approve"
 msgstr ""
 
@@ -4789,7 +4789,7 @@ msgstr ""
 msgid "Work Identifiers"
 msgstr ""
 
-#: books/edit.html
+#: books/edit.html type/author/edit.html
 msgid "Decline"
 msgstr ""
 

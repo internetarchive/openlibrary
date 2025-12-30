@@ -66,7 +66,7 @@ export function initMergeRequestEditPage() {
         approveBtn.addEventListener('click', (e) => {
             e.preventDefault()
             const comment = commentInput?.value.trim() || ''
-            
+
             console.log('[MR EDIT] Approve clicked')
             console.log('[MR EDIT] Comment:', comment || '(empty)')
             console.log('[MR EDIT] MRID being submitted:', mrid)
@@ -107,7 +107,7 @@ export function initMergeRequestEditPage() {
         declineBtn.addEventListener('click', async (e) => {
             e.preventDefault()
             const comment = commentInput?.value.trim() || null
-            
+
             console.log('[MR EDIT] Decline clicked')
             console.log('[MR EDIT] Comment:', comment || '(none)')
             console.log('[MR EDIT] MRID:', mrid)
