@@ -1034,16 +1034,16 @@ class author_edit(delegate.page):
         # Update: Accept mrid from the form input
         i = web.input(_comment=None, mrid=None)
         formdata = self.process_input(i)
-        
+
         try:
             if not formdata:
                 raise web.badrequest()
-                
+
             elif "_save" in i:
                 author.update(formdata)
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
-                
+
             elif "_delete" in i:
                 # 1. Perform the actual deletion in the database
                 author = web.ctx.site.new(
@@ -1055,13 +1055,14 @@ class author_edit(delegate.page):
                 mrid = i.mrid
                 if mrid:
                     from openlibrary.core.edits import CommunityEditsQueue
+
                     # We need the current user to record who "reviewed" (deleted) it
                     user = accounts.get_current_user()
-                    
+
                     try:
                         # Convert mrid to int
                         mrid_int = int(mrid)
-                        
+
                         # Mark the merge request as merged/approved
                         CommunityEditsQueue.update_request_status(
                             rid=mrid_int,
@@ -1078,7 +1079,7 @@ class author_edit(delegate.page):
                         logger.error(f'Failed to close merge request {mrid}: {e}')
 
                 raise safe_seeother(key)
-                
+
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             author.update(formdata)
@@ -1098,6 +1099,7 @@ class author_edit(delegate.page):
             )[1:]
             author.links = author.get('links') or []
             return author
+
 
 class daisy(delegate.page):
     path = "(/books/.*)/daisy"

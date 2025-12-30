@@ -10,7 +10,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-    
+
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete" aria-label="Delete author record form">
@@ -147,4 +147,3 @@ $if mrid and ctx.user:
         <button type="button" id="mr-approve-btn" aria-label="Approve this merge request">$_("Approve")</button>
         <button type="button" id="mr-decline-btn" aria-label="Decline this merge request">$_("Decline")</button>
     </div>
-    
