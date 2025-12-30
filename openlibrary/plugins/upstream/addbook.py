@@ -594,9 +594,6 @@ class SaveBookHelper:
                     )
                 except ValueError as e:
                     logger.error(f'Invalid merge request ID format: {mrid} - {e}')
-                except Exception as e:
-                    logger.error(f'Failed to close merge request {mrid}: {e}')
-
             return
 
         just_editing_work = edition_data is None
@@ -1069,8 +1066,6 @@ class author_edit(delegate.page):
                         )
                     except ValueError as e:
                         logger.error(f'Invalid merge request ID format: {mrid} - {e}')
-                    except Exception as e:
-                        logger.error(f'Failed to close merge request {mrid}: {e}')
                 raise safe_seeother(key)
 
         except (ClientException, ValidationException) as e:
