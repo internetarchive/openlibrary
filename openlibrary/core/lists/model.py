@@ -431,8 +431,8 @@ class Seed:
             # AnnotatedSeed
             self.key = value['thing'].key
             self.value = value['thing']
-            self.notes = value['notes']
-            self.position = value['position']
+            self.notes = value.get('notes')
+            self.position = value.get('position')
         else:
             self.key = value.key
             self.value = value
@@ -666,21 +666,32 @@ class Series(List):
             }
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
+        series_edges = [
+            next(e for e in work.get_series_edges() if e.series.key == self.key)
+            for work in works
+            if (edge := work.get_series_edge(self.key))
+        ]
 
-        def get_work_position(work: Work) -> float:
-            position = 9999.0
-            if all_series := work.series:
-                series = all_series[0]
-                with contextlib.suppress(ValueError):
-                    position = float(series.get('position', 9999) or 9999)
-            return position
+        def get_work_position(position: str | None) -> float:
+            position_float = 9999.0
+            with contextlib.suppress(ValueError):
+                position_float = float(position or 9999)
+            return position_float
 
-        works = sorted(works, key=get_work_position, reverse=True)
+        sorted_edges = sorted(series_edges, key=lambda e: get_work_position(e.position))
 
         seeds: list[Seed] = []
-        for work in works:
-            seed = Seed(self, work)
-            seeds.append(seed)
+        for edge in sorted_edges:
+            seeds.append(
+                Seed.from_json(
+                    self,
+                    {
+                        'thing': {'key': edge.work.key},
+                        'position': edge.position,
+                        'notes': edge.notes,
+                    },
+                )
+            )
         return seeds
 
 

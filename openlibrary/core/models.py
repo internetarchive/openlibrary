@@ -10,7 +10,6 @@ from urllib.parse import urlencode
 
 import requests
 import web
-from pydantic import BaseModel
 
 from infogami.infobase import client
 
@@ -486,10 +485,12 @@ class Edition(Thing):
         )
 
 
-class SeriesEdge(BaseModel):
+@dataclass
+class SeriesEdge:
     """The metadata about the "edge" in a series-work relationship."""
 
     position: str | None
+    notes: str | None
 
 
 class SeriesSeedThing(Thing, SeriesEdge):
@@ -500,6 +501,12 @@ class SeriesSeedThing(Thing, SeriesEdge):
 
 class SeriesSeedDict(SeriesEdge):
     series: ThingReferenceDict
+
+
+@dataclass
+class FullSeriesEdge(SeriesEdge):
+    work: 'Work'
+    series: 'Series'
 
 
 class Work(Thing):
@@ -659,6 +666,21 @@ class Work(Thing):
     def get_primary_series(self) -> 'SeriesSeedThing | None':
         series = self.series or []
         return series[0] if series else None
+
+    def get_series_edges(self) -> list[FullSeriesEdge]:
+        return [
+            FullSeriesEdge(
+                work=self, series=s.series, position=s.position, notes=s.notes
+            )
+            for s in self.series or []
+        ]
+
+    def get_series_edge(self, series_key: str) -> SeriesSeedThing | None:
+        series = self.series or []
+        for s in series:
+            if s.series.key == series_key:
+                return s
+        return None
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.

@@ -20,7 +20,7 @@ from openlibrary.core.lists.model import (
     SeedSubjectString,
     ThingReferenceDict,
 )
-from openlibrary.core.models import ThingKey
+from openlibrary.core.models import ThingKey, Work
 from openlibrary.coverstore.code import render_list_preview_image
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -48,7 +48,7 @@ def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
     """
     An empty seed can be represented as a simple SeedDict
     """
-    return not seed.get('notes')
+    return not seed.get('notes') and not seed.get('position')
 
 
 Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
@@ -155,7 +155,13 @@ class ListRecord:
     def to_thing_json(self):
         return {
             "key": self.key,
-            "type": {"key": "/type/list"},
+            "type": {
+                "key": (
+                    "/type/series"
+                    if (self.key and "/series/" in self.key)
+                    else "/type/list"
+                )
+            },
             "name": self.name,
             "description": self.description,
             "seeds": self.seeds,
@@ -324,14 +330,14 @@ class lists_edit(delegate.page):
             raise web.notfound()
         return render_template("type/list/edit", lst, new=False)
 
-    def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
-        key = (user_key or '') + (list_key or '')
+    def POST(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str | None):  # type: ignore[override]
+        list_key = (user_key or '') + f'/{list_type}/{list_id or ''}'
 
-        if not web.ctx.site.can_write(key):
+        if not web.ctx.site.can_write(list_key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
-                f"Permission denied to edit {key}.",
+                f"Permission denied to edit {list_key}.",
             )
 
         list_record = ListRecord.from_input()
@@ -339,22 +345,49 @@ class lists_edit(delegate.page):
             raise web.badrequest('A list name is required.')
 
         # Creating a new list
-        if not list_key:
+        if not list_id:
             list_num = web.ctx.site.seq.next_value("list")
-            list_key = f"/lists/OL{list_num}L"
-            list_record.key = (user_key or '') + list_key
+            list_key += f"OL{list_num}L"
+            list_record.key = list_key
 
-        web.ctx.site.save(
-            list_record.to_thing_json(),
+        thing_json = list_record.to_thing_json()
+        records_to_save = [thing_json]
+        if list_type == 'series':
+            # Don't save seeds on this record
+            thing_json['seeds'] = []
+            # Edit all the works to add series edges
+            work_key_to_list_seed = {
+                seed.get('key') or seed.get('thing', {}).get('key'): seed
+                for seed in list_record.seeds
+                if isinstance(seed, dict)
+            }
+            works = cast(list[Work], web.ctx.site.get_many(list(work_key_to_list_seed)))
+            for work in works:
+                list_seed = work_key_to_list_seed[work.key]
+                work_series_edge = work.get_series_edge(list_key)
+                edge = (
+                    work_series_edge
+                    if work_series_edge
+                    else {'series': {'key': list_key}}
+                )
+                edge['position'] = list_seed.get('position')
+                edge['notes'] = list_seed.get('notes')
+                if not work_series_edge:
+                    work.series = work.series or []
+                    work.series.append(edge)
+                records_to_save.append(work.dict())
+
+        web.ctx.site.save_many(
+            records_to_save,
             action="lists",
             comment=web.input(_comment="")._comment or None,
         )
 
         # If content type json, return json response
         if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
-            return delegate.RawText(json.dumps({'key': list_record.key}))
+            return delegate.RawText(json.dumps({'key': list_key}))
         else:
-            return safe_seeother(list_record.key)
+            return safe_seeother(list_key)
 
 
 class lists_add_account(delegate.page):
@@ -392,8 +425,8 @@ class lists_add(delegate.page):
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, new=True)
 
-    def POST(self, user_key: str | None):  # type: ignore[override]
-        return lists_edit().POST(user_key, None)
+    def POST(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
+        return lists_edit().POST(user_key, list_type, None)
 
 
 class lists_delete(delegate.page):

@@ -142,6 +142,7 @@ msgid "Description:"
 msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html
 msgid "Create new list"
 msgstr ""
 
@@ -149,7 +150,7 @@ msgstr ""
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
 #: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/tag/form.html
+#: type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -3227,7 +3228,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html type/list/edit.html
+#: account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -6598,7 +6599,7 @@ msgstr ""
 msgid "Remove this seed?"
 msgstr ""
 
-#: lists/lists.html type/list/edit.html
+#: lists/lists.html type/list/edit.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -7997,36 +7998,40 @@ msgstr ""
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Edit List"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Move..."
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Position (optional), e.g. 1, 2, 1-7"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "List Name"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Add another book"
 msgstr ""
 
