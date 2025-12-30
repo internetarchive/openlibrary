@@ -69,6 +69,7 @@ class CompleteBook(BaseModel):
 
         return values
 
+
 class StrongIdentifierBook(BaseModel):
     """
     The model for a book with a title, strong identifier, plus source_records.
