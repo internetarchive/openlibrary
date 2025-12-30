@@ -4,14 +4,14 @@ $code:
     # Properly extract mrid from query parameters
     mrid_raw = query_param("mrid", None)
     mrid = None
-    
+
     if mrid_raw is not None:
         # Handle if it's a list (some frameworks return lists)
         if isinstance(mrid_raw, list):
             mrid = mrid_raw[0] if mrid_raw else None
         else:
             mrid = mrid_raw
-        
+
         # Clean and validate
         if mrid is not None:
             mrid = str(mrid).strip()
