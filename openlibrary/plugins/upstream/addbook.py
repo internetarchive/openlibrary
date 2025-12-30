@@ -578,6 +578,7 @@ class SaveBookHelper:
             # ... rest of code
             if mrid:
                 from openlibrary.core.edits import CommunityEditsQueue
+
                 try:
                     # Convert mrid to int (it comes from form as string)
                     mrid_int = int(mrid)
@@ -586,14 +587,16 @@ class SaveBookHelper:
                         rid=mrid_int,
                         status=CommunityEditsQueue.STATUS['MERGED'],
                         reviewer=user.key.split('/')[-1],
-                        comment=comment or 'Record deleted via delete action'
+                        comment=comment or 'Record deleted via delete action',
                     )
-                    logger.info(f'Successfully closed merge request {mrid} after deleting record')
+                    logger.info(
+                        f'Successfully closed merge request {mrid} after deleting record'
+                    )
                 except ValueError as e:
                     logger.error(f'Invalid merge request ID format: {mrid} - {e}')
                 except Exception as e:
                     logger.error(f'Failed to close merge request {mrid}: {e}')
-            
+
             return
 
         just_editing_work = edition_data is None
