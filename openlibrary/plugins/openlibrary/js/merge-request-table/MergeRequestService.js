@@ -5,7 +5,6 @@ export const REQUEST_TYPES = {
     AUTHOR_DELETE: 4,
 }
 
-
 export async function createRequest(olids, action, type, comment = null, primary = null) {
     const data = {
         rtype: 'create-request',

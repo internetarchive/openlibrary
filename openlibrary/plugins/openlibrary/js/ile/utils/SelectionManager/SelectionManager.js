@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
 import './SelectionManager.less';
@@ -236,7 +236,7 @@ export default class SelectionManager {
             if (action.onclick) {
                 this.ile.$actions.append(
                     $(`<a href="#">${action.name}</a>`).on('click', (e) => {
-                        e.preventDefault(); // 🔥 critical
+                        e.preventDefault(); 
                         this.handleActionClick(action, items);
                     })
                 );

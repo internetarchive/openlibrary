@@ -22,7 +22,7 @@ export function initMergeRequestEditPage() {
     const approveBtn = document.getElementById('mr-approve-btn')
     const declineBtn = document.getElementById('mr-decline-btn')
     const commentInput = document.getElementById('mr-review-comment')
-    const deleteForm = document.getElementById('delete-record')  // ✅ CORRECT FORM
+    const deleteForm = document.getElementById('delete-record')  
     const deleteBtn = document.getElementById('delete-btn')
     const reviewPanel = panel
 
@@ -50,7 +50,7 @@ export function initMergeRequestEditPage() {
      */
     if (deleteBtn && reviewPanel) {
         deleteBtn.addEventListener('click', (e) => {
-            e.preventDefault()  // ✅ Prevent immediate submission
+            e.preventDefault() 
             console.log('[MR EDIT] Delete button clicked — showing MR review panel')
             reviewPanel.classList.remove('hidden')
         })
@@ -71,7 +71,7 @@ export function initMergeRequestEditPage() {
             console.log('[MR EDIT] Comment:', comment || '(empty)')
             console.log('[MR EDIT] MRID being submitted:', mrid)
 
-            // ✅ Inject comment into the correct form
+            //  Inject comment into the correct form
             let commentField = deleteForm.querySelector('input[name="comment"]')
             if (!commentField) {
                 commentField = document.createElement('input')
@@ -81,7 +81,7 @@ export function initMergeRequestEditPage() {
             }
             commentField.value = comment
 
-            // ✅ Verify mrid is in the form (it should already be there from template)
+            //  Verify mrid is in the form (it should already be there from template)
             const mridField = deleteForm.querySelector('input[name="mrid"]')
             console.log('[MR EDIT] MRID field value:', mridField?.value)
 

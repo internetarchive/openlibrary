@@ -58,7 +58,6 @@ export class TableRow {
          * @param {Number}
          */
         this.mrid = row.dataset.mrid
-
         /**
          * Button used to toggle the full comments display's visibility.
          *

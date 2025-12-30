@@ -17,16 +17,14 @@ def response(status='ok', **kwargs):
 def process_merge_request(rtype, data):
     user = accounts.get_current_user()
     username = user['key'].split('/')[-1]
-
+    # Request types can be: create-request, update-request
     if rtype == 'create-request':
         resp = community_edits_queue.create_request(username, **data)
     elif rtype == 'update-request':
         resp = community_edits_queue.update_request(username, **data)
     else:
         resp = response(status='error', error='Unknown request type')
-
     return resp
-
 
 class community_edits_queue(delegate.page):
     path = '/merges'
@@ -41,7 +39,6 @@ class community_edits_queue(delegate.page):
             order='desc',
             status=None,
         )
-
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
@@ -174,34 +171,35 @@ class community_edits_queue(delegate.page):
 
     @staticmethod
     def update_request(username, action='', mrid=None, comment=None):
+        # Comment on existing request:
         if action == 'comment':
             if comment:
                 CommunityEditsQueue.comment_request(mrid, username, comment)
                 resp = response()
             else:
                 resp = response(status='error', error='No comment sent in request.')
-
+        # Assign to existing request:
         elif action == 'claim':
             result = CommunityEditsQueue.assign_request(mrid, username)
             resp = response(**result)
-
+        # Unassign from existing request:
         elif action == 'unassign':
             CommunityEditsQueue.unassign_request(mrid)
             status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
             resp = response(newStatus=status)
-
+        # Close request by approving:
         elif action == 'approve':
             CommunityEditsQueue.update_request_status(
                 mrid, CommunityEditsQueue.STATUS['MERGED'], username, comment=comment
             )
             resp = response()
-
+        # Close request by declining:
         elif action == 'decline':
             CommunityEditsQueue.update_request_status(
                 mrid, CommunityEditsQueue.STATUS['DECLINED'], username, comment=comment
             )
             resp = response()
-
+        # Unknown request:
         else:
             resp = response(
                 status='error',
