@@ -10,15 +10,17 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
+    
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
-            <form method="post" id="delete-record" name="delete">
-                <input type="hidden" name="_delete" value="true">
+            <form method="post" id="delete-record" name="delete" aria-label="Delete author record form">
+                <input type="hidden" name="_delete" value="true" aria-label="Delete action flag">
                 $if mrid:
-                    <input type="hidden" name="mrid" value="$mrid">
-                <button type="submit" id="delete-btn">$_("Delete Record")</button>
+                    <input type="hidden" name="mrid" value="$mrid" aria-label="Merge request ID">
+                <button type="submit" id="delete-btn" aria-label="Delete this author record">$_("Delete Record")</button>
             </form>
         </span>
+
     <h1>$_("Edit Author")</h1>
     $if not ctx.user:
         $:render_template("lib/not_logged")
@@ -26,8 +28,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentBody">
 
-    <form id="addAuthor" name="edit" method="post" action="" class="olform books">
-
+    <form id="addAuthor" name="edit" method="post" action="" class="olform books" aria-label="Edit author information form">
 
     <div class="formElement title">
         <div class="formElement">
@@ -39,14 +40,14 @@ $:macros.HiddenSaveButton("addAuthor")
                 </span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" value="$page.name" required/>
+                <input type="text" name="author--name" id="name" value="$page.name" required aria-required="true"/>
             </div>
         </div>
     </div>
-
                 <div id="about">
 
                     <fieldset class="major collapse">
+                        <legend class="sr-only">Author biographical information</legend>
 
                         <div class="formElement">
                             <div class="label">
@@ -55,7 +56,7 @@ $:macros.HiddenSaveButton("addAuthor")
                             </div>
                             <div class="input">
                                 <textarea name="author--bio"
-                                    class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
+                                    class="markdown olform__input--large" id="wmd-input" rows="6" aria-label="Author biography">$(page.bio if page.bio else '')</textarea>
                             </div>
                         </div>
 
@@ -65,7 +66,7 @@ $:macros.HiddenSaveButton("addAuthor")
                                 <label for="birth_date">$_("Date of birth")</label>
                             </div>
                             <div class="input birthInputAcc">
-                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date"/>
+                                <input type="text" name="author--birth_date" id="birth_date" value="$(page.birth_date if page.birth_date else '')" aria-label="Date of birth"/>
                             </div>
                         </div>
 
@@ -74,7 +75,7 @@ $:macros.HiddenSaveButton("addAuthor")
                                 <label for="death_date">$_("Date of death")</label>
                             </div>
                             <div class="input deathInputAcc">
-                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date"/>
+                                <input type="text" name="author--death_date" id="death_date" value="$(page.death_date if page.death_date else '')" aria-label="Date of death"/>
                             </div>
                         </div>
 
@@ -92,7 +93,7 @@ $:macros.HiddenSaveButton("addAuthor")
                                         <label for="date">$_("Date")</label>
                                     </div>
                                     <div class="input deathInputAcc">
-                                        <input type="text" name="author--date" id="date" value="$page.date"/>
+                                        <input type="text" name="author--date" id="date" value="$(page.date if page.date else '')" aria-label="Date (deprecated field)"/>
                                     </div>
                             </div>
                             <div class="formElement contentQuarter">
@@ -106,15 +107,16 @@ $:macros.HiddenSaveButton("addAuthor")
                                 <span class="tip">$_("For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line.")</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6" aria-label="Alternate names for this author">$(("\n".join(page.alternate_names) if page.alternate_names else ''))</textarea>
                             </div>
                         </div>
-                        <div class="label">$_("Identifiers") <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
-                        <div id="id-errors-author" class="note" style="display: none"></div>
+                        <div class="label">$_("Identifiers") <a href="/help/faq/editing.en#author-identifiers-purpose" aria-label="Learn more about author identifiers"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
+                        <div id="id-errors-author" class="note" style="display: none" role="alert" aria-live="polite"></div>
                         <div id="hiddenAuthorIdentifiers"></div>
                         <div id="identifiers-display">
-                            $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian()
-                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
+                            $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian() if ctx.user else False
+                            $ remote_ids_dict = dict(page.remote_ids) if page.remote_ids else {}
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=remote_ids_dict,output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
                         </div>
                         <br>
                         <fieldset class="major">
@@ -133,162 +135,16 @@ $:macros.HiddenSaveButton("addAuthor")
             <div class="clearfix"></div>
 
             <div class="formElement bottom">
-                $:macros.EditButtons(comment=page.comment_)
+                $:macros.EditButtons(comment=(page.comment_ if hasattr(page, 'comment_') and page.comment_ else ''))
             </div>
     </form>
 </div>
 
 $if mrid and ctx.user:
-    <div id="mr-review-panel" data-mrid="$:str(mrid)" class="hidden">
-        <textarea id="mr-review-comment"></textarea>
-        <button type="button" id="mr-approve-btn">$_("Approve")</button>
-        <button type="button" id="mr-decline-btn">$_("Decline")</button>
+    <div id="mr-review-panel" data-mrid="$:str(mrid)" class="hidden" role="region" aria-label="Merge request review panel">
+        <label for="mr-review-comment" class="sr-only">Review comment</label>
+        <textarea id="mr-review-comment" aria-label="Enter review comment for merge request"></textarea>
+        <button type="button" id="mr-approve-btn" aria-label="Approve this merge request">$_("Approve")</button>
+        <button type="button" id="mr-decline-btn" aria-label="Decline this merge request">$_("Decline")</button>
     </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const approveBtn = document.getElementById('mr-approve-btn');
-    const declineBtn = document.getElementById('mr-decline-btn');
-    const commentTextarea = document.getElementById('mr-review-comment');
-    const reviewPanel = document.getElementById('mr-review-panel');
-
-    if (approveBtn) {
-        approveBtn.addEventListener('click', function() {
-            const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
-            const comment = commentTextarea ? commentTextarea.value : '';
-
-            console.log('=== APPROVE BUTTON CLICKED ===');
-            console.log('MRID:', mrid);
-            console.log('Comment:', comment);
-            console.log('Current URL:', window.location.href);
-            console.log('Review Panel exists:', !!reviewPanel);
-
-            // Prepare the data to send
-            const formData = new FormData();
-            formData.append('mrid', mrid);
-            formData.append('action', 'approve');
-            formData.append('comment', comment);
-
-            console.log('FormData contents:');
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-
-            // Get the current page URL for the POST request
-            const currentUrl = window.location.pathname + window.location.search;
-            console.log('POST URL:', currentUrl);
-
-            // Make the request
-            fetch(currentUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-                console.log('Response ok:', response.ok);
-
-                // Log response as text first
-                return response.text().then(text => {
-                    console.log('Response body (raw):', text);
-
-                    // Try to parse as JSON
-                    try {
-                        const json = JSON.parse(text);
-                        console.log('Response body (parsed JSON):', json);
-                        return { status: response.status, ok: response.ok, data: json, text: text };
-                    } catch (e) {
-                        console.log('Response is not JSON:', e);
-                        return { status: response.status, ok: response.ok, data: null, text: text };
-                    }
-                });
-            })
-            .then(result => {
-                console.log('Final result:', result);
-
-                if (result.ok) {
-                    console.log('SUCCESS: Request completed successfully');
-                    alert('Merge request approved successfully!');
-                    // Redirect or reload page
-                    window.location.href = result.data?.redirect || window.location.pathname;
-                } else {
-                    console.error('ERROR: Request failed with status', result.status);
-                    console.error('Error response:', result.text);
-                    alert('Error approving merge request. Check console for details.');
-                }
-            })
-            .catch(error => {
-                console.error('=== FETCH ERROR ===');
-                console.error('Error type:', error.name);
-                console.error('Error message:', error.message);
-                console.error('Error stack:', error.stack);
-                alert('Network error: ' + error.message);
-            });
-        });
-    }
-
-    if (declineBtn) {
-        declineBtn.addEventListener('click', function() {
-            const mrid = reviewPanel ? reviewPanel.getAttribute('data-mrid') : null;
-            const comment = commentTextarea ? commentTextarea.value : '';
-
-            console.log('=== DECLINE BUTTON CLICKED ===');
-            console.log('MRID:', mrid);
-            console.log('Comment:', comment);
-
-            const formData = new FormData();
-            formData.append('mrid', mrid);
-            formData.append('action', 'decline');
-            formData.append('comment', comment);
-
-            const currentUrl = window.location.pathname + window.location.search;
-
-            fetch(currentUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                console.log('Decline response status:', response.status);
-                return response.text().then(text => {
-                    try {
-                        return { status: response.status, ok: response.ok, data: JSON.parse(text), text: text };
-                    } catch (e) {
-                        return { status: response.status, ok: response.ok, data: null, text: text };
-                    }
-                });
-            })
-            .then(result => {
-                console.log('Decline result:', result);
-
-                if (result.ok) {
-                    alert('Merge request declined successfully!');
-                    window.location.href = result.data?.redirect || window.location.pathname;
-                } else {
-                    console.error('Decline error:', result.text);
-                    alert('Error declining merge request. Check console for details.');
-                }
-            })
-            .catch(error => {
-                console.error('Decline fetch error:', error);
-                alert('Network error: ' + error.message);
-            });
-        });
-    }
-
-    // Log initial state
-    console.log('=== MERGE REQUEST REVIEW PANEL INITIALIZED ===');
-    console.log('Approve button exists:', !!approveBtn);
-    console.log('Decline button exists:', !!declineBtn);
-    console.log('Comment textarea exists:', !!commentTextarea);
-    console.log('Review panel exists:', !!reviewPanel);
-    if (reviewPanel) {
-        console.log('MRID from panel:', reviewPanel.getAttribute('data-mrid'));
-    }
-});
-</script>
+    

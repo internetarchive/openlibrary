@@ -584,16 +584,20 @@ jQuery(function () {
     }
 
     const mrReviewPanel = document.getElementById('mr-review-panel');
-    console.log('[BOOT] mrReviewPanel:', mrReviewPanel);
+    const authorForm = document.getElementById('addAuthor');
 
     if (mrReviewPanel) {
-        console.log('[BOOT] loading MergeRequestEditPage');
-        import('./merge-request-table/MergeRequestEditPage')
-            .then(module => {
-                console.log('[BOOT] MergeRequestEditPage loaded');
-                module.initMergeRequestEditPage();
-            });
+        if (authorForm) {
+            import('./merge-request-table/MergeRequestEditPageAuthor.js')
+                .then(module => {
+                    module.initAuthorMergeRequestEditPage();
+                })
+                .catch(() => {});
+        } else {
+            import('./merge-request-table/MergeRequestEditPage')
+                .then(module => {
+                    module.initMergeRequestEditPage();
+                });
+        }
     }
-
-
 });
