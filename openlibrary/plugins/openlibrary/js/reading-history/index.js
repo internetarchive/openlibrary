@@ -8,7 +8,7 @@ import { ReadingHistoryCarousel } from './ReadingHistoryCarousel';
 function extractEditionId(source) {
     if (source instanceof HTMLElement) {
         // Check data attributes first (most reliable)
-        const editionId = source.getAttribute('data-edition-id') || 
+        const editionId = source.getAttribute('data-edition-id') ||
                           source.getAttribute('data-edition-key');
         if (editionId) {
             // If it's already an OLID like "OL123M", return it
@@ -57,11 +57,11 @@ export function initReadingHistoryTracking() {
     $(document).on('click', '.cta-btn--borrow, .cta-btn--read, a[href*="/borrow"]', function(e) {
         const $link = $(this);
         const href = $link.attr('href') || '';
-        
+
         // Make sure it's actually a borrow/read action
         if (href.includes('/borrow') || href.includes('action=read') || href.includes('action=borrow')) {
             const editionId = extractEditionId(href) || extractEditionId(this);
-            
+
             if (editionId) {
                 ReadingHistory.add(editionId);
             }
@@ -72,10 +72,10 @@ export function initReadingHistoryTracking() {
     $(document).on('click', '.cta-btn--external.cta-btn--read, a[href*="action=read"]', function(e) {
         const $link = $(this);
         const href = $link.attr('href') || '';
-        
+
         if (href.includes('action=read')) {
             const editionId = extractEditionId(href) || extractEditionId(this);
-            
+
             if (editionId) {
                 ReadingHistory.add(editionId);
             }
