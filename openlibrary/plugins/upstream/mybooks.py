@@ -79,10 +79,9 @@ class mybooks_home(delegate.page):
             docs['loans'] = loans
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
-            want_to_read = mb.readlog.get_works(key='want-to-read', **params)
-            currently_reading = mb.readlog.get_works(key='currently-reading', **params)
-            already_read = mb.readlog.get_works(key='already-read', **params)
+            want_to_read = mb.readlog.get_works(key='want-to-read', page=1, limit=6, sort='created', sort_order='desc')
+            currently_reading = mb.readlog.get_works(key='currently-reading', page=1, limit=6, sort='created', sort_order='desc')
+            already_read = mb.readlog.get_works(key='already-read', page=1, limit=6, sort='created', sort_order='desc')
 
             def add_edition_availability(docs):
                 """Add edition-level availability to work docs, fallback to work-level."""
