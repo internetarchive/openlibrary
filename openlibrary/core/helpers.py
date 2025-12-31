@@ -2,9 +2,10 @@
 
 import json
 import re
+from collections import namedtuple
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import Any, Literal, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -142,8 +143,12 @@ def datestr(
     now: datetime | None = None,
     lang: str | None = None,
     relative: bool = True,
+    format: Literal['compact', 'long'] = 'long'
 ) -> str:
     """Internationalized version of web.datestr."""
+    if format == 'compact' and relative:
+        return _datestr_compact(then, now)
+
     lang = lang or web.ctx.lang
     if relative:
         if now is None:
@@ -154,6 +159,34 @@ def datestr(
                 delta, add_direction=True, locale=_get_babel_locale(lang)
             )
     return format_date(then, lang=lang)
+
+
+TimeDeltaUnit = namedtuple('TimeDeltaUnit', ['long_name', 'short_name', 'seconds_per_unit'])
+
+TIME_DELTA_UNITS = (
+    TimeDeltaUnit('year', 'y', 3600 * 24 * 365),
+    TimeDeltaUnit('month', 'm', 3600 * 24 * 30),
+    TimeDeltaUnit('week', 'w', 3600 * 24 * 7),
+    TimeDeltaUnit('day', 'd', 3600 * 24),
+    TimeDeltaUnit('hour', 'h', 3600),
+    TimeDeltaUnit('minute', 'm', 60),
+    TimeDeltaUnit('second', 's', 1),
+)
+
+
+def _datestr_compact(then: datetime, now: datetime | None = None) -> str:
+    if now is None:
+        now = datetime.now()
+    delta = now - then
+
+    time_delta_unit = TIME_DELTA_UNITS[-1]
+    for tdu in TIME_DELTA_UNITS:
+        if delta.total_seconds() > tdu.seconds_per_unit:
+            time_delta_unit = tdu
+            break
+
+    result = f'{int(delta.total_seconds()) // time_delta_unit.seconds_per_unit}{time_delta_unit.short_name}'
+    return result
 
 
 def datetimestr_utc(then):
