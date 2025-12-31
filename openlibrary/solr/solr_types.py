@@ -33,7 +33,7 @@ class SolrDocument(TypedDict):
     ia: Optional[list[str]]
     ia_box_id: Optional[list[str]]
     ia_loaded_id: Optional[list[str]]
-    ia_count: Optional[int]
+
     ia_collection: Optional[list[str]]
     oclc: Optional[list[str]]
     isbn: Optional[list[str]]
