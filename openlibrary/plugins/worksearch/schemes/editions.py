@@ -40,10 +40,7 @@ class EditionSearchScheme(SearchScheme):
             'publishers': 'publisher',
             'subtitle': 'alternative_subtitle',
             'title': 'alternative_title',
-            # "Private" fields
-            # This is private because we'll change it to a multi-valued field instead of a
-            # plain string at the next opportunity, which will make it much more usable.
-            '_ia_collection': 'ia_collection_s',
+            '_ia_collection': 'ia_collection',
         }
     )
     sorts = MappingProxyType(

@@ -296,7 +296,7 @@ class SubjectEngine:
                 "cover_edition_key",
                 "has_fulltext",
                 "subject",
-                "ia_collection_s",
+                "ia_collection",
                 "public_scan_b",
                 "lending_edition_s",
                 "lending_identifier_s",
@@ -419,7 +419,7 @@ class SubjectEngine:
         These docs are weird :/ We should be using more standardized results
         across our search APIs, but that would be a big breaking change.
         """
-        ia_collection = w.get('ia_collection_s', '').split(';')
+        ia_collection = w.get('ia_collection') or []
         return web.storage(
             key=w['key'],
             title=w["title"],
