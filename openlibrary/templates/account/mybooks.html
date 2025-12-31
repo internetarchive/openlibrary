@@ -43,6 +43,15 @@ $def year_span(year, use_local_year=False):
   $# Render carousels
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
+    $ feed_url = '/people/%s/books/feed' % username
+    <div class="carousel-section activity-feed-container">
+        <div class="carousel-section-header">
+            <h2 class="home-h2">
+                <a href="$feed_url">$_("My Feed")</a>
+            </h2>
+        </div>
+        $:render_template('account/activity_feed', username)
+    </div>
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
