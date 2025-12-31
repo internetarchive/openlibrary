@@ -56,10 +56,19 @@ export class ReadingHistory {
         }
 
         const entries = this.getAll();
-        const now = Date.now();
+        let now = Date.now();
 
         // Remove any existing entry with the same editionId
         const filtered = entries.filter(entry => entry.editionId !== editionId);
+
+        // Ensure unique timestamp (in case multiple items added in same millisecond)
+        // Find the maximum timestamp in filtered entries and ensure we're greater
+        if (filtered.length > 0) {
+            const maxTimestamp = Math.max(...filtered.map(entry => entry.timestamp));
+            if (maxTimestamp >= now) {
+                now = maxTimestamp + 1;
+            }
+        }
 
         // Add the new entry at the end
         filtered.push({
