@@ -1,4 +1,4 @@
-import { ReadingHistory } from '../../../../../openlibrary/plugins/openlibrary/js/reading-history/ReadingHistory';
+import { ReadingHistory } from '../../../../openlibrary/plugins/openlibrary/js/reading-history/ReadingHistory';
 
 describe('ReadingHistory', () => {
     beforeEach(() => {
