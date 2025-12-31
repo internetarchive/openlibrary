@@ -42,7 +42,7 @@ export class ReadingHistoryCarousel {
             if (books && books.length > 0) {
                 this.renderCarousel(books);
             }
-        } catch (error) {
+        } catch {
             // Silently fail - reading history is a nice-to-have feature
             // Error could be due to network issues, API problems, etc.
         }
@@ -85,7 +85,7 @@ export class ReadingHistoryCarousel {
             <div class="carousel-section">
                 <div class="carousel-section-header">
                     <h2 class="home-h2">
-                        <a name="reading-history" href="javascript:;">${htmlquote(readingHistoryLabel)} (${books.length})</a>
+                        <a name="reading-history" href="#reading-history">${htmlquote(readingHistoryLabel)} (${books.length})</a>
                     </h2>
                 </div>
                 <div class="carousel-container carousel-container-decorated">
