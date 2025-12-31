@@ -143,7 +143,7 @@ def datestr(
     now: datetime | None = None,
     lang: str | None = None,
     relative: bool = True,
-    format: Literal['compact', 'long'] = 'long'
+    format: Literal['compact', 'long'] = 'long',
 ) -> str:
     """Internationalized version of web.datestr."""
     if format == 'compact' and relative:
@@ -161,7 +161,9 @@ def datestr(
     return format_date(then, lang=lang)
 
 
-TimeDeltaUnit = namedtuple('TimeDeltaUnit', ['long_name', 'short_name', 'seconds_per_unit'])
+TimeDeltaUnit = namedtuple(
+    'TimeDeltaUnit', ['long_name', 'short_name', 'seconds_per_unit']
+)
 
 TIME_DELTA_UNITS = (
     TimeDeltaUnit('year', 'y', 3600 * 24 * 365),

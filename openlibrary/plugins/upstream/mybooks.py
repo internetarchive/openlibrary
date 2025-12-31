@@ -11,7 +11,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
 from openlibrary.accounts.model import (
-    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+    OpenLibraryAccount,
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -26,7 +26,7 @@ from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
-from openlibrary.utils import extract_numeric_id_from_olid, dateutil
+from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
@@ -677,11 +677,18 @@ class ActivityFeed:
     @classmethod
     def get_cached_pub_sub_feed(cls, username):
         five_minutes = 5 * dateutil.MINUTE_SECS
-        mc = memcache_memoize(cls.get_pub_sub_feed, key_prefix="mybooks.pubsub.feed", timeout=five_minutes, prethread=caching_prethread())
+        mc = memcache_memoize(
+            cls.get_pub_sub_feed,
+            key_prefix="mybooks.pubsub.feed",
+            timeout=five_minutes,
+            prethread=caching_prethread(),
+        )
         results = mc(username)
 
         for r in results:
-            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+            if isinstance(
+                r['created'], str
+            ):  # `datetime` objects are stored in cache as strings
                 # Update `created` to datetime, which is the type expected by `datestr` (called in card template)
                 r['created'] = datetime.fromisoformat(r['created'])
         return results
@@ -689,8 +696,7 @@ class ActivityFeed:
     @classmethod
     def get_trending_feed(cls, username):
         def has_public_reading_log(_username):
-            acct = OpenLibraryAccount.get_by_username(_username)
-            if acct:
+            if acct := OpenLibraryAccount.get_by_username(_username):
                 user = acct.get_user()
                 return user and user.preferences().get('public_readlog', 'no') == 'yes'
             return False
@@ -700,7 +706,11 @@ class ActivityFeed:
 
         feed = []
         for idx, item in enumerate(logged_books):
-            if item['work'] and item['username'] != username and has_public_reading_log(item['username']):
+            if (
+                item['work']
+                and item['username'] != username
+                and has_public_reading_log(item['username'])
+            ):
                 feed.append(item)
             if len(feed) > 2:
                 break
@@ -710,11 +720,18 @@ class ActivityFeed:
     @classmethod
     def get_cached_trending_feed(cls, username):
         five_minutes = 5 * dateutil.MINUTE_SECS
-        mc = memcache_memoize(cls.get_trending_feed, key_prefix="mybooks.trending.feed", timeout=five_minutes, prethread=caching_prethread())
+        mc = memcache_memoize(
+            cls.get_trending_feed,
+            key_prefix="mybooks.trending.feed",
+            timeout=five_minutes,
+            prethread=caching_prethread(),
+        )
         results = mc(username)
 
         for r in results:
-            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+            if isinstance(
+                r['created'], str
+            ):  # `datetime` objects are stored in cache as strings
                 r['created'] = datetime.fromisoformat(r['created'])
         return results
 
@@ -722,4 +739,3 @@ class ActivityFeed:
 @public
 def get_activity_feed(username):
     return ActivityFeed.get_activity_feed(username)
-
