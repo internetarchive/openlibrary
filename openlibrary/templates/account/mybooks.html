@@ -50,7 +50,10 @@ $def year_span(year, use_local_year=False):
                 <a href="$feed_url">$_("My Feed")</a>
             </h2>
         </div>
-        $:render_template('account/activity_feed', username)
+        $:macros.LoadingIndicator(_("Loading activity feed"), hidden=False)
+        <div class="activity-feed-retry hidden">
+            $_("Failed to fetch activity feed.") <a href="#" class="retry-btn">$_("Retry?")</a>
+        </div>
     </div>
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))

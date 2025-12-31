@@ -1,12 +1,12 @@
-$def with(username)
+$def with(feed, feed_url, follows_others)
 
 $# Renders the given feed in a container filled with cards.
 $#
-$# * username (string) -- Username of a patron
+$# * feed (list)              -- List of recent bookshelf events
+$# * feed_url (string)        -- `href` for the feed's source
+$# * follows_others (boolean) -- `True` if the authenticated patron follows at least one person
 
 $code:
-    feed_url = '/people/%s/books/feed' % username
-    feed, follows_others = get_activity_feed(username)
     shelf_id_to_name = {
         1: _('Want to Read'),
         2: _('Currently Reading'),

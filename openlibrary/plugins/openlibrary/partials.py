@@ -12,6 +12,7 @@ from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
+from openlibrary.plugins.upstream.mybooks import ActivityFeed
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import (
@@ -354,6 +355,19 @@ class LazyCarouselPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
+
+class ActivityFeedPartial(PartialDataHandler):
+    """Handler for "My Books" page activity feeds"""
+    def __init__(self):
+        self.i = web.input(username=None)
+
+    def generate(self) -> dict:
+        feed, follows_others = ActivityFeed.get_activity_feed(self.i.username)
+        feed_url = f'/people/{self.i.username}/books/feed'
+        template_result = render_template('account/activity_feed', feed, feed_url, follows_others)
+        return {"partials": str(template_result)}
+
+
 class PartialRequestResolver:
     # Maps `_component` values to PartialDataHandler subclasses
     component_mapping = {  # noqa: RUF012
@@ -365,6 +379,7 @@ class PartialRequestResolver:
         "LazyCarousel": LazyCarouselPartial,
         "MyBooksDropperLists": MyBooksDropperListsPartial,
         "ReadingGoalProgress": ReadingGoalProgressPartial,
+        "ActivityFeed": ActivityFeedPartial,
     }
 
     @staticmethod
