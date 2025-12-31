@@ -44,7 +44,9 @@
   },
   "orientation": "default",
   "fingerprints": [],
-  "additionalTrustedOrigins": [],
+  "additionalTrustedOrigins": [
+    "https://archive.org"
+  ],
   "retainedBundles": [],
   "protocolHandlers": [],
   "fileHandlers": [],

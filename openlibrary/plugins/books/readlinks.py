@@ -6,52 +6,16 @@ editions of the same work that might be available.
 import re
 import sys
 
-import requests
 import web
 
-from infogami import config
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
-from openlibrary.api import OpenLibrary  # noqa: F401 side effects may be needed
 from openlibrary.core import helpers, ia
 from openlibrary.plugins.books import dynlinks
 
 
 def key_to_olid(key):
     return key.split('/')[-1]
-
-
-def ol_query(name, value):
-    query = {
-        'type': '/type/edition',
-        name: value,
-    }
-    if keys := web.ctx.site.things(query):
-        return keys[0]
-
-
-def get_solr_select_url():
-    c = config.get("plugin_worksearch")
-    base_url = c and c.get('solr_base_url')
-    return base_url and (base_url + "/select")
-
-
-def get_work_iaids(wkey):
-    # wid = wkey.split('/')[2]
-    solr_select_url = get_solr_select_url()
-    filter = 'ia'
-    q = 'key:' + wkey
-    stats.begin('solr', url=wkey)
-    solr_select = (
-        solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
-    )
-    reply = requests.get(solr_select).json()
-    stats.end()
-    print(reply)
-    if reply['response']['numFound'] == 0:
-        return []
-    return reply["response"]['docs'][0].get(filter, [])
 
 
 def get_solr_fields_for_works(
@@ -63,42 +27,6 @@ def get_solr_fields_for_works(
 
     docs = get_solr().get_many(wkeys, fields=['key', field])
     return {doc['key']: doc.get(field, [])[:clip_limit] for doc in docs}
-
-
-def get_eids_for_wids(wids):
-    """To support testing by passing in a list of work-ids - map each to
-    it's first edition ID"""
-    solr_select_url = get_solr_select_url()
-    filter = 'edition_key'
-    q = '+OR+'.join(wids)
-    solr_select = (
-        solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json&fq=type:work"
-    )
-    reply = requests.get(solr_select).json()
-    if reply['response']['numFound'] == 0:
-        return []
-    rows = reply['response']['docs']
-    result = {r['key']: r[filter][0] for r in rows if len(r.get(filter, []))}
-    return result
-
-
-# Not yet used.  Solr editions aren't up-to-date (6/2011)
-def get_solr_edition_records(iaids):
-    solr_select_url = get_solr_select_url()
-    filter = 'title'
-    q = '+OR+'.join('ia:' + id for id in iaids)
-    solr_select = (
-        solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json"
-    )
-    reply = requests.get(solr_select).json()
-    if reply['response']['numFound'] == 0:
-        return []
-    rows = reply['response']['docs']
-    return rows
-    result = {r['key']: r[filter][0] for r in rows if len(r.get(filter, []))}
-    return result
 
 
 class ReadProcessor:

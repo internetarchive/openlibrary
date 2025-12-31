@@ -1,6 +1,6 @@
 import json
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final, Literal, cast
+from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
 from web.template import TemplateResult
@@ -58,9 +58,15 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb):
+    def render_template(self, mb: 'MyBooksTemplate') -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
-        want_to_read, currently_reading, already_read, loans = [], [], [], []
+
+        docs: dict[str, Any] = {
+            'loans': [],
+            'want-to-read': [],
+            'currently-reading': [],
+            'already-read': [],
+        }
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
@@ -71,6 +77,7 @@ class mybooks_home(delegate.page):
                 if book := web.ctx.site.get(loan['book']):
                     book.loan = loan
                     loans.docs.append(book)
+            docs['loans'] = loans
 
         if mb.me or mb.is_public:
             params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
@@ -570,7 +577,7 @@ class ReadingLog:
         sort_order: str = 'desc',
         q: str = "",
         year: int | None = None,
-    ) -> LoggedBooksData:
+    ) -> 'LoggedBooksData':
         """
         Get works for want-to-read, currently-reading, and already-read as
         determined by {key}.

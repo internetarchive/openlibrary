@@ -32,6 +32,8 @@ services:
       dockerfile: docker/Dockerfile.oldev
     volumes:
       - .:/openlibrary
+    environment:
+      - LOCAL_DEV=true
 
   solr:
     environment:

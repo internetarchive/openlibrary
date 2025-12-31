@@ -6,12 +6,14 @@ its experience. This does not include public facing APIs with LTS
 
 import io
 import json
+import logging
 from collections import defaultdict
 
 import qrcode
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
+from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -21,6 +23,7 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
+from openlibrary.core import cache, lending, models
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
 from openlibrary.core.lending import add_availability
@@ -38,13 +41,17 @@ from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
+from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.plugins.worksearch.subjects import (
     get_subject,  # noqa: F401 side effects may be needed
 )
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
+
+logger = logging.getLogger(__name__)
 
 
 class book_availability(delegate.page):
