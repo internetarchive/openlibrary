@@ -4,7 +4,6 @@ import { ReadingHistory } from './ReadingHistory';
 import { htmlquote } from '../jsdef.js';
 
 const DEFAULT_LIMIT = 50;
-const MAX_LIMIT = 100;
 const LAZY_LOAD_THRESHOLD = 5; // lazy load images after first 5
 const TITLE_TRUNCATE_LENGTH = 70;
 const AUTHOR_TRUNCATE_LENGTH = 30;
