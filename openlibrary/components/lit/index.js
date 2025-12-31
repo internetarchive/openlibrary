@@ -5,6 +5,6 @@
  * Components are bundled together via Vite for production use.
  */
 
-// Add component exports here as they are created
-// Example: export { OlMyComponent } from './OlMyComponent.js';
+// Pagination component
+export { OlPagination } from './OlPagination.js';
 
