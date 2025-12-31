@@ -15,6 +15,7 @@ from unicodedata import normalize
 import httpx
 import web
 from requests import Response
+from typing_extensions import deprecated
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -60,6 +61,7 @@ re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
 
+default_spellcheck_count = 10
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
         config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
@@ -135,7 +137,11 @@ def process_facet(
                 key, name = read_author_facet(val)
                 yield (key, name, count)
             elif field == 'language':
-                yield (val, get_language_name(f'/languages/{val}'), count)
+                yield (
+                    val,
+                    get_language_name(f'/languages/{val}', web.ctx.lang or 'en'),
+                    count,
+                )
             else:
                 yield (val, val, count)
 
@@ -197,7 +203,7 @@ def get_remembered_layout():
     return 'details'
 
 
-def _prepare_solr_query_params(
+def _prepare_solr_query_params(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -269,6 +275,8 @@ def _prepare_solr_query_params(
         if field == 'author_facet':
             field = 'author_key'
         values = param[field]
+        if isinstance(values, str):
+            values = [values]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
     # Many fields in solr use the convention of `*_facet` both
@@ -1209,7 +1217,7 @@ def work_search(
 
 # Warning: when changing this please also change the sync version
 @public
-async def async_work_search(
+async def work_search_async(
     query: dict,
     sort: str | None = None,
     page: int = 1,
@@ -1239,6 +1247,20 @@ async def async_work_search(
     return _process_solr_search_response(resp, fields)
 
 
+def validate_search_json_query(q: str | None) -> str | None:
+    if q and len(q) < 3:
+        return 'Query too short, must be at least 3 characters'
+
+    BLOCKED_QUERIES = {'the'}
+    if q and q.lower() in BLOCKED_QUERIES:
+        return (
+            f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}",
+        )
+
+    return None
+
+
+@deprecated("migrated to fastapi")
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
@@ -1246,6 +1268,7 @@ class search_json(delegate.page):
     def GET(self):
         i = web.input(
             author_key=[],
+            author_facet=[],
             subject_facet=[],
             person_facet=[],
             place_facet=[],
@@ -1279,8 +1302,13 @@ class search_json(delegate.page):
             default=default_spellcheck_count,
         )
 
-        # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '').strip()
+        web.header('Content-Type', 'application/json')
+        if q_error := validate_search_json_query(q):
+            web.ctx.status = '422 Unprocessable Entity'
+            return delegate.RawText(json.dumps({'error': q_error}))
+
+        # If the query is a /list/ key, create custom list_editions_query
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
@@ -1302,7 +1330,6 @@ class search_json(delegate.page):
         docs = response['docs']
         del response['docs']
         response['docs'] = docs
-        web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
 

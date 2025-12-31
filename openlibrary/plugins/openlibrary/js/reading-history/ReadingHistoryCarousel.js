@@ -32,7 +32,7 @@ export class ReadingHistoryCarousel {
         }
 
         const editionIds = ReadingHistory.getEditionIds(DEFAULT_LIMIT);
-        
+
         if (editionIds.length === 0) {
             return; // nothing to show
         }
@@ -52,11 +52,11 @@ export class ReadingHistoryCarousel {
     async fetchBooks(editionIds) {
         const url = `${this.apiEndpoint}?edition_ids=${editionIds.join(',')}&limit=${DEFAULT_LIMIT}`;
         const response = await fetch(url);
-        
+
         if (!response.ok) {
             throw new Error(`API request failed: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data.docs || [];
     }
@@ -77,8 +77,8 @@ export class ReadingHistoryCarousel {
         }).join('');
 
         // Get i18n string for "Reading History" if available
-        const readingHistoryLabel = (typeof window !== 'undefined' && window._) 
-            ? window._('Reading History') 
+        const readingHistoryLabel = (typeof window !== 'undefined' && window._)
+            ? window._('Reading History')
             : 'Reading History';
 
         const carouselHtml = `
@@ -120,7 +120,7 @@ export class ReadingHistoryCarousel {
         // Escape user data to prevent XSS
         const safeTitle = htmlquote(title);
         const safeAuthorNames = htmlquote(authorNames);
-        const safeTitleAttr = safeTitle + (safeAuthorNames ? ' by ' + safeAuthorNames : '');
+        const safeTitleAttr = safeTitle + (safeAuthorNames ? ` by ${safeAuthorNames}` : '');
 
         // Build cover image URL
         let coverUrl = '';
@@ -134,7 +134,7 @@ export class ReadingHistoryCarousel {
         const bookUrl = key ? `/${key.split('/').slice(1).join('/')}` : '#';
 
         // Analytics tracking
-        const analyticsAttr = editionKey 
+        const analyticsAttr = editionKey
             ? `data-ol-link-track="ReadingHistoryCarousel|BookClick|${htmlquote(editionKey)}"`
             : '';
 
@@ -145,8 +145,8 @@ export class ReadingHistoryCarousel {
                 <div class="book-cover">
                     <a href="${bookUrl}" title="${safeTitleAttr}" ${analyticsAttr}>
                         ${coverUrl ? `
-                            <img class="bookcover" ${lazyAttr} 
-                                 alt="${safeTitle}" 
+                            <img class="bookcover" ${lazyAttr}
+                                 alt="${safeTitle}"
                                  title="${safeTitleAttr}" />
                         ` : `
                             <div class="carousel__item__blankcover" title="${safeTitle}">
@@ -165,7 +165,7 @@ export class ReadingHistoryCarousel {
         if (!str || str.length <= maxLength) {
             return str;
         }
-        return str.substring(0, maxLength - 3) + '...';
+        return `${str.substring(0, maxLength - 3)}...`;
     }
 }
 

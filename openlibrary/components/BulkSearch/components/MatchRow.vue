@@ -17,6 +17,7 @@
           v-for="(doc, index) in bookMatch.solrDocs.docs"
           :key="index"
           :doc="doc"
+          :is-primary="index === 0"
         />
         <NoBookCard v-if="bookMatch.solrDocs.numFound===0" />
       </div>
@@ -59,6 +60,10 @@ th {
     align-items: center;
     overflow-x:auto;
     scrollbar-width:thin;
+
+    .book-card--primary {
+        margin-right: 20px;
+    }
 }
 
 

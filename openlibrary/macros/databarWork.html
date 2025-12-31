@@ -29,7 +29,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ edition = page.works and page
 
         $ render_times['databarWork: List widget'] = time()
-        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, async_load=True, show_active_lists=True)
+        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, async_load=True)
         $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         $# For the Works & Editions page, only use ground_truth_availability API for selected Edition

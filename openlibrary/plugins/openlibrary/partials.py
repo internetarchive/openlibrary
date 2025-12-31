@@ -11,7 +11,7 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.lists import get_user_lists
+from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import (
@@ -47,7 +47,7 @@ class ReadingGoalProgressPartial(PartialDataHandler):
     def generate(self) -> dict:
         year = self.i.year or datetime.now().year
         goal = get_reading_goals(year=year)
-        component = render_template('check_ins/reading_goal_progress', [goal])
+        component = render_template('reading_goals/reading_goal_progress', [goal])
 
         return {"partials": str(component)}
 
@@ -298,34 +298,23 @@ class BookPageListsPartial(PartialDataHandler):
 
     def generate(self) -> dict:
         results: dict = {"partials": []}
-        work_id = self.i.workId
-        edition_id = self.i.editionId
-
-        work = (work_id and web.ctx.site.get(work_id)) or None
-        edition = (edition_id and web.ctx.site.get(edition_id)) or None
+        work_key = self.i.workId
+        edition_key = self.i.editionId
+        keys = [k for k in (work_key, edition_key) if k]
 
         # Do checks and render
-        has_lists = (work and work.get_lists(limit=1)) or (
-            edition and edition.get_lists(limit=1)
-        )
-        results["hasLists"] = bool(has_lists)
+        lists = get_lists(keys)
+        results["hasLists"] = bool(lists)
 
-        if not has_lists:
+        if not lists:
             results["partials"].append(_('This work does not appear on any lists.'))
         else:
-            if work and work.key:
-                work_list_template = render_template(
-                    "lists/widget", work, include_header=False, include_widget=False
-                )
-                results["partials"].append(str(work_list_template))
-            if edition and edition.get("type", "") != "/type/edition":
-                edition_list_template = render_template(
-                    "lists/widget",
-                    edition,
-                    include_header=False,
-                    include_widget=False,
-                )
-                results["partials"].append(str(edition_list_template))
+            query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(
+                f'"{k}"' for k in keys
+            )
+            all_url = "/search/lists?q=" + web.urlquote(query) + "&sort=last_modified"
+            lists_template = render_template("lists/carousel", lists, all_url)
+            results["partials"].append(str(lists_template))
 
         return results
 

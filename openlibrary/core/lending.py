@@ -4,11 +4,13 @@ from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import datetime
 import logging
+import os
 import time
 import uuid
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
+import httpx
 import requests
 import web
 from simplejson.errors import JSONDecodeError
@@ -19,6 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import req_context, set_context_from_legacy_web_py
 
 from . import helpers as h
 from . import ia
@@ -202,10 +205,22 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
+    timeout = 2 if os.getenv('LOCAL_DEV') else 5
     try:
-        response = requests.post(url + params, data=s3_keys)
+        response = httpx.post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
-    except requests.HTTPError:
+    except httpx.TimeoutException:
+        if os.getenv('LOCAL_DEV'):
+            logger.warning(
+                "Availability request timed out in LOCAL_DEV environment. Returning empty dictionary."
+            )
+            return {}
+        else:
+            logger.error(
+                "Availability request timed out in non-LOCAL_DEV environment. Re-raising the exception."
+            )
+            raise  # Re-raise the timeout exception if not in LOCAL_DEV
+    except httpx.HTTPError:
         pass  # TODO: Handle unexpected responses from the availability server.
     try:
         data = response.json().get('lending_status', {})
@@ -283,7 +298,7 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        client_ip = req_context.get().x_forwarded_for or "ol-internal"
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
@@ -425,10 +440,8 @@ def get_availability(
 
     try:
         headers = {
-            "x-preferred-client-id": web.ctx.env.get(
-                'HTTP_X_FORWARDED_FOR', 'ol-internal'
-            ),
-            "x-preferred-client-useragent": web.ctx.env.get('HTTP_USER_AGENT', ''),
+            "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
+            "x-preferred-client-useragent": req_context.get().user_agent or "",
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
         }
@@ -672,6 +685,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         we have to fakeload the web.ctx
         """
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
 

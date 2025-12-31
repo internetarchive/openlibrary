@@ -20,7 +20,7 @@ describe('ReadingHistory', () => {
     test('deduplicates entries keeping most recent', () => {
         ReadingHistory.add('OL123456M');
         const firstTimestamp = ReadingHistory.getAll()[0].timestamp;
-        
+
         // Wait a bit and add again
         setTimeout(() => {
             ReadingHistory.add('OL123456M');
@@ -44,7 +44,7 @@ describe('ReadingHistory', () => {
         ReadingHistory.add('OL1M');
         ReadingHistory.add('OL2M');
         ReadingHistory.add('OL3M');
-        
+
         const ids = ReadingHistory.getEditionIds();
         expect(ids[0]).toBe('OL3M');
         expect(ids[1]).toBe('OL2M');
@@ -55,7 +55,7 @@ describe('ReadingHistory', () => {
         ReadingHistory.add('OL1M');
         ReadingHistory.add('OL2M');
         ReadingHistory.add('OL3M');
-        
+
         const ids = ReadingHistory.getEditionIds(2);
         expect(ids.length).toBe(2);
         expect(ids[0]).toBe('OL3M');

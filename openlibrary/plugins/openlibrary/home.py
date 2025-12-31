@@ -14,6 +14,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -64,11 +65,12 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-    page = mc(devmode=("dev" in web.ctx.features))
+    devmode = "dev" in web.ctx.features
+    page = mc(devmode)
 
     if not page:
-        mc.memcache_delete_by_args()
-        mc()
+        mc.memcache_delete_by_args(devmode)
+        mc(devmode)
 
     return page
 
@@ -83,6 +85,7 @@ def caching_prethread():
 
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang
+    host = web.ctx.host
     _is_bot = is_bot()
 
     def main():
@@ -92,6 +95,8 @@ def caching_prethread():
         delegate.fakeload()
         web.ctx.lang = lang
         web.ctx.is_bot = _is_bot
+        web.ctx.host = host
+        set_context_from_legacy_web_py()
 
     return main
 
@@ -158,24 +163,81 @@ def get_featured_subjects():
         delegate.fakeload()
 
     FEATURED_SUBJECTS = [
-        {'key': '/subjects/art', 'presentable_name': _('Art')},
-        {'key': '/subjects/science_fiction', 'presentable_name': _('Science Fiction')},
-        {'key': '/subjects/fantasy', 'presentable_name': _('Fantasy')},
-        {'key': '/subjects/biographies', 'presentable_name': _('Biographies')},
-        {'key': '/subjects/recipes', 'presentable_name': _('Recipes')},
-        {'key': '/subjects/romance', 'presentable_name': _('Romance')},
-        {'key': '/subjects/textbooks', 'presentable_name': _('Textbooks')},
-        {'key': '/subjects/children', 'presentable_name': _('Children')},
-        {'key': '/subjects/history', 'presentable_name': _('History')},
-        {'key': '/subjects/medicine', 'presentable_name': _('Medicine')},
-        {'key': '/subjects/religion', 'presentable_name': _('Religion')},
+        {
+            'key': '/subjects/art',
+            'presentable_name': _('Art'),
+            'emoji': '🎨',
+        },
+        {
+            'key': '/subjects/science_fiction',
+            'presentable_name': _('Science Fiction'),
+            'emoji': '👽',
+        },
+        {
+            'key': '/subjects/fantasy',
+            'presentable_name': _('Fantasy'),
+            'emoji': '🧙‍♂️',
+        },
+        {
+            'key': '/subjects/biographies',
+            'presentable_name': _('Biographies'),
+            'emoji': '📖',
+        },
+        {
+            'key': '/subjects/recipes',
+            'presentable_name': _('Recipes'),
+            'emoji': '🍳',
+        },
+        {
+            'key': '/subjects/romance',
+            'presentable_name': _('Romance'),
+            'emoji': '❤️',
+        },
+        {
+            'key': '/subjects/textbooks',
+            'presentable_name': _('Textbooks'),
+            'emoji': '📚',
+        },
+        {
+            'key': '/subjects/children',
+            'presentable_name': _('Children'),
+            'emoji': '👶',
+        },
+        {
+            'key': '/subjects/history',
+            'presentable_name': _('History'),
+            'emoji': '📜',
+        },
+        {
+            'key': '/subjects/medicine',
+            'presentable_name': _('Medicine'),
+            'emoji': '💊',
+        },
+        {
+            'key': '/subjects/religion',
+            'presentable_name': _('Religion'),
+            'emoji': '✝️',
+        },
         {
             'key': '/subjects/mystery_and_detective_stories',
             'presentable_name': _('Mystery and Detective Stories'),
+            'emoji': '🕵️‍♂️',
         },
-        {'key': '/subjects/plays', 'presentable_name': _('Plays')},
-        {'key': '/subjects/music', 'presentable_name': _('Music')},
-        {'key': '/subjects/science', 'presentable_name': _('Science')},
+        {
+            'key': '/subjects/plays',
+            'presentable_name': _('Plays'),
+            'emoji': '🎭',
+        },
+        {
+            'key': '/subjects/music',
+            'presentable_name': _('Music'),
+            'emoji': '🎶',
+        },
+        {
+            'key': '/subjects/science',
+            'presentable_name': _('Science'),
+            'emoji': '🔬',
+        },
     ]
     return [
         {**subject, **(subjects.get_subject(subject['key'], limit=0) or {})}
@@ -207,6 +269,7 @@ def generic_carousel(
         get_ia_carousel_books,
         memcache_key,
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+        prethread=caching_prethread(),
     )
     books = cached_ia_carousel_books(
         query=query,
