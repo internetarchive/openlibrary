@@ -575,4 +575,12 @@ jQuery(function () {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
     }
+
+    // Reading history tracking - initialize on all pages to track borrow/read clicks
+    import(/* webpackChunkName: "reading-history" */ './reading-history')
+        .then(module => {
+            module.initReadingHistoryTracking();
+            // Also initialize carousel if on My Books page
+            module.initReadingHistoryCarousel();
+        });
 });

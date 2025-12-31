@@ -23,6 +23,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, models
+from openlibrary.core.lending import add_availability
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
@@ -787,3 +788,85 @@ class bestbook_count(delegate.page):
             work_id=filt.work_id, username=filt.username, topic=filt.topic
         )
         return json.dumps({'count': result})
+
+
+class reading_history_json(delegate.page):
+    """
+    API endpoint to fetch reading history books from localStorage edition IDs.
+    
+    Accepts a comma-separated list of edition IDs (e.g., "OL123456M,OL789012M")
+    and returns work data suitable for carousel display.
+    """
+    path = "/reading-history(/?.*)"
+    encoding = "json"
+
+    def GET(self):
+        from openlibrary.plugins.worksearch.search import get_solr
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+
+        # Configuration constants
+        DEFAULT_LIMIT = 50
+        MAX_LIMIT = 100
+
+        i = web.input(edition_ids='', limit=DEFAULT_LIMIT)
+        edition_ids = [eid.strip() for eid in i.edition_ids.split(',') if eid.strip()]
+        try:
+            limit = min(int(i.limit), MAX_LIMIT)
+        except (ValueError, TypeError):
+            limit = DEFAULT_LIMIT
+
+        if not edition_ids:
+            return json.dumps({
+                'docs': [],
+                'numFound': 0
+            })
+
+        # Convert edition IDs to edition keys
+        edition_keys = [f"/books/{eid}" for eid in edition_ids if eid.startswith('OL')]
+
+        if not edition_keys:
+            return json.dumps({
+                'docs': [],
+                'numFound': 0
+            })
+
+        # Get editions from infobase
+        editions = web.ctx.site.get_many(edition_keys)
+        
+        # Extract work keys from editions
+        work_keys = set()
+        for edition in editions:
+            if edition and edition.works:
+                work_key = edition.works[0].key if isinstance(edition.works[0], dict) else str(edition.works[0])
+                work_keys.add(work_key)
+
+        if not work_keys:
+            return json.dumps({
+                'docs': [],
+                'numFound': 0
+            })
+
+        # Query Solr for work data
+        solr = get_solr()
+        fields = WorkSearchScheme.default_fetched_fields | {
+            'edition_key', 'cover_edition_key', 'cover_i', 'author_key', 'author_name',
+            'first_publish_year', 'lending_edition_s', 'has_fulltext'
+        }
+        
+        solr_docs = solr.get_many(list(work_keys), fields=list(fields))
+        
+        # Convert to carousel format (similar to mybooks format)
+        docs = []
+        for doc in solr_docs[:limit]:
+            # Convert to web.storage for compatibility
+            doc_storage = web.storage(doc)
+            docs.append(doc_storage)
+
+        # Add availability data
+        if docs:
+            add_availability(docs, mode='openlibrary_work')
+
+        return delegate.RawText(json.dumps({
+            'docs': [dict(doc) for doc in docs],
+            'numFound': len(docs)
+        }, cls=NothingEncoder), content_type="application/json")
