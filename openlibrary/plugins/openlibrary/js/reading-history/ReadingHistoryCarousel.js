@@ -43,7 +43,8 @@ export class ReadingHistoryCarousel {
                 this.renderCarousel(books);
             }
         } catch (error) {
-            console.warn('Failed to load reading history:', error);
+            // Silently fail - reading history is a nice-to-have feature
+            // Error could be due to network issues, API problems, etc.
         }
     }
 

@@ -33,7 +33,7 @@ function extractEditionId(source) {
             return match[1];
         }
         // Try /books/{key}/-/borrow format
-        const altMatch = source.match(/\/books\/([^\/]+)\/-\/borrow/);
+        const altMatch = source.match(/\/books\/([^/]+)\/-\/borrow/);
         if (altMatch) {
             const key = altMatch[1];
             // If the key is already an OLID, use it
@@ -49,12 +49,12 @@ function extractEditionId(source) {
 // Set up click tracking for borrow/read buttons
 export function initReadingHistoryTracking() {
     if (!ReadingHistory.isAvailable()) {
-        console.warn('localStorage not available, reading history tracking disabled');
+        // localStorage not available (e.g., private browsing mode)
         return;
     }
 
     // Track clicks on borrow/read buttons
-    $(document).on('click', '.cta-btn--borrow, .cta-btn--read, a[href*="/borrow"]', function(e) {
+    $(document).on('click', '.cta-btn--borrow, .cta-btn--read, a[href*="/borrow"]', function() {
         const $link = $(this);
         const href = $link.attr('href') || '';
         
@@ -69,7 +69,7 @@ export function initReadingHistoryTracking() {
     });
 
     // Also handle external read buttons (for open access books)
-    $(document).on('click', '.cta-btn--external.cta-btn--read, a[href*="action=read"]', function(e) {
+    $(document).on('click', '.cta-btn--external.cta-btn--read, a[href*="action=read"]', function() {
         const $link = $(this);
         const href = $link.attr('href') || '';
         

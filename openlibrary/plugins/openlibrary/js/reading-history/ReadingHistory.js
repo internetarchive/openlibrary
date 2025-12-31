@@ -16,6 +16,7 @@ export class ReadingHistory {
             // Make sure we return an array even if stored data is corrupted
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
+            // eslint-disable-next-line no-console
             console.warn('Failed to read reading history from localStorage:', e);
             return [];
         }
@@ -30,15 +31,18 @@ export class ReadingHistory {
         } catch (e) {
             // Handle case where localStorage is full (private browsing, quota exceeded, etc)
             if (e.name === 'QuotaExceededError') {
+                // eslint-disable-next-line no-console
                 console.warn('localStorage quota exceeded, clearing old entries');
                 // Try saving with half the items
                 const reduced = entries.slice(-Math.floor(MAX_ITEMS / 2));
                 try {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(reduced));
                 } catch (e2) {
+                    // eslint-disable-next-line no-console
                     console.error('Failed to save reading history after quota error:', e2);
                 }
             } else {
+                // eslint-disable-next-line no-console
                 console.error('Failed to save reading history:', e);
             }
         }
@@ -80,6 +84,7 @@ export class ReadingHistory {
         try {
             localStorage.removeItem(STORAGE_KEY);
         } catch (e) {
+            // eslint-disable-next-line no-console
             console.warn('Failed to clear reading history:', e);
         }
     }
