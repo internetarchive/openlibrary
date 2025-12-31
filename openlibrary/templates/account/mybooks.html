@@ -43,6 +43,18 @@ $def year_span(year, use_local_year=False):
   $# Render carousels
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
+    $ feed_url = '/people/%s/books/feed' % username
+    <div class="carousel-section activity-feed-container">
+        <div class="carousel-section-header">
+            <h2 class="home-h2">
+                <a href="$feed_url">$_("My Feed")</a>
+            </h2>
+        </div>
+        $:macros.LoadingIndicator(_("Loading activity feed"), hidden=False)
+        <div class="activity-feed-retry hidden">
+            $_("Failed to fetch activity feed.") <a href="#" class="retry-btn">$_("Retry?")</a>
+        </div>
+    </div>
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
@@ -68,10 +80,12 @@ $code:
             "test": False
         }) if books else None
 
-$def empty_mobile_carousel(data):
+$def empty_mobile_carousel(data, show_count=True):
     $ key, title, url = data
+    $if show_count:
+        $ title += ' (0)'
     <div class="carousel-section-header">
-      <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+      <a class="li-title-desktop" name="$key" href="$url">$title<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
     </div>
 
   $ component_times['Sidebar'] = time()
@@ -102,6 +116,10 @@ $def empty_mobile_carousel(data):
                 $:render_template('reading_goals/reading_goal_progress', [current_goal])
               </span>
           </div>
+        </li>
+        <li>
+            $ activity_feed_data = ('activity-feed-key', _('Activity Feed'), feed_url)
+            $:empty_mobile_carousel(activity_feed_data, show_count=False)
         </li>
     $if public or owners_page:
         <li>
