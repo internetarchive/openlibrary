@@ -1,4 +1,5 @@
 import MergeRequestTable from './MergeRequestTable';
+import { initMergeRequestEditPage } from './MergeRequestEditPage'
 
 /**
  * Hydrates given librarian request queue.
