@@ -550,6 +550,16 @@ class BetterDataProvider(LegacyDataProvider):
 
     def clear_cache(self):
         super().clear_cache()
+        # Log cache statistics to monitor effectiveness and validate the fix
+        if self.cache or self.ia_cache or self.edition_keys_of_works_cache:
+            logger.debug(
+                "Cache stats before clearing - documents: %d, IA metadata: %d, "
+                "work→editions: %d, redirects: %d",
+                len(self.cache),
+                len(self.ia_cache),
+                len(self.edition_keys_of_works_cache),
+                len(self.redirect_cache),
+            )
         self.cache.clear()
         self.redirect_cache.clear()
         self.edition_keys_of_works_cache.clear()
