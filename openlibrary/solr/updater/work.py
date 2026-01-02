@@ -500,10 +500,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def ia_collection(self) -> list[str]:
         return sorted(uniq(c for e in self._solr_editions for c in e.ia_collection))
 
-    @property
-    def ia_collection_s(self) -> str:
-        return ';'.join(self.ia_collection)
-
     @cached_property
     def _ia_editions(self) -> list[EditionSolrBuilder]:
         def get_ia_sorting_key(ed: EditionSolrBuilder) -> tuple[int, str]:

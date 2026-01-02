@@ -584,9 +584,7 @@ def get_doc(doc: SolrDocument):
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
-        collections=(
-            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
-        ),
+        collections=(doc.get('ia_collection') or []),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
         lending_edition=doc.get('lending_edition_s', None),

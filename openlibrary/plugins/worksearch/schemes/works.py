@@ -62,6 +62,7 @@ class WorkSearchScheme(SearchScheme):
             "lccn",
             "lexile",
             "ia",
+            "ia_collection",
             "oclc",
             "isbn",
             "contributor",
@@ -139,10 +140,6 @@ class WorkSearchScheme(SearchScheme):
             'work_subtitle': 'subtitle',
             'work_title': 'title',
             'trending': 'trending_z_score',
-            # "Private" fields
-            # This is private because we'll change it to a multi-valued field instead of a
-            # plain string at the next opportunity, which will make it much more usable.
-            '_ia_collection': 'ia_collection_s',
         }
     )
     sorts = MappingProxyType(
@@ -209,7 +206,7 @@ class WorkSearchScheme(SearchScheme):
             'lending_edition_s',
             'lending_identifier_s',
             'language',
-            'ia_collection_s',
+            'ia_collection',
             # FIXME: These should be fetched from book_providers, but can't cause circular
             # dep
             'id_project_gutenberg',
@@ -276,8 +273,6 @@ class WorkSearchScheme(SearchScheme):
                     lcc_transform(node)
                 if node.name in ('dcc', 'dcc_sort'):
                     ddc_transform(node)
-                if node.name == 'ia_collection_s':
-                    ia_collection_s_transform(node)
 
         if not has_search_fields:
             # If there are no search fields, maybe we want just an isbn?
@@ -733,23 +728,6 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
-
-
-def ia_collection_s_transform(sf: luqum.tree.SearchField):
-    """
-    Because this field is not a multi-valued field in solr, but a simple ;-separate
-    string, we have to do searches like this for now.
-    """
-    val = sf.children[0]
-    if isinstance(val, luqum.tree.Word):
-        if val.value.startswith('*'):
-            val.value = '*' + val.value
-        if val.value.endswith('*'):
-            val.value += '*'
-    else:
-        logger.warning(
-            f"Unexpected ia_collection_s SearchField value type: {type(val)}"
-        )
 
 
 def has_solr_editions_enabled():
