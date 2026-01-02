@@ -9,6 +9,7 @@ from typing import Any, cast
 
 import luqum.tree
 import web
+from luqum.exceptions import ParseError
 
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
@@ -355,18 +356,18 @@ class WorkSearchScheme(SearchScheme):
 
             try:
                 # Validate the query parses correctly
-                test_tree = luqum_parser(structured_query)
+                luqum_parser(structured_query)
                 best_split = structured_query
                 # Use the first valid split (preferring 2-word authors)
                 break
-            except Exception:
+            except (ParseError, EmptyTreeError):
                 # If parsing fails, try next split
                 continue
 
         if best_split:
             try:
                 return luqum_parser(best_split)
-            except Exception:
+            except (ParseError, EmptyTreeError):
                 # If parsing fails, return original query
                 logger.debug(f"Failed to parse author-title pattern: {best_split}")
                 return q_tree
