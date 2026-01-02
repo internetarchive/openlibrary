@@ -24,7 +24,11 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
+from openlibrary.plugins.upstream.utils import (
+    get_coverstore_public_url,
+    serve_static_file,
+    setup_requests,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -490,24 +494,23 @@ class serviceworker(delegate.page):
     path = '/sw.js'
 
     def GET(self):
-        web.header('Content-Type', 'text/javascript')
-        return web.ok(open('static/build/js/sw.js').read())
+        return serve_static_file('static/build/js/sw.js', 'text/javascript')
 
 
 class assetlinks(delegate.page):
     path = '/.well-known/assetlinks'
 
     def GET(self):
-        web.header('Content-Type', 'application/json')
-        return web.ok(open('static/.well-known/assetlinks.json').read())
+        return serve_static_file(
+            'static/.well-known/assetlinks.json', 'application/json'
+        )
 
 
 class opensearchxml(delegate.page):
     path = '/opensearch.xml'
 
     def GET(self):
-        web.header('Content-Type', 'text/plain')
-        return web.ok(open('static/opensearch.xml').read())
+        return serve_static_file('static/opensearch.xml', 'text/plain')
 
 
 class health(delegate.page):
