@@ -202,4 +202,3 @@ def sync_patron_data_for_work_merge(changeset):
         Observations.update_work_id(dup_id, master_id)
         Bestbook.update_work_id(dup_id, master_id)
         BookshelvesEvents.update_work_id(dup_id, master_id)
-
