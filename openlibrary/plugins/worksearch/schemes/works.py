@@ -286,7 +286,91 @@ class WorkSearchScheme(SearchScheme):
             isbn = normalize_isbn(user_query)
             if isbn and len(isbn) in (10, 13):
                 q_tree = luqum_parser(f'isbn:({isbn})')
+            else:
+                # Try to detect author-title patterns in plain text queries
+                # e.g., "thomas moore soul therapy" -> author:"thomas moore" AND title:"soul therapy"
+                q_tree = self._detect_author_title_pattern(user_query, q_tree)
 
+        return q_tree
+
+    def _detect_author_title_pattern(
+        self, user_query: str, q_tree: luqum.tree.Item
+    ) -> luqum.tree.Item:
+        """
+        Detects author-title patterns in plain text queries and converts them
+        to structured queries. This helps with searches like "thomas moore soul therapy"
+        where the user expects to find books by "thomas moore" with title "soul therapy".
+
+        Heuristic:
+        - Only applies to queries with 3+ words
+        - Tries splitting at different points (1-3 words for author, rest for title)
+        - Converts to: author_name:"author" AND alternative_title:"title"
+        """
+        # Strip and get words
+        words = user_query.strip().split()
+        
+        # Only apply to queries with 3+ words
+        if len(words) < 3:
+            return q_tree
+        
+        # Common patterns: "first last title" or "first middle last title"
+        # Prefer 2-word author names (first + last) as they're most common
+        # Try splitting at 2, then 1, then 3 words for author name
+        best_split = None
+        max_author_words = min(3, len(words) - 1)  # Need at least 1 word for title
+        
+        # Try different split points, preferring 2-word author names
+        split_order = [2, 1, 3] if max_author_words >= 2 else [1]
+        for author_word_count in split_order:
+            if author_word_count > max_author_words:
+                continue
+                
+            author_words = words[:author_word_count]
+            title_words = words[author_word_count:]
+            
+            # Skip if title is too short (less than 2 words)
+            if len(title_words) < 2:
+                continue
+            
+            author_part = ' '.join(author_words)
+            title_part = ' '.join(title_words)
+            
+            # Escape special characters for use in quoted phrases
+            # We need to escape Lucene special chars but not the quotes themselves
+            def escape_for_phrase(text: str) -> str:
+                # Escape backslashes first, then quotes
+                # This is for use inside quotes, so we don't escape the outer quotes
+                return text.replace('\\', '\\\\').replace('"', '\\"')
+            
+            author_escaped = escape_for_phrase(author_part)
+            title_escaped = escape_for_phrase(title_part)
+            
+            # Build structured query
+            # Use author_name and alternative_title fields for better matching
+            structured_query = (
+                f'(author_name:"{author_escaped}" '
+                f'OR author_alternative_name:"{author_escaped}") '
+                f'AND alternative_title:"{title_escaped}"'
+            )
+            
+            try:
+                # Validate the query parses correctly
+                test_tree = luqum_parser(structured_query)
+                best_split = structured_query
+                # Use the first valid split (preferring 2-word authors)
+                break
+            except Exception:
+                # If parsing fails, try next split
+                continue
+        
+        if best_split:
+            try:
+                return luqum_parser(best_split)
+            except Exception:
+                # If parsing fails, return original query
+                logger.debug(f"Failed to parse author-title pattern: {best_split}")
+                return q_tree
+        
         return q_tree
 
     def build_q_from_params(self, params: dict[str, Any]) -> str:
