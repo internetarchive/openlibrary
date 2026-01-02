@@ -24,6 +24,7 @@ class EditionSearchScheme(SearchScheme):
             "publish_date",
             "lccn",
             "ia",
+            "ia_collection",
             "isbn",
             "publisher",
             "has_fulltext",
@@ -40,7 +41,6 @@ class EditionSearchScheme(SearchScheme):
             'publishers': 'publisher',
             'subtitle': 'alternative_subtitle',
             'title': 'alternative_title',
-            '_ia_collection': 'ia_collection',
         }
     )
     sorts = MappingProxyType(

@@ -62,6 +62,7 @@ class WorkSearchScheme(SearchScheme):
             "lccn",
             "lexile",
             "ia",
+            "ia_collection",
             "oclc",
             "isbn",
             "contributor",
@@ -140,7 +141,6 @@ class WorkSearchScheme(SearchScheme):
             'work_subtitle': 'subtitle',
             'work_title': 'title',
             'trending': 'trending_z_score',
-            '_ia_collection': 'ia_collection',
         }
     )
     sorts = MappingProxyType(
