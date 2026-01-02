@@ -44,6 +44,9 @@ $def year_span(year, use_local_year=False):
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
   $if owners_page or public:
+    $# Reading History carousel (loaded dynamically via JavaScript)
+    $if owners_page:
+      <div id="reading-history-carousel-container" class="reading-history-section"></div>
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
     $:(compact_carousel(already_read) or empty_carousel(already_read))

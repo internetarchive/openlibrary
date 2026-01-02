@@ -11,6 +11,7 @@ $if acquisition.access == 'open-access':
           title="$_('Listen to a reading from %s', provider_name)"
           class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--w-icon"
           target="_blank"
+          data-edition-id="${edition_key}"
           $:analytics_attr('Listen')
       >
         <span class="btn-icon read-aloud"></span>
@@ -21,6 +22,7 @@ $if acquisition.access == 'open-access':
           title="$_('Read free online from %s', provider_name)"
           class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
           target="_blank"
+          data-edition-id="${edition_key}"
           $:analytics_attr('Read')
       >$_('Read')</a>
   </div>
