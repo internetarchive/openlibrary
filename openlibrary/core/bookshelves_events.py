@@ -16,6 +16,8 @@ class BookshelfEvent(IntEnum):
 
 class BookshelvesEvents(db.CommonExtras):
     TABLENAME = 'bookshelves_events'
+    PRIMARY_KEY = ("id",)
+    ALLOW_DELETE_ON_CONFLICT = True
     NULL_EDITION_ID = -1
 
     # Create methods:

@@ -9,6 +9,7 @@ List of events:
 """
 
 import logging
+import re
 
 import eventer
 import web
@@ -132,3 +133,73 @@ def get_memcache():
     cache = config.get("cache", {})
     if cache.get("type") == "memcache":
         return olmemcache.Client(cache['servers'])
+
+
+def extract_numeric_id_from_olid(olid: str) -> str | None:
+    """Extract numeric ID from an OLID like '/works/OL123W' -> '123'."""
+    if not olid:
+        return None
+    match = re.search(r'OL(\d+)[AWM]', olid)
+    return match.group(1) if match else None
+
+
+@eventer.bind("infobase.edit")
+def sync_patron_data_for_work_merge(changeset):
+    """Update reading logs, ratings, booknotes, etc. when works are merged.
+
+    When works are merged, editions get their 'works' field updated to point
+    to the new master work. However, patron data tables (bookshelves_books,
+    ratings, etc.) still reference the old work IDs. This handler updates
+    those tables to use the new master work ID.
+
+    See: https://github.com/internetarchive/openlibrary/issues/11646
+    """
+    if changeset.get('action') != 'merge-works':
+        return
+
+    data = changeset.get('data', {})
+    master_key = data.get('master')  # e.g., "/works/OL123W"
+    duplicate_keys = data.get('duplicates', [])
+
+    if not master_key or not duplicate_keys:
+        return
+
+    master_id = extract_numeric_id_from_olid(master_key)
+    if not master_id:
+        logger.warning(
+            "sync_patron_data_for_work_merge: Could not extract ID from master key %s",
+            master_key,
+        )
+        return
+
+    # Import here to avoid circular imports
+    from openlibrary.core.bestbook import Bestbook
+    from openlibrary.core.booknotes import Booknotes
+    from openlibrary.core.bookshelves import Bookshelves
+    from openlibrary.core.bookshelves_events import BookshelvesEvents
+    from openlibrary.core.observations import Observations
+    from openlibrary.core.ratings import Ratings
+
+    for dup_key in duplicate_keys:
+        dup_id = extract_numeric_id_from_olid(dup_key)
+        if not dup_id:
+            logger.warning(
+                "sync_patron_data_for_work_merge: Could not extract ID from duplicate key %s",
+                dup_key,
+            )
+            continue
+
+        logger.info(
+            "sync_patron_data_for_work_merge: Updating patron data from work %s to %s",
+            dup_id,
+            master_id,
+        )
+
+        # Update all patron data tables
+        Bookshelves.update_work_id(dup_id, master_id)
+        Ratings.update_work_id(dup_id, master_id)
+        Booknotes.update_work_id(dup_id, master_id)
+        Observations.update_work_id(dup_id, master_id)
+        Bestbook.update_work_id(dup_id, master_id)
+        BookshelvesEvents.update_work_id(dup_id, master_id)
+
