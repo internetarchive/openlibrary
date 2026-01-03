@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 import web
 from fastapi import APIRouter, Depends, Query, Request
@@ -12,6 +12,7 @@ from pydantic import (
     Field,
     computed_field,
     field_validator,
+    model_validator,
 )
 
 from openlibrary.core.fulltext import fulltext_search_async
@@ -241,40 +242,61 @@ async def search_subjects_json(
     return raw_resp
 
 
+class ListSearchRequestParams(PaginationLimit20):
+    q: str = Field("", description="The search query")
+    fields: str = Field("", description="Fields to return")
+    sort: str = Field("", description="Sort order")
+    api: Literal["next", ""] = Field(
+        "", description="API version: 'next' for new format, empty for old format"
+    )
+
+    @model_validator(mode="after")
+    def handle_legacy_logic(self) -> Self:
+        if self.api != "next":
+            if self.sort:
+                raise ValueError("sort not supported in the old API")
+
+            # 2. Modification Logic (Sanitization/Defaults for old API)
+            self.limit = min(1000, self.limit or 20)
+            self.fields = "key"
+
+        return self
+
+
 @router.get("/search/lists.json")
 async def search_lists_json(
-    pagination: Annotated[PaginationLimit20, Depends()],
-    q: str = Query("", description="The search query"),
-    fields: str = Query("", description="Fields to return"),
-    sort: str = Query("", description="Sort order"),
-    api: Literal['next', ''] = Query(
-        "", description="API version: 'next' for new format, empty for old format"
-    ),
+    params: Annotated[ListSearchRequestParams, Depends()],
 ):
+    # TODO: Should this be moved to the Pagination model?
+    if params.page:
+        offset = params.limit * (params.page - 1)
+    else:
+        offset = params.offset or 0
+
     response = await async_run_solr_query(
         ListSearchScheme(),
-        {'q': q},
-        offset=pagination.offset,
-        rows=pagination.limit,
-        fields=fields,
-        sort=sort,
+        {'q': params.q},
+        offset=offset,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
         request_label='LIST_SEARCH_API',
     )
 
-    if api == 'next':
+    if params.api == 'next':
         # Match search.json
         return {
             'numFound': response.num_found,
             'num_found': response.num_found,
-            'start': pagination.offset,
-            'q': q,
+            'start': offset,
+            'q': params.q,
             'docs': response.docs,
         }
     else:
         # Default to the old API shape for a while, then we'll flip
         lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
         return {
-            'start': pagination.offset or 0,
+            'start': offset,
             'docs': [lst.preview() for lst in lists],
         }
 
