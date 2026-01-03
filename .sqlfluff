@@ -1,0 +1,30 @@
+[sqlfluff]
+dialect = postgres
+exclude_rules =
+    L010,L011,L012,L014,L016,
+    L018,L019,L020,L025,L028,
+    L030,L031,L034,L035,
+    RF04,RF06,RF02,
+    LT12,LT14,AM04
+max_line_length = 120
+# Rule exclusions
+# L010: Keywords should be capitalised consistently
+# L011: Implicit aliasing of table names is prohibited
+# L012: Implicit aliasing of columns is prohibited
+# L014: Inconsistent capitalisation of unquoted identifiers
+# L016: Line too long
+# L018: Parentheses should not be needed
+# L019: Leading/Trailing whitespace not allowed
+# L020: Block indentation not consistent
+# L025: Keywords should not be used as identifiers
+# L028: Unnecessary whitespace around commas
+# L030: Inconsistent spacing around operators
+# L031: Avoid using aliases that are the same as the table name
+# L034: Use wildcard field selection explicitly or prohibit it
+# L035: Explicit specification of JOIN type
+# RF04: Indentation should be consistent
+# RF06: Whitespace before/after commas should be consistent
+# RF02: Lines should be shorter than max length
+# LT12: Newline required after SELECT, FROM, WHERE, etc.
+# LT14: FROM/WHERE/ORDER BY should be on new lines
+# AM04: Usage of DISTINCT inside aggregate functions

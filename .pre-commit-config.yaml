@@ -11,7 +11,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v5.0.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -32,9 +32,9 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.12
+    rev: v0.11.13
     hooks:
-      - id: ruff-check
+      - id: ruff
         args: [ --fix ]
 
   - repo: https://github.com/psf/black
@@ -51,12 +51,12 @@ repos:
         args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.7
+    rev: v0.16.6
     hooks:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.16.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -72,7 +72,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.35.0
+    rev: v9.29.0
     hooks:
       - id: eslint
         types: [file]
@@ -123,3 +123,22 @@ repos:
       language: python
       verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.5.0  # or latest stable version
+    hooks:
+      - id: sqlfluff-lint
+        name: SQLFluff Linter
+        files: \.sql$
+        language: python
+        types: [sql]
+        args: ["--config=.sqlfluff"]
+        exclude: scripts/dev-instance/patron_data.sql|scripts/solr_builder/sql/import-partial.sql
+
+      - id: sqlfluff-fix
+        name: SQLFluff Auto-Fix
+        files: \.sql$
+        language: python
+        types: [sql]
+        args: ["--config=.sqlfluff"]
+        exclude: scripts/dev-instance/patron_data.sql|scripts/solr_builder/sql/import-partial.sql
