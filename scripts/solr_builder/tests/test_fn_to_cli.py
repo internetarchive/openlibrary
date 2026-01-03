@@ -35,9 +35,9 @@ class TestFnToCLI:
 
     def test_type_to_argparse(self):
         assert FnToCLI.type_to_argparse(int) == {'type': int}
-        assert FnToCLI.type_to_argparse(typing.Optional[int]) == {
+        assert FnToCLI.type_to_argparse(typing.Optional[int]) == {  # noqa: UP007
             'type': int
-        }  # noqa: UP007
+        }
         assert FnToCLI.type_to_argparse(bool) == {
             'type': bool,
             'action': BooleanOptionalAction,
