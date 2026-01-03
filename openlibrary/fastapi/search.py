@@ -209,7 +209,12 @@ async def search_inside_json(
     q: str = Query(..., title="Search query"),
 ):
     return await fulltext_search_async(
-        q, page=pagination.page, limit=pagination.limit, js=True, facets=True
+        q,
+        page=pagination.page,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        js=True,
+        facets=True,
     )
 
 
