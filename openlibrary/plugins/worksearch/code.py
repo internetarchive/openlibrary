@@ -139,7 +139,9 @@ def process_facet(
             elif field == 'language':
                 yield (
                     val,
-                    get_language_name(f'/languages/{val}', web.ctx.lang or 'en'),
+                    get_language_name(
+                        f'/languages/{val}', getattr(web.ctx, 'lang', 'en')
+                    ),
                     count,
                 )
             else:
@@ -217,6 +219,8 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    solr_editions_qs: str | None = None,
+    solr_editions_cookie: str | None = None,
 ) -> tuple[list[tuple[str, Any]], list[str]]:
     """
     :param param: dict of query parameters
@@ -306,7 +310,26 @@ def _prepare_solr_query_params(  # noqa: PLR0912
                 ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
             )
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields, params, highlight=highlight)
+        # TODO: This should commit is AI fix that's temporary. We should actually put it in the processor and global context.
+        # Check if the scheme's q_to_solr_params supports solr_editions parameters
+        # by inspecting its signature
+        import inspect
+
+        sig = inspect.signature(scheme.q_to_solr_params)
+        q_to_solr_params_kwargs = {
+            'q': q,
+            'solr_fields': solr_fields,
+            'cur_solr_params': params,
+            'highlight': highlight,
+        }
+        # Only add solr_editions params if the method accepts them
+        if (
+            'solr_editions_qs' in sig.parameters
+            or 'solr_editions_cookie' in sig.parameters
+        ):
+            q_to_solr_params_kwargs['solr_editions_qs'] = solr_editions_qs
+            q_to_solr_params_kwargs['solr_editions_cookie'] = solr_editions_cookie
+        params += scheme.q_to_solr_params(**q_to_solr_params_kwargs)
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
@@ -349,6 +372,8 @@ def run_solr_query(
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    solr_editions_qs: str | None = None,
+    solr_editions_cookie: str | None = None,
 ) -> 'SearchResponse':
     """
     Builds and executes a synchronous Solr query.
@@ -367,6 +392,8 @@ def run_solr_query(
         allowed_filter_params=allowed_filter_params,
         extra_params=extra_params,
         request_label=request_label,
+        solr_editions_qs=solr_editions_qs,
+        solr_editions_cookie=solr_editions_cookie,
     )
 
     url = f'{solr_select_url}?{urlencode(params)}'
@@ -388,7 +415,17 @@ async def async_run_solr_query(
     """
     Builds and executes an asynchronous Solr query.
     """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
+    # Extract solr_editions context from kwargs if provided
+    solr_editions_qs = kwargs.pop('solr_editions_qs', None)
+    solr_editions_cookie = kwargs.pop('solr_editions_cookie', None)
+
+    params, fields = _prepare_solr_query_params(
+        scheme,
+        param,
+        solr_editions_qs=solr_editions_qs,
+        solr_editions_cookie=solr_editions_cookie,
+        **kwargs,
+    )
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()

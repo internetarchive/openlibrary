@@ -141,6 +141,34 @@ class subjects_json(delegate.page):
         return key
 
 
+def _extract_web_context() -> dict[str, str | None]:
+    """Extract web context values before entering async_bridge.
+
+    This is called in the main thread where web.ctx is available,
+    then passed to the async version which runs in a background thread.
+    """
+    context = {}
+    try:
+        # Extract solr_editions from query string
+        context['solr_editions_qs'] = web.input(editions=None).get('editions')
+
+        # Extract solr_editions from cookie
+        if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
+            context['solr_editions_cookie'] = web.cookies().get('SOLR_EDITIONS')
+        else:
+            context['solr_editions_cookie'] = None
+
+        # Extract lang from web.ctx
+        context['lang'] = getattr(web.ctx, 'lang', 'en')
+    except Exception:  # noqa: BLE001
+        # If we can't access web.ctx, we're probably already in an async context
+        context['solr_editions_qs'] = None
+        context['solr_editions_cookie'] = None
+        context['lang'] = 'en'
+
+    return context
+
+
 def date_range_to_publish_year_filter(published_in: str | None) -> str:
     if published_in:
         if '-' in published_in:
@@ -242,8 +270,13 @@ async def get_subject_async(
     )
 
 
-# Sync version wraps async version using async_bridge
-get_subject = async_bridge.wrap(get_subject_async)
+# Custom sync wrapper that extracts web context before calling async version
+def get_subject(*args, **kwargs):
+    """Sync version that extracts web context before calling async version."""
+    # Extract web context before entering async_bridge (in main thread)
+    web_context = _extract_web_context()
+    kwargs.update(web_context)
+    return async_bridge.wrap(get_subject_async)(*args, **kwargs)
 
 
 @dataclass
@@ -278,8 +311,10 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
+        # Extract lang from filters if available, otherwise use default
+        lang = filters.pop('lang', 'en')
         result = await async_run_solr_query(
-            WorkSearchScheme(),
+            WorkSearchScheme(lang=lang),
             {
                 'q': query_dict_to_str(
                     {self.facet_key: self.normalize_key(path)},
@@ -395,8 +430,12 @@ class SubjectEngine:
 
         return subject
 
-    # Sync version wraps async version using async_bridge
-    get_subject = async_bridge.wrap(get_subject_async)
+    # Sync version that extracts web context before calling async version
+    def get_subject(self, *args, **kwargs):
+        """Sync version that extracts web context before calling async version."""
+        web_context = _extract_web_context()
+        kwargs.update(web_context)
+        return async_bridge.wrap(get_subject_async)(self, *args, **kwargs)
 
     def normalize_key(self, key):
         return str_to_key(key).lower()

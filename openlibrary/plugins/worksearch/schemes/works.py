@@ -318,6 +318,8 @@ class WorkSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
+        solr_editions_qs: str | None = None,
+        solr_editions_cookie: str | None = None,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -369,7 +371,10 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
+        if (
+            has_solr_editions_enabled(solr_editions_qs, solr_editions_cookie)
+            and 'editions:[subquery]' in solr_fields
+        ):
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
@@ -754,7 +759,14 @@ def ia_collection_s_transform(sf: luqum.tree.SearchField):
         )
 
 
-def has_solr_editions_enabled():
+# Sentinel to distinguish "no value provided" from "value is None"
+_NOT_PROVIDED = object()
+
+
+def has_solr_editions_enabled(
+    solr_editions_qs: str | None | object = _NOT_PROVIDED,
+    solr_editions_cookie: str | None | object = _NOT_PROVIDED,
+):
     if 'pytest' in sys.modules:
         return True
 
@@ -765,6 +777,12 @@ def has_solr_editions_enabled():
         if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
             return web.cookies().get('SOLR_EDITIONS')
 
+    if solr_editions_qs is not _NOT_PROVIDED:
+        return solr_editions_qs == 'true'
+
+    if solr_editions_cookie is not _NOT_PROVIDED:
+        return solr_editions_cookie == 'true'
+
     if (qs_value := read_query_string()) is not None:
         return qs_value == 'true'
 
@@ -774,6 +792,12 @@ def has_solr_editions_enabled():
     return True
 
 
-def get_fulltext_min():
+def get_fulltext_min(printdisabled_cookie: str | None = None):
+    if printdisabled_cookie is not None:
+        return (
+            'printdisabled'
+            if printdisabled_cookie == 'True' or printdisabled_cookie is True
+            else 'borrowable'
+        )
     is_printdisabled = web.cookies().get('pd', False)
     return 'printdisabled' if is_printdisabled else 'borrowable'

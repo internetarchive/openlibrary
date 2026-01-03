@@ -119,7 +119,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         'list_search_json',
         '/search/authors',
         'author_search_json',
-        '/subjects/(.+)',
+        '(/subjects/[^/]+)',
         'subjects_json',
     )
 

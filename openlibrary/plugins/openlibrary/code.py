@@ -1282,9 +1282,11 @@ def is_bot():
         'yandex.com/bots',
         'icc-crawler',
     ]
-    if not web.ctx.env.get('HTTP_USER_AGENT'):
+    # Use getattr to safely access web.ctx.env when it might not exist in async context
+    env = getattr(web.ctx, 'env', {})
+    if not env.get('HTTP_USER_AGENT'):
         return True
-    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
+    user_agent = env['HTTP_USER_AGENT'].lower()
     return any(bot in user_agent for bot in user_agent_bots)
 
 
