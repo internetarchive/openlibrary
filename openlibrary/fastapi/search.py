@@ -305,16 +305,11 @@ class ListSearchRequestParams(PaginationLimit20):
 async def search_lists_json(
     params: Annotated[ListSearchRequestParams, Depends()],
 ):
-    # TODO: Should this be moved to the Pagination model?
-    if params.page:
-        offset = params.limit * (params.page - 1)
-    else:
-        offset = params.offset or 0
-
     response = await async_run_solr_query(
         ListSearchScheme(),
         {'q': params.q},
-        offset=offset,
+        offset=params.offset,
+        page=params.page,
         rows=params.limit,
         fields=params.fields,
         sort=params.sort,
@@ -326,7 +321,7 @@ async def search_lists_json(
         return {
             'numFound': response.num_found,
             'num_found': response.num_found,
-            'start': offset,
+            'start': response.raw_resp['response']['start'],
             'q': params.q,
             'docs': response.docs,
         }
@@ -334,7 +329,7 @@ async def search_lists_json(
         # Default to the old API shape for a while, then we'll flip
         lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
         return {
-            'start': offset,
+            'start': response.raw_resp['response']['start'],
             'docs': [lst.preview() for lst in lists],
         }
 
