@@ -133,7 +133,7 @@ repos:
         language: python
         types: [sql]
         args: ["--config=.sqlfluff"]
-        exclude: scripts/dev-instance/patron_data.sql|scripts/solr_builder/sql/import-partial.sql
+        exclude: scripts/dev-instance/patron_data.sql
 
       - id: sqlfluff-fix
         name: SQLFluff Auto-Fix
@@ -141,4 +141,4 @@ repos:
         language: python
         types: [sql]
         args: ["--config=.sqlfluff"]
-        exclude: scripts/dev-instance/patron_data.sql|scripts/solr_builder/sql/import-partial.sql
+        exclude: scripts/dev-instance/patron_data.sql
