@@ -242,7 +242,7 @@ async def search_lists_json(
     q: str = Query("", description="The search query"),
     fields: str = Query("", description="Fields to return"),
     sort: str = Query("", description="Sort order"),
-    api: str = Query(
+    api: Literal['next', ''] = Query(
         "", description="API version: 'next' for new format, empty for old format"
     ),
 ):
