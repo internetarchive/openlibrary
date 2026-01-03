@@ -274,7 +274,7 @@ async def search_lists_json(
         # Default to the old API shape for a while, then we'll flip
         lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
         return {
-            'start': pagination.offset,
+            'start': pagination.offset or 0,
             'docs': [lst.preview() for lst in lists],
         }
 
