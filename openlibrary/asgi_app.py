@@ -171,6 +171,14 @@ def create_app() -> FastAPI:
         response = await call_next(request)
         return response
 
+    # @app.exception_handler(ValueError)
+    # async def value_error_exception_handler(request: Request, exc: ValueError):
+    #     """Handle ValueError exceptions cleanly."""
+    #     return JSONResponse(
+    #         status_code=400,
+    #         content={"detail": str(exc)},
+    #     )
+
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
     def health() -> dict[str, str]:
