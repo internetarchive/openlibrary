@@ -2,13 +2,13 @@
 dialect = postgres
 ignore_paths = scripts/dev-instance/patron_data.sql
 exclude_rules =
-    L010, L011, L012, L014, L016, 
+    L010, L011, L012, L014, L016,
     L018, L019, L020, L025, L028,
-    L030, L031, L034, L035, RF04, 
+    L030, L031, L034, L035, RF04,
     RF06, RF02, LT14, AM04,
-    LT01, LT02, LT03, LT04, LT05, 
+    LT01, LT02, LT03, LT04, LT05,
     LT06, LT07, LT08, LT09, LT10, LT11, LT12,
-    AL01, AL02, AL03, AL04, AL05, CP04, CP05, 
+    AL01, AL02, AL03, AL04, AL05, CP04, CP05,
     LT13, AL09, AM05, ST08, L035, CP05
 max_line_length = 120
 # Rule exclusions
