@@ -57,7 +57,11 @@ app.add_processor(CORSProcessor(cors_everything=True))
 
 class PartialCoverDetails(web.storage):
     id: int
-    key: str
+    # One of these 4
+    filename: str
+    filename_s: str
+    filename_m: str
+    filename_l: str
     created: datetime.datetime
 
 
