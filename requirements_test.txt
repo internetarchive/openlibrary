@@ -12,5 +12,5 @@ pytest-cov==6.1.1
 pytest-httpx==0.33.0
 ruff==0.11.13
 safety==2.3.5
-WebTest==3.0.7
 sqlfluff==3.5.0
+WebTest==3.0.7
