@@ -4,7 +4,7 @@ SELECT * FROM test
 WITH NO DATA;
 -- 0s
 
-COPY tmp_table FROM :source
+COPY tmp_table FROM :source -- noqa: PRS
 WITH delimiter E'\t' quote E'\b' csv;
 -- <1 min for ~1 Month (363877 rows)
 
