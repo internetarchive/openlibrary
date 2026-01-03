@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
@@ -243,31 +244,46 @@ async def search_subjects_json(
     return raw_resp
 
 
-def validate_list_sort(v: str) -> str:
-    if (
-        not v
-        or v in ListSearchScheme.sorts
-        or v.startswith(('random_', 'random.hourly_', 'random.daily_'))
-    ):
-        return v
+def create_sort_option_type(sorts_map: Mapping):
+    """
+    Generates a Pydantic type alias that validates against the provided
+    sorts_map and dynamically generates the OpenAPI Enum documentation.
+    """
+    # TODO: Use this for Work/Edition search above?
+    # I'm just not sure if it's a good idea to have the same sort options for Works and Editions
 
-    valid_keys = ", ".join(ListSearchScheme.sorts.keys())
-    raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
+    # The prefixes allowed dynamically
+    RANDOM_PREFIXES = ('random_', 'random.hourly_', 'random.daily_')
+
+    # The Validator
+    def validate_sort(v: str) -> str:
+        if not v or v in sorts_map or v.startswith(RANDOM_PREFIXES):
+            return v
+
+        valid_keys = ", ".join((*sorts_map.keys(), *RANDOM_PREFIXES))
+        raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
+
+    # The Type Alias
+    return Annotated[
+        str,
+        BeforeValidator(validate_sort),
+        WithJsonSchema(
+            {
+                "type": "string",
+                "enum": list(sorts_map.keys())
+                + [""],  # Include empty string for default
+            }
+        ),
+    ]
 
 
-ListSortOption = Annotated[
-    str,
-    BeforeValidator(validate_list_sort),
-    WithJsonSchema(
-        {"type": "string", "enum": list(ListSearchScheme.sorts.keys()) + [""]}
-    ),
-]
+ListSortOption = create_sort_option_type(ListSearchScheme.sorts)
 
 
 class ListSearchRequestParams(PaginationLimit20):
     q: str = Field("", description="The search query")
     fields: str = Field("", description="Fields to return")
-    sort: ListSortOption = Field("", description="Sort order")
+    sort: ListSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
     api: Literal["next", ""] = Field(
         "", description="API version: 'next' for new format, empty for old format"
     )
@@ -323,20 +339,26 @@ async def search_lists_json(
         }
 
 
+AuthorSortOption = create_sort_option_type(AuthorSearchScheme.sorts)
+
+
+class AuthorSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+    fields: str = Field("*", description="Fields to return")
+    sort: AuthorSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+
 @router.get("/search/authors.json")
 async def search_authors_json(
-    pagination: Annotated[Pagination, Depends()],
-    q: str = Query("", description="The search query"),
-    fields: str = Query("*", description="Fields to return"),
-    sort: str = Query("", description="Sort order"),
+    params: Annotated[AuthorSearchRequestParams, Depends()],
 ):
     response = await async_run_solr_query(
         AuthorSearchScheme(),
-        {'q': q},
-        offset=pagination.offset,
-        rows=pagination.limit,
-        fields=fields,
-        sort=sort,
+        {'q': params.q},
+        offset=params.offset,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
         request_label='AUTHOR_SEARCH_API',
     )
 
