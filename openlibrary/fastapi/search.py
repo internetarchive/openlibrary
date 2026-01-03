@@ -10,6 +10,7 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
+    WithJsonSchema,
     computed_field,
     field_validator,
     model_validator,
@@ -242,10 +243,31 @@ async def search_subjects_json(
     return raw_resp
 
 
+def validate_list_sort(v: str) -> str:
+    if (
+        not v
+        or v in ListSearchScheme.sorts
+        or v.startswith(('random_', 'random.hourly_', 'random.daily_'))
+    ):
+        return v
+
+    valid_keys = ", ".join(ListSearchScheme.sorts.keys())
+    raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
+
+
+ListSortOption = Annotated[
+    str,
+    BeforeValidator(validate_list_sort),
+    WithJsonSchema(
+        {"type": "string", "enum": list(ListSearchScheme.sorts.keys()) + [""]}
+    ),
+]
+
+
 class ListSearchRequestParams(PaginationLimit20):
     q: str = Field("", description="The search query")
     fields: str = Field("", description="Fields to return")
-    sort: str = Field("", description="Sort order")
+    sort: ListSortOption = Field("", description="Sort order")
     api: Literal["next", ""] = Field(
         "", description="API version: 'next' for new format, empty for old format"
     )
