@@ -5,7 +5,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
 import requests
@@ -43,7 +43,7 @@ from .ia import get_metadata
 from .waitinglist import WaitingLoan
 
 if TYPE_CHECKING:
-    from openlibrary.core.lists.model import Series
+    from openlibrary.core.lists.model import Series, SeriesDict
 
 SubjectType = Literal["subject", "place", "person", "time"]
 
@@ -485,34 +485,51 @@ class Edition(Thing):
         )
 
 
-@dataclass
-class SeriesEdge:
-    """The metadata about the "edge" in a series-work relationship."""
+class ListSeedMetadata(TypedDict):
+    position: NotRequired[str]
+    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
 
-    position: str | None
-    notes: str | None
-
-
-class SeriesSeedThing(Thing, SeriesEdge):
-    """Class to represent a seed thing in a series list."""
-
-    series: 'Series'
+    notes: NotRequired[str]
+    """Notes about the seed."""
 
 
-class SeriesSeedDict(SeriesEdge):
-    series: ThingReferenceDict
+def does_seed_have_metadata(seed: ListSeedMetadata) -> bool:
+    """Returns True if the seed has any metadata."""
+    return bool(seed.get('position') or seed.get('notes'))
 
 
-@dataclass
-class FullSeriesEdge(SeriesEdge):
-    work: 'Work'
-    series: 'Series'
+def update_list_seed_metadata(a: ListSeedMetadata, b: ListSeedMetadata) -> None:
+    """Modifies the original ListSeedMetadata inplace."""
+
+    if p := b.get('position'):
+        a['position'] = p
+    else:
+        a.pop('position', None)
+
+    if n := b.get('notes'):
+        a['notes'] = n
+    else:
+        a.pop('notes', None)
+
+
+TSeries = TypeVar('TSeries', 'Series', ThingReferenceDict, 'SeriesDict')
+
+
+class WorkSeriesEdge[TSeries](ListSeedMetadata):
+    series: TSeries
+
+
+WorkSeriesEdgeDB = WorkSeriesEdge['Series']
+"""
+Note: In reality, since the DB always wraps dicts in a `Thing` object,
+this will be a `Thing` not a raw dict.
+"""
 
 
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
 
-    series: list[SeriesSeedThing] | None
+    series: list[WorkSeriesEdgeDB] | None
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -663,22 +680,14 @@ class Work(Thing):
         else:
             return []
 
-    def get_primary_series(self) -> 'SeriesSeedThing | None':
+    def get_primary_series(self) -> WorkSeriesEdgeDB | None:
         series = self.series or []
         return series[0] if series else None
 
-    def get_series_edges(self) -> list[FullSeriesEdge]:
-        return [
-            FullSeriesEdge(
-                work=self, series=s.series, position=s.position, notes=s.notes
-            )
-            for s in self.series or []
-        ]
-
-    def get_series_edge(self, series_key: str) -> SeriesSeedThing | None:
+    def get_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
         series = self.series or []
         for s in series:
-            if s.series.key == series_key:
+            if s['series']['key'] == series_key:
                 return s
         return None
 

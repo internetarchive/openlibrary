@@ -2,6 +2,7 @@
 
 import json
 import random
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
@@ -20,7 +21,12 @@ from openlibrary.core.lists.model import (
     SeedSubjectString,
     ThingReferenceDict,
 )
-from openlibrary.core.models import ThingKey, Work
+from openlibrary.core.models import (
+    ThingKey,
+    Work,
+    WorkSeriesEdgeDB,
+    update_list_seed_metadata,
+)
 from openlibrary.coverstore.code import render_list_preview_image
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -105,6 +111,17 @@ class ListRecord:
                 return seed
         else:
             raise ValueError("Invalid seed")
+
+    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
+        for seed in self.seeds:
+            if isinstance(seed, dict):
+                if 'thing' in seed:
+                    annotated_seed_dict = cast(AnnotatedSeedDict, seed)  # Appease mypy
+                    yield annotated_seed_dict
+                else:
+                    yield {'thing': seed}
+            else:
+                yield {'thing': {'key': seed}}
 
     @staticmethod
     def from_input():
@@ -355,27 +372,30 @@ class lists_edit(delegate.page):
         if list_type == 'series':
             # Don't save seeds on this record
             thing_json['seeds'] = []
-            # Edit all the works to add series edges
+            # Edit the works to add series edges
             work_key_to_list_seed = {
-                seed.get('key') or seed.get('thing', {}).get('key'): seed
-                for seed in list_record.seeds
-                if isinstance(seed, dict)
+                seed['thing']['key']: seed for seed in list_record.get_annotated_seeds()
             }
             works = cast(list[Work], web.ctx.site.get_many(list(work_key_to_list_seed)))
             for work in works:
                 list_seed = work_key_to_list_seed[work.key]
                 work_series_edge = work.get_series_edge(list_key)
-                edge = (
-                    work_series_edge
-                    if work_series_edge
-                    else {'series': {'key': list_key}}
-                )
-                edge['position'] = list_seed.get('position')
-                edge['notes'] = list_seed.get('notes')
                 if not work_series_edge:
-                    work.series = work.series or []
-                    work.series.append(edge)
-                records_to_save.append(work.dict())
+                    # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
+                    # these behave sort of the same, since a full `Thing` object is replaced with
+                    # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
+                    work_series_edge = cast(
+                        WorkSeriesEdgeDB, {'series': {'key': list_key}}
+                    )
+
+                # Update the edge with any metadata from the list seed
+                update_list_seed_metadata(work_series_edge, list_seed)
+
+                if not work.series:
+                    work.series = []
+                work.series.append(work_series_edge)
+                # Cast is needed since the infogami code isn't typed yet
+                records_to_save.append(cast(dict, work.dict()))
 
         web.ctx.site.save_many(
             records_to_save,

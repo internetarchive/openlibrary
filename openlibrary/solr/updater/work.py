@@ -12,7 +12,11 @@ from typing import Optional, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
-from openlibrary.core.models import SeriesEdge, SeriesSeedDict
+from openlibrary.core.lists.model import SeriesDict
+from openlibrary.core.models import (
+    ThingReferenceDict,
+    WorkSeriesEdge,
+)
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
@@ -31,15 +35,6 @@ logger = logging.getLogger("openlibrary.solr")
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_subject = re.compile("[, _]+")
-
-
-class SeriesDict(TypedDict):
-    key: str
-    name: str
-
-
-class ExpandedSeriesDict(SeriesEdge):
-    series: SeriesDict
 
 
 class WorkSolrUpdater(AbstractSolrUpdater):
@@ -113,7 +108,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 # Fetch series
                 series_edges = uniq(
                     [
-                        cast(SeriesSeedDict, series)
+                        cast(WorkSeriesEdge[ThingReferenceDict], series)
                         for rec in (work, *editions)
                         for series in rec.get('series', [])
                         if isinstance(series, dict)
@@ -122,7 +117,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 )
                 series = [
                     cast(
-                        ExpandedSeriesDict,
+                        WorkSeriesEdge[SeriesDict],
                         {
                             **edge,
                             'series': await self.data_provider.get_document(
@@ -295,7 +290,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         work: dict,
         editions: list[dict],
         authors: list[dict],
-        series: list[ExpandedSeriesDict],
+        series: list[WorkSeriesEdge[SeriesDict]],
         data_provider: DataProvider,
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
         trending_data: dict,
@@ -388,11 +383,14 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def series_name(self) -> list[str]:
-        return [series['series']['name'] for series in self._series]
+        return [
+            series['series'].get('name') or series['series']['key']
+            for series in self._series
+        ]
 
     @property
     def series_position(self) -> list[str]:
-        return [series['position'] or '' for series in self._series]
+        return [series.get('position') or '' for series in self._series]
 
     @property
     def edition_count(self) -> int:

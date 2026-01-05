@@ -4,9 +4,10 @@ from typing import cast
 import pytest
 
 from openlibrary.book_providers import IALiteMetadata
+from openlibrary.core.lists.model import SeriesDict
+from openlibrary.core.models import WorkSeriesEdge
 from openlibrary.solr.updater.work import (
     DataProvider,
-    ExpandedSeriesDict,
     WorkSolrBuilder,
     WorkSolrUpdater,
 )
@@ -69,7 +70,7 @@ def make_work_solr_builder(
     work: dict | None = None,
     editions: list[dict] | None = None,
     authors: list[dict] | None = None,
-    series: list[ExpandedSeriesDict] | None = None,
+    series: list[WorkSeriesEdge[SeriesDict]] | None = None,
     data_provider: DataProvider | None = None,
     ia_metadata: dict[str, dict | None] | None = None,
     trending_data: dict | None = None,

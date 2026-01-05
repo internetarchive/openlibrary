@@ -5,7 +5,7 @@ import logging
 import typing
 from collections.abc import Iterable
 from functools import cached_property
-from typing import TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 import web
 
@@ -14,7 +14,16 @@ from infogami.infobase import client, common  # noqa: F401 side effects may be n
 from infogami.utils import stats  # noqa: F401 side effects may be needed
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
-from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict
+from openlibrary.core.models import (
+    Image,
+    ListSeedMetadata,
+    Subject,
+    Thing,
+    ThingKey,
+    ThingReferenceDict,
+    does_seed_have_metadata,
+    update_list_seed_metadata,
+)
 from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
@@ -31,28 +40,31 @@ When a subject is added to a list, it's added as a string like:
 """
 
 
-class GenericAnnotatedSeed[TThing: (ThingReferenceDict, Thing)](TypedDict):
-    thing: TThing
-    notes: str | None
-    position: str | None
-    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
+class AnnotatedSeedDict(ListSeedMetadata):
+    thing: ThingReferenceDict
 
 
-AnnotatedSeedDict = GenericAnnotatedSeed[ThingReferenceDict]
-AnnotatedSeed = GenericAnnotatedSeed[Thing]
+class AnnotatedSeed(ListSeedMetadata):
+    thing: Thing
 
 
-class AnnotatedSeedThing[TData](Thing):
-    """
-    Note: This isn't a real `Thing` type! This will never be constructed
-    or returned. It's just here to illustrate that when we get seeds from
-    the db, they're wrapped in this weird `Thing` object, which will have
-    a _data field that is the raw JSON data. That JSON data will conform
-    to the `AnnotatedSeed` type.
-    """
+AnnotatedSeedThing = Thing
+"""
+Note: This isn't a real `Thing` type! This will never be constructed
+or returned. It's just here to illustrate that when we get seeds from
+the db, they're wrapped in this weird `Thing` object, which will have
+a _data field that is the raw JSON data. That JSON data will conform
+to the `AnnotatedSeed` type.
 
-    key: None  # type: ignore[assignment]
-    _data: TData
+It has the same fields as an `AnnotatedSeed`, though.
+"""
+
+
+class ListDict(TypedDict):
+    key: str
+    name: NotRequired[str]
+    description: NotRequired[str]
+    seeds: NotRequired[list[ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict]]
 
 
 class List(Thing):
@@ -69,7 +81,7 @@ class List(Thing):
     description: str | None
     """Detailed description of the list (markdown)"""
 
-    seeds: list[Thing | SeedSubjectString | AnnotatedSeedThing[AnnotatedSeed]]
+    seeds: list[Thing | SeedSubjectString | AnnotatedSeedThing]
     """Members of the list. Either references or subject strings."""
 
     def url(self, suffix="", **params):
@@ -313,22 +325,8 @@ class List(Thing):
             seed = Seed.from_db(self, s)
             max_checks = 10
             while resolve_redirects and seed.type == 'redirect' and max_checks:
-                # Preserve notes when resolving redirects
-                original_notes = seed.notes
-                original_position = seed.position
                 resolved_document = web.ctx.site.get(seed.document.location)
-                if original_notes or original_position:
-                    # Create AnnotatedSeed with both resolved document and original notes
-                    seed = Seed(
-                        self,
-                        {
-                            'thing': resolved_document,
-                            'notes': original_notes,
-                            'position': original_position,
-                        },
-                    )
-                else:
-                    seed = Seed(self, resolved_document)
+                seed = seed.copy_with(thing=resolved_document)
                 max_checks -= 1
             seeds.append(seed)
 
@@ -458,21 +456,21 @@ class Seed:
     ):
         if isinstance(seed_json, dict):
             if 'thing' in seed_json:
-                annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
+                seed_dict = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
 
                 # Validate that the key is not empty
-                key = annotated_seed['thing']['key']
+                key = seed_dict['thing']['key']
                 if not key or not key.strip():
                     raise ValueError("Seed key cannot be empty")
 
-                return Seed(
-                    list,
+                annotated_seed = cast(
+                    AnnotatedSeed,
                     {
-                        'thing': Thing(list._site, key, None),
-                        'notes': annotated_seed['notes'],
-                        'position': annotated_seed['position'],
+                        'thing': Thing(list._site, key),
                     },
                 )
+                update_list_seed_metadata(annotated_seed, seed_dict)
+                return Seed(list, annotated_seed)
             elif 'key' in seed_json:
                 thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
 
@@ -484,7 +482,7 @@ class Seed:
                 return Seed(
                     list,
                     {
-                        'thing': Thing(list._site, key, None),
+                        'thing': Thing(list._site, key),
                         'notes': '',
                         'position': '',
                     },
@@ -513,14 +511,35 @@ class Seed:
     def to_json(self) -> SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict:
         if isinstance(self.value, str):
             return self.value
-        elif self.notes or self.position:
-            return {
-                'thing': {'key': self.key},
-                'notes': self.notes,
-                'position': self.position,
-            }
+        elif self.has_metadata():
+            return self.to_annotated_seed_dict()
         else:
             return {'key': self.key}
+
+    def copy_with(self, thing: Thing | SeedSubjectString) -> 'Seed':
+        new_seed = cast(AnnotatedSeed, self.to_annotated_seed() | {'thing': thing})
+        return Seed(self._list, new_seed)
+
+    def to_annotated_seed(self) -> AnnotatedSeed:
+        d = cast(AnnotatedSeed, {'thing': self.value})
+        update_list_seed_metadata(d, self.to_list_seed_metadata())
+        return d
+
+    def to_annotated_seed_dict(self) -> AnnotatedSeedDict:
+        d: AnnotatedSeedDict = {'thing': {'key': self.key}}
+        update_list_seed_metadata(d, self.to_list_seed_metadata())
+        return d
+
+    def to_list_seed_metadata(self) -> ListSeedMetadata:
+        d: ListSeedMetadata = {}
+        if self.notes:
+            d['notes'] = self.notes
+        if self.position:
+            d['position'] = self.position
+        return d
+
+    def has_metadata(self) -> bool:
+        return does_seed_have_metadata(self.to_annotated_seed())
 
     @cached_property
     def document(self) -> Subject | Thing:
@@ -648,12 +667,16 @@ class ListChangeset(Changeset):
         return Seed.from_db(self.get_list(), seed)
 
 
+class SeriesDict(ListDict):
+    pass
+
+
 class Series(List):
     @cached_property
     @typing.override
     def seeds(  # type: ignore[override]
         self,
-    ) -> list[Thing | SeedSubjectString | AnnotatedSeedThing[AnnotatedSeed]]:
+    ) -> list[Thing | SeedSubjectString | AnnotatedSeedThing]:
         return [seed.to_db() for seed in self.get_seeds()]
 
     @typing.override
@@ -667,9 +690,7 @@ class Series(List):
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
         series_edges = [
-            next(e for e in work.get_series_edges() if e.series.key == self.key)
-            for work in works
-            if (edge := work.get_series_edge(self.key))
+            (work, edge) for work in works if (edge := work.get_series_edge(self.key))
         ]
 
         def get_work_position(position: str | None) -> float:
@@ -678,20 +699,15 @@ class Series(List):
                 position_float = float(position or 9999)
             return position_float
 
-        sorted_edges = sorted(series_edges, key=lambda e: get_work_position(e.position))
+        sorted_edges = sorted(
+            series_edges, key=lambda tpl: get_work_position(tpl[1].get('position'))
+        )
 
         seeds: list[Seed] = []
-        for edge in sorted_edges:
-            seeds.append(
-                Seed.from_json(
-                    self,
-                    {
-                        'thing': {'key': edge.work.key},
-                        'position': edge.position,
-                        'notes': edge.notes,
-                    },
-                )
-            )
+        for work, edge in sorted_edges:
+            seed_json = cast(AnnotatedSeedDict, {'thing': {'key': work.key}})
+            update_list_seed_metadata(seed_json, edge)
+            seeds.append(Seed.from_json(self, seed_json))
         return seeds
 
 
