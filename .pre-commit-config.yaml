@@ -3,6 +3,8 @@
 # Then run `pre-commit install`
 
 # Learn more about this config here: https://pre-commit.com/
+default_stages: [pre-push]
+
 default_language_version:
   python: python3.12
 
