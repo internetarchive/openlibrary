@@ -479,14 +479,7 @@ class Seed:
                 if not key or not key.strip():
                     raise ValueError("Seed key cannot be empty")
 
-                return Seed(
-                    list,
-                    {
-                        'thing': Thing(list._site, key),
-                        'notes': '',
-                        'position': '',
-                    },
-                )
+                return Seed(list, Thing(list._site, key))
         return Seed(list, seed_json)
 
     def to_db(self) -> Thing | SeedSubjectString:
@@ -495,16 +488,8 @@ class Seed:
         """
         if isinstance(self.value, str):
             return self.value
-        if self.notes or self.position:
-            return Thing(
-                self._list._site,
-                None,
-                {
-                    'thing': self.value,
-                    **({'notes': self.notes} if self.notes else {}),
-                    **({'position': self.position} if self.position else {}),
-                },
-            )
+        if self.has_metadata():
+            return Thing(self._list._site, None, self.to_annotated_seed())
         else:
             return self.value
 
@@ -690,7 +675,7 @@ class Series(List):
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
         series_edges = [
-            (work, edge) for work in works if (edge := work.get_series_edge(self.key))
+            (work, edge) for work in works if (edge := work.find_series_edge(self.key))
         ]
 
         def get_work_position(position: str | None) -> float:

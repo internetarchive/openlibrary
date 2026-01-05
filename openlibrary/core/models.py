@@ -684,7 +684,7 @@ class Work(Thing):
         series = self.series or []
         return series[0] if series else None
 
-    def get_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
+    def find_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
         series = self.series or []
         for s in series:
             if s['series']['key'] == series_key:

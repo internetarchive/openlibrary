@@ -379,7 +379,9 @@ class lists_edit(delegate.page):
             works = cast(list[Work], web.ctx.site.get_many(list(work_key_to_list_seed)))
             for work in works:
                 list_seed = work_key_to_list_seed[work.key]
-                work_series_edge = work.get_series_edge(list_key)
+                work_series_edge = work.find_series_edge(list_key)
+                already_has_series = bool(work_series_edge)
+
                 if not work_series_edge:
                     # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
                     # these behave sort of the same, since a full `Thing` object is replaced with
@@ -391,9 +393,12 @@ class lists_edit(delegate.page):
                 # Update the edge with any metadata from the list seed
                 update_list_seed_metadata(work_series_edge, list_seed)
 
-                if not work.series:
-                    work.series = []
-                work.series.append(work_series_edge)
+                if not already_has_series:
+                    if not work.series:
+                        work.series = []
+
+                    work.series.append(work_series_edge)
+
                 # Cast is needed since the infogami code isn't typed yet
                 records_to_save.append(cast(dict, work.dict()))
 
