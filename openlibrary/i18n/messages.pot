@@ -775,17 +775,17 @@ msgstr ""
 msgid "added to"
 msgstr ""
 
+#: SearchResultsWork.html
+#, python-format
+msgid "Book %(position)s"
+msgstr ""
+
 #: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html design.html
 msgid "Show less"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Book %(position)s"
 msgstr ""
 
 #: SearchResultsWork.html

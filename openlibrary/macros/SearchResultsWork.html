@@ -79,20 +79,20 @@ $code:
 
     <div class="details">
         <div class="resultTitle">
-          $ series = None
+          $ series_edge = None
           $if doc_type == 'infogami_work':
-            $ series = doc.get_primary_series()
+            $ series_edge = doc.get_primary_series()
           $elif doc_type.startswith('solr_'):
             $if doc.get('series'):
-              $ series = doc['series'][0]
+              $ series_edge = doc['series'][0]
             $elif doc.get('series_key'):
-              $ series = { 'key': doc['series_key'][0], 'name': doc['series_name'][0], 'position': doc['series_position'][0] }
+              $ series_edge = { 'series': { 'key': doc['series_key'][0], 'name': doc['series_name'][0] }, 'position': doc['series_position'][0] }
 
-          $if series:
+          $if series_edge:
             <span class="bookseries" itemprop="isPartOf" itemscope itemtype="https://schema.org/Series">
-              <a href="/series/$series.get('key')/$urlsafe(series.get('name'))" itemprop="name url">$series.get('name')</a>$cond(series.get('position'), ': ')
-              $if series.get('position'):
-                <span class="bookseries__position">$_('Book %(position)s', position=series.get('position'))</span>
+              <a href="/series/$series_edge['series']['key']/$urlsafe(series_edge['series'].get('name'))" itemprop="name url">$series_edge['series'].get('name')</a>$cond(series_edge.get('position'), ': ')
+              $if series_edge.get('position'):
+                <span class="bookseries__position">$_('Book %(position)s', position=series_edge.get('position'))</span>
             </span>
           <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>

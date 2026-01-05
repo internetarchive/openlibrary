@@ -603,8 +603,10 @@ def get_doc(doc: SolrDocument):
         ],
         series=[
             web.storage(
-                key=key,
-                name=name,
+                series=web.storage(
+                    key=key,
+                    name=name,
+                ),
                 position=position,
             )
             for key, name, position in zip(
