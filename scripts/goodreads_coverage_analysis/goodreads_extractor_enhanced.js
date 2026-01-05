@@ -68,14 +68,14 @@ function extractBookData(bookElement) {
 function extractAllBookData() {
     const books = document.querySelectorAll('article.BookListItem');
     const results = [];
-    
+
     books.forEach(book => {
         const data = extractBookData(book);
         if (data) {
             results.push(data);
         }
     });
-    
+
     return results;
 }
 
@@ -96,30 +96,30 @@ function convertToTsv(books) {
         tsvEscape(book.shelvingsCount),
         tsvEscape(book.coverUrl)
     ].join('\t'));
-    
+
     return [headers.join('\t'), ...rows].join('\n');
 }
 
 function downloadTsv(filename) {
     const books = extractAllBookData();
-    
+
     if (books.length === 0) {
         console.warn('No books found');
         return;
     }
-    
+
     const tsv = convertToTsv(books);
     const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    
+
     link.href = url;
     link.download = filename || 'goodreads_data.tsv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     console.log('Downloaded', books.length, 'books');
 }
 
