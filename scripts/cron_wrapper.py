@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Executes the given script with the given arguments, adding profiling and error reporting.
+Adds Sentry cron monitoring to the given script, then executes the script with the given arguments.
 """
 
 import argparse
@@ -10,44 +10,25 @@ import yaml
 from pathlib import Path
 
 import sentry_sdk
-from statsd import StatsClient
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_server, monitor_slug):
+    def __init__(self, command, sentry_cfg, monitor_slug):
         self.command = command
-        statsd_host_and_port = statsd_server.split(":")
-        self.statsd_client = self._setup_statsd(statsd_host_and_port[0], statsd_host_and_port[1])
         self._setup_sentry(sentry_cfg.get("dsn", ""))
         self.monitor_slug = monitor_slug
-        self.job_failed = False
 
     def run(self):
-        self._before_run()
         try:
             with sentry_sdk.monitor(self.monitor_slug):
                 self._run_script()
         except subprocess.CalledProcessError as e:
-            self.job_failed = True
             sys.stderr.write(e.stderr)
             sys.stderr.flush()
         finally:
-            self._after_run()
             sentry_sdk.flush()
-
-    def _before_run(self):
-        if self.statsd_client:
-            self.statsd_client.incr(f'ol.cron.{self.monitor_slug}.start')
-            self.job_timer = self.statsd_client.timer(f'ol.cron.{self.monitor_slug}.duration')
-            self.job_timer.start()
-
-    def _after_run(self):
-        if self.statsd_client:
-            self.job_timer.stop()
-            status = "failure" if self.job_failed else "stop"
-            self.statsd_client.incr(f'ol.cron.{self.monitor_slug}.{status}')
 
     def _run_script(self):
         return subprocess.run(
@@ -61,19 +42,15 @@ class MonitoredJob:
     def _setup_sentry(self, dsn):
         sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0)  # Configure?
 
-    def _setup_statsd(self, host, port):
-        return StatsClient(host, port)
-
 
 def main(args):
     config = _read_config(args.config)
     sentry_cfg = config.get("sentry_cron_jobs", {})
-    statsd_server = config.get("admin", {}).get("statsd_server", "")
     config = None
     command = [args.script] + args.script_args
     monitor_slug = args.monitor_slug
 
-    job = MonitoredJob(command, sentry_cfg, statsd_server, monitor_slug)
+    job = MonitoredJob(command, sentry_cfg, monitor_slug)
     job.run()
 
 
