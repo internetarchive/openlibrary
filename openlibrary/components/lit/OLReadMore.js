@@ -95,7 +95,6 @@ export class OLReadMore extends LitElement {
             width: 1.2em;
             height: 1.2em;
             vertical-align: middle;
-            margin-left: 0.15em;
         }
 
         .chevron.up {
@@ -107,8 +106,8 @@ export class OLReadMore extends LitElement {
         super();
         this.maxHeight = null;
         this.maxLines = null;
-        this.moreText = 'Read more';
-        this.lessText = 'Read less';
+        this.moreText = 'Read More';
+        this.lessText = 'Read Less';
         this._expanded = false;
         this._unnecessary = false;
         this._manuallyExpanded = false;
