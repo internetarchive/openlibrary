@@ -37,6 +37,24 @@ export class OLReadMore extends LitElement {
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
         }
 
+        details {
+            display: block;
+        }
+
+        summary {
+            list-style: none;
+            cursor: pointer;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::marker {
+            display: none;
+            content: '';
+        }
+
         .content-wrapper {
             overflow: hidden;
         }
@@ -54,10 +72,9 @@ export class OLReadMore extends LitElement {
             display: block !important;
         }
 
-        .toggle-btn {
-            cursor: pointer;
+        .toggle {
+            display: block;
             color: var(--ol-readmore-link-color);
-            border: 0;
             font-family: inherit;
             font-weight: 500;
             text-align: center;
@@ -70,24 +87,28 @@ export class OLReadMore extends LitElement {
             );
         }
 
-        .toggle-btn:hover {
+        .toggle:hover {
             text-decoration: underline;
         }
 
         @media only screen and (min-width: 800px) {
-            .toggle-btn {
+            .toggle {
                 padding-left: 0;
                 text-align: left;
             }
         }
 
-        .toggle-btn.less {
+        details[open] .toggle {
             position: sticky;
             bottom: 0;
             margin-top: 0;
         }
 
-        .toggle-btn.hidden {
+        details.no-expand summary {
+            cursor: default;
+        }
+
+        details.no-expand .toggle {
             display: none;
         }
 
@@ -97,7 +118,7 @@ export class OLReadMore extends LitElement {
             vertical-align: middle;
         }
 
-        .chevron.up {
+        details[open] .chevron {
             transform: rotate(180deg);
         }
     `;
@@ -110,96 +131,41 @@ export class OLReadMore extends LitElement {
         this.lessText = 'Read Less';
         this._expanded = false;
         this._unnecessary = false;
-        this._manuallyExpanded = false;
-        this._resizeObserver = null;
-        this._contentWrapper = null;
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        // Set up resize observer after first render
-        this.updateComplete.then(() => {
-            this._setupResizeObserver();
-            this._checkIfTruncationNeeded();
-        });
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        if (this._resizeObserver) {
-            this._resizeObserver.disconnect();
-            this._resizeObserver = null;
-        }
-    }
-
-    _setupResizeObserver() {
-        this._contentWrapper = this.shadowRoot.querySelector('.content-wrapper');
-        if (!this._contentWrapper) return;
-
-        this._resizeObserver = new ResizeObserver(() => {
-            this._checkIfTruncationNeeded();
-        });
-
-        this._resizeObserver.observe(this._contentWrapper);
+    firstUpdated() {
+        this._checkIfTruncationNeeded();
     }
 
     _checkIfTruncationNeeded() {
-        // If user manually expanded, we already know truncation is needed
-        // (otherwise the "Read More" button wouldn't have been shown)
-        if (this._manuallyExpanded) return;
+        const content = this.shadowRoot.querySelector('.content-wrapper');
+        if (!content) return;
 
-        if (!this._contentWrapper) {
-            this._contentWrapper = this.shadowRoot.querySelector('.content-wrapper');
+        const isOverflowing = content.scrollHeight > content.clientHeight;
+        this._unnecessary = !isOverflowing;
+
+        if (this._unnecessary) {
+            this._expanded = true;
         }
-        if (!this._contentWrapper) return;
+    }
 
-        // Temporarily expand to measure full height
-        this._contentWrapper.classList.add('expanded');
-        const fullHeight = this._contentWrapper.scrollHeight;
-        this._contentWrapper.classList.remove('expanded');
+    _handleToggle(e) {
+        // Prevent default so we control the state
+        e.preventDefault();
 
-        // Get the collapsed height
-        let collapsedHeight;
-        if (this.maxHeight) {
-            collapsedHeight = parseFloat(this.maxHeight);
-        } else if (this.maxLines) {
-            // For line-clamp, measure the actual clamped height
-            collapsedHeight = this._contentWrapper.clientHeight;
-        } else {
-            collapsedHeight = fullHeight;
-        }
+        if (this._unnecessary) return;
 
-        // Get button height for fudge factor
-        const toggleBtn = this.shadowRoot.querySelector('.toggle-btn:not(.hidden)');
-        const buttonHeight = toggleBtn ? toggleBtn.offsetHeight : 0;
+        this._expanded = !this._expanded;
 
-        // Fudge factor to account for non-significant truncation
-        const isUnnecessary = fullHeight <= (collapsedHeight + buttonHeight + 1);
-
-        if (isUnnecessary !== this._unnecessary) {
-            this._unnecessary = isUnnecessary;
-            if (isUnnecessary) {
-                this._expanded = true;
+        // Scroll back to top when collapsing if component is off-screen
+        if (!this._expanded) {
+            const rect = this.getBoundingClientRect();
+            if (rect.top < 0) {
+                this.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                });
             }
-        }
-    }
-
-    _handleMoreClick() {
-        this._expanded = true;
-        this._manuallyExpanded = true;
-    }
-
-    _handleLessClick() {
-        this._expanded = false;
-        this._manuallyExpanded = false;
-
-        // Scroll top of the component into view if the top is not visible
-        const rect = this.getBoundingClientRect();
-        if (rect.top < 0) {
-            this.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-            });
         }
     }
 
@@ -220,32 +186,27 @@ export class OLReadMore extends LitElement {
     }
 
     render() {
-        const showMoreBtn = !this._expanded && !this._unnecessary;
-        const showLessBtn = this._expanded && !this._unnecessary;
+        const chevronSvg = html`<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
 
         return html`
-            <div
-                class="content-wrapper ${this._expanded ? 'expanded' : ''}"
-                style="${this._getContentStyle()}"
+            <details
+                class="${this._unnecessary ? 'no-expand' : ''}"
+                ?open="${this._expanded}"
+                @click="${this._handleToggle}"
             >
-                <slot></slot>
-            </div>
-            <button
-                class="toggle-btn more ${showMoreBtn ? '' : 'hidden'}"
-                aria-expanded="false"
-                @click="${this._handleMoreClick}"
-            >
-                ${this.moreText}
-                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <button
-                class="toggle-btn less ${showLessBtn ? '' : 'hidden'}"
-                aria-expanded="true"
-                @click="${this._handleLessClick}"
-            >
-                ${this.lessText}
-                <svg class="chevron up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
+                <summary>
+                    <div
+                        class="content-wrapper ${this._expanded ? 'expanded' : ''}"
+                        style="${this._getContentStyle()}"
+                    >
+                        <slot></slot>
+                    </div>
+                    <span class="toggle" role="button" aria-expanded="${this._expanded}">
+                        ${this._expanded ? this.lessText : this.moreText}
+                        ${chevronSvg}
+                    </span>
+                </summary>
+            </details>
         `;
     }
 }
