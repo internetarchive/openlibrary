@@ -15,6 +15,7 @@ from unicodedata import normalize
 import httpx
 import web
 from requests import Response
+from typing_extensions import deprecated
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -136,7 +137,11 @@ def process_facet(
                 key, name = read_author_facet(val)
                 yield (key, name, count)
             elif field == 'language':
-                yield (val, get_language_name(f'/languages/{val}'), count)
+                yield (
+                    val,
+                    get_language_name(f'/languages/{val}', web.ctx.lang or 'en'),
+                    count,
+                )
             else:
                 yield (val, val, count)
 
@@ -579,9 +584,7 @@ def get_doc(doc: SolrDocument):
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
-        collections=(
-            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
-        ),
+        collections=(doc.get('ia_collection') or []),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
         lending_edition=doc.get('lending_edition_s', None),
@@ -1255,6 +1258,7 @@ def validate_search_json_query(q: str | None) -> str | None:
     return None
 
 
+@deprecated("migrated to fastapi")
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
@@ -1262,6 +1266,7 @@ class search_json(delegate.page):
     def GET(self):
         i = web.input(
             author_key=[],
+            author_facet=[],
             subject_facet=[],
             person_facet=[],
             place_facet=[],

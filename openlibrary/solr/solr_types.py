@@ -17,6 +17,7 @@ class SolrDocument(TypedDict):
     subtitle: Optional[str]
     alternative_title: Optional[list[str]]
     alternative_subtitle: Optional[list[str]]
+    chapter: Optional[list[str]]
     edition_count: Optional[int]
     edition_key: Optional[list[str]]
     cover_edition_key: Optional[str]
@@ -31,8 +32,6 @@ class SolrDocument(TypedDict):
     lccn: Optional[list[str]]
     ia: Optional[list[str]]
     ia_box_id: Optional[list[str]]
-    ia_loaded_id: Optional[list[str]]
-    ia_count: Optional[int]
     ia_collection: Optional[list[str]]
     oclc: Optional[list[str]]
     isbn: Optional[list[str]]
@@ -128,7 +127,6 @@ class SolrDocument(TypedDict):
     public_scan_b: Optional[bool]
     printdisabled_s: Optional[str]
     lending_edition_s: Optional[str]
-    ia_collection_s: Optional[str]
     ebook_count_i: Optional[int]
 
 # fmt: on

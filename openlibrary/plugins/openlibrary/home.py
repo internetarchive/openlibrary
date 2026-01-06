@@ -11,9 +11,14 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_blog_feeds
+from openlibrary.plugins.upstream.utils import (
+    convert_iso_to_marc,
+    get_blog_feeds,
+    get_populated_languages,
+)
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -64,11 +69,12 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-    page = mc(devmode=("dev" in web.ctx.features))
+    devmode = "dev" in web.ctx.features
+    page = mc(devmode)
 
     if not page:
-        mc.memcache_delete_by_args()
-        mc()
+        mc.memcache_delete_by_args(devmode)
+        mc(devmode)
 
     return page
 
@@ -94,6 +100,7 @@ def caching_prethread():
         web.ctx.lang = lang
         web.ctx.is_bot = _is_bot
         web.ctx.host = host
+        set_context_from_legacy_web_py()
 
     return main
 
@@ -110,12 +117,19 @@ class home(delegate.page):
 
 
 @cache.memoize(
-    engine="memcache", key="home.random_book", expires=dateutil.HALF_HOUR_SECS
+    engine="memcache",
+    key=lambda count, language=None: f"home.random_book.{language or 'all'}",
+    expires=dateutil.HALF_HOUR_SECS,
 )
-def get_random_borrowable_ebook_keys(count: int) -> list[str]:
+def get_random_borrowable_ebook_keys(
+    count: int, language: str | None = None
+) -> list[str]:
     solr = search.get_solr()
+    query = 'type:edition AND ebook_access:[borrowable TO *]'
+    if language:
+        query += f' AND language:{language}'
     docs = solr.select(
-        'type:edition AND ebook_access:[borrowable TO *]',
+        query,
         fields=['key'],
         rows=count,
         sort=f'random_{random.random()} desc',
@@ -127,7 +141,16 @@ class random_book(delegate.page):
     path = "/random"
 
     def GET(self):
-        keys = get_random_borrowable_ebook_keys(1000)
+        # Get user's language preference
+        user_lang = None
+        web_lang = web.ctx.lang or 'en'
+        marc_lang = convert_iso_to_marc(web_lang)
+
+        # Only filter by language if it's a populated language
+        if marc_lang and marc_lang in get_populated_languages():
+            user_lang = marc_lang
+
+        keys = get_random_borrowable_ebook_keys(1000, language=user_lang)
         raise web.seeother(random.choice(keys))
 
 
@@ -266,6 +289,7 @@ def generic_carousel(
         get_ia_carousel_books,
         memcache_key,
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+        prethread=caching_prethread(),
     )
     books = cached_ia_carousel_books(
         query=query,

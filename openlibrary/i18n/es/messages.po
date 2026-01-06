@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2025-08-28 00:07+0200\n"
+"PO-Revision-Date: 2025-12-08 17:00+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -109,10 +109,10 @@ msgstr "por un <em>autor desconocido</em>"
 
 #: BookPreview.html
 msgid "Preview Only"
-msgstr "Vista Previa"
+msgstr "Vista previa"
 
 #: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html
+#: editpage.html import_preview.html
 msgid "Preview"
 msgstr "Vista Previa"
 
@@ -154,7 +154,8 @@ msgstr "Crear nueva lista"
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/tag/form.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/tag/form.html
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -322,13 +323,19 @@ msgstr "Libros relacionados"
 msgid "Go to next section"
 msgstr "Ir a la siguiente sección"
 
-#: Follow.html
-msgid "UnfollowFollow"
-msgstr "Dejar de seguir"
-
 #: Follow.html lists/list_follow.html
 msgid "Follow"
 msgstr "Seguir"
+
+#: Follow.html
+msgid "Unfollow"
+msgstr "Dejar de seguir"
+
+#: Follow.html
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+"No se han podido actualizar los seguidores. Vuelve a intentarlo dentro de "
+"unos minutos."
 
 #: FormatExpiry.html
 msgid "Expires"
@@ -1111,6 +1118,44 @@ msgstr "Ver volumen %(num)d"
 msgid "Buy this book"
 msgstr "Comprar este libro"
 
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Search Results"
+msgstr "Resultados de la búsqueda"
+
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+msgid "Open Library"
+msgstr "Biblioteca Abierta"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+msgid "Trending Books"
+msgstr "Libros en tendencia"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr "Libros clásicos"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr "Romántica"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Kids"
+msgstr "Infantil"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr "Suspense"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr "Libros de texto"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Arabic"
+msgstr "Árabe"
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
 msgstr "Checo"
@@ -1186,14 +1231,6 @@ msgstr "Biografias"
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Recipes"
 msgstr "Recetas"
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr "Romántica"
-
-#: home/index.html openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
-msgstr "Libros de texto"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
@@ -1517,26 +1554,6 @@ msgstr "Nombre de pantalla"
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
 msgstr "Público y no puede modificarse posteriormente."
-
-#: openlibrary/plugins/upstream/forms.py
-msgid ""
-"I want to receive news, announcements, and resources from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs "
-"Open Library."
-msgstr ""
-"Quiero recibir noticias, anuncios y recursos del <a href=\"https://archive."
-"org/\">Archivo de Internet</a>, la organización sin fines de lucro que "
-"administra la Biblioteca Abierta."
-
-#: openlibrary/plugins/upstream/forms.py
-msgid ""
-"I want to apply* for <a href=\"https://help.archive.org/help/program-"
-"overview/\" target=\"_blank\">special print disability access</a> through a "
-"qualifying program."
-msgstr ""
-"Quiero solicitar* <a href=\"https://help.archive.org/help/program-overview/"
-"\" target=\"_blank\">acceso especial para personas con discapacidad visual</"
-"a> a través de un programa que cumple los requisitos."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -1891,22 +1908,6 @@ msgid "Diff on %s"
 msgstr "Diff en %s"
 
 #: diff.html
-msgid "Added"
-msgstr "Añadido"
-
-#: admin/imports_by_date.html diff.html
-msgid "Modified"
-msgstr "Modificado"
-
-#: diff.html
-msgid "Removed"
-msgstr "Eliminado"
-
-#: diff.html
-msgid "Not changed"
-msgstr "Sin cambios"
-
-#: diff.html
 #, python-format
 msgid "Revision %d"
 msgstr "Revisión %d"
@@ -1924,6 +1925,22 @@ msgstr "por Anónimo"
 #: diff.html
 msgid "history"
 msgstr "historial"
+
+#: diff.html
+msgid "Added"
+msgstr "Añadido"
+
+#: admin/imports_by_date.html diff.html
+msgid "Modified"
+msgstr "Modificado"
+
+#: diff.html
+msgid "Removed"
+msgstr "Eliminado"
+
+#: diff.html
+msgid "Not changed"
+msgstr "Sin cambios"
 
 #: diff.html
 msgid "Differences"
@@ -1989,6 +2006,20 @@ msgstr "Vista previa de importación"
 #: import_preview.html
 msgid "Preview Import"
 msgstr "Vista previa de la importación"
+
+#: import_preview.html
+msgid "Show Raw Import Data"
+msgstr "Mostrar datos de importación sin procesar"
+
+#: import_preview.html
+#, python-format
+msgid "New %(thing_type)s record will be created"
+msgstr "Se creará un nuevo registro %(thing_type)s"
+
+#: import_preview.html
+#, python-format
+msgid "Changes to %(key)s"
+msgstr "Cambios en %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
@@ -2312,8 +2343,8 @@ msgstr "Ver PR en GitHub"
 msgid "Show changed files"
 msgstr "Mostrar archivos modificados"
 
-#: admin/inspect/store.html admin/people/index.html search/sort_options.html
-#: status.html type/author/edit.html type/language/view.html
+#: admin/inspect/store.html admin/people/index.html status.html
+#: type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr "Nombre"
 
@@ -2369,10 +2400,6 @@ msgstr "Este año"
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
 msgstr "Todos los tiempos"
-
-#: home/index.html trending.html
-msgid "Trending Books"
-msgstr "Libros en tendencia"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
@@ -2604,6 +2631,26 @@ msgid "screenname"
 msgstr "nombre de pantalla"
 
 #: account/create.html
+msgid ""
+"I want to receive news, announcements, and resources from the <a "
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs "
+"Open Library."
+msgstr ""
+"Quiero recibir noticias, anuncios y recursos del <a href=\"https://archive."
+"org/\">Archivo de Internet</a>, la organización sin fines de lucro que "
+"administra la Biblioteca Abierta."
+
+#: account/create.html
+msgid ""
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\">special print disability access</a> through a "
+"qualifying program."
+msgstr ""
+"Quiero solicitar* <a href=\"https://help.archive.org/help/program-overview/"
+"\" target=\"_blank\">acceso especial para personas con discapacidad visual</"
+"a> a través de un programa que cumple los requisitos."
+
+#: account/create.html
 msgid "Select qualifying program"
 msgstr "Seleccionar programa de calificación"
 
@@ -2676,8 +2723,8 @@ msgid "Download a copy of your reading log."
 msgstr "Descargar una copia de tu registro de lectura."
 
 #: account/import.html
-msgid "What is this?"
-msgstr "¿Qué es esto?"
+msgid "What is a reading log?"
+msgstr "¿Qué es un registro de lectura?"
 
 #: account/import.html
 msgid "Download (.csv format)"
@@ -5698,8 +5745,8 @@ msgid "Use this image"
 msgstr "Usar esta imagen"
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer"
-msgstr "Elige un JPG, GIF o PNG en tu equipo"
+msgid "Choose a JPG, GIF, PNG or WebP on your computer"
+msgstr "Elige un archivo JPG, GIF, PNG o WebP en tu equipo"
 
 #: covers/add.html
 msgid "Upload"
@@ -5911,11 +5958,6 @@ msgstr "Explorar por tema"
 
 #: home/categories.html
 #, python-format
-msgid "browse %(subject)s books"
-msgstr "explorar por libros de %(subject)s"
-
-#: home/categories.html
-#, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] "%(count)s libro"
@@ -5926,20 +5968,8 @@ msgid "Welcome to Open Library"
 msgstr "Bienvenido a la Biblioteca Abierta"
 
 #: home/index.html
-msgid "Classic Books"
-msgstr "Libros clásicos"
-
-#: home/index.html
 msgid "Recently Returned"
 msgstr "Devuelto recientemente"
-
-#: home/index.html
-msgid "Kids"
-msgstr "Infantil"
-
-#: home/index.html
-msgid "Thrillers"
-msgstr "Suspense"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
@@ -6268,10 +6298,6 @@ msgstr "Describe de qué trata el libro"
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
 msgstr "Una o dos frases son suficientes."
-
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr "Biblioteca Abierta"
 
 #: lib/nav_foot.html
 msgid "Vision"
@@ -6684,6 +6710,14 @@ msgstr "Sin descripción."
 msgid "See all"
 msgstr "Ver todo"
 
+#: lists/list_follow.html
+msgid "Cover of book"
+msgstr "Portada del libro"
+
+#: lists/list_follow.html
+msgid "Avatar of the owner of the list"
+msgstr "Avatar del propietario de la lista"
+
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
 msgstr "Tú"
@@ -7030,7 +7064,7 @@ msgstr "Haz clic para cerrar esta solicitud de fusión"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr "Revisión <!-- (solicitud de fusión) -->"
+msgstr "Revisar <!-- (solicitud de fusión) -->"
 
 #: merge_request_table/table_row.html
 msgid "comments"
@@ -7504,6 +7538,10 @@ msgstr "Recuento de obras"
 #: search/sort_options.html
 msgid "Random"
 msgstr "Aleatorio"
+
+#: search/sort_options.html
+msgid "Name (beta: Librarian only)"
+msgstr "Nombre (beta: solo bibliotecario)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
@@ -8027,8 +8065,8 @@ msgid ""
 "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add "
 "one</a></b>?"
 msgstr ""
-"Esta obra aún no tiene descripción. ¿Puedes <b><a href="%(url)s">añadir una</"
-"a></b>?"
+"Esta obra aún no tiene descripción. ¿Puedes <b><a href=\"%(url)s\">añadir "
+"una</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
@@ -8603,6 +8641,13 @@ msgstr "No hay ediciones disponibles"
 msgid "Add another edition?"
 msgstr "¿Añadir otra edición?"
 
+#~ msgid "What is this?"
+#~ msgstr "¿Qué es esto?"
+
+#, python-format
+#~ msgid "browse %(subject)s books"
+#~ msgstr "explorar por libros de %(subject)s"
+
 #~ msgid "Read Text ISBN"
 #~ msgstr "Leer texto ISBN"
 
@@ -9175,9 +9220,6 @@ msgstr "¿Añadir otra edición?"
 
 #~ msgid "Russian"
 #~ msgstr "Ruso"
-
-#~ msgid "Arabic"
-#~ msgstr "Árabe"
 
 #~ msgid "Japanese"
 #~ msgstr "Japonés"
