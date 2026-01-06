@@ -6,10 +6,10 @@ Adds Sentry cron monitoring to the given script, then executes the script with t
 import argparse
 import subprocess
 import sys
-import yaml
 from pathlib import Path
 
 import sentry_sdk
+import yaml
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
@@ -57,7 +57,7 @@ def main(args):
 def _read_config(config_path):
     if not Path(config_path).exists():
         raise FileNotFoundError("Missing cron-wrapper configuration file")
-    with open(config_path, "r") as in_file:
+    with open(config_path) as in_file:
         config = yaml.safe_load(in_file)
         return config
 
