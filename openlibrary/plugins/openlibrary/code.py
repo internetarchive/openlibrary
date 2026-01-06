@@ -1283,7 +1283,7 @@ def is_bot():
     ]
 
     # As set in web_nginx.conf via the trap-link
-    if web.ctx.env.get("HTTP_X_SPS") == '1':
+    if web.ctx.env.get("HTTP_X_HHCL") == '1':
         return True
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
