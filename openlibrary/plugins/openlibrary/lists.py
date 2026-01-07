@@ -358,9 +358,8 @@ class lists_edit(delegate.page):
             raise web.notfound()
 
         i = web.input(seeds=None)
-        seeds_param = i.get('seeds')
 
-        if seeds_param:
+        if seeds_param := i.get('seeds'):
             incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
 
             existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
