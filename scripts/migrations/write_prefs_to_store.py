@@ -129,7 +129,9 @@ def main(args):
     setup(args.config)
 
     print("Fetching affected preferences...")
-    affected_pref_keys = _fetch_legacy_preference_keys() if args.legacy else _fetch_preference_keys()
+    affected_pref_keys = (
+        _fetch_legacy_preference_keys() if args.legacy else _fetch_preference_keys()
+    )
 
     print(f"Found {len(affected_pref_keys)} affected preferences")
     if args.dry_run:
