@@ -26,6 +26,8 @@ $if any(menu_items) and not is_carousel:
         $:analytics_attr(analytics_action)
         $if loan:
           data-userid="$(loan['userid'])"
+        $if edition_key:
+          data-edition-id="$(edition_key)"
         >$label</a>
     <details class="cta-btn cta-btn--available">
       <summary></summary>
@@ -53,5 +55,7 @@ $else:
         $:analytics_attr(analytics_action)
         $if loan:
           data-userid="$(loan['userid'])"
+        $if edition_key:
+          data-edition-id="$(edition_key)"
         >$label</a>
   </div>
