@@ -225,24 +225,32 @@ export class BulkSearchState{
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
+        /** @type {string[]} */
+        this.errorMessage = []
     }
 
     /**@type {AbstractExtractor} */
     get activeExtractor() {
         return this.extractors[this._activeExtractorIndex]
     }
-    /**@type {String} */
-    get listUrl() {
-        return BASE_LIST_URL + this.matchedBooks
+    /**@type {string[]} */
+    get seedKeys() {
+        return this.matchedBooks
             .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
             .filter(key => key);
     }
+
+    /**@type {String} */
+    get listUrl() {
+        return `${BASE_LIST_URL}${this.seedKeys.join(',')}`;
+    }
+
     /**@type {String} */
     get listString(){
-        return `${this.matchedBooks
-            .map(bm => bm.solrDocs?.docs?.[0]?.key.split('/')[2])
-            .filter(key => key)}`;
+        return this.seedKeys.join(',');
     }
+
 }
+
 
 
