@@ -229,6 +229,7 @@ $code:
   </div>
 
   $if footer:
-    <hr />
-    $:footer
+    <div class="list-books__note">
+      $:sanitize(format(footer))
+    </div>
 </li>
