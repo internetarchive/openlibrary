@@ -230,7 +230,7 @@ def get_list_data(list, seed, include_cover_url=True):
             "name": list.name or "",
             "key": list.key,
             "url": list.url(),
-            "add_url": list.url("/add"),
+            "add_url": list.url("/edit"),
             "active": list.has_seed(seed) if seed else False,
             "list_items": list_items,
         }
@@ -356,6 +356,40 @@ class lists_edit(delegate.page):
         lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
+
+        i = web.input(seeds=None)
+        seeds_param = i.get('seeds')
+
+        if seeds_param:
+            incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
+
+            existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
+            existing_identifiers = {
+                ident
+                for seed in existing_seed_json
+                if (ident := _seed_identifier(seed))
+            }
+
+            normalized_new_seeds = [
+                ListRecord.normalize_input_seed(seed) for seed in incoming_seeds
+            ]
+
+            combined_seeds: list[Seed] = list(existing_seed_json)
+            for seed in normalized_new_seeds:
+                identifier = _seed_identifier(seed)
+                if identifier and identifier not in existing_identifiers:
+                    combined_seeds.append(seed)
+                    existing_identifiers.add(identifier)
+
+            list_record = ListRecord(
+                key=lst.key,
+                name=lst.name or "",
+                description=lst.description or "",
+                seeds=combined_seeds,
+                comment_=getattr(lst, "comment_", ""),
+            )
+            return render_template("type/list/edit", list_record, new=False)
+
         return render_template("type/list/edit", lst, new=False)
 
     def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
