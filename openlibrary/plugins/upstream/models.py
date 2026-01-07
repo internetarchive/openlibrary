@@ -600,6 +600,7 @@ class Work(models.Work):
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
+            "trending_z_score",
         ] + get_solr_keys()
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)
