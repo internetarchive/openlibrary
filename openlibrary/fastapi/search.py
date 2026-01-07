@@ -322,7 +322,7 @@ async def search_lists_json(
         return {
             'numFound': response.num_found,
             'num_found': response.num_found,
-            'start': response.raw_resp['response']['start'],
+            'start': response.raw_resp['response'].get('start', params.offset or 0),
             'q': params.q,
             'docs': response.docs,
         }
@@ -330,7 +330,7 @@ async def search_lists_json(
         # Default to the old API shape for a while, then we'll flip
         lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
         return {
-            'start': response.raw_resp['response']['start'],
+            'start': response.raw_resp['response'].get('start', params.offset or 0),
             'docs': [lst.preview() for lst in lists],
         }
 
