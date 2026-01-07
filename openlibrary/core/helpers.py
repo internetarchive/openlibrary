@@ -2,10 +2,9 @@
 
 import json
 import re
-from collections import namedtuple
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, Literal, cast
+from typing import Any, Literal, NamedTuple, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -161,7 +160,7 @@ def datestr(
     return format_date(then, lang=lang)
 
 
-TimeDeltaUnit = namedtuple('TimeDeltaUnit', ['long_name', 'short_name', 'seconds_per_unit'])
+TimeDeltaUnit = NamedTuple('TimeDeltaUnit', [('long_name', str), ('short_name', str), ('seconds_per_unit', int)])
 
 TIME_DELTA_UNITS = (
     TimeDeltaUnit('year', 'y', 3600 * 24 * 365),
