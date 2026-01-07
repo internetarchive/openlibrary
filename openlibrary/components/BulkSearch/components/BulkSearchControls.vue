@@ -4,9 +4,6 @@
       <p v-if="showColumnHint">
         Please include a header row. Supported columns include: "Title", "Author", "ISBN".
       </p>
-      <p class="bulk-search-instructions">
-        <strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.
-      </p>
 
       <select
         v-model="selectedValue"
@@ -26,11 +23,7 @@
       />
       <br>
       <div class="progressCarousel">
-        <div
-          ref="step1"
-          class="progressCard"
-          :class="{ activeStep: activeStep === 1 }"
-        >
+        <div class="progressCard">
           <div class="numeral">
             1
           </div>
@@ -96,9 +89,8 @@
           </div>
         </div>
         <div
-          ref="step2"
           class="progressCard"
-          :class="{ progressCardDisabled: matchBooksDisabled, activeStep: activeStep === 2 }"
+          :class="{ progressCardDisabled: matchBooksDisabled}"
         >
           <div class="numeral">
             2
@@ -124,9 +116,8 @@
           </div>
         </div>
         <div
-          ref="step3"
           class="progressCard"
-          :class="{ progressCardDisabled: createListDisabled, activeStep: activeStep === 3 }"
+          :class="{ progressCardDisabled: createListDisabled }"
         >
           <div class="numeral">
             3
@@ -256,15 +247,6 @@ export default {
         }
     },
     computed: {
-        activeStep() {
-            if (!this.createListDisabled) {
-                return 3;
-            } else if (!this.matchBooksDisabled) {
-                return 2;
-            } else {
-                return 1;
-            }
-        },
         showApiKey(){
             if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
             return false
@@ -317,11 +299,6 @@ export default {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
             }
-        },
-        activeStep(newValue) {
-            this.$nextTick(() => {
-                this.$refs[`step${newValue}`]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            });
         },
         selectedListTarget(newValue) {
             this.$emit('list-selected', newValue)
@@ -513,15 +490,6 @@ export default {
 .bulk-search-controls{
     padding:20px;
 }
-
-.bulk-search-instructions {
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    background-color: #f0f7ff;
-    border-left: 4px solid #0376B8;
-    border-radius: 4px;
-}
-
 label input {
     flex: 1;
 }
@@ -550,12 +518,6 @@ textarea {
     display:flex;
     column-gap:16px;
     flex-shrink:0;
-    border: 1px solid transparent;
-    border-bottom: 5px solid transparent;
-
-    &.activeStep {
-        border-color: #0376B8;
-    }
     .info{
         display:flex;
         flex-direction:column;
@@ -616,6 +578,7 @@ textarea {
   opacity: 0.6;
   pointer-events: none;
 }
+
 
 .api-key-bar{
     width:100%;
