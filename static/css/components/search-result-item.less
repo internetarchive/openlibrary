@@ -5,10 +5,6 @@
 @import "buttonBtn.less";
 @import "buttonCta.less";
 
-.bookauthor {
-  font-family: @body-family;
-}
-
 // Some preview rules are too specific and need to be rewritten
 // Preview button appears styled as a text link with a book icon
 .bookcover .cta-btn.cta-btn--preview {
@@ -50,7 +46,6 @@
 }
 .searchResultItem {
   list-style-type: none;
-  line-height: 1.5em;
   background-color: @grey-fafafa;
   border-radius: 5px;
   padding: 10px;
@@ -60,7 +55,6 @@
   &,
   .sri__main {
     display: flex;
-    align-items: center;
     flex-direction: column;
 
     @media (min-width: @width-breakpoint-tablet) {
@@ -84,6 +78,7 @@
     font-weight: 700;
     font-family: @font-family-title;
     overflow: auto;
+    line-height: @line-height-heading;
   }
   .details {
     overflow: auto;
@@ -91,6 +86,7 @@
     width: 100%;
     padding: 5px;
     margin: 0;
+    line-height: @line-height-meta;
   }
 
   .resultStats {
