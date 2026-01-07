@@ -355,16 +355,18 @@ class LazyCarouselPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
-
 class ActivityFeedPartial(PartialDataHandler):
     """Handler for "My Books" page activity feeds"""
+
     def __init__(self):
         self.i = web.input(username=None)
 
     def generate(self) -> dict:
         feed, follows_others = ActivityFeed.get_activity_feed(self.i.username)
         feed_url = f'/people/{self.i.username}/books/feed'
-        template_result = render_template('account/activity_feed', feed, feed_url, follows_others)
+        template_result = render_template(
+            'account/activity_feed', feed, feed_url, follows_others
+        )
         return {"partials": str(template_result)}
 
 
