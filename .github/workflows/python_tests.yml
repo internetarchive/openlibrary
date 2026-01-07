@@ -12,6 +12,7 @@ on:
       - '**.vue'
       - '**.less'
       - '**.css'
+      - '**.md'
 permissions:
   contents: read
 
