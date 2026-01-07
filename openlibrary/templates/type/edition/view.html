@@ -230,8 +230,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
       
       $# Show trending badge when trending score > 5
-      $# Only show if trending data is available and valid
-      $if edition and edition.get('trending_z_score') and edition.get('trending_z_score', 0) > 5:
+      $if edition and edition.get('trending_z_score', 0) > 5:
           <div class="trending-badge-container">
               $:macros.TrendingBadge(edition)
           </div>
