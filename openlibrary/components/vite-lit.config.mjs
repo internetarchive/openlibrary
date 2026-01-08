@@ -1,6 +1,6 @@
 /* eslint-env node, es6 */
 /**
- * Vite configuration for building Lit web components
+ * Vite config for Lit web components. (for Vue components see vite.config.mjs)
  *
  * This creates a bundled build of all Lit components in a single file
  * with legacy browser support via polyfills.
