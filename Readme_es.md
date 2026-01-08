@@ -3,7 +3,6 @@
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
 [![Únete al chat en https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Ábrelo en Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 [![Contribuidores](https://img.shields.io/github/contributors/internetarchive/openlibrary.svg)](https://github.com/internetarchive/openlibrary/graphs/contributors)
 
 [Open Library](https://openlibrary.org) un catálogo de biblioteca abierto y editable, que se construye con el objetivo de crear una página web para todo libro que ha sido publicado
@@ -42,11 +41,6 @@ Ejecuta `docker compose up` y visita http://localhost:8080
 
 ¿Necesitas más detalles? Checa las [Instrucciones de Docker](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 o el [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
-
-***Alternativamente***, Si no quieres montar Open Library en tu computadora local, prueba Gitpod!
-Esto te deja trabajar en Open Library enteramente desde tu navegador sin tener que instalar nada en tu computadora personal.
-Advertencia: Esta integración sigue siendo experimental.
-[![Ábrelo en Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### Guía de Desarrollador
 

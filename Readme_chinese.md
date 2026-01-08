@@ -3,7 +3,6 @@
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
 [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 [公共图书馆](https://openlibrary.org)是一个开放的，可以编辑的图书平台。它为每一本已经出版的图书建立了其相关的网页。
 
@@ -41,9 +40,6 @@
 
 需要更多信息？请查看 [Docker指南](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 或者[视频教程](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4)。
-
-***或者***，如果您不想在本地的电脑上安装公共图书馆，您可以尝试Gitpod！这可以让您在不安装任何插件的前提下，在浏览器中使用公共图书馆。警告：此集成仍在实验中。
-[![Open In Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### 给开发者的指南
 
