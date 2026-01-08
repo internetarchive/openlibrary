@@ -493,7 +493,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               <h4>$_("Excerpts")</h4>
               <div class="section">
                 $for excerpt in work.excerpts:
-                  <div class="excerpt addReadMore showlesscontent">
+                  <div class="excerpt">
                     <div class="text">
                       $for line in excerpt.excerpt.split('\n'):
                         $line<br/>
