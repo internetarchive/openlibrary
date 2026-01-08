@@ -226,38 +226,3 @@ class Test_memoize:
         self.set("parity_check-10", 999)
 
         assert await async_f(10) == 999
-
-
-class Test_method_memoize:
-    def test_handles_no_args(self):
-        class A:
-            def __init__(self):
-                self.result = 0
-
-            @cache.method_memoize
-            def foo(self):
-                self.result += 1
-                return self.result
-
-        a = A()
-        assert a.foo() == 1
-        assert a.foo() == 1
-        assert a.result == 1
-
-    def test_handles_args(self):
-        class A:
-            def __init__(self):
-                self.result = 1
-
-            @cache.method_memoize
-            def foo(self, multiplier):
-                self.result *= multiplier
-                return self.result
-
-        a = A()
-        assert a.foo(2) == 2
-        assert a.foo(2) == 2
-        assert a.result == 2
-        assert a.foo(3) == 6
-        assert a.foo(2) == 2
-        assert a.result == 6

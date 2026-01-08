@@ -1,5 +1,6 @@
 """Models of various OL objects."""
 
+import functools
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -101,7 +102,7 @@ class Thing(client.Thing):
 
     key: ThingKey
 
-    @cache.method_memoize
+    @functools.cached_property
     def get_history_preview(self):
         """Returns history preview."""
         history = self._get_history_preview()
@@ -149,7 +150,7 @@ class Thing(client.Thing):
 
     def get_most_recent_change(self):
         """Returns the most recent change."""
-        preview = self.get_history_preview()
+        preview = self.get_history_preview
         if preview.recent:
             return preview.recent[0]
         else:
@@ -157,7 +158,7 @@ class Thing(client.Thing):
 
     def prefetch(self) -> None:
         """Prefetch all the anticipated data."""
-        preview = self.get_history_preview()
+        preview = self.get_history_preview
         authors = {v.author.key for v in preview.initial + preview.recent if v.author}
         # preload them
         self._site.get_many(list(authors))
@@ -496,7 +497,6 @@ class Work(Thing):
     __str__ = __repr__
 
     @property  # type: ignore[misc]
-    @cache.method_memoize
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
