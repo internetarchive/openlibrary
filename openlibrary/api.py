@@ -42,7 +42,15 @@ class OpenLibrary:
         self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
         self.cookie = None
 
-    def _request(self, path, method='GET', data=None, headers=None, params=None, allow_redirects=True):
+    def _request(
+        self,
+        path,
+        method='GET',
+        data=None,
+        headers=None,
+        params=None,
+        allow_redirects=True,
+    ):
         logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
@@ -52,7 +60,12 @@ class OpenLibrary:
 
         try:
             response = requests.request(
-                method, url, data=data, headers=headers, params=params, allow_redirects=allow_redirects
+                method,
+                url,
+                data=data,
+                headers=headers,
+                params=params,
+                allow_redirects=allow_redirects,
             )
             response.raise_for_status()
             return response
