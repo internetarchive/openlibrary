@@ -480,7 +480,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <ol-read-more class="work-description" max-lines="4" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more max-lines="4" more-text="$_('Read More')" less-text="$_('Read Less')">
                 $:sanitize(format(work.description))
               </ol-read-more>
 
