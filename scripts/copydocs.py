@@ -367,7 +367,7 @@ def main(
         if section in read_lines(os.path.expanduser("~/.olrc")):
             dest_ol.autologin()
         else:
-            dest_ol.login("admin", "admin123")
+            dest_ol.login("openlibrary@example.com", "admin123")
 
     for list_key in lists or []:
         copy_list(src_ol, dest_ol, list_key, comment=comment)

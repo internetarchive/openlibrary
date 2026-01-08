@@ -42,7 +42,15 @@ class OpenLibrary:
         self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
         self.cookie = None
 
-    def _request(self, path, method='GET', data=None, headers=None, params=None):
+    def _request(
+        self,
+        path,
+        method='GET',
+        data=None,
+        headers=None,
+        params=None,
+        allow_redirects=True,
+    ):
         logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
@@ -52,7 +60,12 @@ class OpenLibrary:
 
         try:
             response = requests.request(
-                method, url, data=data, headers=headers, params=params
+                method,
+                url,
+                data=data,
+                headers=headers,
+                params=params,
+                allow_redirects=allow_redirects,
             )
             response.raise_for_status()
             return response
@@ -95,11 +108,10 @@ class OpenLibrary:
 
     def login(self, username, password):
         """Login to Open Library with given credentials."""
-        headers = {'Content-Type': 'application/json'}
         try:
-            data = json.dumps({"username": username, "password": password})
+            params = {"username": username, "password": password}
             response = self._request(
-                '/account/login', method='POST', data=data, headers=headers
+                '/account/login', method='POST', params=params, allow_redirects=False
             )
         except OLError as e:
             response = e
