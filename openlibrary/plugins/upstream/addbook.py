@@ -733,10 +733,10 @@ class SaveBookHelper:
             edition_config = web.ctx.site.get('/config/edition')
 
             # TODO: take care of duplicate names
-            
+
             if new_roles:
                 edition_config.roles += [d.get('value') or '' for d in new_roles]
-            
+
             if new_ids:
                 edition_config.identifiers += [
                     {
