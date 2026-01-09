@@ -42,10 +42,10 @@ $if mrid:
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         $if page.url:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$page.url(m='history')" rel="nofollow" title="$_('View this 
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$page.url(m='history')" rel="nofollow" title="$_('View this
 template\'s edit history')">$_('History')</a></div>
         $else:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$changequery(m='history')" rel="nofollow" title="$_('View this 
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$changequery(m='history')" rel="nofollow" title="$_('View this
 template\'s edit history')">$_('History')</a></div>
     </div>
 
