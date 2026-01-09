@@ -76,6 +76,7 @@ class community_edits_queue(delegate.page):
     def POST(self):
         data = json.loads(web.data())
         resp = process_merge_request(data.pop('rtype', ''), data)
+        
         return delegate.RawText(json.dumps(resp), content_type='application/json')
 
     @staticmethod

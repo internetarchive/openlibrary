@@ -4,12 +4,7 @@
  * @module merge-request-table/MergeRequestTable/TableRow
  */
 
-import {
-    claimRequest,
-    commentOnRequest,
-    declineRequest,
-    unassignRequest
-} from '../MergeRequestService'
+import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService'
 import { FadingToast } from '../../Toast'
 
 let i18nStrings;
