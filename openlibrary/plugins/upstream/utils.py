@@ -1275,30 +1275,7 @@ def websafe(text: str) -> str:
         return _websafe(text)
 
 
-from openlibrary.core.cache import MemcacheClient
-from openlibrary.plugins.upstream import adapter
-
-
-class UpstreamMemcacheClient(MemcacheClient):
-    """Wrapper to memcache Client to handle upstream specific conversion.
-    Compatible with memcache Client API.
-    """
-
-    def get(self, key: str | None):
-        key = adapter.convert_key(key)
-        if key is None:
-            return None
-
-        return super().get(key)
-
-    def get_multi(self, keys):
-        keys = [adapter.convert_key(k) for k in keys]
-        d = super().get_multi(keys)
-        return {web.safeunicode(adapter.unconvert_key(k)): v for k, v in d.items()}
-
-
 if config.get('upstream_memcache_servers'):
-    MemcacheClient = UpstreamMemcacheClient  # type: ignore[assignment, misc]
     config.memcache_servers = config.upstream_memcache_servers  # type: ignore[attr-defined]
 
 
