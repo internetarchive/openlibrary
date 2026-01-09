@@ -38,9 +38,18 @@ $:macros.HiddenSaveButton("addWork")
     $:macros.databarEdit(edition if edition is not None else work)
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
-            <form method="post" id="delete-record" name="delete">
-                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
-            </form>
+            $if work and work.key:
+                <form method="post" action="$work.url(suffix='/delete')" id="delete-work-and-editions" name="delete-work" onsubmit="return confirm('Delete work and all of its editions?')" style="display: inline;">
+                    <button type="submit" name="_delete_work" value="true" id="delete-work-btn">$_("Delete work and all editions")</button>
+                </form>
+            $if edition:
+                <form method="post" id="delete-record" name="delete" style="display: inline;">
+                    <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete edition")</button>
+                </form>
+            $else:
+                <form method="post" id="delete-record" name="delete" style="display: inline;">
+                    <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+                </form>
         </span>
 
     <h2 class="editFormTitle">$:title</h2>
