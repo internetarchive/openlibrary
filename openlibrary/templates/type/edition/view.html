@@ -236,12 +236,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <div class="book-description read-more">
-            <div class="read-more__content markdown-content" style="max-height:81px">
-                $:sanitize(format(overview_desc))
-            </div>
-            $:macros.ReadMore()
-        </div>
+        <ol-read-more max-lines="4" class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+          $:sanitize(format(overview_desc))
+        </ol-read-more>
       $elif edition:
         <div class="book-description">
             <div class="book-description-content">
