@@ -43,6 +43,54 @@
 }
 /* stylelint-enable selector-max-specificity */
 
+/* Feed item displays patron info (avatar, username, action) on trending/feed pages */
+.feed-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--beige);
+  border-radius: 4px 4px 0 0;
+  margin-bottom: 0;
+  font-size: var(--font-size-body-medium);
+}
+
+.feed-item__info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.feed-item__follow {
+  flex-shrink: 0;
+}
+
+.feed-item__follow .follow-form {
+  margin: 0;
+}
+
+/* Shared styles for follow buttons (both form button and login link) */
+.feed-item__follow .cta-btn {
+  width: auto;
+  display: inline-block;
+  font-size: var(--font-size-label-medium);
+  padding: 4px 12px;
+  margin: 0;
+}
+
+.feed-item--patron {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-item--shelf {
+  font-weight: 500;
+}
+
 .searchResultItem,
 .searchResultItem .sri__main {
   display: flex;
