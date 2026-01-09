@@ -4,8 +4,8 @@ import json
 
 import web
 
+from openlibrary.core.cache import MemcacheClient
 from openlibrary.coverstore import config
-from openlibrary.utils import olmemcache
 
 __all__ = ["get", "query"]
 
@@ -30,7 +30,7 @@ _memcache = None
 def get_memcache():
     global _memcache
     if _memcache is None and config.get("ol_memcache_servers"):
-        _memcache = olmemcache.Client(config.ol_memcache_servers)
+        _memcache = MemcacheClient(config.ol_memcache_servers)
     return _memcache
 
 

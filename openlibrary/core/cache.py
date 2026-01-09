@@ -18,12 +18,12 @@ from infogami import config
 from infogami.infobase.client import Nothing
 from infogami.utils import stats
 from openlibrary.core.helpers import NothingEncoder
-from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
     "Cache",
     "MemcacheCache",
+    "MemcacheClient",
     "MemoryCache",
     "RequestCache",
     "get_memcache",
@@ -35,6 +35,46 @@ DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
 P = ParamSpec('P')
 T = TypeVar('T')
+
+
+class MemcacheClient:
+    """Memcache client wrapper without compression.
+
+    Compatible with memcache.Client API, handles unicode keys via web.safestr().
+    This replaces the old olmemcache.Client which had compression.
+    """
+
+    def __init__(self, servers):
+        self._client = memcache.Client(servers)
+
+    def get(self, key):
+        try:
+            return self._client.get(web.safestr(key))
+        except memcache.Client.MemcachedKeyError:
+            return None
+
+    def get_multi(self, keys):
+        keys = [web.safestr(k) for k in keys]
+        d = self._client.get_multi(keys)
+        return {web.safeunicode(k): v for k, v in d.items()}
+
+    def set(self, key, val, time=0):
+        return self._client.set(web.safestr(key), val, time=time)
+
+    def set_multi(self, mapping, time=0):
+        mapping = {web.safestr(k): v for k, v in mapping.items()}
+        return self._client.set_multi(mapping, time=time)
+
+    def add(self, key, val, time=0):
+        return self._client.add(web.safestr(key), val, time=time)
+
+    def delete(self, key, time=0):
+        key = web.safestr(key)
+        return self._client.delete(key, time=time)
+
+    def delete_multi(self, keys, time=0):
+        keys = [web.safestr(k) for k in keys]
+        return self._client.delete_multi(keys, time=time)
 
 
 class memcache_memoize[**P, T]:
@@ -67,7 +107,7 @@ class memcache_memoize[**P, T]:
         self.key_prefix = key_prefix or self._generate_key_prefix()
         self.timeout = timeout
 
-        self._memcache: memcache.Client | None = None
+        self._memcache: MemcacheClient | None = None
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads: dict[str, threading.Thread] = {}
@@ -75,11 +115,11 @@ class memcache_memoize[**P, T]:
         self.hash_args = hash_args
 
     @property
-    def memcache(self) -> memcache.Client:
+    def memcache(self) -> MemcacheClient:
         if self._memcache is None:
             servers = config.get("memcache_servers")
             if servers:
-                self._memcache = memcache.Client(servers)
+                self._memcache = MemcacheClient(servers)
             else:
                 web.debug(
                     "Could not find memcache_servers in the configuration. Used dummy memcache."
@@ -303,7 +343,7 @@ class MemcacheCache(Cache):
     @functools.cached_property
     def memcache(self):
         if servers := config.get("memcache_servers", None):
-            return olmemcache.Client(servers)
+            return MemcacheClient(servers)
         else:
             web.debug(
                 "Could not find memcache_servers in the configuration. Used dummy memcache."

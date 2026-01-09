@@ -14,6 +14,7 @@ import requests
 import web
 
 from infogami.infobase import cache, common, config, dbstore, server
+from openlibrary.core.cache import MemcacheClient
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -385,7 +386,7 @@ class MemcacheInvalidater:
     def get_memcache_client(self):
         _cache = config.get('cache', {})
         if _cache.get('type') == 'memcache' and 'servers' in _cache:
-            return olmemcache.Client(_cache['servers'])
+            return MemcacheClient(_cache['servers'])
 
     def to_dict(self, d):
         if isinstance(d, dict):
@@ -442,15 +443,12 @@ class MemcacheInvalidater:
         yield old.key
 
 
-# openlibrary.utils can't be imported directly because
-# openlibrary.plugins.openlibrary masks openlibrary module
-olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
-
-
 def MemcachedDict(servers=None):
+    """Cache implementation with OL customized memcache client.
+    Compatible with memcache.Client API, handles unicode keys via web.safestr().
+    """
     servers = servers or []
-    """Cache implementation with OL customized memcache client."""
-    client = olmemcache.Client(servers)
+    client = MemcacheClient(servers)
     return cache.MemcachedDict(memcache_client=client)
 
 
@@ -596,7 +594,7 @@ class OLIndexer(_Indexer):  # type: ignore[misc,valid-type]
         return norm.replace(' ', '')[:25]
 
     def expand_isbns(self, isbns):
-        """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse."""
+        """Expands isbns by adding ISBN-10 for ISBN-13 and vice-verse."""
         s = set(isbns)
         for isbn in isbns:
             if len(isbn) == 10:
