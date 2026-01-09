@@ -19,15 +19,13 @@
    ========================================
    Base color values organized by hue family.
 
-   IMPORTANT: These scales are currently derived from legacy colors,
-   not a mathematically harmonized palette. The hue/saturation values
-   vary within each scale. A future improvement would be to create
-   proper harmonized scales and map legacy colors to the nearest value.
+   Each scale uses consistent hue and saturation, varying only lightness.
+   This creates visual harmony and predictable color relationships.
 
-   Naming convention: @color-{hue}-{lightness}
-   - 50 = lightest (near white)
-   - 500 = mid-tone
-   - 900/950 = darkest (near black)
+   Naming: @color-{hue}-{lightness}
+   - 50 = lightest (near white, ~97% lightness)
+   - 500 = mid-tone (~45% lightness)
+   - 900/950 = darkest (near black, ~10-15% lightness)
    ======================================== */
 
 // === CORE ===
@@ -35,111 +33,131 @@
 @color-black: hsl(0, 0%, 0%);
 
 // === BRAND ===
-// Open Library's primary brand color - a vibrant blue
+// Open Library's primary brand color - a vibrant blue (hue 202°)
 // Used for primary actions, links, and key interactive elements
 @color-brand-primary: hsl(202, 96%, 37%);       // main brand blue
 @color-brand-primary-dark: hsl(202, 96%, 28%);  // hover/pressed states
-@color-brand-primary-light: hsl(202, 57%, 61%); // lighter variant
+@color-brand-primary-light: hsl(202, 70%, 55%); // lighter variant
 
-// === NEUTRALS (pure grey scale) ===
-// True greys (0° hue, 0% saturation) for text, borders, and chrome
-// These provide a neutral foundation that works with any accent color
-@color-grey-50: hsl(0, 0%, 98%);   // near-white backgrounds
-@color-grey-100: hsl(0, 0%, 96%);  // subtle backgrounds
-@color-grey-200: hsl(0, 0%, 91%);  // borders on white
-@color-grey-300: hsl(0, 0%, 87%);  // subtle borders
-@color-grey-400: hsl(0, 0%, 80%);  // disabled states
-@color-grey-500: hsl(0, 0%, 67%);  // placeholder text
-@color-grey-600: hsl(0, 0%, 60%);  // secondary text
-@color-grey-700: hsl(0, 0%, 46%);  // WCAG AA minimum on white
-@color-grey-800: hsl(0, 0%, 40%);  // body text
-@color-grey-900: hsl(0, 0%, 33%);  // strong text
-@color-grey-950: hsl(0, 0%, 20%);  // headings, emphasis
+// === NEUTRALS (warm grey scale) ===
+// Warm greys (hue 40°, 4% saturation) for text, borders, and chrome.
+// Subtle warmth creates cohesion with the paper-inspired palette.
+@color-grey-50: hsl(40, 4%, 98%);
+@color-grey-100: hsl(40, 4%, 96%);
+@color-grey-200: hsl(40, 4%, 90%);
+@color-grey-300: hsl(40, 4%, 83%);
+@color-grey-400: hsl(40, 4%, 74%);
+@color-grey-500: hsl(40, 4%, 62%);
+@color-grey-600: hsl(40, 4%, 50%);
+@color-grey-700: hsl(40, 4%, 40%);
+@color-grey-800: hsl(40, 4%, 30%);
+@color-grey-900: hsl(40, 4%, 20%);
+@color-grey-950: hsl(40, 4%, 12%);
 
 // === WARM NEUTRALS (paper-inspired beige scale) ===
-// Open Library's signature warm palette, inspired by book pages and paper
-// Used for page backgrounds, cards, and warm UI surfaces
-// NOTE: Saturation varies (9-100%) - not a uniform scale
-@color-warm-50: hsl(45, 100%, 98%);  // off-white
-@color-warm-100: hsl(48, 29%, 93%);  // page background (light-beige/cream)
-@color-warm-200: hsl(47, 54%, 90%);  // card backgrounds
-@color-warm-300: hsl(48, 33%, 83%);  // beige
-@color-warm-400: hsl(48, 15%, 74%);  // muted beige
-@color-warm-500: hsl(64, 9%, 71%);   // dark beige (low saturation)
-@color-warm-600: hsl(48, 35%, 64%);  // book shadow color
-@color-warm-700: hsl(40, 32%, 29%);  // brown (text on warm backgrounds)
+// Open Library's signature warm palette, inspired by book pages and paper.
+// Hue 45° (golden), saturation 30%. Used for backgrounds and warm surfaces.
+@color-warm-50: hsl(45, 30%, 97%);
+@color-warm-100: hsl(45, 30%, 93%);
+@color-warm-200: hsl(45, 30%, 88%);
+@color-warm-300: hsl(45, 30%, 80%);
+@color-warm-400: hsl(45, 25%, 72%);
+@color-warm-500: hsl(45, 20%, 62%);
+@color-warm-600: hsl(45, 20%, 50%);
+@color-warm-700: hsl(45, 25%, 35%);
+@color-warm-800: hsl(45, 30%, 25%);
+@color-warm-900: hsl(45, 35%, 18%);
 
-// === BLUES ===
-// NOTE: Hues vary significantly (184°-240°) due to legacy color mapping.
-// This includes teals, sky blues, and blue-purples.
-// FUTURE: Consider splitting into separate teal/blue/indigo scales
-@color-blue-50: hsl(240, 100%, 93%);   // baby blue (actually lavender)
-@color-blue-100: hsl(240, 100%, 88%);  // mid baby blue
-@color-blue-200: hsl(211, 37%, 89%);   // grey-blue tint
-@color-blue-300: hsl(220, 35%, 77%);   // muted blue
-@color-blue-400: hsl(204, 70%, 53%);   // mid blue
-@color-blue-500: hsl(212, 39%, 55%);   // desaturated blue
-@color-blue-600: hsl(225, 100%, 60%);  // vivid blue
-@color-blue-700: hsl(211, 28%, 41%);   // count/muted blue-grey
-@color-blue-800: hsl(207, 83%, 33%);   // nav hover blue
-@color-blue-900: hsl(210, 100%, 20%);  // dark blue
-@color-blue-950: hsl(184, 100%, 21%);  // teal (distinct hue)
+// === BLUES (hue 205°, saturation 85%) ===
+// Brand-adjacent blue scale for UI elements, links, and information.
+@color-blue-50: hsl(205, 85%, 97%);
+@color-blue-100: hsl(205, 85%, 92%);
+@color-blue-200: hsl(205, 80%, 82%);
+@color-blue-300: hsl(205, 75%, 70%);
+@color-blue-400: hsl(205, 80%, 55%);
+@color-blue-500: hsl(205, 85%, 45%);
+@color-blue-600: hsl(205, 90%, 38%);
+@color-blue-700: hsl(205, 90%, 30%);
+@color-blue-800: hsl(205, 85%, 23%);
+@color-blue-900: hsl(205, 80%, 18%);
+@color-blue-950: hsl(205, 75%, 12%);
 
-// === REDS ===
-// For errors, destructive actions, and alerts
-// NOTE: Hues vary slightly (0°-8°) - some are more orange-red
-@color-red-50: hsl(0, 100%, 93%);    // baby pink
-@color-red-100: hsl(0, 100%, 88%);   // mid baby pink
-@color-red-200: hsl(358, 100%, 74%); // heart/love color
-@color-red-400: hsl(4, 90%, 58%);    // bright red
-@color-red-500: hsl(0, 100%, 50%);   // pure red
-@color-red-600: hsl(8, 78%, 49%);    // primary red (slightly warm)
-@color-red-700: hsl(8, 70%, 44%);    // dark red
+// === REDS (hue 0°, saturation 85%) ===
+// For errors, destructive actions, alerts, and love/heart icons.
+@color-red-50: hsl(0, 85%, 97%);
+@color-red-100: hsl(0, 85%, 92%);
+@color-red-200: hsl(0, 80%, 82%);
+@color-red-300: hsl(0, 75%, 70%);
+@color-red-400: hsl(0, 80%, 58%);
+@color-red-500: hsl(0, 85%, 50%);
+@color-red-600: hsl(0, 80%, 42%);
+@color-red-700: hsl(0, 75%, 35%);
+@color-red-800: hsl(0, 70%, 28%);
+@color-red-900: hsl(0, 65%, 20%);
 
-// === GREENS ===
-// For success states, confirmations, and nature themes
-// NOTE: Hues vary widely (75°-130°) - includes lime, olive, and true green
-// FUTURE: Consider splitting lime/olive into separate scale
-@color-green-50: hsl(120, 100%, 93%);   // baby green
-@color-green-100: hsl(120, 100%, 88%);  // mid baby green
-@color-green-200: hsl(75, 100%, 85%);   // lime green (yellow-green)
-@color-green-300: hsl(97, 51%, 77%);    // soft green
-@color-green-400: hsl(78, 34%, 63%);    // light olive
-@color-green-500: hsl(126, 100%, 36%);  // check/success green
-@color-green-600: hsl(130, 61%, 33%);   // primary green
-@color-green-700: hsl(126, 100%, 30%);  // open/active green
-@color-green-800: hsl(113, 38%, 29%);   // dark green
-@color-green-900: hsl(81, 39%, 35%);    // olive
-@color-green-neon: hsl(108, 100%, 50%); // system status (nagios) - use sparingly
+// === GREENS (hue 145°, saturation 65%) ===
+// For success states, confirmations, availability, and positive actions.
+@color-green-50: hsl(145, 65%, 96%);
+@color-green-100: hsl(145, 65%, 90%);
+@color-green-200: hsl(145, 60%, 80%);
+@color-green-300: hsl(145, 55%, 65%);
+@color-green-400: hsl(145, 60%, 48%);
+@color-green-500: hsl(145, 70%, 38%);
+@color-green-600: hsl(145, 75%, 30%);
+@color-green-700: hsl(145, 70%, 24%);
+@color-green-800: hsl(145, 65%, 18%);
+@color-green-900: hsl(145, 60%, 14%);
 
-// === ORANGES ===
-// For warnings, highlights, and warm accents
-@color-orange-100: hsl(32, 100%, 78%);  // light orange
-@color-orange-200: hsl(23, 51%, 77%);   // muted/dusty orange
-@color-orange-400: hsl(32, 100%, 61%);  // primary orange
-@color-orange-600: hsl(23, 100%, 50%);  // vivid orange
-@color-orange-700: hsl(19, 95%, 40%);   // burnt sienna
+// === ORANGES (hue 25°, saturation 95%) ===
+// For warnings, highlights, and warm accents.
+@color-orange-50: hsl(25, 95%, 96%);
+@color-orange-100: hsl(25, 95%, 88%);
+@color-orange-200: hsl(25, 90%, 78%);
+@color-orange-300: hsl(25, 90%, 65%);
+@color-orange-400: hsl(25, 95%, 55%);
+@color-orange-500: hsl(25, 95%, 48%);
+@color-orange-600: hsl(25, 90%, 40%);
+@color-orange-700: hsl(25, 85%, 32%);
+@color-orange-800: hsl(25, 80%, 25%);
+@color-orange-900: hsl(25, 75%, 18%);
 
-// === YELLOWS ===
-// For warnings, highlights, and gold accents
-@color-yellow-100: hsl(58, 92%, 95%);   // very light yellow
-@color-yellow-200: hsl(58, 100%, 90%);  // light yellow
-@color-yellow-300: hsl(58, 66%, 81%);   // admin highlight
-@color-yellow-400: hsl(57, 60%, 72%);   // dark yellow / warning
-@color-yellow-500: hsl(50, 100%, 50%);  // gold
+// === YELLOWS (hue 50°, saturation 95%) ===
+// For warnings, highlights, and gold accents.
+@color-yellow-50: hsl(50, 95%, 96%);
+@color-yellow-100: hsl(50, 95%, 90%);
+@color-yellow-200: hsl(50, 90%, 82%);
+@color-yellow-300: hsl(50, 85%, 70%);
+@color-yellow-400: hsl(50, 90%, 58%);
+@color-yellow-500: hsl(50, 95%, 50%);
+@color-yellow-600: hsl(50, 90%, 42%);
+@color-yellow-700: hsl(50, 85%, 32%);
+@color-yellow-800: hsl(50, 80%, 24%);
+@color-yellow-900: hsl(50, 75%, 18%);
 
-// === PURPLES ===
-// For merged states, special highlights
-@color-purple-300: hsl(266, 100%, 75%); // merged state
-@color-purple-500: hsl(283, 97%, 61%);  // vivid purple
-@color-purple-900: hsl(240, 100%, 50%); // pure blue (legacy "@blue")
+// === PURPLES (hue 270°, saturation 70%) ===
+// For merged states, special highlights, and accent elements.
+@color-purple-50: hsl(270, 70%, 97%);
+@color-purple-100: hsl(270, 70%, 92%);
+@color-purple-200: hsl(270, 65%, 82%);
+@color-purple-300: hsl(270, 65%, 72%);
+@color-purple-400: hsl(270, 70%, 60%);
+@color-purple-500: hsl(270, 75%, 50%);
+@color-purple-600: hsl(270, 70%, 42%);
+@color-purple-700: hsl(270, 65%, 34%);
+@color-purple-800: hsl(270, 60%, 26%);
+@color-purple-900: hsl(270, 55%, 18%);
+
+// === SPECIAL COLORS ===
+// Colors that don't fit the standard scales - use sparingly.
+@color-teal-600: hsl(184, 100%, 21%);          // distinct accent
+@color-green-neon: hsl(108, 100%, 50%);        // system status (nagios)
+@color-magenta-500: hsl(300, 100%, 50%);       // vivid accent
 
 // === TRANSPARENCY VARIANTS ===
-// Pre-defined alpha values for common use cases
-@color-black-15: hsla(0, 0%, 0%, 0.15);   // box shadows
-@color-black-10: hsla(0, 0%, 0%, 0.1);    // subtle overlays
-@color-grey-400-alpha: hsla(0, 0%, 78%, 0.23); // background tints
-@color-warm-alpha: hsla(37, 24%, 79%, 0.76);   // warm overlay (account icon)
+// Pre-defined alpha values for common use cases.
+@color-black-15: hsla(0, 0%, 0%, 0.15);        // box shadows
+@color-black-10: hsla(0, 0%, 0%, 0.1);         // subtle overlays
+@color-warm-100-alpha: hsla(45, 30%, 93%, 0.8); // warm overlay
 
 /* ========================================
    TIER 2: SEMANTIC TOKENS
@@ -152,7 +170,6 @@
    ======================================== */
 
 // === PAGE BACKGROUNDS ===
-// Main app surfaces
 @color-bg: @color-warm-100;                   // default page background
 @color-bg-hovered: @color-warm-200;           // hovered page areas
 @color-bg-elevated: @color-white;             // cards, modals, elevated surfaces
@@ -160,39 +177,36 @@
 @color-bg-recessed: @color-warm-300;          // inset areas, wells
 
 // === TEXT COLORS ===
-// Readable text hierarchy
-@color-text: @color-grey-800;           // body text
-@color-text-strong: @color-grey-950;    // headings, emphasis
-@color-text-secondary: @color-grey-600; // captions, metadata
+@color-text: @color-grey-700;           // body text
+@color-text-strong: @color-grey-900;    // headings, emphasis
+@color-text-secondary: @color-grey-500; // captions, metadata
 @color-text-on-primary: @color-white;   // text on brand-colored backgrounds
 @color-text-on-dark: @color-white;      // text on dark backgrounds
 
 // === INTERACTIVE / LINKS ===
 @color-link: @color-brand-primary;
 @color-link-hovered: @color-brand-primary-dark;
-@color-link-visited: @color-blue-900;
+@color-link-visited: @color-blue-800;
 
 // === PRIMARY ACTIONS ===
-// Buttons, CTAs - the most important actions
 @color-bg-primary: @color-brand-primary;
 @color-bg-primary-hovered: @color-brand-primary-dark;
 
 // === STATUS COLORS ===
-// Feedback and state indication
-@color-error: @color-red-600;
-@color-error-light: @color-red-100;     // error backgrounds
-@color-success: @color-green-600;
-@color-success-light: @color-green-100; // success backgrounds
-@color-warning: @color-yellow-400;
-@color-warning-light: @color-yellow-100; // warning backgrounds
+@color-error: @color-red-500;
+@color-error-light: @color-red-100;
+@color-success: @color-green-500;
+@color-success-light: @color-green-100;
+@color-warning: @color-yellow-500;
+@color-warning-light: @color-yellow-100;
 
 // === BORDERS ===
-@color-border: @color-grey-800;         // default borders
-@color-border-hovered: @color-grey-800; // hovered borders
+@color-border: @color-grey-400;              // default borders
+@color-border-hovered: @color-grey-500;      // hovered borders
 @color-border-focused: @color-brand-primary; // focus indicator
-@color-border-error: @color-red-600;    // error states
-@color-border-subtle: @color-grey-300;  // subtle dividers
-@color-border-warm: @color-warm-500;    // borders on warm backgrounds
+@color-border-error: @color-red-500;         // error states
+@color-border-subtle: @color-grey-200;       // subtle dividers
+@color-border-warm: @color-warm-400;         // borders on warm backgrounds
 
 // === FOCUS STATES ===
 @color-focus-ring: @color-brand-primary;
@@ -205,118 +219,115 @@
    STATUS: Deprecated - do not use in new code.
    MIGRATION: Replace with semantic tokens or primitives.
    REMOVAL: Once all 83+ files are migrated, these can be removed.
-
-   Format: @old-name: @new-token; // migration note
    ======================================== */
 
-// --- BLUES (17 legacy names) ---
+// --- BLUES ---
 @primary-blue: @color-brand-primary;
 @link-blue: @color-brand-primary-dark;
 @mid-blue: @color-blue-400;
 @dark-blue: @color-blue-900;
-@darker-brand-blue: @color-brand-primary;      // was nearly identical to @primary-blue
-@header-nav-hover-color: @color-blue-800;
-@blue-b0bed9: @color-blue-300;                 // hex-named, use @color-blue-300
-@count-blue-grey: @color-blue-700;
-@grey-blue: @color-blue-200;
-@teal: @color-blue-950;
+@darker-brand-blue: @color-brand-primary;
+@header-nav-hover-color: @color-blue-700;
+@blue-b0bed9: @color-blue-300;
+@count-blue-grey: @color-blue-600;
+@grey-blue: @color-blue-100;
+@teal: @color-teal-600;
 @button-hover-blue: @color-brand-primary-light;
-@dark-baby-blue: hsl(240, 100%, 75%);          // TODO: add to primitives if needed
+@dark-baby-blue: @color-purple-300;
 @mid-baby-blue: @color-blue-100;
 @baby-blue: @color-blue-50;
-@blue-9fafd1: @color-blue-300;                 // consolidated with @blue-b0bed9
-@blue-3366ff: @color-blue-600;                 // hex-named, use @color-blue-600
-@blue-5e88B9: @color-blue-500;                 // hex-named, use @color-blue-500
-@blue: @color-purple-900;                      // misleading name - actually purple
+@blue-9fafd1: @color-blue-300;
+@blue-3366ff: @color-blue-500;
+@blue-5e88B9: @color-blue-400;
+@blue: @color-purple-600;
 
-// --- GREENS (12 legacy names) ---
-@green: @color-green-600;
+// --- GREENS ---
+@green: @color-green-500;
 @mid-baby-green: @color-green-100;
 @baby-green: @color-green-50;
-@dark-green: @color-green-800;
-@soft-green: @color-green-300;
-@soft-green-two: @color-green-300;             // consolidated with @soft-green
-@olive: @color-green-900;
-@light-olive-2: @color-green-400;
-@lime-green: @color-green-200;
+@dark-green: @color-green-700;
+@soft-green: @color-green-200;
+@soft-green-two: @color-green-200;
+@olive: @color-green-800;
+@light-olive-2: @color-green-300;
+@lime-green: @color-green-100;
 @check-green: @color-green-500;
-@open-green: @color-green-700;
+@open-green: @color-green-600;
 @nagios-green: @color-green-neon;
 
-// --- ORANGES (5 legacy names) ---
+// --- ORANGES ---
 @orange: @color-orange-400;
-@orange-three: @color-orange-100;              // numbered name, use @color-orange-100
-@orange-four: @color-orange-200;               // numbered name, use @color-orange-200
-@orange-five: @color-orange-600;               // numbered name, use @color-orange-600
-@burnt-sienna: @color-orange-700;
+@orange-three: @color-orange-200;
+@orange-four: @color-orange-200;
+@orange-five: @color-orange-500;
+@burnt-sienna: @color-orange-600;
 
-// --- REDS (6 legacy names) ---
-@red: @color-red-600;
-@dark-red: @color-red-700;
-@red-two: @color-red-400;                      // numbered name, use @color-red-400
-@red-three: @color-red-500;                    // numbered name, use @color-red-500
-@closed-red: @color-red-500;                   // consolidated with @red-three
+// --- REDS ---
+@red: @color-red-500;
+@dark-red: @color-red-600;
+@red-two: @color-red-400;
+@red-three: @color-red-500;
+@closed-red: @color-red-500;
 
-// --- PINKS (3 legacy names) ---
+// --- PINKS ---
 @mid-baby-pink: @color-red-100;
 @baby-pink: @color-red-50;
-@magenta: hsl(300, 100%, 50%);                 // TODO: add @color-magenta if needed
+@magenta: @color-magenta-500;
 
-// --- WARM NEUTRALS / BEIGE (16 legacy names) ---
-@dark-yellow: @color-yellow-400;
-@beige-bright: hsl(43, 50%, 94%);              // TODO: map to @color-warm-* or remove
-@beige-deep: hsl(40, 44%, 85%);                // TODO: map to @color-warm-* or remove
-@beige-two: hsl(63, 26%, 84%);                 // TODO: map to @color-warm-* or remove
+// --- WARM NEUTRALS / BEIGE ---
+@dark-yellow: @color-yellow-300;
+@beige-bright: @color-warm-50;
+@beige-deep: @color-warm-200;
+@beige-two: @color-warm-300;
 @beige-three: @color-warm-400;
 @beige: @color-warm-300;
-@brown: @color-warm-700;
-@account-icon-border: hsl(45, 7%, 79%);        // single-use, consider moving to component
-@light-yellow: @color-yellow-200;
-@lighter-yellow: @color-yellow-100;
+@brown: @color-warm-800;
+@account-icon-border: @color-warm-400;
+@light-yellow: @color-yellow-100;
+@lighter-yellow: @color-yellow-50;
 @dark-beige: @color-warm-500;
 @light-beige: @color-warm-100;
-@cream: @color-warm-100;                       // consolidated with @light-beige
+@cream: @color-warm-100;
 @off-white: @color-warm-50;
 @gold: @color-yellow-500;
 
-// --- GREYSCALE (23 legacy names) ---
+// --- GREYSCALE ---
 @black: @color-black;
 @boxshadow-black: @color-black-15;
 @icon-link-grey: @color-black-10;
-@dark-grey: @color-grey-950;
-@grey-464646: @color-grey-900;                 // hex-named, consolidated
-@darker-grey: @color-grey-900;
-@grey-555: @color-grey-900;                    // hex-named, consolidated
-@dark-grey-two: @color-grey-900;               // consolidated
-@grey: @color-grey-800;
-@accessible-grey: @color-grey-700;
-@mid-grey: @color-grey-600;
-@light-mid-grey: @color-grey-500;
-@background-grey: @color-grey-400-alpha;
+@dark-grey: @color-grey-900;
+@grey-464646: @color-grey-800;
+@darker-grey: @color-grey-800;
+@grey-555: @color-grey-800;
+@dark-grey-two: @color-grey-700;
+@grey: @color-grey-600;
+@accessible-grey: @color-grey-600;
+@mid-grey: @color-grey-500;
+@light-mid-grey: @color-grey-400;
+@background-grey: hsla(0, 0%, 78%, 0.23);
 @light-grey: @color-grey-400;
 @lighter-grey: @color-grey-300;
-@grey-e7e7e7: @color-grey-200;                 // hex-named, use @color-grey-200
-@lightest-grey: @color-grey-200;               // consolidated with @grey-e7e7e7
-@grey-f3f3f3: @color-grey-100;                 // hex-named, use @color-grey-100
-@grey-f4f4f4: @color-grey-100;                 // hex-named, consolidated
-@grey-fafafa: @color-grey-50;                  // hex-named, use @color-grey-50
+@grey-e7e7e7: @color-grey-200;
+@lightest-grey: @color-grey-200;
+@grey-f3f3f3: @color-grey-100;
+@grey-f4f4f4: @color-grey-100;
+@grey-fafafa: @color-grey-50;
 @white: @color-white;
-@gray-a19b9e: hsl(330, 3%, 62%);               // pink-tinted grey, rare use
-@gray-d1cfd0: hsl(330, 2%, 82%);               // pink-tinted grey, rare use
+@gray-a19b9e: @color-grey-500;
+@gray-d1cfd0: @color-grey-300;
 
-// --- COMPONENT-SPECIFIC (13 legacy names) ---
-// These are tightly coupled to specific components.
-// Consider moving to component files during migration.
-@admin-row-background: @color-yellow-300;
+// --- COMPONENT-SPECIFIC ---
+// Consider moving these to component files during migration.
+@admin-row-background: @color-yellow-200;
 @admin-table-border: @color-warm-400;
-@heart-color: @color-red-200;
+@heart-color: @color-red-300;
 @purple: @color-purple-500;
-@header-bar-gradient-start: hsl(41.2, 47.1%, 93.3%); // gradient pair
-@header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);   // gradient pair
-@account-icon-background: @color-warm-alpha;
+@header-bar-gradient-start: @color-warm-100;
+@header-bar-gradient-end: @color-warm-200;
+@account-icon-background: @color-warm-100-alpha;
 @book-cover-carousel-background: @color-warm-200;
-@book-cover-carousel-border-top: hsl(51, 32%, 88%);    // TODO: use @color-warm-*
-@book-cover-carousel-border-bottom: hsl(50, 32%, 85%); // TODO: use @color-warm-*
-@book-cover-carousel-cards: hsl(47, 54%, 98%);         // TODO: use @color-warm-50
-@book-cover-shadow-color: @color-warm-600;
+@book-cover-carousel-border-top: @color-warm-200;
+@book-cover-carousel-border-bottom: @color-warm-300;
+@book-cover-carousel-cards: @color-warm-50;
+@book-cover-shadow-color: @color-warm-500;
 @merged-purple: @color-purple-300;
