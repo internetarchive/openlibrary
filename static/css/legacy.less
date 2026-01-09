@@ -1347,7 +1347,6 @@ ul.list-books {
     .sri__main {
       display: flex;
       flex-direction: column;
-      height: 100%;
     }
 
     .bookcover {
@@ -1377,6 +1376,22 @@ ul.list-books {
       display: none;
     }
   }
+}
+
+.list-books__note {
+  overflow: hidden;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: @border-divider;
+  line-height: @line-height-blurb;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+}
+
+.list-books__note p {
+  margin-top: 0;
 }
 
 div.pop {
