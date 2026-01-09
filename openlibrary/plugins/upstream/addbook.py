@@ -732,9 +732,11 @@ class SaveBookHelper:
         if new_roles or new_ids or new_classifications:
             edition_config = web.ctx.site.get('/config/edition')
 
+            # TODO: take care of duplicate names
+            
             if new_roles:
                 edition_config.roles += [d.get('value') or '' for d in new_roles]
-
+            
             if new_ids:
                 edition_config.identifiers += [
                     {
@@ -798,6 +800,16 @@ class SaveBookHelper:
         """
 
         def read_subject(subjects):
+            """
+            >>> list(read_subject("A,B,C,B")) == [u'A', u'B', u'C']   # str
+            True
+            >>> list(read_subject(r"A,B,C,B")) == [u'A', u'B', u'C']  # raw
+            True
+            >>> list(read_subject(u"A,B,C,B")) == [u'A', u'B', u'C']  # Unicode
+            True
+            >>> list(read_subject(""))
+            []
+            """
             if not subjects:
                 return
             f = io.StringIO(subjects.replace('\r\n', ''))
