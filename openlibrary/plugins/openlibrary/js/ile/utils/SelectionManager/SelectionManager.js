@@ -45,7 +45,6 @@ export default class SelectionManager {
         const providerSelectors = providers.map(p => p.selector);
         $(providerSelectors.join(', '))
             .addClass('ile-selectable')
-            // @ts-ignore
             .on('click', this.processClick);
 
         for (const provider of providers) {
@@ -189,20 +188,16 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.bulkTagger.hideTaggingMenu();
+        this.ile.bulkTagger.hideTaggingMenu()
 
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
-            if (count) {
-                statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
-            }
+            if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
         });
 
         if (statusParts.length) {
             this.ile.setStatusText(`${statusParts.join(', ')} selected`);
-            this.ile.$selectionActions.append(
-                $('<a>Clear Selections</a>').on('click', this.clearSelectedItems)
-            );
+            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
         } else {
             this.ile.setStatusText('');
         }

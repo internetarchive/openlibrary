@@ -1,5 +1,3 @@
-// src/merge-request-table/AuthorMergeRequestEditPage.js
-
 import { declineRequest } from './MergeRequestService';
 
 export function initAuthorMergeRequestEditPage() {
@@ -22,7 +20,6 @@ export function initAuthorMergeRequestEditPage() {
     if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('[AUTHOR MR] Delete button clicked - showing review panel');
             panel.classList.remove('hidden');
             panel.scrollIntoView({ behavior: 'smooth' });
         });
@@ -32,7 +29,6 @@ export function initAuthorMergeRequestEditPage() {
     if (approveBtn) {
         approveBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('[AUTHOR MR] === Approve Button Clicked ===');
 
             const comment = commentInput ? commentInput.value.trim() : '';
 
@@ -66,19 +62,6 @@ export function initAuthorMergeRequestEditPage() {
                 deleteForm.appendChild(deleteSignal);
             }
 
-            // --- LOGGING THE DATA ---
-            console.log('[AUTHOR MR] Preparing to submit form...');
-            console.log(`[AUTHOR MR] Target Action/URL: ${deleteForm.action || window.location.href}`);
-
-            // Create a FormData object just to inspect what is inside the form
-            const formData = new FormData(deleteForm);
-            console.log('[AUTHOR MR] Form Data Payload:');
-            for (const [key, value] of formData.entries()) {
-                console.log(`   KEY: ${key}  |  VALUE: ${value}`);
-            }
-            console.log('[AUTHOR MR] Submitting now...');
-            // ------------------------
-
             deleteForm.submit();
         });
     }
@@ -87,19 +70,14 @@ export function initAuthorMergeRequestEditPage() {
     if (declineBtn) {
         declineBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            console.log('[AUTHOR MR] === Decline Button Clicked ===');
 
             const comment = commentInput ? commentInput.value.trim() : null;
-            console.log(`[AUTHOR MR] Declining MRID: ${mrid} with comment: "${comment}"`);
-
             declineBtn.disabled = true;
 
             try {
                 await declineRequest(mrid, comment);
-                console.log('[AUTHOR MR] Decline successful, redirecting...');
                 window.location.href = '/merges';
             } catch (error) {
-                console.error('[AUTHOR MR] Failed to decline:', error);
                 alert('Failed to decline merge request.');
                 declineBtn.disabled = false;
             }

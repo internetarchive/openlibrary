@@ -1,7 +1,6 @@
 $def with (page)
 $ author_config = get_identifier_config('author')
 $ mrid = query_param("mrid", None)
-
 $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
@@ -10,7 +9,6 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete" aria-label="Delete author record form">
@@ -20,7 +18,6 @@ $:macros.HiddenSaveButton("addAuthor")
                 <button type="submit" id="delete-btn" aria-label="Delete this author record">$_("Delete Record")</button>
             </form>
         </span>
-
     <h1>$_("Edit Author")</h1>
     $if not ctx.user:
         $:render_template("lib/not_logged")
@@ -116,7 +113,8 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="identifiers-display">
                             $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian() if ctx.user else False
                             $ remote_ids_dict = dict(page.remote_ids) if page.remote_ids else {}
-                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=remote_ids_dict,output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=remote_ids_dict,output_selector='#hiddenAuthorIdentifiers',
+admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
                         </div>
                         <br>
                         <fieldset class="major">

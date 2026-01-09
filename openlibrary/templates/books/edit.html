@@ -36,9 +36,7 @@ $:macros.HiddenSaveButton("addWork")
         else:
             title = _("Editing...")
             note = ""
-
     $:macros.databarEdit(edition if edition is not None else work)
-
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">

@@ -38,31 +38,20 @@ $if mrid:
         $else:
             $ author = get_recent_author(page)
         $if author:
-            <div class="brown smaller sansserif">
-                $:_('Last edited by %(author_link)s', author_link=author.render_link())
-            </div>
+            <div class="brown smaller sansserif">$:_('Last edited by %(author_link)s', author_link=author.render_link())</div>
         $else:
-            <div class="brown smaller sansserif">
-                $_("Last edited anonymously")
-            </div>
+            <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         $if page.url:
-            <div class="smallest gray sansserif">
-                $(page.last_modified and datestr(page.last_modified)) |
-                <a href="$page.url(m='history')" rel="nofollow" title="$_('View this template\'s edit history')">
-                    $_('History')
-                </a>
-            </div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$page.url(m='history')" rel="nofollow" title="$_('View this 
+template\'s edit history')">$_('History')</a></div>
         $else:
-            <div class="smallest gray sansserif">
-                $(page.last_modified and datestr(page.last_modified)) |
-                <a href="$changequery(m='history')" rel="nofollow" title="$_('View this template\'s edit history')">
-                    $_('History')
-                </a>
-            </div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) |<a href="$changequery(m='history')" rel="nofollow" title="$_('View this 
+template\'s edit history')">$_('History')</a></div>
     </div>
 
     $if edit and not page.is_fake_record():
         <div class="editButton">
+        <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
           <a
             class="cta-btn cta-btn--vanilla"
             href="$edit_url"
@@ -70,6 +59,6 @@ $if mrid:
             data-ol-link-track="CTAClick|Edit"
             accesskey="e"
             rel="nofollow"
-          >$_("Edit")</a>
+        >$_("Edit")</a>
         </div>
 </div>

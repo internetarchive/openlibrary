@@ -571,6 +571,7 @@ class SaveBookHelper:
         Update work and edition documents according to the specified formdata.
         """
         comment = formdata.pop('_comment', '')
+        
         user = accounts.get_current_user()
         delete = (
             user
