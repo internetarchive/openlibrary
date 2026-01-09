@@ -496,7 +496,7 @@ class Work(Thing):
 
     __str__ = __repr__
 
-    @property  # type: ignore[misc]
+    @functools.cached_property
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
