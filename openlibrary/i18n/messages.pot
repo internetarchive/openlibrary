@@ -1538,7 +1538,7 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/work_search_selected_facets.html
 msgid "Author"
@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "Status Summary"
 msgstr ""
 
-#: batch_import_view.html books/edit.html
+#: batch_import_view.html
 msgid "Approve"
 msgstr ""
 
@@ -4457,7 +4457,7 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit/edition.html lib/nav_head.html
 #: search/advancedsearch.html type/about/edit.html type/page/edit.html
 #: type/template/edit.html
 msgid "Title"
@@ -4729,67 +4729,6 @@ msgstr ""
 msgid ""
 " Please read our <a href=\"/help/faq\">FAQ on accessing books through "
 "Open Library</a>."
-msgstr ""
-
-#: books/edit.html
-msgid "Add a little more?"
-msgstr ""
-
-#: books/edit.html
-msgid ""
-"Thank you for adding that book! Any more information you could provide "
-"would be wonderful!"
-msgstr ""
-
-#: books/edit.html
-#, python-format
-msgid ""
-"We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
-"%(publisher)s edition</b>. Thanks! Do you know any more about this "
-"edition?"
-msgstr ""
-
-#: books/edit.html
-#, python-format
-msgid ""
-"We already know about the <b>%(year)s %(publisher)s edition</b> of "
-"<b>%(work_title)s</b>, but please, tell us more!"
-msgstr ""
-
-#: books/edit.html
-msgid "Editing..."
-msgstr ""
-
-#: books/edit.html type/template/edit.html
-msgid "Delete Record"
-msgstr ""
-
-#: books/edit.html
-msgid "Work Details"
-msgstr ""
-
-#: books/edit.html
-msgid "Unknown publisher edition"
-msgstr ""
-
-#: books/edit.html
-msgid "This Work"
-msgstr ""
-
-#: books/edit.html
-msgid "Add Excerpts"
-msgstr ""
-
-#: books/edit.html type/about/edit.html
-msgid "Links"
-msgstr ""
-
-#: books/edit.html type/edition/view.html type/work/view.html
-msgid "Work Identifiers"
-msgstr ""
-
-#: books/edit.html
-msgid "Decline"
 msgstr ""
 
 #: books/edition-sort.html
@@ -7399,6 +7338,10 @@ msgid "This appears in first column."
 msgstr ""
 
 #: type/about/edit.html
+msgid "Links"
+msgstr ""
+
+#: type/about/edit.html
 msgid "This appears in the second column, at top."
 msgstr ""
 
@@ -7644,6 +7587,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Work Identifiers"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7979,6 +7926,10 @@ msgstr ""
 
 #: type/template/edit.html
 msgid "Document Body"
+msgstr ""
+
+#: type/template/edit.html
+msgid "Delete Record"
 msgstr ""
 
 #: type/template/edit.html
