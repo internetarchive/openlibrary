@@ -1015,8 +1015,8 @@ msgstr ""
 msgid "View the editing history of this page"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarEdit.html databarTemplate.html lib/history.html
+#: openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
 
@@ -1032,27 +1032,27 @@ msgstr ""
 msgid "View this page (exit Edit mode)"
 msgstr ""
 
-#: databarHistory.html databarView.html
+#: databarHistory.html
 #, python-format
 msgid "Last edited by %(author_link)s"
 msgstr ""
 
-#: databarHistory.html databarView.html
+#: databarHistory.html
 msgid "Last edited anonymously"
 msgstr ""
 
-#: databarHistory.html databarView.html type/edition/compact_title.html
+#: databarHistory.html type/edition/compact_title.html
 msgid "Edit this page"
 msgstr ""
 
-#: account.html databarHistory.html databarTemplate.html databarView.html
+#: account.html databarHistory.html databarTemplate.html
 #: my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
 
-#: databarTemplate.html databarView.html
+#: databarTemplate.html
 msgid "View this template's edit history"
 msgstr ""
 
@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "Status Summary"
 msgstr ""
 
-#: batch_import_view.html books/edit.html type/author/edit.html
+#: batch_import_view.html books/edit.html
 msgid "Approve"
 msgstr ""
 
@@ -2235,7 +2235,7 @@ msgid "Show changed files"
 msgstr ""
 
 #: admin/inspect/store.html admin/people/index.html status.html
-#: type/author/edit.html type/language/view.html
+#: type/language/view.html
 msgid "Name"
 msgstr ""
 
@@ -3368,7 +3368,6 @@ msgid "Infobase Mean"
 msgstr ""
 
 #: admin/history.html admin/imports.html authors/infobox.html
-#: type/author/edit.html
 msgid "Date"
 msgstr ""
 
@@ -4468,7 +4467,7 @@ msgstr ""
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
-#: books/add.html type/author/edit.html type/tag/tag_form_inputs.html
+#: books/add.html type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr ""
 
@@ -4761,7 +4760,7 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
-#: books/edit.html type/author/edit.html type/template/edit.html
+#: books/edit.html type/template/edit.html
 msgid "Delete Record"
 msgstr ""
 
@@ -4781,7 +4780,7 @@ msgstr ""
 msgid "Add Excerpts"
 msgstr ""
 
-#: books/edit.html type/about/edit.html type/author/edit.html
+#: books/edit.html type/about/edit.html
 msgid "Links"
 msgstr ""
 
@@ -4789,7 +4788,7 @@ msgstr ""
 msgid "Work Identifiers"
 msgstr ""
 
-#: books/edit.html type/author/edit.html
+#: books/edit.html
 msgid "Decline"
 msgstr ""
 
@@ -7413,65 +7412,6 @@ msgstr ""
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
-
-#: type/author/edit.html
-msgid "Edit Author"
-msgstr ""
-
-#: type/author/edit.html
-msgid ""
-"Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
-"<strong>Tolstoy, Leo</strong>."
-msgstr ""
-
-#: type/author/edit.html
-msgid "A short bio?"
-msgstr ""
-
-#: type/author/edit.html
-msgid ""
-"If you \"borrow\" information from somewhere, please make sure to cite "
-"the source."
-msgstr ""
-
-#: type/author/edit.html
-msgid "Date of birth"
-msgstr ""
-
-#: type/author/edit.html
-msgid "Date of death"
-msgstr ""
-
-#: type/author/edit.html
-msgid ""
-"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
-"is recommended."
-msgstr ""
-
-#: type/author/edit.html
-msgid ""
-"This is a deprecated field. You can help improve this record by removing "
-"this date and populating the \"Date of birth\" and \"Date of death\" "
-"fields. Thanks!"
-msgstr ""
-
-#: type/author/edit.html
-msgid "Does this author go by any other names?"
-msgstr ""
-
-#: type/author/edit.html
-msgid ""
-"For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
-"Please list one name per line."
-msgstr ""
-
-#: type/author/edit.html
-msgid "Identifiers"
-msgstr ""
-
-#: type/author/edit.html
-msgid "Author Identifiers Purpose"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
