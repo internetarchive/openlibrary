@@ -44,7 +44,7 @@ $:macros.HiddenSaveButton("addAuthor")
                 <div id="about">
 
                     <fieldset class="major collapse">
-                        <legend class="sr-only">Author biographical information</legend>
+                        <legend class="sr-only"> $_("Author biographical information")</legend>
 
                         <div class="formElement">
                             <div class="label">
@@ -140,7 +140,7 @@ admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_con
 
 $if mrid and ctx.user:
     <div id="mr-review-panel" data-mrid="$:str(mrid)" class="hidden" role="region" aria-label="Merge request review panel">
-        <label for="mr-review-comment" class="sr-only">Review comment</label>
+        <label for="mr-review-comment" class="sr-only">$_("Review comment")</label>
         <textarea id="mr-review-comment" aria-label="Enter review comment for merge request"></textarea>
         <button type="button" id="mr-approve-btn" aria-label="Approve this merge request">$_("Approve")</button>
         <button type="button" id="mr-decline-btn" aria-label="Decline this merge request">$_("Decline")</button>
