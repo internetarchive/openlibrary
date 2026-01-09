@@ -12,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
@@ -1682,6 +1683,41 @@ def subject_name_to_key(subject: str, prefix='') -> str:
     if prefix:
         prefix = prefix.rstrip(':') + ':'
     return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
+
+
+@functools.lru_cache
+def read_file_contents_cached(file_path: str) -> str:
+    return open(file_path).read()
+
+
+def serve_static_file(
+    file_path: str,
+    content_type: str,
+    max_age: int = 365 * 24 * 3600,
+    cache_contents: bool = True,
+):
+    """
+    Serve a static file with appropriate caching headers.
+
+    :param file_path: Path to the file to serve
+    :param content_type: The Content-Type header value
+    :param max_age: Cache duration in seconds (default: 1 year)
+    :return: web.ok response with file contents
+    """
+    web.header("Content-Type", content_type)
+    web.header("Cache-Control", f"max-age={max_age}")
+
+    path = Path(file_path)
+    last_modified = path.stat().st_mtime
+    web.lastmodified(datetime.datetime.fromtimestamp(last_modified, tz=datetime.UTC))
+    web.expires(max_age)
+
+    if cache_contents:
+        contents = read_file_contents_cached(file_path)
+    else:
+        contents = read_file_contents_cached.__wrapped__(file_path)
+
+    return web.ok(contents)
 
 
 def setup_requests(config=config) -> None:
