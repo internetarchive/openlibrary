@@ -58,6 +58,7 @@ def get_recaptcha():
     else:
         return None
 
+
 def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
@@ -528,6 +529,7 @@ def trim_doc(doc):
     """Replace empty values in the document with Nones."""
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
 
+
 def _close_merge_request(mrid: str | int | None, user, comment: str) -> None:
     """Helper to safely close a merge request without crashing the main flow."""
     if not mrid:
@@ -551,7 +553,8 @@ def _close_merge_request(mrid: str | int | None, user, comment: str) -> None:
         # We catch Exception to prevent the delete action from failing
         # just because the queue update failed.
         logger.error(f'Failed to close merge request {mrid}: {e}')
-        
+
+
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
 
@@ -622,8 +625,10 @@ class SaveBookHelper:
         if not just_editing_work:
             # Handle orphaned editions logic
             new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
-            
-            if self.work is None and (new_work_key is None or new_work_key == '__new__'):
+
+            if self.work is None and (
+                new_work_key is None or new_work_key == '__new__'
+            ):
                 # Create empty work for orphan
                 self.work = self.new_work(self.edition)
                 edition_data.works = [{'key': self.work.key}]
@@ -655,7 +660,7 @@ class SaveBookHelper:
             edition_data.pop('physical_dimensions', None)
         )
         self.edition.set_weight(edition_data.pop('weight', None))
-        
+
         try:
             self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
         except TocParseError as e:
@@ -877,6 +882,8 @@ class SaveBookHelper:
         else:
             # i.e. editing an orphan; so we care about the work
             return True
+
+
 class book_edit(delegate.page):
     path = r"(/books/OL\d+M)/edit"
 
