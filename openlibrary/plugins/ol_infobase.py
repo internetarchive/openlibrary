@@ -10,11 +10,11 @@ import re
 import sys
 import traceback
 
+import memcache
 import requests
 import web
 
 from infogami.infobase import cache, common, config, dbstore, server
-from openlibrary.core.cache import MemcacheClient
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -386,7 +386,7 @@ class MemcacheInvalidater:
     def get_memcache_client(self):
         _cache = config.get('cache', {})
         if _cache.get('type') == 'memcache' and 'servers' in _cache:
-            return MemcacheClient(_cache['servers'])
+            return memcache.Client(_cache['servers'])
 
     def to_dict(self, d):
         if isinstance(d, dict):
@@ -448,7 +448,7 @@ def MemcachedDict(servers=None):
     Compatible with memcache.Client API, handles unicode keys via web.safestr().
     """
     servers = servers or []
-    client = MemcacheClient(servers)
+    client = memcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)
 
 
