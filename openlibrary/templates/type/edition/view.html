@@ -222,12 +222,12 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-          $if edition and page.type.key in ["/type/work"]:
-            $ edit_url = edition.url("/edit")
-          $else:
-            $ edit_url = page.url("/edit")
+        $if edition and page.type.key in ["/type/work"]:
+          $ edit_url = edition.url(suffix="/edit")
+        $else:
+          $ edit_url = page.url(suffix="/edit")
       $else:
-          $ edit_url = page.key + "?m=edit"
+        $ edit_url = page.key + "?m=edit"
 
       $:render_template("type/edition/compact_title", book_title, edit_url)
 
