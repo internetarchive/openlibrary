@@ -36,7 +36,9 @@ $:macros.HiddenSaveButton("addWork")
         else:
             title = _("Editing...")
             note = ""
+
     $:macros.databarEdit(edition if edition is not None else work)
+
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
@@ -97,15 +99,6 @@ $:macros.HiddenSaveButton("addWork")
                                     </div>
                                     <div class="label">
                                         <label for="author-$0">$_("Author")</label>
-                                         <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
-                                        <br/>
-                                        <div class="flash-messages">
-                                            <noscript>
-                                                <p class="error">
-                                                <span>$:_('Author editing requires javascript')</span>
-                                                </p>
-                                            </noscript>
-                                        </div>
                                     </div>
                                     $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
                                 </div>
@@ -127,38 +120,15 @@ $:macros.HiddenSaveButton("addWork")
                     </div>
                 </fieldset>
                 <fieldset class="major" id="identifiers">
-                <legend>$_("Work Identifiers")</legend>
-                <div class="formBack">
-                    <div id="id-errors-work" class="note" style="display:none"></div>
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="select-id">
-                                $_("Do you know any identifiers for this work?")
-                            </label>
-                            <span class="tip">
-                                $_("These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab.")
-                            </span>
+                    <legend>$_("Work Identifiers")</legend>
+                    <div class="formBack">
+                        <div id="hiddenWorkIdentifiers"></div>
+                        <div id="identifiers-display-works">
+                            $ admin = str(bool(ctx.user) and (ctx.user.is_admin() or ctx.user.is_super_librarian()))
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=work.get_identifiers().values(), output_selector='#hiddenWorkIdentifiers', id_config_string=work_config.identifiers, input_prefix='work--identifiers', multiple='true', admin=admin))
                         </div>
                     </div>
-
-                    <div id="hiddenWorkIdentifiers"></div>
-                    <div id="identifiers-display-works">
-                        $ admin = str(bool(ctx.user) and (ctx.user.is_admin() or ctx.user.is_super_librarian()))
-                        $:render_component(
-                            'IdentifiersInput',
-                            attrs=dict(
-                                assigned_ids_string=work.get_identifiers().values(),
-                                output_selector='#hiddenWorkIdentifiers',
-                                id_config_string=work_config.identifiers,
-                                input_prefix='work--identifiers',
-                                multiple='true',
-                                admin=admin
-                            )
-                        )
-                    </div>
-                </div>
-            </fieldset>
+                </fieldset>
             </div>
 
             $if edition:
