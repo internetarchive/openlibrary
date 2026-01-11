@@ -1120,6 +1120,32 @@ def rewrite_list_query(q, page, offset, limit):
     return q, page, offset, limit
 
 
+def rewrite_edition_and_isbn_keys(q: str) -> str:
+    """
+    Rewrites edition key and ISBN queries to work with work search.
+    """
+    if not q:
+        return q
+
+    books_pattern = r'key:\s*"?/books/([a-zA-Z0-9:.-]+)(?=["\s\)]|$)'
+
+    def replace_books(match):
+        edition_key = match.group(1)
+        return f'edition_key:{edition_key}'
+
+    q = re.sub(books_pattern, replace_books, q)
+
+    isbn_pattern = r'key:\s*"?/isbn/([0-9X\-]+)(?=["\s\)]|$)'
+
+    def replace_isbn(match):
+        isbn = match.group(1)
+        return f'isbn:{isbn}'
+
+    q = re.sub(isbn_pattern, replace_isbn, q)
+
+    return q
+
+
 @dataclass(frozen=True)
 class PreparedQuery:
     """A container for a query that has been prepared for Solr."""
@@ -1173,6 +1199,11 @@ def _prepare_work_search_query(
         prepared_query_dict.get('q', ''), page, offset, limit
     )
     prepared_query_dict['q'] = q_val
+
+    # Deal with /books/ and /isbn/ key queries
+    prepared_query_dict['q'] = rewrite_edition_and_isbn_keys(
+        prepared_query_dict.get('q', '')
+    )
 
     return PreparedQuery(
         query=prepared_query_dict,
