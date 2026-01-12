@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
@@ -15,6 +16,7 @@ from openlibrary.accounts.model import (
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -23,7 +25,8 @@ from openlibrary.core.lending import (
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
@@ -647,3 +650,75 @@ class PatronBooknotes:
             'notes': Booknotes.count_works_with_notes_by_user(username),
             'observations': Observations.count_distinct_observations(username),
         }
+
+
+class ActivityFeed:
+
+    @classmethod
+    def get_activity_feed(cls, username):
+        """Returns up to three of the most recent events from one of two feeds.
+        If the given user is not following others, the feed will contain recently
+        logged books.  Otherwise, the feed will contain events from the patron's
+        `PubSub.get_feed` results.
+        """
+        following = PubSub.is_following(username)
+        if following:
+            feed = cls.get_cached_pub_sub_feed(username)
+        else:
+            feed = cls.get_cached_trending_feed(username)
+
+        return feed or [], following
+
+    @classmethod
+    def get_pub_sub_feed(cls, username):
+        feed = PubSub.get_feed(username, limit=3)
+        return feed
+
+    @classmethod
+    def get_cached_pub_sub_feed(cls, username):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(cls.get_pub_sub_feed, key_prefix="mybooks.pubsub.feed", timeout=five_minutes, prethread=caching_prethread())
+        results = mc(username)
+
+        for r in results:
+            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+                # Update `created` to datetime, which is the type expected by `datestr` (called in card template)
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
+
+    @classmethod
+    def get_trending_feed(cls, username):
+        def has_public_reading_log(_username):
+            acct = OpenLibraryAccount.get_by_username(_username)
+            if acct:
+                user = acct.get_user()
+                return user and user.preferences().get('public_readlog', 'no') == 'yes'
+            return False
+
+        logged_books = Bookshelves.get_recently_logged_books(limit=10)
+        Bookshelves.add_solr_works(logged_books)
+
+        feed = []
+        for idx, item in enumerate(logged_books):
+            if item['work'] and item['username'] != username and has_public_reading_log(item['username']):
+                feed.append(item)
+            if len(feed) > 2:
+                break
+
+        return feed
+
+    @classmethod
+    def get_cached_trending_feed(cls, username):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(cls.get_trending_feed, key_prefix="mybooks.trending.feed", timeout=five_minutes, prethread=caching_prethread())
+        results = mc(username)
+
+        for r in results:
+            if isinstance(r['created'], str):  # `datetime` objects are stored in cache as strings
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
+
+
+@public
+def get_activity_feed(username):
+    return ActivityFeed.get_activity_feed(username)
