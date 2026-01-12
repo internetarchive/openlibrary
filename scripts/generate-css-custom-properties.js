@@ -6,6 +6,8 @@
  * extracts the variables, and generates a CSS file with CSS custom properties.
  *
  * Usage: node scripts/generate-css-custom-properties.js
+ *
+ * TODO: Remove this script once we have deprecated LESS.
  */
 
 const fs = require('fs');
