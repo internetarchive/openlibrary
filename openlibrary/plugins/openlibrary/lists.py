@@ -2,6 +2,7 @@
 
 import json
 import random
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
@@ -20,7 +21,12 @@ from openlibrary.core.lists.model import (
     SeedSubjectString,
     ThingReferenceDict,
 )
-from openlibrary.core.models import ThingKey
+from openlibrary.core.models import (
+    ThingKey,
+    Work,
+    WorkSeriesEdgeDB,
+    update_list_seed_metadata,
+)
 from openlibrary.coverstore.code import render_list_preview_image
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -47,7 +53,7 @@ def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
     """
     An empty seed can be represented as a simple SeedDict
     """
-    return not seed.get('notes')
+    return not seed.get('notes') and not seed.get('position')
 
 
 Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
@@ -91,6 +97,17 @@ class ListRecord:
             return subject_key_to_seed(thing_ref['key'])
         else:
             return seed
+
+    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
+        for seed in self.seeds:
+            if isinstance(seed, dict):
+                if 'thing' in seed:
+                    annotated_seed_dict = cast(AnnotatedSeedDict, seed)  # Appease mypy
+                    yield annotated_seed_dict
+                else:
+                    yield {'thing': seed}
+            else:
+                yield {'thing': {'key': seed}}
 
     @staticmethod
     def from_input():
@@ -141,7 +158,13 @@ class ListRecord:
     def to_thing_json(self):
         return {
             "key": self.key,
-            "type": {"key": "/type/list"},
+            "type": {
+                "key": (
+                    "/type/series"
+                    if (self.key and "/series/" in self.key)
+                    else "/type/list"
+                )
+            },
             "name": self.name,
             "description": self.description,
             "seeds": self.seeds,
@@ -290,10 +313,14 @@ class lists(delegate.page):
 
 
 class lists_edit(delegate.page):
-    path = r"(/people/[^/]+)?(/lists/OL\d+L)/edit"
+    path = r"(/people/[^/]+)?/(lists|series)/(OL\d+L)/edit"
 
-    def GET(self, user_key: str | None, list_key: str):  # type: ignore[override]
-        key = (user_key or '') + list_key
+    def GET(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str):  # type: ignore[override]
+        if user_key and list_type == 'series':
+            # Not allowed to have user-specific series
+            return web.badrequest("Invalid URL.")
+
+        key = (user_key or '') + f'/{list_type}/{list_id}'
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -306,14 +333,14 @@ class lists_edit(delegate.page):
             raise web.notfound()
         return render_template("type/list/edit", lst, new=False)
 
-    def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
-        key = (user_key or '') + (list_key or '')
+    def POST(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str | None):  # type: ignore[override]
+        list_key = (user_key or '') + f'/{list_type}/{list_id or ''}'
 
-        if not web.ctx.site.can_write(key):
+        if not web.ctx.site.can_write(list_key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
-                f"Permission denied to edit {key}.",
+                f"Permission denied to edit {list_key}.",
             )
 
         list_record = ListRecord.from_input()
@@ -321,22 +348,57 @@ class lists_edit(delegate.page):
             raise web.badrequest('A list name is required.')
 
         # Creating a new list
-        if not list_key:
+        if not list_id:
             list_num = web.ctx.site.seq.next_value("list")
-            list_key = f"/lists/OL{list_num}L"
-            list_record.key = (user_key or '') + list_key
+            list_key += f"OL{list_num}L"
+            list_record.key = list_key
 
-        web.ctx.site.save(
-            list_record.to_thing_json(),
+        thing_json = list_record.to_thing_json()
+        records_to_save = [thing_json]
+        if list_type == 'series':
+            # Don't save seeds on this record
+            thing_json['seeds'] = []
+            # Edit the works to add series edges
+            work_key_to_list_seed = {
+                seed['thing']['key']: seed for seed in list_record.get_annotated_seeds()
+            }
+            works = cast(list[Work], web.ctx.site.get_many(list(work_key_to_list_seed)))
+            for work in works:
+                list_seed = work_key_to_list_seed[work.key]
+                work_series_edge = work.find_series_edge(list_key)
+                already_has_series = bool(work_series_edge)
+
+                if not work_series_edge:
+                    # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
+                    # these behave sort of the same, since a full `Thing` object is replaced with
+                    # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
+                    work_series_edge = cast(
+                        WorkSeriesEdgeDB, {'series': {'key': list_key}}
+                    )
+
+                # Update the edge with any metadata from the list seed
+                update_list_seed_metadata(work_series_edge, list_seed)
+
+                if not already_has_series:
+                    if not work.series:
+                        work.series = []
+
+                    work.series.append(work_series_edge)
+
+                # Cast is needed since the infogami code isn't typed yet
+                records_to_save.append(cast(dict, work.dict()))
+
+        web.ctx.site.save_many(
+            records_to_save,
             action="lists",
             comment=web.input(_comment="")._comment or None,
         )
 
         # If content type json, return json response
         if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
-            return delegate.RawText(json.dumps({'key': list_record.key}))
+            return delegate.RawText(json.dumps({'key': list_key}))
         else:
-            return safe_seeother(list_record.key)
+            return safe_seeother(list_key)
 
 
 class lists_add_account(delegate.page):
@@ -358,9 +420,13 @@ class lists_add_account(delegate.page):
 
 
 class lists_add(delegate.page):
-    path = r"(/people/[^/]+)?/lists/add"
+    path = r"(/people/[^/]+)?/(lists|series)/add"
 
-    def GET(self, user_key: str | None):  # type: ignore[override]
+    def GET(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
+        if list_type == 'series' and user_key:
+            # Not allowed to have user-specific series
+            return web.badrequest("Invalid URL.")
+
         if user_key and not web.ctx.site.can_write(user_key):
             return render_template(
                 "permission_denied",
@@ -370,8 +436,8 @@ class lists_add(delegate.page):
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, new=True)
 
-    def POST(self, user_key: str | None):  # type: ignore[override]
-        return lists_edit().POST(user_key, None)
+    def POST(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
+        return lists_edit().POST(user_key, list_type, None)
 
 
 class lists_delete(delegate.page):
@@ -538,7 +604,7 @@ def get_list(key, raw=False):
 
 
 class list_view_json(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
     encoding = "json"
     content_type = "application/json"
 

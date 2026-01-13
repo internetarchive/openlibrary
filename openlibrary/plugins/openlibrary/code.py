@@ -90,6 +90,7 @@ models.register_types()
 import openlibrary.core.lists.model as list_models
 
 list_models.register_models()
+list_models.register_types()
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
