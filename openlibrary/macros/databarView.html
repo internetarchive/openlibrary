@@ -1,13 +1,34 @@
 $def with (page, edition=None, edit=True)
 
+$code:
+    # Properly extract mrid from query parameters
+    mrid_raw = query_param("mrid", None)
+    mrid = None
+
+    if mrid_raw is not None:
+        # Handle if it's a list (some frameworks return lists)
+        if isinstance(mrid_raw, list):
+            mrid = mrid_raw[0] if mrid_raw else None
+        else:
+            mrid = mrid_raw
+
+        # Clean and validate
+        if mrid is not None:
+            mrid = str(mrid).strip()
+            if not mrid or mrid == '':
+                mrid = None
+
 $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
     $if edition and page.type.key in ["/type/work"]:
-        $ edit_url = edition.url(suffix="/edit")
-        $ edit_url += '?work_key=%s' % page.key
+        $ edit_url = edition.url("/edit") + '?work_key=%s' % page.key
     $else:
-        $ edit_url = page.url(suffix="/edit")
+        $ edit_url = page.url("/edit")
 $else:
     $ edit_url = page.key + "?m=edit"
+
+$# Append mrid to edit_url if it exists
+$if mrid:
+    $ edit_url += ('&' if '?' in edit_url else '?') + 'mrid=' + str(mrid)
 
 <div id="editTools" class="edit">
     <div id="editInfo">
@@ -26,14 +47,6 @@ $else:
     </div>
     $if edit and not page.is_fake_record():
         <div class="editButton">
-          <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-          <a
-            class="cta-btn cta-btn--vanilla"
-            href="$edit_url"
-            title="$_('Edit this page')"
-            data-ol-link-track="CTAClick|Edit"
-            accesskey="e"
-            rel="nofollow"
-        >$_("Edit")</a>
+            <a class="cta-btn cta-btn--vanilla" href="$edit_url" title="$_('Edit this page')" data-ol-link-track="CTAClick|Edit" accesskey="e" rel="nofollow">$_("Edit")</a>
         </div>
 </div>

@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "Status Summary"
 msgstr ""
 
-#: batch_import_view.html
+#: batch_import_view.html books/edit.html type/author/edit.html
 msgid "Approve"
 msgstr ""
 
@@ -4464,12 +4464,11 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html
+#: books/add.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
-#: books/add.html books/edit.html type/author/edit.html
-#: type/tag/tag_form_inputs.html
+#: books/add.html type/author/edit.html type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr ""
 
@@ -4779,17 +4778,6 @@ msgid "This Work"
 msgstr ""
 
 #: books/edit.html
-msgid ""
-"You can search by author name (like <em>j k rowling</em>) or by Open "
-"Library ID (like <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
-msgstr ""
-
-#: books/edit.html
-msgid "Author editing requires javascript"
-msgstr ""
-
-#: books/edit.html
 msgid "Add Excerpts"
 msgstr ""
 
@@ -4801,15 +4789,8 @@ msgstr ""
 msgid "Work Identifiers"
 msgstr ""
 
-#: books/edit.html
-msgid "Do you know any identifiers for this work?"
-msgstr ""
-
-#: books/edit.html
-msgid ""
-"These identifiers apply to all editions of this work, for example "
-"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
-" LCCN, go to the edition tab."
+#: books/edit.html type/author/edit.html
+msgid "Decline"
 msgstr ""
 
 #: books/edition-sort.html
@@ -7445,6 +7426,10 @@ msgid ""
 msgstr ""
 
 #: type/author/edit.html
+msgid "Author biographical information"
+msgstr ""
+
+#: type/author/edit.html
 msgid "A short bio?"
 msgstr ""
 
@@ -7491,6 +7476,10 @@ msgstr ""
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
+msgstr ""
+
+#: type/author/edit.html
+msgid "Review comment"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
