@@ -12,6 +12,11 @@ $ bodyattrs.append('itemscope')
 $ bodyattrs.append('itemtype="%s"' % entityTypeSchema)
 
 $ title = page.get('name', _('name missing'))
+$if query_param('redirect_from'):
+    <div class="redirect-banner">
+        🔄 Redirected from <a href="/authors/$query_param('redirect_from')">$query_param('redirect_from')</a>
+    </div>
+
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ meta_photo_url = item_image(page.get_photo_url("L"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
