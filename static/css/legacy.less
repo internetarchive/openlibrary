@@ -216,12 +216,12 @@ em {
   ol li {
     list-style: decimal;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
   ul li {
     list-style: disc;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
 }
 
@@ -270,7 +270,7 @@ q {
 
 div.unordered {
   margin-top: 10px;
-  line-height: 150%;
+  line-height: @line-height-list;
 }
 
 div.superNav {
@@ -926,6 +926,7 @@ div.facet {
     margin-bottom: 5px;
     a {
       text-decoration: none !important;
+      line-height: @line-height-list;
     }
   }
   &MoreLess {
