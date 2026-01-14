@@ -525,7 +525,7 @@ class patrons_follows_json(delegate.page):
 
         username = user.key.split('/')[2]
         return delegate.RawText(
-            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            json.dumps(PubSub.get_following(username), cls=NothingEncoder),
             content_type="application/json",
         )
 
