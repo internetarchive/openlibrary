@@ -28,7 +28,6 @@ export function mapPreferencesToBackend(prefs) {
         first_publish_year: prefs.date
     };
 
-    // Only include languages if a specific language is selected
     if (prefs.language && prefs.language !== 'all') {
         params.languages = [prefs.language];
     }

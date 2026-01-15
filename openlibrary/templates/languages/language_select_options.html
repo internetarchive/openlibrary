@@ -1,0 +1,6 @@
+$def with (include_all=True, selected='all')
+
+$if include_all:
+  <option value="all" data-lang-id="all" title="$_('All Languages')" $("selected" if selected == 'all' else "")>$_('All Languages')</option>
+$for lang in get_supported_languages().values():
+  <option value="$lang['code']" lang="$lang['code']" data-lang-id="$lang['code']" title="$lang['localized']" $("selected" if selected == lang['code'] else "")>$lang['native'] ($lang['code'])</option> $# detect-missing-i18n-skip-line
