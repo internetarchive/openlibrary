@@ -44,14 +44,35 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))
       $else:
         <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
-          $if sort_order == 'desc':
-            <strong class="lightgreen">$_("Date Added (newest)")</strong>
+          $if key == 'already-read':
+            $if query_param('order_by', 'created') == 'created' and sort_order == 'desc':
+              <strong class="lightgreen">$_("Date Added (newest)")</strong>
+            $else:
+              <a href="$changequery(order_by='created', sort='desc')">$_("Date Added (newest)")</a>
             |
-            <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
+            $if query_param('order_by', 'created') == 'created' and sort_order == 'asc':
+              <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+            $else:
+              <a href="$changequery(order_by='created', sort='asc')">$_("Date Added (oldest)")</a>
+            |
+            $if query_param('order_by', 'created') == 'finished' and sort_order == 'desc':
+              <strong class="lightgreen">$_("Date Finished (newest)")</strong>
+            $else:
+              <a href="$changequery(order_by='finished', sort='desc')">$_("Date Finished (newest)")</a>
+            |
+            $if query_param('order_by', 'created') == 'finished' and sort_order == 'asc':
+              <strong class="lightgreen">$_("Date Finished (oldest)")</strong>
+            $else:
+              <a href="$changequery(order_by='finished', sort='asc')">$_("Date Finished (oldest)")</a>
           $else:
-            <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
-            |
-            <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+            $if sort_order == 'desc':
+              <strong class="lightgreen">$_("Date Added (newest)")</strong>
+              |
+              <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
+            $else:
+              <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
+              |
+              <strong class="lightgreen">$_("Date Added (oldest)")</strong>
         </span>
 
       $ layout = get_remembered_layout()
