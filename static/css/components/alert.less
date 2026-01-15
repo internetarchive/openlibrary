@@ -1,17 +1,6 @@
-@white: #fff;
-@border: #ccc;
-@shadow: rgba(0, 0, 0, 0.15);
-@header-bg: #f8f9fa;
-@header-border: #e9ecef;
-@text-dark: #333;
-@text-mid: #666;
-@placeholder: #999;
-@primary: #4a90e2;
-@primary-hover: #357abd;
-@focus-shadow: rgba(74, 144, 226, 0.2);
-@focus-shadow-strong: rgba(74, 144, 226, 0.3);
+@import (reference) "../less/colors";
+
 @z-index-panel: 1000;
-@black: #000;
 
 .filter-panel {
   position: fixed;
@@ -19,9 +8,9 @@
   right: 0;
   width: 320px;
   background: @white;
-  border: 1px solid @border;
+  border: 1px solid @light-grey;
   border-top: none;
-  box-shadow: -2px 2px 8px @shadow;
+  box-shadow: -2px 2px 8px @boxshadow-black;
   z-index: @z-index-panel;
   transform: translateX(100%);
   transition: transform 0.3s ease;
@@ -42,16 +31,16 @@
 }
 
 .filter-header {
-  background: @header-bg;
+  background: @grey-fafafa;
   padding: 15px 20px;
-  border-bottom: 1px solid @header-border;
+  border-bottom: 1px solid @lightest-grey;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   h2 {
     font-size: 18px;
-    color: @text-dark;
+    color: @grey-555;
     margin: 0;
     font-weight: 600;
   }
@@ -61,7 +50,7 @@
   background: none;
   border: none;
   font-size: 24px;
-  color: @text-mid;
+  color: @grey;
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -73,7 +62,7 @@
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: @header-border;
+    background-color: @lightest-grey;
     color: @black;
   }
 }
@@ -85,7 +74,7 @@
     display: block;
     font-size: 14px;
     font-weight: 600;
-    color: @text-dark;
+    color: @grey-555;
     margin-bottom: 8px;
     margin-top: 20px;
 
@@ -98,17 +87,17 @@
 .dropdown-menu {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid @border;
+  border: 1px solid @light-grey;
   border-radius: 4px;
   font-size: 14px;
   background-color: @white;
   cursor: pointer;
-  color: @text-dark;
+  color: @grey-555;
 
   &:focus {
     outline: none;
-    border-color: @primary;
-    box-shadow: 0 0 0 2px @focus-shadow;
+    border-color: @mid-blue;
+    box-shadow: 0 0 0 2px fade(@mid-blue, 20%);
   }
 }
 
@@ -120,7 +109,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: @text-dark;
+  color: @grey-555;
   margin-bottom: 8px;
 }
 
@@ -132,25 +121,25 @@
   input {
     flex: 1;
     padding: 8px 12px;
-    border: 1px solid @border;
+    border: 1px solid @light-grey;
     border-radius: 4px;
     font-size: 14px;
 
     &:focus {
       outline: none;
-      border-color: @primary;
-      box-shadow: 0 0 0 2px @focus-shadow;
+      border-color: @mid-blue;
+      box-shadow: 0 0 0 2px fade(@mid-blue, 20%);
     }
 
     &::placeholder {
-      color: @placeholder;
+      color: @mid-grey;
     }
   }
 }
 
 .save-btn {
   width: 100%;
-  background: @primary;
+  background: @mid-blue;
   color: @white;
   border: none;
   padding: 12px 20px;
@@ -162,12 +151,12 @@
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: @primary-hover;
+    background: @link-blue;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px @focus-shadow-strong;
+    box-shadow: 0 0 0 2px fade(@mid-blue, 30%);
   }
 }
 
