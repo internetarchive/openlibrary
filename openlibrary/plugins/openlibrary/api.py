@@ -1070,8 +1070,6 @@ class monthly_logins(delegate.page):
 
     def GET(self):
         return delegate.RawText(
-            json.dumps({
-                "loginCount": get_cached_unique_logins_since()
-            }),
-            content_type="application/json"
+            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            content_type="application/json",
         )

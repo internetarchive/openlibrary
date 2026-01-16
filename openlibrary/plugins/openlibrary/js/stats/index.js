@@ -31,5 +31,5 @@ export async function initUniqueLoginCounts(containerElem) {
  * @see `monthly_logins` class in /openlibrary/plugins/openlibrary/api.py
  */
 async function fetchCounts() {
-    return fetch("/api/monthly_logins.json")
+    return fetch('/api/monthly_logins.json')
 }

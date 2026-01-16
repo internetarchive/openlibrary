@@ -6,10 +6,10 @@ import datetime
 import requests
 import web
 
-from . import db
-
 from infogami import config
 from openlibrary.core import cache
+
+from . import db
 
 
 class Stats:
@@ -205,7 +205,7 @@ def get_cached_unique_logins_since(since_days=30):
         get_unique_logins_since,
         key_prefix=key_prefix,
         timeout=twelve_hours,
-        prethread=caching_prethread()
+        prethread=caching_prethread(),
     )
     return mc(since_days=since_days)
 
