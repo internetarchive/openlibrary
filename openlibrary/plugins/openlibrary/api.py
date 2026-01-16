@@ -13,7 +13,6 @@ import qrcode
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
-from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,13 +22,13 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.core import cache, lending, models
 from openlibrary.core import helpers as h
-from openlibrary.core.auth import ExpiredTokenError, HMACToken
+from openlibrary.core import lending, models
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
+from openlibrary.core.lending import add_availability
 from openlibrary.core.models import (
     Booknotes,
     Work,
@@ -40,9 +39,7 @@ from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
-from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.plugins.worksearch.subjects import (
     get_subject,  # noqa: F401 side effects may be needed
 )
@@ -796,268 +793,88 @@ class bestbook_count(delegate.page):
         return json.dumps({'count': result})
 
 
-def get_opds_data_provider():
-    from pyopds2_openlibrary import OpenLibraryDataProvider
+class reading_history_json(delegate.page):
+    """
+    API endpoint to fetch reading history books from localStorage edition IDs.
 
-    provider = OpenLibraryDataProvider()
-    protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-    OpenLibraryDataProvider.BASE_URL = f'{protocol}://{web.ctx.host}'
-    OpenLibraryDataProvider.SEARCH_URL = '/opds/search'
-    return provider
+    Accepts a comma-separated list of edition IDs (e.g., "OL123456M,OL789012M")
+    and returns work data suitable for carousel display.
+    """
 
-
-class opds_search(delegate.page):
-    path = r"/opds/search"
-
-    def GET(self):
-        from pyopds2 import Catalog, Link, Metadata
-
-        i = web.input(
-            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
-        )
-        provider = get_opds_data_provider()
-        catalog = Catalog.create(
-            metadata=Metadata(title=_("Search Results")),
-            response=provider.search(
-                query=i.query,
-                limit=int(i.limit),
-                offset=(int(i.page) - 1) * int(i.limit),
-                sort=i.sort,
-            ),
-            links=[
-                Link(
-                    rel="self",
-                    href=provider.BASE_URL + web.ctx.fullpath,
-                    type="application/opds+json",
-                ),
-                Link(
-                    rel="search",
-                    href=f"{provider.BASE_URL}/opds/search{{?query}}",
-                    type="application/opds+json",
-                    templated=True,
-                ),
-                Link(
-                    rel="http://opds-spec.org/shelf",
-                    href="https://archive.org/services/loans/loan/?action=user_bookshelf",
-                    type="application/opds+json",
-                ),
-                Link(
-                    rel="profile",
-                    href="https://archive.org/services/loans/loan/?action=user_profile",
-                    type="application/opds-profile+json",
-                ),
-            ],
-        )
-        web.header('Content-Type', 'application/opds+json')
-        return delegate.RawText(json.dumps(catalog.model_dump()))
-
-
-class opds_books(delegate.page):
-    path = r"/opds/books/(OL\d+M)"
-
-    def GET(self, edition_olid: str):
-
-        provider = get_opds_data_provider()
-        resp = provider.search(query=f'edition_key:{edition_olid}')
-        web.header('Content-Type', 'application/opds-publication+json')
-        if not resp.records:
-            raise web.HTTPError(
-                '404 Not Found',
-                data=json.dumps({'error': 'Edition not found'}),
-            )
-
-        pub = resp.records[0].to_publication()
-        return delegate.RawText(json.dumps(pub.model_dump()))
-
-
-class opds_home(delegate.page):
-    path = r"/opds"
-
-    def GET(self):
-        def build_homepage():
-            from pyopds2 import Catalog, Link, Metadata, Navigation
-
-            provider = get_opds_data_provider()
-            catalog = Catalog(
-                metadata=Metadata(title=_("Open Library")),
-                publications=[],
-                navigation=[
-                    Navigation(
-                        type="application/opds+json",
-                        title=subject['presentable_name'],
-                        href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
-                    )
-                    for subject in get_cached_featured_subjects()
-                ],
-                groups=[
-                    Catalog.create(
-                        metadata=Metadata(title=_("Trending Books")),
-                        response=provider.search(
-                            query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover" ebook_access:[borrowable TO *] readinglog_count:[4 TO *]',
-                            sort='trending',
-                            limit=25,
-                        ),
-                    ),
-                    Catalog.create(
-                        metadata=Metadata(title=_("Classic Books")),
-                        response=provider.search(
-                            query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false -subject:"content_warning:cover"',
-                            sort='trending',
-                            limit=25,
-                        ),
-                    ),
-                    Catalog.create(
-                        metadata=Metadata(title=_("Romance")),
-                        response=provider.search(
-                            query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',  # noqa: E501
-                            sort='trending,trending_score_hourly_sum',
-                            limit=25,
-                        ),
-                    ),
-                    Catalog.create(
-                        metadata=Metadata(title=_("Kids")),
-                        response=provider.search(
-                            query='ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] (subject_key:(juvenile_audience OR children\'s_fiction OR juvenile_nonfiction OR juvenile_encyclopedias OR juvenile_riddles OR juvenile_poetry OR juvenile_wit_and_humor OR juvenile_limericks OR juvenile_dictionaries OR juvenile_non-fiction) OR subject:("Juvenile literature" OR "Juvenile fiction" OR "pour la jeunesse" OR "pour enfants"))',  # noqa: E501
-                            sort='random.hourly',
-                            limit=25,
-                        ),
-                    ),
-                    Catalog.create(
-                        metadata=Metadata(title=_("Thrillers")),
-                        response=provider.search(
-                            query='subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
-                            sort='trending,trending_score_hourly_sum',
-                            limit=25,
-                        ),
-                    ),
-                    Catalog.create(
-                        metadata=Metadata(title=_("Textbooks")),
-                        response=provider.search(
-                            query='subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]',
-                            sort='trending',
-                            limit=25,
-                        ),
-                    ),
-                ],
-                facets=None,
-                links=[
-                    Link(
-                        rel="self",
-                        href=provider.BASE_URL + web.ctx.fullpath,
-                        type="application/opds+json",
-                    ),
-                    Link(
-                        rel="search",
-                        href=f"{provider.BASE_URL}/opds/search{{?query}}",
-                        type="application/opds+json",
-                        templated=True,
-                    ),
-                    Link(
-                        rel="http://opds-spec.org/shelf",
-                        href="https://archive.org/services/loans/loan/?action=user_bookshelf",
-                        type="application/opds+json",
-                    ),
-                    Link(
-                        rel="profile",
-                        href="https://archive.org/services/loans/loan/?action=user_profile",
-                        type="application/opds-profile+json",
-                    ),
-                ],
-            )
-            return catalog.model_dump()
-
-        def get_cached_homepage():
-            from openlibrary.plugins.openlibrary.code import is_bot
-            from openlibrary.plugins.openlibrary.home import caching_prethread
-            from openlibrary.utils import dateutil
-
-            five_minutes = 5 * dateutil.MINUTE_SECS
-            lang = web.ctx.lang
-            key = f'home.homepage-opds.{lang}'
-            cookies = web.cookies()
-            if cookies.get('pd', False):
-                key += '.pd'
-            if cookies.get('sfw', ''):
-                key += '.sfw'
-            if is_bot():
-                key += '.bot'
-
-            mc = cache.memcache_memoize(
-                build_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-            )
-            page = mc()
-
-            if not page:
-                mc.memcache_delete_by_args()
-                mc()
-
-            return page
-
-        web.header('Content-Type', 'application/opds+json')
-        return delegate.RawText(json.dumps(get_cached_homepage()))
-
-
-class unlink_ia_ol(delegate.page):
-    path = "/api/unlink"
+    path = "/reading-history(/?.*)"
     encoding = "json"
 
-    def POST(self):
-        i = web.input(digest="", msg="")
+    def GET(self):
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+        from openlibrary.plugins.worksearch.search import get_solr
 
-        digest = i.digest
-        msg = i.msg
+        # Configuration constants
+        DEFAULT_LIMIT = 50
+        MAX_LIMIT = 100
 
+        i = web.input(edition_ids='', limit=DEFAULT_LIMIT)
+        edition_ids = [eid.strip() for eid in i.edition_ids.split(',') if eid.strip()]
         try:
-            HMACToken.verify(digest, msg, "ia_sync_secret")
-        except (ValueError, ExpiredTokenError):
-            raise web.HTTPError("401 Unauthorized")
+            limit = min(int(i.limit), MAX_LIMIT)
+        except (ValueError, TypeError):
+            limit = DEFAULT_LIMIT
 
-        ocaid, ts = msg.split("|")
+        if not edition_ids:
+            return json.dumps({'docs': [], 'numFound': 0})
 
-        if not ts or not ocaid:
-            raise web.HTTPError(
-                "400 Bad Request", data=json.dumps({"error": "Invalid inputs"})
-            )
+        # Convert edition IDs to edition keys
+        edition_keys = [f"/books/{eid}" for eid in edition_ids if eid.startswith('OL')]
 
-        # Fetch affected editions
-        if not (
-            edition_keys := web.ctx.site.things(
-                {"type": '/type/edition', "ocaid": ocaid}
-            )
-        ):
-            raise web.HTTPError("404 Not Found")
+        if not edition_keys:
+            return json.dumps({'docs': [], 'numFound': 0})
 
-        editions = [web.ctx.site.get(key) for key in edition_keys]
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                data=json.dumps(
-                    {"error": "Multiple editions associated with given ocaid"}
-                ),
-            )
+        # Get editions from infobase
+        editions = web.ctx.site.get_many(edition_keys)
 
-        edition = editions[0]
+        # Extract work keys from editions
+        work_keys = set()
+        for edition in editions:
+            if edition and edition.works:
+                work_key = (
+                    edition.works[0].key
+                    if isinstance(edition.works[0], dict)
+                    else str(edition.works[0])
+                )
+                work_keys.add(work_key)
 
-        # Update records
-        try:
-            self.make_dark(edition)
-        except ClientException as e:
-            logger.error(
-                f'Failed to disassociate record with key {edition.key}', exc_info=True
-            )
-            raise web.HTTPError(
-                "500 Internal Server Error", data=json.dumps({"error": str(e)})
-            )
+        if not work_keys:
+            return json.dumps({'docs': [], 'numFound': 0})
 
-        return delegate.RawText(json.dumps({"status": "ok"}))
+        # Query Solr for work data
+        solr = get_solr()
+        fields = WorkSearchScheme.default_fetched_fields | {
+            'edition_key',
+            'cover_edition_key',
+            'cover_i',
+            'author_key',
+            'author_name',
+            'first_publish_year',
+            'lending_edition_s',
+            'has_fulltext',
+        }
 
-    def make_dark(self, edition):
-        data = edition.dict()
-        del data["ocaid"]
-        source_records = data.get("source_records", [])
-        data['source_records'] = [
-            rec for rec in source_records if not rec.startswith("ia:")
-        ]
-        if not data['source_records']:
-            del data['source_records']
-        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
+        solr_docs = solr.get_many(list(work_keys), fields=list(fields))
+
+        # Convert to carousel format (similar to mybooks format)
+        docs = []
+        for doc in solr_docs[:limit]:
+            # Convert to web.storage for compatibility
+            doc_storage = web.storage(doc)
+            docs.append(doc_storage)
+
+        # Add availability data
+        if docs:
+            add_availability(docs, mode='openlibrary_work')
+
+        return delegate.RawText(
+            json.dumps(
+                {'docs': [dict(doc) for doc in docs], 'numFound': len(docs)},
+                cls=NothingEncoder,
+            ),
+            content_type="application/json",
+        )

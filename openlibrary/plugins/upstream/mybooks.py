@@ -20,6 +20,7 @@ from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
+    get_availability,
     get_loans_of_user,
 )
 from openlibrary.core.models import LoggedBooksData, User
@@ -81,30 +82,79 @@ class mybooks_home(delegate.page):
             docs['loans'] = loans
 
         if mb.me or mb.is_public:
-            want_to_read = mb.readlog.get_works('want-to-read', limit=6)
-            currently_reading = mb.readlog.get_works('currently-reading', limit=6)
-            already_read = mb.readlog.get_works('already-read', limit=6)
-            works = want_to_read.docs + currently_reading.docs + already_read.docs
-
-            def get_edition(solr_doc: web.Storage | dict) -> dict | None:
-                editions_raw = cast(dict | list[dict], solr_doc.get('editions'))
-                if isinstance(editions_raw, dict):
-                    editions = editions_raw.get('docs', [])
-                else:
-                    editions = editions_raw or []
-
-                return editions[0] if editions else None
-
-            add_availability(
-                [get_edition(doc) or doc for doc in works if doc.get('title')]
+            want_to_read = mb.readlog.get_works(
+                key='want-to-read', page=1, limit=6, sort='created', sort_order='desc'
+            )
+            currently_reading = mb.readlog.get_works(
+                key='currently-reading',
+                page=1,
+                limit=6,
+                sort='created',
+                sort_order='desc',
+            )
+            already_read = mb.readlog.get_works(
+                key='already-read', page=1, limit=6, sort='created', sort_order='desc'
             )
 
-            docs |= {
-                'want-to-read': want_to_read,
-                'currently-reading': currently_reading,
-                'already-read': already_read,
-            }
+            def add_edition_availability(docs):
+                """Add edition-level availability to work docs, fallback to work-level."""
+                filtered_docs = [d for d in docs if d.get('title')]
 
+                # Extract editions and get their OLIDs
+                # editions can be a list [edition] or dict {'docs': [edition]}
+                edition_olids = []
+                doc_to_edition_olid = {}
+
+                for doc in filtered_docs:
+                    editions = doc.get('editions')
+                    edition = None
+                    if editions:
+                        if isinstance(editions, list) and editions:
+                            edition = editions[0]
+                        elif isinstance(editions, dict) and editions.get('docs'):
+                            edition = editions['docs'][0]
+
+                    if edition and edition.get('key'):
+                        edition_olid = edition['key'].split('/')[-1]
+                        edition_olids.append(edition_olid)
+                        doc_to_edition_olid[doc] = edition_olid
+
+                # Get edition-level availability
+                if edition_olids:
+                    edition_availabilities = get_availability(
+                        'openlibrary_edition', edition_olids
+                    )
+                    for doc in filtered_docs:
+                        if doc in doc_to_edition_olid:
+                            edition_olid = doc_to_edition_olid[doc]
+                            if edition_olid in edition_availabilities:
+                                doc['availability'] = edition_availabilities[
+                                    edition_olid
+                                ]
+
+                # Fallback to work-level availability for docs without edition availability
+                docs_without_edition_availability = [
+                    d for d in filtered_docs if not d.get('availability')
+                ]
+                if docs_without_edition_availability:
+                    add_availability(
+                        docs_without_edition_availability, mode='openlibrary_work'
+                    )
+
+                return filtered_docs
+
+            want_to_read.docs = add_edition_availability(want_to_read.docs)[:5]
+            currently_reading.docs = add_edition_availability(currently_reading.docs)[
+                :5
+            ]
+            already_read.docs = add_edition_availability(already_read.docs)[:5]
+
+        docs = {
+            'loans': loans,
+            'want-to-read': want_to_read,
+            'currently-reading': currently_reading,
+            'already-read': already_read,
+        }
         return render['account/mybooks'](
             mb.user,
             docs,
