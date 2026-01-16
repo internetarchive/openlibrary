@@ -23,7 +23,7 @@ async function fetchWithProxy(url) {
 
 async function importBooksFromUrl(url) {
     if (!url) {
-        console.error("Please provide a URL");
+        console.error('Please provide a URL');
         return;
     }
 
@@ -436,14 +436,14 @@ async function processInput(input, onProgress) {
     if (onProgress) onProgress(`Detected input type: ${type}`);
 
     switch (type) {
-        case 'url':
-            return await importBooksFromUrl(input);
-        case 'edition_ids':
-            return parseEditionIds(input);
-        case 'isbns':
-            return await importBooksFromIsbns(input);
-        default:
-            throw new Error('Unknown input type');
+    case 'url':
+        return await importBooksFromUrl(input);
+    case 'edition_ids':
+        return parseEditionIds(input);
+    case 'isbns':
+        return await importBooksFromIsbns(input);
+    default:
+        throw new Error('Unknown input type');
     }
 }
 
@@ -538,14 +538,14 @@ async function renderListSelector(container, username) {
                 <option value="${list.url || list.full_url}">${list.name} (${list.seed_count || 0} items)</option>
             `).join('')}
         </select>
-        
+
         <div id="newListFields" style="margin-bottom:1rem;">
-            <input type="text" id="newListName" placeholder="New list name" 
+            <input type="text" id="newListName" placeholder="New list name"
                    style="width:100%; padding:8px; font-size:1rem; margin-bottom:0.5rem;">
-            <input type="text" id="newListDesc" placeholder="Description (optional)" 
+            <input type="text" id="newListDesc" placeholder="Description (optional)"
                    style="width:100%; padding:8px; font-size:1rem;">
         </div>
-        
+
         <button id="addToListBtn" style="background:#0074d9; color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; font-size:1rem;">
             Add Selected to List
         </button>
@@ -649,15 +649,15 @@ async function initBulkImportUI(containerSelector) {
         <div style="font-family: sans-serif; max-width: 800px; margin: 0 auto;">
             <h2>Bulk Import Books</h2>
             <p>Enter a URL, list of ISBNs, or Edition IDs:</p>
-            
-            <textarea id="bulkInput" rows="5" 
+
+            <textarea id="bulkInput" rows="5"
                       style="width:100%; padding:10px; font-size:1rem; font-family:monospace;"
                       placeholder="https://example.com/bookshelf&#10;OR&#10;978-0-13-468599-1, 0-596-51774-1&#10;OR&#10;/books/OL25083437M, /books/OL27448799M"></textarea>
-            
+
             <button id="processBtn" style="margin-top:1rem; padding:10px 20px; font-size:1rem; cursor:pointer;">
                 🔍 Process Input
             </button>
-            
+
             <div id="previewContainer" style="margin-top:1rem;"></div>
             <div id="listSelectorContainer"></div>
         </div>
