@@ -75,7 +75,7 @@ class Solr:
         request_label: SolrRequestLabel = 'UNLABELLED',
     ) -> T | None:
         """Get a specific item from solr"""
-        logger.info(f"solr /get: {key}, {fields}")
+        logger.debug(f"solr /get: {key}, {fields}")
         resp = self.session.get(
             f"{self.base_url}/get",
             # It's unclear how field=None is getting in here; a better fix would be at the source.
@@ -103,7 +103,7 @@ class Solr:
         ids = list(keys)
         if not ids:
             return []
-        logger.info(f"solr /get: {ids}, {fields}")
+        logger.debug(f"solr /get: {ids}, {fields}")
         resp = self.session.post(
             f"{self.base_url}/get",
             data={
@@ -228,10 +228,10 @@ class Solr:
         if len(payload) < 500:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
-            logger.info("solr request: %s", url)
+            logger.debug("solr request: %s", url)
             return await self.async_session.get(url, timeout=_timeout)
         else:
-            logger.info("solr request: %s ...", url)
+            logger.debug("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
