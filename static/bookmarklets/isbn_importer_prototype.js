@@ -1,3 +1,4 @@
+/* eslint-disable no-console, no-unused-vars */
 const CORS_PROXIES = [
     url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
     url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -476,7 +477,7 @@ function renderPreviewTable(editions, container) {
         <thead>
             <tr style="background:#f5f5f5;">
                 <th style="padding:8px; width:40px;">
-                    <input type="checkbox" id="selectAll" checked>
+                    <input type="checkbox" id="selectAll" aria-label="Select all editions" checked>
                 </th>
                 <th style="padding:8px; width:50px;">Cover</th>
                 <th style="padding:8px; text-align:left;">Title</th>
@@ -487,7 +488,7 @@ function renderPreviewTable(editions, container) {
             ${editions.map((ed, i) => `
                 <tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px; text-align:center;">
-                        <input type="checkbox" class="edition-checkbox" data-index="${i}" checked>
+                        <input type="checkbox" class="edition-checkbox" data-index="${i}" aria-label="Select ${ed.title || `edition ${i + 1}`}" checked>
                     </td>
                     <td style="padding:8px;">
                         <img src="${getCoverUrl(ed.coverId)}" alt="" style="height:40px; width:auto;">
@@ -531,7 +532,7 @@ async function renderListSelector(container, username) {
     wrapper.style.cssText = 'margin:1rem 0; padding:1rem; background:#f9f9f9; border-radius:8px;';
 
     wrapper.innerHTML = `
-        <label style="display:block; margin-bottom:0.5rem; font-weight:bold;">Add to:</label>
+        <label for="listSelect" style="display:block; margin-bottom:0.5rem; font-weight:bold;">Add to:</label>
         <select id="listSelect" style="width:100%; padding:8px; margin-bottom:1rem; font-size:1rem;">
             <option value="__new__">➕ Create new list...</option>
             ${lists.entries.map(list => `
