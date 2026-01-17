@@ -71,6 +71,7 @@ class Sentry:
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),
+            enable_logs=self.config.get('enable_logs', False),
         )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
