@@ -437,14 +437,14 @@ async function processInput(input, onProgress) {
     if (onProgress) onProgress(`Detected input type: ${type}`);
 
     switch (type) {
-        case 'url':
-            return await importBooksFromUrl(input);
-        case 'edition_ids':
-            return parseEditionIds(input);
-        case 'isbns':
-            return await importBooksFromIsbns(input);
-        default:
-            throw new Error('Unknown input type');
+    case 'url':
+        return await importBooksFromUrl(input);
+    case 'edition_ids':
+        return parseEditionIds(input);
+    case 'isbns':
+        return await importBooksFromIsbns(input);
+    default:
+        throw new Error('Unknown input type');
     }
 }
 
