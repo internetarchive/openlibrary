@@ -437,14 +437,14 @@ async function processInput(input, onProgress) {
     if (onProgress) onProgress(`Detected input type: ${type}`);
 
     switch (type) {
-    case 'url':
-        return await importBooksFromUrl(input);
-    case 'edition_ids':
-        return parseEditionIds(input);
-    case 'isbns':
-        return await importBooksFromIsbns(input);
-    default:
-        throw new Error('Unknown input type');
+        case 'url':
+            return await importBooksFromUrl(input);
+        case 'edition_ids':
+            return parseEditionIds(input);
+        case 'isbns':
+            return await importBooksFromIsbns(input);
+        default:
+            throw new Error('Unknown input type');
     }
 }
 
@@ -479,6 +479,7 @@ function renderPreviewTable(editions, container) {
                 <th style="padding:8px; width:40px;">
                     <input type="checkbox" id="selectAll" aria-label="Select all editions" checked>
                 </th>
+                <th style="padding:8px; width:40px;">#</th>
                 <th style="padding:8px; width:50px;">Cover</th>
                 <th style="padding:8px; text-align:left;">Title</th>
                 <th style="padding:8px; width:120px;">ISBN</th>
@@ -490,6 +491,7 @@ function renderPreviewTable(editions, container) {
                     <td style="padding:8px; text-align:center;">
                         <input type="checkbox" class="edition-checkbox" data-index="${i}" aria-label="Select ${ed.title || `edition ${i + 1}`}" checked>
                     </td>
+                    <td style="padding:8px; text-align:center; color:#666;">${i + 1}</td>
                     <td style="padding:8px;">
                         <img src="${getCoverUrl(ed.coverId)}" alt="" style="height:40px; width:auto;">
                     </td>
@@ -673,6 +675,13 @@ async function initBulkImportUI(containerSelector) {
         const value = input.value.trim();
         if (!value) {
             alert('Please enter a URL, ISBNs, or Edition IDs.');
+            return;
+        }
+
+        // Check if user is logged in
+        const currentUser = await getLoggedInUsername();
+        if (!currentUser) {
+            window.location.href = '/account/login?redirect=/account/import/bulk';
             return;
         }
 
