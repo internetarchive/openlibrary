@@ -687,11 +687,24 @@ async function initBulkImportUI(containerSelector) {
 
         processBtn.disabled = true;
         processBtn.textContent = '⏳ Processing...';
-        previewContainer.innerHTML = '<p>Loading...</p>';
         listSelectorContainer.innerHTML = '';
+
+        // Animated loading indicator
+        let dots = 0;
+        const loadingEl = document.createElement('p');
+        loadingEl.style.cssText = 'font-size: 1.1rem; color: #666;';
+        loadingEl.textContent = 'Processing';
+        previewContainer.innerHTML = '';
+        previewContainer.appendChild(loadingEl);
+
+        const loadingInterval = setInterval(() => {
+            dots = (dots + 1) % 4;
+            loadingEl.textContent = `Loading${'.'.repeat(dots || 1)}`;
+        }, 400);
 
         try {
             const editions = await processInput(value);
+            clearInterval(loadingInterval);
             renderPreviewTable(editions, previewContainer);
 
             const selectorWrapper = await renderListSelector(listSelectorContainer, username);
@@ -703,6 +716,7 @@ async function initBulkImportUI(containerSelector) {
             });
 
         } catch (e) {
+            clearInterval(loadingInterval);
             previewContainer.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
         } finally {
             processBtn.disabled = false;
