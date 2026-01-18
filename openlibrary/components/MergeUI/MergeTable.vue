@@ -159,7 +159,10 @@ export default {
 
             for (const record of enhanced_records) {
                 for (const entry of (record.authors || [])) {
-                    entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+                    // Only process work records {author: {key: "..."}}
+                    if (entry.author && entry.author.key) {
+                        entry.name = author_names[entry.author.key.slice('/authors/'.length)];
+                    }
                 }
             }
             return enhanced_records
