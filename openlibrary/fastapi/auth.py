@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 from urllib.parse import unquote
 
 from fastapi import Cookie, Depends, HTTPException, Request, status
@@ -164,7 +164,7 @@ async def get_authenticated_user(
 
 
 async def require_authenticated_user(
-    user: AuthenticatedUser | None = Depends(get_authenticated_user),
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> AuthenticatedUser:
     """FastAPI dependency that requires authentication.
 

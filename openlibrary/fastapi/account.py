@@ -4,6 +4,8 @@ FastAPI account endpoints for testing authentication.
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
@@ -36,12 +38,12 @@ class AuthTestResponse(BaseModel):
 
 
 @router.get("/account/test.json", response_model=AuthTestResponse)
-async def test_authentication(
+async def check_authentication(
     request: Request,
-    user: AuthenticatedUser | None = Depends(get_authenticated_user),
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> AuthTestResponse:
     """
-    Test endpoint to verify authentication is working correctly.
+    Check endpoint to verify authentication is working correctly.
 
     This endpoint reads the session cookie, decodes it, and returns information
     about the authenticated user. It's useful for testing the authentication
@@ -99,7 +101,7 @@ async def test_authentication(
 
 @router.get("/account/protected.json")
 async def protected_endpoint(
-    user: AuthenticatedUser = Depends(require_authenticated_user),
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     """
     Example of a protected endpoint that requires authentication.
@@ -121,7 +123,7 @@ async def protected_endpoint(
 
 @router.get("/account/optional.json")
 async def optional_auth_endpoint(
-    user: AuthenticatedUser | None = Depends(get_authenticated_user),
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> dict:
     """
     Example of an endpoint with optional authentication.
