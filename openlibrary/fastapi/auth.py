@@ -82,7 +82,7 @@ def verify_hash(secret_key: str, text: str, hash_value: str) -> bool:
         # Compare with provided hash
         expected_hash = hash_value.split("$", 1)[1] if "$" in hash_value else hash_value
         return hmac.compare_digest(computed_hash, expected_hash)
-    except Exception as e:
+    except (ValueError, IndexError) as e:
         logger.error(f"Error verifying hash: {e}")
         return False
 
@@ -131,7 +131,7 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
             timestamp=timestamp,
         )
 
-    except Exception as e:
+    except ValueError as e:
         logger.error(f"Error decoding cookie: {e}")
         return None
 
