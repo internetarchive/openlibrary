@@ -4,10 +4,11 @@ FastAPI authentication middleware for reading Open Library session cookies.
 This module provides middleware and dependencies for authenticating users
 based on the existing Open Library session cookie format.
 """
+
 from __future__ import annotations
 
-import hmac
 import hashlib
+import hmac
 import logging
 from typing import TYPE_CHECKING
 from urllib.parse import unquote
@@ -137,7 +138,9 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
 async def get_authenticated_user(
     request: Request,
-    session: str | None = Cookie(None, alias=config.get("login_cookie_name", "session")),
+    session: str | None = Cookie(
+        None, alias=config.get("login_cookie_name", "session")
+    ),
 ) -> AuthenticatedUser | None:
     """FastAPI dependency to get the authenticated user from the session cookie.
 

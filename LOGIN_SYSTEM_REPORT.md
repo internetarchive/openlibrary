@@ -180,14 +180,14 @@ def POST(self):
     i = web.input(username="", password="", remember=False, redirect="/", ...)
     email = i.username
     audit = audit_accounts(email, i.password, ...)
-    
+
     if error := audit.get('error'):
         return self.render_error(error, i)
-    
+
     # Set cookies
     expires = 3600 * 24 * 365 if i.remember else ""
     web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
-    
+
     # Redirect
     raise web.seeother(i.redirect)
 ```

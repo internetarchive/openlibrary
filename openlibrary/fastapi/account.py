@@ -1,6 +1,7 @@
 """
 FastAPI account endpoints for testing authentication.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
@@ -20,11 +21,17 @@ class AuthTestResponse(BaseModel):
 
     username: str | None = Field(None, description="The username if authenticated")
     user_key: str | None = Field(None, description="The full user key if authenticated")
-    timestamp: str | None = Field(None, description="The cookie timestamp if authenticated")
+    timestamp: str | None = Field(
+        None, description="The cookie timestamp if authenticated"
+    )
     is_authenticated: bool = Field(..., description="Whether the user is authenticated")
-    error: str | None = Field(None, description="Error message if authentication failed")
+    error: str | None = Field(
+        None, description="Error message if authentication failed"
+    )
     cookie_name: str = Field(..., description="The name of the session cookie")
-    cookie_value: str | None = Field(None, description="The raw cookie value (for debugging)")
+    cookie_value: str | None = Field(
+        None, description="The raw cookie value (for debugging)"
+    )
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
@@ -51,8 +58,9 @@ async def test_authentication(
         # Without cookie
         curl http://localhost:18080/account/test.json
     """
-    from infogami import config
     from urllib.parse import unquote
+
+    from infogami import config
 
     cookie_name = config.get("login_cookie_name", "session")
     cookie_value = request.cookies.get(cookie_name)
@@ -70,7 +78,9 @@ async def test_authentication(
         if len(parts) == 3:
             cookie_parsed["user_key"] = parts[0]
             cookie_parsed["timestamp"] = parts[1]
-            cookie_parsed["hash"] = parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
+            cookie_parsed["hash"] = (
+                parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
+            )
 
     return AuthTestResponse(
         username=user.username if user else None,
@@ -78,7 +88,11 @@ async def test_authentication(
         timestamp=user.timestamp if user else None,
         is_authenticated=user is not None,
         cookie_name=cookie_name,
-        cookie_value=cookie_value[:50] + "..." if cookie_value and len(cookie_value) > 50 else cookie_value,
+        cookie_value=(
+            cookie_value[:50] + "..."
+            if cookie_value and len(cookie_value) > 50
+            else cookie_value
+        ),
         cookie_parsed=cookie_parsed,
     )
 
