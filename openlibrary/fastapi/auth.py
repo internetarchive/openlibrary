@@ -71,12 +71,10 @@ def verify_hash(secret_key: str, text: str, hash_value: str) -> bool:
     """
     try:
         salt = hash_value.split("$", 1)[0]
-        # Recreate the hash
-        if not isinstance(secret_key, bytes):
-            secret_key = secret_key.encode("utf-8")
+        key_bytes = secret_key.encode("utf-8")
 
         computed_hash = hmac.HMAC(
-            secret_key, (salt + text).encode("utf-8"), hashlib.md5
+            key_bytes, (salt + text).encode("utf-8"), hashlib.md5
         ).hexdigest()
 
         # Compare with provided hash
