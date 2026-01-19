@@ -82,6 +82,7 @@ SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 ALLOWED_COVER_HOSTS: Final = (
+    "archive.org",
     "books.google.com",
     "commons.wikimedia.org",
     "m.media-amazon.com",
@@ -585,8 +586,9 @@ def check_cover_url_host(
     )
 
     if not host_is_allowed:
-        logger.info(f"disallowed cover url: {cover_url}")
+        logger.warning(f"disallowed cover host", extra={"host": parsed_url.netloc.casefold(), "url": cover_url})
         return False
+
 
     return True
 
