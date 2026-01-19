@@ -85,6 +85,7 @@ ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
     "commons.wikimedia.org",
+    "covers.openlibrary.org",
     "m.media-amazon.com",
 )
 
