@@ -587,9 +587,11 @@ def check_cover_url_host(
     )
 
     if not host_is_allowed:
-        logger.warning(f"disallowed cover host", extra={"host": parsed_url.netloc.casefold(), "url": cover_url})
+        logger.warning(
+            "disallowed cover host",
+            extra={"host": parsed_url.netloc.casefold(), "url": cover_url},
+        )
         return False
-
 
     return True
 
