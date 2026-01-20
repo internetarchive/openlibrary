@@ -11,6 +11,9 @@ import sys
 import infogami
 from infogami.utils import delegate, i18n, macro, template
 
+from infogami.utils.app import pages
+from openlibrary.plugins.openlibrary import deprecated_handler
+
 old_plugins = [
     "openlibrary",
     "worksearch",
@@ -46,8 +49,7 @@ def setup():
     # Register deprecated endpoint handlers AFTER all plugins have loaded
     # This must be done here, after all plugins are imported, to ensure our handlers
     # override the deprecated ones
-    from infogami.utils.app import pages
-    from openlibrary.plugins.openlibrary import deprecated_handler
+    # This is only temporary while we move to fastapi
 
     for path in deprecated_handler.DEPRECATED_PATHS:
         if path not in pages:
