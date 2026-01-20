@@ -1,5 +1,5 @@
 """
-FastAPI account endpoints for testing authentication.
+FastAPI account endpoints for authentication.
 """
 
 from __future__ import annotations
