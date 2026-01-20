@@ -17,6 +17,7 @@ from fastapi import Cookie, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from infogami import config
+from openlibrary.accounts.model import get_secret_key
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
