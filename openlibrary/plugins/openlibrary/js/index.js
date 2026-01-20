@@ -582,4 +582,22 @@ jQuery(function () {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
     }
+
+    const mrReviewPanel = document.getElementById('mr-review-panel');
+    const authorForm = document.getElementById('addAuthor');
+
+    if (mrReviewPanel) {
+        if (authorForm) {
+            import('./merge-request-table/MergeRequestEditPageAuthor.js')
+                .then(module => {
+                    module.initAuthorMergeRequestEditPage();
+                })
+                .catch(() => {});
+        } else {
+            import('./merge-request-table/MergeRequestEditPage')
+                .then(module => {
+                    module.initMergeRequestEditPage();
+                });
+        }
+    }
 });

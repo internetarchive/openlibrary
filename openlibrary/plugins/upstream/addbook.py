@@ -530,6 +530,31 @@ def trim_doc(doc):
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
 
 
+def _close_merge_request(mrid: str | int | None, user, comment: str) -> None:
+    """Helper to safely close a merge request without crashing the main flow."""
+    if not mrid:
+        return
+
+    from openlibrary.core.edits import CommunityEditsQueue
+
+    try:
+        mrid_int = int(mrid)
+        # Mark the merge request as merged/approved since the record was deleted
+        CommunityEditsQueue.update_request_status(
+            rid=mrid_int,
+            status=CommunityEditsQueue.STATUS['MERGED'],
+            reviewer=user.key.split('/')[-1] if user else 'admin',
+            comment=comment or 'Record deleted via delete action',
+        )
+        logger.info(f'Successfully closed merge request {mrid} after deleting record')
+    except ValueError as e:
+        logger.error(f'Invalid merge request ID format: {mrid} - {e}')
+    except Exception as e:  # noqa: BLE001
+        # We catch Exception to prevent the delete action from failing
+        # just because the queue update failed.
+        logger.error(f'Failed to close merge request {mrid}: {e}')
+
+
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
 
@@ -557,111 +582,129 @@ class SaveBookHelper:
             and formdata.pop('_delete', '')
         )
 
+        # 1. Handle Deletion
+        if delete:
+            self._handle_delete(formdata, user, comment)
+            return
+
+        # 2. Process Data
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
-
-        if not delete:
-            self.process_new_fields(formdata)
+        self.process_new_fields(formdata)
 
         saveutil = DocSaveHelper()
 
-        if delete:
-            if self.edition:
-                self.delete(self.edition.key, comment=comment)
-
-            if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment)
-            return
-
-        just_editing_work = edition_data is None
+        # 3. Save Work
         if work_data:
-            # Create any new authors that were added
-            saveutil.create_authors_from_form_data(
-                work_data.get("authors") or [], formdata.get('authors') or []
-            )
+            self._save_work(saveutil, work_data, edition_data, formdata)
 
-            if not just_editing_work:
-                # Mypy misses that "not just_editing_work" means there is edition data.
-                assert self.edition
-                # Handle orphaned editions
-                new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
-                if self.work is None and (
-                    new_work_key is None or new_work_key == '__new__'
-                ):
-                    # i.e. not moving to another work, create empty work
-                    self.work = self.new_work(self.edition)
-                    edition_data.works = [{'key': self.work.key}]
-                    work_data.key = self.work.key
-                elif self.work is not None and new_work_key is None:
-                    # we're trying to create an orphan; let's not do that
-                    edition_data.works = [{'key': self.work.key}]
-            if self.work is not None:
-                work_identifiers = work_data.pop('identifiers', {})
-                self.work.set_identifiers(work_identifiers)
-                self.work.update(work_data)
-                saveutil.save(self.work)
-
+        # 4. Save Edition
         if self.edition and edition_data:
-            # Create a new work if so desired
-            new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
-            if new_work_key == "__new__" and self.work is not None:
-                new_work = self.new_work(self.edition)
-                edition_data.works = [{'key': new_work.key}]
-
-                new_work_options = formdata.get(
-                    'new_work_options',
-                    {
-                        'copy_authors': 'no',
-                        'copy_subjects': 'no',
-                    },
-                )
-
-                if new_work_options.get('copy_authors') == 'yes' and self.work.authors:
-                    new_work.authors = self.work.authors
-                if new_work_options.get('copy_subjects') == 'yes':
-                    for field in (
-                        'subjects',
-                        'subject_places',
-                        'subject_times',
-                        'subject_people',
-                    ):
-                        if val := getattr(self.work, field, None):
-                            new_work[field] = val
-
-                self.work = new_work
-                saveutil.save(self.work)
-
-            identifiers = edition_data.pop('identifiers', [])
-            self.edition.set_identifiers(identifiers)
-
-            classifications = edition_data.pop('classifications', [])
-            self.edition.set_classifications(classifications)
-
-            self.edition.set_physical_dimensions(
-                edition_data.pop('physical_dimensions', None)
-            )
-            self.edition.set_weight(edition_data.pop('weight', None))
-            try:
-                self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
-            except TocParseError as e:
-                raise ClientException(
-                    "400 Bad Request", f"Table of contents parse error: {e}"
-                )
-
-            if edition_data.pop('translation', None) != 'yes':
-                edition_data.translation_of = None
-                edition_data.translated_from = None
-
-            if 'contributors' not in edition_data:
-                self.edition.contributors = []
-
-            providers = edition_data.pop('providers', [])
-            self.edition.set_providers(providers)
-
-            self.edition.update(edition_data)
-            saveutil.save(self.edition)
+            self._save_edition(saveutil, edition_data, formdata)
 
         saveutil.commit(comment=comment, action="edit-book")
+
+    def _handle_delete(self, formdata, user, comment):
+        """Helper to handle deletion logic."""
+        if self.edition:
+            self.delete(self.edition.key, comment=comment)
+
+        if self.work and self.work.edition_count == 0:
+            self.delete(self.work.key, comment=comment)
+
+        # Use the global helper we defined earlier
+        _close_merge_request(formdata.get('mrid'), user, formdata.get('comment', ''))
+
+    def _save_work(self, saveutil, work_data, edition_data, formdata):
+        """Helper to process and save work data."""
+        saveutil.create_authors_from_form_data(
+            work_data.get("authors") or [], formdata.get('authors') or []
+        )
+
+        just_editing_work = edition_data is None
+        if not just_editing_work:
+            # Handle orphaned editions logic
+            new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+
+            if self.work is None and (
+                new_work_key is None or new_work_key == '__new__'
+            ):
+                # Create empty work for orphan
+                self.work = self.new_work(self.edition)
+                edition_data.works = [{'key': self.work.key}]
+                work_data.key = self.work.key
+            elif self.work is not None and new_work_key is None:
+                # Prevent creating an orphan if work exists
+                edition_data.works = [{'key': self.work.key}]
+
+        if self.work is not None:
+            work_identifiers = work_data.pop('identifiers', {})
+            self.work.set_identifiers(work_identifiers)
+            self.work.update(work_data)
+            saveutil.save(self.work)
+
+    def _save_edition(self, saveutil, edition_data, formdata):
+        """Helper to process and save edition data."""
+        # Handle "Create new work" option
+        new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+        if new_work_key == "__new__" and self.work is not None:
+            self._create_new_work_from_edition(edition_data, formdata, saveutil)
+
+        identifiers = edition_data.pop('identifiers', [])
+        self.edition.set_identifiers(identifiers)
+
+        classifications = edition_data.pop('classifications', [])
+        self.edition.set_classifications(classifications)
+
+        self.edition.set_physical_dimensions(
+            edition_data.pop('physical_dimensions', None)
+        )
+        self.edition.set_weight(edition_data.pop('weight', None))
+
+        try:
+            self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+        except TocParseError as e:
+            raise ClientException(
+                "400 Bad Request", f"Table of contents parse error: {e}"
+            )
+
+        if edition_data.pop('translation', None) != 'yes':
+            edition_data.translation_of = None
+            edition_data.translated_from = None
+
+        if 'contributors' not in edition_data:
+            self.edition.contributors = []
+
+        providers = edition_data.pop('providers', [])
+        self.edition.set_providers(providers)
+
+        self.edition.update(edition_data)
+        saveutil.save(self.edition)
+
+    def _create_new_work_from_edition(self, edition_data, formdata, saveutil):
+        """Helper to create a new work when requested during edition edit."""
+        new_work = self.new_work(self.edition)
+        edition_data.works = [{'key': new_work.key}]
+
+        new_work_options = formdata.get(
+            'new_work_options',
+            {'copy_authors': 'no', 'copy_subjects': 'no'},
+        )
+
+        if new_work_options.get('copy_authors') == 'yes' and self.work.authors:
+            new_work.authors = self.work.authors
+        if new_work_options.get('copy_subjects') == 'yes':
+            for field in (
+                'subjects',
+                'subject_places',
+                'subject_times',
+                'subject_people',
+            ):
+                if val := getattr(self.work, field, None):
+                    new_work[field] = val
+
+        self.work = new_work
+        saveutil.save(self.work)
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
@@ -1005,7 +1048,8 @@ class author_edit(delegate.page):
         if author is None:
             raise web.notfound()
 
-        i = web.input(_comment=None)
+        # Update: Accept mrid from the form input
+        i = web.input(_comment=None, mrid=None)
         formdata = self.process_input(i)
         try:
             if not formdata:
@@ -1015,11 +1059,35 @@ class author_edit(delegate.page):
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
             elif "_delete" in i:
+                # 1. Perform the actual deletion in the database
                 author = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
                 author._save(comment=i._comment)
+                # 2. Update the Merge Request (Logic ported from SaveBookHelper)
+                mrid = i.mrid
+                if mrid:
+                    from openlibrary.core.edits import CommunityEditsQueue
+
+                    # We need the current user to record who "reviewed" (deleted) it
+                    user = accounts.get_current_user()
+                    try:
+                        # Convert mrid to int
+                        mrid_int = int(mrid)
+                        # Mark the merge request as merged/approved
+                        CommunityEditsQueue.update_request_status(
+                            rid=mrid_int,
+                            status=CommunityEditsQueue.STATUS['MERGED'],
+                            reviewer=user.key.split('/')[-1] if user else 'admin',
+                            comment=i._comment or 'Record deleted via delete action',
+                        )
+                        logger.info(
+                            f'Successfully closed merge request {mrid} after deleting author'
+                        )
+                    except ValueError as e:
+                        logger.error(f'Invalid merge request ID format: {mrid} - {e}')
                 raise safe_seeother(key)
+
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             author.update(formdata)

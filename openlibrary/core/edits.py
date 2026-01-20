@@ -43,6 +43,8 @@ class CommunityEditsQueue:
         {
             'WORK_MERGE': 1,
             'AUTHOR_MERGE': 2,
+            'WORK_DELETE': 3,
+            'AUTHOR_DELETE': 4,
         }
     )
 

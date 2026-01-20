@@ -2,6 +2,7 @@ $def with (work, edition=None, recaptcha=None)
 
 $ work_config = get_identifier_config('work')
 $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
+$ mrid = query_param("mrid", None)
 
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
@@ -35,11 +36,16 @@ $:macros.HiddenSaveButton("addWork")
         else:
             title = _("Editing...")
             note = ""
+
     $:macros.databarEdit(edition if edition is not None else work)
+
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
-                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+                <input type="hidden" name="_delete" value="true">
+                $if mrid:
+                    <input type="hidden" name="mrid" value="$mrid">
+                <button type="submit" id="delete-btn">$_("Delete Record")</button>
             </form>
         </span>
 
@@ -85,22 +91,14 @@ $:macros.HiddenSaveButton("addWork")
                             <div class="formElement title">
                                 <div class="TitleAuthor sansserif">
                                     <div class="label">
-                                        <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                                        <label for="work-title">$_('Title')</label>
+                                        <span class="red">*</span>
                                     </div>
                                     <div class="input">
                                         <input name="work--title" type="text" id="work-title" value="$this_title" required/>
                                     </div>
                                     <div class="label">
                                         <label for="author-$0">$_("Author")</label>
-                                        <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
-                                        <br/>
-                                        <div class="flash-messages">
-                                            <noscript>
-                                                <p class="error">
-                                                <span>$:_('Author editing requires javascript')</span>
-                                                </p>
-                                            </noscript>
-                                        </div>
                                     </div>
                                     $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
                                 </div>
@@ -124,18 +122,11 @@ $:macros.HiddenSaveButton("addWork")
                 <fieldset class="major" id="identifiers">
                     <legend>$_("Work Identifiers")</legend>
                     <div class="formBack">
-                        <div id="id-errors-work" class="note" style="display:none"></div>
-                        <div class="formElement">
-                            <div class="label">
-                                <label for="select-id">$_("Do you know any identifiers for this work?")</label>
-                                <span class="tip">$_("These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab.")</span>
-                            </div>
+                        <div id="hiddenWorkIdentifiers"></div>
+                        <div id="identifiers-display-works">
+                            $ admin = str(bool(ctx.user) and (ctx.user.is_admin() or ctx.user.is_super_librarian()))
+                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=work.get_identifiers().values(), output_selector='#hiddenWorkIdentifiers', id_config_string=work_config.identifiers, input_prefix='work--identifiers', multiple='true', admin=admin))
                         </div>
-                    </div>
-                    <div id="hiddenWorkIdentifiers"></div>
-                    <div id="identifiers-display-works">
-                        $ admin = str(bool(ctx.user) and (ctx.user.is_admin() or ctx.user.is_super_librarian()))
-                        $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=work.get_identifiers().values(), output_selector='#hiddenWorkIdentifiers', id_config_string=work_config.identifiers, input_prefix='work--identifiers', multiple='true', admin=admin))
                     </div>
                 </fieldset>
             </div>
@@ -150,6 +141,12 @@ $:macros.HiddenSaveButton("addWork")
             $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         $:macros.EditButtons(comment=work.comment_)
-
     </form>
 </div>
+
+$if mrid and ctx.user:
+    <div id="mr-review-panel" data-mrid="$mrid" class="hidden">
+        <textarea id="mr-review-comment"></textarea>
+        <button type="button" id="mr-approve-btn">$_("Approve")</button>
+        <button type="button" id="mr-decline-btn">$_("Decline")</button>
+    </div>
