@@ -139,13 +139,6 @@ async def get_authenticated_user(
                 return {"message": f"Hello {user.username}!"}
             else:
                 raise HTTPException(status_code=401, detail="Not authenticated")
-
-    Args:
-        request: The FastAPI request object
-        session: The session cookie value
-
-    Returns:
-        AuthenticatedUser if valid cookie, None otherwise
     """
     return authenticate_user_from_cookie(session)
 
@@ -160,15 +153,6 @@ async def require_authenticated_user(
         @app.get("/protected")
         async def protected_route(user: AuthenticatedUser = Depends(require_authenticated_user)):
             return {"message": f"Hello {user.username}!"}
-
-    Args:
-        user: The user from get_authenticated_user dependency
-
-    Returns:
-        AuthenticatedUser if authenticated
-
-    Raises:
-        HTTPException: If user is not authenticated
     """
     if user is None:
         raise HTTPException(
@@ -185,7 +169,7 @@ def generate_login_code_for_user(username: str) -> str:
     Generate auth token for a user for FastAPI.
 
     This extracts the logic from Account.generate_login_code()
-    into a standalone function that doesn't need web.ctx.
+    into a standalone function that doesn't need web.ctx or Account.
 
     Args:
         username: The username to generate a login code for
