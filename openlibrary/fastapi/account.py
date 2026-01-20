@@ -5,22 +5,21 @@ FastAPI account endpoints for testing authentication.
 from __future__ import annotations
 
 from typing import Annotated
+from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Request, Response, Form, status
+from fastapi import APIRouter, Depends, Form, Request, Response, status
 from pydantic import BaseModel, Field
-
-from openlibrary.fastapi.auth import (
-    AuthenticatedUser,
-    get_authenticated_user,
-    require_authenticated_user,
-)
 
 from infogami import config
 from openlibrary.accounts.model import audit_accounts
 from openlibrary.core import stats
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    generate_login_code_for_user,
+    get_authenticated_user,
+    require_authenticated_user,
+)
 from openlibrary.plugins.upstream.account import get_login_error
-from openlibrary.fastapi.auth import generate_login_code_for_user
-from urllib.parse import unquote
 
 router = APIRouter()
 
@@ -67,7 +66,6 @@ async def check_authentication(
         # Without cookie
         curl http://localhost:18080/account/test.json
     """
-
 
     cookie_name = config.get("login_cookie_name", "session")
     cookie_value = request.cookies.get(cookie_name)
@@ -163,7 +161,6 @@ class LoginForm(BaseModel):
     action: str = ""
 
 
-
 @router.post("/account/login")
 async def login(
     request: Request,
@@ -181,7 +178,6 @@ async def login(
     This reuses all existing authentication logic from the legacy system.
     """
 
-
     # Call the EXACT same audit function that web.py uses
     audit = audit_accounts(
         email=form_data.username,
@@ -195,6 +191,7 @@ async def login(
     # Check for authentication errors
     if error := audit.get('error'):
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=get_login_error(error),
@@ -261,4 +258,3 @@ async def logout(request: Request) -> Response:
     response.delete_cookie("sfw")
 
     return response
-

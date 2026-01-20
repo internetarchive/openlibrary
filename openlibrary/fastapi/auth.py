@@ -14,12 +14,12 @@ import logging
 import time
 from typing import TYPE_CHECKING, Annotated
 from urllib.parse import unquote
-from openlibrary.accounts.model import get_secret_key, generate_hash
 
 from fastapi import Cookie, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from infogami import config
+from openlibrary.accounts.model import generate_hash, get_secret_key
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -208,7 +208,6 @@ def generate_login_code_for_user(username: str) -> str:
         A string in the format: "/people/{username},{timestamp},{salt}${hash}"
         that can be used as a session cookie value
     """
-
 
     user_key = "/people/" + username
     t = datetime.datetime(*time.gmtime()[:6]).isoformat()
