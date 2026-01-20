@@ -1,24 +1,21 @@
 """
-FastAPI authentication middleware for reading Open Library session cookies.
+FastAPI authentication dependencies for reading Open Library session cookies.
 
-This module provides middleware and dependencies for authenticating users
-based on the existing Open Library session cookie format.
+This module provides dependencies for authenticating users based on the existing
+Open Library session cookie format.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from urllib.parse import unquote
 
-from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi import Cookie, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from infogami import config
 from openlibrary.accounts.model import get_secret_key, verify_hash
-
-if TYPE_CHECKING:
-    from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +90,6 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
 
 async def get_authenticated_user(
-    request: Request,
     session: str | None = Cookie(
         None, alias=config.get("login_cookie_name", "session")
     ),
@@ -131,26 +127,3 @@ async def require_authenticated_user(
         )
 
     return user
-
-
-def add_authentication_middleware(app: FastAPI) -> None:
-    """
-    Add authentication middleware to the FastAPI app.
-
-    This middleware adds the authenticated user to request.state.user
-    for easy access in endpoints without using dependencies.
-
-    Args:
-        app: The FastAPI application instance
-    """
-
-    @app.middleware("http")
-    async def authentication_middleware(request: Request, call_next):
-        """Middleware to decode session cookie and add user to request state."""
-        cookie_name = config.get("login_cookie_name", "session")
-        session_cookie = request.cookies.get(cookie_name)
-
-        request.state.user = authenticate_user_from_cookie(session_cookie)
-
-        response = await call_next(request)
-        return response

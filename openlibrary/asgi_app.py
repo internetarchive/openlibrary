@@ -177,12 +177,8 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router  # type: ignore
-    from openlibrary.fastapi.auth import add_authentication_middleware  # type: ignore
     from openlibrary.fastapi.languages import router as languages_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
-
-    # Add authentication middleware
-    add_authentication_middleware(app)
 
     # Include routers
     app.include_router(languages_router)
