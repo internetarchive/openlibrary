@@ -1,5 +1,7 @@
 # FastAPI Authentication System - Technical Documentation
 
+## TODO: Delete this before merging, it's just for local understanding and fully AI generated.
+
 ## Overview
 
 This document describes the FastAPI authentication system for Open Library, which enables FastAPI endpoints running on port 18080 to authenticate users using the existing Open Library session cookies from the legacy web.py application (port 8080).

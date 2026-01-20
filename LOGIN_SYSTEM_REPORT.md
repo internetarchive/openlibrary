@@ -1,5 +1,7 @@
 # Open Library Login System - Comprehensive Technical Report
 
+## TODO: Delete this before merging, it's just for local understanding and fully AI generated.
+
 ## Executive Summary
 
 This document provides a complete technical analysis of the Open Library authentication system, including the login flow, cookie encoding/decoding mechanism, files involved, and dependencies. This report is essential for understanding the system before migration.

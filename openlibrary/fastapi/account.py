@@ -43,6 +43,7 @@ class AuthTestResponse(BaseModel):
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
+# TODO: Delete this before merging, it's just for local testing for now.
 @router.get("/account/test.json", response_model=AuthTestResponse)
 async def check_authentication(
     request: Request,
@@ -102,6 +103,7 @@ async def check_authentication(
     )
 
 
+# TODO: Delete this before merging, it's just for local testing for now.
 @router.get("/account/protected.json")
 async def protected_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
@@ -124,6 +126,7 @@ async def protected_endpoint(
     }
 
 
+# TODO: Delete this before merging, it's just for local testing for now.
 @router.get("/account/optional.json")
 async def optional_auth_endpoint(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],

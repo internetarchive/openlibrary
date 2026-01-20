@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: Delete this before merging, it's just for local testing for now.
+
 # Test script for FastAPI authentication
 # Note: FastAPI runs on port 18080 in Docker
 
