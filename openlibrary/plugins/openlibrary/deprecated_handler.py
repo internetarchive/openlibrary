@@ -5,8 +5,9 @@ or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
 
-import infogami
 import web
+
+import infogami
 from infogami.utils import delegate
 
 
