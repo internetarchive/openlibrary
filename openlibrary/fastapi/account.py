@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response, Form, status
 from pydantic import BaseModel, Field
 
 from openlibrary.fastapi.auth import (
@@ -14,6 +14,13 @@ from openlibrary.fastapi.auth import (
     get_authenticated_user,
     require_authenticated_user,
 )
+
+from infogami import config
+from openlibrary.accounts.model import audit_accounts
+from openlibrary.core import stats
+from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.fastapi.auth import generate_login_code_for_user
+from urllib.parse import unquote
 
 router = APIRouter()
 
@@ -60,9 +67,7 @@ async def check_authentication(
         # Without cookie
         curl http://localhost:18080/account/test.json
     """
-    from urllib.parse import unquote
 
-    from infogami import config
 
     cookie_name = config.get("login_cookie_name", "session")
     cookie_value = request.cookies.get(cookie_name)
@@ -146,3 +151,114 @@ async def optional_auth_endpoint(
             "message": "Hello, anonymous user!",
             "is_authenticated": False,
         }
+
+
+class LoginForm(BaseModel):
+    """Login form data - matches web.py forms.Login"""
+
+    username: str
+    password: str
+    remember: bool = False
+    redirect: str = "/"
+    action: str = ""
+
+
+
+@router.post("/account/login")
+async def login(
+    request: Request,
+    form_data: Annotated[LoginForm, Form()],
+) -> Response:
+    """
+    Login endpoint - works identically to web.py version.
+
+    This endpoint:
+    1. Validates email/password against Internet Archive
+    2. Creates/links OpenLibrary account if needed
+    3. Sets session cookie and other cookies
+    4. Redirects to target page
+
+    This reuses all existing authentication logic from the legacy system.
+    """
+
+
+    # Call the EXACT same audit function that web.py uses
+    audit = audit_accounts(
+        email=form_data.username,
+        password=form_data.password,
+        require_link=True,
+        s3_access_key=None,
+        s3_secret_key=None,
+        test=False,
+    )
+
+    # Check for authentication errors
+    if error := audit.get('error'):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=get_login_error(error),
+        )
+
+    # Extract user info from audit result
+    ol_username = audit.get('ol_username')
+    if not ol_username:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login succeeded but no username found",
+        )
+
+    # Determine cookie expiration
+    expires = 3600 * 24 * 365 if form_data.remember else ""
+
+    # Generate auth token (same way web.py does it via Account.generate_login_code())
+    auth_token = generate_login_code_for_user(ol_username)
+
+    # Create response with redirect
+    response = Response(
+        status_code=status.HTTP_303_SEE_OTHER,
+        headers={"Location": form_data.redirect},
+    )
+
+    # Set session cookie (same as web.py)
+    response.set_cookie(
+        config.login_cookie_name,
+        auth_token,
+        max_age=expires,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+    )
+
+    # Set print disability flag if user has special access
+    response.set_cookie(
+        "pd",
+        str(int(audit.get('special_access', 0))) if audit.get('special_access') else "",
+        max_age=expires,
+    )
+
+    # Increment stats (same as web.py)
+    stats.increment('ol.account.xauth.login')
+
+    return response
+
+
+@router.post("/account/logout")
+async def logout(request: Request) -> Response:
+    """
+    Logout endpoint - clears authentication cookies.
+
+    This mirrors the web.py logout functionality.
+    """
+
+    response = Response(
+        status_code=status.HTTP_303_SEE_OTHER,
+        headers={"Location": "/"},
+    )
+
+    # Clear all auth cookies (same as web.py does)
+    response.delete_cookie(config.login_cookie_name)
+    response.delete_cookie("pd")
+    response.delete_cookie("sfw")
+
+    return response
+
