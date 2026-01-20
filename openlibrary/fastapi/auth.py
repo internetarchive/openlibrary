@@ -42,6 +42,7 @@ class AuthenticatedUser(BaseModel):
         }
     }
 
+
 def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser | None:
     """Authenticate a user from a session cookie.
 
