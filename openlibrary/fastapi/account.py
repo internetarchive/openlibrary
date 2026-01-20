@@ -11,11 +11,10 @@ from fastapi import APIRouter, Depends, Form, Request, Response, status
 from pydantic import BaseModel, Field
 
 from infogami import config
-from openlibrary.accounts.model import audit_accounts
+from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user
 from openlibrary.core import stats
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
-    generate_login_code_for_user,
     get_authenticated_user,
     require_authenticated_user,
 )

@@ -19,7 +19,7 @@ from fastapi import Cookie, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from infogami import config
-from openlibrary.accounts.model import generate_hash, get_secret_key
+from openlibrary.accounts.model import generate_login_code_for_user
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -162,27 +162,6 @@ async def require_authenticated_user(
         )
 
     return user
-
-
-def generate_login_code_for_user(username: str) -> str:
-    """
-    Generate auth token for a user for FastAPI.
-
-    This extracts the logic from Account.generate_login_code()
-    into a standalone function that doesn't need web.ctx or Account.
-
-    Args:
-        username: The username to generate a login code for
-
-    Returns:
-        A string in the format: "/people/{username},{timestamp},{salt}${hash}"
-        that can be used as a session cookie value
-    """
-
-    user_key = "/people/" + username
-    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
-    text = f"{user_key},{t}"
-    return text + "," + generate_hash(get_secret_key(), text)
 
 
 def add_authentication_middleware(app: FastAPI) -> None:
