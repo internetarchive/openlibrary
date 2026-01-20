@@ -43,6 +43,18 @@ def setup():
         for name in old_plugins
     ]
 
+    # Register deprecated endpoint handlers AFTER all plugins have loaded
+    # This must be done here, after all plugins are imported, to ensure our handlers
+    # override the deprecated ones
+    from openlibrary.plugins.openlibrary import deprecated_handler
+    from infogami.utils.app import pages
+    for path in deprecated_handler.DEPRECATED_PATHS:
+        if path not in pages:
+            pages[path] = {}
+        old_handler = pages[path].get('json')
+        print(f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}", file=sys.stderr)
+        pages[path]['json'] = deprecated_handler.DeprecatedEndpointHandler
+
     load_views()
 
     # load actions
