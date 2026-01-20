@@ -209,7 +209,7 @@ async def login(
     expires = 3600 * 24 * 365 if form_data.remember else ""
 
     # Generate auth token (same way web.py does it via Account.generate_login_code())
-    auth_token = generate_login_code_for_user(ol_username)
+    login_code = generate_login_code_for_user(ol_username)
 
     # Create response with redirect
     response = Response(
@@ -220,7 +220,7 @@ async def login(
     # Set session cookie (same as web.py)
     response.set_cookie(
         config.login_cookie_name,
-        auth_token,
+        login_code,
         max_age=expires,
         httponly=True,
         secure=False,
