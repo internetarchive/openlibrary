@@ -10,7 +10,6 @@ import sys
 
 import infogami
 from infogami.utils import delegate, i18n, macro, template
-
 from infogami.utils.app import pages
 from openlibrary.plugins.openlibrary import deprecated_handler
 
