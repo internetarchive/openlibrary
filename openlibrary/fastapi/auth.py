@@ -7,8 +7,6 @@ based on the existing Open Library session cookie format.
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import logging
 from typing import TYPE_CHECKING, Annotated
 from urllib.parse import unquote
@@ -17,7 +15,7 @@ from fastapi import Cookie, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from infogami import config
-from openlibrary.accounts.model import get_secret_key
+from openlibrary.accounts.model import get_secret_key, verify_hash
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -43,34 +41,6 @@ class AuthenticatedUser(BaseModel):
             ]
         }
     }
-
-
-def verify_hash(secret_key: str, text: str, hash_value: str) -> bool:
-    """Verify if the hash is valid.
-
-    Args:
-        secret_key: The secret key for HMAC
-        text: The text to verify
-        hash_value: The hash to verify against (format: salt$hash)
-
-    Returns:
-        True if hash is valid, False otherwise
-    """
-    try:
-        salt = hash_value.split("$", 1)[0]
-        key_bytes = secret_key.encode("utf-8")
-
-        computed_hash = hmac.HMAC(
-            key_bytes, (salt + text).encode("utf-8"), hashlib.md5
-        ).hexdigest()
-
-        # Compare with provided hash
-        expected_hash = hash_value.split("$", 1)[1] if "$" in hash_value else hash_value
-        return hmac.compare_digest(computed_hash, expected_hash)
-    except (ValueError, IndexError) as e:
-        logger.error(f"Error verifying hash: {e}")
-        return False
-
 
 def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser | None:
     """Authenticate a user from a session cookie.
