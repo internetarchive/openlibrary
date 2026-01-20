@@ -223,7 +223,7 @@ async def login(
         auth_token,
         max_age=expires,
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
+        secure=False,
     )
 
     # Set print disability flag if user has special access

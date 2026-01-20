@@ -47,20 +47,6 @@ class AuthenticatedUser(BaseModel):
     }
 
 
-def get_secret_key() -> str:
-    """Get the secret key from config for verifying cookies.
-
-    Returns:
-        The secret key as a string.
-    """
-    key = config.get("infobase", {}).get("secret_key", "")
-    if not key:
-        # Fallback for development/testing
-        logger.warning("No secret_key configured in infobase config")
-        return "dev_secret_key_do_not_use_in_production"
-    return key
-
-
 def verify_hash(secret_key: str, text: str, hash_value: str) -> bool:
     """Verify if the hash is valid.
 
