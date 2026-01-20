@@ -53,7 +53,6 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
         return None
 
     try:
-        # URL decode the cookie
         decoded = unquote(cookie_value)
 
         # Split into parts: /people/username,timestamp,salt$hash
@@ -77,7 +76,6 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
         username = user_key[len("/people/") :]
 
-        # Return AuthenticatedUser directly
         return AuthenticatedUser(
             username=username,
             user_key=user_key,
@@ -96,14 +94,16 @@ async def get_authenticated_user(
 ) -> AuthenticatedUser | None:
     """FastAPI dependency to get the authenticated user from the session cookie.
 
-    This function can be used as a dependency in FastAPI endpoints:
+    This function can be used as a dependency in FastAPI routes:
 
-        @app.get("/protected")
-        async def protected_route(user: AuthenticatedUser | None = Depends(get_authenticated_user)):
-            if user:
-                return {"message": f"Hello {user.username}!"}
-            else:
-                raise HTTPException(status_code=401, detail="Not authenticated")
+    @app.get("/protected")
+    async def protected_route(
+        user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    ):
+        if user:
+            return {"message": f"Hello {user.username}!"}
+        else:
+            raise HTTPException(status_code=401, detail="Not authenticated")
     """
     return authenticate_user_from_cookie(session)
 
@@ -115,9 +115,11 @@ async def require_authenticated_user(
 
     Use this when you want to ensure a user is authenticated, returning 401 if not.
 
-        @app.get("/protected")
-        async def protected_route(user: AuthenticatedUser = Depends(require_authenticated_user)):
-            return {"message": f"Hello {user.username}!"}
+    @app.get("/protected")
+    async def protected_route(
+        user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    ):
+        return {"message": f"Hello {user.username}!"}
     """
     if user is None:
         raise HTTPException(
