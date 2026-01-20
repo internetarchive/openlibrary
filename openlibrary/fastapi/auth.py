@@ -7,11 +7,9 @@ based on the existing Open Library session cookie format.
 
 from __future__ import annotations
 
-import datetime
 import hashlib
 import hmac
 import logging
-import time
 from typing import TYPE_CHECKING, Annotated
 from urllib.parse import unquote
 
@@ -19,7 +17,6 @@ from fastapi import Cookie, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from infogami import config
-from openlibrary.accounts.model import generate_login_code_for_user
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
