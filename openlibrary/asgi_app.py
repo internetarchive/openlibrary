@@ -115,29 +115,6 @@ def setup_i18n(app: FastAPI):
         return response
 
 
-def setup_solr_editions(app: FastAPI):
-    """Sets up middleware to parse solr_editions preference from request.
-
-    Checks query string (?editions=true) and cookie (SOLR_EDITIONS).
-    The value is stored in request.state.solr_editions and later added to RequestContextVars.
-    """
-
-    @app.middleware("http")
-    async def solr_editions_middleware(request: Request, call_next):
-        """Parse solr_editions from query string or cookie and set in request.state."""
-        # Check query string
-        if editions_param := request.query_params.get('editions'):
-            request.state.solr_editions = editions_param.lower() == 'true'
-        # Check cookie
-        elif cookie_value := request.cookies.get('SOLR_EDITIONS'):
-            request.state.solr_editions = cookie_value.lower() == 'true'
-        else:
-            request.state.solr_editions = None
-
-        response = await call_next(request)
-        return response
-
-
 sentry: Sentry | None = None
 
 
@@ -195,9 +172,6 @@ def create_app() -> FastAPI:
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
     # because the handlers are called in reverse order
     setup_i18n(app)
-
-    # setup_solr_editions must be below setup_i18n so both run before set_context
-    setup_solr_editions(app)
 
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
