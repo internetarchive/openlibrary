@@ -57,6 +57,7 @@ class RequestContextVars:
 
     x_forwarded_for: str | None
     user_agent: str | None
+    lang: str | None
 
 
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
@@ -74,6 +75,7 @@ def set_context_from_legacy_web_py() -> None:
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
             user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
+            lang=web.ctx.lang,
         )
     )
 
@@ -89,5 +91,6 @@ def set_context_from_fastapi(request: Request) -> None:
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
             user_agent=request.headers.get("User-Agent"),
+            lang=request.state.lang,
         )
     )
