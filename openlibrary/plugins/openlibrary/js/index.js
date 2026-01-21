@@ -320,7 +320,21 @@ jQuery(function () {
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
-            .then((module) => module.init());
+            .then((module) => module.init())
+            .then(() => {
+                // book page subject editing
+                const editSubjectButton = document.querySelector('.edit-subject .edit-subject-btn')
+                if (editSubjectButton) {
+                    editSubjectButton.addEventListener("click", () => {
+                        const workOlid = editSubjectButton.dataset.workOlid
+                        if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
+                            window.ILE.selectionManager.addSelectedItem(workOlid)
+                            window.ILE.selectionManager.updateToolbar()
+                        }
+                        window.ILE.updateAndShowBulkTagger([workOlid])
+                    })
+                }
+        })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')
