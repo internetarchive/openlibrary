@@ -89,7 +89,9 @@ def generate_test_params_from_model(
 
 
 @pytest.fixture
-def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
+def webpy_client(
+    mock_work_search, mock_fulltext_search, mock_run_solr_query, mock_get_subject
+):
     """Create a WebTest client for webpy search endpoints.
 
     This creates a minimal web.py application allowing real HTTP request parsing for endpoints.
@@ -101,6 +103,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         search_json,
         subject_search_json,
     )
+    from openlibrary.plugins.worksearch.subjects import subjects_json
 
     # Create a minimal web.py app with all search endpoints
     urls = (
@@ -114,6 +117,8 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
         'list_search_json',
         '/search/authors',
         'author_search_json',
+        '/subjects/(.+)',
+        'subjects_json_handler',
     )
 
     # Create app with all handlers in the global namespace
@@ -125,6 +130,7 @@ def webpy_client(mock_work_search, mock_fulltext_search, mock_run_solr_query):
             'subject_search_json': subject_search_json,
             'list_search_json': list_search_json,
             'author_search_json': author_search_json,
+            'subjects_json_handler': subjects_json,
         },
     )
 
@@ -545,3 +551,61 @@ class TestAPIContract:
                 f"Parameter '{key}' mismatch for {description}: "
                 f"FastAPI={fastapi_val}, webpy={webpy_val}"
             )
+
+    @pytest.mark.parametrize(
+        ('params', 'description'),
+        [
+            ({}, 'basic subject query'),
+            ({'limit': '10', 'offset': '5'}, 'with pagination'),
+            ({'details': 'true'}, 'with details'),
+            ({'has_fulltext': 'true'}, 'with has_fulltext filter'),
+            ({'published_in': '2000-2010'}, 'with published_in range'),
+            ({'sort': 'new'}, 'with sort'),
+        ],
+    )
+    def test_both_subjects_json_endpoints_call_get_subject_same(
+        self,
+        fastapi_client,
+        webpy_client,
+        mock_get_subject,
+        mock_get_subject_fastapi,
+        params,
+        description,
+    ):
+        """Verify both webpy and FastAPI call get_subject with equivalent arguments."""
+        from urllib.parse import urlencode
+
+        key = 'love'
+        query_string = urlencode(params, doseq=True) if params else ''
+
+        # Call FastAPI endpoint
+        fastapi_response = fastapi_client.get(f'/subjects/{key}.json?{query_string}')
+        assert fastapi_response.status_code == 200
+        mock_get_subject_fastapi.assert_called_once()
+        fastapi_call_args = mock_get_subject_fastapi.call_args
+
+        # Call webpy endpoint
+        webpy_response = webpy_client.get(f'/subjects/{key}.json?{query_string}')
+        assert webpy_response.status_code == 200
+        mock_get_subject.assert_called()
+        webpy_call_args = mock_get_subject.call_args
+
+        # Compare key (first positional arg)
+        # Both should pass the full subject path
+        assert fastapi_call_args[0][0] == f'/subjects/{key}'
+        assert webpy_call_args[0][0] == f'/subjects/{key}'
+
+        # Compare keyword args
+        fastapi_kwargs = {
+            k: v for k, v in fastapi_call_args[1].items() if k not in ['request_label']
+        }
+        webpy_kwargs = {
+            k: v for k, v in webpy_call_args[1].items() if k not in ['request_label']
+        }
+
+        for key in ['offset', 'limit', 'sort', 'details']:
+            fastapi_val = fastapi_kwargs.get(key)
+            webpy_val = webpy_kwargs.get(key)
+            assert (
+                fastapi_val == webpy_val
+            ), f"Parameter '{key}' mismatch: FastAPI={fastapi_val}, webpy={webpy_val}"
