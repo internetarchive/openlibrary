@@ -3,7 +3,6 @@
 from unittest.mock import patch
 
 import pytest
-import web
 from fastapi.testclient import TestClient
 
 
@@ -138,43 +137,3 @@ def _default_subjects_response():
         },
         solr_select='mock',
     )
-
-
-@pytest.fixture
-def mock_get_subject():
-    """Mock get_subject function for subjects_json endpoint tests.
-
-    Used by both FastAPI and webpy subjects_json endpoint tests.
-    """
-    with patch('openlibrary.plugins.worksearch.subjects.get_subject') as mock:
-        # Return a minimal subject object
-        mock.return_value = web.storage(
-            key='/subjects/love',
-            name='Love',
-            subject_type='subject',
-            solr_query='subject_key:love',
-            work_count=100,
-            ebook_count=50,
-            works=[],
-        )
-        yield mock
-
-
-@pytest.fixture
-def mock_get_subject_fastapi():
-    """Mock get_subject function in FastAPI module.
-
-    Used by FastAPI subjects_json endpoint tests.
-    """
-    with patch('openlibrary.fastapi.subjects.get_subject') as mock:
-        # Return a minimal subject object
-        mock.return_value = web.storage(
-            key='/subjects/love',
-            name='Love',
-            subject_type='subject',
-            solr_query='subject_key:love',
-            work_count=100,
-            ebook_count=50,
-            works=[],
-        )
-        yield mock
