@@ -43,7 +43,7 @@ async def subject_json(
             status_code=301,
         )
 
-    return fetch_subject_data(
+    return await fetch_subject_data(
         key=key,
         params=params,
         path_prefix="/subjects",

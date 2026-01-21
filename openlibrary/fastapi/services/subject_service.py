@@ -18,7 +18,7 @@ from openlibrary.plugins.worksearch.subjects import (
     DEFAULT_RESULTS,
     MAX_RESULTS,
     date_range_to_publish_year_filter,
-    get_subject,
+    get_subject_async,
 )
 
 
@@ -74,7 +74,7 @@ def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
     return filters
 
 
-def fetch_subject_data(
+async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
     path_prefix: str,
@@ -109,8 +109,7 @@ def fetch_subject_data(
     # Build filters from request parameters
     filters = build_filters(params)
 
-    # Fetch subject data
-    subject: Subject = get_subject(
+    subject: Subject = await get_subject_async(
         full_key,
         offset=params.offset or 0,
         limit=params.limit,

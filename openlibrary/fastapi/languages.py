@@ -50,7 +50,7 @@ async def language_json(
     - List of works (with pagination)
     - Optional facets (authors, subjects, places, people, times, publishers, languages, publishing_history)
     """
-    return fetch_subject_data(
+    return await fetch_subject_data(
         key=key,
         params=params,
         path_prefix="/languages",
