@@ -12,7 +12,7 @@ class Test_fulltext_search_api:
     def setup_interactions(self, monkeypatch):
         # Runs automatically before every test in this class.
         token = req_context.set(
-            RequestContextVars(x_forwarded_for=None, user_agent=None)
+            RequestContextVars(x_forwarded_for=None, user_agent=None, lang=None)
         )
 
         yield  # This yields control to the test function

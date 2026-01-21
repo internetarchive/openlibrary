@@ -48,6 +48,7 @@ class TestGetAvailability:
             RequestContextVars(
                 x_forwarded_for="ol-internal",
                 user_agent="test-user-agent",
+                lang=None,
             )
         )
 
