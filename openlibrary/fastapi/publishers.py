@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from pydantic import Field
 
 from openlibrary.core.models import Subject
@@ -17,8 +17,8 @@ from openlibrary.plugins.worksearch.subjects import (
 router = APIRouter()
 
 
-class SubjectRequestParams(Pagination):
-    """Query parameters for /subjects/{key}.json endpoint."""
+class PublisherRequestParams(Pagination):
+    """Query parameters for /publishers/{key}.json endpoint."""
 
     details: Literal["true", "false"] = Field(
         "false", description="Include facets and detailed metadata"
@@ -45,49 +45,44 @@ class SubjectRequestParams(Pagination):
 
 
 def normalize_key(key: str) -> str:
-    """Normalize the subject key by converting to lowercase.
+    """Normalize the publisher key.
 
-    Mirrors the behavior from subjects_json.normalize_key()
-    """
-    return key.lower()
-
-
-def process_key(key: str) -> str:
-    """Process the subject key.
-
-    Base implementation from subjects_json.process_key().
-    Subclasses (languages, publishers) override this.
+    Mirrors the behavior from publishers_json.normalize_key() - returns key as-is.
     """
     return key
 
 
-@router.get("/subjects/{key:path}.json")
-async def subject_json(
-    request: Request,
+def process_key(key: str) -> str:
+    """Process the publisher key.
+
+    Mirrors the behavior from publishers_json.process_key() - replaces underscores with spaces.
+    """
+    return key.replace("_", " ")
+
+
+@router.get("/publishers/{key:path}.json")
+async def publisher_json(
     key: str,
-    params: Annotated[SubjectRequestParams, Depends()],
+    params: Annotated[PublisherRequestParams, Depends()],
 ) -> dict[str, Any]:
     """
-    Get subject information including works and optional facets.
+    Get publisher information including works and optional facets.
 
-    This endpoint provides data about a subject including:
-    - Basic subject metadata (key, name, work_count)
+    This endpoint provides data about a publisher including:
+    - Basic publisher metadata (key, name, work_count)
     - List of works (with pagination)
     - Optional facets (authors, subjects, places, people, times, publishers, languages, publishing_history)
     """
-    # The key from the URL path is just the subject identifier (e.g., "love", "person:mark_twain")
-    # We need to prepend "/subjects/" to match what get_subject() expects
-    full_key = f"/subjects/{key}"
 
-    # Normalize the key (lowercase conversion)
+    # The key from the URL path is just the publisher identifier (e.g., "Penguin_Books")
+    # We need to prepend "/publishers/" to match what get_subject() expects
+    full_key = f"/publishers/{key}"
+
+    # Normalize the key (publishers don't normalize - no lowercase)
     nkey = normalize_key(full_key)
-
-    # For the base subjects endpoint, normalize_key is just lowercase
-    # If the key changed (e.g., due to case differences), we don't redirect in FastAPI
-    # (web.py does, but we'll just use the normalized version)
     full_key = nkey
 
-    # Process the key (base implementation does nothing, subclasses override)
+    # Process the key (replace underscores with spaces)
     full_key = process_key(full_key)
 
     # Build filters
@@ -100,9 +95,7 @@ async def subject_json(
     ):
         filters["publish_year"] = publish_year_filter
 
-    # Call get_subject (sync for now, as requested)
-    # Note: This is a synchronous call within an async endpoint
-    # We can make this truly async later by converting get_subject
+    # Call get_subject (sync for now)
     subject: Subject = get_subject(
         full_key,
         offset=params.offset or 0,

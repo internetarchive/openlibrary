@@ -179,10 +179,12 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     from openlibrary.fastapi.languages import router as languages_router  # type: ignore
+    from openlibrary.fastapi.publishers import router as publishers_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
     from openlibrary.fastapi.subjects import router as subjects_router  # type: ignore
 
     app.include_router(languages_router)
+    app.include_router(publishers_router)
     app.include_router(search_router)
     app.include_router(subjects_router)
 
