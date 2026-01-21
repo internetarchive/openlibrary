@@ -51,7 +51,7 @@ export class IntegratedLibrarianEnvironment {
     }
 
     /**
-     * Unselects selected search result items and resets status bar.
+     * Resets the status bar.
      */
     reset() {
         for (const elem of $('.ile-selected')) {
@@ -61,6 +61,15 @@ export class IntegratedLibrarianEnvironment {
         this.$selectionActions.empty();
         this.$statusImages.empty();
         this.$actions.empty();
+    }
+
+    /**
+     * Clears all items selected in SelectionManager.
+     *
+     * This indirectly calls `IntegratedlibrarianEnvironment.reset()`.
+     */
+    clearAndReset() {
+        this.selectionManager.clearSelectedItems()
     }
 
     /**
@@ -81,9 +90,11 @@ export class IntegratedLibrarianEnvironment {
      * Updates the Bulk Tagger with the selected works, then displays the tagger.
      *
      * @param {Array<String>} workIds
+     * @param {boolean} isBookPageEdit `true` if the bulk tagger is opened on a /books owr /works page
      */
-    updateAndShowBulkTagger(workIds) {
+    updateAndShowBulkTagger(workIds, isBookPageEdit = false) {
         if (this.bulkTagger) {
+            this.bulkTagger.isBookPageEdit = isBookPageEdit
             this.bulkTagger.updateWorks(workIds)
             this.bulkTagger.showTaggingMenu()
         }

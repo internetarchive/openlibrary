@@ -128,6 +128,13 @@ export class BulkTagger {
          * @member {Array<Tag>}
          */
         this.tagsToRemove = []
+
+        /**
+         * `true` if the bulk tagger appears on a book page.
+         *
+         * @type {boolean}
+         */
+        this.isBookPageEdit = false
     }
 
     /**
@@ -535,6 +542,10 @@ export class BulkTagger {
                     this.submitButton.textContent = 'Submit';
                     this.updateFetchedSubjects();
                     this.resetTaggingMenu();
+                    if (this.isBookPageEdit) {
+                        window.ILE.clearAndReset()
+                        window.location.reload()
+                    }
                 }
             })
     }
