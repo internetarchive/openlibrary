@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import cast
 
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -80,6 +81,7 @@ class subjects(delegate.page):
                 )
 
 
+@deprecated("migrated to fastapi")
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
     encoding = 'json'
