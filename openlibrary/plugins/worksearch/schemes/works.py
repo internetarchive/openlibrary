@@ -9,6 +9,7 @@ from typing import Any, cast
 
 import luqum.tree
 import web
+from typing_extensions import deprecated
 
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
@@ -731,24 +732,15 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
-def has_solr_editions_enabled():
-    """Check if Solr editions feature is enabled.
+@deprecated('remove once we fully switch search to fastapi')
+def _parse_solr_editions_from_web() -> bool:
+    """Parse solr_editions from web.py context.
 
-    Works in both web.py and FastAPI contexts by checking RequestContextVars first.
-    Falls back to web.ctx for backward compatibility.
+    This extracts the parsing logic from has_solr_editions_enabled().
+    Used by set_context_from_legacy_web_py() to parse once during request setup.
+
+    Priority: query string > cookie > default (True)
     """
-    # Check RequestContextVars first (works in both FastAPI and web.py via async_bridge)
-    from openlibrary.utils.async_utils import req_context
-
-    try:
-        context = req_context.get()
-        if context.solr_editions is not None:
-            return context.solr_editions
-    except LookupError:
-        # Context not set, fall through to web.ctx
-        pass
-
-    # Fallback to web.py context (for backward compatibility)
     if 'pytest' in sys.modules:
         return True
 
@@ -766,6 +758,31 @@ def has_solr_editions_enabled():
         return cookie_value == 'true'
 
     return True
+
+
+def _parse_solr_editions_from_fastapi(request) -> bool:
+    """Parse solr_editions preference from query string or cookie.
+
+    Priority: query string > cookie > default (True)
+    """
+    if editions_param := request.query_params.get('editions'):
+        return editions_param.lower() == 'true'
+
+    if cookie_value := request.cookies.get('SOLR_EDITIONS'):
+        return cookie_value.lower() == 'true'
+
+    return True
+
+
+def has_solr_editions_enabled():
+    """Check if Solr editions feature is enabled.
+
+    Reads from RequestContextVars which is always set during request processing.
+    Falls back to parsing logic for backward compatibility and testing.
+
+    The only reason this stays here now is because we use it in a templator template and I'm not sure how to migrate it.
+    """
+    return req_context.get().solr_editions
 
 
 def get_fulltext_min():

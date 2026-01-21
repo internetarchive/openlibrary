@@ -73,9 +73,13 @@ def set_context_from_legacy_web_py() -> None:
     """
     Extracts context from the global web.ctx (sync) and populates ContextVars.
     """
-    from openlibrary.plugins.worksearch.schemes.works import has_solr_editions_enabled
+    # Import here to avoid circular import
+    from openlibrary.plugins.worksearch.schemes.works import (
+        _parse_solr_editions_from_web,
+    )
 
-    # Check pd cookie for print disabled status
+    # Parse preferences once here
+    solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get('pd', False))
 
     site.set(create_site())
@@ -85,7 +89,7 @@ def set_context_from_legacy_web_py() -> None:
             user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
             hhcl=web.ctx.env.get("HTTP_X_HHCL"),
             lang=web.ctx.lang,
-            solr_editions=has_solr_editions_enabled(),
+            solr_editions=solr_editions,
             print_disabled=print_disabled,
         )
     )
@@ -97,6 +101,13 @@ def set_context_from_fastapi(request: Request) -> None:
     Should be called within the middleware stack.
     """
     # NOTE: Avoid adding new fields here if they can be passed as function arguments instead.
+
+    # Import here to avoid circular import
+    from openlibrary.plugins.worksearch.schemes.works import (
+        _parse_solr_editions_from_fastapi,
+    )
+
+    solr_editions = _parse_solr_editions_from_fastapi(request)
     site.set(create_site())
     req_context.set(
         RequestContextVars(
@@ -104,7 +115,7 @@ def set_context_from_fastapi(request: Request) -> None:
             user_agent=request.headers.get("User-Agent"),
             hhcl=request.headers.get("X-HHCL"),
             lang=request.state.lang,
-            solr_editions=request.state.solr_editions,
+            solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get('pd', False)),
         )
     )

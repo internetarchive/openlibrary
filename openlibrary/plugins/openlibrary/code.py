@@ -31,7 +31,6 @@ from openlibrary.utils.async_utils import req_context
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
-import contextvars
 
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
@@ -52,6 +51,25 @@ from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
+
+def setup_contextvars(handler):
+    """Processor that sets up context variables for the entire request lifecycle.
+
+    This ensures RequestContextVars are available during template rendering
+    and throughout the entire request.
+
+    IMPORTANT: We DON'T wrap in a new context here because that would isolate
+    the context variables to just this processor. Instead, we set them in the
+    current context so they're available to all subsequent processors and templates.
+    """
+    # Set context variables for this request
+    set_context_from_legacy_web_py()
+
+    # Run the handler (and all subsequent processors)
+    return handler()
+
+
+# Add processors in order - setup_contextvars must come BEFORE the handler
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(
@@ -63,6 +81,9 @@ delegate.app.add_processor(
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
+# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
+# It's added here (not as a loadhook) so it runs in the same request context
+delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
@@ -101,26 +122,6 @@ from openlibrary.plugins.openlibrary import bulk_tag, lists
 
 lists.setup()
 bulk_tag.setup()
-
-
-def contextvars_processor(handler):
-    """
-    web.py processor that runs the request handle in a completely
-    blank contextvars.Context.
-
-    This ensures no ContextVars persist between requests.
-    """
-    ctx = contextvars.Context()
-
-    def inner():
-        # Now we are inside the new, empty context
-        set_context_from_legacy_web_py()
-        return handler()
-
-    return ctx.run(inner)
-
-
-delegate.app.add_processor(contextvars_processor)
 
 logger = logging.getLogger('openlibrary')
 
