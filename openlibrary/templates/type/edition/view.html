@@ -339,7 +339,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       $if is_privileged_user or is_librarian:
         $ work_olid = work.key.split('/')[-1]
         <div class="edit-subject">
-            <button type="button" class="edit-subject-btn cta-btn cta-btn--primary" data-work-olid="$work_olid">$_("Edit Subjects")</button>
+            <button type="button" class="edit-subject-btn" data-work-olid="$work_olid">$_("Edit Subjects")</button>
         </div>
     </div>
 
