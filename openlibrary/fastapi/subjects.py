@@ -1,47 +1,21 @@
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import Field
 
-from openlibrary.core.models import Subject
-from openlibrary.fastapi.models import Pagination
-from openlibrary.plugins.worksearch.subjects import (
-    DEFAULT_RESULTS,
-    MAX_RESULTS,
-    date_range_to_publish_year_filter,
-    get_subject,
+from openlibrary.fastapi.services.subject_service import (
+    BaseSubjectRequestParams,
+    fetch_subject_data,
 )
 
 router = APIRouter()
 
 
-class SubjectRequestParams(Pagination):
+class SubjectRequestParams(BaseSubjectRequestParams):
     """Query parameters for /subjects/{key}.json endpoint."""
 
-    details: Literal["true", "false"] = Field(
-        "false", description="Include facets and detailed metadata"
-    )
-    has_fulltext: Literal["true", "false"] = Field(
-        "false", description="Filter to works with fulltext"
-    )
-    sort: str = Field(
-        "editions", description="Sort order: editions, old, new, ranking, etc."
-    )
-    available: Literal["true", "false"] = Field(
-        "false", description="Filter to available works"
-    )
-    published_in: str | None = Field(
-        None, description="Date range filter: YYYY or YYYY-YYYY"
-    )
-
-    limit: int = Field(
-        DEFAULT_RESULTS,
-        ge=0,
-        le=MAX_RESULTS,
-        description="The max number of results to return.",
-    )
+    pass
 
 
 def normalize_key(key: str) -> str:
@@ -75,53 +49,10 @@ async def subject_json(
     - List of works (with pagination)
     - Optional facets (authors, subjects, places, people, times, publishers, languages, publishing_history)
     """
-    # The key from the URL path is just the subject identifier (e.g., "love", "person:mark_twain")
-    # We need to prepend "/subjects/" to match what get_subject() expects
-    full_key = f"/subjects/{key}"
-
-    # Normalize the key (lowercase conversion)
-    nkey = normalize_key(full_key)
-
-    # For the base subjects endpoint, normalize_key is just lowercase
-    # If the key changed (e.g., due to case differences), we don't redirect in FastAPI
-    # (web.py does, but we'll just use the normalized version)
-    full_key = nkey
-
-    # Process the key (base implementation does nothing, subclasses override)
-    full_key = process_key(full_key)
-
-    # Build filters
-    filters: dict[str, str] = {}
-    if params.has_fulltext == "true":
-        filters["has_fulltext"] = "true"
-
-    if publish_year_filter := date_range_to_publish_year_filter(
-        params.published_in or ""
-    ):
-        filters["publish_year"] = publish_year_filter
-
-    # Call get_subject (sync for now, as requested)
-    # Note: This is a synchronous call within an async endpoint
-    # We can make this truly async later by converting get_subject
-    subject: Subject = get_subject(
-        full_key,
-        offset=params.offset or 0,
-        limit=params.limit,
-        sort=params.sort,
-        details=params.details == "true",
-        request_label="SUBJECT_ENGINE_API",
-        **filters,
+    return fetch_subject_data(
+        key=key,
+        params=params,
+        path_prefix="/subjects",
+        normalize_key_func=normalize_key,
+        process_key_func=process_key,
     )
-
-    # Convert Subject object (web.storage) to dict
-    # get_subject() already populates all fields including facets when details=True
-    subject_results = dict(subject)
-
-    # Handle ebook_count special case
-    if params.has_fulltext == "true":
-        subject_results["ebook_count"] = subject_results["work_count"]
-
-    # Convert works (list of web.storage) to list of dicts
-    subject_results["works"] = [dict(w) for w in subject.works]
-
-    return subject_results

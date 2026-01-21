@@ -1,0 +1,131 @@
+"""Shared service layer for subject-type endpoints.
+
+This module provides reusable functions and classes for handling
+subject-type endpoints (subjects, languages, publishers) to avoid
+code duplication and ensure consistent behavior.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any, Literal
+
+from pydantic import Field
+
+from openlibrary.core.models import Subject
+from openlibrary.fastapi.models import Pagination
+from openlibrary.plugins.worksearch.subjects import (
+    DEFAULT_RESULTS,
+    MAX_RESULTS,
+    date_range_to_publish_year_filter,
+    get_subject,
+)
+
+
+class BaseSubjectRequestParams(Pagination):
+    """Base query parameters for subject-type endpoints.
+
+    This class defines common parameters used across subjects, languages,
+    and publishers endpoints.
+    """
+
+    details: Literal["true", "false"] = Field(
+        "false", description="Include facets and detailed metadata"
+    )
+    has_fulltext: Literal["true", "false"] = Field(
+        "false", description="Filter to works with fulltext"
+    )
+    sort: str = Field(
+        "editions", description="Sort order: editions, old, new, ranking, etc."
+    )
+    available: Literal["true", "false"] = Field(
+        "false", description="Filter to available works"
+    )
+    published_in: str | None = Field(
+        None, description="Date range filter: YYYY or YYYY-YYYY"
+    )
+    limit: int = Field(
+        DEFAULT_RESULTS,
+        ge=0,
+        le=MAX_RESULTS,
+        description="The max number of results to return.",
+    )
+
+
+def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
+    """Build filters dict from request parameters.
+
+    Args:
+        params: The validated request parameters
+
+    Returns:
+        Dictionary of filters to pass to get_subject()
+    """
+    filters: dict[str, str] = {}
+
+    if params.has_fulltext == "true":
+        filters["has_fulltext"] = "true"
+
+    if publish_year_filter := date_range_to_publish_year_filter(
+        params.published_in or ""
+    ):
+        filters["publish_year"] = publish_year_filter
+
+    return filters
+
+
+def fetch_subject_data(
+    key: str,
+    params: BaseSubjectRequestParams,
+    path_prefix: str,
+    normalize_key_func: Callable[[str], str],
+    process_key_func: Callable[[str], str],
+) -> dict[str, Any]:
+    """Fetch subject data and convert to dict format.
+
+    This is the core business logic shared across all subject-type endpoints.
+
+    Args:
+        key: The subject key from the URL path
+        params: The validated request parameters
+        path_prefix: The URL path prefix (e.g., "/subjects/", "/languages/")
+        normalize_key_func: Function to normalize the key (e.g., lowercase)
+        process_key_func: Function to process the key (e.g., replace underscores)
+
+    Returns:
+        Dictionary containing subject data with works list
+    """
+    # Build the full key by prepending the path prefix
+    full_key = f"{path_prefix}/{key}"
+
+    # Apply normalization (e.g., lowercase for subjects)
+    full_key = normalize_key_func(full_key)
+
+    # Apply processing (e.g., replace underscores with spaces)
+    full_key = process_key_func(full_key)
+
+    # Build filters from request parameters
+    filters = build_filters(params)
+
+    # Fetch subject data
+    subject: Subject = get_subject(
+        full_key,
+        offset=params.offset or 0,
+        limit=params.limit,
+        sort=params.sort,
+        details=params.details == "true",
+        request_label="SUBJECT_ENGINE_API",
+        **filters,
+    )
+
+    # Convert Subject object (web.storage) to dict
+    subject_results = dict(subject)
+
+    # Handle ebook_count special case
+    if params.has_fulltext == "true":
+        subject_results["ebook_count"] = subject_results["work_count"]
+
+    # Convert works (list of web.storage) to list of dicts
+    subject_results["works"] = [dict(w) for w in subject.works]
+
+    return subject_results
