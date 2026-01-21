@@ -11,7 +11,7 @@ class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 
     def POST(self):
-        i = web.input(work_ids='', tags_to_add='', tags_to_remove='')
+        i = web.input(work_ids='', tags_to_add='', tags_to_remove='', book_page_edit=False)
 
         works = i.work_ids.split(',')
         tags_to_add = json.loads(i.tags_to_add or '{}')
@@ -66,8 +66,12 @@ class bulk_tag_works(delegate.page):
 
         # Number of times the handler was hit:
         stats.increment('ol.tags.bulk_update')
-        stats.increment('ol.tags.bulk_update.add', n=docs_adding)
-        stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
+        if i.book_page_edit:
+            stats.increment('ol.tags.bulk_update.book_page.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.book_page.remove', n=docs_removing)
+        else:
+            stats.increment('ol.tags.bulk_update.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
 
         return response('Tagged works successfully')
 

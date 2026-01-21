@@ -526,10 +526,14 @@ export class BulkTagger {
 
         const url = this.rootElement.action
         this.prepareFormForSubmission()
+        const formData = new FormData(this.rootElement)
+        if (this.isBookPageEdit) {
+            formData.append('book_page_edit', true)
+        }
 
         fetch(url, {
             method: 'post',
-            body: new FormData(this.rootElement)
+            body: formData
         })
             .then(response => {
                 if (!response.ok) {
