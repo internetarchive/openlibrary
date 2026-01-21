@@ -17,14 +17,6 @@ async def publisher_json(
     key: str,
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
-    """
-    Get publisher information including works and optional facets.
-
-    This endpoint provides data about a publisher including:
-    - Basic publisher metadata (key, name, work_count)
-    - List of works (with pagination)
-    - Optional facets (authors, subjects, places, people, times, publishers, languages, publishing_history)
-    """
     return await fetch_subject_data(
         key=key,
         params=params,

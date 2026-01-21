@@ -42,14 +42,6 @@ async def language_json(
     key: str,
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
-    """
-    Get language information including works and optional facets.
-
-    This endpoint provides data about a language including:
-    - Basic language metadata (key, name, work_count)
-    - List of works (with pagination)
-    - Optional facets (authors, subjects, places, people, times, publishers, languages, publishing_history)
-    """
     return await fetch_subject_data(
         key=key,
         params=params,
