@@ -3,29 +3,12 @@ from unittest.mock import patch
 import pytest
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.utils.async_utils import RequestContextVars, req_context
 
 
 @pytest.fixture(autouse=True)
-def setup_context():
-    """Set up RequestContextVars for all tests in this file.
-
-    This ensures that functions like has_solr_editions_enabled() work correctly
-    during testing.
-    """
-    token = req_context.set(
-        RequestContextVars(
-            x_forwarded_for=None,
-            user_agent=None,
-            hhcl=None,
-            lang=None,
-            solr_editions=True,  # Default to True for tests
-            print_disabled=False,
-        )
-    )
-    yield
-    # Cleanup
-    req_context.reset(token)
+def auto_context(request_context_fixture):
+    """Automatically set up RequestContextVars for all tests in this file."""
+    return
 
 
 # {'Test name': ('query', fields[])}

@@ -8,21 +8,9 @@ from openlibrary.utils.async_utils import RequestContextVars, req_context
 
 class TestAddAvailability:
     @pytest.fixture(autouse=True)
-    def setup_context(self):
-        """Set up RequestContextVars for all tests in this class."""
-        token = req_context.set(
-            RequestContextVars(
-                x_forwarded_for=None,
-                user_agent=None,
-                hhcl=None,
-                lang=None,
-                solr_editions=None,
-                print_disabled=False,
-            )
-        )
-        yield
-        # Cleanup
-        req_context.reset(token)
+    def setup_context(self, request_context_fixture):
+        """Automatically set up RequestContextVars for all tests in this class."""
+        return
 
     def test_reads_ocaids(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
@@ -70,7 +58,7 @@ class TestGetAvailability:
                 user_agent="test-user-agent",
                 hhcl=None,
                 lang=None,
-                solr_editions=None,
+                solr_editions=True,
                 print_disabled=False,
             )
         )
