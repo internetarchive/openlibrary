@@ -1,10 +1,29 @@
 from unittest.mock import Mock, patch
 
+import pytest
+
 from openlibrary.core import lending
 from openlibrary.utils.async_utils import RequestContextVars, req_context
 
 
 class TestAddAvailability:
+    @pytest.fixture(autouse=True)
+    def setup_context(self):
+        """Set up RequestContextVars for all tests in this class."""
+        token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent=None,
+                hhcl=None,
+                lang=None,
+                solr_editions=None,
+                print_disabled=False,
+            )
+        )
+        yield
+        # Cleanup
+        req_context.reset(token)
+
     def test_reads_ocaids(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'available'}}
@@ -42,16 +61,24 @@ class TestAddAvailability:
 
 
 class TestGetAvailability:
-    def test_cache(self):
-        # Set needed context variables
-        req_context.set(
+    @pytest.fixture(autouse=True)
+    def setup_context(self):
+        """Set up RequestContextVars with specific values for this test class."""
+        token = req_context.set(
             RequestContextVars(
                 x_forwarded_for="ol-internal",
                 user_agent="test-user-agent",
+                hhcl=None,
                 lang=None,
+                solr_editions=None,
+                print_disabled=False,
             )
         )
+        yield
+        # Cleanup
+        req_context.reset(token)
 
+    def test_cache(self):
         with patch("openlibrary.core.ia.session.get") as mock_get:
             mock_get.return_value = Mock()
             mock_get.return_value.json.return_value = {

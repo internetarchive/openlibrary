@@ -25,6 +25,7 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
+from openlibrary.utils.async_utils import req_context
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -1282,12 +1283,16 @@ def is_bot():
         'icc-crawler',
     ]
 
-    # As set in web_nginx.conf via the trap-link
-    if web.ctx.env.get("HTTP_X_HHCL") == '1':
+    context = req_context.get()
+    user_agent = context.user_agent or ""
+    hhcl = context.hhcl
+
+    if hhcl == '1':
         return True
-    if not web.ctx.env.get('HTTP_USER_AGENT'):
+    if not user_agent:
         return True
-    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
+
+    user_agent = user_agent.lower()
     return any(bot in user_agent for bot in user_agent_bots)
 
 

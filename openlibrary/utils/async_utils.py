@@ -57,7 +57,10 @@ class RequestContextVars:
 
     x_forwarded_for: str | None
     user_agent: str | None
+    hhcl: str | None
     lang: str | None
+    solr_editions: bool | None
+    print_disabled: bool
 
 
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
@@ -70,12 +73,20 @@ def set_context_from_legacy_web_py() -> None:
     """
     Extracts context from the global web.ctx (sync) and populates ContextVars.
     """
+    from openlibrary.plugins.worksearch.schemes.works import has_solr_editions_enabled
+
+    # Check pd cookie for print disabled status
+    print_disabled = bool(web.cookies().get('pd', False))
+
     site.set(create_site())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
             user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
+            hhcl=web.ctx.env.get("HTTP_X_HHCL"),
             lang=web.ctx.lang,
+            solr_editions=has_solr_editions_enabled(),
+            print_disabled=print_disabled,
         )
     )
 
@@ -91,6 +102,9 @@ def set_context_from_fastapi(request: Request) -> None:
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
             user_agent=request.headers.get("User-Agent"),
+            hhcl=request.headers.get("X-HHCL"),
             lang=request.state.lang,
+            solr_editions=request.state.solr_editions,
+            print_disabled=bool(request.cookies.get('pd', False)),
         )
     )

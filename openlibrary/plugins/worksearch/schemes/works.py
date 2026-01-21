@@ -24,6 +24,7 @@ from openlibrary.solr.query_utils import (
     luqum_replace_field,
     luqum_traverse,
 )
+from openlibrary.utils.async_utils import req_context
 from openlibrary.utils.ddc import (
     normalize_ddc,
     normalize_ddc_prefix,
@@ -731,6 +732,23 @@ def isbn_transform(sf: luqum.tree.SearchField):
 
 
 def has_solr_editions_enabled():
+    """Check if Solr editions feature is enabled.
+
+    Works in both web.py and FastAPI contexts by checking RequestContextVars first.
+    Falls back to web.ctx for backward compatibility.
+    """
+    # Check RequestContextVars first (works in both FastAPI and web.py via async_bridge)
+    from openlibrary.utils.async_utils import req_context
+
+    try:
+        context = req_context.get()
+        if context.solr_editions is not None:
+            return context.solr_editions
+    except LookupError:
+        # Context not set, fall through to web.ctx
+        pass
+
+    # Fallback to web.py context (for backward compatibility)
     if 'pytest' in sys.modules:
         return True
 
@@ -751,5 +769,10 @@ def has_solr_editions_enabled():
 
 
 def get_fulltext_min():
-    is_printdisabled = web.cookies().get('pd', False)
+    """Get the minimum access level for fulltext (printdisabled or borrowable).
+
+    Returns 'printdisabled' if the user has print-disabled access, otherwise 'borrowable'.
+    Reads from RequestContextVars which is always set during request processing.
+    """
+    is_printdisabled = req_context.get().print_disabled
     return 'printdisabled' if is_printdisabled else 'borrowable'
