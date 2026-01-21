@@ -331,7 +331,7 @@ jQuery(function () {
                             window.ILE.selectionManager.addSelectedItem(workOlid)
                             window.ILE.selectionManager.updateToolbar()
                         }
-                        window.ILE.updateAndShowBulkTagger([workOlid])
+                        window.ILE.updateAndShowBulkTagger([workOlid], true)
                     })
                 }
         })
