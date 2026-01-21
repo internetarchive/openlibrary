@@ -1285,14 +1285,15 @@ def is_bot():
     ]
 
     context = req_context.get()
-    user_agent = context.user_agent or ""
-    hhcl = context.hhcl
 
+    # As set in web_nginx.conf via the trap-link
+    hhcl = context.hhcl
     if hhcl == '1':
         return True
+
+    user_agent = context.user_agent or ""
     if not user_agent:
         return True
-
     user_agent = user_agent.lower()
     return any(bot in user_agent for bot in user_agent_bots)
 

@@ -6,12 +6,8 @@ from openlibrary.core import lending
 from openlibrary.utils.async_utils import RequestContextVars, req_context
 
 
+@pytest.mark.usefixtures("request_context_fixture")
 class TestAddAvailability:
-    @pytest.fixture(autouse=True)
-    def setup_context(self, request_context_fixture):
-        """Automatically set up RequestContextVars for all tests in this class."""
-        return
-
     def test_reads_ocaids(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
             return {'foo': {'status': 'available'}}

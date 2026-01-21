@@ -4,11 +4,7 @@ import pytest
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
-
-@pytest.fixture(autouse=True)
-def auto_context(request_context_fixture):
-    """Automatically set up RequestContextVars for all tests in this file."""
-    return
+pytestmark = pytest.mark.usefixtures("request_context_fixture")
 
 
 # {'Test name': ('query', fields[])}
