@@ -39,7 +39,6 @@ async def list_languages(
 
 @router.get("/languages/{key:path}.json")
 async def language_json(
-    request: Request,
     key: str,
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:

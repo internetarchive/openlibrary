@@ -170,7 +170,7 @@ def create_app() -> FastAPI:
         return response
 
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
-    # because they handles are called in reverse order
+    # because the handlers are called in reverse order
     setup_i18n(app)
 
     # --- Fast routes (mounted within this app) ---
