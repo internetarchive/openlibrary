@@ -71,14 +71,13 @@ site: ContextVar[Site] = ContextVar("site")
 
 def set_context_from_legacy_web_py() -> None:
     """
-    Extracts context from the global web.ctx (sync) and populates ContextVars.
+    Extracts context from the global web.ctx and populates ContextVars.
     """
-    # Import here to avoid circular import
+    # Avoid circular import
     from openlibrary.plugins.worksearch.schemes.works import (
         _parse_solr_editions_from_web,
     )
 
-    # Parse preferences once here
     solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get('pd', False))
 
