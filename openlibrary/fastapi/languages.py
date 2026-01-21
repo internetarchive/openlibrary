@@ -37,33 +37,11 @@ async def list_languages(
     return await get_top_languages(limit=limit, user_lang=request.state.lang, sort=sort)
 
 
-class LanguageRequestParams(BaseSubjectRequestParams):
-    """Query parameters for /languages/{key}.json endpoint."""
-
-    pass
-
-
-def normalize_key(key: str) -> str:
-    """Normalize the language key.
-
-    Mirrors the behavior from languages_json.normalize_key() - returns key as-is.
-    """
-    return key
-
-
-def process_key(key: str) -> str:
-    """Process the language key.
-
-    Mirrors the behavior from languages_json.process_key() - replaces underscores with spaces.
-    """
-    return key.replace("_", " ")
-
-
 @router.get("/languages/{key:path}.json")
 async def language_json(
     request: Request,
     key: str,
-    params: Annotated[LanguageRequestParams, Depends()],
+    params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
     """
     Get language information including works and optional facets.
@@ -77,6 +55,5 @@ async def language_json(
         key=key,
         params=params,
         path_prefix="/languages",
-        normalize_key_func=normalize_key,
-        process_key_func=process_key,
+        process_key_func=lambda k: k.replace("_", " "),
     )

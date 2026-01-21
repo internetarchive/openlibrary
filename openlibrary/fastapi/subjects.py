@@ -12,34 +12,11 @@ from openlibrary.fastapi.services.subject_service import (
 router = APIRouter()
 
 
-class SubjectRequestParams(BaseSubjectRequestParams):
-    """Query parameters for /subjects/{key}.json endpoint."""
-
-    pass
-
-
-def normalize_key(key: str) -> str:
-    """Normalize the subject key by converting to lowercase.
-
-    Mirrors the behavior from subjects_json.normalize_key()
-    """
-    return key.lower()
-
-
-def process_key(key: str) -> str:
-    """Process the subject key.
-
-    Base implementation from subjects_json.process_key().
-    Subclasses (languages, publishers) override this.
-    """
-    return key
-
-
 @router.get("/subjects/{key:path}.json")
 async def subject_json(
     request: Request,
     key: str,
-    params: Annotated[SubjectRequestParams, Depends()],
+    params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
     """
     Get subject information including works and optional facets.
@@ -53,6 +30,5 @@ async def subject_json(
         key=key,
         params=params,
         path_prefix="/subjects",
-        normalize_key_func=normalize_key,
-        process_key_func=process_key,
+        normalize_key_func=lambda k: k.lower(),
     )
