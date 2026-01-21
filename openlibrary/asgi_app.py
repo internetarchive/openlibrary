@@ -156,8 +156,6 @@ def create_app() -> FastAPI:
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
-    setup_i18n(app)
-
     @app.middleware("http")
     async def add_fastapi_header(request: Request, call_next):
         """Middleware to add a header indicating the response came from FastAPI."""
@@ -170,6 +168,10 @@ def create_app() -> FastAPI:
         set_context_from_fastapi(request)
         response = await call_next(request)
         return response
+
+    # setup_i18n is below set_context so that it can use the request.state.lang in set_context
+    # because they handles are called in reverse order
+    setup_i18n(app)
 
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
