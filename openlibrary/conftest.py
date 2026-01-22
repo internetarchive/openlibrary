@@ -110,10 +110,10 @@ def request_context_fixture():
         RequestContextVars(
             x_forwarded_for=None,
             user_agent=None,
-            hhcl=None,
             lang=None,
             solr_editions=True,  # Default to True for tests (matches _parse_solr_editions_from_web)
             print_disabled=False,
+            is_bot=False,
         )
     )
     yield

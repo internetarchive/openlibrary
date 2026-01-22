@@ -52,10 +52,10 @@ class TestGetAvailability:
             RequestContextVars(
                 x_forwarded_for="ol-internal",
                 user_agent="test-user-agent",
-                hhcl=None,
                 lang=None,
                 solr_editions=True,
                 print_disabled=False,
+                is_bot=False,
             )
         )
         yield

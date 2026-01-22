@@ -57,16 +57,89 @@ class RequestContextVars:
 
     x_forwarded_for: str | None
     user_agent: str | None
-    hhcl: str | None
     lang: str | None
     solr_editions: bool | None
     print_disabled: bool
+    is_bot: bool = False
 
 
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
+
+
+def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
+    """Determine if the request is from a bot.
+
+    Args:
+        user_agent: The User-Agent header value
+        hhcl: The X-HHCL header value (set by nginx)
+
+    Returns:
+        True if the request appears to be from a bot, False otherwise
+    """
+    user_agent_bots = [
+        'sputnikbot',
+        'dotbot',
+        'semrushbot',
+        'googlebot',
+        'yandexbot',
+        'monsidobot',
+        'kazbtbot',
+        'seznambot',
+        'dubbotbot',
+        '360spider',
+        'redditbot',
+        'yandexmobilebot',
+        'linkdexbot',
+        'musobot',
+        'mojeekbot',
+        'focuseekbot',
+        'behloolbot',
+        'startmebot',
+        'yandexaccessibilitybot',
+        'uptimerobot',
+        'femtosearchbot',
+        'pinterestbot',
+        'toutiaospider',
+        'yoozbot',
+        'parsijoobot',
+        'equellaurlbot',
+        'donkeybot',
+        'paperlibot',
+        'nsrbot',
+        'discordbot',
+        'ahrefsbot',
+        'coccocbot',
+        'buzzbot',
+        'laserlikebot',
+        'baiduspider',
+        'bingbot',
+        'mj12bot',
+        'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
+    ]
+
+    # Check hhcl header first (set by nginx)
+    if hhcl == '1':
+        return True
+
+    # Check user agent
+    if not user_agent:
+        return True
+
+    user_agent = user_agent.lower()
+    return any(bot in user_agent for bot in user_agent_bots)
 
 
 def set_context_from_legacy_web_py() -> None:
@@ -81,15 +154,21 @@ def set_context_from_legacy_web_py() -> None:
     solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get('pd', False))
 
+    # Compute is_bot once during request setup
+    is_bot = _compute_is_bot(
+        user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
+        hhcl=web.ctx.env.get("HTTP_X_HHCL"),
+    )
+
     site.set(create_site())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
             user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
-            hhcl=web.ctx.env.get("HTTP_X_HHCL"),
             lang=web.ctx.lang,
             solr_editions=solr_editions,
             print_disabled=print_disabled,
+            is_bot=is_bot,
         )
     )
 
@@ -107,14 +186,21 @@ def set_context_from_fastapi(request: Request) -> None:
     )
 
     solr_editions = _parse_solr_editions_from_fastapi(request)
+
+    # Compute is_bot once during request setup
+    is_bot = _compute_is_bot(
+        user_agent=request.headers.get("User-Agent"),
+        hhcl=request.headers.get("X-HHCL"),
+    )
+
     site.set(create_site())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
             user_agent=request.headers.get("User-Agent"),
-            hhcl=request.headers.get("X-HHCL"),
             lang=request.state.lang,
             solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get('pd', False)),
+            is_bot=is_bot,
         )
     )

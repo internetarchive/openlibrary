@@ -1223,79 +1223,13 @@ class memory(delegate.page):
 
 
 def is_bot():
-    r"""Generated on ol-www1 within /var/log/nginx with:
+    """Check if the current request is from a bot.
 
-    cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
-    cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'
-
-    Manually removed singleton `bot` (to avoid overly complex grep regex)
+    This reads from RequestContextVars which is computed once during request setup.
+    Much faster than re-parsing on every call!
     """
-    if 'is_bot' in web.ctx:
-        return web.ctx.is_bot
 
-    user_agent_bots = [
-        'sputnikbot',
-        'dotbot',
-        'semrushbot',
-        'googlebot',
-        'yandexbot',
-        'monsidobot',
-        'kazbtbot',
-        'seznambot',
-        'dubbotbot',
-        '360spider',
-        'redditbot',
-        'yandexmobilebot',
-        'linkdexbot',
-        'musobot',
-        'mojeekbot',
-        'focuseekbot',
-        'behloolbot',
-        'startmebot',
-        'yandexaccessibilitybot',
-        'uptimerobot',
-        'femtosearchbot',
-        'pinterestbot',
-        'toutiaospider',
-        'yoozbot',
-        'parsijoobot',
-        'equellaurlbot',
-        'donkeybot',
-        'paperlibot',
-        'nsrbot',
-        'discordbot',
-        'ahrefsbot',
-        'coccocbot',
-        'buzzbot',
-        'laserlikebot',
-        'baiduspider',
-        'bingbot',
-        'mj12bot',
-        'yoozbotadsbot',
-        'ahrefsbot',
-        'amazonbot',
-        'applebot',
-        'bingbot',
-        'brightbot',
-        'gptbot',
-        'petalbot',
-        'semanticscholarbot',
-        'yandex.com/bots',
-        'icc-crawler',
-    ]
-
-    context = req_context.get()
-
-    # As set in web_nginx.conf via the trap-link
-    hhcl = context.hhcl
-    if hhcl == '1':
-        return True
-
-    user_agent = context.user_agent or ""
-    if not user_agent:
-        return True
-    user_agent = user_agent.lower()
-    return any(bot in user_agent for bot in user_agent_bots)
+    return req_context.get().is_bot
 
 
 def setup_template_globals():
