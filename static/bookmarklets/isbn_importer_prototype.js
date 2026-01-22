@@ -437,14 +437,14 @@ async function processInput(input, onProgress) {
     if (onProgress) onProgress(`Detected input type: ${type}`);
 
     switch (type) {
-    case 'url':
-        return await importBooksFromUrl(input);
-    case 'edition_ids':
-        return parseEditionIds(input);
-    case 'isbns':
-        return await importBooksFromIsbns(input);
-    default:
-        throw new Error('Unknown input type');
+        case 'url':
+            return await importBooksFromUrl(input);
+        case 'edition_ids':
+            return parseEditionIds(input);
+        case 'isbns':
+            return await importBooksFromIsbns(input);
+        default:
+            throw new Error('Unknown input type');
     }
 }
 
@@ -507,7 +507,13 @@ function renderPreviewTable(editions, container) {
     `;
 
     container.innerHTML = '';
-    container.appendChild(table);
+
+    // Wrap table in scrollable container
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bulk-import-preview-wrapper';
+    wrapper.style.cssText = 'max-height: 600px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; margin: 1rem 0;';
+    wrapper.appendChild(table);
+    container.appendChild(wrapper);
 
     // Select all functionality
     const selectAll = table.querySelector('#selectAll');
