@@ -11,7 +11,9 @@ class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 
     def POST(self):
-        i = web.input(work_ids='', tags_to_add='', tags_to_remove='', book_page_edit=False)
+        i = web.input(
+            work_ids='', tags_to_add='', tags_to_remove='', book_page_edit=False
+        )
 
         works = i.work_ids.split(',')
         tags_to_add = json.loads(i.tags_to_add or '{}')
