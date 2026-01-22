@@ -330,6 +330,40 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    @cached_property
+    def metadata_score(self) -> int:
+        score = 0
+        if self.title:
+            score += 20
+        if self.cover_i:
+            score += 20
+        if len(self._edition.get('description') or '') > 50:
+            score += 10
+        if len(self._edition.get('description') or '') > 100:
+            score += 10
+        if self.language:
+            score += 15
+        if self._solr_work and self._solr_work.author_key:
+            score += 10
+        if self.publish_year:
+            score += 5
+        if self.isbn or self.lccn or self.ia or self.identifiers:
+            score += 10
+        if self.lexile:
+            score += 10
+        return score
+
+    @cached_property
+    def usefulness_score(self) -> int:
+        score = self.metadata_score
+
+        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
+            score += 100
+        if self.ebook_access == bp.EbookAccess.PRINTDISABLED:
+            score += 80
+
+        return score
+
     def build(self) -> SolrDocument:
         """
         Build the solr document for the given edition to store as a nested
@@ -370,6 +404,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,
+                'metadata_score': self.metadata_score,
+                'usefulness_score': self.usefulness_score,
                 # Identifiers
                 'isbn': self.isbn,
                 'lccn': self.lccn,

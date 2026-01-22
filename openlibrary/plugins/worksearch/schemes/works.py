@@ -60,6 +60,8 @@ class WorkSearchScheme(SearchScheme):
             "format",
             "by_statement",
             "publish_date",
+            "metadata_score",
+            "usefulness_score",
             "lccn",
             "lexile",
             "ia",
@@ -162,6 +164,13 @@ class WorkSearchScheme(SearchScheme):
             'currently_reading': 'currently_reading_count desc',
             'already_read': 'already_read_count desc',
             'title': 'title_sort asc',
+            # Quality scores
+            'metadata_score': 'metadata_score desc',
+            'metadata_score asc': 'metadata_score asc',
+            'metadata_score desc': 'metadata_score desc',
+            'usefulness_score': 'usefulness_score desc',
+            'usefulness_score asc': 'usefulness_score asc',
+            'usefulness_score desc': 'usefulness_score desc',
             # Classifications
             'lcc_sort': 'lcc_sort asc',
             'lcc_sort asc': 'lcc_sort asc',

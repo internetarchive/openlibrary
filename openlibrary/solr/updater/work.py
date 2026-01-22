@@ -647,6 +647,70 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_facet(self) -> list[str]:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 
+    @cached_property
+    def metadata_score(self) -> int:
+        score = 0
+        if self.title:
+            score += 20
+        if self.cover_i:
+            score += 20
+        if self.language:
+            score += 20
+        if self._authors:
+            score += 15
+        if self._authors and self._authors[0].get('photos'):
+            score += 5
+        if self._authors and self._authors[0].get('description'):
+            score += 5
+        if self._work.get('description') or any(
+            ed.get('description') for ed in self._editions
+        ):
+            score += 10
+        if self.first_publish_year:
+            score += 10
+        if self.edition_count >= 2:
+            score += 10
+        subjects = self.build_subjects()
+        pure_subject_count = len(subjects.get('subject', []))
+        other_subject_count = (
+            sum(len(s) for s in subjects.values()) - pure_subject_count
+        )
+        if pure_subject_count:
+            score += 10
+        if 4 <= pure_subject_count < 10:
+            score += 10
+        if 0 < other_subject_count < 10:
+            score += 5
+        if self.number_of_pages_median:
+            score += 5
+        if self.ddc or self.lcc:
+            score += 10
+        if self.chapter:
+            score += 10
+        if self.isbn or self.build_identifiers() or self.ia or self.lccn or self.oclc:
+            score += 10
+        if self.lexile:
+            score += 10
+        return score
+
+    @cached_property
+    def usefulness_score(self) -> int:
+        score = self.metadata_score
+
+        if self.osp_count:
+            if self.osp_count <= 5:
+                score += 10
+            else:
+                score += 20
+
+        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
+            score += 100
+        if self.ebook_access == bp.EbookAccess.PRINTDISABLED:
+            score += 80
+        # TODO: Add reading log rating boost
+
+        return score
+
     def build_identifiers(self) -> dict[str, list[str]]:
         identifiers: dict[str, list[str]] = defaultdict(list)
         for ed in self._solr_editions:
