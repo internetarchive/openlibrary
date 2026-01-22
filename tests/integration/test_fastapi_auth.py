@@ -8,7 +8,11 @@
 
 """Integration tests for FastAPI authentication endpoints.
 
-Run with: uv run pytest tests/integration/test_fastapi_auth.py -v
+These tests are marked as "integration" and are skipped by default.
+They require a running FastAPI server on localhost:18080.
+
+Run explicitly with:
+    uv run pytest -m integration tests/integration/test_fastapi_auth.py -v
 """
 
 import pytest
@@ -58,11 +62,13 @@ def _logout(session):
     return session.post(f"{BASE_URL}/account/logout", allow_redirects=False)
 
 
+@pytest.mark.integration
 def test_health_endpoint():
     """Test that the health endpoint returns 200 OK."""
     assert requests.get(f"{BASE_URL}/health").status_code == 200
 
 
+@pytest.mark.integration
 def test_login_and_session(session):
     """Test that login creates a session cookie and authenticated requests work."""
     r = _login(session)
@@ -74,6 +80,7 @@ def test_login_and_session(session):
     assert r.status_code in (200, 404)  # 404 is OK, just means endpoint doesn't exist
 
 
+@pytest.mark.integration
 def test_logout_clears_session(session):
     """Test that logging out clears the session cookie."""
     _login(session)
@@ -84,6 +91,7 @@ def test_logout_clears_session(session):
     assert "session" not in session.cookies
 
 
+@pytest.mark.integration
 def test_relogin_after_logout(session):
     """Test that we can login again after logging out."""
     _login(session)
@@ -94,6 +102,7 @@ def test_relogin_after_logout(session):
     assert "session" in session.cookies
 
 
+@pytest.mark.integration
 def test_login_with_invalid_credentials(session):
     """Test that login accepts invalid credentials (TODO: should return 400/401).
 
