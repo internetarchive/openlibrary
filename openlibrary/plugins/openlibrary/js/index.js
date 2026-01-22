@@ -325,7 +325,7 @@ jQuery(function () {
                 // book page subject editing
                 const editSubjectButton = document.querySelector('.edit-subject .edit-subject-btn')
                 if (editSubjectButton) {
-                    editSubjectButton.addEventListener("click", () => {
+                    editSubjectButton.addEventListener('click', () => {
                         const workOlid = editSubjectButton.dataset.workOlid
                         if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
                             window.ILE.selectionManager.addSelectedItem(workOlid)
@@ -334,7 +334,7 @@ jQuery(function () {
                         window.ILE.updateAndShowBulkTagger([workOlid], true)
                     })
                 }
-        })
+            })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')
