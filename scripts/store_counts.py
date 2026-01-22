@@ -4,14 +4,14 @@ import argparse
 import datetime
 import sys
 
-from psycopg2 import DatabaseError
-
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
+from psycopg2 import DatabaseError
 
 import infogami
 from openlibrary.admin import stats
 from openlibrary.config import load_config
 from openlibrary.core import db
+
 
 def setup(ol_config_path: str):
     load_config(ol_config_path)
@@ -49,11 +49,18 @@ def gather_login_stats(since_days=30):
     try:
         oldb.query(tmp_table_query, vars={'date': date_str})
         recent_logins = list(oldb.query(recent_logins_query))
-        returning_logins = list(oldb.query(returning_logins_query, vars={'date': date_str}))
+        returning_logins = list(
+            oldb.query(returning_logins_query, vars={'date': date_str})
+        )
 
         # write login stats to statsd
-        stats.increment('ol.logins.recent', n=recent_logins[0].get('total_logins_since_date'))
-        stats.increment('ol.logins.recent.returning', n=returning_logins[0].get('logins_created_before_date'))
+        stats.increment(
+            'ol.logins.recent', n=recent_logins[0].get('total_logins_since_date')
+        )
+        stats.increment(
+            'ol.logins.recent.returning',
+            n=returning_logins[0].get('logins_created_before_date'),
+        )
 
     except DatabaseError as e:
         print(f"An error occurred while fetching login statistics: {e}")
@@ -65,7 +72,14 @@ def main(args):
     if args.login_stats:
         setup(args.openlibrary_config)
         gather_login_stats()
-    sys.exit(stats.main(args.infobase_config, args.openlibrary_config, args.coverstore_config, args.number_of_days))
+    sys.exit(
+        stats.main(
+            args.infobase_config,
+            args.openlibrary_config,
+            args.coverstore_config,
+            args.number_of_days,
+        )
+    )
 
 
 def _parse_args():
@@ -87,4 +101,3 @@ def _parse_args():
 if __name__ == "__main__":
     args = _parse_args()
     args.func(args)
-
