@@ -38,6 +38,15 @@ disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Ignore warnings from external dependencies by file path pattern
+    'ignore::DeprecationWarning',
+    'ignore::SyntaxWarning',
+    # But keep warnings from our own code (openlibrary/ directory)
+    'default::DeprecationWarning:openlibrary',
+    'default::SyntaxWarning:openlibrary',
+]
 
 [tool.ruff]
 target-version = "py312"
