@@ -19,10 +19,120 @@ fooaaa,baraaa,bazaaa
 
 # Some synonym groups specific to this example
 GB,gib,gigabyte,gigabytes
-MB,mib,megabyte,megabytes
-Television, Televisions, TV, TVs
 #notice we use "gib" instead of "GiB" so any WordDelimiterGraphFilter coming
 #after us won't split it into two words.
+MB,mib,megabyte,megabytes
+Television, Televisions, TV, TVs
+Volume, Vol., Vol
+&, and
+1, One, I
+2, Two, II
+3, Three, III
+4, Four, IV
+5, Five, V
+6, Six, VI
+7, Seven, VII
+8, Eight,VIII
+9, Nine, IX
+10, Ten, X
+11, Eleven, XI
+12, Twelve, XII
+13, Thirteen, XIII
+14, Fourteen, XIV
+15, Fifteen, XV
+16, Sixteen, XVI
+17, Seventeen, XVII
+18, Eigthteen, XVIII
+19, Nineteen, XIX
+20, Twenty, XX
+21, Twenty One, XXI
+22, Twenty Two, XXII
+23, Twenty Three, XXIII
+24, Twenty Four, XXIV
+25, Twenty Five, XXV
+26, Twenty Six, XXVI
+27, Twenty Seven, XXVII
+28, Twenty Eight, XXVIII
+29, Twenty Nine, XXIX
+30, Thirty, XXX
+31, Thirty One, XXXI
+32, Thirty Two, XXXII
+33, Thirty Three, XXXIII
+34, Thirty Four, XXXIV
+35, Thirty Five, XXXV
+36, Thirty Six, XXXVI
+37, Thirty Seven, XXXVII
+38, Thirty Eight, XXXVIII
+39, Thirty Nine, XXXIX
+40, Forty, XL
+41, Forty One, XLI
+42, Forty Two, XLII
+43, Forty Three, XLIII
+44, Forty Four, XLIV
+45, Forty Five, XLV
+46, Forty Six, XLVI
+47, Forty Seven, XLVII
+48, Forty Eight, XLVIII
+49, Forty Nine, XLIX
+50, Fifty, L
+51, Fifty One, LI
+52, Fifty Two, LII
+53, Fifty Three, LIII
+54, Fifty Four, LIV
+55, Fifty Five, LV
+56, Fifty Six, LVI
+57, Fifty Seven, LVII
+58, Fifty Eight, LVIII
+59, Fifty Nine, LIX
+60, Sixty, LX
+61, Sixty One, LXI
+62, Sixty Two, LXII
+63, Sixty Three, LXIII
+64, Sixty Four, LXIV
+65, Sixty Five, LXV
+66, Sixty Six, LXVI
+67, Sixty Seven, LXVII
+68, Sixty Eight, LXVIII
+69, Sixty Nine, LXIX
+70, Seventy, LXX
+71, Seventy One, LXXI
+72, Seventy Two, LXXII
+73, Seventy Three, LXXIII
+74, Seventy Four, LXXIV
+75, Seventy Five, LXXV
+76, Seventy Six, LXXVI
+77, Seventy Seven, LXXVII
+78, Seventy Eight, LXXVIII
+79, Seventy Nine, LXXIX
+80, Eighty, LXXX
+81, Eighty One, LXXXI
+82, Eighty Two, LXXXII
+83, Eighty Three, LXXXIII
+84, Eighty Four, LXXXIV
+85, Eighty Five, LXXXV
+86, Eighty Six, LXXXVI
+87, Eighty Seven, LXXXVII
+88, Eighty Eight, LXXXVIII
+89, Eighty Nine, LXXXIX
+90, Ninety, XC
+91, Ninety One, XCI
+92, Ninety Two, XCII
+93, Ninety Three, XCIII
+94, Ninety Four, XCIV
+95, Ninety Five, XCV
+96, Ninety Six, XCVI
+97, Ninety Seven, XCVII
+98, Ninety Eight, XCVIII
+99, Ninety Nine, XCIX
+100, One Hundred, C
+#Ukrainian synonyms
+навч., навчальний
+ТБ, телебачення
+ГБ, гігабайт, гіб
+Міф, Міт
+Міфологічний, Мітологічний
+Міфологія, Мітологія
+Кафедра, Катедра
 
 # Synonym mappings can be used for spelling correction too
 pixima => pixma
