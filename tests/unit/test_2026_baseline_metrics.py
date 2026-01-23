@@ -21,8 +21,8 @@ spec = importlib.util.spec_from_file_location(
     "baseline_metrics",
     os.path.join(os.path.dirname(__file__), '../../scripts/2026_baseline_metrics.py'),
 )
-assert spec is not None  
-assert spec.loader is not None 
+assert spec is not None
+assert spec.loader is not None
 baseline_metrics = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(baseline_metrics)
 

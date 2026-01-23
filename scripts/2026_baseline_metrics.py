@@ -19,8 +19,9 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from openlibrary.core import db 
 import web
+
+from openlibrary.core import db
 
 # Configure logging
 logging.basicConfig(
@@ -333,7 +334,7 @@ def main():
 
         # Try to load config
         load_config('/olsystem/etc/openlibrary.yml')
-    except (IOError, OSError, Exception) as e:  # noqa: BLE001
+    except (OSError, Exception) as e:  # noqa: BLE001
         logger.warning(f"Could not load full config: {e}")
         logger.info("Continuing with basic setup...")
 
