@@ -19,6 +19,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from openlibrary.core import db 
 import web
 
 # Configure logging
@@ -93,7 +94,7 @@ class BaselineMetrics:
             result = web.ctx.site.store.query(query, vars={'date': self.today})
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting daily logins: {e}")
             return 0
 
@@ -118,7 +119,7 @@ class BaselineMetrics:
             )
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting returning users: {e}")
             return 0
 
@@ -137,7 +138,7 @@ class BaselineMetrics:
             result = web.ctx.site.store.query(query, vars={'date': self.today})
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting unique editors: {e}")
             return 0
 
@@ -156,7 +157,7 @@ class BaselineMetrics:
             result = web.ctx.site.store.query(query, vars={'date': self.today})
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting total edits: {e}")
             return 0
 
@@ -209,7 +210,7 @@ class BaselineMetrics:
             breakdown['tags'] = self._count_tag_edits()
             breakdown['isbns'] = self._count_isbn_edits()
 
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error getting edit breakdown: {e}")
 
         return breakdown
@@ -228,7 +229,7 @@ class BaselineMetrics:
             result = web.ctx.site.store.query(query, vars={'date': self.today})
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting tag edits: {e}")
             return 0
 
@@ -246,7 +247,7 @@ class BaselineMetrics:
             result = web.ctx.site.store.query(query, vars={'date': self.today})
             result_list = list(result)
             return result_list[0].count if result_list else 0
-        except Exception as e:
+        except (AttributeError, KeyError, db.DBError) as e:
             logger.error(f"Error counting ISBN edits: {e}")
             return 0
 
@@ -272,7 +273,7 @@ class BaselineMetrics:
                     "StatsD client not available, metrics not sent to StatsD"
                 )
                 return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error sending metrics to StatsD: {e}")
             return False
 
@@ -332,7 +333,7 @@ def main():
 
         # Try to load config
         load_config('/olsystem/etc/openlibrary.yml')
-    except Exception as e:
+    except (IOError, OSError, Exception) as e:  # noqa: BLE001
         logger.warning(f"Could not load full config: {e}")
         logger.info("Continuing with basic setup...")
 

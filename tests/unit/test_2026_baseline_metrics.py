@@ -21,6 +21,8 @@ spec = importlib.util.spec_from_file_location(
     "baseline_metrics",
     os.path.join(os.path.dirname(__file__), '../../scripts/2026_baseline_metrics.py'),
 )
+assert spec is not None  
+assert spec.loader is not None 
 baseline_metrics = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(baseline_metrics)
 
@@ -114,7 +116,7 @@ class TestBaselineMetrics:
         # Should handle missing statsd gracefully
         result = metrics_collector.send_to_statsd()
         # Returns False when statsd is not available
-        assert result == False
+        assert not result
 
     def test_print_summary(self, metrics_collector, capsys):
         """Test summary printing"""
@@ -152,7 +154,7 @@ class TestBaselineMetrics:
 
         result = metrics_collector.run()
 
-        assert result == True
+        assert result
         assert mock_retention.called
         assert mock_participation.called
         assert mock_statsd.called
@@ -165,7 +167,7 @@ class TestBaselineMetrics:
 
         result = metrics_collector.run()
 
-        assert result == False
+        assert not result
 
 
 # Run tests if executed directly
