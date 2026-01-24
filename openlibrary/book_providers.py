@@ -444,7 +444,6 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         return result
 
 
-
 class LibriVoxProvider(AbstractBookProvider):
     short_name = 'librivox'
     long_name = 'LibriVox'
