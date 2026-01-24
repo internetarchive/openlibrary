@@ -21,7 +21,7 @@
     height: 30px;
     text-decoration: none;
     color: @grey;
-    padding: 12px 15px 8px;
+    padding: 12px;
     line-height: @line-height-control;
   }
 
@@ -35,12 +35,6 @@
     border-bottom: 2px solid @link-blue;
   }
   /* stylelint-enable selector-max-specificity */
-}
-
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .nav-bar li a {
-    padding-top: 4px;
-  }
 }
 
 .nav-bar-wrapper {
@@ -114,7 +108,7 @@
     }
 
     li a {
-      padding: 4px 15px;
+      padding: inherit 12px;
       vertical-align: text-top;
     }
     li:first-child {
