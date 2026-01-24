@@ -406,21 +406,20 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
     def _get_ia_download_files(
         self, identifier: str
-    ) -> dict[Literal['pdf', 'epub', 'mobi'], str | None]:
+    ) -> dict[Literal['pdf', 'epub'], str | None]:
         """
         Get available download file names from IA metadata.
 
         Uses the cached ia.get_metadata() to avoid repeated API calls.
 
         Returns a dict mapping format to filename, e.g.:
-        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub', 'mobi': None}
+        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub'}
         """
         from openlibrary.core import ia
 
-        result: dict[Literal['pdf', 'epub', 'mobi'], str | None] = {
+        result: dict[Literal['pdf', 'epub'], str | None] = {
             'pdf': None,
             'epub': None,
-            'mobi': None,
         }
 
         try:
@@ -433,8 +432,6 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                     result['pdf'] = name
                 elif name_lower.endswith('.epub') and not result['epub']:
                     result['epub'] = name
-                elif name_lower.endswith('.mobi') and not result['mobi']:
-                    result['mobi'] = name
 
         except (KeyError, TypeError) as e:
             logger.warning(f'Failed to get IA download files for {identifier}: {e}')
