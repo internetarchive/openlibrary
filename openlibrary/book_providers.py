@@ -406,40 +406,38 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
     def _get_ia_download_files(
         self, identifier: str
-    ) -> dict[Literal['pdf', 'epub'], str | None]:
+    ) -> dict[Literal['pdf', 'epub', 'mobi'], str | None]:
         """
-        Query IA metadata API to get available download file names.
+        Get available download file names from IA metadata.
+
+        Uses the cached ia.get_metadata() to avoid repeated API calls.
 
         Returns a dict mapping format to filename, e.g.:
-        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub'}
+        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub', 'mobi': None}
         """
-        import requests
+        from openlibrary.core import ia
 
-        result: dict[Literal['pdf', 'epub'], str | None] = {
+        result: dict[Literal['pdf', 'epub', 'mobi'], str | None] = {
             'pdf': None,
             'epub': None,
+            'mobi': None,
         }
 
         try:
-            resp = requests.get(
-                f'https://archive.org/metadata/{identifier}',
-                timeout=5,
-            )
-            resp.raise_for_status()
-            files = resp.json().get('files', [])
+            metadata = ia.get_metadata(identifier)
+            filenames = metadata.get('_filenames', [])
 
-            for f in files:
-                fmt = f.get('format', '')
-                name = f.get('name', '')
-                # IA uses 'Text PDF' or 'PDF' for PDFs
-                if fmt in ('Text PDF', 'PDF') and not result['pdf']:
+            for name in filenames:
+                name_lower = name.lower()
+                if name_lower.endswith('.pdf') and not result['pdf']:
                     result['pdf'] = name
-                # IA uses 'EPUB' for epub files
-                elif fmt == 'EPUB' and not result['epub']:
+                elif name_lower.endswith('.epub') and not result['epub']:
                     result['epub'] = name
+                elif name_lower.endswith('.mobi') and not result['mobi']:
+                    result['mobi'] = name
 
-        except Exception as e:
-            logger.warning(f'Failed to fetch IA metadata for {identifier}: {e}')
+        except (KeyError, TypeError) as e:
+            logger.warning(f'Failed to get IA download files for {identifier}: {e}')
 
         return result
 
