@@ -43,9 +43,9 @@ filterwarnings = [
     # Ignore warnings from external dependencies by file path pattern
     'ignore::DeprecationWarning',
     'ignore::SyntaxWarning',
-    # But keep warnings from our own code (openlibrary/ directory)
-    'default::DeprecationWarning:openlibrary',
-    'default::SyntaxWarning:openlibrary',
+    # Allow warnings from openlibrary or scripts
+    'default::DeprecationWarning:(openlibrary|scripts)',
+    'default::SyntaxWarning:(openlibrary|scripts)',
 ]
 addopts = "-m 'not integration'"
 markers = [
