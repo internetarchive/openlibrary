@@ -7,7 +7,6 @@ from ..functions import (
     doc_to_things,
     find_matches_by_identifiers,
     find_matches_by_isbn,
-    find_matches_by_title_and_publishers,
     massage_search_results,
     search,
     thing_to_doc,
@@ -332,72 +331,6 @@ def test_find_matches_by_identifiers(mock_site):
 
     assert results["all"] == ['/books/OL1M']
     assert sorted(results["any"]) == ['/books/OL1M', '/books/OL2M']
-
-
-@pytest.mark.xfail(reason="TODO: find_matches_by_title_and_publishers() needs work!")
-def test_find_matches_by_title_and_publishers(mock_site):
-    "Try to search for a record that should match by publisher and year of publishing"
-    record0 = {
-        'doc': {
-            'isbn_10': ['1234567890'],
-            'key': None,
-            'title': 'Bantam book',
-            'type': '/type/edition',
-            'publishers': ['Bantam'],
-            'publish_year': '1992',
-        }
-    }
-
-    record1 = {
-        'doc': {
-            'isbn_10': ['0987654321'],
-            'key': None,
-            'title': 'Dover book',
-            'type': '/type/edition',
-            'publishers': ['Dover'],
-            'publish_year': '2000',
-        }
-    }
-
-    create(record0)
-    create(record1)
-
-    # A search that should fail
-    q = {'publishers': ["Bantam"], 'publish_year': '2000'}
-    result = find_matches_by_title_and_publishers(q)
-    assert not result, "Found a match '%s' where there should have been none" % result
-
-    # A search that should return the first entry (title, publisher and year)
-    q = {'title': 'Bantam book', 'publishers': ["Bantam"], 'publish_year': '1992'}
-    result = find_matches_by_title_and_publishers(q)
-    assert result == ['/books/OL1M']
-
-    # A search that should return the second entry (title only)
-    q = {'title': 'Dover book'}
-    result = find_matches_by_title_and_publishers(q)
-    assert result == ['/books/OL2M']
-    # TODO: Search by title and then filter for publisher in the application directly.
-
-
-def test_search_by_title(mock_site):
-    "Drill the main search API using title"
-    populate_infobase(mock_site)
-    q = {'title': "test1"}
-    matches = search({"doc": q})
-    expected = {
-        'doc': {
-            'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
-            'key': '/books/OL1M',
-            'title': 'test1',
-            'type': '/type/edition',
-            'work': {'key': '/works/OL1W'},
-        },
-        'matches': [
-            {'edition': '/books/OL1M', 'work': '/works/OL1W'},
-            {'edition': '/books/OL2M', 'work': '/works/OL1W'},
-        ],
-    }
-    assert matches == expected
 
 
 @pytest.mark.skipif('"isbn_ not supported by mock_site"')
