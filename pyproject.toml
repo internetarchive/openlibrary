@@ -46,6 +46,7 @@ filterwarnings = [
     # But keep warnings from our own code (openlibrary/ directory)
     'default::DeprecationWarning:openlibrary',
     'default::SyntaxWarning:openlibrary',
+]
 addopts = "-m 'not integration'"
 markers = [
     "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
