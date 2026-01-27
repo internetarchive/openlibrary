@@ -732,6 +732,17 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
+def has_solr_editions_enabled():
+    """Check if Solr editions is enabled for the current request.
+
+    Reads from RequestContextVars which is always set during request processing.
+    Falls back to parsing logic for backward compatibility and testing.
+
+    The only reason this stays here now is because we use it in a templator template and we will migrate later.
+    """
+    return req_context.get().solr_editions
+
+
 @deprecated('remove once we fully switch search to fastapi')
 def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context.
@@ -772,17 +783,6 @@ def _parse_solr_editions_from_fastapi(request) -> bool:
         return cookie_value.lower() == 'true'
 
     return True
-
-
-def has_solr_editions_enabled():
-    """Check if Solr editions feature is enabled.
-
-    Reads from RequestContextVars which is always set during request processing.
-    Falls back to parsing logic for backward compatibility and testing.
-
-    The only reason this stays here now is because we use it in a templator template and I'm not sure how to migrate it.
-    """
-    return req_context.get().solr_editions
 
 
 def get_fulltext_min():
