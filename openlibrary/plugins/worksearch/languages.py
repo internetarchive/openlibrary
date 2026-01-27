@@ -19,6 +19,7 @@ from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
 async def get_top_languages(
     limit: int,
     user_lang: str,
