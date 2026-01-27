@@ -948,7 +948,6 @@ class book_edit(delegate.page):
             )
 
 
-
 class work_edit(delegate.page):
     path = r"(/works/OL\d+W)/edit"
 
@@ -1010,7 +1009,6 @@ class work_edit(delegate.page):
                 work.update(work_data)
                 work.comment_ = inputs.get('_comment')
             return render_template('books/edit', work, recaptcha=get_recaptcha())
-
 
 
 class author_edit(delegate.page):

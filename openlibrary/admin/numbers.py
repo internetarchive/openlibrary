@@ -188,10 +188,10 @@ def admin_range__returning_logins(**kargs):
     # Join store_index for last_login AND created_on (or similar)
     # We need users who logged in IN range, but were created BEFORE month_start
     q = """
-    SELECT count(distinct s_login.store_id) as count 
+    SELECT count(distinct s_login.store_id) as count
     FROM store_index s_login
     JOIN store_index s_created ON s_login.store_id = s_created.store_id
-    WHERE s_login.name = 'last_login' 
+    WHERE s_login.name = 'last_login'
       AND s_login.value >= $start AND s_login.value < $end
       AND s_created.name = 'created_on'
       AND s_created.value < $month_start
@@ -208,7 +208,7 @@ def admin_range__unique_editors(**kargs):
         db = kargs['thingdb']
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__unique_editors")
-    
+
     # Similar to admin_range__human_edits but counting DISTINCT author_id
     q = (
         "SELECT count(DISTINCT t.author_id) AS count FROM transaction t "
