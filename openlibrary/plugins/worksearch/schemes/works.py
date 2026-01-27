@@ -1,6 +1,5 @@
 import logging
 import re
-import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
@@ -744,8 +743,6 @@ def has_solr_editions_enabled():
 @deprecated('remove once we fully switch search to fastapi')
 def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context."""
-    if 'pytest' in sys.modules:
-        return True
 
     def read_query_string():
         return web.input(editions=None).get('editions')
