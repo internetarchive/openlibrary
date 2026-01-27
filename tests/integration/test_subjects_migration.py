@@ -67,7 +67,7 @@ def check_servers():
     print()
 
 
-def test_endpoint(name: str, path: str, query: dict[str, str]) -> bool:
+def check_endpoint(name: str, path: str, query: dict[str, str]) -> bool:
     """Test a single endpoint against both implementations."""
     print(f"{TestResult.INFO} Testing: {name}")
     print(f"  Path: {path}")
@@ -129,7 +129,7 @@ def test_endpoint(name: str, path: str, query: dict[str, str]) -> bool:
     return True
 
 
-def test_redirect(
+def check_redirect(
     name: str, path: str, expected_webpy_contains: str, expected_fastapi_contains: str
 ) -> bool:
     """Test redirect behavior for uppercase keys."""
@@ -224,7 +224,7 @@ def main():
     failed = 0
 
     for name, path, query in tests:
-        if test_endpoint(name, path, query):
+        if check_endpoint(name, path, query):
             passed += 1
         else:
             failed += 1
@@ -256,7 +256,7 @@ def main():
     ]
 
     for name, path, expected_webpy, expected_fastapi in redirect_tests:
-        if test_redirect(name, path, expected_webpy, expected_fastapi):
+        if check_redirect(name, path, expected_webpy, expected_fastapi):
             passed += 1
         else:
             failed += 1

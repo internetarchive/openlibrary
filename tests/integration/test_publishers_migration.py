@@ -67,7 +67,7 @@ def check_servers():
     print()
 
 
-def test_endpoint(name: str, path: str, query: dict[str, str]) -> bool:
+def check_endpoint(name: str, path: str, query: dict[str, str]) -> bool:
     """Test a single endpoint against both implementations."""
     print(f"{TestResult.INFO} Testing: {name}")
     print(f"  Path: {path}")
@@ -175,7 +175,7 @@ def main():
     failed = 0
 
     for name, path, query in tests:
-        if test_endpoint(name, path, query):
+        if check_endpoint(name, path, query):
             passed += 1
         else:
             failed += 1
