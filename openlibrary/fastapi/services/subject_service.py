@@ -43,28 +43,6 @@ class BaseSubjectRequestParams(Pagination):
     )
 
 
-def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
-    """Build filters dict from request parameters.
-
-    Args:
-        params: The validated request parameters
-
-    Returns:
-        Dictionary of filters to pass to get_subject()
-    """
-    filters: dict[str, str] = {}
-
-    if params.has_fulltext:
-        filters["has_fulltext"] = "true"
-
-    if publish_year_filter := date_range_to_publish_year_filter(
-        params.published_in or ""
-    ):
-        filters["publish_year"] = publish_year_filter
-
-    return filters
-
-
 async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
@@ -86,7 +64,13 @@ async def fetch_subject_data(
     full_key = f"{path_prefix}/{key}"
 
     # Build filters from request parameters
-    filters = build_filters(params)
+    filters = {}
+    if params.has_fulltext:
+        filters["has_fulltext"] = "true"
+    if publish_year_filter := date_range_to_publish_year_filter(
+        params.published_in or ""
+    ):
+        filters["publish_year"] = publish_year_filter
 
     subject: Subject = await get_subject_async(
         full_key,
