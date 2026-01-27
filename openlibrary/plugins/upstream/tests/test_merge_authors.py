@@ -1,6 +1,6 @@
 import web
-
 from infogami.infobase import client, common
+
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
@@ -126,6 +126,12 @@ class TestBasicMergeEngine:
         assert engine.merge_property("foo", "bar") == "foo"
         assert engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
         assert engine.merge_property(None, ["bar"]) == ["bar"]
+        # Test dict merging (for remote_ids)
+        assert engine.merge_property({}, {"wikidata": "Q123"}) == {"wikidata": "Q123"}
+        assert engine.merge_property({"viaf": "123"}, {"wikidata": "Q456"}) == {
+            "viaf": "123",
+            "wikidata": "Q456",
+        }
 
 
 def test_get_many():
@@ -296,6 +302,53 @@ class TestAuthorMergeEngine:
             "type": {"key": "/type/work"},
             "authors": [{"type": "/type/author_role", "author": {"key": "/authors/a"}}],
         }
+
+    def test_remote_ids_merge_wikidata_from_duplicate(self):
+        """Test that Wikidata ID from duplicate author is merged into master.
+
+        This reproduces the bug where remote_ids.wikidata was lost during merge.
+        See: https://github.com/internetarchive/openlibrary/issues/11698
+        """
+        # Master author has no remote_ids (or empty dict)
+        a = dict(TEST_AUTHORS.a, remote_ids={})
+
+        # Duplicate author has a Wikidata ID
+        b = dict(TEST_AUTHORS.b, remote_ids={"wikidata": "Q12345"})
+
+        web.ctx.site.add([a, b])
+        self.engine.merge("/authors/a", ["/authors/b"])
+
+        # The Wikidata ID should be merged into the master
+        master_remote_ids = web.ctx.site.get("/authors/a").get('remote_ids')
+        assert master_remote_ids is not None, "remote_ids should exist on master"
+        assert (
+            master_remote_ids.get("wikidata") == "Q12345"
+        ), "Wikidata ID from duplicate should be merged into master"
+
+    def test_remote_ids_merge_multiple_identifiers(self):
+        """Test that multiple remote IDs are properly merged.
+
+        Tests scenarios where:
+        - Master has some IDs, duplicate has others
+        - Both have different IDs that should be combined
+        """
+        # Master has VIAF
+        a = dict(TEST_AUTHORS.a, remote_ids={"viaf": "123456"})
+
+        # Duplicate has Wikidata
+        b = dict(TEST_AUTHORS.b, remote_ids={"wikidata": "Q789"})
+
+        web.ctx.site.add([a, b])
+        self.engine.merge("/authors/a", ["/authors/b"])
+
+        # Both IDs should be present in master
+        master_remote_ids = web.ctx.site.get("/authors/a").get('remote_ids')
+        assert (
+            master_remote_ids.get("viaf") == "123456"
+        ), "Master's VIAF should be preserved"
+        assert (
+            master_remote_ids.get("wikidata") == "Q789"
+        ), "Duplicate's Wikidata should be added"
 
 
 def test_dicthash():
