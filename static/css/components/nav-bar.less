@@ -4,7 +4,7 @@
   margin-bottom: 20px;
   font-weight: bold;
 
-  display: block;
+  display: flex;
   overflow-x: auto;
   white-space: nowrap;
   scroll-behavior: smooth;
@@ -23,6 +23,7 @@
     color: @grey;
     padding: 0 12px;
     line-height: @line-height-control;
+    border-bottom: 2px solid transparent;
   }
 
   /* stylelint-disable selector-max-specificity */
@@ -97,6 +98,7 @@
     padding: 8px 20px 0;
     background: @white;
     z-index: @z-index-level-5;
+    gap: 4px;
     scrollbar-width: thin;
 
     /* stylelint-disable selector-max-specificity */
