@@ -786,10 +786,5 @@ def _parse_solr_editions_from_fastapi(request) -> bool:
 
 
 def get_fulltext_min():
-    """Get the minimum access level for fulltext (printdisabled or borrowable).
-
-    Returns 'printdisabled' if the user has print-disabled access, otherwise 'borrowable'.
-    Reads from RequestContextVars which is always set during request processing.
-    """
     is_printdisabled = req_context.get().print_disabled
     return 'printdisabled' if is_printdisabled else 'borrowable'
