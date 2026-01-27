@@ -1,0 +1,48 @@
+$def with(test=False)
+
+$code:
+    book_talks = get_cached_book_talks() if not test else []
+    config = {
+        'booksPerBreakpoint': [3, 3, 3, 3, 2, 1],
+        'analyticsCategory': 'BookTalksCarousel',
+        'carouselKey': 'book_talks',
+        'loadMore': None
+    }
+
+$if test or (book_talks and len(book_talks) >= 3):
+    <div class="carousel-section">
+      <div class="carousel-section-header">
+        <h2 class="home-h2">
+          <a data-ol-link-track="BookTalksCarousel|HeaderClick|book_talks" href="https://archive.org/details/booktalks">$_('Book Talks')</a>
+        </h2>
+      </div>
+      <div class="carousel-container carousel-container-decorated">
+        <div class="carousel carousel--progressively-enhanced" data-config="$json_encode(config)">
+          $for index, talk in enumerate(book_talks or []):
+            $ lazy_load = index > 3
+            $ identifier = talk.get('identifier', '')
+            $ title = talk.get('title', '')
+            $ embed_url = 'https://archive.org/embed/' + identifier + '?autoplay=1'
+            <div class="book carousel__item">
+              <div class="book-cover">
+                <a href="#bookTalkPlayer" class="book-talk-link" data-iframe-src="$embed_url" data-title="$title" data-ol-link-track="BookTalksCarousel|CoverClick|book_talks">
+                  $if lazy_load:
+                    <img class="bookcover" loading="lazy" title="$title" alt="$title" data-lazy="$(talk.get('cover_url', ''))" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+                  $else:
+                    <img class="bookcover" loading="lazy" title="$title" alt="$title" src="$(talk.get('cover_url', ''))"/>
+                </a>
+              </div>
+              <div class="book-talk-title">
+                <a href="#bookTalkPlayer" class="book-talk-link" data-iframe-src="$embed_url" data-title="$title">$:macros.TruncateString(title, 50)</a>
+              </div>
+              <div class="book-talk-date">
+                $ date_str = talk.get('date', '')
+                $if date_str:
+                  $ display_date = date_str[:10] if len(date_str) >= 10 else date_str
+                  <span class="date-text">$display_date</span>
+              </div>
+              $:macros.BookTalkWatch(identifier, title)
+            </div>
+        </div>
+      </div>
+    </div>
