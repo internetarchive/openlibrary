@@ -7,10 +7,10 @@ from functools import cached_property
 from typing import TypedDict, cast
 
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
 from infogami.utils import stats  # noqa: F401 side effects may be needed
+
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict
@@ -105,10 +105,21 @@ class List(Thing):
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
     ):
         """Adds a new seed to this list."""
-        # Validate that if seed is a dict with a key, the key is not empty
-        if isinstance(seed, dict) and 'key' in seed:
-            key = seed['key']
-            if not key or not key.strip():
+        # Validate that the seed key is not empty
+        if isinstance(seed, dict):
+            # Handle both ThingReferenceDict and AnnotatedSeedDict
+            if 'thing' in seed and 'notes' in seed:
+                # This is an AnnotatedSeedDict
+                annotated_seed = cast(AnnotatedSeedDict, seed)
+                key = annotated_seed['thing']['key']
+            elif 'key' in seed:
+                # This is a ThingReferenceDict
+                thing_ref = cast(ThingReferenceDict, seed)
+                key = thing_ref['key']
+            else:
+                key = None
+
+            if key is not None and (not key or not key.strip()):
                 raise ValueError("Seed key cannot be empty")
 
         seed_object = Seed.from_json(self, seed)

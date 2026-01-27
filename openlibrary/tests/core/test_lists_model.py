@@ -64,3 +64,26 @@ def test_list_add_seed_with_blank_key():
     # Blank keys should now raise ValueError
     with pytest.raises(ValueError, match="Seed key cannot be empty"):
         lst.add_seed({'key': ''})
+
+
+def test_list_add_seed_with_blank_annotated_seed():
+    """Test that List.add_seed rejects AnnotatedSeedDict with blank keys.
+
+    Tests that AnnotatedSeedDict (which has 'thing' and 'notes' keys)
+    with blank keys are also properly rejected.
+    """
+    # Create a mock list with seeds
+    lst = List(
+        None,
+        "/people/test/lists/OL1L",
+        {
+            'key': '/people/test/lists/OL1L',
+            'type': {'key': '/type/list'},
+            'name': 'Test List',
+            'seeds': [],
+        },
+    )
+
+    # AnnotatedSeedDict with blank key should raise ValueError
+    with pytest.raises(ValueError, match="Seed key cannot be empty"):
+        lst.add_seed({'thing': {'key': ''}, 'notes': 'some notes'})
