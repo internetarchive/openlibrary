@@ -25,6 +25,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import cache, lending, models
 from openlibrary.core import helpers as h
+from openlibrary.core.admin import get_cached_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.bookshelves_events import BookshelvesEvents
@@ -525,7 +526,7 @@ class patrons_follows_json(delegate.page):
 
         username = user.key.split('/')[2]
         return delegate.RawText(
-            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            json.dumps(PubSub.get_following(username), cls=NothingEncoder),
             content_type="application/json",
         )
 
@@ -1061,3 +1062,14 @@ class unlink_ia_ol(delegate.page):
         if not data['source_records']:
             del data['source_records']
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
+
+
+class monthly_logins(delegate.page):
+    path = "/api/monthly_logins"
+    encoding = "json"
+
+    def GET(self):
+        return delegate.RawText(
+            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            content_type="application/json",
+        )

@@ -582,4 +582,11 @@ jQuery(function () {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
     }
+
+    // Stats page login counts
+    const monthlyLoginStats = document.querySelector('.monthly-login-counts')
+    if (monthlyLoginStats) {
+        import(/* webpackChunkName: "stats" */ './stats')
+            .then(module => module.initUniqueLoginCounts(monthlyLoginStats))
+    }
 });

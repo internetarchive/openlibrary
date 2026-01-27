@@ -1263,7 +1263,6 @@ def is_bot():
         'nsrbot',
         'discordbot',
         'ahrefsbot',
-        '`googlebot',
         'coccocbot',
         'buzzbot',
         'laserlikebot',
@@ -1282,6 +1281,10 @@ def is_bot():
         'yandex.com/bots',
         'icc-crawler',
     ]
+
+    # As set in web_nginx.conf via the trap-link
+    if web.ctx.env.get("HTTP_X_HHCL") == '1':
+        return True
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()

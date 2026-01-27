@@ -42,10 +42,6 @@ Chạy `docker compose up` và truy cập http://localhost:8080
 Cần thêm chi tiết? Xem thử [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 hoặc [video hướng dẫn](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
-***Ngoài ra***, nếu bạn không muốn thiết lập Open Library trên máy tính cá nhân của mình, hãy thử sử dụng Gitpod! Điều này cho phép bạn làm việc với Open Library hoàn toàn trong trình duyệt mà không cần cài đặt bất kỳ thứ gì trên máy tính cá nhân.
-Cảnh báo: Việc tích hợp này vẫn đang trong giai đoạn thử nghiệm.
-[![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
-
 ### Hướng dẫn dành cho nhà phát triển
 
 Bạn cũng có thể tìm kiếm thêm thông tin về Tài liệu dành cho nhà phát triển của Open Library trong chính Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/).
