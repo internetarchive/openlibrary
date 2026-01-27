@@ -27,7 +27,6 @@ class languages(subjects.subjects):
         return "languages" in web.ctx.features
 
 
-@deprecated("migrated to fastapi")
 class languages_json(subjects.subjects_json):
     path = '(/languages/[^_][^/]*)'
     encoding = "json"
