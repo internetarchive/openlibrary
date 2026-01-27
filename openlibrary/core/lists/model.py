@@ -7,10 +7,10 @@ from functools import cached_property
 from typing import TypedDict, cast
 
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
 from infogami.utils import stats  # noqa: F401 side effects may be needed
+
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingReferenceDict
@@ -105,6 +105,12 @@ class List(Thing):
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
     ):
         """Adds a new seed to this list."""
+        # Validate that if seed is a dict with a key, the key is not empty
+        if isinstance(seed, dict) and 'key' in seed:
+            key = seed['key']
+            if not key or not key.strip():
+                raise ValueError("Seed key cannot be empty")
+
         seed_object = Seed.from_json(self, seed)
 
         if self._index_of_seed(seed_object.key) >= 0:
@@ -453,21 +459,30 @@ class Seed:
             if 'thing' in seed_json:
                 annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
 
+                # Validate that the key is not empty
+                key = annotated_seed['thing']['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(
-                            list._site, annotated_seed['thing']['key'], None
-                        ),
+                        'thing': Thing(list._site, key, None),
                         'notes': annotated_seed['notes'],
                     },
                 )
             elif 'key' in seed_json:
                 thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
+
+                # Validate that the key is not empty
+                key = thing_ref['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(list._site, thing_ref['key'], None),
+                        'thing': Thing(list._site, key, None),
                         'notes': '',
                     },
                 )
