@@ -1,13 +1,13 @@
 """Shared service layer for subject-type endpoints.
 
 This module provides reusable functions and classes for handling
-subject-type endpoints (subjects, languages, publishers) to avoid
+subject-type endpoints (subjects and publishers) to avoid
 code duplication and ensure consistent behavior.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -24,8 +24,7 @@ from openlibrary.plugins.worksearch.subjects import (
 class BaseSubjectRequestParams(Pagination):
     """Base query parameters for subject-type endpoints.
 
-    This class defines common parameters used across subjects, languages,
-    and publishers endpoints.
+    This class defines common parameters used across subjects and publishers endpoints.
     """
 
     details: bool = Field(False, description="Include facets and detailed metadata")
@@ -69,7 +68,7 @@ def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
 async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
-    path_prefix: str,
+    path_prefix: Literal["/subjects/", "/languages/"],
 ) -> dict[str, Any]:
     """Fetch subject data and convert to dict format.
 
