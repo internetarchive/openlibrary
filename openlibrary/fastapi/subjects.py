@@ -22,13 +22,6 @@ async def subject_json(
     # Normalize the key (lowercase)
     normalized_key = key.lower()
 
-    # Handle old path patterns (temporary code from old implementation)
-    # TODO: Determine if we still need this at all..
-    if normalized_key.count("/") == 3:
-        normalized_key = normalized_key.replace("/people/", "/person:")
-        normalized_key = normalized_key.replace("/places/", "/place:")
-        normalized_key = normalized_key.replace("/times/", "/time:")
-
     if normalized_key != key:
         return RedirectResponse(
             url=request.url.replace(path=f"/subjects/{normalized_key}.json"),
