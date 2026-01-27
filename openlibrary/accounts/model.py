@@ -95,6 +95,21 @@ def get_secret_key():
     return config.infobase['secret_key']
 
 
+def generate_login_code_for_user(username: str) -> str:
+    """
+    Args:
+        username: The username to generate a login code for
+
+    Returns:
+        A string in the format: "/people/{username},{timestamp},{salt}${hash}"
+        that can be used as a session cookie value
+    """
+    user_key = "/people/" + username
+    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    text = f"{user_key},{t}"
+    return text + "," + generate_hash(get_secret_key(), text)
+
+
 def generate_uuid() -> str:
     return str(uuid.uuid4()).replace("-", "")
 
@@ -251,10 +266,7 @@ class Account(web.storage):
 
     def generate_login_code(self) -> str:
         """Returns a string that can be set as login cookie to log in as this user."""
-        user_key = "/people/" + self.username
-        t = datetime.datetime(*time.gmtime()[:6]).isoformat()
-        text = f"{user_key},{t}"
-        return text + "," + generate_hash(get_secret_key(), text)
+        return generate_login_code_for_user(self.username)
 
     def _save(self) -> None:
         """Saves this account in store."""
