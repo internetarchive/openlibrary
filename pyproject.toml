@@ -45,6 +45,8 @@ filterwarnings = [
     'ignore::DeprecationWarning:webob',
     # Ignore Pydantic v1 compatibility warnings triggered by FastAPI's Query()
     'ignore:The `__fields__` attribute is deprecated:DeprecationWarning:pydantic',
+    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.12 deprecation)
+    'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
 ]
 addopts = "-m 'not integration'"
 markers = [
