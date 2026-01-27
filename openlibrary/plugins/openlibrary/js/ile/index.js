@@ -66,7 +66,7 @@ export class IntegratedLibrarianEnvironment {
     /**
      * Clears all items selected in SelectionManager.
      *
-     * This indirectly calls `IntegratedlibrarianEnvironment.reset()`.
+     * This indirectly calls `IntegratedLibrarianEnvironment.reset()`.
      */
     clearAndReset() {
         this.selectionManager.clearSelectedItems()
@@ -90,7 +90,7 @@ export class IntegratedLibrarianEnvironment {
      * Updates the Bulk Tagger with the selected works, then displays the tagger.
      *
      * @param {Array<String>} workIds
-     * @param {boolean} isBookPageEdit `true` if the bulk tagger is opened on a /books owr /works page
+     * @param {boolean} isBookPageEdit `true` if the bulk tagger is opened on a /books or /works page
      */
     updateAndShowBulkTagger(workIds, isBookPageEdit = false) {
         if (this.bulkTagger) {
