@@ -107,6 +107,61 @@ test_endpoint() {
     echo ""
 }
 
+# Test redirect behavior
+test_redirect() {
+    local test_name="$1"
+    local path="$2"
+    local expected_webpy_location="$3"
+    local expected_fastapi_location="$4"
+
+    echo -e "${YELLOW}Testing: ${test_name}${NC}"
+    echo "  Path: ${path}"
+    echo "  Expected web.py redirect to: ${expected_webpy_location}"
+    echo "  Expected FastAPI redirect to: ${expected_fastapi_location}"
+
+    local webpy_url="${BASE_WEBPY_URL}${path}"
+    local fastapi_url="${BASE_FASTAPI_URL}${path}"
+
+    # Check web.py redirect (get status code and Location header)
+    webpy_response=$(curl -s -w "\n%{http_code}\n%{redirect_url}" "${webpy_url}")
+    webpy_status=$(echo "$webpy_response" | tail -n2 | head -n1)
+    webpy_redirect=$(echo "$webpy_response" | tail -n1)
+
+    # Check FastAPI redirect (get status code and Location header)
+    fastapi_response=$(curl -s -w "\n%{http_code}\n%{redirect_url}" "${fastapi_url}")
+    fastapi_status=$(echo "$fastapi_response" | tail -n2 | head -n1)
+    fastapi_redirect=$(echo "$fastapi_response" | tail -n1)
+
+    # Both should return 301 redirect
+    if [ "$webpy_status" != "301" ]; then
+        echo -e "  ${RED}✗ web.py didn't return 301, got: ${webpy_status}${NC}"
+        return 1
+    fi
+
+    if [ "$fastapi_status" != "301" ]; then
+        echo -e "  ${RED}✗ FastAPI didn't return 301, got: ${fastapi_status}${NC}"
+        return 1
+    fi
+
+    # Check redirect URLs match expected (different for web.py vs FastAPI)
+    if [[ ! "$webpy_redirect" == *"$expected_webpy_location"* ]]; then
+        echo -e "  ${RED}✗ web.py redirect URL mismatch${NC}"
+        echo "    Expected to contain: ${expected_webpy_location}"
+        echo "    Got: ${webpy_redirect}"
+        return 1
+    fi
+
+    if [[ ! "$fastapi_redirect" == *"$expected_fastapi_location"* ]]; then
+        echo -e "  ${RED}✗ FastAPI redirect URL mismatch${NC}"
+        echo "    Expected to contain: ${expected_fastapi_location}"
+        echo "    Got: ${fastapi_redirect}"
+        return 1
+    fi
+
+    echo -e "  ${GREEN}✓ Both return 301 redirect (note: web.py redirects to .json-less URL, FastAPI redirects to .json URL)${NC}"
+    echo ""
+}
+
 # Test cases
 echo "Running test cases..."
 echo "====================="
@@ -147,6 +202,15 @@ test_endpoint "Subject with spaces" "/subjects/science_fiction" ""
 
 # Combined parameters
 test_endpoint "Combined parameters" "/subjects/love" "?details=true&has_fulltext=true&limit=3&sort=new"
+
+# Redirect tests
+echo "Testing redirect behavior..."
+echo "============================="
+echo ""
+
+test_redirect "Uppercase to lowercase redirect" "/subjects/LOVE.json" "/subjects/love" "/subjects/love.json"
+test_redirect "Mixed case redirect" "/subjects/Science_Fiction.json" "/subjects/science_fiction" "/subjects/science_fiction.json"
+test_redirect "Uppercase person redirect" "/subjects/PERSON:MARK_TWAIN.json" "/subjects/person:mark_twain" "/subjects/person:mark_twain.json"
 
 # Error case: excessive limit
 echo -e "${YELLOW}Testing: Excessive limit (should return non-200)${NC}"
