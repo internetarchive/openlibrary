@@ -43,6 +43,8 @@ filterwarnings = [
     # Ignore warnings from webob, which doesn't have a fix.
     # It comes from webtest, which we will remove when fastapi is done
     'ignore::DeprecationWarning:webob',
+    # Ignore Pydantic v1 compatibility warnings triggered by FastAPI's Query()
+    'ignore:The `__fields__` attribute is deprecated:DeprecationWarning:pydantic',
 ]
 addopts = "-m 'not integration'"
 markers = [
