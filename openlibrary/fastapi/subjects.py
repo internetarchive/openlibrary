@@ -19,10 +19,7 @@ async def subject_json(
     key: str,
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> RedirectResponse | dict[str, Any]:
-    # Normalize the key (lowercase)
-    normalized_key = key.lower()
-
-    if normalized_key != key:
+    if (normalized_key := key.lower()) != key:
         return RedirectResponse(
             url=request.url.replace(path=f"/subjects/{normalized_key}.json"),
             status_code=301,
