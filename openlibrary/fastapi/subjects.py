@@ -29,5 +29,4 @@ async def subject_json(
         key=key,
         params=params,
         path_prefix="/subjects",
-        normalize_key_func=lambda k: k.lower(),
     )

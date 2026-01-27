@@ -71,7 +71,6 @@ async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
     path_prefix: str,
-    normalize_key_func: Callable[[str], str] | None = None,
     process_key_func: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Fetch subject data and convert to dict format.
@@ -82,7 +81,6 @@ async def fetch_subject_data(
         key: The subject key from the URL path
         params: The validated request parameters
         path_prefix: The URL path prefix (e.g., "/subjects/", "/languages/")
-        normalize_key_func: Optional function to normalize the key (e.g., lowercase)
         process_key_func: Optional function to process the key (e.g., replace underscores)
 
     Returns:
@@ -90,10 +88,6 @@ async def fetch_subject_data(
     """
     # Build the full key by prepending the path prefix
     full_key = f"{path_prefix}/{key}"
-
-    # Apply normalization if provided
-    if normalize_key_func:
-        full_key = normalize_key_func(full_key)
 
     # Apply processing if provided
     if process_key_func:
