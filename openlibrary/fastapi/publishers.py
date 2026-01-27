@@ -17,9 +17,10 @@ async def publisher_json(
     key: str,
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
+    # Replace underscores with spaces in the key
+    processed_key = key.replace("_", " ")
     return await fetch_subject_data(
-        key=key,
+        key=processed_key,
         params=params,
         path_prefix="/publishers",
-        process_key_func=lambda k: k.replace("_", " "),
     )

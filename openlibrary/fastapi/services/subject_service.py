@@ -7,7 +7,6 @@ code duplication and ensure consistent behavior.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
 from pydantic import Field
@@ -71,7 +70,6 @@ async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
     path_prefix: str,
-    process_key_func: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Fetch subject data and convert to dict format.
 
@@ -81,17 +79,12 @@ async def fetch_subject_data(
         key: The subject key from the URL path
         params: The validated request parameters
         path_prefix: The URL path prefix (e.g., "/subjects/", "/languages/")
-        process_key_func: Optional function to process the key (e.g., replace underscores)
 
     Returns:
         Dictionary containing subject data with works list
     """
     # Build the full key by prepending the path prefix
     full_key = f"{path_prefix}/{key}"
-
-    # Apply processing if provided
-    if process_key_func:
-        full_key = process_key_func(full_key)
 
     # Build filters from request parameters
     filters = build_filters(params)
