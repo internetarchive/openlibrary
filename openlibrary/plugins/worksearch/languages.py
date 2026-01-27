@@ -19,14 +19,6 @@ from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 
-
-class languages(subjects.subjects):
-    path = '(/languages/[^_][^/]*)'
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-
 async def get_top_languages(
     limit: int,
     user_lang: str,
