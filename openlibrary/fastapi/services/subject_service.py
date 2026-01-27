@@ -68,7 +68,7 @@ def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
 async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
-    path_prefix: Literal["/subjects", "/languages"],
+    path_prefix: Literal["/subjects", "/publishers"],
 ) -> dict[str, Any]:
     """Fetch subject data and convert to dict format.
 
