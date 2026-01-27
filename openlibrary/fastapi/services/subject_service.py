@@ -34,7 +34,6 @@ class BaseSubjectRequestParams(Pagination):
     sort: str = Field(
         "editions", description="Sort order: editions, old, new, ranking, etc."
     )
-    available: bool = Field(False, description="Filter to available works")
     published_in: str | None = Field(
         None, description="Date range filter: YYYY or YYYY-YYYY"
     )
