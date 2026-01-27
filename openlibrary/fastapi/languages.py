@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel
 
-from openlibrary.fastapi.services.subject_service import (
-    BaseSubjectRequestParams,
-    fetch_subject_data,
-)
 from openlibrary.plugins.worksearch.languages import get_top_languages
 
 
@@ -35,16 +31,3 @@ async def list_languages(
     Get a list of the top languages, sorted by the specified criteria.
     """
     return await get_top_languages(limit=limit, user_lang=request.state.lang, sort=sort)
-
-
-@router.get("/languages/{key:path}.json")
-async def language_json(
-    key: str,
-    params: Annotated[BaseSubjectRequestParams, Depends()],
-) -> dict[str, Any]:
-    return await fetch_subject_data(
-        key=key,
-        params=params,
-        path_prefix="/languages",
-        process_key_func=lambda k: k.replace("_", " "),
-    )
