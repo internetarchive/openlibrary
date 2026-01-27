@@ -68,7 +68,7 @@ def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
 async def fetch_subject_data(
     key: str,
     params: BaseSubjectRequestParams,
-    path_prefix: Literal["/subjects/", "/languages/"],
+    path_prefix: Literal["/subjects", "/languages"],
 ) -> dict[str, Any]:
     """Fetch subject data and convert to dict format.
 
@@ -77,7 +77,7 @@ async def fetch_subject_data(
     Args:
         key: The subject key from the URL path
         params: The validated request parameters
-        path_prefix: The URL path prefix (e.g., "/subjects/", "/languages/")
+        path_prefix: The URL path prefix (e.g., "/subjects", "/languages")
 
     Returns:
         Dictionary containing subject data with works list
