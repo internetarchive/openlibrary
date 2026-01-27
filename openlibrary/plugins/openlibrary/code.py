@@ -1223,12 +1223,7 @@ class memory(delegate.page):
 
 
 def is_bot():
-    """Check if the current request is from a bot.
-
-    This reads from RequestContextVars which is computed once during request setup.
-    Much faster than re-parsing on every call!
-    """
-
+    """Check if the current request is from a bot."""
     return req_context.get().is_bot
 
 

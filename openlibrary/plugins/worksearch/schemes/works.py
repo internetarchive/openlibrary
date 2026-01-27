@@ -364,7 +364,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
+        if req_context.get().solr_editions and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
@@ -732,13 +732,11 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
+@deprecated('remove once we fully switch search to fastapi')
 def has_solr_editions_enabled():
     """Check if Solr editions is enabled for the current request.
 
-    Reads from RequestContextVars which is always set during request processing.
-    Falls back to parsing logic for backward compatibility and testing.
-
-    The only reason this stays here now is because we use it in a templator template and we will migrate later.
+    TODO: Remove once we fully switch search to fastapi, it's only used by templator right now.
     """
     return req_context.get().solr_editions
 
