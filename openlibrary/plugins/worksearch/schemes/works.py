@@ -743,13 +743,7 @@ def has_solr_editions_enabled():
 
 @deprecated('remove once we fully switch search to fastapi')
 def _parse_solr_editions_from_web() -> bool:
-    """Parse solr_editions from web.py context.
-
-    This extracts the parsing logic from has_solr_editions_enabled().
-    Used by set_context_from_legacy_web_py() to parse once during request setup.
-
-    Priority: query string > cookie > default (True)
-    """
+    """Parse solr_editions from web.py context."""
     if 'pytest' in sys.modules:
         return True
 
@@ -770,10 +764,7 @@ def _parse_solr_editions_from_web() -> bool:
 
 
 def _parse_solr_editions_from_fastapi(request) -> bool:
-    """Parse solr_editions preference from query string or cookie.
-
-    Priority: query string > cookie > default (True)
-    """
+    """Parse solr_editions preference from query string or cookie."""
     if editions_param := request.query_params.get('editions'):
         return editions_param.lower() == 'true'
 
