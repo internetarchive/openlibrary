@@ -25,7 +25,10 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
-from openlibrary.utils.async_utils import req_context
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -48,7 +51,6 @@ from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.utils.async_utils import set_context_from_legacy_web_py
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 

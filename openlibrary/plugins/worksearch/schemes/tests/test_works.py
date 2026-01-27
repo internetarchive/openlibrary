@@ -3,8 +3,8 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import Request
 
-from openlibrary.plugins.worksearch.schemes.works import (
-    WorkSearchScheme,
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.request_context import (
     _parse_solr_editions_from_fastapi,
     _parse_solr_editions_from_web,
 )

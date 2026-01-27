@@ -24,7 +24,6 @@ from openlibrary.solr.query_utils import (
     luqum_replace_field,
     luqum_traverse,
 )
-from openlibrary.utils.async_utils import req_context
 from openlibrary.utils.ddc import (
     normalize_ddc,
     normalize_ddc_prefix,
@@ -36,6 +35,7 @@ from openlibrary.utils.lcc import (
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
 )
+from openlibrary.utils.request_context import req_context
 
 logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r'(OL\d+A)')
@@ -738,37 +738,6 @@ def has_solr_editions_enabled():
     TODO: Remove once we fully switch search to fastapi, it's only used by templator right now.
     """
     return req_context.get().solr_editions
-
-
-@deprecated('remove once we fully switch search to fastapi')
-def _parse_solr_editions_from_web() -> bool:
-    """Parse solr_editions from web.py context."""
-
-    def read_query_string():
-        return web.input(editions=None).get('editions')
-
-    def read_cookie():
-        if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
-            return web.cookies().get('SOLR_EDITIONS')
-
-    if (qs_value := read_query_string()) is not None:
-        return qs_value == 'true'
-
-    if (cookie_value := read_cookie()) is not None:
-        return cookie_value == 'true'
-
-    return True
-
-
-def _parse_solr_editions_from_fastapi(request) -> bool:
-    """Parse solr_editions preference from query string or cookie."""
-    if editions_param := request.query_params.get('editions'):
-        return editions_param.lower() == 'true'
-
-    if cookie_value := request.cookies.get('SOLR_EDITIONS'):
-        return cookie_value.lower() == 'true'
-
-    return True
 
 
 def get_fulltext_min():

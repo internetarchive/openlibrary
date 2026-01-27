@@ -104,7 +104,7 @@ def request_context_fixture():
 
     The fixture automatically cleans up after the test completes.
     """
-    from openlibrary.utils.async_utils import RequestContextVars, req_context
+    from openlibrary.utils.request_context import RequestContextVars, req_context
 
     token = req_context.set(
         RequestContextVars(

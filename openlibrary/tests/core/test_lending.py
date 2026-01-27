@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from openlibrary.core import lending
-from openlibrary.utils.async_utils import RequestContextVars, req_context
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 @pytest.mark.usefixtures("request_context_fixture")
