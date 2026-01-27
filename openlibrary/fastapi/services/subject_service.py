@@ -8,7 +8,7 @@ code duplication and ensure consistent behavior.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import Field
 
@@ -29,18 +29,12 @@ class BaseSubjectRequestParams(Pagination):
     and publishers endpoints.
     """
 
-    details: Literal["true", "false"] = Field(
-        "false", description="Include facets and detailed metadata"
-    )
-    has_fulltext: Literal["true", "false"] = Field(
-        "false", description="Filter to works with fulltext"
-    )
+    details: bool = Field(False, description="Include facets and detailed metadata")
+    has_fulltext: bool = Field(False, description="Filter to works with fulltext")
     sort: str = Field(
         "editions", description="Sort order: editions, old, new, ranking, etc."
     )
-    available: Literal["true", "false"] = Field(
-        "false", description="Filter to available works"
-    )
+    available: bool = Field(False, description="Filter to available works")
     published_in: str | None = Field(
         None, description="Date range filter: YYYY or YYYY-YYYY"
     )
@@ -63,7 +57,7 @@ def build_filters(params: BaseSubjectRequestParams) -> dict[str, str]:
     """
     filters: dict[str, str] = {}
 
-    if params.has_fulltext == "true":
+    if params.has_fulltext:
         filters["has_fulltext"] = "true"
 
     if publish_year_filter := date_range_to_publish_year_filter(
@@ -114,7 +108,7 @@ async def fetch_subject_data(
         offset=params.offset or 0,
         limit=params.limit,
         sort=params.sort,
-        details=params.details == "true",
+        details=params.details,
         request_label="SUBJECT_ENGINE_API",
         **filters,
     )
@@ -123,7 +117,7 @@ async def fetch_subject_data(
     subject_results = dict(subject)
 
     # Handle ebook_count special case
-    if params.has_fulltext == "true":
+    if params.has_fulltext:
         subject_results["ebook_count"] = subject_results["work_count"]
 
     # Convert works (list of web.storage) to list of dicts
