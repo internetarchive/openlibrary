@@ -19,7 +19,6 @@ old_plugins = [
     "admin",
     "upstream",
     "importapi",
-    "recaptcha",
 ]
 
 
