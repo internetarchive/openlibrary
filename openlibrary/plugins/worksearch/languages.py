@@ -20,27 +20,6 @@ from . import search, subjects
 logger = logging.getLogger("openlibrary.worksearch")
 
 
-class languages(subjects.subjects):
-    path = '(/languages/[^_][^/]*)'
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-
-class languages_json(subjects.subjects_json):
-    path = '(/languages/[^_][^/]*)'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
-
-
 async def get_top_languages(
     limit: int,
     user_lang: str,
