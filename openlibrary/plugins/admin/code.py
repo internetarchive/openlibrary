@@ -590,7 +590,7 @@ def storify(d):
 def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
-    retval = admin_stats.get_stats(100)
+    retval = admin_stats.get_stats(28)
     return storify(retval)
 
 
