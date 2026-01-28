@@ -21,7 +21,10 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
-from openlibrary.utils.async_utils import req_context, set_context_from_legacy_web_py
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 from . import helpers as h
 from . import ia

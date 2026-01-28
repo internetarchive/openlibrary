@@ -13,7 +13,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
-from openlibrary.utils.async_utils import set_context_from_fastapi
+from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -156,8 +156,6 @@ def create_app() -> FastAPI:
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
-    setup_i18n(app)
-
     @app.middleware("http")
     async def add_fastapi_header(request: Request, call_next):
         """Middleware to add a header indicating the response came from FastAPI."""
@@ -171,6 +169,10 @@ def create_app() -> FastAPI:
         response = await call_next(request)
         return response
 
+    # setup_i18n is below set_context so that it can use the request.state.lang in set_context
+    # because the handlers are called in reverse order
+    setup_i18n(app)
+
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -178,11 +180,15 @@ def create_app() -> FastAPI:
 
     from openlibrary.fastapi.account import router as account_router  # type: ignore
     from openlibrary.fastapi.languages import router as languages_router  # type: ignore
+    from openlibrary.fastapi.publishers import router as publishers_router  # type: ignore
     from openlibrary.fastapi.search import router as search_router  # type: ignore
+    from openlibrary.fastapi.subjects import router as subjects_router  # type: ignore
 
     # Include routers
     app.include_router(languages_router)
+    app.include_router(publishers_router)
     app.include_router(search_router)
+    app.include_router(subjects_router)
     app.include_router(account_router)
 
     return app

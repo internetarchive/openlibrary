@@ -7,7 +7,8 @@ import httpx
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils.async_utils import async_bridge, req_context, site
+from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.inside")
 

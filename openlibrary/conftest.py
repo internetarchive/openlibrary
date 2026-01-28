@@ -84,6 +84,44 @@ def monkeytime(monkeypatch):
 
 
 @pytest.fixture
+def request_context_fixture():
+    """
+    Set up RequestContextVars for tests that need context variables.
+
+    This fixture provides sensible defaults for all context variables and
+    allows tests to override specific values as needed.
+
+    Usage:
+        # Autouse for entire module/class (all tests get context):
+        @pytest.fixture(autouse=True)
+        def auto_context(request_context):
+            yield
+
+        # Or use directly in individual tests:
+        def test_something(request_context):
+            # Context is automatically set up
+            pass
+
+    The fixture automatically cleans up after the test completes.
+    """
+    from openlibrary.utils.request_context import RequestContextVars, req_context
+
+    token = req_context.set(
+        RequestContextVars(
+            x_forwarded_for=None,
+            user_agent=None,
+            lang=None,
+            solr_editions=True,  # Default to True for tests (matches _parse_solr_editions_from_web)
+            print_disabled=False,
+            is_bot=False,
+        )
+    )
+    yield
+    # Cleanup
+    req_context.reset(token)
+
+
+@pytest.fixture
 def wildcard():
     return Wildcard()
 
