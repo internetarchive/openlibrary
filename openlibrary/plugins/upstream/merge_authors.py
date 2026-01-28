@@ -117,8 +117,9 @@ class BasicMergeEngine:
             return uniq(a + b, key=dicthash)
         elif isinstance(a, dict) and isinstance(b, dict):
             # Merge dictionaries (e.g., remote_ids)
-            result = a.copy()
-            result.update(b)
+            # Master (a) values take preference over duplicate (b) values
+            result = b.copy()
+            result.update(a)
             return result
         elif not a:
             return b

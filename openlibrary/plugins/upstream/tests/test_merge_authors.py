@@ -132,6 +132,10 @@ class TestBasicMergeEngine:
             "viaf": "123",
             "wikidata": "Q456",
         }
+        # When both have the same key, master's value should take preference
+        assert engine.merge_property({"wikidata": "Q111"}, {"wikidata": "Q222"}) == {
+            "wikidata": "Q111"
+        }
 
 
 def test_get_many():
@@ -310,45 +314,22 @@ class TestAuthorMergeEngine:
         See: https://github.com/internetarchive/openlibrary/issues/11698
         """
         # Master author has no remote_ids (or empty dict)
-        a = dict(TEST_AUTHORS.a, remote_ids={})
+        a = dict(TEST_AUTHORS.a)
 
         # Duplicate author has a Wikidata ID
         b = dict(TEST_AUTHORS.b, remote_ids={"wikidata": "Q12345"})
 
-        web.ctx.site.add([a, b])
-        self.engine.merge("/authors/a", ["/authors/b"])
+        c = dict(TEST_AUTHORS.c, remote_ids={"wikidata": "Q12346", "viaf": "123456"})
+
+        web.ctx.site.add([a, b, c])
+        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
 
         # The Wikidata ID should be merged into the master
-        master_remote_ids = web.ctx.site.get("/authors/a").get('remote_ids')
-        assert master_remote_ids is not None, "remote_ids should exist on master"
-        assert (
-            master_remote_ids.get("wikidata") == "Q12345"
-        ), "Wikidata ID from duplicate should be merged into master"
-
-    def test_remote_ids_merge_multiple_identifiers(self):
-        """Test that multiple remote IDs are properly merged.
-
-        Tests scenarios where:
-        - Master has some IDs, duplicate has others
-        - Both have different IDs that should be combined
-        """
-        # Master has VIAF
-        a = dict(TEST_AUTHORS.a, remote_ids={"viaf": "123456"})
-
-        # Duplicate has Wikidata
-        b = dict(TEST_AUTHORS.b, remote_ids={"wikidata": "Q789"})
-
-        web.ctx.site.add([a, b])
-        self.engine.merge("/authors/a", ["/authors/b"])
-
-        # Both IDs should be present in master
-        master_remote_ids = web.ctx.site.get("/authors/a").get('remote_ids')
-        assert (
-            master_remote_ids.get("viaf") == "123456"
-        ), "Master's VIAF should be preserved"
-        assert (
-            master_remote_ids.get("wikidata") == "Q789"
-        ), "Duplicate's Wikidata should be added"
+        master_remote_ids = dict(web.ctx.site.get("/authors/a").get('remote_ids'))
+        assert master_remote_ids == {
+            "wikidata": "Q12345",
+            "viaf": "123456",
+        }, "remote_ids from duplicate should be merged into master"
 
 
 def test_dicthash():
