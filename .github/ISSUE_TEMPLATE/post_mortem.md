@@ -8,12 +8,13 @@ assignees: ''
 
 <!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
 
-### Summary
+## Summary
 
-- **What is wrong?**
+### What is wrong?
 <!-- When was it noted, what is the issue, what is the scope? -->
 
-<!-- Complete these sections once the problem is resolved. Be brief. -->
+<details>
+<summary><strong>Resolution Details</strong> (complete once resolved)</summary>
 
 - **What caused it?**
 <!-- What did investigation reveal to be the cause? -->
@@ -25,10 +26,12 @@ assignees: ''
 - **What could have gone better?**
 <!-- What about our processes could have been improved? -->
 
-- **Followup actions:**
+### Followup actions:
 <!-- Note any resulting changes or decisions -->
 
-### Steps to close
+</details>
+
+## Steps to close
 <!-- For instructions, please see: https://github.com/internetarchive/openlibrary/wiki/Disaster-History-Log#how-to -->
 1. [ ] Assignment: Is someone assigned to this issue? (notetaker, responder)
 2. [ ] Labels: Is there an `Affects:` label applied?
