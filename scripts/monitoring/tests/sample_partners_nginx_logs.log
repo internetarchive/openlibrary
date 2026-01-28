@@ -1,0 +1,9 @@
+0.197.200.46 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /books/OL46121213M HTTP/1.1" 200 371 "-" "Bookscovery/1.0 (https://bookscovery.com; foobar@bookscovery.com)" 1.520
+0.199.222.47 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /search.json?limit=5&q=Mel+Robbins+Let+Them+Theory+Pdf HTTP/1.0" 499 0 "-" "-" 59.909
+0.235.51.215 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /works/OL10514176W/editions.json HTTP/1.1" 200 1351 "-" "Whefi/1.0 (foobar@whefi.com)" 4.987
+0.35.246.131 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /works/OL25551195W.json HTTP/1.1" 200 260 "-" "python-requests/2.32.5" 0.023
+0.24.138.121 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /books/OL9116178M/Caballo_de_Troya_2 HTTP/2.0" 403 153 "-" "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)" 0.000
+0.129.199.122 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /works/OL30310W.json HTTP/1.1" 200 1251 "-" "inventaire/4.0.1; +https://inventaire.io" 0.007
+0.35.246.131 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /authors/OL2830895A.json HTTP/1.1" 200 1255 "-" "python-requests/2.31.0" 0.013
+0.73.63.139 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /works/OL23330197W/A_Academia_Brasileira_de_Letras?edition=key%3A/books/OL31179865M HTTP/2.0" 403 153 "-" "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)" 0.000
+0.73.63.139 openlibrary.org - [28/Nov/2025:18:00:57 +0000] "GET /works/OL23330197W/A_Academia_Brasileira_de_Letras?edition=key%3A/books/OL31179865M HTTP/2.0" 403 153 "-" "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)" 0.000

@@ -7,6 +7,7 @@ import asyncio
 import os
 import re
 import time
+from typing import Any
 
 import httpx
 
@@ -98,7 +99,7 @@ async def monitor_solr():
 
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
-async def monitor_partner_useragents():
+def monitor_partner_useragents():
 
     def graphite_safe(s: str) -> str:
         """Normalize a string for safe use as a Graphite metric name."""
@@ -111,11 +112,18 @@ async def monitor_partner_useragents():
         # Strip leading/trailing underscores or dots
         return s.strip('._')
 
-    def extract_agent_counts(ua_counts, allowed_names=None):
-        agent_counts = {}
-        for ua in ua_counts.strip().split("\n"):
-            count, agent, *_ = ua.strip().split(" ")
-            count = int(count)
+    def extract_agent_counts(
+        ua_counts: str,
+        allowed_names: dict[str, Any] | set[str] | None = None,
+    ):
+        agent_counts: dict[str, int] = {}
+        for ua_line in ua_counts.strip().split("\n"):
+            ua_line = ua_line.strip()
+            if not ua_line:
+                continue
+
+            count_str, agent, *_ = ua_line.split(" ")
+            count = int(count_str)
             agent_name = graphite_safe(agent.split('/')[0])
             if not allowed_names or agent_name in allowed_names:
                 agent_counts[agent_name] = count
@@ -126,22 +134,34 @@ async def monitor_partner_useragents():
 
     known_names = extract_agent_counts(
         """
-    177 Whefi/1.0 (contact@whefi.com)
-     85 Bookhives/1.0 (paulpleela@gmail.com)
-     85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
-     62 BookHub/1.0 (contact@ybookshub.com)
-     58 Bookscovery/1.0 (https://bookscovery.com; info@bookscovery.com)
-     45 BookstoreApp/1.0 (contact@thounkai.com)
-     20 Gleeph/1.0 (contact-openlibrary@gleeph.net)
-      2 Tomeki/1.0 (ankit@yopmail.com , gzip)
-      2 Snipd/1.0 (https://www.snipd.com) contact: company@snipd.com
-      2 OnTrack/1.0 (ashkan.haghighifashi@gmail.com)
-      2 Leaders.org (leaders.org) janakan@leaders.org
-      2 AwarioSmartBot/1.0 (+https://awario.com/bots.html; bots@awario.com)
-      1 ISBNdb (support@isbndb.com)
+   1771 BookHub/1.0 (***@ybookshub.com)
+   1757 Whefi/1.0 (***@whefi.com)
+    788 Bookhives/1.0 (***@gmail.com)
+    629 Bookscovery/1.0 (https://bookscovery.com; ***@bookscovery.com)
+    387 ISBNdb (***@isbndb.com)
+    243 knihobot.cz (***@knihobot.cz)
+     91 Librarian-App/1.0 (***@librarian.app)
+     62 Gleeph/1.0 (***@gleeph.net)
+     62 AliyunSecBot/Aliyun (***@service.alibaba.com)
+     33 Garden-iOS/1.0 (contact: ***@example.com)
+     30 BookSlayer (***@bookslayer.io)
+     29 AwarioSmartBot/1.0 (+https://awario.com/bots.html; ***@awario.com)
+     23 LibRoomApp/1.0 (***@gmail.com)
+     19 ignisda/ryot-v9.4.4 (***@gmail.com)
+     17 PrecodeZeoos/1.0 (***@precode.com.br)
+     17 Leaders.org (leaders.org) ***@leaders.org
+     10 GPTZero (***@gptzero.me)
+      7 Tomeki/1.0 (***@yopmail.com , gzip)
+      4 ignisda/ryot-v9.4.1 (***@gmail.com)
+      3 Snipd/1.0 (https://www.snipd.com) contact: ***@snipd.com
+      3 citesure/1.0 (***@citesure.com)
+      2 Pleroma 2.9.0; https://social.solarpunk.au <***@riseup.net>; Bot
+      2 ignisda/ryot-v8.9.4 (***@gmail.com)
+      1 Librish/1.0 (***@librish.app)
     """
     )
 
+    ts = int(time.time())
     recent_uas = bash_run(
         """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
         sources=["../obfi.sh"],
@@ -150,7 +170,6 @@ async def monitor_partner_useragents():
 
     agent_counts = extract_agent_counts(recent_uas, allowed_names=known_names)
     events = []
-    ts = int(time.time())
     for agent, count in agent_counts.items():
         events.append(
             GraphiteEvent(

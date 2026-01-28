@@ -66,15 +66,18 @@ obfi() {
     CMD=${1:-"tail -f"}
     CONTAINER="${CONTAINER:-}"
     OBFI_SUDO=${OBFI_SUDO-"sudo"}
+    OBFI_NEVER_DOCKER=${OBFI_NEVER_DOCKER:-""}
     local sudo_cmd=""
 
     if [ ! -z "$OBFI_SUDO" ]; then
         sudo_cmd="$OBFI_SUDO -E"
     fi
 
-    if command -v docker >/dev/null 2>&1; then
-        if [ -z "$CONTAINER" ]; then
-            CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
+    if [ "$OBFI_NEVER_DOCKER" != "true" ]; then
+        if command -v docker >/dev/null 2>&1; then
+            if [ -z "$CONTAINER" ]; then
+                CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
+            fi
         fi
     fi
 
@@ -92,13 +95,20 @@ obfi() {
 }
 
 obfi_in_docker() {
+    OBFI_NEVER_DOCKER=${OBFI_NEVER_DOCKER:-""}
+    CMD=${1:-"tail -f"}
+    CONTAINER="${CONTAINER:-}"
+
+    if [ "$OBFI_NEVER_DOCKER" == "true" ]; then
+        echo "OBFI_NEVER_DOCKER is set to true, not using docker" 1>&2
+        $CMD
+        return $?
+    fi
+
     if ! command -v docker >/dev/null 2>&1; then
         echo "Docker is not installed" 1>&2
         return 1
     fi
-
-    CMD=${1:-"tail -f"}
-    CONTAINER="${CONTAINER:-}"
 
     if [ -z "$CONTAINER" ]; then
         CONTAINER=$(docker ps --format '{{.Names}}' | grep nginx)
