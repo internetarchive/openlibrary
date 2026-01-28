@@ -14,7 +14,7 @@ from infogami.utils import delegate
 def handle_deprecated_request():
     """Handle the deprecated endpoint request."""
     # Check if we're in dev environment
-    is_dev = 'dev' in infogami.config.features or web.ctx.host != 'openlibrary.org'
+    is_dev = 'dev' in infogami.config.features
 
     if is_dev:
         # Simple string replacement to redirect to port 18080
