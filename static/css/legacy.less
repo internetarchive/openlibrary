@@ -22,6 +22,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/z-index.less";
+@import (less) "less/border-radius.less";
 
 @import (less) "legacy-header.less";
 @import (less) "legacy-tools.less";
@@ -640,7 +641,7 @@ div.siteSearch {
     margin: 0;
     width: 215px;
     padding: 12px;
-    border-radius: 5px;
+    border-radius: @border-radius-input;
     border: 1px solid @mid-grey;
   }
 }
