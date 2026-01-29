@@ -20,8 +20,8 @@ from pydantic import (
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.fastapi.models import Pagination, PaginationLimit20
 from openlibrary.plugins.worksearch.code import (
-    async_run_solr_query,
     default_spellcheck_count,
+    run_solr_query_async,
     validate_search_json_query,
     work_search_async,
 )
@@ -226,7 +226,7 @@ async def search_subjects_json(
     pagination: Annotated[Pagination, Depends()],
     q: str = Query("", description="The search query"),
 ):
-    response = await async_run_solr_query(
+    response = await run_solr_query_async(
         SubjectSearchScheme(),
         {'q': q},
         offset=pagination.offset,
@@ -306,7 +306,7 @@ class ListSearchRequestParams(PaginationLimit20):
 async def search_lists_json(
     params: Annotated[ListSearchRequestParams, Depends()],
 ):
-    response = await async_run_solr_query(
+    response = await run_solr_query_async(
         ListSearchScheme(),
         {'q': params.q},
         offset=params.offset,
@@ -348,7 +348,7 @@ class AuthorSearchRequestParams(Pagination):
 async def search_authors_json(
     params: Annotated[AuthorSearchRequestParams, Depends()],
 ):
-    response = await async_run_solr_query(
+    response = await run_solr_query_async(
         AuthorSearchScheme(),
         {'q': params.q},
         offset=params.offset,

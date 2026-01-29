@@ -156,7 +156,7 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-async def async_execute_solr_query(
+async def execute_solr_query_async(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
     _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -180,7 +180,7 @@ async def async_execute_solr_query(
     return response
 
 
-execute_solr_query = async_bridge.wrap(async_execute_solr_query)
+execute_solr_query = async_bridge.wrap(execute_solr_query_async)
 
 # Expose this publicly
 public(has_solr_editions_enabled)
@@ -381,7 +381,7 @@ def run_solr_query(
     )
 
 
-async def async_run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     **kwargs,
@@ -393,7 +393,7 @@ async def async_run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = await async_execute_solr_query(solr_select_url, params)
+    response = await execute_solr_query_async(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -1136,7 +1136,7 @@ async def work_search_async(
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
     scheme = WorkSearchScheme(lang=lang)
-    resp = await async_run_solr_query(
+    resp = await run_solr_query_async(
         scheme,
         prepared.query,
         rows=prepared.limit,

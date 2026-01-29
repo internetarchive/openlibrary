@@ -268,7 +268,7 @@ class SubjectEngine:
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import (
             WorkSearchScheme,
-            async_run_solr_query,
+            run_solr_query_async,
         )
 
         subject_type = self.name
@@ -279,7 +279,7 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
-        result = await async_run_solr_query(
+        result = await run_solr_query_async(
             WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
