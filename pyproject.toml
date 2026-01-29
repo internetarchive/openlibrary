@@ -72,7 +72,6 @@ lint.ignore = [
   "UP031",   # printf-string-formatting - a ton of work to fix to 224 errors
   # TODO: these could be fixed one day
   "B905",    # zip-without-explicit-strict - TODO: seems like we should fix this one
-  "UP038",   # non-pep604-isinstance - This rule is deprecated and will be removed in a future ruff release.
   "E402",    # module-import-not-at-top-of-file - TODO: we should probably enable this and and add exceptions
     # openlibrary/plugins/admin/code.py - maybe it can be fixed
     # openlibrary/plugins/openlibrary/code.py - unclear but has many
