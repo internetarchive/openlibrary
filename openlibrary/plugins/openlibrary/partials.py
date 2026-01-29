@@ -222,15 +222,18 @@ class AffiliateLinksPartial(PartialDataHandler):
 class SearchFacetsPartial(PartialDataHandler):
     """Handler for search facets sidebar and "selected facets" affordances."""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: dict | None = None):
+        if data is None:
+            self.i = web.input(data=None)
+            self.data = json.loads(self.i.data) if self.i.data else {}
+        else:
+            self.data = data
 
     def generate(self) -> dict:
-        data = json.loads(self.i.data)
-        path = data.get('path')
-        query = data.get('query', '')
+        path = self.data.get('path')
+        query = self.data.get('query', '')
         parsed_qs = parse_qs(query.replace('?', ''))
-        param = data.get('param', {})
+        param = self.data.get('param', {})
 
         sort = None
         search_response = do_search(
