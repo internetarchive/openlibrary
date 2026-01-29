@@ -205,12 +205,15 @@ class CarouselCardPartial(PartialDataHandler):
 class AffiliateLinksPartial(PartialDataHandler):
     """Handler for affiliate links"""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: dict | None = None):
+        if data is None:
+            self.i = web.input(data=None)
+            self.data = json.loads(self.i.data) if self.i.data else {}
+        else:
+            self.data = data
 
     def generate(self) -> dict:
-        data = json.loads(self.i.data)
-        args = data.get("args", [])
+        args = self.data.get("args", [])
 
         if len(args) < 2:
             raise PartialResolutionError("Unexpected amount of arguments")
