@@ -504,7 +504,7 @@ def get_availability(
         return availabilities | {
             'error': 'request_timeout',
             'details': str(e),
-        }  # type:ignore
+        }  # type: ignore
 
 
 def get_ocaid(item: dict) -> str | None:

@@ -33,6 +33,7 @@ web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=config.get('http_pro
 products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 ```
 """
+
 import itertools
 import json
 import logging

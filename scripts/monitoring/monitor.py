@@ -124,8 +124,7 @@ async def monitor_partner_useragents():
                 agent_counts['other'] += count
         return agent_counts
 
-    known_names = extract_agent_counts(
-        """
+    known_names = extract_agent_counts("""
     177 Whefi/1.0 (contact@whefi.com)
      85 Bookhives/1.0 (paulpleela@gmail.com)
      85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
@@ -139,8 +138,7 @@ async def monitor_partner_useragents():
       2 Leaders.org (leaders.org) janakan@leaders.org
       2 AwarioSmartBot/1.0 (+https://awario.com/bots.html; bots@awario.com)
       1 ISBNdb (support@isbndb.com)
-    """
-    )
+    """)
 
     recent_uas = bash_run(
         """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",

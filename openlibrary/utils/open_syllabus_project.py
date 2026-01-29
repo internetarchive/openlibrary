@@ -76,14 +76,12 @@ def generate_osp_db(input_directory: Path, output_file: str) -> None:
         cursor = conn.cursor()
         # Drop the table if it exists so we only have fresh data
         cursor.execute('DROP TABLE IF EXISTS data;')
-        cursor.execute(
-            '''
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS data (
                 olid INTEGER PRIMARY KEY,
                 total INTEGER
             )
-        '''
-        )
+        ''')
 
         # Iterate through the files in the input directory
         # input_directory_path = Path(input_directory)

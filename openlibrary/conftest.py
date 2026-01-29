@@ -28,8 +28,7 @@ def no_requests(monkeypatch):
 @pytest.fixture(autouse=True)
 def no_sleep(monkeypatch):
     def mock_sleep(*args, **kwargs):
-        raise Warning(
-            '''
+        raise Warning('''
             Sleeping is blocked in the testing environment.
             Use monkeytime instead; it stubs time.time() and time.sleep().
 
@@ -40,8 +39,7 @@ def no_sleep(monkeypatch):
                     assert time.time() == 2
 
             If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
-            '''
-        )
+            ''')
 
     monkeypatch.setattr("time.sleep", mock_sleep)
 
