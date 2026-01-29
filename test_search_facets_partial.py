@@ -3,6 +3,7 @@
 # requires-python = ">=3.10"
 # dependencies = [
 #     "requests>=2.31.0",
+#     "pytest>=8.3.4",
 # ]
 # ///
 """
@@ -27,6 +28,7 @@ import sys
 import urllib.parse
 from typing import Any
 
+import pytest
 import requests
 
 # Base URL for the partials endpoint
@@ -114,6 +116,7 @@ def make_request(data: dict, description: str) -> dict[str, Any]:
         return {'error': str(e)}
 
 
+@pytest.mark.integration
 def test_basic_search():
     """Test basic search with just a query string."""
     data = {
@@ -124,6 +127,7 @@ def test_basic_search():
     return make_request(data, "Basic search with query string")
 
 
+@pytest.mark.integration
 def test_search_with_author_filter():
     """Test search with author filter applied."""
     data = {
@@ -134,6 +138,7 @@ def test_search_with_author_filter():
     return make_request(data, "Search with author filter")
 
 
+@pytest.mark.integration
 def test_search_with_subject_filter():
     """Test search with subject facet filter."""
     data = {
@@ -147,6 +152,7 @@ def test_search_with_subject_filter():
     return make_request(data, "Search with subject facet filter")
 
 
+@pytest.mark.integration
 def test_search_with_has_fulltext():
     """Test search with has_fulltext filter (ebook availability)."""
     data = {
@@ -157,6 +163,7 @@ def test_search_with_has_fulltext():
     return make_request(data, "Search with has_fulltext filter (ebooks only)")
 
 
+@pytest.mark.integration
 def test_search_with_language_filter():
     """Test search with language filter."""
     data = {
@@ -167,6 +174,7 @@ def test_search_with_language_filter():
     return make_request(data, "Search with language filter")
 
 
+@pytest.mark.integration
 def test_search_with_publish_year():
     """Test search with first_publish_year filter."""
     data = {
@@ -180,6 +188,7 @@ def test_search_with_publish_year():
     return make_request(data, "Search with publish year filter")
 
 
+@pytest.mark.integration
 def test_search_with_publisher():
     """Test search with publisher filter."""
     data = {
@@ -190,6 +199,7 @@ def test_search_with_publisher():
     return make_request(data, "Search with publisher filter")
 
 
+@pytest.mark.integration
 def test_search_with_person_place_time():
     """Test search with person, place, and time facets."""
     data = {
@@ -205,6 +215,7 @@ def test_search_with_person_place_time():
     return make_request(data, "Search with person, place, and time facets")
 
 
+@pytest.mark.integration
 def test_empty_query():
     """
     Test with empty query - this is expected to fail with a 500 error.
@@ -222,6 +233,7 @@ def test_empty_query():
     return result
 
 
+@pytest.mark.integration
 def test_unicode_query():
     """Test with unicode characters in query."""
     data = {
@@ -232,6 +244,7 @@ def test_unicode_query():
     return make_request(data, "Unicode characters in query")
 
 
+@pytest.mark.integration
 def test_multiple_filters():
     """Test with multiple filters applied simultaneously."""
     data = {
@@ -248,6 +261,7 @@ def test_multiple_filters():
     return make_request(data, "Multiple filters (fulltext + language + subject + year)")
 
 
+@pytest.mark.integration
 def test_public_scan_filter():
     """Test with public_scan_b filter (Classic eBooks)."""
     data = {
@@ -258,6 +272,7 @@ def test_public_scan_filter():
     return make_request(data, "Search with public_scan_b filter (Classic eBooks)")
 
 
+@pytest.mark.integration
 def test_special_characters_in_query():
     """Test with special characters that need URL encoding."""
     data = {
@@ -268,18 +283,21 @@ def test_special_characters_in_query():
     return make_request(data, "Special characters in query (C++, &, etc.)")
 
 
+@pytest.mark.integration
 def test_missing_path():
     """Test with missing path parameter."""
     data = {'param': {'q': 'test'}, 'query': '?q=test'}
     return make_request(data, "Missing path parameter")
 
 
+@pytest.mark.integration
 def test_missing_query():
     """Test with missing query parameter."""
     data = {'param': {'q': 'test'}, 'path': '/search'}
     return make_request(data, "Missing query parameter")
 
 
+@pytest.mark.integration
 def test_malformed_json():
     """Test what happens with malformed JSON (should fail at request level)."""
     # This test manually constructs a URL with bad JSON

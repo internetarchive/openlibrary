@@ -2,39 +2,46 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
-from openlibrary.plugins.openlibrary.partials import SearchFacetsPartial
+from openlibrary.plugins.openlibrary.partials import (
+    BookPageListsPartial,
+    SearchFacetsPartial,
+)
 
 router = APIRouter()
 
 
 @router.get("/partials.json")
-async def search_facets_partial(
-    _component: str = Query(..., description="Component name (must be 'SearchFacets')"),
-    data: str = Query(..., description="JSON-encoded data with param, path, and query"),
+async def partials_endpoint(
+    _component: str = Query(
+        ..., description="Component name (e.g., 'SearchFacets', 'BPListsSection')"
+    ),
+    data: str = Query(
+        ..., description="JSON-encoded data with parameters for the component"
+    ),
 ) -> dict:
     """
-    Get search facets partial HTML for the sidebar and selected facets.
+    Get partial HTML for various components.
 
-    This endpoint mirrors the legacy /partials.json?_component=SearchFacets endpoint
-    but is implemented in FastAPI.
+    This endpoint mirrors the legacy /partials.json endpoint but is implemented in FastAPI.
 
     Args:
-        _component: Must be "SearchFacets"
-        data: JSON-encoded string containing param, path, and query
+        _component: Component name (e.g., "SearchFacets", "BPListsSection")
+        data: JSON-encoded string containing parameters for the component
 
     Returns:
-        Dictionary with:
-        - sidebar: HTML string for the facets sidebar
-        - title: Page title string
-        - activeFacets: HTML string for selected/active facets
+        Dictionary with component-specific data
     """
-    if _component != "SearchFacets":
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=400, detail=f"Unknown component: {_component}")
-
     parsed_data = json.loads(data)
-    handler = SearchFacetsPartial(data=parsed_data)
-    return handler.generate()
+
+    if _component == "SearchFacets":
+        handler: SearchFacetsPartial | BookPageListsPartial = SearchFacetsPartial(
+            data=parsed_data
+        )
+        return handler.generate()
+    elif _component == "BPListsSection":
+        handler = BookPageListsPartial(data=parsed_data)
+        return handler.generate()
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown component: {_component}")

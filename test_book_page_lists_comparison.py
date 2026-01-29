@@ -7,16 +7,16 @@
 # ]
 # ///
 """
-Test script for comparing SearchFacetsPartial endpoints.
+Test script for comparing BookPageListsPartial endpoints.
 
 This script compares the legacy web.py endpoint (localhost:8080) with the
 new FastAPI endpoint (localhost:18080) to ensure they return identical results.
 
 Both endpoints now use the exact same interface:
-    GET /partials.json?_component=SearchFacets&data={json}
+    GET /partials.json?_component=BPListsSection&data={json}
 
 Usage with uv:
-    uv run test_search_facets_comparison.py
+    uv run test_book_page_lists_comparison.py
 
 Requirements:
     - Legacy OpenLibrary server running on localhost:8080
@@ -51,8 +51,8 @@ FIREFOX_HEADERS = {
 
 
 def build_url(base_url: str, data: dict) -> str:
-    """Build the URL for the SearchFacets partial endpoint."""
-    params = {'_component': 'SearchFacets', 'data': json.dumps(data)}
+    """Build the URL for the BPListsSection partial endpoint."""
+    params = {'_component': 'BPListsSection', 'data': json.dumps(data)}
     query_string = urllib.parse.urlencode(params)
     return f"{base_url}?{query_string}"
 
@@ -108,7 +108,7 @@ def normalize_html(html: str) -> str:
     return ' '.join(lines)
 
 
-def compare_responses(
+def compare_responses(  # noqa: PLR0915 PLR0912
     legacy_result: dict, fastapi_result: dict, description: str
 ) -> bool:
     """Compare the responses from both endpoints."""
@@ -152,52 +152,78 @@ def compare_responses(
         legacy_val = legacy_result[key]
         fastapi_val = fastapi_result[key]
 
-        if key in ('sidebar', 'activeFacets'):
-            # Compare HTML content (normalize whitespace)
-            legacy_normalized = normalize_html(str(legacy_val))
-            fastapi_normalized = normalize_html(str(fastapi_val))
+        if key == 'partials':
+            # Compare partials (list of HTML strings)
+            if isinstance(legacy_val, list) and isinstance(fastapi_val, list):
+                if len(legacy_val) != len(fastapi_val):
+                    print(f"  {key}: MISMATCH (different lengths)")
+                    print(f"    Legacy length: {len(legacy_val)}")
+                    print(f"    FastAPI length: {len(fastapi_val)}")
+                    all_match = False
+                    continue
 
-            if legacy_normalized == fastapi_normalized:
-                print(f"  {key}: MATCH (normalized length: {len(legacy_normalized)})")
+                # Compare each partial
+                partials_match = True
+                for i, (legacy_partial, fastapi_partial) in enumerate(
+                    zip(legacy_val, fastapi_val)
+                ):
+                    legacy_normalized = normalize_html(str(legacy_partial))
+                    fastapi_normalized = normalize_html(str(fastapi_partial))
+
+                    if legacy_normalized != fastapi_normalized:
+                        partials_match = False
+                        print(f"  {key}[{i}]: MISMATCH")
+                        print(
+                            f"    Legacy length: {len(legacy_partial)} chars, normalized: {len(legacy_normalized)}"
+                        )
+                        print(
+                            f"    FastAPI length: {len(fastapi_partial)} chars, normalized: {len(fastapi_normalized)}"
+                        )
+
+                        # Find first difference
+                        for j, (lc, fc) in enumerate(
+                            zip(legacy_normalized, fastapi_normalized)
+                        ):
+                            if lc != fc:
+                                start = max(0, j - 50)
+                                end = min(len(legacy_normalized), j + 50)
+                                print(f"    First diff at char {j}:")
+                                print(
+                                    f"    Legacy:  ...{legacy_normalized[start:end]}..."
+                                )
+                                print(
+                                    f"    FastAPI: ...{fastapi_normalized[start:end]}..."
+                                )
+                                break
+                        else:
+                            if len(legacy_normalized) > len(fastapi_normalized):
+                                print(
+                                    f"    Legacy has extra: {legacy_normalized[len(fastapi_normalized):len(fastapi_normalized)+100]}"
+                                )
+                            else:
+                                print(
+                                    f"    FastAPI has extra: {fastapi_normalized[len(legacy_normalized):len(legacy_normalized)+100]}"
+                                )
+
+                if partials_match:
+                    print(f"  {key}: MATCH (all {len(legacy_val)} partials)")
+                else:
+                    all_match = False
+            elif legacy_val == fastapi_val:
+                print(f"  {key}: MATCH")
             else:
                 print(f"  {key}: MISMATCH")
-                print(
-                    f"    Legacy length: {len(legacy_val)} chars, normalized: {len(legacy_normalized)}"
-                )
-                print(
-                    f"    FastAPI length: {len(fastapi_val)} chars, normalized: {len(fastapi_normalized)}"
-                )
-
-                # Find first difference in normalized content
-                for i, (lc, fc) in enumerate(
-                    zip(legacy_normalized, fastapi_normalized)
-                ):
-                    if lc != fc:
-                        start = max(0, i - 50)
-                        end = min(len(legacy_normalized), i + 50)
-                        print(f"    First diff at char {i}:")
-                        print(f"    Legacy:  ...{legacy_normalized[start:end]}...")
-                        print(f"    FastAPI: ...{fastapi_normalized[start:end]}...")
-                        break
-                else:
-                    # One is longer than the other
-                    if len(legacy_normalized) > len(fastapi_normalized):
-                        print(
-                            f"    Legacy has extra: {legacy_normalized[len(fastapi_normalized):len(fastapi_normalized)+100]}"
-                        )
-                    else:
-                        print(
-                            f"    FastAPI has extra: {fastapi_normalized[len(legacy_normalized):len(legacy_normalized)+100]}"
-                        )
+                print(f"    Legacy: {legacy_val}")
+                print(f"    FastAPI: {fastapi_val}")
                 all_match = False
 
-        elif key == 'title':
+        elif key == 'hasLists':
             if legacy_val == fastapi_val:
-                print(f"  {key}: MATCH ('{legacy_val}')")
+                print(f"  {key}: MATCH ({legacy_val})")
             else:
                 print(f"  {key}: MISMATCH")
-                print(f"    Legacy: '{legacy_val}'")
-                print(f"    FastAPI: '{fastapi_val}'")
+                print(f"    Legacy: {legacy_val}")
+                print(f"    FastAPI: {fastapi_val}")
                 all_match = False
 
         elif legacy_val == fastapi_val:
@@ -223,73 +249,51 @@ def test_case(data: dict, description: str) -> bool:
 def run_comparison_tests():
     """Run all comparison tests."""
     print("\n" + "=" * 60)
-    print("SearchFacetsPartial Endpoint Comparison")
+    print("BookPageListsPartial Endpoint Comparison")
     print("=" * 60)
     print(f"Legacy:  {LEGACY_URL}")
     print(f"FastAPI: {FASTAPI_URL}")
     print("\nBoth endpoints use the same interface:")
-    print("  GET /partials.json?_component=SearchFacets&data={json}")
+    print("  GET /partials.json?_component=BPListsSection&data={json}")
     print("\nMake sure both servers are running:")
     print("  - Legacy on localhost:8080")
     print("  - FastAPI on localhost:18080")
 
     test_cases = [
         (
-            "Basic search",
+            "Work ID only",
             {
-                'param': {'q': 'python programming'},
-                'path': '/search',
-                'query': '?q=python+programming',
+                'workId': '/works/OL53924W',
+                'editionId': '',
             },
         ),
         (
-            "Author filter",
+            "Edition ID only",
             {
-                'param': {'q': 'python', 'author_key': ['OL123A']},
-                'path': '/search',
-                'query': '?q=python&author_key=OL123A',
+                'workId': '',
+                'editionId': '/books/OL7353617M',
             },
         ),
         (
-            "Subject filter",
+            "Both work and edition IDs",
             {
-                'param': {'q': 'history', 'subject_facet': ['World War II']},
-                'path': '/search',
-                'query': '?q=history&subject_facet=World+War+II',
+                'workId': '/works/OL53924W',
+                'editionId': '/books/OL7353617M',
             },
         ),
         (
-            "Has fulltext filter",
+            "Empty IDs",
             {
-                'param': {'q': 'programming', 'has_fulltext': 'true'},
-                'path': '/search',
-                'query': '?q=programming&has_fulltext=true',
+                'workId': '',
+                'editionId': '',
             },
         ),
         (
-            "Language filter",
+            "Non-existent work",
             {
-                'param': {'q': 'novel', 'language': ['eng']},
-                'path': '/search',
-                'query': '?q=novel&language=eng',
+                'workId': '/works/OL99999999W',
+                'editionId': '',
             },
-        ),
-        (
-            "Multiple filters",
-            {
-                'param': {
-                    'q': 'machine learning',
-                    'has_fulltext': 'true',
-                    'language': ['eng'],
-                    'subject_facet': ['Computer Science'],
-                },
-                'path': '/search',
-                'query': '?q=machine+learning&has_fulltext=true&language=eng',
-            },
-        ),
-        (
-            "Empty query (expected to fail)",
-            {'param': {}, 'path': '/search', 'query': ''},
         ),
     ]
 
