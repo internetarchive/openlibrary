@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 jobs:
   respond:
@@ -17,30 +18,93 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Load PM AI Instructions
-        id: pm
+      - name: Load Copilot Instructions
+        id: copilot_instructions
         run: |
           {
             echo "INSTRUCTIONS<<EOF"
-            cat .github/prompts/issue_pm_instructions.md
+            cat .github/copilot-instructions.md
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+      
+      - name: Gather Repository Context (Skills)
+        id: context
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          echo "=== Gathering repository context using GitHub CLI ==="
+          
+          # Search for similar issues
+          echo "Searching for similar issues..."
+          SIMILAR_ISSUES=$(gh issue list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No similar issues found")
+          
+          # Search for related PRs
+          echo "Searching for related PRs..."
+          RELATED_PRS=$(gh pr list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No related PRs found")
+          
+          # Get recent issues for context
+          echo "Getting recent issues..."
+          RECENT_ISSUES=$(gh issue list --repo "$REPO" --limit 3 --state open --json number,title,labels | jq -r '.[] | "- #\(.number): \(.title) (Labels: \([.labels[].name] | join(", ")))"' || echo "No recent issues found")
+          
+          # Extract keywords from issue title for code search
+          echo "Searching for relevant files..."
+          RELEVANT_FILES=""
+          
+          # Try to find Python files related to keywords in issue
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "borrow\|lend"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/borrow.py - Book borrowing functionality"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "account\|login\|auth"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/account.py - Account management"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "search"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/worksearch/ - Search functionality"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "book\|edit"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/addbook.py - Book editing"
+          fi
+          
+          # Save all context to outputs
+          {
+            echo "SIMILAR_ISSUES<<EOF"
+            echo "$SIMILAR_ISSUES"
+            echo "EOF"
+            echo "RELATED_PRS<<EOF"
+            echo "$RELATED_PRS"
+            echo "EOF"
+            echo "RECENT_ISSUES<<EOF"
+            echo "$RECENT_ISSUES"
+            echo "EOF"
+            echo "RELEVANT_FILES<<EOF"
+            echo "$RELEVANT_FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "=== Context gathering complete ==="
 
-      - name: Generate issue response (GitHub Models)
+      - name: Generate issue response (GitHub Models with Skills)
         id: generate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          INSTRUCTIONS: ${{ steps.pm.outputs.INSTRUCTIONS }}
+          COPILOT_INSTRUCTIONS: ${{ steps.copilot_instructions.outputs.INSTRUCTIONS }}
+          SIMILAR_ISSUES: ${{ steps.context.outputs.SIMILAR_ISSUES }}
+          RELATED_PRS: ${{ steps.context.outputs.RELATED_PRS }}
+          RECENT_ISSUES: ${{ steps.context.outputs.RECENT_ISSUES }}
+          RELEVANT_FILES: ${{ steps.context.outputs.RELEVANT_FILES }}
         run: |
-          # Construct the user message content
-          USER_MESSAGE="Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"$ISSUE_BODY"
+          # Construct comprehensive message with repository context (Skills-based approach)
+          USER_MESSAGE="Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"$ISSUE_BODY"$'\n\n'"=== Repository Context (from Skills) ==="$'\n\n'"Similar Issues:"$'\n'"$SIMILAR_ISSUES"$'\n\n'"Related PRs:"$'\n'"$RELATED_PRS"$'\n\n'"Recent Issues:"$'\n'"$RECENT_ISSUES"$'\n\n'"Potentially Relevant Files:"$'\n'"$RELEVANT_FILES"
           
-          # Build JSON payload using jq for proper escaping
+          # Build JSON payload using jq for proper escaping (Skills-enhanced)
           PAYLOAD=$(jq -n \
             --arg model "gpt-4o-mini" \
-            --arg system "$INSTRUCTIONS" \
+            --arg system "$COPILOT_INSTRUCTIONS" \
             --arg user "$USER_MESSAGE" \
             '{
               model: $model,
@@ -51,7 +115,6 @@ jobs:
             }')
           
           # Make API call to GitHub Models
-          # Note: Endpoint URL from feature request. Verify if workflow fails with API errors.
           RESPONSE=$(curl -s -w "\n%{http_code}" https://models.github.ai/inference/chat/completions \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
