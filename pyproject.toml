@@ -37,6 +37,7 @@ module = ["openlibrary.core.wikidata", "openlibrary.core.yearly_reading_goals"]
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
+strict = true
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [

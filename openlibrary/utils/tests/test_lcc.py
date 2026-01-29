@@ -43,28 +43,26 @@ def test_to_short_lcc(sortable_lcc, raw_lcc, short_lcc, name):
 
 
 INVALID_TESTS = [
-    ('6113 .136', 'dewey decimal'),
-    ('9608 BOOK NOT YET IN LC', 'noise'),
-    ('#M8184', 'hash prefixed'),
-    ('', 'empty'),
-    ('MLCS 92/14990', 'too much class'),
-    ('PZ123.234.234', 'too much decimal'),
-    # The following are "real world" data from open library
-    ('IN PROCESS', 'noise'),
-    ('African Section Pamphlet Coll', 'real ol data'),
-    ('Microfilm 99/20', 'real ol data'),
-    ('Microfilm 61948 E', 'real ol data'),
-    ('Microfiche 92/80965 (G)', 'real ol data'),
-    ('MLCSN+', 'real ol data'),
-    ('UNCLASSIFIED 809 (S)', 'real ol data'),
-    ('CPB Box no. 1516 vol. 17', 'CPB box number'),
+    pytest.param('6113 .136', id='dewey_decimal'),
+    pytest.param('9608 BOOK NOT YET IN LC', id='noise_lc_missing'),
+    pytest.param('#M8184', id='hash_prefixed'),
+    pytest.param('', id='empty_string'),
+    pytest.param('MLCS 92/14990', id='excessive_class_info'),
+    pytest.param('PZ123.234.234', id='too_many_decimals'),
+    # "Real world" data from Open Library
+    pytest.param('IN PROCESS', id='noise_in_process'),
+    pytest.param('African Section Pamphlet Coll', id='ol_african_section'),
+    pytest.param('Microfilm 99/20', id='ol_microfilm_99_20'),
+    pytest.param('Microfilm 61948 E', id='ol_microfilm_61948'),
+    pytest.param('Microfiche 92/80965 (G)', id='ol_microfiche_92'),
+    pytest.param('MLCSN+', id='ol_mlcsn_plus'),
+    pytest.param('UNCLASSIFIED 809 (S)', id='ol_unclassified_809'),
+    pytest.param('CPB Box no. 1516 vol. 17', id='cpb_box_number'),
 ]
 
 
-@pytest.mark.parametrize(
-    ('text', 'name'), INVALID_TESTS, ids=[t[-1] for t in INVALID_TESTS]
-)
-def test_invalid_lccs(text, name):
+@pytest.mark.parametrize('text', INVALID_TESTS)
+def test_invalid_lccs(text):
     assert short_lcc_to_sortable_lcc(text) is None
 
 
@@ -107,14 +105,14 @@ PREFIX_TESTS = [
     ('A', 'A', 'Single letter'),
     ('ADC', 'ADC', 'multi letter'),
     ('A5', 'A--0005', 'Alphanum'),
-    ('A5.00', 'A--0005.00', 'Alphanum'),
+    ('A5.00', 'A--0005.00', 'Alphanum 2'),
     ('A10', 'A--0010', 'Alphanum trailing 0'),
     ('A10.5', 'A--0010.5', 'Alphanum with decimal'),
     ('A10.', 'A--0010', 'Alphanum with trailing decimal'),
     ('A10.C', 'A--0010.00000000.C', 'Alphanum with partial cutter'),
     ('F349.N2 A77', 'F--0349.00000000.N2 A77', '2 cutters'),
     ('123', None, 'Invalid returns None'),
-    ('*B55', None, 'Invalid returns None'),
+    ('*B55', None, 'Invalid also returns None'),
 ]
 
 

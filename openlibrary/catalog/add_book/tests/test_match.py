@@ -74,7 +74,6 @@ def test_normalize(title, normalized):
 
 mk_norm_conversions = [
     ("Hello I'm a  title.", "helloi'matitle"),
-    ("Hello I'm a  title.", "helloi'matitle"),
     ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
     ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
     ('The Fish and Chips', 'fishchips'),
