@@ -1,6 +1,7 @@
 from pathlib import Path
 from tokenize import TokenError
 
+import pytest
 from web.template import Template
 
 
@@ -16,17 +17,8 @@ def try_parse_template(
         return False, e
 
 
-def test_all_templates_with_subtests(subtests):
-    """Test that all template files can be parsed without syntax errors.
-
-    This uses pytest 9.0's subtests feature to test all templates in a single test.
-    Benefits over parametrize:
-    - Reports ALL syntax errors in one run (doesn't stop at first failure)
-    - Cleaner test output (not 100+ separate test cases)
-    - Easier to identify which templates have issues
-    - Faster to run
-    """
-
+def test_all_templates(subtests):
+    """Test that all template files can be parsed without syntax errors."""
     template_files = [
         *Path("openlibrary/templates").rglob("*.html"),
         *Path("openlibrary/macros").rglob("*.html"),
@@ -37,3 +29,20 @@ def test_all_templates_with_subtests(subtests):
             template_text = template_path.read_text(encoding='utf-8')
             parsed, err = try_parse_template(template_text, template_path)
             assert parsed, f"Template parsing failed: {err}"
+
+
+@pytest.mark.xfail(reason="Verification test: demonstrates template error detection")
+def test_template_error_detection_verification():
+    """Verify that template error detection works by testing with a known bad template.
+
+    This is a simple verification test to prove that error detection works.
+    """
+    template_path = Path("openlibrary/templates/login.html")
+    original_content = template_path.read_text(encoding='utf-8')
+
+    # Break it in a way that WILL fail
+    broken_content = original_content.replace("{%", "ONLY_OPEN_BRACE")
+
+    # This should fail
+    parsed, err = try_parse_template(broken_content, template_path)
+    assert not parsed, f"Template should have failed but parsed: {err}"

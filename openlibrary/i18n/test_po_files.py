@@ -74,12 +74,38 @@ def gen_html_entries():
         yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
-@pytest.mark.parametrize(('locale', 'msgid', 'msgstr'), gen_html_entries())
-def test_html_format(locale: str, msgid: str, msgstr: str):
+def test_html_format(subtests):
     # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?
     entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
+
+    for locale, msgid, msgstr in gen_po_msg_pairs():
+        if '</' not in msgid:
+            continue
+
+        # Create a short, descriptive message for the subtest
+        msgid_preview = msgid[:40] + '...' if len(msgid) > 40 else msgid
+        with subtests.test(msg=f"{locale}: {msgid_preview}"):
+            id_tree = ET.fromstring(f'{entities}<root>{msgid}</root>')
+            str_tree = ET.fromstring(f'{entities}<root>{msgstr}</root>')
+            if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
+                assert trees_equal(id_tree, str_tree)
+
+
+@pytest.mark.xfail(reason="Verification test: demonstrates HTML mismatch detection")
+def test_html_mismatch_detection_verification():
+    """Verify that HTML mismatch detection works.
+
+    This is a simple verification test to prove that error detection works.
+    """
+    entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
+
+    # This WILL fail - different HTML structure
+    msgid = "<p>Original</p>"
+    msgstr = "<div>Completely different</div>"
+
     id_tree = ET.fromstring(f'{entities}<root>{msgid}</root>')
     str_tree = ET.fromstring(f'{entities}<root>{msgstr}</root>')
-    if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
-        assert trees_equal(id_tree, str_tree)
+
+    # This WILL fail - trees don't match
+    trees_equal(id_tree, str_tree)

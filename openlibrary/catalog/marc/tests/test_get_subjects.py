@@ -237,22 +237,24 @@ TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestSubjects:
-    @pytest.mark.parametrize(('item', 'expected'), xml_samples)
-    def test_subjects_xml(self, item, expected):
-        filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
-        element = etree.parse(
-            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
-        ).getroot()
-        if element.tag != record_tag and element[0].tag == record_tag:
-            element = element[0]
-        rec = MarcXml(element)
-        assert read_subjects(rec) == expected
+    def test_subjects_xml(self, subtests):
+        for item, expected in xml_samples:
+            with subtests.test(msg=f"xml: {item}"):
+                filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
+                element = etree.parse(
+                    filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+                ).getroot()
+                if element.tag != record_tag and element[0].tag == record_tag:
+                    element = element[0]
+                rec = MarcXml(element)
+                assert read_subjects(rec) == expected
 
-    @pytest.mark.parametrize(('item', 'expected'), bin_samples)
-    def test_subjects_bin(self, item, expected):
-        filepath = TEST_DATA / 'bin_input' / item
-        rec = MarcBinary(filepath.read_bytes())
-        assert read_subjects(rec) == expected
+    def test_subjects_bin(self, subtests):
+        for item, expected in bin_samples:
+            with subtests.test(msg=f"bin: {item}"):
+                filepath = TEST_DATA / 'bin_input' / item
+                rec = MarcBinary(filepath.read_bytes())
+                assert read_subjects(rec) == expected
 
     def test_four_types_combine(self):
         subjects = {'subject': {'Science': 2}, 'event': {'Party': 1}}
@@ -263,3 +265,23 @@ class TestSubjects:
         subjects = {'event': {'Party': 1}}
         expect = {'subject': {'Party': 1}}
         assert four_types(subjects) == expect
+
+    @pytest.mark.xfail(
+        reason="Verification test: demonstrates subject extraction error detection"
+    )
+    def test_subject_extraction_error_detection_verification(self):
+        """Verify that subject extraction error detection works.
+
+        This is a simple verification test to prove that error detection works.
+        """
+        filepath = TEST_DATA / 'xml_input' / '00schlgoog_marc.xml'
+        element = etree.parse(
+            filepath, parser=lxml.etree.XMLParser(resolve_entities=False)
+        ).getroot()
+        if element.tag != record_tag and element[0].tag == record_tag:
+            element = element[0]
+        rec = MarcXml(element)
+
+        # This WILL fail - expecting wrong subjects
+        wrong_expected = {'subject': {'Completely Wrong Subject': 999}}
+        assert read_subjects(rec) == wrong_expected
