@@ -26,6 +26,8 @@ class EditionSearchScheme(SearchScheme):
             "ia",
             "ia_collection",
             "isbn",
+            "metadata_score",
+            "usefulness_score",
             "publisher",
             "has_fulltext",
             "title_suggest",
@@ -56,6 +58,13 @@ class EditionSearchScheme(SearchScheme):
             'key': 'key asc',
             'key asc': 'key asc',
             'key desc': 'key desc',
+            # Quality scores
+            'metadata_score': 'metadata_score desc',
+            'metadata_score asc': 'metadata_score asc',
+            'metadata_score desc': 'metadata_score desc',
+            'usefulness_score': 'usefulness_score desc',
+            'usefulness_score asc': 'usefulness_score asc',
+            'usefulness_score desc': 'usefulness_score desc',
             # Random
             'random': 'random_1 asc',
             'random asc': 'random_1 asc',
