@@ -236,7 +236,7 @@ def monkeypatch_ol(monkeypatch, solr_overrides: list[dict] | None = None):
 
 def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
     class FakeSolr(Solr):
-        def get_many[T](
+        def get_many[T](  # type: ignore[override]
             self,
             keys: Iterable[str],
             fields: Iterable[str] | None = None,
