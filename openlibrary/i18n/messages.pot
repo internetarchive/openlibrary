@@ -7636,6 +7636,14 @@ msgid "First published in %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
 "This work doesn't have a description yet. Can you <b><a "
