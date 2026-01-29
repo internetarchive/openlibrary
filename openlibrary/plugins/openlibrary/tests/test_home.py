@@ -1,5 +1,6 @@
 import datetime
 
+import pytest
 import web
 from bs4 import BeautifulSoup
 
@@ -20,6 +21,12 @@ class MockDoc(dict):
 
 
 class TestHomeTemplates:
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        """Auto-use fixture to set up request context for all tests."""
+        request_context_fixture(lang="en")
+        pass
+
     def setup_monkeypatch(self, monkeypatch):
         ctx = web.storage()
         monkeypatch.setattr(web, "ctx", ctx)

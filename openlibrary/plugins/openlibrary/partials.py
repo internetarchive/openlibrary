@@ -296,13 +296,20 @@ class FullTextSuggestionsPartial(PartialDataHandler):
 class BookPageListsPartial(PartialDataHandler):
     """Handler for rendering the book page "Lists" section"""
 
-    def __init__(self):
-        self.i = web.input(workId="", editionId="")
+    def __init__(self, data: dict | None = None):
+        if data is None:
+            self.i = web.input(workId="", editionId="")
+            self.data = {
+                "workId": self.i.workId,
+                "editionId": self.i.editionId,
+            }
+        else:
+            self.data = data
 
     def generate(self) -> dict:
         results: dict = {"partials": []}
-        work_key = self.i.workId
-        edition_key = self.i.editionId
+        work_key = self.data.get("workId", "")
+        edition_key = self.data.get("editionId", "")
         keys = [k for k in (work_key, edition_key) if k]
 
         # Do checks and render
